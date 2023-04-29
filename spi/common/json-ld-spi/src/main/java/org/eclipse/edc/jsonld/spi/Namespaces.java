@@ -22,8 +22,9 @@ public interface Namespaces {
     String DCAT_PREFIX = "dcat";
     String DCAT_SCHEMA = "https://www.w3.org/ns/dcat/";
 
+    // ref: https://www.w3.org/ns/odrl.jsonld
     String ODRL_PREFIX = "odrl";
-    String ODRL_SCHEMA = "https://www.w3.org/TR/odrl-model/";
+    String ODRL_SCHEMA = "http://www.w3.org/ns/odrl/2/";
 
     String DCT_PREFIX = "dct";
     String DCT_SCHEMA = "https://purl.org/dc/terms/";

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
 
-@Deprecated(since = "milestone9")
 @JsonDeserialize(builder = PolicyDefinitionUpdateDto.Builder.class)
 public class PolicyDefinitionUpdateDto extends PolicyDefinitionDto {
 

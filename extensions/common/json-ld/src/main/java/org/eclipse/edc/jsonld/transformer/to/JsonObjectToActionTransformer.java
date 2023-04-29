@@ -39,10 +39,11 @@ public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<Jso
     @Override
     public @Nullable Action transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Action.Builder.newInstance();
+        builder.type(nodeId(object));
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
         return builderResult(builder::build, context);
     }
-    
+
     private void transformProperties(String key, JsonValue value, Action.Builder builder, TransformerContext context) {
         if (ODRL_ACTION_TYPE_ATTRIBUTE.equals(key)) {
             transformString(value, builder::type, context);

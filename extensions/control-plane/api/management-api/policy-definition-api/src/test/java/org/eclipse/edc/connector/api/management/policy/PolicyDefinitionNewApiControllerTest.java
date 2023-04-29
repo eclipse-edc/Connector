@@ -15,12 +15,15 @@
 package org.eclipse.edc.connector.api.management.policy;
 
 import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewRequestDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewResponseDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewUpdateWrapperDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -47,20 +50,24 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTestBase {
+class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
 
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final PolicyDefinitionService service = mock(PolicyDefinitionService.class);
+    private final JsonLd jsonLd = mock(JsonLd.class);
 
     @Override
     protected Object controller() {
-        return new PolicyDefinitionNewApiController(monitor, transformerRegistry, service);
+        return new PolicyDefinitionNewApiController(monitor, transformerRegistry, service, jsonLd);
     }
 
     @Test
     void create_shouldReturnDefinitionId() {
+        var dto = PolicyDefinitionRequestDto.Builder.newInstance().build();
         var policyDefinition = createPolicyDefinition().id("policyDefinitionId").createdAt(1234).build();
-        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(policyDefinition));
+        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinitionRequestDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(policyDefinition));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
@@ -79,12 +86,15 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
                 .contentType(JSON)
                 .body("id", is("policyDefinitionId"))
                 .body("createdAt", is(1234));
-        verify(transformerRegistry).transform(isA(PolicyDefinitionNewRequestDto.class), eq(PolicyDefinition.class));
+        verify(jsonLd).expand(isA(JsonObject.class));
+        verify(transformerRegistry).transform(isA(JsonObject.class), eq(PolicyDefinitionRequestDto.class));
+        verify(transformerRegistry).transform(dto, PolicyDefinition.class);
         verify(service).create(policyDefinition);
     }
 
     @Test
     void create_shouldReturnBadRequest_whenTransformationFails() {
+        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
@@ -106,8 +116,11 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
 
     @Test
     void create_shouldReturnConflict_whenItAlreadyExists() {
-        var policyDefinition = createPolicyDefinition().build();
-        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(policyDefinition));
+        var dto = PolicyDefinitionRequestDto.Builder.newInstance().build();
+        var policyDefinition = createPolicyDefinition().id("policyDefinitionId").createdAt(1234).build();
+        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinitionRequestDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
@@ -154,7 +167,10 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
     @Test
     void update_shouldCallService() {
         var policyDefinition = createPolicyDefinition().build();
-        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(policyDefinition));
+        var dto = PolicyDefinitionUpdateDto.Builder.newInstance().build();
+        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinitionUpdateDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(any())).thenReturn(ServiceResult.success(policyDefinition));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
@@ -170,12 +186,15 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
                 .put("/v2/policydefinitions/id")
                 .then()
                 .statusCode(204);
-        verify(transformerRegistry).transform(isA(PolicyDefinitionNewUpdateWrapperDto.class), eq(PolicyDefinition.class));
+        verify(jsonLd).expand(any());
+        verify(transformerRegistry).transform(isA(JsonObject.class), eq(PolicyDefinitionUpdateDto.class));
+        verify(transformerRegistry).transform(isA(PolicyDefinitionUpdateWrapperDto.class), eq(PolicyDefinition.class));
         verify(service).update(policyDefinition);
     }
 
     @Test
     void update_shouldReturnBadRequest_whenTransformationFails() {
+        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
@@ -197,7 +216,10 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
     @Test
     void update_shouldReturnNotFound_whenNotFound() {
         var policyDefinition = createPolicyDefinition().build();
-        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(policyDefinition));
+        var dto = PolicyDefinitionUpdateDto.Builder.newInstance().build();
+        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinitionUpdateDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(any())).thenReturn(ServiceResult.notFound("not found"));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
@@ -218,9 +240,13 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
     @Test
     void get_shouldReturnPolicyDefinition() {
         var policyDefinition = createPolicyDefinition().build();
+        var dto = PolicyDefinitionResponseDto.Builder.newInstance().id("id").createdAt(1234).build();
+        var expandedBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
+        var responseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         when(service.findById(any())).thenReturn(policyDefinition);
-        var responseDto = PolicyDefinitionNewResponseDto.Builder.newInstance().id("id").createdAt(1234).build();
-        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(responseDto));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinitionResponseDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedBody));
+        when(jsonLd.compact(any())).thenReturn(Result.success(responseBody));
 
         given()
                 .port(port)
@@ -231,7 +257,9 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
                 .body("id", is("id"))
                 .body("createdAt", is(1234));
         verify(service).findById("id");
-        verify(transformerRegistry).transform(policyDefinition, PolicyDefinitionNewResponseDto.class);
+        verify(transformerRegistry).transform(policyDefinition, PolicyDefinitionResponseDto.class);
+        verify(transformerRegistry).transform(dto, JsonObject.class);
+        verify(jsonLd).compact(expandedBody);
     }
 
     @Test
@@ -264,10 +292,14 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
     void query_shouldReturnQueriedPolicyDefinitions() {
         var querySpec = QuerySpec.none();
         var policyDefinition = createPolicyDefinition().id("id").build();
-        var responseDto = PolicyDefinitionNewResponseDto.Builder.newInstance().id("id").createdAt(1234).build();
+        var dto = PolicyDefinitionResponseDto.Builder.newInstance().id("id").createdAt(1234).build();
+        var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
+        var responseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionNewResponseDto.class))).thenReturn(Result.success(responseDto));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinitionResponseDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
+        when(jsonLd.compact(any())).thenReturn(Result.success(responseBody));
         var requestBody = Json.createObjectBuilder().build();
 
         given()
@@ -283,7 +315,9 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
                 .body("[0].createdAt", is(1234));
         verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(querySpec);
-        verify(transformerRegistry).transform(policyDefinition, PolicyDefinitionNewResponseDto.class);
+        verify(transformerRegistry).transform(policyDefinition, PolicyDefinitionResponseDto.class);
+        verify(transformerRegistry).transform(dto, JsonObject.class);
+        verify(jsonLd).compact(responseBody);
     }
 
     @Test
@@ -341,7 +375,7 @@ class PolicyDefinitionNewApiControllerIntegrationTest extends RestControllerTest
         var policyDefinition = createPolicyDefinition().id("id").build();
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionNewResponseDto.class))).thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(any(), eq(PolicyDefinitionResponseDto.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
 
         given()

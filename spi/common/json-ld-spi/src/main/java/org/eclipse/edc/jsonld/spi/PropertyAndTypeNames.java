@@ -32,6 +32,11 @@ public interface PropertyAndTypeNames {
     String EDC_ASSET_TYPE = EDC_NAMESPACE + "Asset";
     String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
 
+    String EDC_CREATED_AT = EDC_NAMESPACE + "createdAt";
+
+    String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + "PolicyDefinition";
+    String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
+
     String DCAT_DATA_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "service";
     String DCAT_DATASET_ATTRIBUTE = DCAT_SCHEMA + "dataset";
     String DCAT_DISTRIBUTION_ATTRIBUTE = DCAT_SCHEMA + "distribution";

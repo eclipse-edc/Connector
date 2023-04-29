@@ -33,6 +33,8 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 
 /**
  * Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
@@ -63,6 +65,7 @@ public class JsonLdExtension implements ServiceExtension {
     @Provider
     public JsonLd createJsonLdService(ServiceExtensionContext context) {
         var service = new TitaniumJsonLd(context.getMonitor());
+        service.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
         service.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA);
         service.registerNamespace(DCT_PREFIX, DCT_SCHEMA);
         service.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);

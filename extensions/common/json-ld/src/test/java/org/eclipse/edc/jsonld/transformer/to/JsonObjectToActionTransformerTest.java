@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
@@ -66,6 +67,22 @@ class JsonObjectToActionTransformerTest {
         assertThat(result.getIncludedIn()).isNull();
         assertThat(result.getConstraint()).isNull();
         
+        verifyNoInteractions(context);
+    }
+
+    @Test
+    void transform_onlyId_returnAction() {
+        var action = jsonFactory.createObjectBuilder()
+                .add(ID, "use")
+                .build();
+
+        var result = transformer.transform(action, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo("use");
+        assertThat(result.getIncludedIn()).isNull();
+        assertThat(result.getConstraint()).isNull();
+
         verifyNoInteractions(context);
     }
     

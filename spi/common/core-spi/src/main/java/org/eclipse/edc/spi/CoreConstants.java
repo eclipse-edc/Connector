@@ -16,5 +16,6 @@ package org.eclipse.edc.spi;
 
 public interface CoreConstants {
     //todo: this must be replaced once we have a default EDC schema!
+    String EDC_PREFIX = "edc";
     String EDC_NAMESPACE = "https://foo.bar.org/ds/schema/";
 }

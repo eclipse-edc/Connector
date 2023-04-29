@@ -41,6 +41,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectToAssetTransformerTest {
@@ -134,7 +135,7 @@ class JsonObjectToAssetTransformerTest {
     @Test
     void transform_noEdcContextDecl_shouldUseRawPrefix() {
         var jsonObj = jsonFactory.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().addNull("edc").build())
+                .add(CONTEXT, createContextBuilder().addNull(EDC_PREFIX).build())
                 .add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder()
@@ -168,7 +169,7 @@ class JsonObjectToAssetTransformerTest {
     private JsonObjectBuilder createContextBuilder() {
         return jsonFactory.createObjectBuilder()
                 .add(VOCAB, EDC_NAMESPACE)
-                .add("edc", EDC_NAMESPACE);
+                .add(EDC_PREFIX, EDC_NAMESPACE);
     }
 
     private JsonObject expand(JsonObject jsonObject) {

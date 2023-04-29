@@ -21,12 +21,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewRequestDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewResponseDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
@@ -37,23 +38,23 @@ public interface PolicyDefinitionNewApi {
 
     @Operation(description = "Returns all policy definitions according to a query",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionNewResponseDto.class)))),
+                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<PolicyDefinitionNewResponseDto> queryPolicyDefinitions(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> queryPolicyDefinitions(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The  policy definition",
-                            content = @Content(schema = @Schema(implementation = PolicyDefinitionNewResponseDto.class))),
+                            content = @Content(schema = @Schema(implementation = PolicyDefinitionResponseDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An  policy definition with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    PolicyDefinitionNewResponseDto getPolicyDefinition(String id);
+    JsonObject getPolicyDefinition(String id);
 
     @Operation(description = "Creates a new policy definition",
             responses = {
@@ -64,7 +65,7 @@ public interface PolicyDefinitionNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createPolicyDefinition(@Valid PolicyDefinitionNewRequestDto policyDefinition);
+    IdResponseDto createPolicyDefinition(@Schema(implementation = PolicyDefinitionRequestDto.class) JsonObject policyDefinition);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
             "by a contract definition, in which case an error is returned. " +
@@ -90,5 +91,5 @@ public interface PolicyDefinitionNewApi {
                             content = @Content(schema = @Schema(implementation = ApiErrorDetail.class)))
             }
     )
-    void updatePolicyDefinition(String id, @Valid PolicyDefinitionNewUpdateDto policyDefinition);
+    void updatePolicyDefinition(String id, @Schema(implementation = PolicyDefinitionUpdateDto.class) JsonObject policyDefinition);
 }
