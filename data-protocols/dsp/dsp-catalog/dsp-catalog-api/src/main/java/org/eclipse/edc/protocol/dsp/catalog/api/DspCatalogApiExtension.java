@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Creates and registers the controller for dataspace protocol catalog requests.
@@ -64,7 +64,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        var mapper = typeManager.getMapper(JSON_LD);
         var dspCallbackAddress = apiConfiguration.getDspCallbackAddress();
         var catalogController = new CatalogController(mapper, identityService, transformerRegistry, dspCallbackAddress, service, jsonLdService);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);

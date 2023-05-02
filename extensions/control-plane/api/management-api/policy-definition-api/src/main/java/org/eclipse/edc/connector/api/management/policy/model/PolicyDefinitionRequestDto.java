@@ -21,7 +21,6 @@ import org.eclipse.edc.policy.model.Policy;
 
 import java.util.Objects;
 
-@Deprecated(since = "milestone9")
 @JsonDeserialize(builder = PolicyDefinitionRequestDto.Builder.class)
 public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
 

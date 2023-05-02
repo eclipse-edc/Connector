@@ -40,4 +40,5 @@ public interface WebService {
      * @param resource     a resource
      */
     void registerResource(String contextAlias, Object resource);
+
 }

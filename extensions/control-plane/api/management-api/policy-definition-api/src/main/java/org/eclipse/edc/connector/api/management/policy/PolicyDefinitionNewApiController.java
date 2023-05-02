@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.policy;
 
+import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -25,12 +26,13 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewRequestDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewResponseDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewUpdateDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionNewUpdateWrapperDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -53,21 +55,25 @@ public class PolicyDefinitionNewApiController implements PolicyDefinitionNewApi 
     private final Monitor monitor;
     private final TypeTransformerRegistry transformerRegistry;
     private final PolicyDefinitionService service;
+    private final JsonLd jsonLd;
 
-    public PolicyDefinitionNewApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service) {
+    public PolicyDefinitionNewApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service, JsonLd jsonLd) {
         this.monitor = monitor;
         this.transformerRegistry = transformerRegistry;
         this.service = service;
+        this.jsonLd = jsonLd;
     }
 
     @POST
     @Path("request")
     @Override
-    public List<PolicyDefinitionNewResponseDto> queryPolicyDefinitions(@Valid QuerySpecDto querySpecDto) {
+    public List<JsonObject> queryPolicyDefinitions(@Valid QuerySpecDto querySpecDto) {
         var querySpec = transformerRegistry.transform(querySpecDto, QuerySpec.class).orElseThrow(InvalidRequestException::new);
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
             return stream
-                    .map(policyDefinition -> transformerRegistry.transform(policyDefinition, PolicyDefinitionNewResponseDto.class))
+                    .map(policyDefinition -> transformerRegistry.transform(policyDefinition, PolicyDefinitionResponseDto.class)
+                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)
+                            .compose(jsonLd::compact)))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
                     .collect(toList());
@@ -77,25 +83,29 @@ public class PolicyDefinitionNewApiController implements PolicyDefinitionNewApi 
     @GET
     @Path("{id}")
     @Override
-    public PolicyDefinitionNewResponseDto getPolicyDefinition(@PathParam("id") String id) {
+    public JsonObject getPolicyDefinition(@PathParam("id") String id) {
         var definition = service.findById(id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
         }
 
-        return transformerRegistry.transform(definition, PolicyDefinitionNewResponseDto.class)
+        return transformerRegistry.transform(definition, PolicyDefinitionResponseDto.class)
+                .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+                .compose(jsonLd::compact)
                 .orElseThrow(failure -> new ObjectNotFoundException(PolicyDefinition.class, id));
     }
 
     @POST
     @Override
-    public IdResponseDto createPolicyDefinition(@Valid PolicyDefinitionNewRequestDto policy) {
-        var inputDefinition = transformerRegistry.transform(policy, PolicyDefinition.class)
+    public IdResponseDto createPolicyDefinition(JsonObject request) {
+        var definition = jsonLd.expand(request)
+                .compose(json -> transformerRegistry.transform(json, PolicyDefinitionRequestDto.class))
+                .compose(dto -> transformerRegistry.transform(dto, PolicyDefinition.class))
                 .orElseThrow(InvalidRequestException::new);
 
-        var createdDefinition = service.create(inputDefinition)
+        var createdDefinition = service.create(definition)
                 .onSuccess(d -> monitor.debug(format("Policy Definition created %s", d.getId())))
-                .orElseThrow(exceptionMapper(PolicyDefinition.class, inputDefinition.getId()));
+                .orElseThrow(exceptionMapper(PolicyDefinition.class, definition.getId()));
 
         return IdResponseDto.Builder.newInstance()
                 .id(createdDefinition.getId())
@@ -115,17 +125,19 @@ public class PolicyDefinitionNewApiController implements PolicyDefinitionNewApi 
     @PUT
     @Path("{id}")
     @Override
-    public void updatePolicyDefinition(@PathParam("id") String id, @Valid PolicyDefinitionNewUpdateDto policy) {
-        var wrapperDto = PolicyDefinitionNewUpdateWrapperDto.Builder.newInstance()
-                .policyDefinitionId(id)
-                .updateRequest(policy)
-                .build();
-
-        var policyDefinition = transformerRegistry.transform(wrapperDto, PolicyDefinition.class)
+    public void updatePolicyDefinition(@PathParam("id") String id, JsonObject input) {
+        var policyDefinition = jsonLd.expand(input)
+                .compose(expanded -> transformerRegistry.transform(expanded, PolicyDefinitionUpdateDto.class))
+                .map(dto -> PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
+                        .policyId(id)
+                        .updateRequest(dto)
+                        .build())
+                .compose(wrapper -> transformerRegistry.transform(wrapper, PolicyDefinition.class))
                 .orElseThrow(InvalidRequestException::new);
 
         service.update(policyDefinition)
                 .onSuccess(d -> monitor.debug(format("Policy Definition updated %s", d.getId())))
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
     }
+
 }

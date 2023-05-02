@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Provides an implementation of {@link DspHttpRemoteMessageDispatcher} to support sending dataspace
@@ -68,7 +68,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), jsonLdService);
+        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(JSON_LD), jsonLdService);
     }
 
 }

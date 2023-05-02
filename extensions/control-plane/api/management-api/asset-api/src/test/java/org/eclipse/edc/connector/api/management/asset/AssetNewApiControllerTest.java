@@ -51,6 +51,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -472,7 +473,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     private JsonObjectBuilder createContextBuilder() {
         return Json.createObjectBuilder()
                 .add(VOCAB, EDC_NAMESPACE)
-                .add("edc", EDC_NAMESPACE);
+                .add(EDC_PREFIX, EDC_NAMESPACE);
     }
 
     private RequestSpecification baseRequest() {

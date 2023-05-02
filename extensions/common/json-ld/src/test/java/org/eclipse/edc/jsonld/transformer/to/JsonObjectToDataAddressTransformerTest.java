@@ -33,6 +33,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
@@ -115,7 +116,7 @@ class JsonObjectToDataAddressTransformerTest {
     private JsonObjectBuilder createContextBuilder() {
         return createObjectBuilder()
                 .add(VOCAB, EDC_NAMESPACE)
-                .add("edc", EDC_NAMESPACE);
+                .add(EDC_PREFIX, EDC_NAMESPACE);
     }
 
     private JsonObjectBuilder createPayloadBuilder() {

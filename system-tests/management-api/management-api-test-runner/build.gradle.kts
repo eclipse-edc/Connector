@@ -23,6 +23,8 @@ dependencies {
 
     //useful for generic DTOs etc.
     testImplementation(project(":extensions:common:api:api-core"))
+    testImplementation(project(":spi:control-plane:policy-spi"))
+
     //we need the JacksonJsonLd util class
     testImplementation(project(":extensions:common:json-ld"))
 
@@ -30,6 +32,7 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.jakartaJson)
 
     testCompileOnly(project(":system-tests:management-api:management-api-test-runtime"))
 }

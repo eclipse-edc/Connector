@@ -21,6 +21,7 @@ plugins {
 dependencies {
     api(project(":data-protocols:dsp:dsp-api-configuration"))
     api(project(":data-protocols:dsp:dsp-catalog"))
+    api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-api"))
     api(project(":data-protocols:dsp:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":data-protocols:dsp:dsp-negotiation"))

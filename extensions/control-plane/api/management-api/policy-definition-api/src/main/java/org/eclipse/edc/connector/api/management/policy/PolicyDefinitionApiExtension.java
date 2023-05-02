@@ -14,19 +14,25 @@
 
 package org.eclipse.edc.connector.api.management.policy;
 
+import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
+import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectFromPolicyDefinitionResponseDtoTransformer;
+import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionRequestDtoTransformer;
+import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionUpdateDtoTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionRequestDtoToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionToPolicyDefinitionResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.jersey.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
+
+import java.util.Map;
+
 
 @Extension(value = PolicyDefinitionApiExtension.NAME)
 public class PolicyDefinitionApiExtension implements ServiceExtension {
@@ -46,7 +52,7 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     private PolicyDefinitionService service;
 
     @Inject
-    private TypeManager typeManager;
+    private JsonLd jsonLd;
 
     @Override
     public String name() {
@@ -55,14 +61,16 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
         transformerRegistry.register(new PolicyDefinitionRequestDtoToPolicyDefinitionTransformer());
         transformerRegistry.register(new PolicyDefinitionToPolicyDefinitionResponseDtoTransformer());
         transformerRegistry.register(new PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer());
+        transformerRegistry.register(new JsonObjectToPolicyDefinitionRequestDtoTransformer());
+        transformerRegistry.register(new JsonObjectToPolicyDefinitionUpdateDtoTransformer());
+        transformerRegistry.register(new JsonObjectFromPolicyDefinitionResponseDtoTransformer(jsonBuilderFactory));
 
         var monitor = context.getMonitor();
-        var jsonLdMapper = typeManager.getMapper("json-ld");
-        webService.registerResource(configuration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, service, transformerRegistry));
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionNewApiController(monitor, transformerRegistry, service));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionNewApiController(monitor, transformerRegistry, service, jsonLd));
     }
 }

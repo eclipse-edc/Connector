@@ -21,6 +21,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.CoreConstants;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -33,10 +34,13 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
- * types through the TypeManager context {@link #TYPE_MANAGER_CONTEXT_JSON_LD} and a registry
+ * types through the TypeManager context {@link CoreConstants#JSON_LD} and a registry
  * for {@link JsonLdTransformer}s. The module also offers
  * functions for working with JSON-LD structures.
  */
@@ -45,7 +49,6 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 public class JsonLdExtension implements ServiceExtension {
 
     public static final String NAME = "JSON-LD Extension";
-    public static final String TYPE_MANAGER_CONTEXT_JSON_LD = "json-ld";
 
     @Inject
     private TypeManager typeManager;
@@ -57,12 +60,13 @@ public class JsonLdExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        typeManager.registerContext(TYPE_MANAGER_CONTEXT_JSON_LD, JacksonJsonLd.createObjectMapper());
+        typeManager.registerContext(JSON_LD, JacksonJsonLd.createObjectMapper());
     }
 
     @Provider
     public JsonLd createJsonLdService(ServiceExtensionContext context) {
         var service = new TitaniumJsonLd(context.getMonitor());
+        service.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
         service.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA);
         service.registerNamespace(DCT_PREFIX, DCT_SCHEMA);
         service.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);

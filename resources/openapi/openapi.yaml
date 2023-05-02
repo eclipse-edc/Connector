@@ -130,6 +130,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /assets/request:
     post:
       tags:
@@ -159,6 +160,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /assets/{assetId}:
     put:
       tags:
@@ -196,6 +198,7 @@ paths:
                   $ref: '#/components/schemas/ApiErrorDetail'
         "404":
           description: "Asset could not be updated, because it does not exist."
+      deprecated: true
   /assets/{assetId}/dataaddress:
     put:
       tags:
@@ -237,6 +240,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /assets/{id}:
     get:
       tags:
@@ -277,6 +281,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
     delete:
       tags:
       - Asset
@@ -326,6 +331,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /assets/{id}/address:
     get:
       tags:
@@ -366,6 +372,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /callback/{processId}/deprovision:
     post:
       tags:
@@ -1348,6 +1355,385 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataPlaneInstance'
+  /negotiations/request:
+    post:
+      operationId: initiateNegotiation
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        description: https://w3id.org/dspace/v0.8/ContractRequestMessage
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  example: null
+                example: null
+  /negotiations/{id}:
+    get:
+      operationId: getNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  example: null
+                example: null
+  /negotiations/{id}/agreement:
+    post:
+      operationId: createAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        description: https://w3id.org/dspace/v0.8/ContractAgreementMessage
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/agreement/verification:
+    post:
+      operationId: verifyAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        description: https://w3id.org/dspace/v0.8/ContractAgreementVerificationMessage
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/events:
+    post:
+      operationId: createEvent
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        description: https://w3id.org/dspace/v0.8/ContractNegotiationEventMessage
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/offers:
+    post:
+      operationId: providerOffer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        description: https://w3id.org/dspace/v0.8/ContractOfferMessage
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/request:
+    post:
+      operationId: consumerOffer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        description: https://w3id.org/dspace/v0.8/ContractRequestMessage
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/termination:
+    post:
+      operationId: terminateNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        description: https://w3id.org/dspace/v0.8/ContractNegotiationTerminationMessage
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /policydefinitions:
     get:
       tags:
@@ -2097,6 +2483,280 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/assets:
+    post:
+      tags:
+      - Asset
+      description: Creates a new asset together with a data address
+      operationId: createAsset_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetEntryNewDto'
+      responses:
+        "200":
+          description: Asset was created successfully. Returns the asset Id and created
+            timestamp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "409":
+          description: "Could not create asset, because an asset with that ID already\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/assets/request:
+    post:
+      tags:
+      - Asset
+      description: ' all assets according to a particular query'
+      operationId: requestAssets_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/AssetResponseDto'
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/assets/{assetId}:
+    put:
+      tags:
+      - Asset
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or are ongoing in contract negotiations."
+      operationId: updateAsset_1
+      parameters:
+      - name: assetId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetUpdateRequestDto'
+      responses:
+        "200":
+          description: Asset was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: "Asset could not be updated, because it does not exist."
+  /v2/assets/{assetId}/dataaddress:
+    put:
+      tags:
+      - Asset
+      description: Updates a DataAddress for an asset with the given ID.
+      operationId: updateDataAddress_1
+      parameters:
+      - name: assetId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataAddressDto'
+      responses:
+        "200":
+          description: Asset was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/assets/{id}:
+    get:
+      tags:
+      - Asset
+      description: Gets an asset with the given ID
+      operationId: getAsset_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: The asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResponseDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+    delete:
+      tags:
+      - Asset
+      description: "Removes an asset with the given ID if possible. Deleting an asset\
+        \ is only possible if that asset is not yet referenced by a contract agreement,\
+        \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
+        \ can have unexpected results, especially for contract offers that have been\
+        \ sent out or ongoing or contract negotiations."
+      operationId: removeAsset_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Asset was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "409":
+          description: "The asset cannot be deleted, because it is referenced by a\
+            \ contract agreement"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/assets/{id}/dataaddress:
+    get:
+      tags:
+      - Asset
+      description: Gets a data address of an asset with the given ID
+      operationId: getAssetDataAddress_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: The data address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataAddressDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
   /v2/policydefinitions:
     post:
       tags:
@@ -2107,7 +2767,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionNewRequestDto'
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/PolicyDefinitionRequestDto'
+              example: null
       responses:
         "200":
           description: policy definition was created successfully. Returns the Policy
@@ -2154,7 +2832,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionNewResponseDto'
+                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
         "400":
           description: Request was malformed
           content:
@@ -2185,7 +2863,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionNewResponseDto'
+                $ref: '#/components/schemas/PolicyDefinitionResponseDto'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -2223,7 +2901,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionNewUpdateDto'
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  example: null
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+              additionalProperties:
+                $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
+              example: null
       responses:
         "200":
           description: policy definition was updated successfully. Returns the Policy
@@ -2427,6 +3123,20 @@ components:
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
       example: null
+    AssetEntryNewDto:
+      required:
+      - asset
+      - dataAddress
+      type: object
+      properties:
+        asset:
+          type: object
+          description: A JSON structure in JSON-LD format containing the Asset's properties.
+            Cannot be null.
+          example: null
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressDto'
+      example: null
     AssetResponseDto:
       type: object
       properties:
@@ -2442,6 +3152,18 @@ components:
           additionalProperties:
             type: object
             example: null
+          example: null
+      example: null
+    AssetResponseNewDto:
+      type: object
+      properties:
+        asset:
+          type: object
+          description: A JSON structure in JSON-LD format containing the Asset's properties.
+          example: null
+        createdAt:
+          type: integer
+          format: int64
           example: null
       example: null
     AssetUpdateRequestDto:
@@ -3165,94 +3887,6 @@ components:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
-          example: null
-      example: null
-    PolicyDefinitionNewRequestDto:
-      required:
-      - policy
-      type: object
-      properties:
-        id:
-          type: string
-          example: null
-        policy:
-          type: object
-          properties:
-            empty:
-              type: boolean
-              example: null
-            valueType:
-              type: string
-              example: null
-              enum:
-              - ARRAY
-              - OBJECT
-              - STRING
-              - NUMBER
-              - "TRUE"
-              - "FALSE"
-              - "NULL"
-          additionalProperties:
-            $ref: '#/components/schemas/JsonValue'
-          example: null
-      example: null
-    PolicyDefinitionNewResponseDto:
-      required:
-      - policy
-      type: object
-      properties:
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-        id:
-          type: string
-          example: null
-        policy:
-          type: object
-          properties:
-            empty:
-              type: boolean
-              example: null
-            valueType:
-              type: string
-              example: null
-              enum:
-              - ARRAY
-              - OBJECT
-              - STRING
-              - NUMBER
-              - "TRUE"
-              - "FALSE"
-              - "NULL"
-          additionalProperties:
-            $ref: '#/components/schemas/JsonValue'
-          example: null
-      example: null
-    PolicyDefinitionNewUpdateDto:
-      required:
-      - policy
-      type: object
-      properties:
-        policy:
-          type: object
-          properties:
-            empty:
-              type: boolean
-              example: null
-            valueType:
-              type: string
-              example: null
-              enum:
-              - ARRAY
-              - OBJECT
-              - STRING
-              - NUMBER
-              - "TRUE"
-              - "FALSE"
-              - "NULL"
-          additionalProperties:
-            $ref: '#/components/schemas/JsonValue'
           example: null
       example: null
     PolicyDefinitionRequestDto:
