@@ -32,6 +32,6 @@ class LimitClause implements Clause {
 
     @Override
     public String asString() {
-        return limit != null ? "LIMIT " + limit : "";
+        return limit != null ? CosmosConstants.LIMIT + " " + limit : "";
     }
 }

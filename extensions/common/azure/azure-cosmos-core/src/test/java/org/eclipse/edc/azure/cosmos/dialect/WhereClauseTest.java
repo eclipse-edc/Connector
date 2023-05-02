@@ -80,7 +80,7 @@ class WhereClauseTest {
         assertThat(wc.getParameters()).hasSize(4)
                 .anyMatch(p -> p.getName().equals("@foo0") && p.getValue(String.class).equals("bar1"))
                 .anyMatch(p -> p.getName().equals("@foo1") && p.getValue(String.class).equals("bar2"))
-                .anyMatch(p -> p.getName().equals("@foo0") && p.getValue(String.class).equals("blubb"))
-                .anyMatch(p -> p.getName().equals("@foo1") && p.getValue(String.class).equals("blabb"));
+                .anyMatch(p -> p.getName().equals("@foo0_1") && p.getValue(String.class).equals("blubb"))
+                .anyMatch(p -> p.getName().equals("@foo1_1") && p.getValue(String.class).equals("blabb"));
     }
 }

@@ -34,6 +34,6 @@ class OffsetClause implements Clause {
 
     @Override
     public String asString() {
-        return offset != null ? format("OFFSET %d", offset) : "";
+        return offset != null ? format(CosmosConstants.OFFSET + " %d", offset) : "";
     }
 }

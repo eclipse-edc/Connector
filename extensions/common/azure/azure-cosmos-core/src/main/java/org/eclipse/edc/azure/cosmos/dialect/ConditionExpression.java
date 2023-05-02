@@ -186,6 +186,8 @@ public abstract class ConditionExpression {
                 .replace(".", "_")
                 .replace("[", "")
                 .replace("]", "")
+                .replace("/", "")
+                .replace("//", "")
                 .replaceAll("[0-9]", "");
     }
 
