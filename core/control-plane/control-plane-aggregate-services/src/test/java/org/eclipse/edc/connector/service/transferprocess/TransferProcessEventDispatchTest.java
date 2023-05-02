@@ -10,7 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Masatake Iwasaki (NTT DATA) - fixed failure due to assertion timeout
- *       Lallu Anthoor (SAP) - refactoring
+ *       SAP SE - refactoring
  *
  */
 
@@ -91,9 +91,12 @@ public class TransferProcessEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service, TransferProcessProtocolService protocolService,
-                                                           EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                           StatusCheckerRegistry statusCheckerRegistry, PolicyArchive policyArchive) {
+    void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service,
+                                                           TransferProcessProtocolService protocolService,
+                                                           EventRouter eventRouter,
+                                                           RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                           StatusCheckerRegistry statusCheckerRegistry,
+                                                           PolicyArchive policyArchive) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));

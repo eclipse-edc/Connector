@@ -10,7 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       ZF Friedrichshafen AG - improvements (refactoring of canGenerate method)
- *       Lallu Anthoor (SAP) - refactoring
+ *       SAP SE - refactoring
  *
  */
 

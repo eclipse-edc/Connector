@@ -10,7 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       ZF Friedrichshafen AG - Addition of new tests
- *       Lallu Anthoor (SAP) - refactoring
+ *       SAP SE - refactoring
  *
  */
 

@@ -10,7 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       ZF Friedrichshafen AG - unit tests for canGenerate
- *       Lallu Anthoor (SAP) - refactoring
+ *       SAP SE - refactoring
  *
  */
 

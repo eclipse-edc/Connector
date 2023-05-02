@@ -10,7 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *       Lallu Anthoor (SAP) - refactoring
+ *       SAP SE - refactoring
  *
  */
 

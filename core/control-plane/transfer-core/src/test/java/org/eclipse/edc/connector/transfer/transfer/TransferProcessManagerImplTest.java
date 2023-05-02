@@ -10,7 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *       Lallu Anthoor (SAP) - refactoring
+ *       SAP SE - refactoring
  *
  */
 
@@ -237,6 +237,7 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt()))
                 .thenReturn(List.of(createTransferProcess(INITIAL)))
                 .thenReturn(emptyList());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(null);
 
         manager.start();
 
