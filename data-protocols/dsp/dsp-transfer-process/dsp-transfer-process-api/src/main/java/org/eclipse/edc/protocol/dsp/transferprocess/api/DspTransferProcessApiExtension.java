@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Creates and registers the controller for dataspace protocol transfer process requests.
@@ -56,7 +56,7 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var controller = new DspTransferProcessApiController(monitor, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), registry, transferProcessProtocolService, identityService, config.getDspCallbackAddress(), jsonLdService);
+        var controller = new DspTransferProcessApiController(monitor, typeManager.getMapper(JSON_LD), registry, transferProcessProtocolService, identityService, config.getDspCallbackAddress(), jsonLdService);
 
         webService.registerResource(config.getContextAlias(), controller);
     }

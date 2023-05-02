@@ -29,6 +29,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.eclipse.edc.web.spi.provider.ObjectMapperProvider;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Tells all the Management API controllers under which context alias they need to register their resources: either `default` or `management`
@@ -111,7 +112,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new AuthenticationRequestFilter(authenticationService));
 
-        var jsonLdMapper = typeManager.getMapper("json-ld");
+        var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
     }
 }

@@ -26,7 +26,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.eclipse.edc.web.spi.provider.ObjectMapperProvider;
 
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Provides the configuration for the Dataspace Protocol API context. Creates the API context
@@ -79,7 +79,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS);
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
         
-        var jsonLdMapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
     }
     

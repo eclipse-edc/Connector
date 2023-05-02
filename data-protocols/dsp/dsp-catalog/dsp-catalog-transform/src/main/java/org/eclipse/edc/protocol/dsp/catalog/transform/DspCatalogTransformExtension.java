@@ -26,7 +26,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Provides the transformers for catalog message types via the {@link TypeTransformerRegistry}.
@@ -49,7 +49,7 @@ public class DspCatalogTransformExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var jsonFactory = Json.createBuilderFactory(Map.of());
-        var mapper = typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD);
+        var mapper = typeManager.getMapper(JSON_LD);
 
         registry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, mapper));
         registry.register(new JsonObjectToCatalogRequestMessageTransformer(mapper));

@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
-import static org.eclipse.edc.jsonld.JsonLdExtension.TYPE_MANAGER_CONTEXT_JSON_LD;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Creates and registers the HTTP dispatcher delegate for sending a catalog request as defined in
@@ -54,7 +54,7 @@ public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        messageDispatcher.registerDelegate(new CatalogRequestHttpDelegate(remoteMessageSerializer, typeManager.getMapper(TYPE_MANAGER_CONTEXT_JSON_LD), transformerRegistry, jsonLdService));
+        messageDispatcher.registerDelegate(new CatalogRequestHttpDelegate(remoteMessageSerializer, typeManager.getMapper(JSON_LD), transformerRegistry, jsonLdService));
     }
 
 }
