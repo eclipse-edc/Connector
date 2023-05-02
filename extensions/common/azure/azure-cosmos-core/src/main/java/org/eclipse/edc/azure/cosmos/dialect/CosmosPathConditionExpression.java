@@ -17,9 +17,12 @@ package org.eclipse.edc.azure.cosmos.dialect;
 import org.eclipse.edc.azure.cosmos.CosmosDocument;
 import org.eclipse.edc.spi.query.Criterion;
 
+import static org.eclipse.edc.azure.cosmos.dialect.CosmosConstants.hasIllegalCharacters;
+
 class CosmosPathConditionExpression extends ConditionExpression {
 
     private final String objectPrefix;
+
 
     CosmosPathConditionExpression(Criterion criterion) {
         this(criterion, null);
@@ -44,9 +47,17 @@ class CosmosPathConditionExpression extends ConditionExpression {
     public String toExpressionString() {
         var operandLeft = CosmosDocument.sanitize(getCriterion().getOperandLeft().toString());
         return objectPrefix != null ?
-                String.format(" %s.%s %s %s", objectPrefix, operandLeft, getCriterion().getOperator(), toValuePlaceholder()) :
+                getExpressionWithPrefix(operandLeft) :
                 String.format(" %s %s %s", operandLeft, getCriterion().getOperator(), toValuePlaceholder());
     }
 
+
+    private String getExpressionWithPrefix(String operandLeft) {
+        if (hasIllegalCharacters(operandLeft)) {
+            return String.format(" %s[\"%s\"] %s %s", objectPrefix, operandLeft, getCriterion().getOperator(), toValuePlaceholder());
+        } else {
+            return String.format(" %s.%s %s %s", objectPrefix, operandLeft, getCriterion().getOperator(), toValuePlaceholder());
+        }
+    }
 
 }

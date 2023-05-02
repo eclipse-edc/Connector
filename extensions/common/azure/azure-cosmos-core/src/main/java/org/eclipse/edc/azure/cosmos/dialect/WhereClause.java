@@ -76,6 +76,7 @@ class WhereClause implements Clause {
         return where;
     }
 
+
     private void parse(Criterion criterion) {
         var expr = parser.parse(criterion, objectPrefix);
         var exprResult = expr.isValidExpression();
@@ -83,9 +84,32 @@ class WhereClause implements Clause {
             throw new IllegalArgumentException("Cannot build WHERE clause, reason: " + String.join(", ", exprResult.getFailureMessages()));
         }
 
-        where += where.startsWith("WHERE") ? " AND" : "WHERE"; //if we have a chained WHERE ... AND ... statement
-        parameters.addAll(expr.getParameters());
+        where += where.startsWith(CosmosConstants.WHERE) ? " " + CosmosConstants.AND : CosmosConstants.WHERE; //if we have a chained WHERE ... AND ... statement
+        addParametersWithIndex(expr.getParameters());
         where += expr.toExpressionString();
+
+    }
+
+    /**
+     * add a statement parameter. If a statement parameter with the same name already exists, a number is appended, e.g.:
+     * \@myParam exists, then adding a parameter with the same name would add \@myParam1, then \@myParam2, etc.
+     */
+    private void addParametersWithIndex(List<SqlParameter> newParams) {
+        for (var newParam : newParams) {
+
+            var counter = 0;
+            var name = newParam.getName();
+            var newName = name;
+            for (var existinParam : parameters) {
+                while (existinParam.getName().equals(newName)) {
+                    counter++;
+                    newName = name + "_" + counter;
+                }
+            }
+            newParam.setName(newName);
+            parameters.add(newParam);
+
+        }
     }
 
 }

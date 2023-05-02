@@ -17,6 +17,8 @@ package org.eclipse.edc.azure.cosmos.dialect;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.azure.cosmos.dialect.CosmosConstants.ORDER_BY;
+import static org.eclipse.edc.azure.cosmos.dialect.CosmosConstants.hasIllegalCharacters;
 
 /**
  * Represents in a structural way an ORDER BY clause in an SQL statement.
@@ -52,7 +54,19 @@ class OrderByClause implements Clause {
 
     @Override
     public String asString() {
-        return orderField != null ? format("ORDER BY %s%s %s", getPrefix(), orderField, sortAsc ? "ASC" : "DESC") : "";
+        return orderField != null ? getOrderByExpression() : "";
+    }
+
+    private String getOrderByExpression() {
+
+
+        if (hasIllegalCharacters(orderField)) {
+            var pfx = objectPrefix != null ? objectPrefix : "";
+            return format(ORDER_BY + " %s[\"%s\"] %s", pfx, orderField, sortAsc ? "ASC" : "DESC");
+        } else {
+            var pfx = objectPrefix != null ? objectPrefix + "." : "";
+            return format(ORDER_BY + " %s%s %s", pfx, orderField, sortAsc ? "ASC" : "DESC");
+        }
     }
 
     @NotNull
