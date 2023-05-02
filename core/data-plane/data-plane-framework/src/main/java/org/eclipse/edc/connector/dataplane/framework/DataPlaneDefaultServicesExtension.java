@@ -19,9 +19,11 @@ import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessA
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 @Extension(value = DataPlaneDefaultServicesExtension.NAME)
+@Provides({ TransferProcessApiClient.class, TransferServiceSelectionStrategy.class })
 public class DataPlaneDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Framework Default Services";

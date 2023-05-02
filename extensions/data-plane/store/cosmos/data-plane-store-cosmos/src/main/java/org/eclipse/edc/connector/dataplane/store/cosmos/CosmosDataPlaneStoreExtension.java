@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.dataplane.store.cosmos.model.DataFlowRequestDoc
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -31,6 +32,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import java.time.Clock;
 
 @Extension(value = CosmosDataPlaneStoreExtension.NAME)
+@Provides(DataPlaneStore.class)
 public class CosmosDataPlaneStoreExtension implements ServiceExtension {
 
     public static final String NAME = "CosmosDB Data Plane Store";

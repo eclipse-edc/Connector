@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.security.KeyPairWrapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -41,6 +42,7 @@ import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConf
 import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
 
 @Extension(value = ConsumerPullTransferProxyResolverExtension.NAME)
+@Provides(KeyPairWrapper.class)
 public class ConsumerPullTransferKeyPairExtension implements ServiceExtension {
 
     public static final String NAME = "Consumer Pull Transfer Key Pair";

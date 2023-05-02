@@ -20,10 +20,12 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 @Extension(value = CatalogDefaultServicesExtension.NAME)
+@Provides(DistributionResolver.class)
 public class CatalogDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Catalog Default Services";

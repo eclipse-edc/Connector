@@ -29,11 +29,7 @@ import org.eclipse.edc.policy.engine.ScopeFilter;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
-import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.*;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -54,6 +50,8 @@ import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY
 
 @BaseExtension
 @Extension(value = CoreServicesExtension.NAME)
+@Provides({ Hostname.class, RemoteMessageDispatcherRegistryImpl.class, CommandHandlerRegistry.class, ParticipantAgentService.class, RuleBindingRegistry.class,
+        PolicyEngine.class, EventRouter.class, HealthCheckService.class, TypeTransformerRegistry.class })
 public class CoreServicesExtension implements ServiceExtension {
 
     @Setting

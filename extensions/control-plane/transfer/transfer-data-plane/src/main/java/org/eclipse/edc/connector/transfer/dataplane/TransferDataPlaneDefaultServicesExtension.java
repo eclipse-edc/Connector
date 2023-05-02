@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.transfer.dataplane.security.NoopDataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -25,6 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  * Provides default service implementations for fallback
  * Omitted {@link Extension since this module already contains {@link TransferDataPlaneCoreExtension }}
  */
+@Provides(DataEncrypter.class)
 public class TransferDataPlaneDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Data Plane Default Services";

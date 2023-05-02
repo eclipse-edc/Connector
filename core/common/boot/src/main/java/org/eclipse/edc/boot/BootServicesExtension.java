@@ -18,6 +18,7 @@ import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -27,6 +28,7 @@ import java.time.Clock;
 
 @BaseExtension
 @Extension(value = BootServicesExtension.NAME)
+@Provides({ TypeManager.class, Clock.class, Telemetry.class })
 public class BootServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Boot Services";

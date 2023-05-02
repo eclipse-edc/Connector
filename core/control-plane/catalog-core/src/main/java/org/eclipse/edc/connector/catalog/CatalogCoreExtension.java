@@ -21,10 +21,12 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 @Extension(CatalogCoreExtension.NAME)
+@Provides({ DataServiceRegistry.class, DatasetResolver.class })
 public class CatalogCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Catalog Core";

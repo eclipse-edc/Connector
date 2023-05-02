@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
@@ -45,6 +46,8 @@ import java.util.concurrent.Executors;
  * Provides default service implementations for fallback
  * Omitted {@link Extension} since this module contains the extension {@link CoreServicesExtension}
  */
+@Provides({ TransactionContext.class, DataSourceRegistry.class, ExecutorInstrumentation.class, EventExecutorServiceContainer.class, Vault.class,
+        PrivateKeyResolver.class, CertificateResolver.class, EdcHttpClientImpl.class, OkHttpClient.class, RetryPolicy.class })
 public class CoreDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Core Default Services";

@@ -22,6 +22,7 @@ import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSeriali
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -37,6 +38,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
  * specific message types.
  */
 @Extension(value = DspHttpCoreExtension.NAME)
+@Provides({ DspHttpRemoteMessageDispatcher.class, JsonLdRemoteMessageSerializer.class })
 public class DspHttpCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Core Extension";

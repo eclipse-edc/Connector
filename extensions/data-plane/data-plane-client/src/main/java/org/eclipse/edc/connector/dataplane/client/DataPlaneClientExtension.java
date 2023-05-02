@@ -17,10 +17,7 @@ package org.eclipse.edc.connector.dataplane.client;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.*;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -34,6 +31,7 @@ import java.util.Objects;
  * - Public API: generic endpoint open to other participants of the Dataspace and used to proxy a data request to the actual data source.
  */
 @Extension(value = DataPlaneClientExtension.NAME)
+@Provides(DataPlaneClient.class)
 public class DataPlaneClientExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Client";
 

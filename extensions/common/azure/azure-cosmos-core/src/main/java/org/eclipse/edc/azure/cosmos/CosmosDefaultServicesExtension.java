@@ -16,6 +16,7 @@ package org.eclipse.edc.azure.cosmos;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 /**
@@ -23,6 +24,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
  */
 
 @Extension(value = CosmosDefaultServicesExtension.NAME)
+@Provides(CosmosClientProvider.class)
 public class CosmosDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "CosmosDB Default Services";

@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferPr
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -28,6 +29,7 @@ import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConf
 import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.DPF_SELECTOR_STRATEGY;
 
 @Extension(value = ConsumerPullTransferProxyResolverExtension.NAME)
+@Provides(ConsumerPullTransferProxyResolver.class)
 public class ConsumerPullTransferProxyResolverExtension implements ServiceExtension {
 
     public static final String NAME = "Consumer Pull Transfer Proxy Resolver";

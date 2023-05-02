@@ -18,12 +18,14 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.connector.dataplane.selector.store.InMemoryDataPlaneInstanceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 /**
  * Provides default service implementations for fallback
  * Omitted {@link Extension} since this module contains the extension {@link DataPlaneSelectorExtension}
  */
+@Provides(DataPlaneInstanceStore.class)
 public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Selector Default Services";

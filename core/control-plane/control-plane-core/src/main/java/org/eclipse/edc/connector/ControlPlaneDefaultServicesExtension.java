@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -36,6 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Provides default service implementations for fallback
  */
 @Extension(value = ControlPlaneDefaultServicesExtension.NAME)
+@Provides({ AssetIndex.class, DataAddressResolver.class, ContractNegotiationStore.class, ContractDefinitionStore.class, TransferProcessStore .class, PolicyDefinitionStore.class })
 public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Default Services";

@@ -14,10 +14,7 @@
 
 package org.eclipse.edc.aws.s3;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.*;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -34,6 +31,7 @@ import static java.lang.String.format;
 import static org.eclipse.edc.aws.s3.AwsClientProviderConfiguration.DEFAULT_AWS_ASYNC_CLIENT_THREAD_POOL_SIZE;
 
 @Extension(value = S3CoreExtension.NAME)
+@Provides(AwsClientProvider.class)
 public class S3CoreExtension implements ServiceExtension {
 
     public static final String NAME = "S3";

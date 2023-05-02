@@ -54,6 +54,7 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
@@ -68,6 +69,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.time.Clock;
 
 @Extension(ControlPlaneServicesExtension.NAME)
+@Provides({ AssetService.class, CatalogService.class, CatalogProtocolService.class, ContractAgreementService.class, ContractDefinitionService.class, ContractNegotiationService.class,
+        ContractNegotiationProtocolService.class, PolicyDefinitionService.class, TransferProcessService.class, TransferProcessProtocolService.class })
 public class ControlPlaneServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Services";
@@ -109,7 +112,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Inject
     private TransactionContext transactionContext;
-    
+
     @Inject
     private ContractValidationService contractValidationService;
 
