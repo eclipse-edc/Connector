@@ -36,7 +36,11 @@ import org.eclipse.edc.statemachine.StateProcessorImpl;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.*;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
