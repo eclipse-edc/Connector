@@ -44,23 +44,13 @@ class JsonObjectToTransferStartMessageTransformerTest {
 
     private final String type = "AWS";
 
-    private final String propertyKey = "region";
-
-    private final String propertyValue = "europe";
-
     private TransformerContext context = mock(TransformerContext.class);
 
     private JsonObjectToTransferStartMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        var dataAddress = DataAddress.Builder.newInstance()
-                .type(type)
-                .property(propertyKey, propertyValue)
-                .build();
         transformer = new JsonObjectToTransferStartMessageTransformer();
-
-        when(context.transform(isA(JsonObject.class), eq(DataAddress.class))).thenReturn(dataAddress);
     }
 
     @Test
@@ -89,9 +79,13 @@ class JsonObjectToTransferStartMessageTransformerTest {
                 .add(DSPACE_PROCESSID_TYPE, processId)
                 .add(DSPACE_DATAADDRESS_TYPE, Json.createObjectBuilder()
                         .add("type", "AWS")
-                        .add("region", "europe")
                         .build())
                 .build();
+
+        var dataAddress = DataAddress.Builder.newInstance()
+                .type(type)
+                .build();
+        when(context.transform(isA(JsonObject.class), eq(DataAddress.class))).thenReturn(dataAddress);
 
         var result = transformer.transform(json, context);
 
@@ -100,7 +94,6 @@ class JsonObjectToTransferStartMessageTransformerTest {
         assertThat(result.getProcessId()).isEqualTo(processId);
         assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
         assertThat(result.getDataAddress().getType()).isEqualTo(type);
-        assertThat(result.getDataAddress().getProperty(propertyKey)).isEqualTo(propertyValue);
 
         verify(context, never()).reportProblem(anyString());
     }
