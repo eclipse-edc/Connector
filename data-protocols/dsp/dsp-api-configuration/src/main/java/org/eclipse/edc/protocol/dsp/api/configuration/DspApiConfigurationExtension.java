@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.api.configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -37,17 +38,15 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 @Extension(value = DspApiConfigurationExtension.NAME)
 @Provides({ DspApiConfiguration.class })
 public class DspApiConfigurationExtension implements ServiceExtension {
-    
+
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
-    
     public static final String CONTEXT_ALIAS = "protocol";
-    
     public static final String DEFAULT_DSP_CALLBACK_ADDRESS = "http://localhost:8282/api/v1/dsp";
+    @Setting(value = "The address where the connector is configured to receive callbacks from the DSP API", defaultValue = DEFAULT_DSP_CALLBACK_ADDRESS)
     public static final String DSP_CALLBACK_ADDRESS = "edc.dsp.callback.address";
-    
     public static final int DEFAULT_PROTOCOL_PORT = 8282;
     public static final String DEFAULT_PROTOCOL_API_PATH = "/api/v1/dsp";
-    
+
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey("web.http.protocol")
             .contextAlias(CONTEXT_ALIAS)
@@ -55,7 +54,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
             .defaultPort(DEFAULT_PROTOCOL_PORT)
             .name("Protocol API")
             .build();
-    
+
     @Inject
     private TypeManager typeManager;
 
@@ -67,20 +66,20 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Inject
     private WebServiceConfigurer configurator;
-    
+
     @Override
     public String name() {
         return NAME;
     }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var config = configurator.configure(context, webServer, SETTINGS);
         var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS);
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
-        
+
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
     }
-    
+
 }

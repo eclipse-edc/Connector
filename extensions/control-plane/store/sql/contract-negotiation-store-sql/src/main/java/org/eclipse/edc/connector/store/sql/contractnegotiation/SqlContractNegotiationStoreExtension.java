@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.post
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -33,8 +34,10 @@ import java.time.Clock;
 @Extension(value = "SQL contract negotiation store")
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
-    private static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
     private static final String DEFAULT_DATASOURCE_NAME = "contractnegotiation";
+
+    @Setting(value = "Name of the datasource used to access contract negotiation store", defaultValue = DEFAULT_DATASOURCE_NAME)
+    private static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
