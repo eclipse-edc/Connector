@@ -31,7 +31,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -119,8 +118,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
                 .asset(targetAsset)
-                .consumer(URI.create(consumerIdentity))   //m this must be set to the consumer identity
-                .provider(offer.getProvider())
+                .consumerId(consumerIdentity)   //m this must be set to the consumer identity
+                .providerId(offer.getProviderId())
                 .policy(contractPolicyDef.getPolicy())
                 .contractStart(offer.getContractStart())
                 .contractEnd(offer.getContractEnd())
@@ -143,7 +142,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         var agent = agentService.createFor(token);
         var consumerIdentity = agent.getIdentity();
-        if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerAgentId())) {
+        if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerId())) {
             return Result.failure("Invalid provider credentials");
         }
 
@@ -180,7 +179,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         var agent = agentService.createFor(token);
         var providerIdentity = agent.getIdentity();
-        if (providerIdentity == null || !providerIdentity.equals(agreement.getProviderAgentId())) {
+        if (providerIdentity == null || !providerIdentity.equals(agreement.getProviderId())) {
             return Result.failure("Invalid provider credentials");
         }
 
@@ -201,6 +200,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     private boolean isMandatoryAttributeMissing(ContractOffer offer) {
         // TODO add contractStart and contractEnd check as soon as the Infomodel serializer is used
-        return offer.getProvider() == null || offer.getConsumer() == null;
+        return offer.getProviderId() == null || offer.getConsumerId() == null;
     }
 }

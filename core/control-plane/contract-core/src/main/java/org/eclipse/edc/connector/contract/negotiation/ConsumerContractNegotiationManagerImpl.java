@@ -183,8 +183,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .contractStartDate(lastOffer.getContractStart().toEpochSecond())
                 .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
                 .contractSigningDate(clock.instant().getEpochSecond())
-                .providerAgentId(String.valueOf(lastOffer.getProvider()))
-                .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
+                .providerId(negotiation.getCounterPartyId())
+                .consumerId(participantId)
                 .policy(policy)
                 .assetId(lastOffer.getAsset().getId())
                 .build();

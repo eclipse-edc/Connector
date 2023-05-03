@@ -126,8 +126,8 @@ class MultipartDispatcherIntegrationTest {
     void testSendArtifactRequestMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var asset = Asset.Builder.newInstance().id("1").build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+                .providerId("provider")
+                .consumerId("consumer")
                 .assetId("1")
                 .policy(Policy.Builder.newInstance().build())
                 .contractSigningDate(Instant.now().getEpochSecond())
@@ -201,7 +201,7 @@ class MultipartDispatcherIntegrationTest {
     void testSendContractAgreementMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var policy = Policy.Builder.newInstance().build();
         var contractAgreement = ContractAgreement.Builder.newInstance()
-                .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
+                .id("1:23456").consumerId("consumer").providerId("provider")
                 .policy(policy)
                 .assetId(UUID.randomUUID().toString())
                 .build();
@@ -250,8 +250,8 @@ class MultipartDispatcherIntegrationTest {
     protected ContractOffer contractOffer(String id) {
         return ContractOffer.Builder.newInstance()
                 .id(id)
-                .consumer(URI.create("consumer"))
-                .provider(URI.create("provider"))
+                .consumerId("consumer")
+                .providerId("provider")
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
                 .contractStart(ZonedDateTime.now())

@@ -44,7 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -56,9 +55,7 @@ import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(EdcExtension.class)
 class ContractNegotiationEventDispatchTest {
@@ -118,8 +115,8 @@ class ContractNegotiationEventDispatchTest {
                 .id("contractDefinitionId:" + UUID.randomUUID())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
                 .policy(policy)
-                .consumer(URI.create(CONSUMER))
-                .provider(URI.create(PROVIDER))
+                .consumerId(CONSUMER)
+                .providerId(PROVIDER)
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))
                 .build();

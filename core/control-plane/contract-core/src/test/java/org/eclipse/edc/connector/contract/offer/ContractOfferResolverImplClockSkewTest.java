@@ -32,7 +32,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -43,9 +42,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -86,8 +83,8 @@ class ContractOfferResolverImplClockSkewTest {
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         var query = ContractOfferQuery.builder()
                 .claimToken(ClaimToken.Builder.newInstance().build())
-                .provider(URI.create("urn:connector:edc-provider"))
-                .consumer(URI.create("urn:connector:edc-consumer"))
+                .provider("urn:connector:edc-provider")
+                .consumer("urn:connector:edc-consumer")
                 .build();
         var offers = contractOfferResolver.queryContractOffers(query);
 

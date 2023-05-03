@@ -22,7 +22,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -46,11 +45,11 @@ public class ContractOffer {
     /**
      * The participant who provides the offered data
      */
-    private URI provider;
+    private String providerId;
     /**
      * The participant consuming the offered data
      */
-    private URI consumer;
+    private String consumerId;
     /**
      * Timestamp defining the start time when the offer becomes effective
      */
@@ -81,13 +80,13 @@ public class ContractOffer {
     }
 
     @Nullable
-    public URI getProvider() {
-        return provider;
+    public String getProviderId() {
+        return providerId;
     }
 
     @Nullable
-    public URI getConsumer() {
-        return consumer;
+    public String getConsumerId() {
+        return consumerId;
     }
 
     @Nullable
@@ -124,7 +123,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, asset, providerId, consumerId, offerStart, offerEnd, contractStart, contractEnd);
     }
 
     @Override
@@ -136,8 +135,8 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(provider, that.provider) &&
-                Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(providerId, that.providerId) &&
+                Objects.equals(consumerId, that.consumerId) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
                 Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
@@ -160,13 +159,13 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder provider(URI provider) {
-            contractOffer.provider = provider;
+        public Builder providerId(String providerId) {
+            contractOffer.providerId = providerId;
             return this;
         }
 
-        public Builder consumer(URI consumer) {
-            contractOffer.consumer = consumer;
+        public Builder consumerId(String consumerId) {
+            contractOffer.consumerId = consumerId;
             return this;
         }
 

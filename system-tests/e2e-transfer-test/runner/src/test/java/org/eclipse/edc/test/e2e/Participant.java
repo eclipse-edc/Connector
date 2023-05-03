@@ -57,7 +57,7 @@ public class Participant {
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
     private final URI backendService = URI.create("http://localhost:" + getFreePort());
     private final URI idsEndpoint = URI.create("http://localhost:" + getFreePort());
-    private final URI connectorId = URI.create("urn:connector:" + UUID.randomUUID());
+    private final String connectorId = "urn:connector:" + UUID.randomUUID();
     private final String name;
     private final TypeManager typeManager = new TypeManager();
 
@@ -129,8 +129,8 @@ public class Participant {
     public String negotiateContract(Participant provider, ContractOffer contractOffer) {
         var request = Map.of(
                 "connectorId", "provider",
-                "consumerId", connectorId.toString(),
-                "providerId", provider.connectorId.toString(),
+                "consumerId", connectorId,
+                "providerId", provider.connectorId,
                 "connectorAddress", provider.idsEndpoint() + "/api/v1/ids/data",
                 "protocol", "ids-multipart",
                 "offer", Map.of(
@@ -283,8 +283,8 @@ public class Participant {
 
             assertThat(catalog.getContractOffers())
                     .hasSizeGreaterThan(0)
-                    .allMatch(offer -> connectorId.equals(offer.getConsumer()))
-                    .allMatch(offer -> provider.connectorId.equals(offer.getProvider()));
+                    .allMatch(offer -> connectorId.equals(offer.getConsumerId()))
+                    .allMatch(offer -> provider.connectorId.equals(offer.getProviderId()));
 
             catalogReference.set(catalog);
         });
@@ -307,7 +307,7 @@ public class Participant {
                 put("web.http.management.path", controlPlaneManagement.getPath());
                 put("web.http.control.port", String.valueOf(controlPlaneControl.getPort()));
                 put("web.http.control.path", controlPlaneControl.getPath());
-                put("edc.ids.id", connectorId.toString());
+                put("edc.ids.id", connectorId);
                 put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");

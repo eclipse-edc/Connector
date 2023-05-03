@@ -19,7 +19,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,8 +30,8 @@ public class ContractOfferQuery {
     private final List<Criterion> assetsCriteria = new ArrayList<>();
     private ClaimToken claimToken;
     private Range range = new Range();
-    private URI provider;
-    private URI consumer;
+    private String provider;
+    private String consumer;
 
     private ContractOfferQuery() {
     }
@@ -53,11 +52,11 @@ public class ContractOfferQuery {
         return range;
     }
 
-    public URI getProvider() {
+    public String getProvider() {
         return provider;
     }
 
-    public URI getConsumer() {
+    public String getConsumer() {
         return consumer;
     }
 
@@ -92,12 +91,12 @@ public class ContractOfferQuery {
             return this;
         }
 
-        public Builder provider(URI provider) {
+        public Builder provider(String provider) {
             instance.provider = provider;
             return this;
         }
 
-        public Builder consumer(URI consumer) {
+        public Builder consumer(String consumer) {
             instance.consumer = consumer;
             return this;
         }

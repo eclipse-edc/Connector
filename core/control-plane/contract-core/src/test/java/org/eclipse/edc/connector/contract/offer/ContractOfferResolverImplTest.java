@@ -36,7 +36,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -51,16 +50,8 @@ import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalMatchers.and;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class ContractOfferResolverImplTest {
 
@@ -93,8 +84,8 @@ class ContractOfferResolverImplTest {
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         var query = ContractOfferQuery.builder()
                 .claimToken(ClaimToken.Builder.newInstance().build())
-                .provider(URI.create("urn:connector:edc-provider"))
-                .consumer(URI.create("urn:connector:edc-consumer"))
+                .provider("urn:connector:edc-provider")
+                .consumer("urn:connector:edc-consumer")
                 .build();
 
         var offers = contractOfferResolver.queryContractOffers(query);
@@ -104,8 +95,8 @@ class ContractOfferResolverImplTest {
                 .allSatisfy(contractOffer -> {
                     assertThat(contractOffer.getContractEnd().toInstant())
                             .isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
-                    assertThat(contractOffer.getProvider()).isEqualTo(URI.create("urn:connector:edc-provider"));
-                    assertThat(contractOffer.getConsumer()).isEqualTo(URI.create("urn:connector:edc-consumer"));
+                    assertThat(contractOffer.getProviderId()).isEqualTo("urn:connector:edc-provider");
+                    assertThat(contractOffer.getConsumerId()).isEqualTo("urn:connector:edc-consumer");
                 });
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionResolver).definitionsFor(isA(ParticipantAgent.class));
@@ -296,8 +287,8 @@ class ContractOfferResolverImplTest {
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         var query = ContractOfferQuery.builder()
                 .claimToken(ClaimToken.Builder.newInstance().build())
-                .provider(URI.create("urn:connector:edc-provider"))
-                .consumer(URI.create("urn:connector:edc-consumer"))
+                .provider("urn:connector:edc-provider")
+                .consumer("urn:connector:edc-consumer")
                 .build();
 
         var offers = contractOfferResolver.queryContractOffers(query);

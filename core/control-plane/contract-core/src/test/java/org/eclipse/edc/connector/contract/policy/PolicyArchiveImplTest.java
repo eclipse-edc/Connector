@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.contract.policy;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +26,6 @@ import static org.mockito.Mockito.when;
 class PolicyArchiveImplTest {
 
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
-    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final PolicyArchiveImpl policyArchive = new PolicyArchiveImpl(contractNegotiationStore);
 
     @Test
@@ -53,8 +51,8 @@ class PolicyArchiveImplTest {
     private ContractAgreement createContractAgreement(Policy policyId) {
         return ContractAgreement.Builder.newInstance()
                 .id("any")
-                .consumerAgentId("any")
-                .providerAgentId("any")
+                .consumerId("any")
+                .providerId("any")
                 .assetId("any")
                 .policy(policyId)
                 .build();

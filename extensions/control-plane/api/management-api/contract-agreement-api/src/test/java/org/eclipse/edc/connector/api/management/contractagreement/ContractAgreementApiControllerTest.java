@@ -202,8 +202,8 @@ class ContractAgreementApiControllerTest {
     private ContractAgreement createContractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .consumerAgentId(UUID.randomUUID().toString())
-                .providerAgentId(UUID.randomUUID().toString())
+                .consumerId(UUID.randomUUID().toString())
+                .providerId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();

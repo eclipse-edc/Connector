@@ -148,7 +148,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(message.getProcessId())
-                .counterPartyId(message.getContractOffer().getConsumer().toString())
+                .counterPartyId(message.getContractOffer().getConsumerId())
                 .counterPartyAddress(message.getCallbackAddress())
                 .protocol(message.getProtocol())
                 .traceContext(telemetry.getCurrentTraceContext())

@@ -27,18 +27,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ContractOfferFromIdsContractRequestTransformerTest {
     private static final URI REQUEST_ID = URI.create("urn:contractrequest:456uz984390236s");
@@ -67,7 +65,7 @@ public class ContractOfferFromIdsContractRequestTransformerTest {
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
         idsContractRequest = new de.fraunhofer.iais.eis.ContractRequestBuilder(REQUEST_ID)
                 ._provider_(PROVIDER_URI)
-                ._provider_(CONSUMER_URI)
+                ._consumer_(CONSUMER_URI)
                 ._permission_(new ArrayList<>(Collections.singletonList(idsPermission)))
                 ._prohibition_(new ArrayList<>(Collections.singletonList(idsProhibition)))
                 ._obligation_(new ArrayList<>(Collections.singletonList(idsDuty)))
@@ -76,7 +74,7 @@ public class ContractOfferFromIdsContractRequestTransformerTest {
                 .build();
         idsContractOffer = new de.fraunhofer.iais.eis.ContractOfferBuilder(REQUEST_ID)
                 ._provider_(PROVIDER_URI)
-                ._provider_(CONSUMER_URI)
+                ._consumer_(CONSUMER_URI)
                 ._permission_(new ArrayList<>(Collections.singletonList(idsPermission)))
                 ._prohibition_(new ArrayList<>(Collections.singletonList(idsProhibition)))
                 ._obligation_(new ArrayList<>(Collections.singletonList(idsDuty)))

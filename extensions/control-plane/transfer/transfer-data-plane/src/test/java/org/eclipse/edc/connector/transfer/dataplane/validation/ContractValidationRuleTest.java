@@ -97,8 +97,8 @@ class ContractValidationRuleTest {
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .contractEndDate(endDate.getEpochSecond())
-                .consumerAgentId("consumer-agent-id")
-                .providerAgentId("provider-agent-id")
+                .consumerId("consumer-agent-id")
+                .providerId("provider-agent-id")
                 .build();
     }
 }

@@ -113,8 +113,8 @@ public class DescriptionRequestHandler implements Handler {
 
         var descriptionRequest = DescriptionRequest.Builder.newInstance()
                 .id(idsId)
-                .provider(connectorId.toUri())
-                .consumer(message.getIssuerConnector())
+                .provider(connectorId.toUri().toString())
+                .consumer(message.getIssuerConnector().toString())
                 .claimToken(multipartRequest.getClaimToken())
                 .querySpec(getQuerySpec(message, objectMapper))
                 .build();

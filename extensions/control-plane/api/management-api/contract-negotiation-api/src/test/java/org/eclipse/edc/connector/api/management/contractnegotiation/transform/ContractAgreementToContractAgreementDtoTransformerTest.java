@@ -38,8 +38,8 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
         var policy = Policy.Builder.newInstance().build();
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("agreementId")
-                .consumerAgentId("consumerAgentId")
-                .providerAgentId("providerAgentId")
+                .consumerId("consumerAgentId")
+                .providerId("providerAgentId")
                 .assetId("assetId")
                 .policy(policy)
                 .contractStartDate(1)

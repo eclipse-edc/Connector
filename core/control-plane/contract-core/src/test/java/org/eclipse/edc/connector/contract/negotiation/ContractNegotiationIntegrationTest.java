@@ -19,11 +19,7 @@ import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableI
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.*;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -53,7 +49,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
-import java.net.URI;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -65,17 +60,13 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ComponentTest
 class ContractNegotiationIntegrationTest {
+    private static final String CONSUMER_ID = "consumer";
+    private static final String PROVIDER_ID = "provider";
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
@@ -102,6 +93,7 @@ class ContractNegotiationIntegrationTest {
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(PROVIDER_ID)
                 .dispatcherRegistry(providerDispatcherRegistry)
                 .monitor(monitor)
                 .waitStrategy(() -> 1000)
@@ -113,6 +105,7 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(CONSUMER_ID)
                 .dispatcherRegistry(consumerDispatcherRegistry)
                 .monitor(monitor)
                 .waitStrategy(() -> 1000)
@@ -149,7 +142,7 @@ class ContractNegotiationIntegrationTest {
 
         // Create an initial request and trigger consumer manager
         var requestData = ContractRequestData.Builder.newInstance()
-                .connectorId("connectorId")
+                .connectorId(PROVIDER_ID)
                 .callbackAddress("callbackAddress")
                 .contractOffer(offer)
                 .protocol("ids-multipart")
@@ -335,8 +328,8 @@ class ContractNegotiationIntegrationTest {
                 .id(ContractId.createContractId("1"))
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
+                .providerId("provider")
+                .consumerId("consumer")
                 .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance()
                         .type(PolicyType.CONTRACT)

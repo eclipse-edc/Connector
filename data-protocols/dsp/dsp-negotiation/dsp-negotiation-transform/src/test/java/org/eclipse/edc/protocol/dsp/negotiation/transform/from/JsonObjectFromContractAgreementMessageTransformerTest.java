@@ -106,8 +106,8 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     private ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id(String.valueOf(UUID.randomUUID()))
-                .providerAgentId("agentId")
-                .consumerAgentId("agentId")
+                .providerId("agentId")
+                .consumerId("agentId")
                 .assetId("assetId")
                 .policy(policy()).build();
     }

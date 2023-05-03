@@ -80,6 +80,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
+    private static final String PARTICIPANT_ID = "participantId";
 
     private static final int RETRY_LIMIT = 1;
 
@@ -100,6 +101,7 @@ class ConsumerContractNegotiationManagerImplTest {
         observable.registerListener(listener);
 
         negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(PARTICIPANT_ID)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .commandQueue(queue)

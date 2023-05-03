@@ -253,8 +253,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                     // insert agreement
                     var sql = statements.getInsertAgreementTemplate();
                     executeQuery(connection, sql, contractAgreement.getId(),
-                            contractAgreement.getProviderAgentId(),
-                            contractAgreement.getConsumerAgentId(),
+                            contractAgreement.getProviderId(),
+                            contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
@@ -264,8 +264,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 } else {
                     // update agreement
                     var query = statements.getUpdateAgreementTemplate();
-                    executeQuery(connection, query, contractAgreement.getProviderAgentId(),
-                            contractAgreement.getConsumerAgentId(),
+                    executeQuery(connection, query, contractAgreement.getProviderId(),
+                            contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
@@ -293,8 +293,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     private ContractAgreement mapContractAgreement(ResultSet resultSet) throws SQLException {
         return ContractAgreement.Builder.newInstance()
                 .id(resultSet.getString(statements.getContractAgreementIdColumn()))
-                .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
-                .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
+                .providerId(resultSet.getString(statements.getProviderAgentColumn()))
+                .consumerId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
                 }))
