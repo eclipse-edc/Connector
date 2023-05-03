@@ -27,6 +27,8 @@ dependencies {
     api(project(":spi:control-plane:transfer-data-plane-spi"))
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:control-plane:asset-spi"))
+
 }
 
 

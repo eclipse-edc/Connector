@@ -15,14 +15,14 @@
 package org.eclipse.edc.connector.service.asset;
 
 import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.connector.asset.spi.event.AssetCreated;
+import org.eclipse.edc.connector.asset.spi.event.AssetDeleted;
+import org.eclipse.edc.connector.asset.spi.event.AssetEvent;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
-import org.eclipse.edc.spi.event.asset.AssetCreated;
-import org.eclipse.edc.spi.event.asset.AssetDeleted;
-import org.eclipse.edc.spi.event.asset.AssetEvent;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;

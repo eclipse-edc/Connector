@@ -210,6 +210,7 @@ include(":spi:common:transaction-spi")
 include(":spi:common:transform-spi")
 include(":spi:common:web-spi")
 
+include(":spi:control-plane:asset-spi")
 include(":spi:control-plane:contract-spi")
 include(":spi:control-plane:control-plane-spi")
 include(":spi:control-plane:transfer-data-plane-spi")
