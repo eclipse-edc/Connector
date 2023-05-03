@@ -25,7 +25,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ContractDefinitionCreateDtoTest {
+class ContractDefinitionRequestDtoTest {
 
     private ObjectMapper objectMapper;
 
@@ -37,7 +37,7 @@ class ContractDefinitionCreateDtoTest {
     @Test
     void verifySerialization() throws JsonProcessingException {
         var criterion = CriterionDto.Builder.newInstance().operandLeft("name").operator("beginsWith").operandRight("test").build();
-        var dto = ContractDefinitionCreateDto.Builder.newInstance()
+        var dto = ContractDefinitionRequestDto.Builder.newInstance()
                 .contractPolicyId("test-contract-policyid")
                 .accessPolicyId("test-access-policyid")
                 .id("test-id")
@@ -48,7 +48,7 @@ class ContractDefinitionCreateDtoTest {
 
         assertThat(str).isNotNull();
 
-        var deserialized = objectMapper.readValue(str, ContractDefinitionCreateDto.class);
+        var deserialized = objectMapper.readValue(str, ContractDefinitionRequestDto.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(dto);
     }
 }

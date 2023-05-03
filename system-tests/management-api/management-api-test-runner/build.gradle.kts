@@ -33,6 +33,8 @@ dependencies {
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.jakartaJson)
+    // used for the constants
+    testImplementation(project(":extensions:control-plane:api:management-api:contract-definition-api"))
 
     testCompileOnly(project(":system-tests:management-api:management-api-test-runtime"))
 }

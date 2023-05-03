@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
@@ -32,8 +33,7 @@ import java.util.List;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Definition")
-@Deprecated(since = "milestone9")
-public interface ContractDefinitionApi {
+public interface ContractDefinitionNewApi {
 
     @Operation(description = "Returns all contract definitions according to a query",
             responses = {
@@ -41,21 +41,9 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
-    List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid QuerySpecDto querySpecDto);
-
-    @Operation(description = "Returns all contract definitions according to a query",
-            responses = {
-                    @ApiResponse(responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionResponseDto.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
-    )
-    @Deprecated(since = "milestone9")
-    List<ContractDefinitionResponseDto> queryAllContractDefinitions(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> queryAllContractDefinitions(@Valid QuerySpecDto query);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {
@@ -65,10 +53,9 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
-    ContractDefinitionResponseDto getContractDefinition(String id);
+    JsonObject getContractDefinition(String id);
 
     @Operation(description = "Creates a new contract definition",
             responses = {
@@ -77,10 +64,9 @@ public interface ContractDefinitionApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }, deprecated = true
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    @Deprecated(since = "milestone9")
-    IdResponseDto createContractDefinition(@Valid ContractDefinitionRequestDto dto);
+    IdResponseDto createContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject createObject);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
@@ -90,20 +76,19 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract definition with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
     void deleteContractDefinition(String id);
 
-    @Operation(description = "Updated a contract definition with the given ID",
+    @Operation(description = "Updated a contract definition with the given ID. The supplied JSON structure must be a valid JSON-LD object",
             responses = {
                     @ApiResponse(responseCode = "204", description = "Contract definition was updated successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract definition with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
-    void updateContractDefinition(String contractDefinitionId, @Valid ContractDefinitionRequestDto contractDefinition);
+    void updateContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject updateObject);
+
 }

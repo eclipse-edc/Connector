@@ -19,9 +19,8 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -276,8 +275,8 @@ class ContractDefinitionApiControllerIntegrationTest {
         assertThat(store.findAll(QuerySpec.max())).hasSize(0);
     }
 
-    private ContractDefinitionCreateDto createDto(String definitionId) {
-        return ContractDefinitionCreateDto.Builder.newInstance()
+    private ContractDefinitionRequestDto createDto(String definitionId) {
+        return ContractDefinitionRequestDto.Builder.newInstance()
                 .id(definitionId)
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
@@ -285,8 +284,8 @@ class ContractDefinitionApiControllerIntegrationTest {
                 .build();
     }
 
-    private ContractDefinitionUpdateDto updateDto() {
-        return ContractDefinitionUpdateDto.Builder.newInstance()
+    private ContractDefinitionRequestDto updateDto() {
+        return ContractDefinitionRequestDto.Builder.newInstance()
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("updatedLeft").operator("=").operandRight("updatedRight").build()))

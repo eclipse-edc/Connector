@@ -14,15 +14,23 @@
 
 package org.eclipse.edc.api;
 
+import jakarta.json.Json;
 import org.eclipse.edc.api.transformer.CallbackAddressDtoToCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.CriterionDtoToCriterionTransformer;
 import org.eclipse.edc.api.transformer.CriterionToCriterionDtoTransformer;
+import org.eclipse.edc.api.transformer.JsonObjectFromCriterionDtoTransformer;
+import org.eclipse.edc.api.transformer.JsonObjectToCriterionDtoTransformer;
 import org.eclipse.edc.api.transformer.QuerySpecDtoToQuerySpecTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+
+import java.util.Map;
+
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = ApiCoreExtension.NAME)
 public class ApiCoreExtension implements ServiceExtension {
@@ -31,6 +39,9 @@ public class ApiCoreExtension implements ServiceExtension {
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
+
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public String name() {
@@ -43,5 +54,9 @@ public class ApiCoreExtension implements ServiceExtension {
         transformerRegistry.register(new CriterionToCriterionDtoTransformer());
         transformerRegistry.register(new CriterionDtoToCriterionTransformer());
         transformerRegistry.register(new CallbackAddressDtoToCallbackAddressTransformer());
+        var mapper = typeManager.getMapper(JSON_LD);
+        var jsonFactory = Json.createBuilderFactory(Map.of());
+        transformerRegistry.register(new JsonObjectFromCriterionDtoTransformer(jsonFactory, mapper));
+        transformerRegistry.register(new JsonObjectToCriterionDtoTransformer());
     }
 }
