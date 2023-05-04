@@ -18,14 +18,14 @@ package org.eclipse.edc.connector.api.management.contractdefinition.model;
 import java.util.Objects;
 
 /**
- * Simple DTO wrapper that contains the updating values from the Request {@link ContractDefinitionUpdateDto} and the id
+ * Simple DTO wrapper that contains the updating values from the Request {@link ContractDefinitionRequestDto} and the id
  * of the Contract Definition to update.
  * It will be used in the {@link org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer} for
  * building the {@link org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition} to update.
  */
 public class ContractDefinitionUpdateDtoWrapper {
 
-    private ContractDefinitionUpdateDto contractDefinition;
+    private ContractDefinitionRequestDto contractDefinition;
     private String id;
 
     private ContractDefinitionUpdateDtoWrapper() {
@@ -35,7 +35,7 @@ public class ContractDefinitionUpdateDtoWrapper {
         return id;
     }
 
-    public ContractDefinitionUpdateDto getContractDefinition() {
+    public ContractDefinitionRequestDto getContractDefinition() {
         return contractDefinition;
     }
 
@@ -56,7 +56,7 @@ public class ContractDefinitionUpdateDtoWrapper {
             return this;
         }
 
-        public Builder contractDefinition(ContractDefinitionUpdateDto contractDefinition) {
+        public Builder contractDefinition(ContractDefinitionRequestDto contractDefinition) {
             wrapper.contractDefinition = contractDefinition;
             return this;
         }

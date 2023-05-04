@@ -27,9 +27,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDtoWrapper;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
@@ -92,7 +91,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @POST
     @Override
-    public IdResponseDto createContractDefinition(@Valid ContractDefinitionCreateDto dto) {
+    public IdResponseDto createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
         monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
@@ -111,10 +110,19 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     }
 
+    @DELETE
+    @Path("{id}")
+    @Override
+    public void deleteContractDefinition(@PathParam("id") String id) {
+        monitor.debug(format("Attempting to delete contract definition with id %s", id));
+        var result = service.delete(id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
+        monitor.debug(format("Contract definition deleted %s", result.getId()));
+    }
+
     @PUT
     @Path("{contractDefinitionId}")
     @Override
-    public void updateContractDefinition(@PathParam("contractDefinitionId") String contractDefinitionId, @Valid ContractDefinitionUpdateDto contractDefinition) {
+    public void updateContractDefinition(@PathParam("contractDefinitionId") String contractDefinitionId, @Valid ContractDefinitionRequestDto contractDefinition) {
         var contractDefinitionWrapper = ContractDefinitionUpdateDtoWrapper.Builder
                 .newInstance()
                 .id(contractDefinitionId)
@@ -128,15 +136,6 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         }
         service.update(contractDefinitionResult.getContent())
                 .orElseThrow(exceptionMapper(ContractDefinition.class, contractDefinitionId));
-    }
-
-    @DELETE
-    @Path("{id}")
-    @Override
-    public void deleteContractDefinition(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to delete contract definition with id %s", id));
-        var result = service.delete(id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
-        monitor.debug(format("Contract definition deleted %s", result.getId()));
     }
 
     @NotNull

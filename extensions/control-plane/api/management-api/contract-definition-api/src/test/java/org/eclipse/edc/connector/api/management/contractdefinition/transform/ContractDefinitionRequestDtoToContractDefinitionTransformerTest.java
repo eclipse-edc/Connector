@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.contractdefinition.transform;
 
 import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionCreateDto;
+import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
         var context = mock(TransformerContext.class);
         when(context.transform(isA(CriterionDto.class), eq(Criterion.class))).thenReturn(new Criterion("left", "=", "right"));
 
-        var contractDefinitionDto = ContractDefinitionCreateDto.Builder.newInstance()
+        var contractDefinitionDto = ContractDefinitionRequestDto.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())

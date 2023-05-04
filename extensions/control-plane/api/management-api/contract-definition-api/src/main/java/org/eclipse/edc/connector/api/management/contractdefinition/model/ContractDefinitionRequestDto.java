@@ -14,22 +14,34 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.api.model.CriterionDto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public abstract class ContractDefinitionRequestDto {
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
+public class ContractDefinitionRequestDto {
+
+    // constants for JSON-LD transformation
+    public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + "ContractDefinition";
+    public static final String CONTRACT_DEFINITION_ACCESSPOLICY_ID = EDC_NAMESPACE + "accessPolicyId";
+    public static final String CONTRACT_DEFINITION_CONTRACTPOLICY_ID = EDC_NAMESPACE + "contractPolicyId";
+    public static final String CONTRACT_DEFINITION_VALIDITY = EDC_NAMESPACE + "validity";
+    public static final String CONTRACT_DEFINITION_CRITERIA = EDC_NAMESPACE + "criteria";
     /**
      * Default validity is set to one year.
      */
     private static final long DEFAULT_VALIDITY = TimeUnit.DAYS.toSeconds(365);
-
     @NotNull(message = "accessPolicyId cannot be null")
     protected String accessPolicyId;
     @NotNull(message = "contractPolicyId cannot be null")
@@ -40,6 +52,11 @@ public abstract class ContractDefinitionRequestDto {
     @Positive(message = "validity must be positive")
     protected long validity = DEFAULT_VALIDITY;
 
+    //this cannot be non-null, because that would break backwards compatibility with the old API
+    protected String id;
+
+    protected ContractDefinitionRequestDto() {
+    }
 
     public String getAccessPolicyId() {
         return accessPolicyId;
@@ -57,37 +74,63 @@ public abstract class ContractDefinitionRequestDto {
         return validity;
     }
 
-    protected abstract static class Builder<A extends ContractDefinitionRequestDto, B extends Builder<A, B>> {
-        protected final A dto;
+    @AssertTrue(message = "id must be either be null or not blank, and it cannot contain the ':' character")
+    @JsonIgnore
+    public boolean isIdValid() {
+        return Optional.of(this)
+                .map(it -> it.id)
+                .map(it -> !it.isBlank() && !it.contains(":"))
+                .orElse(true);
+    }
 
-        protected Builder(A dto) {
-            this.dto = dto;
+
+    public String getId() {
+        return id;
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder {
+        protected final ContractDefinitionRequestDto dto;
+
+        protected Builder() {
+            this.dto = new ContractDefinitionRequestDto();
         }
 
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
 
-        public B accessPolicyId(String accessPolicyId) {
+        public Builder accessPolicyId(String accessPolicyId) {
             dto.accessPolicyId = accessPolicyId;
             return self();
         }
 
-        public B contractPolicyId(String contractPolicyId) {
+        public Builder contractPolicyId(String contractPolicyId) {
             dto.contractPolicyId = contractPolicyId;
             return self();
         }
 
-        public B criteria(List<CriterionDto> criteria) {
+        public Builder criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
             return self();
         }
 
-        public B validity(long validity) {
+        public Builder validity(long validity) {
             dto.validity = validity;
             return self();
         }
 
-        public abstract B self();
+        public Builder id(String id) {
+            dto.id = id;
+            return self();
+        }
 
-        public A build() {
+        public Builder self() {
+            return this;
+        }
+
+        public ContractDefinitionRequestDto build() {
             return dto;
         }
 

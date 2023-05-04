@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:aggregate-service-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:common:web-spi"))
+    api(project(":spi:common:json-ld-spi"))
 
     implementation(project(":core:common:util"))
     implementation(libs.jakarta.rsApi)
@@ -31,6 +32,7 @@ dependencies {
     testImplementation(libs.jersey.server)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:common:json-ld"))
 }
 
 
