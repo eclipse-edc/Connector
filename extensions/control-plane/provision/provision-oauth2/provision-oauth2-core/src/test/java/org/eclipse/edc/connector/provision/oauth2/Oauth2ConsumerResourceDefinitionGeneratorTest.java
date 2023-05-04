@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       ZF Friedrichshafen AG - unit tests for canGenerate
+ *       SAP SE - refactoring
  *
  */
 
@@ -58,21 +59,6 @@ class Oauth2ConsumerResourceDefinitionGeneratorTest extends AbstractOauth2DataAd
     @Test
     void generate_noDataRequestAsParameter() {
         assertThatNullPointerException().isThrownBy(() -> generator.generate(null, simplePolicy()));
-    }
-
-    @Test
-    void generate_noPolicyAsParameter() {
-        var dataAddress = HttpDataAddress.Builder.newInstance()
-                .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
-                .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "aSecret")
-                .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
-                .build();
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .dataDestination(dataAddress)
-                .build();
-
-        assertThatNullPointerException().isThrownBy(() -> generator.generate(dataRequest, null));
     }
 
     @Override

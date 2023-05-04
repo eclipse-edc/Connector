@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       ZF Friedrichshafen AG - Addition of new tests
+ *       SAP SE - refactoring
  *
  */
 
@@ -63,19 +64,6 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
     }
 
     @Test
-    void generate_noPolicyAsParameter() {
-        var destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
-                .property(AzureBlobStoreSchema.CONTAINER_NAME, "test-container")
-                .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
-                .build();
-        var asset = Asset.Builder.newInstance().build();
-        var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
-
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dr, null));
-    }
-
-
-    @Test
     void generate_withoutContainerName() {
         var destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
@@ -92,7 +80,6 @@ class ObjectStorageConsumerResourceDefinitionGeneratorTest {
         assertThat(objectDef.getContainerName()).satisfies(UUID::fromString);
         assertThat(objectDef.getId()).satisfies(UUID::fromString);
     }
-
 
     @Test
     void canGenerate() {
