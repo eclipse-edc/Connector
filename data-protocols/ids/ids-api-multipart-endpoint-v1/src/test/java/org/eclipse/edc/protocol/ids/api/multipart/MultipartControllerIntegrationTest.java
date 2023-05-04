@@ -265,6 +265,8 @@ class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
+                .consumerId("consumer")
+                .providerId("provider")
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
@@ -527,6 +529,8 @@ class MultipartControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .asset(asset)
                 .policy(createEverythingAllowedPolicy())
+                .consumerId("consumer")
+                .providerId("provider")
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();

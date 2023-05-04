@@ -31,8 +31,10 @@ import org.eclipse.edc.test.system.utils.TransferConfiguration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PARTICIPANT_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONTRACT_VALIDITY;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PARTICIPANT_ID;
 
 public class BlobTransferConfiguration implements TransferConfiguration {
 
@@ -78,8 +80,8 @@ public class BlobTransferConfiguration implements TransferConfiguration {
 
         return NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("consumer")
-                .consumerId("urn:connector:consumer")
-                .providerId("urn:connector:provider")
+                .consumerId(CONSUMER_PARTICIPANT_ID)
+                .providerId(PROVIDER_PARTICIPANT_ID)
                 .connectorAddress(providerIdsUrl)
                 .protocol("ids-multipart")
                 .offer(offerDescription)

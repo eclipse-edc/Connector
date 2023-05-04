@@ -8,3 +8,4 @@ edc:
     # Use /etc/hosts as a copy source as it is a well-known file
     EDC_TEST_ASSET_PATH: /etc/hosts
     EDC_IDS_ID: "urn:connector:provider"
+    EDC_PARTICIPANT_ID: "urn:connector:provider"

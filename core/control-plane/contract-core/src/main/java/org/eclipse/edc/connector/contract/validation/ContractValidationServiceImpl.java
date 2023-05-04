@@ -118,7 +118,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
                 .asset(targetAsset)
-                .consumerId(consumerIdentity)   //m this must be set to the consumer identity
+                .consumerId(consumerIdentity)   // this must be set to the consumer identity
                 .providerId(offer.getProviderId())
                 .policy(contractPolicyDef.getPolicy())
                 .contractStart(offer.getContractStart())

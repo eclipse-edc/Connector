@@ -23,12 +23,14 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.tempDirectory;
+import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PARTICIPANT_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.IDS_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PATH;
@@ -37,6 +39,7 @@ import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PRO
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PARTICIPANT_ID;
 
 /**
  * Class providing a consumer and provider EdcRuntimeExtension used to test a file transfer.
@@ -58,6 +61,7 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT),
                     "web.http.ids.path", IDS_PATH,
                     "edc.ids.id", "urn:connector:provider",
+                    PARTICIPANT_ID, PROVIDER_PARTICIPANT_ID,
                     "ids.webhook.address", PROVIDER_IDS_API));
     @RegisterExtension
     protected static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
@@ -71,6 +75,7 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT),
                     "web.http.ids.path", IDS_PATH,
                     "edc.ids.id", "urn:connector:consumer",
+                    PARTICIPANT_ID, CONSUMER_PARTICIPANT_ID,
                     "ids.webhook.address", CONSUMER_IDS_API));
 
 

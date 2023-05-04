@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.spi.system;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -26,6 +27,11 @@ import java.time.Clock;
  */
 public interface ServiceExtensionContext extends SettingResolver {
 
+    @Setting(value = "Configures the participant id this runtime is operating on behalf of")
+    String PARTICIPANT_ID = "edc.participant.id";
+
+    String ANONYMOUS_PARTICIPANT = "anonymous";
+
     /**
      * Freeze the context. It should mark the ServiceExtensionContext as read-only, preventing the registration
      * of new services after the initialization phase
@@ -33,6 +39,13 @@ public interface ServiceExtensionContext extends SettingResolver {
     default void freeze() {
 
     }
+
+    /**
+     * Returns the id of the participant this runtime operates on behalf of. If not configured {@link #ANONYMOUS_PARTICIPANT} is used.
+     *
+     * @return the participant id.
+     */
+    String getParticipantId();
 
     /**
      * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random

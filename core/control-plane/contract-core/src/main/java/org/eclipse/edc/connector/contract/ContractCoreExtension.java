@@ -81,9 +81,6 @@ public class ContractCoreExtension implements ServiceExtension {
     public static final int DEFAULT_SEND_RETRY_LIMIT = 7;
     public static final long DEFAULT_SEND_RETRY_BASE_DELAY = 1000L;
 
-    @Setting(value = "the id of the participant the connector is running on behalf of. Default value is the connector id")
-    private static final String PARTICIPANT_ID = "edc.participant.id";
-
     @Setting(value = "the iteration wait time in milliseconds in the negotiation state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
     private static final String NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.negotiation.state-machine.iteration-wait-millis";
 
@@ -199,7 +196,7 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ContractNegotiationObservable.class, observable);
         context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
 
-        var participantId = context.getSetting(PARTICIPANT_ID, context.getConnectorId());
+        var participantId = context.getParticipantId();
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(participantId)
