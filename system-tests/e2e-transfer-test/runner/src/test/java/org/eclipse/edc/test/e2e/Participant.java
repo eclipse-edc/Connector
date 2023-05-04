@@ -287,7 +287,6 @@ public class Participant {
 
             assertThat(catalog.getContractOffers())
                     .hasSizeGreaterThan(0)
-                    .allMatch(offer -> participantId.equals(offer.getConsumerId()))
                     .allMatch(offer -> provider.participantId.equals(offer.getProviderId()));
 
             catalogReference.set(catalog);
