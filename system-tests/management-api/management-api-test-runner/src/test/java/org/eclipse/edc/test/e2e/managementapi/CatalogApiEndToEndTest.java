@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import jakarta.json.Json;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -23,16 +24,16 @@ import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_RIGHT;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_TYPE;
+import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_FILTER_EXPRESSION;
+import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_PROVIDER_URL;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_QUERY_SPEC;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_QUERY_SPEC_FILTER_EXPRESSION;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_QUERY_SPEC_TYPE;
 import static org.hamcrest.Matchers.is;
 
-//@EndToEndTest
+@EndToEndTest
 public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     // requests the catalog to itself, to save another connector.

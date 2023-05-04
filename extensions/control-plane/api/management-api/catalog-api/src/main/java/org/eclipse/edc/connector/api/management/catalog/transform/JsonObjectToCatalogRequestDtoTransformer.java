@@ -22,9 +22,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_PROVIDER_URL;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_QUERY_SPEC;
 
 public class JsonObjectToCatalogRequestDtoTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequestDto> {
 

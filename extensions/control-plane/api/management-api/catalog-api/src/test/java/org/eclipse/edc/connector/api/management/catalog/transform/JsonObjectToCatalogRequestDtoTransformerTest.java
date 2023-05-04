@@ -22,11 +22,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_PROVIDER_URL;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_QUERY_SPEC;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CATALOG_REQUEST_TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;

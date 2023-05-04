@@ -19,8 +19,14 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.query.QuerySpec;
 
 import static java.util.Objects.requireNonNull;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class CatalogRequest {
+
+    public static final String EDC_CATALOG_REQUEST_TYPE = EDC_NAMESPACE + "CatalogRequest";
+    public static final String EDC_CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String EDC_CATALOG_REQUEST_PROVIDER_URL = EDC_NAMESPACE + "providerUrl";
+    public static final String EDC_CATALOG_REQUEST_QUERY_SPEC = EDC_NAMESPACE + "querySpec";
 
     private QuerySpec querySpec;
     private String providerUrl;

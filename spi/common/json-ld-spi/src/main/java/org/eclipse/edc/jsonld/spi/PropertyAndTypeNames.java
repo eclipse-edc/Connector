@@ -34,18 +34,6 @@ public interface PropertyAndTypeNames {
     String EDC_ASSET_TYPE = EDC_NAMESPACE + "Asset";
     String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
 
-    String EDC_QUERY_SPEC_TYPE = EDC_NAMESPACE + "QuerySpec";
-    String EDC_QUERY_SPEC_OFFSET = EDC_NAMESPACE + "offset";
-    String EDC_QUERY_SPEC_LIMIT = EDC_NAMESPACE + "limit";
-    String EDC_QUERY_SPEC_FILTER_EXPRESSION = EDC_NAMESPACE + "filterExpression";
-    String EDC_QUERY_SPEC_SORT_ORDER = EDC_NAMESPACE + "sortOrder";
-    String EDC_QUERY_SPEC_SORT_FIELD = EDC_NAMESPACE + "sortField";
-
-    String EDC_CATALOG_REQUEST_TYPE = EDC_NAMESPACE + "CatalogRequest";
-    String EDC_CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
-    String EDC_CATALOG_REQUEST_PROVIDER_URL = EDC_NAMESPACE + "providerUrl";
-    String EDC_CATALOG_REQUEST_QUERY_SPEC = EDC_NAMESPACE + "querySpec";
-
     String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + "PolicyDefinition";
     String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
 

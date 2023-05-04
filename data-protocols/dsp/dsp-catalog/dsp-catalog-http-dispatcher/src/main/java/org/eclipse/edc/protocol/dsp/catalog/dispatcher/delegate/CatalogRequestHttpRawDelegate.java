@@ -29,7 +29,8 @@ import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.BA
 import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.CATALOG_REQUEST;
 
 /**
- * Delegate for dispatching catalog requests as defined in the dataspace protocol specification.
+ * Delegate for dispatching catalog requests as defined in the
+ * <a href="https://docs.internationaldataspaces.org/dataspace-protocol/catalog/catalog.binding.https">dataspace protocol specification</a>
  */
 public class CatalogRequestHttpRawDelegate extends DspHttpDispatcherDelegate<CatalogRequestMessage, byte[]> {
 
