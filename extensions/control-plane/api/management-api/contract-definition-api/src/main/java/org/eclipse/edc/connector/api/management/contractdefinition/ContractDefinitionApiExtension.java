@@ -15,17 +15,23 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition;
 
+import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionRequestDtoToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionToContractDefinitionResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionResponseDtoTransformer;
+import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionRequestDtoTransformer;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
+
+import java.util.Map;
 
 @Extension(value = ContractDefinitionApiExtension.NAME)
 public class ContractDefinitionApiExtension implements ServiceExtension {
@@ -42,6 +48,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     ContractDefinitionService service;
 
+    @Inject
+    private JsonLd jsonLdService;
+
     @Override
     public String name() {
         return NAME;
@@ -49,14 +58,17 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
+        var jsonFactory = Json.createBuilderFactory(Map.of());
         transformerRegistry.register(new ContractDefinitionToContractDefinitionResponseDtoTransformer());
         transformerRegistry.register(new ContractDefinitionRequestDtoToContractDefinitionTransformer());
         transformerRegistry.register(new ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer());
+        transformerRegistry.register(new JsonObjectFromContractDefinitionResponseDtoTransformer(jsonFactory));
+        transformerRegistry.register(new JsonObjectToContractDefinitionRequestDtoTransformer());
 
 
         var monitor = context.getMonitor();
 
         webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(monitor, service, transformerRegistry));
+        webService.registerResource(config.getContextAlias(), new ContractDefinitionNewApiController(jsonLdService, transformerRegistry, service));
     }
 }

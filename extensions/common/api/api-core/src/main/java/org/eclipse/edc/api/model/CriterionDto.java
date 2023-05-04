@@ -19,8 +19,17 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.NotNull;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 @JsonDeserialize(builder = CriterionDto.Builder.class)
 public class CriterionDto {
+
+    // constants for JSON-LD transformation
+    public static final String CRITERION_OPERAND_LEFT = EDC_NAMESPACE + "operandLeft";
+    public static final String CRITERION_OPERAND_RIGHT = EDC_NAMESPACE + "operandRight";
+    public static final String CRITERION_OPERATOR = EDC_NAMESPACE + "operator";
+    public static final String CRITERION_TYPE = EDC_NAMESPACE + "CriterionDto";
+
     @NotNull(message = "operandLeft cannot be null")
     private Object operandLeft;
     @NotNull(message = "operator cannot be null")
