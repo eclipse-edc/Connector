@@ -57,7 +57,8 @@ public class CatalogRequestHttpRawDelegate extends DspHttpDispatcherDelegate<Cat
     }
 
     /**
-     * Parses the response to a catalog request.
+     * Parses the response to a byte[]. It cannot return a {@link java.io.InputStream} because the response gets closed
+     * by the {@link org.eclipse.edc.spi.http.EdcHttpClient}
      *
      * @return a function that transforms the response body to a {@link JsonObject}.
      */
