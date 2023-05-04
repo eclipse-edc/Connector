@@ -29,7 +29,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
-@Provides({ContractNegotiationStore.class})
+@Provides({ ContractNegotiationStore.class })
 @Extension(SqlContractNegotiationStoreExtension.NAME)
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
