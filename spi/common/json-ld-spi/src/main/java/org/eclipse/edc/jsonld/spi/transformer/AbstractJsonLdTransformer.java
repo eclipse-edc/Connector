@@ -150,8 +150,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to a integer and applies the result function. If the value parameter
-     * is not of type JsonValue, JsonObject or JsonArray, a problem is reported to the context.
+     * Transforms a JsonValue to int. If the value parameter is not of type JsonNumber, JsonObject or JsonArray,
+     * a problem is reported to the context.
      *
      * @param value the value to transform
      * @param context the transformer context
@@ -209,8 +209,9 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      */
     protected <T> List<T> transformArray(JsonValue value, Class<T> type, TransformerContext context) {
         if (value instanceof JsonArray) {
-            var jsonArray = (JsonArray) value;
-            return jsonArray.stream().map(entry -> context.transform(entry, type)).collect(toList());
+            return value.asJsonArray().stream()
+                    .map(entry -> context.transform(entry, type))
+                    .collect(toList());
         } else {
             context.reportProblem(format("Invalid property of type %s. Expected JsonObject or JsonArray but got %s",
                     type.getSimpleName(), value.getClass().getSimpleName()));
@@ -219,9 +220,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to the desired output type. The result can be a single instance or a
-     * list of that type, depending on whether the given value is a JsonObject or a JsonArray. The
-     * result function is applied to every instance. If the value parameter is neither of type
+     * Transforms a JsonValue to the desired output type. If the value parameter is neither of type
      * JsonObject nor JsonArray, a problem is reported to the context.
      *
      * @param value the value to transform
