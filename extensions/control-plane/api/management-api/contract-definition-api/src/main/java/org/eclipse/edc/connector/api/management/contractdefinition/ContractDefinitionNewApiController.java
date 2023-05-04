@@ -92,19 +92,13 @@ public class ContractDefinitionNewApiController implements ContractDefinitionNew
     @Override
     public IdResponseDto createContractDefinition(JsonObject createObject) {
 
-        var expandResult = jsonLdService.expand(createObject);
-        if (expandResult.failed()) {
-            throw new InvalidRequestException(expandResult.getFailureDetail());
-        }
+        var transform = jsonLdService.expand(createObject)
+                .compose(expandedJson -> transformerRegistry.transform(expandedJson, ContractDefinitionRequestDto.class))
+                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
+                .orElseThrow(InvalidRequestException::new);
 
-        var transform = transformerRegistry.transform(expandResult.getContent(), ContractDefinitionRequestDto.class)
-                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class));
 
-        if (transform.failed()) {
-            throw new InvalidRequestException(transform.getFailureMessages());
-        }
-
-        return service.create(transform.getContent())
+        return service.create(transform)
                 .map(sr -> IdResponseDto.Builder.newInstance()
                         .id(sr.getId())
                         .createdAt(sr.getCreatedAt())
@@ -122,17 +116,11 @@ public class ContractDefinitionNewApiController implements ContractDefinitionNew
     @PUT
     @Override
     public void updateContractDefinition(JsonObject updateObject) {
-        var expanded = jsonLdService.expand(updateObject);
-        if (expanded.failed()) {
-            throw new InvalidRequestException(expanded.getFailureMessages());
-        }
+        var rqDto = jsonLdService.expand(updateObject)
+                .compose(expanded -> transformerRegistry.transform(expanded, ContractDefinitionRequestDto.class))
+                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
+                .orElseThrow(InvalidRequestException::new);
 
-        var rqDto = transformerRegistry.transform(expanded.getContent(), ContractDefinitionRequestDto.class)
-                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class));
-        if (rqDto.failed()) {
-            throw new InvalidRequestException(rqDto.getFailureMessages());
-        }
-
-        service.update(rqDto.getContent()).orElseThrow(exceptionMapper(ContractDefinition.class));
+        service.update(rqDto).orElseThrow(exceptionMapper(ContractDefinition.class));
     }
 }

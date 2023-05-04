@@ -34,11 +34,6 @@ import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CRITERIA;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_VALIDITY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -50,6 +45,12 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
     public static final String TEST_ID = "test-id";
     public static final String TEST_AP_ID = "ap1";
     public static final String TEST_CP_ID = "cp1";
+    // These constants should be equal to the ones found ContractDefinitionRequestDto!
+    public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + "ContractDefinition";
+    public static final String CONTRACT_DEFINITION_ACCESSPOLICY_ID = EDC_NAMESPACE + "accessPolicyId";
+    public static final String CONTRACT_DEFINITION_CONTRACTPOLICY_ID = EDC_NAMESPACE + "contractPolicyId";
+    public static final String CONTRACT_DEFINITION_VALIDITY = EDC_NAMESPACE + "validity";
+    public static final String CONTRACT_DEFINITION_CRITERIA = EDC_NAMESPACE + "criteria";
     private static final TypeRef<List<JsonObject>> LIST_TYPE = new TypeRef<>() {
     };
 

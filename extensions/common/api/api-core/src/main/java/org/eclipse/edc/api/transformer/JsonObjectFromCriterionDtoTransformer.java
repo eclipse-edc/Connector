@@ -27,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_RIGHT;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class JsonObjectFromCriterionDtoTransformer extends AbstractJsonLdTransformer<CriterionDto, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
@@ -43,7 +43,7 @@ public class JsonObjectFromCriterionDtoTransformer extends AbstractJsonLdTransfo
     @Override
     public @Nullable JsonObject transform(@NotNull CriterionDto criterionDto, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(TYPE, EDC_NAMESPACE + "CriterionDto")
+        builder.add(TYPE, CRITERION_TYPE)
                 .add(CRITERION_OPERAND_LEFT, mapper.convertValue(criterionDto.getOperandLeft(), JsonValue.class))
                 .add(CRITERION_OPERAND_RIGHT, mapper.convertValue(criterionDto.getOperandRight(), JsonValue.class))
                 .add(CRITERION_OPERATOR, criterionDto.getOperator());

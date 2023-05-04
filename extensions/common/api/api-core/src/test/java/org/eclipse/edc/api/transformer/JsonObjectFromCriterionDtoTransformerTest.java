@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_RIGHT;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_TYPE;
 import static org.eclipse.edc.api.model.CriterionDto.from;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -39,6 +42,9 @@ class JsonObjectFromCriterionDtoTransformerTest {
 
         assertThat(json).isNotNull();
         assertThat(json.getJsonString(TYPE).getString()).isEqualTo(CRITERION_TYPE);
+        assertThat(json.getJsonString(CRITERION_OPERAND_LEFT).getString()).isEqualTo("foo");
+        assertThat(json.getJsonString(CRITERION_OPERAND_RIGHT).getString()).isEqualTo("bar");
+        assertThat(json.getJsonString(CRITERION_OPERATOR).getString()).isEqualTo("=");
     }
 
 }
