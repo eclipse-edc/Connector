@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Masatake Iwasaki (NTT DATA) - fixed failure due to assertion timeout
+ *       SAP SE - refactoring
  *
  */
 
@@ -19,6 +20,7 @@ import org.assertj.core.api.Assertions;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
@@ -36,6 +38,7 @@ import org.eclipse.edc.connector.transfer.spi.types.StatusChecker;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -59,6 +62,7 @@ import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -83,15 +87,20 @@ public class TransferProcessEventDispatchTest {
         extension.registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()));
         extension.registerServiceMock(DataService.class, mock(DataService.class));
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
+        extension.registerServiceMock(PolicyArchive.class, mock(PolicyArchive.class));
     }
 
     @Test
-    void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service, TransferProcessProtocolService protocolService,
-                                                           EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                           StatusCheckerRegistry statusCheckerRegistry) {
+    void shouldDispatchEventsOnTransferProcessStateChanges(TransferProcessService service,
+                                                           TransferProcessProtocolService protocolService,
+                                                           EventRouter eventRouter,
+                                                           RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                           StatusCheckerRegistry statusCheckerRegistry,
+                                                           PolicyArchive policyArchive) {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
         when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
         dispatcherRegistry.register(testDispatcher);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var statusCheck = mock(StatusChecker.class);
@@ -107,6 +116,7 @@ public class TransferProcessEventDispatchTest {
                 .protocol("test")
                 .managedResources(false)
                 .connectorAddress("http://an/address")
+                .contractId("contractId")
                 .build();
 
         var transferRequest = TransferRequest.Builder.newInstance()
@@ -152,6 +162,36 @@ public class TransferProcessEventDispatchTest {
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessDeprovisioned.class)));
+        });
+    }
+
+    @Test
+    void shouldTerminateOnInvalidPolicy(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+        var testDispatcher = mock(RemoteMessageDispatcher.class);
+        when(testDispatcher.protocol()).thenReturn("test");
+        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        dispatcherRegistry.register(testDispatcher);
+        eventRouter.register(TransferProcessEvent.class, eventSubscriber);
+
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id("dataRequestId")
+                .assetId("assetId")
+                .destinationType("any")
+                .protocol("test")
+                .managedResources(false)
+                .connectorAddress("http://an/address")
+                .contractId("contractId")
+                .build();
+
+        var transferRequest = TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
+                .build();
+
+        service.initiateTransfer(transferRequest);
+
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class)));
         });
     }
 

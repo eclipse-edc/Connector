@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       ZF Friedrichshafen AG - improvements (refactoring of generate method)
+ *       SAP SE - refactoring
  *
  */
 
@@ -22,17 +23,12 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 import static java.util.UUID.randomUUID;
 
 public class ObjectStorageConsumerResourceDefinitionGenerator implements ConsumerResourceDefinitionGenerator {
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
-        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
-        Objects.requireNonNull(policy, "policy must always be provided");
-
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
         var account = destination.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME);
@@ -46,9 +42,6 @@ public class ObjectStorageConsumerResourceDefinitionGenerator implements Consume
 
     @Override
     public boolean canGenerate(DataRequest dataRequest, Policy policy) {
-        Objects.requireNonNull(dataRequest, "dataRequest must always be provided");
-        Objects.requireNonNull(policy, "policy must always be provided");
-
         return AzureBlobStoreSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 }

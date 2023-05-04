@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       ZF Friedrichshafen AG - Initial API and Implementation
+ *       SAP SE - refactoring
  *
  */
 
@@ -55,17 +56,6 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
         assertThat(objectDef.getBucketName()).isEqualTo("test-name");
         assertThat(objectDef.getRegionId()).isEqualTo(Region.EU_WEST_2.id());
         assertThat(objectDef.getId()).satisfies(UUID::fromString);
-    }
-
-    @Test
-    void generate_noPolicyAsParameter() {
-        var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
-                .property(S3BucketSchema.BUCKET_NAME, "test-name")
-                .property(S3BucketSchema.REGION, Region.EU_WEST_2.id())
-                .build();
-        var asset = Asset.Builder.newInstance().build();
-        var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).processId("process-id").build();
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> generator.generate(dr, null));
     }
 
     @Test
