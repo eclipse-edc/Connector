@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-@Provides({AssetIndex.class, DataAddressResolver.class})
+@Provides({ AssetIndex.class, DataAddressResolver.class })
 @Extension(SqlAssetIndexServiceExtension.NAME)
 public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
