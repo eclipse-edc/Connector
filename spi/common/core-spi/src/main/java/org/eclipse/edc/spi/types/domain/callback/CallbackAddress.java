@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * The {@link CallbackAddress} contains information about users configured callbacks
  * that can be invoked in various state of the requests processing according to the filter provided
@@ -29,11 +31,13 @@ import java.util.Set;
  */
 @JsonDeserialize(builder = CallbackAddress.Builder.class)
 public class CallbackAddress {
+    public static final String CALLBACKADDRESS_TYPE = EDC_NAMESPACE + "CallbackAddress";
+    public static final String IS_TRANSACTIONAL = EDC_NAMESPACE + "transactional";
+    public static final String URI = EDC_NAMESPACE + "uri";
+    public static final String EVENTS = EDC_NAMESPACE + "events";
 
     private String uri;
-
     private Set<String> events = new HashSet<>();
-
     private boolean transactional;
 
 
