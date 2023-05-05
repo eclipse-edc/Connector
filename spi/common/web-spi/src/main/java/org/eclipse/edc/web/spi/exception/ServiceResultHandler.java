@@ -25,6 +25,17 @@ import java.util.function.Function;
 public class ServiceResultHandler {
 
     /**
+     * Utility method for calling {@link #mapToException(ServiceFailure, Class, String)} when id is null.
+     *
+     * @param failure The {@link ServiceFailure}
+     * @param clazz The type in whose context the failure occurred. Must not be null.
+     * @return Exception mapped from failure reason.
+     */
+    public static EdcException mapToException(@NotNull ServiceFailure failure, @NotNull Class<?> clazz) {
+        return mapToException(failure, clazz, null);
+    }
+
+    /**
      * Interprets a {@link ServiceResult#reason()} property and returns the
      * appropriate exception:
      * <table>

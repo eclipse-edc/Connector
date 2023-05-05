@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.DataAddressDto;
 
 @JsonDeserialize(builder = AssetEntryDto.Builder.class)
 public class AssetEntryDto {

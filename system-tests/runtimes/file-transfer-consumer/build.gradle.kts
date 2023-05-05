@@ -24,11 +24,11 @@ dependencies {
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
     implementation(project(":core:common:util"))
     implementation(project(":data-protocols:ids"))
-
     implementation(project(":extensions:control-plane:api:management-api"))
     implementation(project(":extensions:common:api:api-observability"))
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:common:iam:iam-mock"))
+    implementation(project(":extensions:common:json-ld"))
 
     api(libs.jakarta.rsApi)
 }

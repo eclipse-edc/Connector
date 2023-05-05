@@ -152,13 +152,14 @@ public class TransferProcessEventDispatchTest {
                     .usingRecursiveComparison().isEqualTo(dataAddress);
         });
 
-        service.complete(initiateResult.getContent());
+        var transferProcess = initiateResult.getContent();
+        service.complete(transferProcess.getId());
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessCompleted.class)));
         });
 
-        service.deprovision(initiateResult.getContent());
+        service.deprovision(transferProcess.getId());
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessDeprovisioned.class)));
@@ -218,7 +219,7 @@ public class TransferProcessEventDispatchTest {
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
-        service.terminate(initiateResult.getContent(), "any reason");
+        service.terminate(initiateResult.getContent().getId(), "any reason");
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }

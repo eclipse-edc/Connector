@@ -268,9 +268,10 @@ class TransferProcessApiControllerTest {
         var processId = "processId";
         var tr = transferRequest(transferReqDto);
         var dr = tr.getDataRequest();
+        var transferProcess = TransferProcess.Builder.newInstance().id(processId).build();
 
         when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(TransferRequest.class))).thenReturn(Result.success(tr));
-        when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(processId));
+        when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(transferProcess));
 
         var result = controller.initiateTransfer(transferReqDto);
 

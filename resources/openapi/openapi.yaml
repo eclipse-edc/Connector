@@ -2183,6 +2183,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /transferprocess/request:
     post:
       tags:
@@ -2212,6 +2213,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /transferprocess/{id}:
     get:
       tags:
@@ -2252,6 +2254,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /transferprocess/{id}/cancel:
     post:
       tags:
@@ -2339,6 +2342,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /transferprocess/{id}/state:
     get:
       tags:
@@ -2379,6 +2383,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /transferprocess/{id}/terminate:
     post:
       tags:
@@ -2436,6 +2441,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+      deprecated: true
   /transferprocess/{processId}/complete:
     post:
       tags:
@@ -3523,6 +3529,251 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses:
+    post:
+      tags:
+      - Transfer Process
+      description: "Initiates a data transfer with the given parameters. Please note\
+        \ that successfully invoking this endpoint only means that the transfer was\
+        \ initiated. Clients must poll the /{id}/state endpoint to track the state"
+      operationId: initiateTransferProcess
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequestDto'
+      responses:
+        "200":
+          description: The transfer was successfully initiated. Returns the transfer
+            process ID and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses/request:
+    post:
+      tags:
+      - Transfer Process
+      description: Returns all transfer process according to a query
+      operationId: queryTransferProcesses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses/{id}:
+    get:
+      tags:
+      - Transfer Process
+      description: Gets an transfer process with the given ID
+      operationId: getTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: The transfer process
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses/{id}/deprovision:
+    post:
+      tags:
+      - Transfer Process
+      description: "Requests the deprovisioning of resources associated with a transfer\
+        \ process. Due to the asynchronous nature of transfers, a successful response\
+        \ only indicates that the request was successfully received. This may take\
+        \ a long time, so clients must poll the /{id}/state endpoint to track the\
+        \ state."
+      operationId: deprovisionTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Request to deprovision the transfer process was successfully
+            received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses/{id}/state:
+    get:
+      tags:
+      - Transfer Process
+      description: Gets the state of a transfer process with the given ID
+      operationId: getTransferProcessState_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: The  transfer process's state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferState'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: An  transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/transferprocesses/{id}/terminate:
+    post:
+      tags:
+      - Transfer Process
+      description: "Requests the termination of a transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. Clients must poll the /{id}/state endpoint to\
+        \ track the state."
+      operationId: terminateTransferProcess_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminateTransferDto'
+      responses:
+        "200":
+          description: Request to cancel the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+        "409":
+          description: "Could not terminate transfer process, because it is already\
+            \ completed or terminated."
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
   /{any}:
     get:
       tags:
@@ -3994,16 +4245,6 @@ components:
     DataAddressDto:
       required:
       - properties
-      type: object
-      properties:
-        properties:
-          type: object
-          additionalProperties:
-            type: string
-            example: null
-          example: null
-      example: null
-    DataAddressInformationDto:
       type: object
       properties:
         properties:
@@ -4522,13 +4763,13 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddress'
+            $ref: '#/components/schemas/CallbackAddressDto'
         createdAt:
           type: integer
           format: int64
           example: null
         dataDestination:
-          $ref: '#/components/schemas/DataAddressInformationDto'
+          $ref: '#/components/schemas/DataAddressDto'
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
         errorDetail:
@@ -4536,6 +4777,12 @@ components:
           example: null
         id:
           type: string
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
           example: null
         state:
           type: string

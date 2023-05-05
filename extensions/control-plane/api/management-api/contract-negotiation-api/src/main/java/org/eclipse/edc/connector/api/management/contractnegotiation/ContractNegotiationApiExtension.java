@@ -19,10 +19,8 @@ import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.ContractNegotiationToContractNegotiationDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromCallbackAddressTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToCallbackAddressDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToNegotiationInitiateRequestDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.NegotiationInitiateRequestDtoToDataRequestTransformer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
@@ -72,10 +70,8 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer(clock));
         var factory = Json.createBuilderFactory(Map.of());
         transformerRegistry.register(new JsonObjectFromContractNegotiationDtoTransformer(factory));
-        transformerRegistry.register(new JsonObjectFromCallbackAddressTransformer(factory));
         transformerRegistry.register(new JsonObjectFromContractAgreementDtoTransformer(factory));
         transformerRegistry.register(new JsonObjectToNegotiationInitiateRequestDtoTransformer());
-        transformerRegistry.register(new JsonObjectToCallbackAddressDtoTransformer());
 
         var monitor = context.getMonitor();
 

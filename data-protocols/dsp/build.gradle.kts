@@ -27,6 +27,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":data-protocols:dsp:dsp-negotiation"))
     api(project(":data-protocols:dsp:dsp-transfer-process"))
+    api(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
     api(project(":data-protocols:dsp:dsp-transform"))
 }
 
