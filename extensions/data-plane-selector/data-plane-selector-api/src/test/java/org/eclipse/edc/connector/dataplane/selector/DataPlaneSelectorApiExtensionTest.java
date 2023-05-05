@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -82,7 +81,6 @@ class DataPlaneSelectorApiExtensionTest {
         extension.initialize(contextWithConfig(config));
 
         verify(webService).registerResource(eq("dataplane"), isA(DataplaneSelectorApiController.class));
-        verify(monitor).warning(anyString());
     }
 
     @NotNull

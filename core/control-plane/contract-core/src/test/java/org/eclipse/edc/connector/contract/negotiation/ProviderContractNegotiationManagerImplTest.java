@@ -46,7 +46,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.net.URI;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -101,6 +100,7 @@ class ProviderContractNegotiationManagerImplTest {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(PROVIDER_ID)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .commandQueue(queue)
@@ -258,8 +258,8 @@ class ProviderContractNegotiationManagerImplTest {
     private ContractAgreement.Builder contractAgreementBuilder() {
         return ContractAgreement.Builder.newInstance()
                 .id(ContractId.createContractId(UUID.randomUUID().toString()))
-                .providerAgentId("any")
-                .consumerAgentId("any")
+                .providerId("any")
+                .consumerId("any")
                 .assetId("default")
                 .policy(Policy.Builder.newInstance().build());
     }
@@ -269,8 +269,8 @@ class ProviderContractNegotiationManagerImplTest {
                 .id(ContractId.createContractId("1"))
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
-                .consumer(URI.create(CONSUMER_ID))
-                .provider(URI.create(PROVIDER_ID))
+                .consumerId(CONSUMER_ID)
+                .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())
                 .build();

@@ -196,7 +196,10 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ContractNegotiationObservable.class, observable);
         context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
 
+        var participantId = context.getParticipantId();
+
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(participantId)
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
@@ -213,6 +216,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(participantId)
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)

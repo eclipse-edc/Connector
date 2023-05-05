@@ -75,8 +75,8 @@ class ContractNegotiationToContractNegotiationDtoTransformerTest {
     private ContractAgreement createContractAgreement(String id) {
         return ContractAgreement.Builder.newInstance()
                 .id(id)
-                .consumerAgentId("any")
-                .providerAgentId("any")
+                .consumerId("any")
+                .providerId("any")
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();

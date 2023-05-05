@@ -85,13 +85,13 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
         builder._permission_(idsPermissions);
 
         try {
-            builder._consumer_(URI.create(agreement.getConsumerAgentId()));
+            builder._consumer_(URI.create(agreement.getConsumerId()));
         } catch (NullPointerException e) {
             context.reportProblem("cannot convert empty consumerId string to URI");
         }
 
         try {
-            builder._provider_(URI.create(agreement.getProviderAgentId()));
+            builder._provider_(URI.create(agreement.getProviderId()));
         } catch (NullPointerException e) {
             context.reportProblem("cannot convert empty providerId string to URI");
         }

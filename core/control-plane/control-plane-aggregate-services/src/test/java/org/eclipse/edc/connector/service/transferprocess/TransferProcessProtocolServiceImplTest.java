@@ -314,8 +314,8 @@ class TransferProcessProtocolServiceImplTest {
     private ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id("agreementId")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+                .providerId("provider")
+                .consumerId("consumer")
                 .assetId("asset")
                 .policy(Policy.Builder.newInstance().build())
                 .build();

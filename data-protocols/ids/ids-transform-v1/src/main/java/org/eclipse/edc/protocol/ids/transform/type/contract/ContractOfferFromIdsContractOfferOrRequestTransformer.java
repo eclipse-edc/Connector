@@ -83,8 +83,8 @@ public class ContractOfferFromIdsContractOfferOrRequestTransformer implements Id
 
         var contractOfferBuilder = ContractOffer.Builder.newInstance()
                 .policy(policy)
-                .consumer(contract.getConsumer())
-                .provider(contract.getProvider())
+                .consumerId(contract.getConsumer().toString())
+                .providerId(contract.getProvider().toString())
                 .asset(asset);
 
         var result = IdsId.from(contract.getId().toString());

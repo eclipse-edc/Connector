@@ -46,7 +46,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
 public class ProviderContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ProviderContractNegotiationManager {
-
     private StateMachineManager stateMachineManager;
 
     private ProviderContractNegotiationManagerImpl() {
@@ -172,8 +171,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .contractStartDate(lastOffer.getContractStart().toEpochSecond())
                     .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
                     .contractSigningDate(clock.instant().getEpochSecond())
-                    .providerAgentId(String.valueOf(lastOffer.getProvider()))
-                    .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
+                    .providerId(participantId)
+                    .consumerId(negotiation.getCounterPartyId())
                     .policy(policy)
                     .assetId(lastOffer.getAsset().getId())
                     .build();
@@ -250,5 +249,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         public static Builder newInstance() {
             return new Builder();
         }
+
     }
 }

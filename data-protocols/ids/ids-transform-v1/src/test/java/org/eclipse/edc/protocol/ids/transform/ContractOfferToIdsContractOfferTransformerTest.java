@@ -41,7 +41,8 @@ import static org.mockito.Mockito.when;
 class ContractOfferToIdsContractOfferTransformerTest {
     private static final String CONTRACT_OFFER_ID = "456uz984390236s";
     private static final URI OFFER_ID = URI.create("urn:contractoffer:" + CONTRACT_OFFER_ID);
-    private static final URI PROVIDER_URI = URI.create("https://provider.com/");
+    private static final String PROVIDER_ID = "https://provider.com/";
+    private static final String CONSUMER_ID = "https://consumer.com/";
 
     private ContractOfferToIdsContractOfferTransformer transformer;
 
@@ -77,7 +78,7 @@ class ContractOfferToIdsContractOfferTransformerTest {
 
         assertNotNull(result);
         assertEquals(OFFER_ID, result.getId());
-        assertEquals(PROVIDER_URI, result.getProvider());
+        assertEquals(PROVIDER_ID, result.getProvider().toString());
         assertEquals(1, result.getObligation().size());
         assertEquals(idsObligation, result.getObligation().get(0));
         assertEquals(1, result.getPermission().size());
@@ -96,7 +97,8 @@ class ContractOfferToIdsContractOfferTransformerTest {
                 .id(CONTRACT_OFFER_ID)
                 .policy(policy)
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
-                .provider(PROVIDER_URI)
+                .consumerId(CONSUMER_ID)
+                .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();

@@ -42,10 +42,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
 
 public class Participant {
     private static final String IDS_PATH = "/api/v1/ids";
-
 
     private final Duration timeout = Duration.ofSeconds(30);
 
@@ -57,12 +57,16 @@ public class Participant {
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
     private final URI backendService = URI.create("http://localhost:" + getFreePort());
     private final URI idsEndpoint = URI.create("http://localhost:" + getFreePort());
-    private final URI connectorId = URI.create("urn:connector:" + UUID.randomUUID());
+    private final String connectorId = "urn:connector:" + UUID.randomUUID();
+
     private final String name;
+    private final String participantId;
+
     private final TypeManager typeManager = new TypeManager();
 
-    public Participant(String name) {
+    public Participant(String name, String participantId) {
         this.name = name;
+        this.participantId = participantId;
         PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
     }
 
@@ -129,8 +133,8 @@ public class Participant {
     public String negotiateContract(Participant provider, ContractOffer contractOffer) {
         var request = Map.of(
                 "connectorId", "provider",
-                "consumerId", connectorId.toString(),
-                "providerId", provider.connectorId.toString(),
+                "consumerId", participantId,
+                "providerId", provider.participantId,
                 "connectorAddress", provider.idsEndpoint() + "/api/v1/ids/data",
                 "protocol", "ids-multipart",
                 "offer", Map.of(
@@ -283,8 +287,7 @@ public class Participant {
 
             assertThat(catalog.getContractOffers())
                     .hasSizeGreaterThan(0)
-                    .allMatch(offer -> connectorId.equals(offer.getConsumer()))
-                    .allMatch(offer -> provider.connectorId.equals(offer.getProvider()));
+                    .allMatch(offer -> provider.participantId.equals(offer.getProviderId()));
 
             catalogReference.set(catalog);
         });
@@ -299,6 +302,7 @@ public class Participant {
     public Map<String, String> controlPlaneConfiguration() {
         return new HashMap<>() {
             {
+                put(PARTICIPANT_ID, participantId);
                 put("web.http.port", String.valueOf(controlPlane.getPort()));
                 put("web.http.path", "/api");
                 put("web.http.ids.port", String.valueOf(idsEndpoint.getPort()));
@@ -307,7 +311,7 @@ public class Participant {
                 put("web.http.management.path", controlPlaneManagement.getPath());
                 put("web.http.control.port", String.valueOf(controlPlaneControl.getPort()));
                 put("web.http.control.path", controlPlaneControl.getPath());
-                put("edc.ids.id", connectorId.toString());
+                put("edc.ids.id", connectorId);
                 put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");

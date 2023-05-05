@@ -235,8 +235,8 @@ public class ContractNegotiationEventListenerTest {
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("assetId")
-                .consumerAgentId("consumer")
-                .providerAgentId("provider")
+                .consumerId("consumer")
+                .providerId("provider")
                 .build();
         var negotiation = getNegotiationBuilder("id")
                 .contractAgreement(agreement)

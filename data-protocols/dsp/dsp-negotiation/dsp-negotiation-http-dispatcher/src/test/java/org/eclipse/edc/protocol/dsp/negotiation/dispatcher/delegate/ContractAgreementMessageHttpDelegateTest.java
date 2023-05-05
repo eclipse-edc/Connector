@@ -76,8 +76,8 @@ class ContractAgreementMessageHttpDelegateTest extends DspHttpDispatcherDelegate
     private ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id(String.valueOf(UUID.randomUUID()))
-                .providerAgentId("agentId")
-                .consumerAgentId("agentId")
+                .providerId("agentId")
+                .consumerId("agentId")
                 .assetId("assetId")
                 .policy(policy()).build();
     }
@@ -93,7 +93,7 @@ class ContractAgreementMessageHttpDelegateTest extends DspHttpDispatcherDelegate
                 .duty(duty)
                 .build();
     }
-    
+
     @Override
     protected DspHttpDispatcherDelegate<ContractAgreementMessage, ?> delegate() {
         return delegate;

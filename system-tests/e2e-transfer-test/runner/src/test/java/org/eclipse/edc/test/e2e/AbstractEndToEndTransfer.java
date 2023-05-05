@@ -40,8 +40,8 @@ import static org.hamcrest.Matchers.notNullValue;
 
 public abstract class AbstractEndToEndTransfer {
 
-    protected static final Participant CONSUMER = new Participant("consumer");
-    protected static final Participant PROVIDER = new Participant("provider");
+    protected static final Participant CONSUMER = new Participant("consumer", "urn:connector:consumer");
+    protected static final Participant PROVIDER = new Participant("provider", "urn:connector:provider");
     protected final Duration timeout = Duration.ofSeconds(60);
 
     @Test

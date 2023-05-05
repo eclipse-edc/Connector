@@ -25,7 +25,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.stream.Collectors;
@@ -66,8 +65,8 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(object.getOffer().getOfferId())
                 .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
-                .consumer(createUri(object.getConsumerId(), defaultConsumerId))
-                .provider(createUri(object.getProviderId(), object.getConnectorAddress()))
+                .consumerId(getId(object.getConsumerId(), defaultConsumerId))
+                .providerId(getId(object.getProviderId(), object.getConnectorAddress()))
                 .policy(object.getOffer().getPolicy())
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(object.getOffer().getValidity()))
@@ -89,7 +88,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .build();
     }
 
-    private URI createUri(String value, String defaultValue) {
-        return URI.create(value != null ? value : defaultValue);
+    private String getId(String value, String defaultValue) {
+        return value != null ? value : defaultValue;
     }
 }

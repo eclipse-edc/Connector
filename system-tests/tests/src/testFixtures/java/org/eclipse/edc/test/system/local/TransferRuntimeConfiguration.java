@@ -25,6 +25,8 @@ public class TransferRuntimeConfiguration {
 
     public static final String IDS_PATH = "/api/v1/ids";
 
+    public static final String CONSUMER_PARTICIPANT_ID = "urn:connector:consumer";
+    public static final String PROVIDER_PARTICIPANT_ID = "urn:connector:provider";
 
     public static final int CONSUMER_CONNECTOR_PORT = getFreePort();
     public static final int CONSUMER_MANAGEMENT_PORT = getFreePort();

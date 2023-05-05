@@ -99,8 +99,16 @@ class DescriptionRequestHandlerTest {
         contractOfferResolver = mock(ContractOfferResolver.class);
         connectorService = mock(ConnectorService.class);
 
-        handler = new DescriptionRequestHandler(mock(Monitor.class), connectorId, transformerRegistry,
-                assetIndex, catalogService, contractOfferResolver, connectorService, new ObjectMapper());
+        handler = new DescriptionRequestHandler(
+                mock(Monitor.class),
+                "urn:connector:provider",
+                connectorId,
+                transformerRegistry,
+                assetIndex,
+                catalogService,
+                contractOfferResolver,
+                connectorService,
+                new ObjectMapper());
     }
 
     @Test

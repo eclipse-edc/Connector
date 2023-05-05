@@ -53,7 +53,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
-import java.net.URI;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -76,6 +75,8 @@ import static org.mockito.Mockito.when;
 
 @ComponentTest
 class ContractNegotiationIntegrationTest {
+    private static final String CONSUMER_ID = "consumer";
+    private static final String PROVIDER_ID = "provider";
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
@@ -102,6 +103,7 @@ class ContractNegotiationIntegrationTest {
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(PROVIDER_ID)
                 .dispatcherRegistry(providerDispatcherRegistry)
                 .monitor(monitor)
                 .waitStrategy(() -> 1000)
@@ -113,11 +115,10 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(CONSUMER_ID)
                 .dispatcherRegistry(consumerDispatcherRegistry)
-                .monitor(monitor)
-                .waitStrategy(() -> 1000)
-                .commandQueue(queue)
-                .commandRunner(runner)
+                .monitor(monitor).waitStrategy(() -> 1000)
+                .commandQueue(queue).commandRunner(runner)
                 .observable(new ContractNegotiationObservableImpl())
                 .store(consumerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
@@ -140,55 +141,42 @@ class ContractNegotiationIntegrationTest {
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
-        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class)))
-                .thenReturn(Result.success());
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
         providerManager.start();
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance()
-                .connectorId("connectorId")
-                .callbackAddress("callbackAddress")
-                .contractOffer(offer)
-                .protocol("ids-multipart")
-                .build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId(PROVIDER_ID).callbackAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
 
 
-        var request = ContractRequest.Builder.newInstance()
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
-                .requestData(requestData)
-                .build();
+        var request = ContractRequest.Builder.newInstance().callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).requestData(requestData).build();
 
         consumerManager.initiate(request);
 
-        await().atMost(DEFAULT_TEST_TIMEOUT)
-                .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> {
-                    assertThat(consumerNegotiationId).isNotNull();
-                    var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
-                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-                    assertThat(consumerNegotiation).isNotNull();
-                    assertThat(providerNegotiation).isNotNull();
+        await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> {
+            assertThat(consumerNegotiationId).isNotNull();
+            var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
+            var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+            assertThat(consumerNegotiation).isNotNull();
+            assertThat(providerNegotiation).isNotNull();
 
-                    // Assert that the consumer has the callbacks
-                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
-                    assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
+            // Assert that the consumer has the callbacks
+            assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
+            assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
 
-                    // Assert that provider and consumer have the same offers and agreement stored
-                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(providerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
-                    assertThat(consumerNegotiation.getState()).isEqualTo(FINALIZED.code());
-                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-                    assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
+            // Assert that provider and consumer have the same offers and agreement stored
+            assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+            assertThat(providerNegotiation.getContractOffers()).hasSize(1);
+            assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
+            assertThat(consumerNegotiation.getState()).isEqualTo(FINALIZED.code());
+            assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+            assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-                    verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
-                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
-                });
+            verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
+            verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+        });
     }
 
     @Test
@@ -205,20 +193,13 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance()
-                .connectorId("connectorId")
-                .callbackAddress("callbackAddress")
-                .contractOffer(offer)
-                .protocol("ids-multipart")
-                .build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").callbackAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
 
         var request = ContractRequest.Builder.newInstance().requestData(requestData).build();
 
         consumerManager.initiate(request);
 
-        await().atMost(DEFAULT_TEST_TIMEOUT)
-                .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> verify(validationService, atLeastOnce()).validateInitialOffer(token, offer));
+        await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> verify(validationService, atLeastOnce()).validateInitialOffer(token, offer));
     }
 
     @Test
@@ -230,54 +211,41 @@ class ContractNegotiationIntegrationTest {
         var offer = getContractOffer();
 
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
-        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class)))
-                .thenReturn(Result.failure("error"));
+        when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
         // Start provider and consumer negotiation managers
         providerManager.start();
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance()
-                .connectorId("connectorId")
-                .callbackAddress("callbackAddress")
-                .contractOffer(offer)
-                .protocol("ids-multipart")
-                .build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").callbackAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
 
-        var request = ContractRequest.Builder.newInstance()
-                .requestData(requestData)
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
-                .build();
+        var request = ContractRequest.Builder.newInstance().requestData(requestData).callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).build();
         consumerManager.initiate(request);
 
-        await().atMost(DEFAULT_TEST_TIMEOUT)
-                .pollInterval(DEFAULT_POLL_INTERVAL)
-                .untilAsserted(() -> {
-                    assertThat(consumerNegotiationId).isNotNull();
-                    var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
-                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-                    assertThat(consumerNegotiation).isNotNull();
-                    assertThat(providerNegotiation).isNotNull();
+        await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> {
+            assertThat(consumerNegotiationId).isNotNull();
+            var consumerNegotiation = consumerStore.findById(consumerNegotiationId);
+            var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+            assertThat(consumerNegotiation).isNotNull();
+            assertThat(providerNegotiation).isNotNull();
 
-                    // Assert that the consumer has the callbacks
-                    assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
-                    assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
+            // Assert that the consumer has the callbacks
+            assertThat(consumerNegotiation.getCallbackAddresses()).hasSize(1);
+            assertThat(providerNegotiation.getCallbackAddresses()).hasSize(0);
 
-                    // Assert that provider and consumer have the same offers stored
-                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(providerNegotiation.getContractOffers()).hasSize(1);
-                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+            // Assert that provider and consumer have the same offers stored
+            assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+            assertThat(providerNegotiation.getContractOffers()).hasSize(1);
+            assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
-                    // Assert that no agreement has been stored on either side
-                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
-                    assertThat(providerNegotiation.getContractAgreement()).isNull();
+            // Assert that no agreement has been stored on either side
+            assertThat(consumerNegotiation.getContractAgreement()).isNull();
+            assertThat(providerNegotiation.getContractAgreement()).isNull();
 
-                    verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
-                    verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
-                });
+            verify(validationService, atLeastOnce()).validateInitialOffer(token, offer);
+            verify(validationService, atLeastOnce()).validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+        });
     }
 
     private Answer<Object> onConsumerSentOfferRequest() {
@@ -335,17 +303,15 @@ class ContractNegotiationIntegrationTest {
                 .id(ContractId.createContractId("1"))
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
+                .providerId("provider")
+                .consumerId("consumer")
                 .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance()
                         .type(PolicyType.CONTRACT)
                         .assigner("assigner")
                         .assignee("assignee")
                         .duty(Duty.Builder.newInstance()
-                                .action(Action.Builder.newInstance()
-                                        .type("USE")
-                                        .build())
+                                .action(Action.Builder.newInstance().type("USE").build())
                                 .build())
                         .build())
                 .build();

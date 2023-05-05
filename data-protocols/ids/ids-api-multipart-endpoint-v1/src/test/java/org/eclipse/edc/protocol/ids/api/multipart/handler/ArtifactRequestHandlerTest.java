@@ -72,8 +72,8 @@ class ArtifactRequestHandlerTest {
     private static ContractAgreement createContractAgreement(String contractId, String assetId) {
         return ContractAgreement.Builder.newInstance()
                 .id(contractId)
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+                .providerId("provider")
+                .consumerId("consumer")
                 .assetId(assetId)
                 .policy(Policy.Builder.newInstance().build())
                 .build();

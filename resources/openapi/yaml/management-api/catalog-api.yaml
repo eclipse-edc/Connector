@@ -176,9 +176,8 @@ components:
       properties:
         asset:
           $ref: '#/components/schemas/Asset'
-        consumer:
+        consumerId:
           type: string
-          format: uri
           example: null
         contractEnd:
           type: string
@@ -201,9 +200,8 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-        provider:
+        providerId:
           type: string
-          format: uri
           example: null
     CriterionDto:
       type: object
