@@ -62,7 +62,7 @@ class DatasetResolverImplPerformanceTest {
     void oneAssetPerDefinition(DatasetResolver datasetResolver, ContractDefinitionStore contractDefinitionStore, AssetIndex assetIndex, PolicyDefinitionStore policyDefinitionStore) {
         policyDefinitionStore.create(createPolicyDefinition("policy").build());
         range(0, 10000).mapToObj(i -> createContractDefinition(String.valueOf(i)).accessPolicyId("policy").contractPolicyId("policy").selectorExpression(selectAsset(String.valueOf(i))).build()).forEach(contractDefinitionStore::save);
-        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::accept);
+        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::create);
 
         var firstPageQuery = QuerySpec.Builder.newInstance().offset(0).limit(100).build();
         var firstPageDatasets = queryDatasetsIn(datasetResolver, firstPageQuery, ofSeconds(1));
@@ -79,7 +79,7 @@ class DatasetResolverImplPerformanceTest {
     void fewDefinitionsSelectAllAssets(DatasetResolver datasetResolver, ContractDefinitionStore contractDefinitionStore, AssetIndex assetIndex, PolicyDefinitionStore policyDefinitionStore) {
         policyDefinitionStore.create(createPolicyDefinition("policy").build());
         range(0, 10).mapToObj(i -> createContractDefinition(String.valueOf(i)).accessPolicyId("policy").contractPolicyId("policy").selectorExpression(SELECT_ALL).build()).forEach(contractDefinitionStore::save);
-        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::accept);
+        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::create);
 
         var firstPageQuery = QuerySpec.Builder.newInstance().offset(0).limit(100).build();
         var firstPageDatasets = queryDatasetsIn(datasetResolver, firstPageQuery, ofSeconds(1));

@@ -37,7 +37,7 @@ class InMemoryDataAddressResolverTest {
         var id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
         var address = createDataAddress(testAsset);
-        resolver.accept(testAsset, address);
+        resolver.create(testAsset, address);
 
         assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
     }
@@ -47,7 +47,7 @@ class InMemoryDataAddressResolverTest {
         var id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
         var address = createDataAddress(testAsset);
-        resolver.accept(testAsset, address);
+        resolver.create(testAsset, address);
 
         assertThatThrownBy(() -> resolver.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
     }
@@ -56,7 +56,7 @@ class InMemoryDataAddressResolverTest {
     void resolveForAsset_whenAssetDeleted_raisesException() {
         var testAsset = createAsset("foobar", UUID.randomUUID().toString());
         var address = createDataAddress(testAsset);
-        resolver.accept(testAsset, address);
+        resolver.create(testAsset, address);
         resolver.deleteById(testAsset.getId());
 
         assertThat(resolver.resolveForAsset(testAsset.getId())).isNull();

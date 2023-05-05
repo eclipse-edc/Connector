@@ -110,7 +110,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         when(contractValidationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
         negotiationStore.save(createContractNegotiation());
         policyStore.create(createPolicyDefinition());
-        assetIndex.accept(createAssetEntry());
+        assetIndex.create(createAssetEntry());
 
         when(delegate.intercept(any()))
                 .thenAnswer(invocation -> createResponse(503, invocation))
