@@ -59,6 +59,7 @@ import static org.mockito.Mockito.when;
 
 class CatalogControllerTest {
 
+    private final Monitor monitor = mock(Monitor.class);
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final IdentityService identityService = mock(IdentityService.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
@@ -80,7 +81,7 @@ class CatalogControllerTest {
         jsonLdService.registerNamespace(DCT_PREFIX, DCT_SCHEMA);
         jsonLdService.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);
         jsonLdService.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
-        controller = new CatalogController(mapper, identityService, transformerRegistry, callbackAddress, service, jsonLdService);
+        controller = new CatalogController(monitor, mapper, identityService, transformerRegistry, callbackAddress, service, jsonLdService);
 
         request = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
