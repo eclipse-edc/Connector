@@ -244,7 +244,7 @@ class TransferProcessManagerImplTest {
         await().untilAsserted(() -> {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verifyNoInteractions(provisionManager);
-            verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATING.code()));
+            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == TERMINATING.code()));
         });
     }
 

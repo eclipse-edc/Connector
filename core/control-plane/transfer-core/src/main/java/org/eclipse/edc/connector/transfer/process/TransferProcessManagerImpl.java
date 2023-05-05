@@ -196,7 +196,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @Override
     public void handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
             return;
