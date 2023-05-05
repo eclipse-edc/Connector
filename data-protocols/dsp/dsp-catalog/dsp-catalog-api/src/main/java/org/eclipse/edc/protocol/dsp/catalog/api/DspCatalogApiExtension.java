@@ -66,7 +66,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var mapper = typeManager.getMapper(JSON_LD);
         var dspCallbackAddress = apiConfiguration.getDspCallbackAddress();
-        var catalogController = new CatalogController(mapper, identityService, transformerRegistry, dspCallbackAddress, service, jsonLdService);
+        var catalogController = new CatalogController(context.getMonitor(), mapper, identityService, transformerRegistry, dspCallbackAddress, service, jsonLdService);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
 
         dataServiceRegistry.register(DataService.Builder.newInstance()

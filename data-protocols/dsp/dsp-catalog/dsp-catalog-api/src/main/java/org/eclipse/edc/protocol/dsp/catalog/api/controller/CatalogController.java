@@ -29,6 +29,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
@@ -50,6 +51,8 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(BASE_PATH)
 public class CatalogController {
+    
+    private final Monitor monitor;
     private final ObjectMapper mapper;
     private final IdentityService identityService;
     private final TypeTransformerRegistry transformerRegistry;
@@ -57,9 +60,10 @@ public class CatalogController {
     private final CatalogProtocolService service;
     private final JsonLd jsonLdService;
 
-    public CatalogController(ObjectMapper mapper, IdentityService identityService,
+    public CatalogController(Monitor monitor, ObjectMapper mapper, IdentityService identityService,
                              TypeTransformerRegistry transformerRegistry, String dspCallbackAddress,
                              CatalogProtocolService service, JsonLd jsonLdService) {
+        this.monitor = monitor;
         this.mapper = mapper;
         this.identityService = identityService;
         this.transformerRegistry = transformerRegistry;
@@ -71,6 +75,8 @@ public class CatalogController {
     @POST
     @Path(CATALOG_REQUEST)
     public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        monitor.debug(() -> "DSP: Incoming catalog request.");
+        
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
