@@ -69,7 +69,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Accept an asset and a data address that don't exist yet")
     void acceptAssetAndDataAddress_doesNotExist() {
         var assetExpected = getAsset("id1");
-        getAssetIndex().accept(assetExpected, getDataAddress());
+        getAssetIndex().create(assetExpected, getDataAddress());
 
         var assetFound = getAssetIndex().findById("id1");
 
@@ -83,7 +83,7 @@ public abstract class AssetIndexTestBase {
         var asset = createAsset("test-asset", UUID.randomUUID().toString());
         var dataAddress = createDataAddress(asset);
         var assetIndex = getAssetIndex();
-        var result = assetIndex.accept(asset, dataAddress);
+        var result = assetIndex.create(asset, dataAddress);
         assertThat(result.succeeded()).isTrue();
 
         assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(1)
@@ -98,10 +98,10 @@ public abstract class AssetIndexTestBase {
         var asset = createAsset("test-asset", UUID.randomUUID().toString());
         var dataAddress = createDataAddress(asset);
         var assetIndex = getAssetIndex();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         DataAddress dataAddress1 = createDataAddress(asset);
-        var result = assetIndex.accept(asset, dataAddress1);
+        var result = assetIndex.create(asset, dataAddress1);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.reason()).isEqualTo(ALREADY_EXISTS);
@@ -122,7 +122,7 @@ public abstract class AssetIndexTestBase {
         var address2 = createDataAddress(asset2);
 
         var assetIndex = getAssetIndex();
-        var results = Stream.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2)).map(assetIndex::accept);
+        var results = Stream.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2)).map(assetIndex::create);
 
         assertThat(results).allSatisfy(sr -> assertThat(sr.succeeded()).isTrue());
         assertThat(assetIndex.queryAssets(QuerySpec.none())).hasSize(2)
@@ -139,7 +139,7 @@ public abstract class AssetIndexTestBase {
         var address2 = createDataAddress(asset1);
 
         var results = List.of(new AssetEntry(asset1, address1), new AssetEntry(asset1, address2))
-                .stream().map(entry -> getAssetIndex().accept(entry));
+                .stream().map(entry -> getAssetIndex().create(entry));
 
         assertThat(results).extracting(StoreResult::succeeded).contains(true, false);
         // only one address/asset combo should exist
@@ -153,7 +153,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Verify that the object was stored with the correct timestamp")
     void accept_verifyTimestamp() {
         var asset = getAsset("test-asset");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
 
         var allAssets = getAssetIndex().queryAssets(QuerySpec.none());
 
@@ -165,8 +165,8 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Accept an asset and a data address that already exist")
     void acceptAssetAndDataAddress_exists() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
 
         var assets = getAssetIndex().queryAssets(QuerySpec.none());
 
@@ -179,7 +179,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Accept an asset entry that doesn't exist yet")
     void acceptAssetEntry_doesNotExist() {
         var assetExpected = getAsset("id1");
-        getAssetIndex().accept(new AssetEntry(assetExpected, getDataAddress()));
+        getAssetIndex().create(new AssetEntry(assetExpected, getDataAddress()));
 
 
         var assetFound = getAssetIndex().findById("id1");
@@ -193,8 +193,8 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Accept an asset entry that already exists")
     void acceptEntry_exists() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(new AssetEntry(asset, getDataAddress()));
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(new AssetEntry(asset, getDataAddress()));
+        getAssetIndex().create(asset, getDataAddress());
 
         var assets = getAssetIndex().queryAssets(QuerySpec.none());
 
@@ -215,7 +215,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Delete an asset that exists")
     void deleteAsset_exists() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
 
         var assetDeleted = getAssetIndex().deleteById("id1");
 
@@ -228,7 +228,7 @@ public abstract class AssetIndexTestBase {
     @Test
     void count_withResults() {
         var assets = range(0, 5).mapToObj(i -> getAsset("id" + i));
-        assets.forEach(a -> getAssetIndex().accept(a, getDataAddress()));
+        assets.forEach(a -> getAssetIndex().create(a, getDataAddress()));
         var criteria = Collections.<Criterion>emptyList();
 
         var count = getAssetIndex().countAssets(criteria);
@@ -250,7 +250,7 @@ public abstract class AssetIndexTestBase {
     void queryAsset_limit() {
         for (var i = 1; i <= 10; i++) {
             var asset = getAsset("id" + i);
-            getAssetIndex().accept(asset, getDataAddress());
+            getAssetIndex().create(asset, getDataAddress());
         }
         var querySpec = QuerySpec.Builder.newInstance().limit(3).offset(2).build();
 
@@ -264,7 +264,7 @@ public abstract class AssetIndexTestBase {
     void queryAsset_shortCount() {
         range(1, 5).forEach((item) -> {
             var asset = getAsset("id" + item);
-            getAssetIndex().accept(asset, getDataAddress());
+            getAssetIndex().create(asset, getDataAddress());
         });
         var querySpec = QuerySpec.Builder.newInstance()
                 .limit(3)
@@ -280,7 +280,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
     void queryAsset_shouldThrowException_whenUnsupportedOperator() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var unsupportedOperator = new Criterion(Asset.PROPERTY_ID, "unsupported", "42");
 
         assertThatThrownBy(() -> getAssetIndex().queryAssets(filter(unsupportedOperator)))
@@ -291,7 +291,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
     void queryAsset_nonExistProperty() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var notExistingProperty = new Criterion("noexist", "=", "42");
 
         var assets = getAssetIndex().queryAssets(filter(notExistingProperty));
@@ -304,7 +304,7 @@ public abstract class AssetIndexTestBase {
     void queryAsset_nonExistValue() {
         var asset = getAsset("id1");
         asset.getProperties().put("someprop", "someval");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var notExistingValue = new Criterion("someprop", "=", "some-other-val");
 
         var assets = getAssetIndex().queryAssets(filter(notExistingValue));
@@ -318,9 +318,9 @@ public abstract class AssetIndexTestBase {
         var expected = createAssetBuilder("id1").property("version", "2.0").property("contenttype", "whatever").build();
         var differentVersion = createAssetBuilder("id2").property("version", "2.1").property("contenttype", "whatever").build();
         var differentContentType = createAssetBuilder("id3").property("version", "2.0").property("contenttype", "different").build();
-        getAssetIndex().accept(expected, getDataAddress());
-        getAssetIndex().accept(differentVersion, getDataAddress());
-        getAssetIndex().accept(differentContentType, getDataAddress());
+        getAssetIndex().create(expected, getDataAddress());
+        getAssetIndex().create(differentVersion, getDataAddress());
+        getAssetIndex().create(differentContentType, getDataAddress());
         var filter = filter(
                 new Criterion("version", "=", "2.0"),
                 new Criterion("contenttype", "=", "whatever")
@@ -336,9 +336,9 @@ public abstract class AssetIndexTestBase {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        getAssetIndex().accept(testAsset1, createDataAddress(testAsset1));
-        getAssetIndex().accept(testAsset2, createDataAddress(testAsset2));
-        getAssetIndex().accept(testAsset3, createDataAddress(testAsset3));
+        getAssetIndex().create(testAsset1, createDataAddress(testAsset1));
+        getAssetIndex().create(testAsset2, createDataAddress(testAsset2));
+        getAssetIndex().create(testAsset3, createDataAddress(testAsset3));
         var criterion = new Criterion(Asset.PROPERTY_NAME, "=", "barbaz");
 
         var assets = getAssetIndex().queryAssets(filter(criterion));
@@ -350,9 +350,9 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Query assets using the IN operator")
     void queryAsset_in() {
         var asset1 = getAsset("id1");
-        getAssetIndex().accept(asset1, getDataAddress());
+        getAssetIndex().create(asset1, getDataAddress());
         var asset2 = getAsset("id2");
-        getAssetIndex().accept(asset2, getDataAddress());
+        getAssetIndex().create(asset2, getDataAddress());
         var criterion = new Criterion(Asset.PROPERTY_ID, "in", List.of("id1", "id2"));
 
         var assetsFound = getAssetIndex().queryAssets(filter(criterion));
@@ -364,9 +364,9 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Query assets using the IN operator, invalid righ-operand")
     void queryAsset_in_shouldThrowException_whenInvalidRightOperand() {
         var asset1 = getAsset("id1");
-        getAssetIndex().accept(asset1, getDataAddress());
+        getAssetIndex().create(asset1, getDataAddress());
         var asset2 = getAsset("id2");
-        getAssetIndex().accept(asset2, getDataAddress());
+        getAssetIndex().create(asset2, getDataAddress());
         var invalidRightOperand = new Criterion(Asset.PROPERTY_ID, "in", "(id1, id2)");
 
         var exception = catchException(() -> getAssetIndex()
@@ -381,9 +381,9 @@ public abstract class AssetIndexTestBase {
     @EnabledIfSystemProperty(named = "assetindex.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
     void queryAsset_like() {
         var asset1 = getAsset("id1");
-        getAssetIndex().accept(asset1, getDataAddress());
+        getAssetIndex().create(asset1, getDataAddress());
         var asset2 = getAsset("id2");
-        getAssetIndex().accept(asset2, getDataAddress());
+        getAssetIndex().create(asset2, getDataAddress());
         var criterion = new Criterion(Asset.PROPERTY_ID, "LIKE", "id%");
 
         var assetsFound = getAssetIndex().queryAssets(filter(criterion));
@@ -397,7 +397,7 @@ public abstract class AssetIndexTestBase {
     void queryAsset_likeJson() throws JsonProcessingException {
         var asset = getAsset("id1");
         asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var criterion = new Criterion("myjson", "LIKE", "%test123%");
 
         var assetsFound = getAssetIndex().queryAssets(filter(criterion));
@@ -412,7 +412,7 @@ public abstract class AssetIndexTestBase {
         var asset = getAsset("id1");
         var jsonObject = Map.of("root", Map.of("key1", "value1", "nested1", Map.of("key2", "value2", "key3", Map.of("theKey", "theValue, this is what we're looking for"))));
         asset.getProperties().put("myProp", new ObjectMapper().writeValueAsString(jsonObject));
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var criterion1 = new Criterion("myProp", "LIKE", "%is%what%");
         var criterion2 = new Criterion("myProp", "LIKE", "%we're%looking%");
 
@@ -431,7 +431,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Find an asset that exists")
     void findAsset_exists() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
 
         var assetFound = getAssetIndex().findById("id1");
 
@@ -450,7 +450,7 @@ public abstract class AssetIndexTestBase {
     void resolveDataAddress_exists() {
         var asset = getAsset("id1");
         var dataAddress = getDataAddress();
-        getAssetIndex().accept(asset, dataAddress);
+        getAssetIndex().create(asset, dataAddress);
 
         var dataAddressFound = getAssetIndex().resolveForAsset("id1");
 
@@ -475,7 +475,7 @@ public abstract class AssetIndexTestBase {
         var id = "id1";
         var asset = getAsset(id);
         var assetIndex = getAssetIndex();
-        assetIndex.accept(asset, getDataAddress());
+        assetIndex.create(asset, getDataAddress());
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
 
@@ -498,7 +498,7 @@ public abstract class AssetIndexTestBase {
         var asset = getAsset(id);
         asset.getProperties().put("newKey", "newValue");
         var assetIndex = getAssetIndex();
-        assetIndex.accept(asset, getDataAddress());
+        assetIndex.create(asset, getDataAddress());
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
 
@@ -522,7 +522,7 @@ public abstract class AssetIndexTestBase {
         var asset = getAsset(id);
         asset.getProperties().put("newKey", "originalValue");
         var assetIndex = getAssetIndex();
-        assetIndex.accept(asset, getDataAddress());
+        assetIndex.create(asset, getDataAddress());
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
 
@@ -557,7 +557,7 @@ public abstract class AssetIndexTestBase {
         var asset = getAsset(id);
         var assetIndex = getAssetIndex();
         var dataAddress = getDataAddress();
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         var updatedDataAddress = getDataAddress();
         updatedDataAddress.getProperties().put("newKey", "newValue");
@@ -579,7 +579,7 @@ public abstract class AssetIndexTestBase {
         var assetIndex = getAssetIndex();
         var dataAddress = getDataAddress();
         dataAddress.getProperties().put("newKey", "newValue");
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         var updatedDataAddress = dataAddress;
         updatedDataAddress.getProperties().remove("newKey");
@@ -602,7 +602,7 @@ public abstract class AssetIndexTestBase {
         var assetIndex = getAssetIndex();
         var dataAddress = getDataAddress();
         dataAddress.getProperties().put("newKey", "originalValue");
-        assetIndex.accept(asset, dataAddress);
+        assetIndex.create(asset, dataAddress);
 
         var updatedDataAddress = dataAddress;
         updatedDataAddress.getProperties().put("newKey", "newValue");

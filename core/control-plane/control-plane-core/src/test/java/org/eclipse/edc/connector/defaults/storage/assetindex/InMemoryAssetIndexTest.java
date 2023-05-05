@@ -45,7 +45,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void findById() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("barbaz", id);
-        index.accept(testAsset, createDataAddress(testAsset));
+        index.create(testAsset, createDataAddress(testAsset));
 
         var result = index.findById(id);
 
@@ -56,7 +56,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void findById_notfound() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
-        index.accept(testAsset, createDataAddress(testAsset));
+        index.create(testAsset, createDataAddress(testAsset));
 
         var result = index.findById("not-exist");
 
@@ -66,7 +66,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     @Test
     void findAll_noQuerySpec() {
         var assets = IntStream.range(0, 10).mapToObj(i -> createAsset("test-asset", "id" + i))
-                .peek(a -> index.accept(a, createDataAddress(a))).collect(Collectors.toList());
+                .peek(a -> index.create(a, createDataAddress(a))).collect(Collectors.toList());
 
         assertThat(index.queryAssets(QuerySpec.Builder.newInstance().build())).containsAll(assets);
     }
@@ -75,7 +75,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void findAll_withPaging_noSortOrderDesc() {
         IntStream.range(0, 10)
                 .mapToObj(i -> createAsset("test-asset", "id" + i))
-                .forEach(a -> index.accept(a, createDataAddress(a)));
+                .forEach(a -> index.create(a, createDataAddress(a)));
 
         var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.DESC).offset(5).limit(2).build();
 
@@ -87,7 +87,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void findAll_withPaging_noSortOrderAsc() {
         IntStream.range(0, 10)
                 .mapToObj(i -> createAsset("test-asset", "id" + i))
-                .forEach(a -> index.accept(a, createDataAddress(a)));
+                .forEach(a -> index.create(a, createDataAddress(a)));
 
         var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.ASC).offset(3).limit(3).build();
 
@@ -99,7 +99,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void findAll_withFiltering() {
         var assets = IntStream.range(0, 10)
                 .mapToObj(i -> createAsset("test-asset", "id" + i))
-                .peek(a -> index.accept(a, createDataAddress(a)))
+                .peek(a -> index.create(a, createDataAddress(a)))
                 .collect(Collectors.toList());
 
         var spec = QuerySpec.Builder.newInstance().equalsAsContains(false).filter(Asset.PROPERTY_ID + " = id1").build();
@@ -110,7 +110,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void findAll_withFiltering_limitExceedsResultSize() {
         IntStream.range(0, 10)
                 .mapToObj(i -> createAsset("test-asset" + i))
-                .forEach(a -> index.accept(a, createDataAddress(a)));
+                .forEach(a -> index.create(a, createDataAddress(a)));
 
         var spec = QuerySpec.Builder.newInstance()
                 .sortOrder(SortOrder.ASC)
@@ -124,7 +124,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     void findAll_withSorting() {
         var assets = IntStream.range(0, 10)
                 .mapToObj(i -> createAsset("test-asset", "id" + i))
-                .peek(a -> index.accept(a, createDataAddress(a)))
+                .peek(a -> index.create(a, createDataAddress(a)))
                 .collect(Collectors.toList());
 
         var spec = QuerySpec.Builder.newInstance().sortField(Asset.PROPERTY_ID).sortOrder(SortOrder.ASC).build();
@@ -150,7 +150,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         var asset = createAsset("test-asset", id);
         var dataAddress = createDataAddress(asset);
 
-        index.accept(asset, dataAddress);
+        index.create(asset, dataAddress);
 
         var newAsset = createAsset("new-name", id);
         var result = index.updateAsset(newAsset);
@@ -171,7 +171,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
         var asset = createAsset("test-asset", id);
         var dataAddress = createDataAddress(asset);
 
-        index.accept(asset, dataAddress);
+        index.create(asset, dataAddress);
 
         dataAddress.getProperties().put("new", "value");
         var result = index.updateDataAddress(id, dataAddress);

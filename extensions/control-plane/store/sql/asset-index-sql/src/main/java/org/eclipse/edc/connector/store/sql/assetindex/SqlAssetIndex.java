@@ -108,7 +108,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Void> accept(AssetEntry item) {
+    public StoreResult<Void> create(AssetEntry item) {
         Objects.requireNonNull(item);
         var asset = item.getAsset();
         var dataAddress = item.getDataAddress();
