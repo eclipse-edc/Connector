@@ -55,7 +55,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void getAssetById() {
         //insert one asset into the index
         controlPlane.getContext().getService(AssetIndex.class)
-                .accept(new AssetEntry(Asset.Builder.newInstance().id("test-asset").build(),
+                .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").build(),
                         DataAddress.Builder.newInstance().type("test-type").build()));
 
         var body = baseRequest()
@@ -103,7 +103,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void queryAsset_byContentType() {
         //insert one asset into the index
         controlPlane.getContext().getService(AssetIndex.class)
-                .accept(new AssetEntry(Asset.Builder.newInstance().id("test-asset").contentType("application/octet-stream").build(),
+                .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").contentType("application/octet-stream").build(),
                         DataAddress.Builder.newInstance().type("test-type").build()));
 
         // create the query by content type
@@ -126,7 +126,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void queryAsset_byCustomStringProperty() {
         //insert one asset into the index
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.accept(new AssetEntry(Asset.Builder.newInstance()
+        assetIndex.create(new AssetEntry(Asset.Builder.newInstance()
                 .id("test-asset")
                 .contentType("application/octet-stream")
                 .property("myProp", "myVal")
@@ -153,7 +153,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void queryAsset_byCustomComplexProperty_whenJsonPathQuery_expectNoResult() {
         //insert one asset into the index
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.accept(new AssetEntry(Asset.Builder.newInstance()
+        assetIndex.create(new AssetEntry(Asset.Builder.newInstance()
                 .id("test-asset")
                 .contentType("application/octet-stream")
                 // use a custom, complex object type
@@ -182,7 +182,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void queryAsset_byCustomComplexProperty_whenLikeOperator_expectException() {
         //insert one asset into the index
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.accept(new AssetEntry(Asset.Builder.newInstance()
+        assetIndex.create(new AssetEntry(Asset.Builder.newInstance()
                 .id("test-asset")
                 .contentType("application/octet-stream")
                 // use a custom, complex object type

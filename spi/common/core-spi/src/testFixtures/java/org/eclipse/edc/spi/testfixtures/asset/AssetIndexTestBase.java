@@ -250,7 +250,7 @@ public abstract class AssetIndexTestBase {
     void queryAsset_limit() {
         for (var i = 1; i <= 10; i++) {
             var asset = getAsset("id" + i);
-            getAssetIndex().accept(asset, getDataAddress());
+            getAssetIndex().create(asset, getDataAddress());
         }
         var querySpec = QuerySpec.Builder.newInstance().limit(3).offset(2).build();
 
@@ -264,7 +264,7 @@ public abstract class AssetIndexTestBase {
     void queryAsset_shortCount() {
         range(1, 5).forEach((item) -> {
             var asset = getAsset("id" + item);
-            getAssetIndex().accept(asset, getDataAddress());
+            getAssetIndex().create(asset, getDataAddress());
         });
         var querySpec = QuerySpec.Builder.newInstance()
                 .limit(3)
@@ -280,7 +280,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
     void queryAsset_shouldThrowException_whenUnsupportedOperator() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var unsupportedOperator = new Criterion(Asset.PROPERTY_ID, "unsupported", "42");
 
         assertThatThrownBy(() -> getAssetIndex().queryAssets(filter(unsupportedOperator)))
@@ -291,7 +291,7 @@ public abstract class AssetIndexTestBase {
     @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
     void queryAsset_nonExistProperty() {
         var asset = getAsset("id1");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var notExistingProperty = new Criterion("noexist", "=", "42");
 
         var assets = getAssetIndex().queryAssets(filter(notExistingProperty));
@@ -304,7 +304,7 @@ public abstract class AssetIndexTestBase {
     void queryAsset_nonExistValue() {
         var asset = getAsset("id1");
         asset.getProperties().put("someprop", "someval");
-        getAssetIndex().accept(asset, getDataAddress());
+        getAssetIndex().create(asset, getDataAddress());
         var notExistingValue = new Criterion("someprop", "=", "some-other-val");
 
         var assets = getAssetIndex().queryAssets(filter(notExistingValue));
@@ -318,9 +318,9 @@ public abstract class AssetIndexTestBase {
         var expected = createAssetBuilder("id1").property("version", "2.0").property("contenttype", "whatever").build();
         var differentVersion = createAssetBuilder("id2").property("version", "2.1").property("contenttype", "whatever").build();
         var differentContentType = createAssetBuilder("id3").property("version", "2.0").property("contenttype", "different").build();
-        getAssetIndex().accept(expected, getDataAddress());
-        getAssetIndex().accept(differentVersion, getDataAddress());
-        getAssetIndex().accept(differentContentType, getDataAddress());
+        getAssetIndex().create(expected, getDataAddress());
+        getAssetIndex().create(differentVersion, getDataAddress());
+        getAssetIndex().create(differentContentType, getDataAddress());
         var filter = filter(
                 new Criterion("version", "=", "2.0"),
                 new Criterion("contenttype", "=", "whatever")
@@ -336,9 +336,9 @@ public abstract class AssetIndexTestBase {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        getAssetIndex().accept(testAsset1, createDataAddress(testAsset1));
-        getAssetIndex().accept(testAsset2, createDataAddress(testAsset2));
-        getAssetIndex().accept(testAsset3, createDataAddress(testAsset3));
+        getAssetIndex().create(testAsset1, createDataAddress(testAsset1));
+        getAssetIndex().create(testAsset2, createDataAddress(testAsset2));
+        getAssetIndex().create(testAsset3, createDataAddress(testAsset3));
         var criterion = new Criterion(Asset.PROPERTY_NAME, "=", "barbaz");
 
         var assets = getAssetIndex().queryAssets(filter(criterion));
