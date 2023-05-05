@@ -58,8 +58,8 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
         var json = Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
-                .add(DSPACE_PROCESSID_TYPE, processId)
-                .add(DSPACE_CODE_TYPE, code)
+                .add(DSPACE_PROCESSID_TYPE, "TestProcessId")
+                .add(DSPACE_CODE_TYPE, "testCode")
                 .add(DSPACE_REASON_TYPE, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build())
                 .build();
 
@@ -67,10 +67,10 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
         assertThat(result).isNotNull();
 
-        assertThat(result.getProcessId()).isEqualTo(processId);
+        assertThat(result.getProcessId()).isEqualTo("TestProcessId");
         assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
         assertThat(result.getReason()).isEqualTo("{\"foo\":\"bar\"}");
-        assertThat(result.getCode()).isEqualTo(code);
+        assertThat(result.getCode()).isEqualTo("testCode");
 
         verify(context, never()).reportProblem(anyString());
     }

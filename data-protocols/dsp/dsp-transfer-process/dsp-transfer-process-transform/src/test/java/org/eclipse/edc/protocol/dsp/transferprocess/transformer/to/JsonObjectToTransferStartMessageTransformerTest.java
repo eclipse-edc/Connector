@@ -42,8 +42,6 @@ class JsonObjectToTransferStartMessageTransformerTest {
 
     private final String processId = "TestProcessId";
 
-    private final String type = "AWS";
-
     private TransformerContext context = mock(TransformerContext.class);
 
     private JsonObjectToTransferStartMessageTransformer transformer;
@@ -83,7 +81,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
                 .build();
 
         var dataAddress = DataAddress.Builder.newInstance()
-                .type(type)
+                .type("AWS")
                 .build();
         when(context.transform(isA(JsonObject.class), eq(DataAddress.class))).thenReturn(dataAddress);
 
@@ -93,7 +91,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
 
         assertThat(result.getProcessId()).isEqualTo(processId);
         assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
-        assertThat(result.getDataAddress().getType()).isEqualTo(type);
+        assertThat(result.getDataAddress()).isSameAs(dataAddress);
 
         verify(context, never()).reportProblem(anyString());
     }
