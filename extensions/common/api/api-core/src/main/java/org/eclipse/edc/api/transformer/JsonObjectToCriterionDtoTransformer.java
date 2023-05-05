@@ -15,7 +15,6 @@
 package org.eclipse.edc.api.transformer;
 
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -34,21 +33,22 @@ public class JsonObjectToCriterionDtoTransformer extends AbstractJsonLdTransform
 
     @Override
     public @Nullable CriterionDto transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-
         var builder = CriterionDto.Builder.newInstance();
-        visitProperties(object, (k, v) -> transformProperties(k, v, builder, context));
+
+        visitProperties(object, k -> {
+            switch (k) {
+                case CRITERION_OPERAND_LEFT:
+                    return v -> builder.operandLeft(transformString(v, context));
+                case CRITERION_OPERAND_RIGHT:
+                    return v -> builder.operandRight(transformString(v, context));
+                case CRITERION_OPERATOR:
+                    return v -> builder.operator(transformString(v, context));
+                default:
+                    return doNothing();
+            }
+        });
+
         return builder.build();
     }
 
-    private void transformProperties(String key, JsonValue value, CriterionDto.Builder builder, TransformerContext context) {
-        if (CRITERION_OPERAND_LEFT.equals(key)) {
-            var obj = transformGenericProperty(value, context);
-            builder.operandLeft(obj);
-        } else if (CRITERION_OPERAND_RIGHT.equals(key)) {
-            var obj = transformGenericProperty(value, context);
-            builder.operandRight(obj);
-        } else if (CRITERION_OPERATOR.equals(key)) {
-            transformString(value, builder::operator, context);
-        }
-    }
 }

@@ -36,9 +36,9 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToCatalogRequestMessageTransformerTest {
 
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private ObjectMapper mapper = mock(ObjectMapper.class);
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final ObjectMapper mapper = mock(ObjectMapper.class);
+    private final TransformerContext context = mock(TransformerContext.class);
 
     private JsonObjectToCatalogRequestMessageTransformer transformer;
 
@@ -48,21 +48,7 @@ class JsonObjectToCatalogRequestMessageTransformerTest {
     }
 
     @Test
-    void transform_noFilter_returnCatalogRequestMessage() {
-        var message = jsonFactory.createObjectBuilder()
-                .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
-                .build();
-
-        var result = transformer.transform(message, context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getQuerySpec()).isNull();
-
-        verify(context, never()).reportProblem(anyString());
-    }
-
-    @Test
-    void transform_withFilter_returnCatalogRequestMessage() {
+    void transform_returnCatalogRequestMessage() {
         var querySpecJson = jsonFactory.createObjectBuilder().build();
         var querySpec = QuerySpec.Builder.newInstance().build();
         when(mapper.convertValue(querySpecJson, QuerySpec.class)).thenReturn(querySpec);

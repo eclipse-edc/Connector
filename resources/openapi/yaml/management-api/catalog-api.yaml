@@ -49,9 +49,10 @@ paths:
                 $ref: '#/components/schemas/Catalog'
           description: Gets contract offers (=catalog) of a single connector
       tags:
-      - Catalog
+      - Catalog (deprecated)
   /catalog/request:
     post:
+      deprecated: true
       operationId: requestCatalog
       requestBody:
         content:
@@ -59,6 +60,23 @@ paths:
             schema:
               $ref: '#/components/schemas/CatalogRequestDto'
         required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+          description: Gets contract offers (=catalog) of a single connector
+      tags:
+      - Catalog (deprecated)
+  /v2/catalog/request:
+    post:
+      operationId: requestCatalog_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogRequestDto'
       responses:
         default:
           content:
@@ -131,6 +149,9 @@ components:
       type: object
       example: null
       properties:
+        protocol:
+          type: string
+          example: null
         providerUrl:
           type: string
           example: null
@@ -271,6 +292,41 @@ components:
           example: null
         uid:
           type: string
+          example: null
+    JsonObject:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+      example: null
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+          example: null
+    JsonValue:
+      type: object
+      example: null
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
           example: null
     Permission:
       type: object

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,36 +8,38 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.api.management.catalog.model;
+package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotNull;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.spi.query.QuerySpec;
 
 import static java.util.Objects.requireNonNull;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-@JsonDeserialize(builder = CatalogRequestDto.Builder.class)
-public class CatalogRequestDto {
+public class CatalogRequest {
 
-    private QuerySpecDto querySpec;
-    @NotNull
+    public static final String EDC_CATALOG_REQUEST_TYPE = EDC_NAMESPACE + "CatalogRequest";
+    public static final String EDC_CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String EDC_CATALOG_REQUEST_PROVIDER_URL = EDC_NAMESPACE + "providerUrl";
+    public static final String EDC_CATALOG_REQUEST_QUERY_SPEC = EDC_NAMESPACE + "querySpec";
+
+    private QuerySpec querySpec;
     private String providerUrl;
     private String protocol;
 
-    private CatalogRequestDto() {
+    private CatalogRequest() {
     }
 
     public String getProviderUrl() {
         return providerUrl;
     }
 
-    public QuerySpecDto getQuerySpec() {
+    public QuerySpec getQuerySpec() {
         return querySpec;
     }
 
@@ -47,10 +49,10 @@ public class CatalogRequestDto {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private final CatalogRequestDto instance;
+        private final CatalogRequest instance;
 
         private Builder() {
-            instance = new CatalogRequestDto();
+            instance = new CatalogRequest();
         }
 
         @JsonCreator
@@ -58,7 +60,7 @@ public class CatalogRequestDto {
             return new Builder();
         }
 
-        public Builder querySpec(QuerySpecDto querySpecDto) {
+        public Builder querySpec(QuerySpec querySpecDto) {
             instance.querySpec = querySpecDto;
             return this;
         }
@@ -73,7 +75,7 @@ public class CatalogRequestDto {
             return this;
         }
 
-        public CatalogRequestDto build() {
+        public CatalogRequest build() {
             requireNonNull(instance.providerUrl, "providerUrl");
             return instance;
         }

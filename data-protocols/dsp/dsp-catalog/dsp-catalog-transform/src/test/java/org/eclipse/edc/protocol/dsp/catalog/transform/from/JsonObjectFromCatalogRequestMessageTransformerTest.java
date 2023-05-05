@@ -50,22 +50,7 @@ class JsonObjectFromCatalogRequestMessageTransformerTest {
     }
 
     @Test
-    void transform_noFilter_returnJsonObject() {
-        var message = CatalogRequestMessage.Builder.newInstance()
-                .protocol("protocol")
-                .build();
-
-        var result = transformer.transform(message, context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_REQUEST_TYPE);
-        assertThat(result.get(DSPACE_FILTER_PROPERTY)).isNull();
-
-        verify(context, never()).reportProblem(anyString());
-    }
-
-    @Test
-    void transform_withFilter_returnJsonObject() {
+    void transform_returnJsonObject() {
         var querySpec = QuerySpec.Builder.newInstance().build();
         var querySpecJson = jsonFactory.createObjectBuilder().build();
         when(mapper.convertValue(querySpec, JsonObject.class)).thenReturn(querySpecJson);
@@ -80,7 +65,6 @@ class JsonObjectFromCatalogRequestMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_REQUEST_TYPE);
         assertThat(result.get(DSPACE_FILTER_PROPERTY)).isEqualTo(querySpecJson);
-
         verify(context, never()).reportProblem(anyString());
     }
 }

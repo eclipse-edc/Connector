@@ -42,10 +42,10 @@ import static org.mockito.Mockito.when;
 class CatalogServiceImplTest {
 
     private final RemoteMessageDispatcherRegistry dispatcher = mock(RemoteMessageDispatcherRegistry.class);
+    private final CatalogServiceImpl service = new CatalogServiceImpl(dispatcher);
 
     @Test
-    void shouldSendCatalogRequestToDispatcher() {
-        var service = new CatalogServiceImpl(dispatcher);
+    void getByProviderId_shouldSendCatalogRequestToDispatcher() {
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
@@ -61,5 +61,16 @@ class CatalogServiceImplTest {
 
         assertThat(future).succeedsWithin(1, SECONDS).extracting(Catalog::getContractOffers, InstanceOfAssertFactories.list(ContractOffer.class)).hasSize(1);
         verify(dispatcher, times(1)).send(eq(Catalog.class), isA(CatalogRequestMessage.class));
+    }
+
+    @Test
+    void request_shouldDispatchRequestAndReturnResult() {
+        when(dispatcher.send(eq(byte[].class), any())).thenReturn(completedFuture("content".getBytes()));
+
+        var result = service.request("http://provider/url", "protocol", QuerySpec.none());
+
+        assertThat(result).succeedsWithin(5, SECONDS);
+        assertThat(result.join()).isEqualTo("content".getBytes());
+        verify(dispatcher).send(eq(byte[].class), isA(CatalogRequestMessage.class));
     }
 }

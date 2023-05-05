@@ -23,7 +23,10 @@ import java.util.UUID;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 
 public abstract class BaseManagementApiEndToEndTest {
+
     public static final int PORT = getFreePort();
+    public static final int PROTOCOL_PORT = getFreePort();
+
     @RegisterExtension
     static EdcRuntimeExtension controlPlane = new EdcRuntimeExtension(
             ":system-tests:management-api:management-api-test-runtime",
@@ -33,7 +36,8 @@ public abstract class BaseManagementApiEndToEndTest {
                     put("edc.ids.id", "urn:connector:" + UUID.randomUUID());
                     put("web.http.path", "/");
                     put("web.http.protocol.path", "/protocol");
-                    put("web.http.protocol.port", String.valueOf(getFreePort()));
+                    put("web.http.protocol.port", String.valueOf(PROTOCOL_PORT));
+                    put("edc.dsp.callback.address", "http://localhost:" + PROTOCOL_PORT + "/protocol");
                     put("web.http.port", String.valueOf(getFreePort()));
                     put("web.http.management.path", "/management");
                     put("web.http.management.port", String.valueOf(PORT));

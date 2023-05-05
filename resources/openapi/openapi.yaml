@@ -424,7 +424,7 @@ paths:
   /catalog:
     get:
       tags:
-      - Catalog
+      - Catalog (deprecated)
       operationId: getCatalog
       parameters:
       - name: providerUrl
@@ -491,7 +491,7 @@ paths:
   /catalog/request:
     post:
       tags:
-      - Catalog
+      - Catalog (deprecated)
       operationId: requestCatalog
       requestBody:
         content:
@@ -506,6 +506,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Catalog'
+      deprecated: true
   /check/health:
     get:
       tags:
@@ -2757,6 +2758,23 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ApiErrorDetail'
+  /v2/catalog/request:
+    post:
+      tags:
+      - Catalog
+      operationId: requestCatalog_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogRequestDto'
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
   /v2/policydefinitions:
     post:
       tags:
@@ -3248,6 +3266,9 @@ components:
       - providerUrl
       type: object
       properties:
+        protocol:
+          type: string
+          example: null
         providerUrl:
           type: string
           example: null
