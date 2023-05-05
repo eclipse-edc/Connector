@@ -39,6 +39,7 @@ import static java.util.Optional.ofNullable;
 
 @Path("/catalog")
 @Produces({ MediaType.APPLICATION_JSON })
+@Deprecated(since = "milestone9")
 public class CatalogApiController implements CatalogApi {
 
     private final CatalogService service;

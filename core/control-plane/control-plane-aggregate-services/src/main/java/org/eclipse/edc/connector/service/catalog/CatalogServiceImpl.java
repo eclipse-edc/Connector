@@ -42,4 +42,16 @@ public class CatalogServiceImpl implements CatalogService {
 
         return dispatcher.send(Catalog.class, request);
     }
+
+    @Override
+    public CompletableFuture<byte[]> request(String providerUrl, String protocol, QuerySpec querySpec) {
+        var request = CatalogRequestMessage.Builder.newInstance()
+                .protocol(protocol)
+                .connectorId(providerUrl)
+                .callbackAddress(providerUrl)
+                .querySpec(querySpec)
+                .build();
+
+        return dispatcher.send(byte[].class, request);
+    }
 }

@@ -16,16 +16,21 @@ package org.eclipse.edc.jsonld.spi.transformer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
+import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -46,17 +51,17 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         this.input = input;
         this.output = output;
     }
-    
+
     @Override
     public Class<INPUT> getInputType() {
         return input;
     }
-    
+
     @Override
     public Class<OUTPUT> getOutputType() {
         return output;
     }
-    
+
     /**
      * Transforms properties of a Java type. The properties are mapped to generic JSON values.
      *
@@ -69,7 +74,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         if (properties == null) {
             return;
         }
-        
+
         properties.forEach((k, v) ->  {
             try {
                 builder.add(k, mapper.convertValue(v, JsonValue.class));
@@ -78,11 +83,23 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             }
         });
     }
-    
+
     protected void visitProperties(JsonObject object, BiConsumer<String, JsonValue> consumer) {
         object.entrySet().stream().filter(entry -> !KEYWORDS.contains(entry.getKey())).forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
     }
-    
+
+    protected void visitProperties(JsonObject object, Function<String, Consumer<JsonValue>> consumer) {
+        object.entrySet().stream()
+                .filter(entry -> !KEYWORDS.contains(entry.getKey()))
+                .forEach(entry -> consumer.apply(entry.getKey()).accept(entry.getValue()));
+    }
+
+    @NotNull
+    protected static Consumer<JsonValue> doNothing() {
+        return v -> {
+        };
+    }
+
     protected Object transformGenericProperty(JsonValue value, TransformerContext context) {
         if (value instanceof JsonArray) {
             var jsonArray = (JsonArray) value;
@@ -96,7 +113,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return context.transform(value, Object.class);
         }
     }
-    
+
     /**
      * Transforms a JsonValue to a string and applies the result function. If the value parameter
      * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
@@ -106,20 +123,55 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param context the transformer context
      */
     protected void transformString(JsonValue value, Consumer<String> resultFunction, TransformerContext context) {
+        resultFunction.accept(transformString(value, context));
+    }
+
+    /**
+     * Transforms a JsonValue to a string and applies the result function. If the value parameter
+     * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
+     *
+     * @param value the value to transform
+     * @param context the transformer context
+     * @return the string result
+     */
+    protected String transformString(JsonValue value, TransformerContext context) {
         if (value instanceof JsonString) {
-            var result = ((JsonString) value).getString();
-            resultFunction.accept(result);
+            return ((JsonString) value).getString();
         } else if (value instanceof JsonObject) {
             var jsonString = ((JsonObject) value).getJsonString(VALUE);
-            transformString(jsonString, resultFunction, context);
+            return transformString(jsonString, context);
         } else if (value instanceof JsonArray) {
-            transformString(((JsonArray) value).get(0), resultFunction, context);
+            return transformString(((JsonArray) value).get(0), context);
         } else {
             context.reportProblem(format("Invalid property. Expected JsonString, JsonObject or JsonArray but got %s",
                     value.getClass().getSimpleName()));
+            return null;
         }
     }
-    
+
+    /**
+     * Transforms a JsonValue to int. If the value parameter is not of type JsonNumber, JsonObject or JsonArray,
+     * a problem is reported to the context.
+     *
+     * @param value the value to transform
+     * @param context the transformer context
+     * @return the int value
+     */
+    protected int transformInt(JsonValue value, TransformerContext context) {
+        if (value instanceof JsonNumber) {
+            return ((JsonNumber) value).intValue();
+        } else if (value instanceof JsonObject) {
+            var jsonNumber = value.asJsonObject().getJsonNumber(VALUE);
+            return transformInt(jsonNumber, context);
+        } else if (value instanceof JsonArray) {
+            return transformInt(value.asJsonArray().get(0), context);
+        } else {
+            context.reportProblem(format("Invalid property. Expected JsonNumber, JsonObject or JsonArray but got %s",
+                    value.getClass().getSimpleName()));
+            return 0;
+        }
+    }
+
     /**
      * Transforms a JsonValue to the desired output type. The result can be a single instance or a
      * list of that type, depending on whether the given value is a JsonObject or a JsonArray. The
@@ -136,13 +188,64 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                                               TransformerContext context) {
         if (value instanceof JsonArray) {
             var jsonArray = (JsonArray) value;
-            jsonArray.stream().map(entry -> context.transform(entry, type)).forEach(resultFunction::accept);
+            jsonArray.stream().map(entry -> context.transform(entry, type)).forEach(resultFunction);
         } else if (value instanceof JsonObject) {
             var result = context.transform(value, type);
             resultFunction.accept(result);
         } else {
             context.reportProblem(format("Invalid property of type %s. Expected JsonObject or JsonArray but got %s",
                     type.getSimpleName(), value.getClass().getSimpleName()));
+        }
+    }
+
+    /**
+     * Transforms a JsonValue to a List. If the value parameter is not of type JsonArray, a problem is reported to the context.
+     *
+     * @param value the value to transform
+     * @param type the desired result type
+     * @param context the transformer context
+     * @param <T> the desired result type
+     * @return the transformed list, null if the value type was not valid.
+     */
+    protected <T> List<T> transformArray(JsonValue value, Class<T> type, TransformerContext context) {
+        if (value instanceof JsonArray) {
+            return value.asJsonArray().stream()
+                    .map(entry -> context.transform(entry, type))
+                    .collect(toList());
+        } else {
+            context.reportProblem(format("Invalid property of type %s. Expected JsonObject or JsonArray but got %s",
+                    type.getSimpleName(), value.getClass().getSimpleName()));
+            return null;
+        }
+    }
+
+    /**
+     * Transforms a JsonValue to the desired output type. If the value parameter is neither of type
+     * JsonObject nor JsonArray, a problem is reported to the context.
+     *
+     * @param value the value to transform
+     * @param type the desired result type
+     * @param context the transformer context
+     * @param <T> the desired result type
+     * @return the transformed list
+     */
+    protected <T> T transformObject(JsonValue value, Class<T> type, TransformerContext context) {
+        if (value instanceof JsonArray) {
+            return value.asJsonArray().stream()
+                    .map(entry -> context.transform(entry, type))
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElseGet(() -> {
+                        context.reportProblem(format("Invalid property of type %s. Cannot map array values %s",
+                                type.getSimpleName(), value.getClass().getSimpleName()));
+                        return null;
+                    });
+        } else if (value instanceof JsonObject) {
+            return context.transform(value, type);
+        } else {
+            context.reportProblem(format("Invalid property of type %s. Expected JsonObject but got %s",
+                    type.getSimpleName(), value.getClass().getSimpleName()));
+            return null;
         }
     }
     

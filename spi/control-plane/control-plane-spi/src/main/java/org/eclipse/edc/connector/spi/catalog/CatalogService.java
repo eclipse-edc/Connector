@@ -25,6 +25,18 @@ public interface CatalogService {
      *
      * @param providerUrl the url of the provider
      * @return the provider's catalog
+     * @deprecated please use {@link #request(String, String, QuerySpec)}
      */
+    @Deprecated(since = "milestone9")
     CompletableFuture<Catalog> getByProviderUrl(String providerUrl, QuerySpec spec);
+
+    /**
+     * Return the catalog of the passed provider url.
+     *
+     * @param providerUrl the url of the provider.
+     * @param protocol the protocol id string.
+     * @param querySpec the {@link QuerySpec} object.
+     * @return the provider's catalog
+     */
+    CompletableFuture<byte[]> request(String providerUrl, String protocol, QuerySpec querySpec);
 }
