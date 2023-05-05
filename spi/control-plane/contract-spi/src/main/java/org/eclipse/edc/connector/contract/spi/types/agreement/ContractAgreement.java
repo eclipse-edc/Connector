@@ -31,8 +31,8 @@ import java.util.Objects;
 public class ContractAgreement {
 
     private final String id;
-    private final String providerAgentId;
-    private final String consumerAgentId;
+    private final String providerId;
+    private final String consumerId;
     private final long contractSigningDate;
     private final long contractStartDate;
     private final long contractEndDate;
@@ -40,16 +40,16 @@ public class ContractAgreement {
     private final Policy policy;
 
     private ContractAgreement(@NotNull String id,
-                              @NotNull String providerAgentId,
-                              @NotNull String consumerAgentId,
+                              @NotNull String providerId,
+                              @NotNull String consumerId,
                               long contractSigningDate,
                               long contractStartDate,
                               long contractEndDate,
                               @NotNull Policy policy,
                               @NotNull String assetId) {
         this.id = Objects.requireNonNull(id);
-        this.providerAgentId = Objects.requireNonNull(providerAgentId);
-        this.consumerAgentId = Objects.requireNonNull(consumerAgentId);
+        this.providerId = Objects.requireNonNull(providerId);
+        this.consumerId = Objects.requireNonNull(consumerId);
         this.contractSigningDate = contractSigningDate;
         this.contractStartDate = contractStartDate;
         this.contractEndDate = contractEndDate;
@@ -68,29 +68,25 @@ public class ContractAgreement {
     }
 
     /**
-     * The id of the data providing agent.
+     * The id of the data providing participant.
      * Please note that id should be taken from the corresponding data ecosystem.
-     * For example: In IDS the connector uses a URI from the IDS Information Model as ID. If the contract was
-     * negotiated inside the IDS ecosystem, this URI should be used here.
      *
      * @return provider id
      */
     @NotNull
-    public String getProviderAgentId() {
-        return providerAgentId;
+    public String getProviderId() {
+        return providerId;
     }
 
     /**
-     * The id of the data consuming agent.
+     * The id of the data consuming participant.
      * Please note that id should be taken from the corresponding contract ecosystem.
-     * For example: In IDS the connector uses a URI from the IDS Information Model as ID. If the contract was
-     * negotiated inside the IDS ecosystem, this URI should be used here.
      *
      * @return consumer id
      */
     @NotNull
-    public String getConsumerAgentId() {
-        return consumerAgentId;
+    public String getConsumerId() {
+        return consumerId;
     }
 
     /**
@@ -147,7 +143,7 @@ public class ContractAgreement {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, assetId, policy);
+        return Objects.hash(id, providerId, consumerId, contractSigningDate, contractStartDate, contractEndDate, assetId, policy);
     }
 
     @Override
@@ -160,7 +156,7 @@ public class ContractAgreement {
         }
         ContractAgreement that = (ContractAgreement) o;
         return contractSigningDate == that.contractSigningDate && contractStartDate == that.contractStartDate && contractEndDate == that.contractEndDate &&
-                Objects.equals(id, that.id) && Objects.equals(providerAgentId, that.providerAgentId) && Objects.equals(consumerAgentId, that.consumerAgentId) &&
+                Objects.equals(id, that.id) && Objects.equals(providerId, that.providerId) && Objects.equals(consumerId, that.consumerId) &&
                 Objects.equals(assetId, that.assetId) && Objects.equals(policy, that.policy);
     }
 
@@ -168,8 +164,8 @@ public class ContractAgreement {
     public static class Builder {
 
         private String id;
-        private String providerAgentId;
-        private String consumerAgentId;
+        private String providerId;
+        private String consumerId;
         private long contractSigningDate;
         private long contractStartDate;
         private long contractEndDate;
@@ -189,13 +185,13 @@ public class ContractAgreement {
             return this;
         }
 
-        public Builder providerAgentId(String providerAgentId) {
-            this.providerAgentId = providerAgentId;
+        public Builder providerId(String providerId) {
+            this.providerId = providerId;
             return this;
         }
 
-        public Builder consumerAgentId(String consumerAgentId) {
-            this.consumerAgentId = consumerAgentId;
+        public Builder consumerId(String consumerId) {
+            this.consumerId = consumerId;
             return this;
         }
 
@@ -225,7 +221,7 @@ public class ContractAgreement {
         }
 
         public ContractAgreement build() {
-            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, policy, assetId);
+            return new ContractAgreement(id, providerId, consumerId, contractSigningDate, contractStartDate, contractEndDate, policy, assetId);
         }
     }
 }

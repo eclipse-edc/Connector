@@ -95,8 +95,8 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
                     var offers = dynamicOffset >= numAssets ? Stream.<ContractOffer>empty() :
                             createContractOffers(definition, querySpecBuilder.build())
-                                    .map(offerBuilder -> offerBuilder.provider(query.getProvider())
-                                            .consumer(query.getConsumer())
+                                    .map(offerBuilder -> offerBuilder.providerId(query.getProvider())
+                                            .consumerId(query.getConsumer())
                                             .build());
 
                     numFetchedAssets.addAndGet(dynamicLimit);

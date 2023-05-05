@@ -43,7 +43,7 @@ import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_S
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_LIMIT;
 
 public abstract class AbstractContractNegotiationManager {
-
+    protected String participantId;
     protected ContractNegotiationStore negotiationStore;
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
@@ -171,6 +171,11 @@ public abstract class AbstractContractNegotiationManager {
             this.manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
         }
 
+        public Builder<T> participantId(String id) {
+            manager.participantId = id;
+            return this;
+        }
+
         public Builder<T> monitor(Monitor monitor) {
             manager.monitor = monitor;
             return this;
@@ -237,6 +242,7 @@ public abstract class AbstractContractNegotiationManager {
         }
 
         public T build() {
+            Objects.requireNonNull(manager.participantId, "participantId");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.commandQueue, "commandQueue");

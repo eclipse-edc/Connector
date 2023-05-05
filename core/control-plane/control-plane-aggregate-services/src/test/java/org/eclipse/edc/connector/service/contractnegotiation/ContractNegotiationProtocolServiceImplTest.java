@@ -48,7 +48,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
-import java.net.URI;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -408,8 +407,8 @@ class ContractNegotiationProtocolServiceImplTest {
                 .id(ContractId.createContractId("1"))
                 .policy(createPolicy())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
-                .consumer(URI.create(CONSUMER_ID))
-                .provider(URI.create(PROVIDER_ID))
+                .consumerId(CONSUMER_ID)
+                .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())
                 .build();

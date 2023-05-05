@@ -39,6 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ContractNegotiationCommandQueueIntegrationTest {
+    private static final String PARTICIPANT_ID = "participantId";
 
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
@@ -74,6 +75,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     @Test
     void submitTestCommand_providerManager() {
         var negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(PARTICIPANT_ID)
                 .monitor(monitor)
                 .dispatcherRegistry(dispatcherRegistry)
                 .commandQueue(commandQueue)
@@ -103,6 +105,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
 
         // Create and start the negotiation manager
         var negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+                .participantId(PARTICIPANT_ID)
                 .monitor(monitor)
                 .dispatcherRegistry(dispatcherRegistry)
                 .commandQueue(commandQueue)

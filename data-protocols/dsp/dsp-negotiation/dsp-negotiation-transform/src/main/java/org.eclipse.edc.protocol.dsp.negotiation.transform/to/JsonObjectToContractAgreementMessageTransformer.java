@@ -63,8 +63,8 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
     private ContractAgreement contractAgreement(JsonObject object, Policy policy, TransformerContext context) {
         var builder = ContractAgreement.Builder.newInstance();
         builder.id(nodeId(object));
-        builder.providerAgentId(""); // TODO
-        builder.consumerAgentId(""); // TODO
+        builder.providerId(""); // TODO
+        builder.consumerId(""); // TODO
         builder.policy(policy);
         builder.assetId(policy.getTarget());
 

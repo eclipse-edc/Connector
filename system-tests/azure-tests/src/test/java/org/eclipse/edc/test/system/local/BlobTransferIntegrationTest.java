@@ -32,10 +32,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
 import static org.eclipse.edc.test.system.local.BlobTransferUtils.createAsset;
 import static org.eclipse.edc.test.system.local.BlobTransferUtils.createContractDefinition;
 import static org.eclipse.edc.test.system.local.BlobTransferUtils.createPolicy;
@@ -46,6 +48,7 @@ import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CON
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PARTICIPANT_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.IDS_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PORT;
@@ -54,6 +57,7 @@ import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PRO
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PARTICIPANT_ID;
 
 @AzureStorageIntegrationTest
 public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
@@ -61,36 +65,45 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
     private static final Vault CONSUMER_VAULT = new MockVault();
     private static final Vault PROVIDER_VAULT = new MockVault();
     private static final String PROVIDER_CONTAINER_NAME = UUID.randomUUID().toString();
+
+    private static final Map<String, String> CONSUMER_CONFIG = new HashMap<>();
+    private static final Map<String, String> PROVIDER_CONFIG = new HashMap<>();
+
+    static {
+        CONSUMER_CONFIG.put("edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s");
+        CONSUMER_CONFIG.put("web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT));
+        CONSUMER_CONFIG.put("web.http.path", CONSUMER_CONNECTOR_PATH);
+        CONSUMER_CONFIG.put("web.http.management.port", String.valueOf(CONSUMER_MANAGEMENT_PORT));
+        CONSUMER_CONFIG.put("web.http.management.path", CONSUMER_MANAGEMENT_PATH);
+        CONSUMER_CONFIG.put("web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT));
+        CONSUMER_CONFIG.put("web.http.ids.path", IDS_PATH);
+        CONSUMER_CONFIG.put("edc.ids.id", "urn:connector:consumer");
+        CONSUMER_CONFIG.put(PARTICIPANT_ID, CONSUMER_PARTICIPANT_ID);
+        CONSUMER_CONFIG.put("ids.webhook.address", CONSUMER_IDS_API);
+
+        PROVIDER_CONFIG.put("edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s");
+        PROVIDER_CONFIG.put("edc.test.asset.container.name", PROVIDER_CONTAINER_NAME);
+        PROVIDER_CONFIG.put("web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT));
+        PROVIDER_CONFIG.put("web.http.path", PROVIDER_CONNECTOR_PATH);
+        PROVIDER_CONFIG.put("web.http.management.port", String.valueOf(PROVIDER_MANAGEMENT_PORT));
+        PROVIDER_CONFIG.put("web.http.management.path", PROVIDER_MANAGEMENT_PATH);
+        PROVIDER_CONFIG.put("web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT));
+        PROVIDER_CONFIG.put("web.http.ids.path", IDS_PATH);
+        PROVIDER_CONFIG.put("edc.ids.id", "urn:connector:provider");
+        PROVIDER_CONFIG.put(PARTICIPANT_ID, PROVIDER_PARTICIPANT_ID);
+        PROVIDER_CONFIG.put("ids.webhook.address", PROVIDER_IDS_API);
+    }
+
     @RegisterExtension
     protected static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":system-tests:runtimes:azure-storage-transfer-consumer",
             "consumer",
-            Map.of(
-                    "edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s",
-                    "web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT),
-                    "web.http.path", CONSUMER_CONNECTOR_PATH,
-                    "web.http.management.port", String.valueOf(CONSUMER_MANAGEMENT_PORT),
-                    "web.http.management.path", CONSUMER_MANAGEMENT_PATH,
-                    "web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT),
-                    "web.http.ids.path", IDS_PATH,
-                    "edc.ids.id", "urn:connector:consumer",
-                    "ids.webhook.address", CONSUMER_IDS_API));
+            CONSUMER_CONFIG);
 
     @RegisterExtension
     protected static EdcRuntimeExtension provider = new EdcRuntimeExtension(
             ":system-tests:runtimes:azure-storage-transfer-provider",
-            "provider",
-            Map.of(
-                    "edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s",
-                    "edc.test.asset.container.name", PROVIDER_CONTAINER_NAME,
-                    "web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT),
-                    "web.http.path", PROVIDER_CONNECTOR_PATH,
-                    "web.http.management.port", String.valueOf(PROVIDER_MANAGEMENT_PORT),
-                    "web.http.management.path", PROVIDER_MANAGEMENT_PATH,
-                    "web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT),
-                    "web.http.ids.path", IDS_PATH,
-                    "edc.ids.id", "urn:connector:provider",
-                    "ids.webhook.address", PROVIDER_IDS_API));
+            "provider", PROVIDER_CONFIG);
 
 
     @BeforeAll

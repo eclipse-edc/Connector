@@ -33,10 +33,10 @@ import java.util.UUID;
  * <p>Prior to using, {@link #initialize()} must be called.</p>
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
-
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final List<ConfigurationExtension> configurationExtensions;
     private boolean isReadOnly = false;
+    private String participantId;
     private String connectorId;
     private Config config;
 
@@ -54,6 +54,11 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public void freeze() {
         isReadOnly = true;
+    }
+
+    @Override
+    public String getParticipantId() {
+        return participantId;
     }
 
     @Override
@@ -102,6 +107,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         });
         config = loadConfig();
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
+        participantId = getSetting(PARTICIPANT_ID, ANONYMOUS_PARTICIPANT);
+        if (ANONYMOUS_PARTICIPANT.equals(participantId)) {
+            getMonitor().warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
+        }
     }
 
     // this method exists so that getting env vars can be mocked during testing

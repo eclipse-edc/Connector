@@ -18,15 +18,13 @@ import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
 
-import java.net.URI;
-
 public class DescriptionRequest {
 
     private IdsId id;
     private ClaimToken claimToken;
     private QuerySpec querySpec = QuerySpec.none();
-    private URI provider;
-    private URI consumer;
+    private String provider;
+    private String consumer;
 
     private DescriptionRequest() {
 
@@ -44,11 +42,11 @@ public class DescriptionRequest {
         return querySpec;
     }
 
-    public URI getProvider() {
+    public String getProvider() {
         return provider;
     }
 
-    public URI getConsumer() {
+    public String getConsumer() {
         return consumer;
     }
 
@@ -78,12 +76,12 @@ public class DescriptionRequest {
             return this;
         }
 
-        public Builder provider(URI provider) {
+        public Builder provider(String provider) {
             instance.provider = provider;
             return this;
         }
 
-        public Builder consumer(URI consumer) {
+        public Builder consumer(String consumer) {
             instance.consumer = consumer;
             return this;
         }

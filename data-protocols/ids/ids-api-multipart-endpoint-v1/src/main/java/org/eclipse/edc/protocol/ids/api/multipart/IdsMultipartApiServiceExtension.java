@@ -96,7 +96,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @Inject
     private Vault vault;
-    
+
     @Inject
     private TransferProcessProtocolService transferProcessService;
 
@@ -118,11 +118,12 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     private void registerControllers(ServiceExtensionContext context) {
         var connectorId = resolveConnectorId(context);
+        var participantId = context.getParticipantId();
 
         var objectMapper = typeManager.getMapper("ids");
 
         var handlers = new LinkedList<Handler>();
-        handlers.add(new DescriptionRequestHandler(monitor, connectorId, transformerRegistry, assetIndex, dataCatalogService, contractOfferResolver, connectorService, objectMapper));
+        handlers.add(new DescriptionRequestHandler(monitor, participantId, connectorId, transformerRegistry, assetIndex, dataCatalogService, contractOfferResolver, connectorService, objectMapper));
         handlers.add(new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, vault, transferProcessService));
         handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, typeManager));
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, transformerRegistry, assetIndex, contractNegotiationService));

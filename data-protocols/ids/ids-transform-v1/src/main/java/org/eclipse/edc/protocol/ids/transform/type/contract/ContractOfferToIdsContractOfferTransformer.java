@@ -27,6 +27,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Objects;
@@ -84,8 +85,8 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
         builder._obligation_(idsObligations);
         builder._prohibition_(idsProhibitions);
         builder._permission_(idsPermissions);
-        builder._consumer_(object.getConsumer());
-        builder._provider_(object.getProvider());
+        builder._consumer_(URI.create(object.getConsumerId()));
+        builder._provider_(URI.create(object.getProviderId()));
 
         if (object.getContractStart() != null) {
             try {

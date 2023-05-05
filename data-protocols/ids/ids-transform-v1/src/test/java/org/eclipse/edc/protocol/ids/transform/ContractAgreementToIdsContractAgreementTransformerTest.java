@@ -90,9 +90,9 @@ class ContractAgreementToIdsContractAgreementTransformerTest {
     private ContractAgreementMessage contractAgreementRequest(Policy policy) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id(String.valueOf(AGREEMENT_ID))
-                .providerAgentId(PROVIDER_ID)
+                .providerId(PROVIDER_ID)
                 .assetId(UUID.randomUUID().toString())
-                .consumerAgentId("id")
+                .consumerId("id")
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())

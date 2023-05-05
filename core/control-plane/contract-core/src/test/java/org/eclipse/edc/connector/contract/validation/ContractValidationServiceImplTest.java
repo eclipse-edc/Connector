@@ -44,7 +44,6 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -118,8 +117,8 @@ class ContractValidationServiceImplTest {
         assertThat(validatedOffer.getAsset()).isEqualTo(asset);
         assertThat(validatedOffer.getContractStart().toInstant()).isEqualTo(clock.instant());
         assertThat(validatedOffer.getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
-        assertThat(validatedOffer.getConsumer().toString()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
-        assertThat(validatedOffer.getProvider()).isEqualTo(offer.getProvider());
+        assertThat(validatedOffer.getConsumerId()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
+        assertThat(validatedOffer.getProviderId()).isEqualTo(offer.getProviderId());
 
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
@@ -231,7 +230,7 @@ class ContractValidationServiceImplTest {
                 .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(now.getEpochSecond())
                 .id("1:2")
-                .consumerAgentId(CONSUMER_ID)
+                .consumerId(CONSUMER_ID)
                 .build();
 
         var isValid = validationService.validateAgreement(claimToken, agreement);
@@ -265,7 +264,7 @@ class ContractValidationServiceImplTest {
                 .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(now.getEpochSecond())
                 .id("1:2")
-                .consumerAgentId(CONSUMER_ID)
+                .consumerId(CONSUMER_ID)
                 .build();
 
         var isValid = validationService.validateAgreement(claimToken, agreement);
@@ -442,8 +441,8 @@ class ContractValidationServiceImplTest {
                 .id("1:2")
                 .asset(asset)
                 .policy(policy)
-                .provider(URI.create(PROVIDER_ID))
-                .consumer(URI.create(CONSUMER_ID))
+                .providerId(PROVIDER_ID)
+                .consumerId(CONSUMER_ID)
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(validity))
                 .build();
@@ -466,8 +465,8 @@ class ContractValidationServiceImplTest {
 
     private ContractAgreement.Builder createContractAgreement() {
         return ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId(PROVIDER_ID)
-                .consumerAgentId(CONSUMER_ID)
+                .providerId(PROVIDER_ID)
+                .consumerId(CONSUMER_ID)
                 .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString());
     }

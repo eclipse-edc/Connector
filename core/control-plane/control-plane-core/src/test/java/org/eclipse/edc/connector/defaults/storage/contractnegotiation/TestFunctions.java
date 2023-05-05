@@ -58,8 +58,8 @@ public class TestFunctions {
     public static ContractAgreement.Builder createAgreementBuilder() {
         return ContractAgreement.Builder.newInstance()
                 .id("agreementId")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+                .providerId("provider")
+                .consumerId("consumer")
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .contractStartDate(Instant.now().getEpochSecond())

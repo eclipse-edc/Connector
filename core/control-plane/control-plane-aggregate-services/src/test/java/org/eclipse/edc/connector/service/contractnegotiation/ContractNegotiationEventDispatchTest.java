@@ -44,7 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -118,8 +117,8 @@ class ContractNegotiationEventDispatchTest {
                 .id("contractDefinitionId:" + UUID.randomUUID())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
                 .policy(policy)
-                .consumer(URI.create(CONSUMER))
-                .provider(URI.create(PROVIDER))
+                .consumerId(CONSUMER)
+                .providerId(PROVIDER)
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))
                 .build();

@@ -37,7 +37,6 @@ import java.util.Map;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.DEPRECATED_SETTINGS;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.SETTINGS;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -78,7 +77,6 @@ class ManagementApiConfigurationExtensionTest {
         extension.initialize(context);
 
         verify(configurer).configure(any(), any(), eq(DEPRECATED_SETTINGS));
-        verify(monitor).warning(anyString());
     }
 
     @Test

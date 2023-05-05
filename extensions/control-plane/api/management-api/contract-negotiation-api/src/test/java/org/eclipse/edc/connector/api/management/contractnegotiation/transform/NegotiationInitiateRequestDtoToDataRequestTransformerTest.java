@@ -86,8 +86,8 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         var request = transformer.transform(dto, context);
 
         assertThat(request).isNotNull();
-        assertThat(request.getRequestData().getContractOffer().getProvider()).asString().isEqualTo(dto.getConnectorAddress());
-        assertThat(request.getRequestData().getContractOffer().getConsumer()).asString().isEqualTo("urn:connector:test-consumer");
+        assertThat(request.getRequestData().getContractOffer().getProviderId()).isEqualTo(dto.getConnectorAddress());
+        assertThat(request.getRequestData().getContractOffer().getConsumerId()).isEqualTo("urn:connector:test-consumer");
     }
 
     @Test
@@ -103,7 +103,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
         var request = transformer.transform(dto, context);
         assertThat(request).isNotNull();
-        assertThat(request.getRequestData().getContractOffer().getProvider()).asString().isEqualTo("urn:connector:test-provider");
-        assertThat(request.getRequestData().getContractOffer().getConsumer()).asString().isEqualTo(DEFAULT_CONSUMER_ID);
+        assertThat(request.getRequestData().getContractOffer().getProviderId()).isEqualTo("urn:connector:test-provider");
+        assertThat(request.getRequestData().getContractOffer().getConsumerId()).isEqualTo(DEFAULT_CONSUMER_ID);
     }
 }
