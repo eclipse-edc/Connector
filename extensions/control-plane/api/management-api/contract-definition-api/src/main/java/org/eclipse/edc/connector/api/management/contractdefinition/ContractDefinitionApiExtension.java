@@ -69,6 +69,6 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(monitor, service, transformerRegistry));
-        webService.registerResource(config.getContextAlias(), new ContractDefinitionNewApiController(jsonLdService, transformerRegistry, service));
+        webService.registerResource(config.getContextAlias(), new ContractDefinitionNewApiController(jsonLdService, transformerRegistry, service, monitor));
     }
 }
