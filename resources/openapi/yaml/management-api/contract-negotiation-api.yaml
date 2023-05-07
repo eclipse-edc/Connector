@@ -410,7 +410,7 @@ paths:
       - Contract Negotiation
   /v2/contractnegotiations/{id}:
     get:
-      description: Gets an contract negotiation with the given ID
+      description: Gets a contract negotiation with the given ID
       operationId: getNegotiation_1
       parameters:
       - in: path

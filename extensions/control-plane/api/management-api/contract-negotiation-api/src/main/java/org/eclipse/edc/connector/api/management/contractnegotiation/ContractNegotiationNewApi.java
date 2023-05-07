@@ -48,7 +48,7 @@ public interface ContractNegotiationNewApi {
     )
     List<JsonObject> queryNegotiations(@Valid QuerySpecDto querySpecDto);
 
-    @Operation(description = "Gets an contract negotiation with the given ID",
+    @Operation(description = "Gets a contract negotiation with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ContractNegotiationDto.class))),

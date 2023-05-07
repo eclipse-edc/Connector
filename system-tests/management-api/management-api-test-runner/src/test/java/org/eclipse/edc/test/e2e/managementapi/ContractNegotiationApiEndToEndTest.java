@@ -251,6 +251,8 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
         return ContractAgreement.Builder.newInstance()
                 .id(negotiationId)
                 .assetId(UUID.randomUUID().toString())
+                .consumerId(UUID.randomUUID() + "-consumer")
+                .providerId(UUID.randomUUID() + "-provider")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }
