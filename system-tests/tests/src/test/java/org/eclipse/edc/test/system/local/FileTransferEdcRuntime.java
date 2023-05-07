@@ -60,7 +60,6 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.management.path", PROVIDER_MANAGEMENT_PATH,
                     "web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT),
                     "web.http.ids.path", IDS_PATH,
-                    "edc.ids.id", "urn:connector:provider",
                     PARTICIPANT_ID, PROVIDER_PARTICIPANT_ID,
                     "ids.webhook.address", PROVIDER_IDS_API));
     @RegisterExtension
@@ -74,7 +73,6 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.management.path", CONSUMER_MANAGEMENT_PATH,
                     "web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT),
                     "web.http.ids.path", IDS_PATH,
-                    "edc.ids.id", "urn:connector:consumer",
                     PARTICIPANT_ID, CONSUMER_PARTICIPANT_ID,
                     "ids.webhook.address", CONSUMER_IDS_API));
 

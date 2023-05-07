@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
@@ -140,7 +141,7 @@ class ContractNegotiationIntegrationTest {
         when(consumerDispatcherRegistry.send(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
-        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
+        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
@@ -149,7 +150,6 @@ class ContractNegotiationIntegrationTest {
 
         // Create an initial request and trigger consumer manager
         var requestData = ContractRequestData.Builder.newInstance().connectorId(PROVIDER_ID).callbackAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
-
 
         var request = ContractRequest.Builder.newInstance().callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).requestData(requestData).build();
 
@@ -210,7 +210,7 @@ class ContractNegotiationIntegrationTest {
         consumerNegotiationId = null;
         var offer = getContractOffer();
 
-        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(offer));
+        when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
 
         // Start provider and consumer negotiation managers
@@ -304,7 +304,6 @@ class ContractNegotiationIntegrationTest {
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .providerId("provider")
-                .consumerId("consumer")
                 .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance()
                         .type(PolicyType.CONTRACT)

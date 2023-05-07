@@ -18,7 +18,6 @@ import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 
@@ -33,7 +32,6 @@ public abstract class BaseManagementApiEndToEndTest {
             "control-plane",
             new HashMap<>() {
                 {
-                    put("edc.ids.id", "urn:connector:" + UUID.randomUUID());
                     put("web.http.path", "/");
                     put("web.http.protocol.path", "/protocol");
                     put("web.http.protocol.port", String.valueOf(PROTOCOL_PORT));

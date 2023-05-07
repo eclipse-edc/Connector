@@ -117,7 +117,6 @@ class ContractNegotiationEventDispatchTest {
                 .id("contractDefinitionId:" + UUID.randomUUID())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
                 .policy(policy)
-                .consumerId(CONSUMER)
                 .providerId(PROVIDER)
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))

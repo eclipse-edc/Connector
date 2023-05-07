@@ -311,7 +311,6 @@ public class Participant {
                 put("web.http.management.path", controlPlaneManagement.getPath());
                 put("web.http.control.port", String.valueOf(controlPlaneControl.getPort()));
                 put("web.http.control.path", controlPlaneControl.getPath());
-                put("edc.ids.id", connectorId);
                 put("edc.vault", resourceAbsolutePath(name + "-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");

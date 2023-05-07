@@ -57,7 +57,6 @@ import static org.eclipse.edc.protocol.ids.spi.types.IdsType.RESOURCE;
 
 public class DescriptionRequestHandler implements Handler {
     private final Monitor monitor;
-    private final String participantId;
     private final IdsId connectorId;
     private final TypeTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
@@ -76,7 +75,6 @@ public class DescriptionRequestHandler implements Handler {
 
     public DescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String participantId,
             @NotNull IdsId connectorId,
             @NotNull TypeTransformerRegistry transformerRegistry,
             @NotNull AssetIndex assetIndex,
@@ -85,7 +83,6 @@ public class DescriptionRequestHandler implements Handler {
             @NotNull ConnectorService connectorService,
             @NotNull ObjectMapper objectMapper) {
         this.monitor = monitor;
-        this.participantId = participantId;
         this.connectorId = connectorId;
         this.transformerRegistry = transformerRegistry;
         this.assetIndex = assetIndex;
@@ -116,8 +113,6 @@ public class DescriptionRequestHandler implements Handler {
 
         var descriptionRequest = DescriptionRequest.Builder.newInstance()
                 .id(idsId)
-                .provider(participantId)
-                .consumer(message.getIssuerConnector().toString())
                 .claimToken(multipartRequest.getClaimToken())
                 .querySpec(getQuerySpec(message, objectMapper))
                 .build();

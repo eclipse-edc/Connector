@@ -87,8 +87,7 @@ class CatalogApiControllerIntegrationTest {
                 "web.http.path", "/api",
                 "web.http.management.port", String.valueOf(port),
                 "web.http.management.path", "/api/v1/management",
-                "edc.api.auth.key", authKey,
-                "edc.ids.id", "test-ids-id"
+                "edc.api.auth.key", authKey
         ));
     }
 

@@ -48,7 +48,7 @@ public interface ContractValidationService {
      *     original policy and asset defined by the provider.
      */
     @NotNull
-    Result<ContractOffer> validateInitialOffer(ClaimToken token, ContractOffer offer);
+    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ContractOffer offer);
 
     /**
      * Validates the contract agreement that the consumer referenced in its transfer request.

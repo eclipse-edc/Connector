@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceFailure;
@@ -97,7 +98,8 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyRequested_shouldInitiateNegotiation_whenOfferIsValid() {
         var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = contractOffer();
-        when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(contractOffer));
+        var validatedOffer = new ValidatedConsumerOffer(CONSUMER_ID, contractOffer);
+        when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(validatedOffer));
         var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
                 .callbackAddress("callbackAddress")
@@ -407,7 +409,6 @@ class ContractNegotiationProtocolServiceImplTest {
                 .id(ContractId.createContractId("1"))
                 .policy(createPolicy())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
-                .consumerId(CONSUMER_ID)
                 .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())

@@ -31,9 +31,7 @@ public class CatalogServiceImpl implements CatalogService {
     private final String dataCatalogId;
     private final ContractOfferResolver contractOfferResolver;
 
-    public CatalogServiceImpl(
-            @NotNull String dataCatalogId,
-            @NotNull ContractOfferResolver contractOfferResolver) {
+    public CatalogServiceImpl(@NotNull String dataCatalogId, @NotNull ContractOfferResolver contractOfferResolver) {
         this.dataCatalogId = Objects.requireNonNull(dataCatalogId);
         this.contractOfferResolver = Objects.requireNonNull(contractOfferResolver);
     }
@@ -46,8 +44,6 @@ public class CatalogServiceImpl implements CatalogService {
                 .claimToken(descriptionRequest.getClaimToken())
                 .assetsCriteria(querySpec.getFilterExpression())
                 .range(querySpec.getRange())
-                .provider(descriptionRequest.getProvider())
-                .consumer(descriptionRequest.getConsumer())
                 .build();
 
         try (var offers = contractOfferResolver.queryContractOffers(query)) {

@@ -77,7 +77,6 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
         CONSUMER_CONFIG.put("web.http.management.path", CONSUMER_MANAGEMENT_PATH);
         CONSUMER_CONFIG.put("web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT));
         CONSUMER_CONFIG.put("web.http.ids.path", IDS_PATH);
-        CONSUMER_CONFIG.put("edc.ids.id", "urn:connector:consumer");
         CONSUMER_CONFIG.put(PARTICIPANT_ID, CONSUMER_PARTICIPANT_ID);
         CONSUMER_CONFIG.put("ids.webhook.address", CONSUMER_IDS_API);
 
@@ -89,7 +88,6 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
         PROVIDER_CONFIG.put("web.http.management.path", PROVIDER_MANAGEMENT_PATH);
         PROVIDER_CONFIG.put("web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT));
         PROVIDER_CONFIG.put("web.http.ids.path", IDS_PATH);
-        PROVIDER_CONFIG.put("edc.ids.id", "urn:connector:provider");
         PROVIDER_CONFIG.put(PARTICIPANT_ID, PROVIDER_PARTICIPANT_ID);
         PROVIDER_CONFIG.put("ids.webhook.address", PROVIDER_IDS_API);
     }

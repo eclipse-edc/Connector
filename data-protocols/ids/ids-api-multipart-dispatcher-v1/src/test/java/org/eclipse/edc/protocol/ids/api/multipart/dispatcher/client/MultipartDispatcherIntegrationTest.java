@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
@@ -179,7 +180,8 @@ class MultipartDispatcherIntegrationTest {
         when(negotiationService.notifyRequested(any(), any())).thenReturn(ServiceResult.success(createContractNegotiation("negotiationId")));
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
-        when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(contractOffer));
+        var validatedOffer = new ValidatedConsumerOffer("urn:connector:consumer", contractOffer);
+        when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(validatedOffer));
 
         var request = ContractRequestMessage.Builder.newInstance()
                 .type(ContractRequestMessage.Type.INITIAL)
@@ -250,7 +252,6 @@ class MultipartDispatcherIntegrationTest {
     protected ContractOffer contractOffer(String id) {
         return ContractOffer.Builder.newInstance()
                 .id(id)
-                .consumerId("consumer")
                 .providerId("provider")
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
