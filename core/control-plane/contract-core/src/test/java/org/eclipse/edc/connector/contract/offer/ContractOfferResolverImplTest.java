@@ -40,6 +40,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,6 +50,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -62,6 +64,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractOfferResolverImplTest {
+    private static final String PARTICIPANT_ID = "urn:connector:provider";
+    public static final String CONSUMER_ID = "urn:connector:consumer";
 
     private static final Range DEFAULT_RANGE = new Range(0, 10);
     private final Instant now = Instant.now();
@@ -76,7 +80,7 @@ class ContractOfferResolverImplTest {
 
     @BeforeEach
     void setUp() {
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
+        contractOfferResolver = new ContractOfferResolverImpl(PARTICIPANT_ID, agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
     }
 
     @Test
@@ -84,7 +88,7 @@ class ContractOfferResolverImplTest {
         var contractDefinition = getContractDefBuilder("1")
                 .build();
 
-        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID)));
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(2L);
@@ -92,8 +96,6 @@ class ContractOfferResolverImplTest {
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         var query = ContractOfferQuery.builder()
                 .claimToken(ClaimToken.Builder.newInstance().build())
-                .provider("urn:connector:edc-provider")
-                .consumer("urn:connector:edc-consumer")
                 .build();
 
         var offers = contractOfferResolver.queryContractOffers(query);
@@ -103,8 +105,7 @@ class ContractOfferResolverImplTest {
                 .allSatisfy(contractOffer -> {
                     assertThat(contractOffer.getContractEnd().toInstant())
                             .isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
-                    assertThat(contractOffer.getProviderId()).isEqualTo("urn:connector:edc-provider");
-                    assertThat(contractOffer.getConsumerId()).isEqualTo("urn:connector:edc-consumer");
+                    assertThat(contractOffer.getProviderId()).isEqualTo(PARTICIPANT_ID);
                 });
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionResolver).definitionsFor(isA(ParticipantAgent.class));
@@ -295,8 +296,6 @@ class ContractOfferResolverImplTest {
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         var query = ContractOfferQuery.builder()
                 .claimToken(ClaimToken.Builder.newInstance().build())
-                .provider("urn:connector:edc-provider")
-                .consumer("urn:connector:edc-consumer")
                 .build();
 
         var offers = contractOfferResolver.queryContractOffers(query);

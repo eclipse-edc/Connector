@@ -269,7 +269,6 @@ class ProviderContractNegotiationManagerImplTest {
                 .id(ContractId.createContractId("1"))
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
-                .consumerId(CONSUMER_ID)
                 .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())

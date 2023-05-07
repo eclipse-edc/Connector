@@ -34,7 +34,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
 
-    private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer(clock, DEFAULT_CONSUMER_ID);
+    private final NegotiationInitiateRequestDtoToDataRequestTransformer transformer = new NegotiationInitiateRequestDtoToDataRequestTransformer(clock);
 
     private final TransformerContext context = mock(TransformerContext.class);
 
@@ -87,7 +87,6 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
         assertThat(request).isNotNull();
         assertThat(request.getRequestData().getContractOffer().getProviderId()).isEqualTo(dto.getConnectorAddress());
-        assertThat(request.getRequestData().getContractOffer().getConsumerId()).isEqualTo("urn:connector:test-consumer");
     }
 
     @Test
@@ -104,6 +103,5 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         var request = transformer.transform(dto, context);
         assertThat(request).isNotNull();
         assertThat(request.getRequestData().getContractOffer().getProviderId()).isEqualTo("urn:connector:test-provider");
-        assertThat(request.getRequestData().getContractOffer().getConsumerId()).isEqualTo(DEFAULT_CONSUMER_ID);
     }
 }

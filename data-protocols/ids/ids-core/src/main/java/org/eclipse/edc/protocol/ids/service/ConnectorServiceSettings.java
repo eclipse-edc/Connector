@@ -33,8 +33,6 @@ import static org.eclipse.edc.protocol.ids.util.ConnectorIdUtil.resolveConnector
 public class ConnectorServiceSettings {
 
     @Setting
-    public static final String EDC_IDS_ID = "edc.ids.id";
-    @Setting
     public static final String EDC_IDS_TITLE = "edc.ids.title";
     @Setting
     public static final String EDC_IDS_DESCRIPTION = "edc.ids.description";

@@ -177,11 +177,12 @@ public class ContractCoreExtension implements ServiceExtension {
         var definitionService = new ContractDefinitionResolverImpl(monitor, contractDefinitionStore, policyEngine, policyStore);
         context.registerService(ContractDefinitionResolver.class, definitionService);
 
-        var contractOfferResolver = new ContractOfferResolverImpl(agentService, definitionService, assetIndex, policyStore, clock, monitor);
+        var participantId = context.getParticipantId();
+        var contractOfferResolver = new ContractOfferResolverImpl(participantId, agentService, definitionService, assetIndex, policyStore, clock, monitor);
         context.registerService(ContractOfferResolver.class, contractOfferResolver);
 
         var policyEquality = new PolicyEquality(typeManager);
-        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality, clock);
+        var validationService = new ContractValidationServiceImpl(participantId, agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality, clock);
         context.registerService(ContractValidationService.class, validationService);
 
         var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
@@ -195,8 +196,6 @@ public class ContractCoreExtension implements ServiceExtension {
 
         context.registerService(ContractNegotiationObservable.class, observable);
         context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
-
-        var participantId = context.getParticipantId();
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(participantId)

@@ -176,9 +176,6 @@ components:
       properties:
         asset:
           $ref: '#/components/schemas/Asset'
-        consumerId:
-          type: string
-          example: null
         contractEnd:
           type: string
           format: date-time

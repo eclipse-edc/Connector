@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -64,15 +65,15 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ClaimToken claimToken) {
-        return transactionContext.execute(() -> createNegotiation(message)
-                .compose(negotiation -> validateOffer(message, claimToken, negotiation))
-                .onSuccess(negotiation -> {
-                    negotiation.transitionRequested();
-                    monitor.debug("[Provider] Contract offer received. Will be approved automatically.");
-                    negotiation.transitionAgreeing(); // automatic agree
-                    update(negotiation);
-                    observable.invokeForEach(l -> l.requested(negotiation));
-                }));
+        return transactionContext.execute(() ->
+                validateOffer(message, claimToken)
+                        .compose(validatedOffer -> createNegotiation(message, validatedOffer)).onSuccess(negotiation -> {
+                            negotiation.transitionRequested();
+                            monitor.debug(() -> "[Provider] Contract offer received. Will be approved automatically.");
+                            negotiation.transitionAgreeing(); // automatic agree
+                            update(negotiation);
+                            observable.invokeForEach(l -> l.requested(negotiation));
+                        }));
     }
 
     @Override
@@ -144,29 +145,29 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> createNegotiation(ContractRequestMessage message) {
+    private ServiceResult<ContractNegotiation> createNegotiation(ContractRequestMessage message, ValidatedConsumerOffer validatedOffer) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(message.getProcessId())
-                .counterPartyId(message.getContractOffer().getConsumerId())
+                .counterPartyId(validatedOffer.getConsumerIdentity())
                 .counterPartyAddress(message.getCallbackAddress())
                 .protocol(message.getProtocol())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(PROVIDER)
-                .contractOffer(message.getContractOffer())
+                .contractOffer(validatedOffer.getOffer())
                 .build();
 
         return ServiceResult.success(negotiation);
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> validateOffer(ContractRequestMessage message, ClaimToken claimToken, ContractNegotiation negotiation) {
+    private ServiceResult<ValidatedConsumerOffer> validateOffer(ContractRequestMessage message, ClaimToken claimToken) {
         var result = validationService.validateInitialOffer(claimToken, message.getContractOffer());
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer rejected as invalid: " + result.getFailureDetail());
             return ServiceResult.badRequest("Contract offer is not valid: " + result.getFailureDetail());
         } else {
-            return ServiceResult.success(negotiation);
+            return ServiceResult.success(result.getContent());
         }
     }
 

@@ -97,7 +97,6 @@ class ContractOfferToIdsContractOfferTransformerTest {
                 .id(CONTRACT_OFFER_ID)
                 .policy(policy)
                 .asset(Asset.Builder.newInstance().id("test-asset").build())
-                .consumerId(CONSUMER_ID)
                 .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
