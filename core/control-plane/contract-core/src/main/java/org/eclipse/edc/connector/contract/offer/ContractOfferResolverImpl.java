@@ -30,7 +30,6 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
@@ -116,12 +115,12 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
         return Optional.of(definition.getContractPolicyId())
                 .map(policyStore::findById)
                 .map(policyDefinition -> assetIndex.queryAssets(assetQuerySpec)
-                        .map(asset -> createContractOffer(definition, policyDefinition.getPolicy(), asset)))
+                        .map(asset -> createContractOffer(definition, policyDefinition.getPolicy(), asset.getId())))
                 .orElse(Stream.empty());
     }
 
     @NotNull
-    private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, Asset asset) {
+    private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, String assetId) {
 
         var start = clock.instant();
         var zone = clock.getZone();
@@ -130,8 +129,8 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId()))
-                .policy(policy.withTarget(asset.getId()))
-                .asset(asset)
+                .policy(policy.withTarget(assetId))
+                .assetId(assetId)
                 .contractStart(contractStartTime)
                 .contractEnd(contractEndTime);
     }

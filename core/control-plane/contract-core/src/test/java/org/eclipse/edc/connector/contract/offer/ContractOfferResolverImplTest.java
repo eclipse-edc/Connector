@@ -145,8 +145,7 @@ class ContractOfferResolverImplTest {
         var offers = contractOfferResolver.queryContractOffers(getQuery(from, to));
 
         assertThat(offers).hasSize(to - from)
-                .extracting(ContractOffer::getAsset)
-                .extracting(Asset::getId)
+                .extracting(ContractOffer::getAssetId)
                 .allSatisfy(id -> {
                     var idNumber = Integer.valueOf(id.replace("asset", ""));
                     assertThat(idNumber).isStrictlyBetween(from - 1, to);

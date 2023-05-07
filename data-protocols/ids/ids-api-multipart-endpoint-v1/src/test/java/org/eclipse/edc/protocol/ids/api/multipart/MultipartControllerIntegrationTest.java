@@ -263,7 +263,7 @@ class MultipartControllerIntegrationTest {
         assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .asset(asset)
+                .assetId(asset.getId())
                 .policy(createEverythingAllowedPolicy())
                 .providerId("provider")
                 .contractStart(ZonedDateTime.now())
@@ -526,7 +526,7 @@ class MultipartControllerIntegrationTest {
         assetIndex.create(asset, DataAddress.Builder.newInstance().type("test").build());
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .asset(asset)
+                .assetId(asset.getId())
                 .policy(createEverythingAllowedPolicy())
                 .providerId("provider")
                 .contractStart(ZonedDateTime.now())

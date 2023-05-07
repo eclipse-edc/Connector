@@ -47,6 +47,7 @@ import org.eclipse.edc.protocol.ids.transform.type.policy.ProhibitionFromIdsProh
 import org.eclipse.edc.protocol.ids.transform.type.policy.ProhibitionToIdsProhibitionTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -57,6 +58,9 @@ import java.util.Arrays;
 public class IdsTransformServiceExtension implements ServiceExtension {
 
     public static final String NAME = "IDS Transform Extension";
+
+    @Inject
+    private AssetIndex assetIndex;
 
     @Inject
     private TypeTransformerRegistry registry;
@@ -78,7 +82,7 @@ public class IdsTransformServiceExtension implements ServiceExtension {
                 new ConstraintToIdsLogicalConstraintTransformer(),
                 new ContractOfferToIdsContractOfferTransformer(),
                 new ContractAgreementToIdsContractAgreementTransformer(),
-                new CatalogToIdsResourceCatalogTransformer(),
+                new CatalogToIdsResourceCatalogTransformer(assetIndex),
                 new DutyToIdsDutyTransformer(),
                 new ExpressionToIdsLeftOperandTransformer(),
                 new ExpressionToIdsRdfResourceTransformer(),

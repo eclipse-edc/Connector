@@ -97,15 +97,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                     "The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
 
-        var targetAsset = assetIndex.findById(offer.getAsset().getId());
+        var targetAsset = assetIndex.findById(offer.getAssetId());
         if (targetAsset == null) {
-            return failure("Invalid target: " + offer.getAsset().getId());
+            return failure("Invalid target: " + offer.getAssetId());
         }
 
         // if policy target is null, default to the asset, otherwise validate it
         var policyTarget = offer.getPolicy().getTarget() != null ? offer.getPolicy().getTarget() : targetAsset.getId();
         if (!targetAsset.getId().equals(policyTarget)) {
-            return failure(format("Contract offer asset '%s' does not match policy target: %s", offer.getAsset().getId(), policyTarget));
+            return failure(format("Contract offer asset '%s' does not match policy target: %s", offer.getAssetId(), policyTarget));
         }
 
         var contractPolicyDef = policyStore.findById(contractDefinition.getContractPolicyId());
@@ -131,7 +131,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
-                .asset(targetAsset)
+                .assetId(targetAsset.getId())
                 .providerId(participantId)
                 .policy(sanitizedPolicy)
                 .contractStart(offer.getContractStart())
@@ -196,7 +196,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Invalid provider credentials");
         }
 
-        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAsset().getId()), latestOffer.getPolicy())) {
+        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAssetId()), latestOffer.getPolicy())) {
             return failure("Policy in the contract agreement is not equal to the one in the contract offer");
         }
 

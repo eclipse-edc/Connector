@@ -52,8 +52,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Map;
-import java.util.UUID;
 
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.provision.http.HttpProvisionerFixtures.PROVISIONER_CONFIG;
@@ -141,15 +141,15 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .build();
 
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .asset(Asset.Builder.newInstance().build())
+                .id(randomUUID().toString())
+                .assetId(randomUUID().toString())
                 .policy(policy)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())
                 .build();
         return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .counterPartyId(UUID.randomUUID().toString())
+                .id(randomUUID().toString())
+                .counterPartyId(randomUUID().toString())
                 .counterPartyAddress("test")
                 .protocol("test")
                 .contractAgreement(contractAgreement)
@@ -166,7 +166,7 @@ public class HttpProvisionerExtensionEndToEndTest {
 
     private TransferRequestMessage createTransferRequestMessage() {
         return TransferRequestMessage.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .protocol("any")
                 .callbackAddress("http://any")

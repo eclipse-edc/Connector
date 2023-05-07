@@ -40,7 +40,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,7 +85,6 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
         var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-
     }
 
     @AfterAll
@@ -207,7 +205,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plus(365, ChronoUnit.DAYS))
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().build()).id("new-offer-1")
+                .assetId("new-offer-1")
                 .build();
         negotiation.getContractOffers().add(newOffer);
         store.save(negotiation);

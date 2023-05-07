@@ -24,14 +24,25 @@ import org.eclipse.edc.protocol.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.edc.protocol.ids.spi.types.IdsId;
 import org.eclipse.edc.protocol.ids.spi.types.IdsType;
 import org.eclipse.edc.protocol.ids.spi.types.container.OfferedAsset;
+import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_ID;
 
 public class CatalogToIdsResourceCatalogTransformer implements IdsTypeTransformer<Catalog, ResourceCatalog> {
+    private final AssetIndex assetIndex;
+
+    public CatalogToIdsResourceCatalogTransformer(AssetIndex assetIndex) {
+        this.assetIndex = assetIndex;
+    }
 
     @Override
     public Class<Catalog> getInputType() {
@@ -52,13 +63,14 @@ public class CatalogToIdsResourceCatalogTransformer implements IdsTypeTransforme
         var contractOffers = object.getContractOffers();
 
         var distinctAssets = contractOffers.stream()
-                .map(ContractOffer::getAsset)
+                .map(ContractOffer::getAssetId)
                 .distinct()
-                .collect(Collectors.toList());
+                .collect(collectingAndThen(toList(), ids -> assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                        .filter(new Criterion(PROPERTY_ID, "in", ids)).build()).collect(toList())));
 
         for (var asset : distinctAssets) {
             var targetingOffers = contractOffers.stream()
-                    .filter(c -> c.getAsset().getId().equals(asset.getId())).collect(Collectors.toList());
+                    .filter(c -> c.getAssetId().equals(asset.getId())).collect(toList());
 
             var assetAndContractOffers = new OfferedAsset(asset, targetingOffers);
             var resource = context.transform(assetAndContractOffers, Resource.class);

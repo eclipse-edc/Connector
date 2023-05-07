@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +63,7 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
     private ContractOffer contractOffer(JsonObject offer, Policy policy) {
         var builder = ContractOffer.Builder.newInstance();
         builder.id(nodeId(offer));
-        builder.asset(Asset.Builder.newInstance().id(policy.getTarget()).build());
+        builder.assetId(policy.getTarget());
         builder.policy(policy);
 
         return builder.build();
