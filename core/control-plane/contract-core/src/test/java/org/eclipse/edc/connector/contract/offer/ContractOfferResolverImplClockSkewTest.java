@@ -52,8 +52,8 @@ import static org.mockito.Mockito.when;
  * Note that this test is temporary until contract validation is refactored to use policies.
  */
 class ContractOfferResolverImplClockSkewTest {
+    private static final String PARTICIPANT_ID = "urn:connector:provider";
     private static final int VALIDITY = 10;
-
     private final Clock clock = new SkewedClock();
 
     private final ContractDefinitionResolver contractDefinitionResolver = mock(ContractDefinitionResolver.class);
@@ -66,7 +66,7 @@ class ContractOfferResolverImplClockSkewTest {
 
     @BeforeEach
     void setUp() {
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
+        contractOfferResolver = new ContractOfferResolverImpl(PARTICIPANT_ID, agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
     }
 
     /**
@@ -85,8 +85,6 @@ class ContractOfferResolverImplClockSkewTest {
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         var query = ContractOfferQuery.builder()
                 .claimToken(ClaimToken.Builder.newInstance().build())
-                .provider("urn:connector:edc-provider")
-                .consumer("urn:connector:edc-consumer")
                 .build();
         var offers = contractOfferResolver.queryContractOffers(query);
 

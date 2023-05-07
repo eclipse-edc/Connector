@@ -47,10 +47,6 @@ public class ContractOffer {
      */
     private String providerId;
     /**
-     * The participant consuming the offered data
-     */
-    private String consumerId;
-    /**
      * Timestamp defining the start time when the offer becomes effective
      */
     private ZonedDateTime offerStart;
@@ -73,7 +69,6 @@ public class ContractOffer {
     @Deprecated(forRemoval = true)
     private ZonedDateTime contractEnd;
 
-
     @NotNull
     public String getId() {
         return id;
@@ -82,11 +77,6 @@ public class ContractOffer {
     @Nullable
     public String getProviderId() {
         return providerId;
-    }
-
-    @Nullable
-    public String getConsumerId() {
-        return consumerId;
     }
 
     @Nullable
@@ -116,14 +106,14 @@ public class ContractOffer {
         return asset;
     }
 
-    @Nullable
+    @NotNull
     public Policy getPolicy() {
         return policy;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, asset, providerId, consumerId, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, asset, providerId, offerStart, offerEnd, contractStart, contractEnd);
     }
 
     @Override
@@ -136,7 +126,7 @@ public class ContractOffer {
         }
         ContractOffer that = (ContractOffer) o;
         return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(providerId, that.providerId) &&
-                Objects.equals(consumerId, that.consumerId) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
+                Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
                 Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
@@ -161,11 +151,6 @@ public class ContractOffer {
 
         public Builder providerId(String providerId) {
             contractOffer.providerId = providerId;
-            return this;
-        }
-
-        public Builder consumerId(String consumerId) {
-            contractOffer.consumerId = consumerId;
             return this;
         }
 

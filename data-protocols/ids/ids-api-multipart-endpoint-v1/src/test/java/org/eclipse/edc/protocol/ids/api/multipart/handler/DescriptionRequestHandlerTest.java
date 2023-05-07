@@ -101,7 +101,6 @@ class DescriptionRequestHandlerTest {
 
         handler = new DescriptionRequestHandler(
                 mock(Monitor.class),
-                "urn:connector:provider",
                 connectorId,
                 transformerRegistry,
                 assetIndex,

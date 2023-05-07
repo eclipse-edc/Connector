@@ -77,7 +77,7 @@ class ContractValidationServiceImplTest {
     private final Instant now = Instant.now();
 
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
-    private final ContractDefinitionResolver definitionService = mock(ContractDefinitionResolver.class);
+    private final ContractDefinitionResolver definitionResolver = mock(ContractDefinitionResolver.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Clock clock = Clock.fixed(now, UTC);
@@ -87,19 +87,19 @@ class ContractValidationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality, clock);
+        validationService = new ContractValidationServiceImpl(PROVIDER_ID, agentService, definitionResolver, assetIndex, policyStore, policyEngine, policyEquality, clock);
     }
 
     @Test
     void verifyContractOfferValidation() {
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
-        var originalPolicy = Policy.Builder.newInstance().target("a").build();
-        var newPolicy = Policy.Builder.newInstance().target("b").build();
+        var originalPolicy = Policy.Builder.newInstance().target("1").build();
+        var newPolicy = Policy.Builder.newInstance().target("1").build();
         var asset = Asset.Builder.newInstance().id("1").build();
         var contractDefinition = createContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
-        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
         when(assetIndex.findById("1")).thenReturn(asset);
@@ -112,18 +112,41 @@ class ContractValidationServiceImplTest {
         var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result.succeeded()).isTrue();
-        var validatedOffer = result.getContent();
+        var validatedOffer = result.getContent().getOffer();
         assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         assertThat(validatedOffer.getAsset()).isEqualTo(asset);
         assertThat(validatedOffer.getContractStart().toInstant()).isEqualTo(clock.instant());
         assertThat(validatedOffer.getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
-        assertThat(validatedOffer.getConsumerId()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
+        assertThat(result.getContent().getConsumerIdentity()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
         assertThat(validatedOffer.getProviderId()).isEqualTo(offer.getProviderId());
 
         verify(agentService).createFor(isA(ClaimToken.class));
-        verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
+        verify(definitionResolver).definitionFor(isA(ParticipantAgent.class), eq("1"));
         verify(assetIndex).findById("1");
         verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
+    }
+
+    @Test
+    void verifyContractOfferValidation_failsOnDifferentTargets() {
+        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var originalPolicy = Policy.Builder.newInstance().target("invalid-target").build();
+        var asset = Asset.Builder.newInstance().id("1").build();
+        var contractDefinition = createContractDefinition();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
+        when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(assetIndex.findById("1")).thenReturn(asset);
+
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var offer = createContractOffer(asset, originalPolicy, contractDefinition.getValidity());
+
+        var result = validationService.validateInitialOffer(claimToken, offer);
+
+        assertThat(result.failed()).isTrue();
+
+        verify(agentService).createFor(isA(ClaimToken.class));
+        verify(definitionResolver).definitionFor(isA(ParticipantAgent.class), eq("1"));
+        verify(assetIndex).findById("1");
     }
 
     @Test
@@ -153,7 +176,7 @@ class ContractValidationServiceImplTest {
         var contractDefinition = createContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
         when(assetIndex.findById("1")).thenReturn(asset);
@@ -175,7 +198,7 @@ class ContractValidationServiceImplTest {
         var contractDefinition = createContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
         when(policyStore.findById(any())).thenReturn(null);
         when(assetIndex.findById("1")).thenReturn(asset);
 
@@ -197,7 +220,7 @@ class ContractValidationServiceImplTest {
         var contractDefinition = createContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(storedPolicy).build());
         when(assetIndex.findById("1")).thenReturn(asset);
         when(policyEquality.test(any(), any())).thenReturn(false);
@@ -247,7 +270,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "malicious-actor" })
+    @ValueSource(strings = {"malicious-actor"})
     @NullSource
     void verifyContractAgreementValidation_failedIfInvalidCredentials(String counterPartyId) {
         var newPolicy = Policy.Builder.newInstance().build();
@@ -330,7 +353,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { CONSUMER_ID })
+    @ValueSource(strings = {CONSUMER_ID})
     @NullSource
     void validateConfirmed_failsIfInvalidClaims(String counterPartyId) {
         var agreement = createContractAgreement().id("1:2").build();
@@ -398,7 +421,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { PROVIDER_ID })
+    @ValueSource(strings = {PROVIDER_ID})
     @NullSource
     void validateConsumerRequest_failsInvalidCredentials(String counterPartyId) {
         var token = ClaimToken.Builder.newInstance().build();
@@ -421,7 +444,7 @@ class ContractValidationServiceImplTest {
 
     private Result<ContractAgreement> validateAgreementDate(long signingDate, long startDate, long endDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(createContractDefinition());
+        when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(createContractDefinition());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
@@ -442,7 +465,6 @@ class ContractValidationServiceImplTest {
                 .asset(asset)
                 .policy(policy)
                 .providerId(PROVIDER_ID)
-                .consumerId(CONSUMER_ID)
                 .contractStart(now)
                 .contractEnd(now.plusSeconds(validity))
                 .build();

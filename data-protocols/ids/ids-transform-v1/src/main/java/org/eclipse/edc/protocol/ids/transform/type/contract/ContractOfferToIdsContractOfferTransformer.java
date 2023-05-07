@@ -85,7 +85,6 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
         builder._obligation_(idsObligations);
         builder._prohibition_(idsProhibitions);
         builder._permission_(idsPermissions);
-        builder._consumer_(URI.create(object.getConsumerId()));
         builder._provider_(URI.create(object.getProviderId()));
 
         if (object.getContractStart() != null) {

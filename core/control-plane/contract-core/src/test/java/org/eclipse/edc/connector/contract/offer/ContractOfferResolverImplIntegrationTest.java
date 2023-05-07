@@ -68,6 +68,7 @@ import static org.mockito.Mockito.when;
  * This could be seen as se second part of the {@code ContractOfferServiceImplTest}, using the in-mem asset index
  */
 class ContractOfferResolverImplIntegrationTest {
+    private static final String PARTICIPANT_ID = "urn:connector:provider";
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
@@ -81,7 +82,7 @@ class ContractOfferResolverImplIntegrationTest {
     @BeforeEach
     void setUp() {
         assetIndex = new InMemoryAssetIndex();
-        contractOfferResolver = new ContractOfferResolverImpl(agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
+        contractOfferResolver = new ContractOfferResolverImpl(PARTICIPANT_ID, agentService, contractDefinitionResolver, assetIndex, policyStore, clock, monitor);
     }
 
     @Test

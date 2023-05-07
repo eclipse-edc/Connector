@@ -23,11 +23,8 @@ public class DescriptionRequest {
     private IdsId id;
     private ClaimToken claimToken;
     private QuerySpec querySpec = QuerySpec.none();
-    private String provider;
-    private String consumer;
 
     private DescriptionRequest() {
-
     }
 
     public IdsId getId() {
@@ -40,14 +37,6 @@ public class DescriptionRequest {
 
     public QuerySpec getQuerySpec() {
         return querySpec;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public String getConsumer() {
-        return consumer;
     }
 
     public static final class Builder {
@@ -73,16 +62,6 @@ public class DescriptionRequest {
 
         public Builder querySpec(QuerySpec querySpec) {
             instance.querySpec = querySpec;
-            return this;
-        }
-
-        public Builder provider(String provider) {
-            instance.provider = provider;
-            return this;
-        }
-
-        public Builder consumer(String consumer) {
-            instance.consumer = consumer;
             return this;
         }
 

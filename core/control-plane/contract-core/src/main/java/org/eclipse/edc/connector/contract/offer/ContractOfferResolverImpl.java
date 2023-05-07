@@ -38,17 +38,18 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
 /**
  * Implementation of the {@link ContractOfferResolver}.
  */
 public class ContractOfferResolverImpl implements ContractOfferResolver {
+    private final String participantId;
     private final ParticipantAgentService agentService;
     private final ContractDefinitionResolver definitionService;
     private final AssetIndex assetIndex;
@@ -56,7 +57,14 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
     private final Clock clock;
     private final Monitor monitor;
 
-    public ContractOfferResolverImpl(ParticipantAgentService agentService, ContractDefinitionResolver definitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock, Monitor monitor) {
+    public ContractOfferResolverImpl(String participantId,
+                                     ParticipantAgentService agentService,
+                                     ContractDefinitionResolver definitionService,
+                                     AssetIndex assetIndex,
+                                     PolicyDefinitionStore policyStore,
+                                     Clock clock,
+                                     Monitor monitor) {
+        this.participantId = participantId;
         this.agentService = agentService;
         this.definitionService = definitionService;
         this.assetIndex = assetIndex;
@@ -80,10 +88,9 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
         return definitionService.definitionsFor(agent)
                 .takeWhile(d -> numFetchedAssets.get() < limit)
                 .flatMap(definition -> {
-
                     var criteria = definition.getSelectorExpression().getCriteria();
                     var querySpecBuilder = QuerySpec.Builder.newInstance()
-                            .filter(concat(criteria.stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()));
+                            .filter(concat(criteria.stream(), query.getAssetsCriteria().stream()).collect(toList()));
                     var querySpec = querySpecBuilder.build();
                     var numAssets = assetIndex.countAssets(querySpec.getFilterExpression());
 
@@ -95,9 +102,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
                     var offers = dynamicOffset >= numAssets ? Stream.<ContractOffer>empty() :
                             createContractOffers(definition, querySpecBuilder.build())
-                                    .map(offerBuilder -> offerBuilder.providerId(query.getProvider())
-                                            .consumerId(query.getConsumer())
-                                            .build());
+                                    .map(offerBuilder -> offerBuilder.providerId(participantId).build());
 
                     numFetchedAssets.addAndGet(dynamicLimit);
                     numSeenAssets.addAndGet(numAssets);

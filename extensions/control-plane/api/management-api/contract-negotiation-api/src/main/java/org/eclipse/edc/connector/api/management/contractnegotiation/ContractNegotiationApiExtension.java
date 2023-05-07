@@ -41,6 +41,7 @@ import java.util.Map;
 public class ContractNegotiationApiExtension implements ServiceExtension {
 
     public static final String NAME = "Management API: Contract Negotiation";
+
     @Inject
     private WebService webService;
 
@@ -55,6 +56,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
+
     @Inject
     private JsonLd jsonLd;
 
@@ -65,10 +67,9 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var idsId = context.getSetting("edc.ids.id", null);
         transformerRegistry.register(new ContractNegotiationToContractNegotiationDtoTransformer());
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
-        transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer(clock, idsId));
+        transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer(clock));
         var factory = Json.createBuilderFactory(Map.of());
         transformerRegistry.register(new JsonObjectFromContractNegotiationDtoTransformer(factory));
         transformerRegistry.register(new JsonObjectFromCallbackAddressTransformer(factory));

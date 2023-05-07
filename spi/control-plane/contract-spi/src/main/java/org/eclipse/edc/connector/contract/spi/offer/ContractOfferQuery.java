@@ -30,8 +30,6 @@ public class ContractOfferQuery {
     private final List<Criterion> assetsCriteria = new ArrayList<>();
     private ClaimToken claimToken;
     private Range range = new Range();
-    private String provider;
-    private String consumer;
 
     private ContractOfferQuery() {
     }
@@ -50,14 +48,6 @@ public class ContractOfferQuery {
 
     public Range getRange() {
         return range;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public String getConsumer() {
-        return consumer;
     }
 
     public static final class Builder {
@@ -88,16 +78,6 @@ public class ContractOfferQuery {
 
         public Builder range(Range range) {
             instance.range = range;
-            return this;
-        }
-
-        public Builder provider(String provider) {
-            instance.provider = provider;
-            return this;
-        }
-
-        public Builder consumer(String consumer) {
-            instance.consumer = consumer;
             return this;
         }
 

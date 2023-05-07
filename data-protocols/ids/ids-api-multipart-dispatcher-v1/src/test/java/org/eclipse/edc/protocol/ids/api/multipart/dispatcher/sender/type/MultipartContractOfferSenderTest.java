@@ -90,7 +90,6 @@ class MultipartContractOfferSenderTest {
                         .id("contract-offer")
                         .policy(policy)
                         .asset(Asset.Builder.newInstance().id("asset-id").build())
-                        .consumerId("consumerId")
                         .providerId("providerId")
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))
