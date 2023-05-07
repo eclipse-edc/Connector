@@ -100,23 +100,6 @@ components:
         type:
           type: string
           example: null
-    Asset:
-      type: object
-      example: null
-      properties:
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-        id:
-          type: string
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
     Catalog:
       type: object
       example: null
@@ -174,8 +157,9 @@ components:
       type: object
       example: null
       properties:
-        asset:
-          $ref: '#/components/schemas/Asset'
+        assetId:
+          type: string
+          example: null
         contractEnd:
           type: string
           format: date-time
