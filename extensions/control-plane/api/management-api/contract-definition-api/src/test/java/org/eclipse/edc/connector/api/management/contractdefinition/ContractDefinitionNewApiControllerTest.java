@@ -342,7 +342,7 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new ContractDefinitionNewApiController(jsonLd, transformerRegistry, service);
+        return new ContractDefinitionNewApiController(jsonLd, transformerRegistry, service, monitor);
     }
 
     private JsonArrayBuilder createCriterionBuilder() {

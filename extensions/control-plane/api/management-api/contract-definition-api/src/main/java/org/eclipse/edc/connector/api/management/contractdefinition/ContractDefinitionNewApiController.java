@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.api.management.contractdefinition.model.Contrac
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -50,11 +51,13 @@ public class ContractDefinitionNewApiController implements ContractDefinitionNew
     private final JsonLd jsonLdService;
     private final TypeTransformerRegistry transformerRegistry;
     private final ContractDefinitionService service;
+    private final Monitor monitor;
 
-    public ContractDefinitionNewApiController(JsonLd jsonLdService, TypeTransformerRegistry transformerRegistry, ContractDefinitionService service) {
+    public ContractDefinitionNewApiController(JsonLd jsonLdService, TypeTransformerRegistry transformerRegistry, ContractDefinitionService service, Monitor monitor) {
         this.jsonLdService = jsonLdService;
         this.transformerRegistry = transformerRegistry;
         this.service = service;
+        this.monitor = monitor;
     }
 
     @POST
@@ -69,6 +72,7 @@ public class ContractDefinitionNewApiController implements ContractDefinitionNew
             return stream
                     .map(contractDefinition -> transformerRegistry.transform(contractDefinition, ContractDefinitionResponseDto.class)
                             .compose(dto -> transformerRegistry.transform(dto, JsonObject.class).compose(jsonLdService::compact)))
+                    .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
                     .collect(toList());

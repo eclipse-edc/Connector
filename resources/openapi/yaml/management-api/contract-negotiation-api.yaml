@@ -57,6 +57,7 @@ paths:
       tags:
       - Contract Negotiation
     post:
+      deprecated: true
       description: "Initiates a contract negotiation for a given offer and with the\
         \ given counter part. Please note that successfully invoking this endpoint\
         \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
@@ -93,6 +94,7 @@ paths:
       - Contract Negotiation
   /contractnegotiations/request:
     post:
+      deprecated: true
       description: Returns all contract negotiations according to a query
       operationId: queryNegotiations
       requestBody:
@@ -122,6 +124,7 @@ paths:
       - Contract Negotiation
   /contractnegotiations/{id}:
     get:
+      deprecated: true
       description: Gets an contract negotiation with the given ID
       operationId: getNegotiation
       parameters:
@@ -160,6 +163,7 @@ paths:
       - Contract Negotiation
   /contractnegotiations/{id}/agreement:
     get:
+      deprecated: true
       description: Gets a contract agreement for a contract negotiation with the given
         ID
       operationId: getAgreementForNegotiation
@@ -200,6 +204,7 @@ paths:
       - Contract Negotiation
   /contractnegotiations/{id}/cancel:
     post:
+      deprecated: true
       description: "Requests aborting the contract negotiation. Due to the asynchronous\
         \ nature of contract negotiations, a successful response only indicates that\
         \ the request was successfully received. Clients must poll the /{id}/state\
@@ -241,6 +246,7 @@ paths:
       - Contract Negotiation
   /contractnegotiations/{id}/decline:
     post:
+      deprecated: true
       description: "Requests cancelling the contract negotiation. Due to the asynchronous\
         \ nature of contract negotiations, a successful response only indicates that\
         \ the request was successfully received. Clients must poll the /{id}/state\
@@ -282,8 +288,290 @@ paths:
       - Contract Negotiation
   /contractnegotiations/{id}/state:
     get:
+      deprecated: true
       description: Gets the state of a contract negotiation with the given ID
       operationId: getNegotiationState
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationState'
+          description: The contract negotiation's state
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An contract negotiation with the given ID does not exist
+      tags:
+      - Contract Negotiation
+  /v2/contractnegotiations:
+    post:
+      description: "Initiates a contract negotiation for a given offer and with the\
+        \ given counter part. Please note that successfully invoking this endpoint\
+        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
+        \ endpoint to track the state"
+      operationId: initiateContractNegotiation_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/NegotiationInitiateRequestDto'
+              example: null
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+                  example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          description: The negotiation was successfully initiated. Returns the contract
+            negotiation ID and created timestamp
+          links:
+            poll-state:
+              operationId: getNegotiationState
+              parameters:
+                id: $response.body#/id
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+      tags:
+      - Contract Negotiation
+  /v2/contractnegotiations/request:
+    post:
+      description: Returns all contract negotiations according to a query
+      operationId: queryNegotiations_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request was malformed
+      tags:
+      - Contract Negotiation
+  /v2/contractnegotiations/{id}:
+    get:
+      description: Gets a contract negotiation with the given ID
+      operationId: getNegotiation_1
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+          description: The contract negotiation
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An contract negotiation with the given ID does not exist
+      tags:
+      - Contract Negotiation
+  /v2/contractnegotiations/{id}/agreement:
+    get:
+      description: Gets a contract agreement for a contract negotiation with the given
+        ID
+      operationId: getAgreementForNegotiation_1
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractAgreementDto'
+          description: "The contract agreement that is attached to the negotiation,\
+            \ or null"
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An contract negotiation with the given ID does not exist
+      tags:
+      - Contract Negotiation
+  /v2/contractnegotiations/{id}/cancel:
+    post:
+      description: "Requests aborting the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
+      operationId: cancelNegotiation_1
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Request to cancel the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: A contract negotiation with the given ID does not exist
+      tags:
+      - Contract Negotiation
+  /v2/contractnegotiations/{id}/decline:
+    post:
+      description: "Requests cancelling the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
+      operationId: declineNegotiation_1
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Request to decline the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: A contract negotiation with the given ID does not exist
+      tags:
+      - Contract Negotiation
+  /v2/contractnegotiations/{id}/state:
+    get:
+      description: Gets the state of a contract negotiation with the given ID
+      operationId: getNegotiationState_1
       parameters:
       - in: path
         name: id
@@ -546,6 +834,41 @@ components:
           example: null
         id:
           type: string
+          example: null
+    JsonObject:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+      example: null
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+          example: null
+    JsonValue:
+      type: object
+      example: null
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
           example: null
     NegotiationInitiateRequestDto:
       type: object

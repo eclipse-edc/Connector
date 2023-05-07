@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
@@ -36,32 +37,18 @@ import java.util.List;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Negotiation")
-@Deprecated(since = "milestone9")
-public interface ContractNegotiationApi {
+public interface ContractNegotiationNewApi {
 
     @Operation(description = "Returns all contract negotiations according to a query",
             responses = {
                     @ApiResponse(responseCode = "200",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
-            deprecated = true
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    @Deprecated
-    List<ContractNegotiationDto> getNegotiations(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> queryNegotiations(@Valid QuerySpecDto querySpecDto);
 
-    @Operation(description = "Returns all contract negotiations according to a query",
-            responses = {
-                    @ApiResponse(responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationDto.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
-            deprecated = true
-    )
-    @Deprecated(since = "milestone9")
-    List<ContractNegotiationDto> queryNegotiations(@Valid QuerySpecDto querySpecDto);
-
-    @Operation(description = "Gets an contract negotiation with the given ID",
+    @Operation(description = "Gets a contract negotiation with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ContractNegotiationDto.class))),
@@ -69,11 +56,9 @@ public interface ContractNegotiationApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
-    ContractNegotiationDto getNegotiation(String id);
+    JsonObject getNegotiation(String id);
 
     @Operation(description = "Gets the state of a contract negotiation with the given ID",
             operationId = "getNegotiationState",
@@ -84,10 +69,8 @@ public interface ContractNegotiationApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
     NegotiationState getNegotiationState(String id);
 
     @Operation(description = "Gets a contract agreement for a contract negotiation with the given ID",
@@ -98,11 +81,9 @@ public interface ContractNegotiationApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
-    ContractAgreementDto getAgreementForNegotiation(String negotiationId);
+    JsonObject getAgreementForNegotiation(String negotiationId);
 
     @Operation(description = "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint " +
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
@@ -115,12 +96,8 @@ public interface ContractNegotiationApi {
                     ),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
-            },
-            deprecated = true
-    )
-    @Deprecated(since = "milestone9")
-    IdResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto);
-
+            })
+    IdResponseDto initiateContractNegotiation(@Schema(implementation = NegotiationInitiateRequestDto.class) JsonObject requestDto);
 
     @Operation(description = "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
             "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
@@ -131,10 +108,7 @@ public interface ContractNegotiationApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            },
-            deprecated = true
-    )
-    @Deprecated(since = "milestone9")
+            })
     void cancelNegotiation(String id);
 
     @Operation(description = "Requests cancelling the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
@@ -146,9 +120,7 @@ public interface ContractNegotiationApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            },
-            deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
     void declineNegotiation(String id);
 }

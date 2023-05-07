@@ -21,7 +21,21 @@ import org.eclipse.edc.api.model.CallbackAddressDto;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 public class NegotiationInitiateRequestDto {
+    public static final String TYPE = EDC_NAMESPACE + "NegotiationInitiateRequestDto";
+    public static final String CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
+    public static final String PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
+    public static final String PROVIDER_ID = EDC_NAMESPACE + "providerId";
+    public static final String CONSUMER_ID = EDC_NAMESPACE + "consumerId";
+    public static final String OFFER = EDC_NAMESPACE + "offer";
+    public static final String CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
+    public static final String OFFER_ID = EDC_NAMESPACE + "offerId";
+    public static final String ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String POLICY = EDC_NAMESPACE + "policy";
+
     @NotBlank(message = "connectorAddress is mandatory")
     private String connectorAddress; // TODO change to callbackAddress
     @NotBlank(message = "protocol is mandatory")
