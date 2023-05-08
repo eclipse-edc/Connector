@@ -107,7 +107,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull ServiceResult<String> initiateTransfer(TransferRequest request) {
+    public @NotNull ServiceResult<TransferProcess> initiateTransfer(TransferRequest request) {
         var validDestination = dataAddressValidator.validate(request.getDataRequest().getDataDestination());
         if (validDestination.failed()) {
             return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
