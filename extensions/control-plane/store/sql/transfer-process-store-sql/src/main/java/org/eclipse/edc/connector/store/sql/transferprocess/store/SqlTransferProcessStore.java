@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -168,7 +167,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
                 .managedResources(resultSet.getBoolean(statements.getManagedResourcesColumn()))
-                .transferType(fromJson(resultSet.getString(statements.getTransferTypeColumn()), TransferType.class))
                 .processId(resultSet.getString(statements.getProcessIdColumn()))
                 .properties(fromJson(resultSet.getString(statements.getDataRequestPropertiesColumn()), getTypeRef()))
                 .build();
@@ -219,7 +217,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(dataRequest.getDataDestination()),
                 dataRequest.isManagedResources(),
                 toJson(dataRequest.getProperties()),
-                toJson(dataRequest.getTransferType()),
                 existingDataRequestId);
     }
 
@@ -276,7 +273,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 dr.getContractId(),
                 toJson(dr.getDataDestination()),
                 toJson(dr.getProperties()),
-                toJson(dr.getTransferType()),
                 processId,
                 dr.getProtocol(),
                 dr.isManagedResources());

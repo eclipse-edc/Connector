@@ -564,8 +564,6 @@ components:
         protocol:
           type: string
           example: null
-        transferType:
-          $ref: '#/components/schemas/TransferType'
       required:
       - assetId
       - connectorAddress
@@ -573,21 +571,10 @@ components:
       - contractId
       - dataDestination
       - protocol
-      - transferType
     TransferState:
       type: object
       example: null
       properties:
         state:
           type: string
-          example: null
-    TransferType:
-      type: object
-      example: null
-      properties:
-        contentType:
-          type: string
-          example: null
-        isFinite:
-          type: boolean
           example: null
