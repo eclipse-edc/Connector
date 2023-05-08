@@ -166,6 +166,7 @@ include(":extensions:control-plane:store:sql:policy-definition-store-sql")
 include(":extensions:control-plane:store:sql:transfer-process-store-sql")
 include(":extensions:control-plane:callback:callback-event-dispatcher")
 include(":extensions:control-plane:callback:callback-http-dispatcher")
+include(":extensions:control-plane:callback:callback-static-endpoint")
 
 
 include(":extensions:data-plane:data-plane-api")

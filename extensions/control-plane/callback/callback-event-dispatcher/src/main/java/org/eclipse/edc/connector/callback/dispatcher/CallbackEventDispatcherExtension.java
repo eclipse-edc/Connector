@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.callback.dispatcher;
 
 import org.eclipse.edc.connector.callback.CallbackProtocolResolverRegistryImpl;
 import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolverRegistry;
+import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -41,11 +42,13 @@ public class CallbackEventDispatcherExtension implements ServiceExtension {
     @Inject
     Monitor monitor;
 
+    @Inject(required = false)
+    CallbackRegistry callbackRegistry;
+
     @Override
     public String name() {
         return NAME;
     }
-
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -54,8 +57,8 @@ public class CallbackEventDispatcherExtension implements ServiceExtension {
         context.registerService(CallbackProtocolResolverRegistry.class, resolverRegistry);
 
         // Event listener for invoking callbacks in sync (transactional) and async (not transactional)
-        router.registerSync(Event.class, new CallbackEventDispatcher(dispatcherRegistry, resolverRegistry, true, monitor));
-        router.register(Event.class, new CallbackEventDispatcher(dispatcherRegistry, resolverRegistry, false, monitor));
+        router.registerSync(Event.class, new CallbackEventDispatcher(dispatcherRegistry, callbackRegistry, resolverRegistry, true, monitor));
+        router.register(Event.class, new CallbackEventDispatcher(dispatcherRegistry, callbackRegistry, resolverRegistry, false, monitor));
 
     }
 }

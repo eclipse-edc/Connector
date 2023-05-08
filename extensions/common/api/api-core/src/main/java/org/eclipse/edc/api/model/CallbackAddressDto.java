@@ -38,10 +38,13 @@ public class CallbackAddressDto {
 
     private boolean transactional;
 
+    private String authKey;
+    private String authCodeId;
+
     private CallbackAddressDto() {
 
     }
-    
+
     public boolean isTransactional() {
         return transactional;
     }
@@ -54,6 +57,13 @@ public class CallbackAddressDto {
         return uri;
     }
 
+    public String getAuthCodeId() {
+        return authCodeId;
+    }
+
+    public String getAuthKey() {
+        return authKey;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
@@ -84,7 +94,16 @@ public class CallbackAddressDto {
             return this;
         }
 
+        public Builder authKey(String authKey) {
+            dto.authKey = authKey;
+            return this;
+        }
 
+        public Builder authCodeId(String authCodeId) {
+            dto.authCodeId = authCodeId;
+            return this;
+        }
+        
         public CallbackAddressDto build() {
             return dto;
         }

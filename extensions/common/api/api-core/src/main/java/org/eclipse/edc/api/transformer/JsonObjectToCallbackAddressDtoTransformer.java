@@ -24,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_CODE_ID;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_KEY;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
@@ -55,6 +57,12 @@ public class JsonObjectToCallbackAddressDtoTransformer extends AbstractJsonLdTra
                 var evt = new HashSet<String>();
                 transformArrayOrObject(value, String.class, evt::add, context);
                 builder.events(evt);
+                break;
+            case AUTH_KEY:
+                transformString(value, builder::authKey, context);
+                break;
+            case AUTH_CODE_ID:
+                transformString(value, builder::authCodeId, context);
                 break;
             default:
                 context.reportProblem("Cannot convert key " + key + " as it is not known");
