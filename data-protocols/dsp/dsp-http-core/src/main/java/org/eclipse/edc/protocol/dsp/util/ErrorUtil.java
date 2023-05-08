@@ -65,7 +65,7 @@ public class ErrorUtil {
 
         builder.add(DSPACE_SCHEMA + "code", String.valueOf(code));
 
-        if (throwable != null) {
+        if (throwable.getMessage() != null) {
             builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
         }
 
