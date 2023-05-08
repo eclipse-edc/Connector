@@ -96,7 +96,7 @@ public class DspTransferProcessApiController {
      * Retrieves an existing transfer process. This functionality is not yet supported.
      *
      * @param id the ID of the process
-     * @return the transfer process in JSON-LD expanded form
+     * @return the transfer process in JSON-LD expanded form or TransferError
      */
     @GET
     @Path("/{id}")
@@ -111,7 +111,7 @@ public class DspTransferProcessApiController {
      *
      * @param jsonObject the {@link TransferRequestMessage} in JSON-LD expanded form
      * @param token      the authorization header
-     * @return the created transfer process  in JSON-LD expanded form
+     * @return the created transfer process  in JSON-LD expanded form or TransferProcess
      */
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
@@ -138,6 +138,7 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferStartMessage} in JSON-LD expanded form
      * @param token      the authorization header
+     * @return {@Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_START)
@@ -157,6 +158,7 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferCompletionMessage} in JSON-LD expanded form
      * @param token      the authorization header
+     * @return {@Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
@@ -176,6 +178,7 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferTerminationMessage} in JSON-LD expanded form
      * @param token      the authorization header
+     * @return {@Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
@@ -194,6 +197,7 @@ public class DspTransferProcessApiController {
      * This functionality is not yet supported.
      *
      * @param id the ID of the process
+     * @return {@Response} ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
