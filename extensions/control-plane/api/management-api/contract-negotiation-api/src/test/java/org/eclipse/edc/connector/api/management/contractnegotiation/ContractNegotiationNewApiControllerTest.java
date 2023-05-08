@@ -298,7 +298,7 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
         baseRequest()
                 .get("/cn1/agreement")
                 .then()
-                .statusCode(400);
+                .statusCode(500);
 
         verify(service).getForNegotiation(eq("cn1"));
         verify(transformerRegistry).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));

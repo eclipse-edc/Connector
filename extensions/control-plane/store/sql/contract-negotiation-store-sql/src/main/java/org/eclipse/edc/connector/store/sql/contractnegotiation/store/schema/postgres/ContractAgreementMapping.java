@@ -27,8 +27,8 @@ class ContractAgreementMapping extends TranslationMapping {
 
 
     private static final String FIELD_ID = "id";
-    private static final String FIELD_PROVIDER_AGENT_ID = "providerAgentId";
-    private static final String FIELD_CONSUMER_AGENT_ID = "consumerAgentId";
+    private static final String FIELD_PROVIDER_AGENT_ID = "providerId";
+    private static final String FIELD_CONSUMER_AGENT_ID = "consumerId";
     private static final String FIELD_CONTRACT_SIGNING_DATE = "contractSigningDate";
     private static final String FIELD_CONTRACT_START_DATE = "contractStartDate";
     private static final String FIELD_CONTRACT_END_DATE = "contractEndDate";

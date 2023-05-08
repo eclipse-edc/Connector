@@ -82,16 +82,18 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
         // must use bracket notation when using keys with a colon
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors
-        assertThat((String) jsonPath.get("[0]['edc:counterPartyAddress']")).isEqualTo("address");
-        assertThat((String) jsonPath.get("[0].@id")).isIn("cn1", "cn2");
-        assertThat((String) jsonPath.get("[1].@id")).isIn("cn1", "cn2");
+        assertThat(jsonPath.getString("[0]['edc:counterPartyAddress']")).isEqualTo("address");
+        assertThat(jsonPath.getString("[0].@id")).isIn("cn1", "cn2");
+        assertThat(jsonPath.getString("[1].@id")).isIn("cn1", "cn2");
+        assertThat(jsonPath.getString("[0]['edc:protocol']")).isEqualTo("dataspace-protocol-http");
+        assertThat(jsonPath.getString("[1]['edc:protocol']")).isEqualTo("dataspace-protocol-http");
 
     }
 
     @Test
     void getById() {
         var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        store.save(createContractNegotiation("cn1"));
+        store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
         var json = baseRequest()
                 .contentType(JSON)
@@ -102,6 +104,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .extract().jsonPath();
 
         assertThat((String) json.get("@id")).isEqualTo("cn1");
+        assertThat(json.getString("'edc:protocol'")).isEqualTo("dataspace-protocol-http");
     }
 
     @Test

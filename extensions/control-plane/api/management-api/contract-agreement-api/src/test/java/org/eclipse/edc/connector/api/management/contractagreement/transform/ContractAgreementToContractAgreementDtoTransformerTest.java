@@ -38,8 +38,8 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
         var policy = Policy.Builder.newInstance().build();
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("agreementId")
-                .consumerId("consumerAgentId")
-                .providerId("providerAgentId")
+                .consumerId("consumerId")
+                .providerId("providerId")
                 .assetId("assetId")
                 .policy(policy)
                 .contractStartDate(1)
@@ -55,8 +55,8 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
         assertThat(dto.getContractStartDate()).isEqualTo(1);
         assertThat(dto.getContractSigningDate()).isEqualTo(2);
         assertThat(dto.getContractEndDate()).isEqualTo(3);
-        assertThat(dto.getConsumerAgentId()).isEqualTo("consumerAgentId");
-        assertThat(dto.getProviderAgentId()).isEqualTo("providerAgentId");
+        assertThat(dto.getConsumerId()).isEqualTo("consumerId");
+        assertThat(dto.getProviderId()).isEqualTo("providerId");
     }
 
 }

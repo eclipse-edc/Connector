@@ -31,6 +31,8 @@ dependencies {
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)
+    testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
+
 }
 
 edcBuild {

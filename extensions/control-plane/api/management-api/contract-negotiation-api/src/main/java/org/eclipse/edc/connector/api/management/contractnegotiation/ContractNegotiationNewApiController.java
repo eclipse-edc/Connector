@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -120,7 +121,7 @@ public class ContractNegotiationNewApiController implements ContractNegotiationN
                 .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
                         .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
                         .compose(jsonLdService::compact)
-                        .orElseThrow(InvalidRequestException::new))
+                        .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, negotiationId));
     }
 

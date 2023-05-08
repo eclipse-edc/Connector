@@ -15,9 +15,12 @@
 
 package org.eclipse.edc.connector.api.management.contractagreement;
 
+import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
+import org.eclipse.edc.connector.api.management.contractagreement.transform.JsonObjectFromContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -25,21 +28,26 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
+import java.util.Map;
+
 @Extension(value = ContractAgreementApiExtension.NAME)
 public class ContractAgreementApiExtension implements ServiceExtension {
 
     public static final String NAME = "Management API: Contract Agreement";
     @Inject
-    WebService webService;
+    private WebService webService;
 
     @Inject
-    ManagementApiConfiguration config;
+    private ManagementApiConfiguration config;
 
     @Inject
-    TypeTransformerRegistry transformerRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @Inject
-    ContractAgreementService service;
+    private ContractAgreementService service;
+
+    @Inject
+    private JsonLd jsonLd;
 
     @Override
     public String name() {
@@ -49,9 +57,10 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
+        transformerRegistry.register(new JsonObjectFromContractAgreementDtoTransformer(Json.createBuilderFactory(Map.of())));
         var monitor = context.getMonitor();
 
-        var controller = new ContractAgreementApiController(monitor, service, transformerRegistry);
-        webService.registerResource(config.getContextAlias(), controller);
+        webService.registerResource(config.getContextAlias(), new ContractAgreementApiController(monitor, service, transformerRegistry));
+        webService.registerResource(config.getContextAlias(), new ContractAgreementNewApiController(service, jsonLd, transformerRegistry, monitor));
     }
 }
