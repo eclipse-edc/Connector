@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
@@ -29,9 +30,8 @@ import org.eclipse.edc.web.spi.ApiErrorDetail;
 import java.util.List;
 
 @OpenAPIDefinition
-@Tag(name = "Contract Agreement - Deprecated")
-@Deprecated(since = "milestone9")
-public interface ContractAgreementApi {
+@Tag(name = "Contract Agreement")
+public interface ContractAgreementNewApi {
 
     @Operation(description = "Gets all contract agreements according to a particular query",
             responses = {
@@ -41,8 +41,8 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }, deprecated = true
     )
-    @Deprecated(since = "milestone9")
-    List<ContractAgreementDto> getAllAgreements(@Valid QuerySpecDto querySpecDto);
+    @Deprecated
+    List<JsonObject> getAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets all contract agreements according to a particular query",
             responses = {
@@ -50,10 +50,9 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
-    List<ContractAgreementDto> queryAllAgreements(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> queryAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract agreement with the given ID",
             responses = {
@@ -63,9 +62,8 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
+            }
     )
-    @Deprecated(since = "milestone9")
-    ContractAgreementDto getContractAgreement(String id);
+    JsonObject getContractAgreement(String id);
 
 }
