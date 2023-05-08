@@ -49,7 +49,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLdTransformer<INPUT, OUTPUT> {
     private final Class<INPUT> input;
     private final Class<OUTPUT> output;
-    
+
     protected AbstractJsonLdTransformer(Class<INPUT> input, Class<OUTPUT> output) {
         this.input = input;
         this.output = output;
@@ -69,16 +69,16 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * Transforms properties of a Java type. The properties are mapped to generic JSON values.
      *
      * @param properties the properties to map
-     * @param builder the builder on which to set the properties
-     * @param mapper the mapper for converting the properties
-     * @param context the transformer context
+     * @param builder    the builder on which to set the properties
+     * @param mapper     the mapper for converting the properties
+     * @param context    the transformer context
      */
     protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
         if (properties == null) {
             return;
         }
 
-        properties.forEach((k, v) ->  {
+        properties.forEach((k, v) -> {
             try {
                 builder.add(k, mapper.convertValue(v, JsonValue.class));
             } catch (IllegalArgumentException e) {
@@ -121,19 +121,37 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * Transforms a JsonValue to a string and applies the result function. If the value parameter
      * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
      *
-     * @param value the value to transform
+     * @param value          the value to transform
      * @param resultFunction the function to apply to the transformation result
-     * @param context the transformer context
+     * @param context        the transformer context
      */
     protected void transformString(JsonValue value, Consumer<String> resultFunction, TransformerContext context) {
         resultFunction.accept(transformString(value, context));
     }
 
     /**
+     * Transforms a mandatory JsonValue to a string and applies the result function. If the value parameter
+     * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
+     *
+     * @param value          the value to transform
+     * @param resultFunction the function to apply to the transformation result
+     * @param context        the transformer context
+     * @return true if the string was present
+     */
+    protected boolean transformMandatoryString(JsonValue value, Consumer<String> resultFunction, TransformerContext context) {
+        var result = transformString(value, context);
+        if (result == null) {
+            return false;
+        }
+        resultFunction.accept(result);
+        return true;
+    }
+
+    /**
      * Transforms a JsonValue to a string and applies the result function. If the value parameter
      * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
      *
-     * @param value the value to transform
+     * @param value   the value to transform
      * @param context the transformer context
      * @return the string result
      */
@@ -162,7 +180,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * Transforms a JsonValue to int. If the value parameter is not of type JsonNumber, JsonObject or JsonArray,
      * a problem is reported to the context.
      *
-     * @param value the value to transform
+     * @param value   the value to transform
      * @param context the transformer context
      * @return the int value
      */
@@ -207,11 +225,11 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * result function is applied to every instance. If the value parameter is neither of type
      * JsonObject nor JsonArray, a problem is reported to the context.
      *
-     * @param value the value to transform
-     * @param type the desired result type
+     * @param value          the value to transform
+     * @param type           the desired result type
      * @param resultFunction the function to apply to the transformation result, if it is a single instance
-     * @param context the transformer context
-     * @param <T> the desired result type
+     * @param context        the transformer context
+     * @param <T>            the desired result type
      */
     protected <T> void transformArrayOrObject(JsonValue value, Class<T> type, Consumer<T> resultFunction,
                                               TransformerContext context) {
@@ -230,10 +248,10 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     /**
      * Transforms a JsonValue to a List. If the value parameter is not of type JsonArray, a problem is reported to the context.
      *
-     * @param value the value to transform
-     * @param type the desired result type
+     * @param value   the value to transform
+     * @param type    the desired result type
      * @param context the transformer context
-     * @param <T> the desired result type
+     * @param <T>     the desired result type
      * @return the transformed list, null if the value type was not valid.
      */
     protected <T> List<T> transformArray(JsonValue value, Class<T> type, TransformerContext context) {
@@ -260,10 +278,10 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * Transforms a JsonValue to the desired output type. If the value parameter is neither of type
      * JsonObject nor JsonArray, a problem is reported to the context.
      *
-     * @param value the value to transform
-     * @param type the desired result type
+     * @param value   the value to transform
+     * @param type    the desired result type
      * @param context the transformer context
-     * @param <T> the desired result type
+     * @param <T>     the desired result type
      * @return the transformed list
      */
     protected <T> T transformObject(JsonValue value, Class<T> type, TransformerContext context) {
@@ -285,7 +303,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return null;
         }
     }
-    
+
     /**
      * Returns the {@code @id} of the JSON object.
      */
@@ -293,7 +311,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         var id = object.get(ID);
         return id instanceof JsonString ? ((JsonString) id).getString() : null;
     }
-    
+
     /**
      * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first.
      */
@@ -303,7 +321,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             context.reportProblem("Property @type not found on JSON Object");
             return null;
         }
-        
+
         if (typeNode instanceof JsonString) {
             return ((JsonString) typeNode).getString();
         } else if (typeNode instanceof JsonArray) {
@@ -318,11 +336,11 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             }
             return ((JsonString) typeValue).getString();
         }
-        
+
         context.reportProblem("Expected @type value to be either string or array");
         return null;
     }
-    
+
     @Nullable
     protected JsonArray typeValueArray(JsonValue typeNode, TransformerContext context) {
         if (!(typeNode instanceof JsonArray)) {
@@ -336,7 +354,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         }
         return array;
     }
-    
+
     /**
      * Tries to return the instance given by a supplier (a builder's build method). If this fails
      * due to validation errors, e.g. a required property is missing, reports a problem to the

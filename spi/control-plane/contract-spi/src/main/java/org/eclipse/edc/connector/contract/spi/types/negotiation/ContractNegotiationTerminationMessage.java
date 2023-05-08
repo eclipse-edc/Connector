@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -48,10 +49,12 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         return processId;
     }
 
+    @Nullable
     public String getRejectionReason() {
         return rejectionReason;
     }
 
+    @Nullable
     public String getCode() {
         return code;
     }

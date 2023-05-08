@@ -29,6 +29,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +42,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -54,6 +56,8 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     private static final String AGREEMENT_ID = "agreementId";
     private static final String PROCESS_ID = "processId";
     private static final String MESSAGE_ID = "messageId";
+    private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
+    private static final String TARGET = "target";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -72,7 +76,6 @@ class JsonObjectToContractAgreementMessageTransformerTest {
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
-                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, "123")
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -83,12 +86,15 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
         assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
-        assertThat(result.getContractAgreement()).isNotNull();
-        assertThat(result.getContractAgreement().getClass()).isEqualTo(ContractAgreement.class);
-        assertThat(result.getContractAgreement().getId()).isEqualTo(AGREEMENT_ID);
-        assertThat(result.getContractAgreement().getConsumerId()).isEqualTo(CONSUMER_ID);
-        assertThat(result.getContractAgreement().getProviderId()).isEqualTo(PROVIDER_ID);
-        assertThat(result.getContractAgreement().getAssetId()).isEqualTo("target");
+
+        var agreement = result.getContractAgreement();
+        assertThat(agreement).isNotNull();
+        assertThat(agreement.getClass()).isEqualTo(ContractAgreement.class);
+        assertThat(agreement.getId()).isEqualTo(AGREEMENT_ID);
+        assertThat(agreement.getConsumerId()).isEqualTo(CONSUMER_ID);
+        assertThat(agreement.getProviderId()).isEqualTo(PROVIDER_ID);
+        assertThat(agreement.getAssetId()).isEqualTo(TARGET);
+        assertThat(agreement.getContractSigningDate()).isEqualTo(Instant.parse(TIMESTAMP).getEpochSecond());
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -113,20 +119,35 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
     @Test
     void transform_invalidTimestamp() {
-        var value = "example";
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, value)
+                .add(JsonLdKeywords.ID, "messageId")
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, value)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "processId")
                 .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
-                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, value)
+                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, "invalid timestamp")
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
         assertThat(transformer.transform(message, context)).isNull();
 
-        verify(context, times(2)).reportProblem(anyString());
+        verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
+    }
+
+    @Test
+    void transform_missingTimestamp() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, "messageId")
+                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "processId")
+                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
+                .build();
+
+        when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
+
+        assertThat(transformer.transform(message, context)).isNull();
+
+        verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
     }
 
     private JsonObject contractAgreement() {
@@ -135,6 +156,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
                 .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
                 .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, CONSUMER_ID)
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, TIMESTAMP)
                 .build();
     }
 
@@ -147,7 +169,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
                 .permission(permission)
                 .prohibition(prohibition)
                 .duty(duty)
-                .target("target")
+                .target(TARGET)
                 .build();
     }
 }

@@ -39,6 +39,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,6 +52,8 @@ import static org.mockito.Mockito.when;
 class JsonObjectFromContractAgreementMessageTransformerTest {
     private static final String PROVIDER_ID = "providerId";
     private static final String CONSUMER_ID = "consumerId";
+    private static final String PROCESS_ID = "processId";
+    private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -64,30 +67,21 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
 
     @Test
     void transform() {
-        var value = "example";
-        var agreement = contractAgreement();
-        var message = ContractAgreementMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .callbackAddress(value)
-                .contractAgreement(agreement)
-                .build();
+        var policyObject = jsonFactory.createObjectBuilder().build();
 
-        var obj = jsonFactory.createObjectBuilder().build();
+        when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(policyObject);
 
-        when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(obj);
-
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(message(), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(value);
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
 
         var jsonAgreement = result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
         assertThat(jsonAgreement).isNotNull();
-
+        assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP).getString()).isEqualTo(TIMESTAMP);
         assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID).getString()).isEqualTo(CONSUMER_ID);
         assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID).getString()).isEqualTo(PROVIDER_ID);
 
@@ -95,26 +89,27 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     }
 
     @Test
-    void transform_nullPolicy() {
-        var value = "example";
-        var agreement = contractAgreement();
-        var message = ContractAgreementMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .callbackAddress(value)
-                .contractAgreement(agreement)
-                .build();
+    void transform_policyError() {
 
         when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(null);
 
-        assertThat(transformer.transform(message, context)).isNull();
+        assertThat(transformer.transform(message(), context)).isNull();
 
         verify(context, times(1)).reportProblem(anyString());
     }
 
+    private ContractAgreementMessage message() {
+        return ContractAgreementMessage.Builder.newInstance()
+                .protocol("dsp")
+                .processId(PROCESS_ID)
+                .callbackAddress("https://example.com")
+                .contractAgreement(contractAgreement())
+                .build();
+    }
+
     private ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(UUID.randomUUID().toString())
                 .providerId(PROVIDER_ID)
                 .consumerId(CONSUMER_ID)
                 .assetId("assetId")

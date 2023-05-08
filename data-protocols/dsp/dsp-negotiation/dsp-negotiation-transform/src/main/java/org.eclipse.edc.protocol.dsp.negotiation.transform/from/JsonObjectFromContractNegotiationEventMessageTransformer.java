@@ -17,16 +17,15 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
+import static java.util.UUID.randomUUID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
@@ -46,35 +45,28 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull ContractNegotiationEventMessage object, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull ContractNegotiationEventMessage eventMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
-        builder.add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE);
+        builder.add(ID, randomUUID().toString());
+        builder.add(TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getProcessId());
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM, object.getChecksum());
+        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, eventMessage.getProcessId());
 
-        var eventType = eventType(object, context);
-        if (eventType == null) {
-            return null;
-        }
-
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, eventType);
-
+        builder.add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, eventType(eventMessage));
 
         return builder.build();
     }
 
-    private String eventType(ContractNegotiationEventMessage message, TransformerContext context) {
+    @NotNull
+    private String eventType(ContractNegotiationEventMessage message) {
         switch (message.getType()) {
             case ACCEPTED:
                 return DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
             case FINALIZED:
                 return DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
             default:
-                context.reportProblem(String.format("Could not map eventType %s to %s or %s in ContractNegotiationEventMessage", message.getType(),
-                        DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED, DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED));
-                return null;
+                // this cannot happen
+                throw new AssertionError("Unknown event type: " + message.getType());
         }
     }
 

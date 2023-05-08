@@ -28,7 +28,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_STATE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_REQUESTED;
@@ -69,7 +68,6 @@ class JsonObjectFromContractNegotiationTransformerTest {
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CONTRACT_NEGOTIATION);
         assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(value);
         assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_STATE).getString()).isEqualTo(DSPACE_NEGOTIATION_STATE_REQUESTED);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM).getString()).isEqualTo(value);
 
         verify(context, never()).reportProblem(anyString());
     }
