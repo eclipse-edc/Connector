@@ -15,7 +15,8 @@
 package org.eclipse.edc.protocol.dsp.util;
 
 import jakarta.json.Json;
-import jakarta.json.JsonObject;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
@@ -38,8 +39,7 @@ import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 
 public class ErrorUtil {
-    public static JsonObject createErrorResponse(String type, Optional<String> processId, Throwable throwable) {
-
+    public static Response createErrorResponse(String type, Optional<String> processId, Throwable throwable) {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, type);
@@ -47,13 +47,18 @@ public class ErrorUtil {
             builder.add(DSPACE_SCHEMA + "processId", processId.get());
         }
 
-        builder.add(DSPACE_SCHEMA + "code", errorCodeMapping(throwable));
-        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
+        var code = errorCodeMapping(throwable);
 
-        return builder.build();
+        builder.add(DSPACE_SCHEMA + "code", String.valueOf(code));
+
+        if (throwable != null) {
+            builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
+        }
+
+        return Response.status(code).type(MediaType.APPLICATION_JSON).entity(builder.build()).build();
     }
 
-    private static String errorCodeMapping(Throwable throwable) {
+    private static int errorCodeMapping(Throwable throwable) {
         var exceptionMap = Map.of(
                 AuthenticationFailedException.class, UNAUTHORIZED,
                 NotAuthorizedException.class, FORBIDDEN,
@@ -66,6 +71,6 @@ public class ErrorUtil {
 
         var status = exceptionMap.getOrDefault(throwable.getClass(), INTERNAL_SERVER_ERROR);
 
-        return String.valueOf(status.getStatusCode());
+        return status.getStatusCode();
     }
 }
