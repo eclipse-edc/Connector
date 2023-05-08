@@ -21,10 +21,14 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -35,6 +39,8 @@ import static org.mockito.Mockito.verify;
 class JsonObjectToTransferTerminationMessageTransformerTest {
 
     private final String processId = "TestProcessId";
+
+    private final String code = "testCode";
 
     private TransformerContext context = mock(TransformerContext.class);
 
@@ -47,21 +53,24 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
     @Test
     void jsonObjectToTransferTerminationMessage() {
-
-        //TODO Add missing (code,reason) attributes from Spec issue https://github.com/eclipse-edc/Connector/issues/2764
+        var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add("foo", "bar");
 
         var json = Json.createObjectBuilder()
                 .add(CONTEXT, DSPACE_SCHEMA)
                 .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
-                .add(DSPACE_PROCESSID_TYPE, processId)
+                .add(DSPACE_PROCESSID_TYPE, "TestProcessId")
+                .add(DSPACE_CODE_TYPE, "testCode")
+                .add(DSPACE_REASON_TYPE, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build())
                 .build();
 
         var result = transformer.transform(json, context);
 
         assertThat(result).isNotNull();
 
-        assertThat(result.getProcessId()).isEqualTo(processId);
+        assertThat(result.getProcessId()).isEqualTo("TestProcessId");
         assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        assertThat(result.getReason()).isEqualTo("{\"foo\":\"bar\"}");
+        assertThat(result.getCode()).isEqualTo("testCode");
 
         verify(context, never()).reportProblem(anyString());
     }

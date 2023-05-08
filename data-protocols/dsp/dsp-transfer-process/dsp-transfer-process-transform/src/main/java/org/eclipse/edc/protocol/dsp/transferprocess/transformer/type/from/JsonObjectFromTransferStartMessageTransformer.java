@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 
@@ -45,8 +46,9 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
         builder.add(ID, UUID.randomUUID().toString());
         builder.add(TYPE, DSPACE_TRANSFER_START_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
-
-        //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
+        if (transferStartMessage.getDataAddress() != null) {
+            builder.add(DSPACE_DATAADDRESS_TYPE, context.transform(transferStartMessage, JsonObject.class));
+        }
 
         return builder.build();
     }
