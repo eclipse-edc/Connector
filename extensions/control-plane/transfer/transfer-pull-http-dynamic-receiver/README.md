@@ -13,11 +13,6 @@ and will be used by the consumer connector to dispatch the EDR
   "contractId": "1:8147d6d6-9734-4821-b93d-2832ea7892e4",
   "dataDestination": {
     "type": "HttpProxy"
-		
-  },
-  "transferType": {
-    "contentType": "application/octet-stream",
-    "isFinite": true
   },
   "managedResources": false,
   "connectorAddress": "http://localhost:8282/api/v1/ids/data",

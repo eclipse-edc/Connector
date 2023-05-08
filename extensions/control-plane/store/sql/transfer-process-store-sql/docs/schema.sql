@@ -67,7 +67,6 @@ CREATE TABLE IF NOT EXISTS edc_data_request
     data_destination    JSON    NOT NULL,
     managed_resources   BOOLEAN DEFAULT TRUE,
     properties          JSON,
-    transfer_type       JSON,
     transfer_process_id VARCHAR NOT NULL
         CONSTRAINT data_request_transfer_process_id_fk
             REFERENCES edc_transfer_process
@@ -77,9 +76,6 @@ CREATE TABLE IF NOT EXISTS edc_data_request
 COMMENT ON COLUMN edc_data_request.data_destination IS 'DataAddress serialized as JSON';
 
 COMMENT ON COLUMN edc_data_request.properties IS 'java Map serialized as JSON';
-
-COMMENT ON COLUMN edc_data_request.transfer_type IS 'TransferType serialized as JSON';
-
 
 CREATE UNIQUE INDEX IF NOT EXISTS data_request_id_uindex
     ON edc_data_request (datarequest_id);

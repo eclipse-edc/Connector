@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -550,9 +549,8 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     @EnabledIfSystemProperty(named = "transferprocessstore.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
-    void find_queryByDataRequestProperty_transferType() {
-        var da = createDataRequestBuilder().transferType(TransferType.Builder.transferType().contentType("test/contenttype").build())
-                .build();
+    void find_queryByDataRequestProperty_protocol() {
+        var da = createDataRequestBuilder().protocol("%/protocol").build();
         var tp = createTransferProcessBuilder("testprocess1")
                 .dataRequest(da)
                 .build();
@@ -560,7 +558,7 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().updateOrCreate(createTransferProcess("testprocess2"));
 
         var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("dataRequest.transferType.contentType", "like", "%/contenttype")))
+                .filter(List.of(new Criterion("dataRequest.protocol", "like", "%/protocol")))
                 .build();
 
         var result = getTransferProcessStore().findAll(query);
