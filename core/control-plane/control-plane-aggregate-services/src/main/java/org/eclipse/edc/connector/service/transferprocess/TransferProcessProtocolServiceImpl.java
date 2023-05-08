@@ -127,7 +127,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
         var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
         if (processId != null) {
-            return ServiceResult.success(transferProcessStore.find(processId));
+            return ServiceResult.success(transferProcessStore.findById(processId));
         }
         var process = TransferProcess.Builder.newInstance()
                 .id(randomUUID().toString())
@@ -189,13 +189,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, Function<TransferProcess, ServiceResult<TransferProcess>> action) {
         return transactionContext.execute(() -> Optional.of(message.getProcessId())
                 .map(transferProcessStore::processIdForDataRequestId)
-                .map(transferProcessStore::find)
+                .map(transferProcessStore::findById)
                 .map(action)
                 .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", message.getProcessId()))));
     }
 
     private void update(TransferProcess transferProcess) {
-        transferProcessStore.save(transferProcess);
+        transferProcessStore.updateOrCreate(transferProcess);
         monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 

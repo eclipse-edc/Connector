@@ -32,7 +32,7 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      * Returns the transfer process for the id or null if not found.
      */
     @Nullable
-    TransferProcess find(String id);
+    TransferProcess findById(String id);
 
     /**
      * Returns the transfer process for the data request id or null if not found.
@@ -44,7 +44,7 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      * Persists a transfer process. This follows UPSERT semantics, so if the object didn't exit before, it's
      * created.
      */
-    void save(TransferProcess process);
+    void updateOrCreate(TransferProcess process);
 
 
     /**

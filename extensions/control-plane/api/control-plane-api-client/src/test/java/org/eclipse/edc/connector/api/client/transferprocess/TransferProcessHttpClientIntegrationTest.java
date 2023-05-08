@@ -82,13 +82,13 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
         var id = "tp-id";
-        store.save(createTransferProcess(id));
+        store.updateOrCreate(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
         manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull()
                     .extracting(StatefulEntity::getState).isEqualTo(COMPLETED.code());
         });
@@ -98,13 +98,13 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(completedFuture(StreamResult.error("error")));
         var id = "tp-id";
-        store.save(createTransferProcess(id));
+        store.updateOrCreate(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
         manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
                 assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
@@ -116,13 +116,13 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithException(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(failedFuture(new EdcException("error")));
         var id = "tp-id";
-        store.save(createTransferProcess(id));
+        store.updateOrCreate(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
         manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
                 assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");

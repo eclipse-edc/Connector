@@ -100,7 +100,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
 
 
         when(transferProcessStore.processIdForDataRequestId(any())).thenReturn(TRANSFER_ID);
-        when(transferProcessStore.find(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID, transferProperties(receiverUrl())));
+        when(transferProcessStore.findById(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID, transferProperties(receiverUrl())));
 
         var edr = createEndpointDataReferenceBuilder()
                 .properties(Map.of(HTTP_RECEIVER_ENDPOINT, receiverUrl()))
@@ -132,7 +132,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
 
 
         when(transferProcessStore.processIdForDataRequestId(any())).thenReturn(TRANSFER_ID);
-        when(transferProcessStore.find(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID, transferPropertiesWithAuth(receiverUrl(), authKey, authToken)));
+        when(transferProcessStore.findById(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID, transferPropertiesWithAuth(receiverUrl(), authKey, authToken)));
 
 
         var edr = createEndpointDataReferenceBuilder()
@@ -153,7 +153,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
     @Test
     public void send_shouldFailForwardTheEdr_withPathNotFound() throws ExecutionException, InterruptedException {
         when(transferProcessStore.processIdForDataRequestId(any())).thenReturn(TRANSFER_ID);
-        when(transferProcessStore.find(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID, transferProperties(receiverUrl() + "/modified")));
+        when(transferProcessStore.findById(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID, transferProperties(receiverUrl() + "/modified")));
 
         var edr = createEndpointDataReferenceBuilder()
                 .build();
@@ -189,7 +189,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
     @Test
     public void send_shouldFailForwardTheEdr_transferProcessNotFound() throws ExecutionException, InterruptedException {
         when(transferProcessStore.processIdForDataRequestId(any())).thenReturn(TRANSFER_ID);
-        when(transferProcessStore.find(TRANSFER_ID)).thenReturn(null);
+        when(transferProcessStore.findById(TRANSFER_ID)).thenReturn(null);
 
         var edr = createEndpointDataReferenceBuilder()
                 .build();
@@ -209,7 +209,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
     public void send_shouldNotForwardTheEdr_whenReceiverUrlMissing() throws ExecutionException, InterruptedException {
 
         when(transferProcessStore.processIdForDataRequestId(any())).thenReturn(TRANSFER_ID);
-        when(transferProcessStore.find(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID));
+        when(transferProcessStore.findById(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID));
 
         var edr = createEndpointDataReferenceBuilder()
                 .build();
@@ -239,7 +239,7 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
                 .build();
 
         when(transferProcessStore.processIdForDataRequestId(any())).thenReturn(TRANSFER_ID);
-        when(transferProcessStore.find(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID));
+        when(transferProcessStore.findById(TRANSFER_ID)).thenReturn(createTransferProcess(TRANSFER_ID));
 
         var edr = createEndpointDataReferenceBuilder()
                 .build();

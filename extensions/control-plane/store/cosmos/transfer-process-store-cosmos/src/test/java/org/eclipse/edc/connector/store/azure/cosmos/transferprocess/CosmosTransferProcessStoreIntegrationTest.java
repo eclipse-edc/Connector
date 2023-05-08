@@ -121,7 +121,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     void create() {
         String id = UUID.randomUUID().toString();
         TransferProcess transferProcess = createTransferProcess(id);
-        store.save(transferProcess);
+        store.updateOrCreate(transferProcess);
 
         CosmosPagedIterable<Object> documents = container.readAllItems(new PartitionKey(partitionKey), Object.class);
         assertThat(documents).hasSize(1);
@@ -138,11 +138,11 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     void create_processWithSameIdExists_shouldReplace() {
         String id = UUID.randomUUID().toString();
         TransferProcess transferProcess = createTransferProcess(id);
-        store.save(transferProcess);
+        store.updateOrCreate(transferProcess);
 
         var secondProcess = createTransferProcess(id);
 
-        store.save(secondProcess); //should not throw
+        store.updateOrCreate(secondProcess); //should not throw
         assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).hasSize(1);
     }
 
@@ -159,9 +159,9 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         String id3 = UUID.randomUUID().toString();
         var tp3 = createTransferProcess(id3, INITIAL);
 
-        store.save(tp);
-        store.save(tp2);
-        store.save(tp3);
+        store.updateOrCreate(tp);
+        store.updateOrCreate(tp2);
+        store.updateOrCreate(tp3);
 
 
         List<TransferProcess> processes = store.nextForState(INITIAL.code(), 2);
@@ -201,8 +201,8 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         String id2 = "process2";
         var tp2 = createTransferProcess(id2, INITIAL);
 
-        store.save(tp);
-        store.save(tp2);
+        store.updateOrCreate(tp);
+        store.updateOrCreate(tp2);
         TransferProcessDocument item = readDocument(id2);
         item.acquireLease("test-leaser", clock);
         container.upsertItem(item);
@@ -262,9 +262,9 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         String id3 = UUID.randomUUID().toString();
         var tp3 = createTransferProcess(id3, INITIAL);
 
-        store.save(tp);
-        store.save(tp2);
-        store.save(tp3);
+        store.updateOrCreate(tp);
+        store.updateOrCreate(tp2);
+        store.updateOrCreate(tp3);
 
         List<TransferProcess> processes = store.nextForState(STARTED.code(), 5);
 
@@ -275,7 +275,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     void nextForState_batchSizeLimits() {
         for (var i = 0; i < 5; i++) {
             var tp = createTransferProcess("process_" + i, INITIAL);
-            store.save(tp);
+            store.updateOrCreate(tp);
         }
 
         var processes = store.nextForState(INITIAL.code(), 3);
@@ -304,7 +304,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         assertThat(store.nextForState(STARTED.code(), 5)).isEmpty();
 
         //make sure that findById still returns the entity
-        assertThat(store.find(tp.getId())).isEqualTo(tp);
+        assertThat(store.findById(tp.getId())).isEqualTo(tp);
     }
 
     @Test
@@ -326,7 +326,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         // make sure the next state update clears the lease
         tp.transitionCompleted();
         tp.updateStateTimestamp();
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         var updatedDocument = readDocument(tp.getId());
         assertThat(updatedDocument.getLease()).isNull();
@@ -355,15 +355,15 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     @Test
     void find() {
         var tp = createTransferProcess("tp-id");
-        store.save(tp);
+        store.updateOrCreate(tp);
 
-        TransferProcess dbProcess = store.find("tp-id");
+        TransferProcess dbProcess = store.findById("tp-id");
         assertThat(dbProcess).isNotNull().isEqualTo(tp).usingRecursiveComparison();
     }
 
     @Test
     void find_notExist() {
-        assertThat(store.find("not-exist")).isNull();
+        assertThat(store.findById("not-exist")).isNull();
     }
 
     @Test
@@ -372,7 +372,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         var transferId = tp.getDataRequest().getId();
         assertThat(transferId).isNotNull();
 
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         String processId = store.processIdForDataRequestId(transferId);
         assertThat(processId).isEqualTo("process-id");
@@ -387,10 +387,10 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     void update_exists_shouldUpdate() {
         var tp = createTransferProcess("process-id");
 
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         CosmosItemResponse<Object> response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
 
@@ -405,7 +405,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         var tp = createTransferProcess("process-id");
 
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         var response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
 
@@ -425,7 +425,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         container.upsertItem(doc);
 
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
     }
@@ -443,7 +443,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
 
         //act
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        assertThatThrownBy(() -> store.save(tp)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> store.updateOrCreate(tp)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
     }
 
     @Test
@@ -452,7 +452,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         final String processId = "test-process-id";
         var tp = createTransferProcess(processId);
 
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         store.delete(processId);
 
@@ -481,7 +481,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     void invokeStoredProcedure() {
         //create one item
         var tp = createTransferProcess("proc1");
-        store.save(tp);
+        store.updateOrCreate(tp);
 
         List<Object> procedureParams = Arrays.asList(100, 5, connectorId);
         CosmosStoredProcedureRequestOptions options = new CosmosStoredProcedureRequestOptions();
@@ -583,7 +583,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     @Override
     @Test
     protected void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().save(TestFunctions.createTransferProcess("test-neg-" + i)));
+        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(TestFunctions.createTransferProcess("test-neg-" + i)));
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 

@@ -38,13 +38,13 @@ public abstract class SingleTransferProcessCommandHandler<T extends SingleTransf
     @Override
     public void handle(T command) {
         var transferProcessId = command.getTransferProcessId();
-        var transferProcess = store.find(transferProcessId);
+        var transferProcess = store.findById(transferProcessId);
         if (transferProcess == null) {
             throw new EdcException(format("Could not find TransferProcess with ID [%s]", transferProcessId));
         } else {
             if (modify(transferProcess, command)) {
                 transferProcess.setModified();
-                store.save(transferProcess);
+                store.updateOrCreate(transferProcess);
                 postAction(transferProcess);
             }
         }
