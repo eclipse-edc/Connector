@@ -48,7 +48,7 @@ public class DataAddress {
 
     @NotNull
     public String getType() {
-        return Optional.ofNullable(properties.get(EDC_NAMESPACE + TYPE)).orElseGet(() -> properties.get(TYPE));
+        return getProperty(TYPE);
     }
 
     @JsonIgnore
@@ -58,12 +58,13 @@ public class DataAddress {
     }
 
     public String getProperty(String key) {
-        return properties.get(key);
+        return getProperty(key, null);
     }
 
     public String getProperty(String key, String defaultValue) {
-        if (properties.containsKey(key)) {
-            return properties.get(key);
+        var value = Optional.ofNullable(properties.get(EDC_NAMESPACE + key)).orElseGet(() -> properties.get(key));
+        if (value != null) {
+            return value;
         }
 
         return defaultValue;
@@ -74,7 +75,7 @@ public class DataAddress {
     }
 
     public String getKeyName() {
-        return Optional.ofNullable(properties.get(EDC_NAMESPACE + KEY_NAME)).orElseGet(() -> properties.get(KEY_NAME));
+        return getProperty(KEY_NAME);
     }
 
     @JsonIgnore

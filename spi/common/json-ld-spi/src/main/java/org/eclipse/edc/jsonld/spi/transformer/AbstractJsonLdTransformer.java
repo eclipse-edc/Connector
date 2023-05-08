@@ -70,7 +70,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param mapper the mapper for converting the properties
      * @param context the transformer context
      */
-    protected void transformProperties(Map<String, Object> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
+    protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
         if (properties == null) {
             return;
         }
@@ -169,6 +169,26 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             context.reportProblem(format("Invalid property. Expected JsonNumber, JsonObject or JsonArray but got %s",
                     value.getClass().getSimpleName()));
             return 0;
+        }
+    }
+
+    /**
+     * Transforms a JsonValue to boolean. If the value parameter is not of type JsonObject or JsonArray,
+     * a problem is reported to the context.
+     *
+     * @param value the value to transform
+     * @param context the transformer context
+     * @return the int value
+     */
+    protected boolean transformBoolean(JsonValue value, TransformerContext context) {
+        if (value instanceof JsonObject) {
+            return value.asJsonObject().getBoolean(VALUE);
+        } else if (value instanceof JsonArray) {
+            return transformBoolean(value.asJsonArray().get(0), context);
+        } else {
+            context.reportProblem(format("Invalid property. Expected JsonObject or JsonArray but got %s",
+                    value.getClass().getSimpleName()));
+            return false;
         }
     }
 

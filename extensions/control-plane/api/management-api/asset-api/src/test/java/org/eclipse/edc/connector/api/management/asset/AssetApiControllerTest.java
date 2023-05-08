@@ -16,13 +16,13 @@
 package org.eclipse.edc.connector.api.management.asset;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
-import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;

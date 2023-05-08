@@ -26,8 +26,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 @JsonDeserialize(builder = TransferRequestDto.Builder.class)
 public class TransferRequestDto {
+
+    public static final String EDC_TRANSFER_REQUEST_DTO_TYPE = EDC_NAMESPACE + "TransferRequestDto";
+    public static final String EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
+    public static final String EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID = EDC_NAMESPACE + "contractId";
+    public static final String EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
+    public static final String EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES = EDC_NAMESPACE + "managedResources";
+    public static final String EDC_TRANSFER_REQUEST_DTO_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String EDC_TRANSFER_REQUEST_DTO_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
+    public static final String EDC_TRANSFER_REQUEST_DTO_ASSET_ID = EDC_NAMESPACE + "assetId";
 
     private String id;
     @NotNull(message = "connectorAddress cannot be null")

@@ -169,8 +169,30 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     @Override
-    public StatusResult<String> initiateConsumerRequest(TransferRequest transferRequest) {
-        return initiateRequest(CONSUMER, transferRequest);
+    public StatusResult<TransferProcess> initiateConsumerRequest(TransferRequest transferRequest) {
+        // make the request idempotent: if the process exists, return
+        var dataRequest = transferRequest.getDataRequest();
+        var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
+        if (processId != null) {
+            return StatusResult.success(transferProcessStore.findById(processId));
+        }
+        var id = randomUUID().toString();
+        var process = TransferProcess.Builder.newInstance()
+                .id(id)
+                .dataRequest(dataRequest)
+                .type(CONSUMER)
+                .clock(clock)
+                .properties(dataRequest.getProperties())
+                .callbackAddresses(transferRequest.getCallbackAddresses())
+                .traceContext(telemetry.getCurrentTraceContext())
+                .build();
+
+        observable.invokeForEach(l -> l.preCreated(process));
+        update(process);
+        observable.invokeForEach(l -> l.initiated(process));
+        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+
+        return StatusResult.success(process);
     }
 
     @Override
@@ -254,32 +276,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .collect(Collectors.toList());
 
         handleDeprovisionResponses(transferProcess, deprovisionResponses);
-    }
-
-    private StatusResult<String> initiateRequest(TransferProcess.Type type, TransferRequest transferRequest) {
-        // make the request idempotent: if the process exists, return
-        var dataRequest = transferRequest.getDataRequest();
-        var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
-        if (processId != null) {
-            return StatusResult.success(processId);
-        }
-        var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance()
-                .id(id)
-                .dataRequest(dataRequest)
-                .type(type)
-                .clock(clock)
-                .properties(dataRequest.getProperties())
-                .callbackAddresses(transferRequest.getCallbackAddresses())
-                .traceContext(telemetry.getCurrentTraceContext())
-                .build();
-
-        observable.invokeForEach(l -> l.preCreated(process));
-        update(process);
-        observable.invokeForEach(l -> l.initiated(process));
-        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-
-        return StatusResult.success(process.getId());
     }
 
     /**

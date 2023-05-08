@@ -18,8 +18,16 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 @JsonDeserialize(builder = DataRequestDto.Builder.class)
 public class DataRequestDto {
+
+    public static final String EDC_DATA_REQUEST_DTO_TYPE = EDC_NAMESPACE + "DataRequestDto";
+    public static final String EDC_DATA_REQUEST_DTO_ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String EDC_DATA_REQUEST_DTO_CONTRACT_ID = EDC_NAMESPACE + "contractId";
+    public static final String EDC_DATA_REQUEST_DTO_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
+
     private String id;
     private String assetId;
     private String contractId;

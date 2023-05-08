@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.asset.model;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.eclipse.edc.api.model.DataAddressDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -14,7 +14,8 @@
 
 package org.eclipse.edc.connector.api.management.transferprocess.transform;
 
-import org.eclipse.edc.connector.api.management.transferprocess.model.DataAddressInformationDto;
+import org.eclipse.edc.api.model.CallbackAddressDto;
+import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.DataRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -54,6 +55,7 @@ public class TransferProcessTransformerTestData {
             .dataRequest(dataRequest)
             .callbackAddresses(List.of(callbackAddress));
     DataRequestDto dataRequestDto = DataRequestDto.Builder.newInstance().build();
+    CallbackAddressDto callbackAddressDto = CallbackAddressDto.Builder.newInstance().uri("local://test").build();
     TransferProcessDto.Builder dto = TransferProcessDto.Builder.newInstance()
             .id(id)
             .type(type.name())
@@ -63,9 +65,9 @@ public class TransferProcessTransformerTestData {
             .dataRequest(dataRequestDto)
             .createdAt(createdTimestamp)
             .updatedAt(createdTimestamp)
-            .callbackAddresses(List.of(callbackAddress))
+            .callbackAddresses(List.of(callbackAddressDto))
             .dataDestination(
-                    DataAddressInformationDto.Builder.newInstance()
+                    DataAddressDto.Builder.newInstance()
                             .properties(mapWith(dataDestinationProperties, "type", dataDestinationType))
                             .build());
 

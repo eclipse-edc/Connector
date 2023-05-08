@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2022 - 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,10 +12,9 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.asset.transform;
+package org.eclipse.edc.api.transformer;
 
-import org.eclipse.edc.api.transformer.DtoTransformer;
-import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
+import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;

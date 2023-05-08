@@ -18,8 +18,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 @JsonDeserialize(builder = IdResponseDto.Builder.class)
 public class IdResponseDto extends BaseResponseDto {
+
+    public static final String EDC_ID_RESPONSE_DTO_TYPE = EDC_NAMESPACE + "IdResponseDto";
+    public static final String EDC_ID_RESPONSE_DTO_CREATED_AT = EDC_NAMESPACE + "createdAt";
+
     private String id;
 
     public IdResponseDto() {

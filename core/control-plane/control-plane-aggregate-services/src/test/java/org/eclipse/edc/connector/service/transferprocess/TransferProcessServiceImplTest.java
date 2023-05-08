@@ -128,14 +128,14 @@ class TransferProcessServiceImplTest {
     @Test
     void initiateTransfer() {
         var transferRequest = transferRequest();
-        String processId = "processId";
+        var transferProcess = transferProcess();
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-        when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(processId));
+        when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
 
         var result = service.initiateTransfer(transferRequest);
 
         assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).isEqualTo(processId);
+        assertThat(result.getContent()).isEqualTo(transferProcess);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
