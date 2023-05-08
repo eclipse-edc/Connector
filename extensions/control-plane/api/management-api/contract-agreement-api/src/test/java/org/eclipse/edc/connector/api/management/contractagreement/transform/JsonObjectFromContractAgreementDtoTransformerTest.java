@@ -12,11 +12,12 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
+package org.eclipse.edc.connector.api.management.contractagreement.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
+import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,18 +26,16 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.Builder;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSETID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_ID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_POLICY;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_ID;
+import static org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSETID;
+import static org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_ID;
+import static org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto.CONTRACT_AGREEMENT_POLICY;
+import static org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class JsonObjectFromContractAgreementDtoTransformerTest {
-
     private JsonObjectFromContractAgreementDtoTransformer transformer;
 
     @BeforeEach
@@ -46,7 +45,7 @@ class JsonObjectFromContractAgreementDtoTransformerTest {
 
     @Test
     void transform() {
-        var agreement = Builder.newInstance()
+        var agreement = ContractAgreementDto.Builder.newInstance()
                 .id("test-id")
                 .providerId("test-provider")
                 .consumerId("test-consumer")

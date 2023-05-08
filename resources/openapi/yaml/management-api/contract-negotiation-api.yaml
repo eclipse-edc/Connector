@@ -691,7 +691,7 @@ components:
         assetId:
           type: string
           example: null
-        consumerAgentId:
+        consumerId:
           type: string
           example: null
         contractEndDate:
@@ -711,15 +711,15 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-        providerAgentId:
+        providerId:
           type: string
           example: null
       required:
       - assetId
-      - consumerAgentId
+      - consumerId
       - id
       - policy
-      - providerAgentId
+      - providerId
     ContractNegotiationDto:
       type: object
       example: null
