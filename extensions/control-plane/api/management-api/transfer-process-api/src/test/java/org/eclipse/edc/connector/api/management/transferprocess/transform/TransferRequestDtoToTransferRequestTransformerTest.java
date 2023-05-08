@@ -71,12 +71,10 @@ class TransferRequestDtoToTransferRequestTransformerTest {
         assertThat(dataRequest.getContractId()).isEqualTo(transferReq.getContractId());
         assertThat(dataRequest.getProtocol()).isEqualTo(transferReq.getProtocol());
         assertThat(dataRequest.getProperties()).isEqualTo(transferReq.getProperties());
-        assertThat(dataRequest.getTransferType()).isEqualTo(transferReq.getTransferType());
         assertThat(dataRequest.isManagedResources()).isEqualTo(transferReq.isManagedResources());
 
         assertThat(transferRequest.getCallbackAddresses()).hasSize(transferReq.getCallbackAddresses().size());
     }
-
 
     @NotNull
     private TransferRequestDto.Builder transferRequestDto() {
@@ -90,6 +88,5 @@ class TransferRequestDtoToTransferRequestTransformerTest {
                 .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance().uri("local://test").build()))
                 .properties(Map.of("key1", "value1"));
     }
-
 
 }

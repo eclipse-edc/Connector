@@ -114,10 +114,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "managed_resources";
     }
 
-    default String getTransferTypeColumn() {
-        return "transfer_type";
-    }
-
     default String getProcessIdColumn() {
         return "process_id";
     }

@@ -286,7 +286,6 @@ class TransferProcessApiControllerTest {
         assertThat(dataRequest.getContractId()).isEqualTo(dr.getContractId());
         assertThat(dataRequest.getProtocol()).isEqualTo(dr.getProtocol());
         assertThat(dataRequest.getProperties()).isEqualTo(dr.getProperties());
-        assertThat(dataRequest.getTransferType()).isEqualTo(dr.getTransferType());
         assertThat(dataRequest.isManagedResources()).isEqualTo(dr.isManagedResources());
 
         assertThat(result.getId()).isEqualTo(processId);
@@ -375,7 +374,6 @@ class TransferProcessApiControllerTest {
                 .dataDestination(dto.getDataDestination())
                 .connectorAddress(dto.getConnectorAddress())
                 .contractId(dto.getContractId())
-                .transferType(dto.getTransferType())
                 .destinationType(dto.getDataDestination().getType())
                 .properties(dto.getProperties())
                 .managedResources(dto.isManagedResources())

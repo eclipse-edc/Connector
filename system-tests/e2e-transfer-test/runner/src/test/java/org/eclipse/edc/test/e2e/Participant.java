@@ -17,7 +17,6 @@ package org.eclipse.edc.test.e2e;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -186,11 +185,7 @@ public class Participant {
                 "connectorAddress", provider.idsEndpoint() + "/api/v1/ids/data",
                 "protocol", "ids-multipart",
                 "dataDestination", dataAddress,
-                "managedResources", false,
-                "transferType", TransferType.Builder.transferType()
-                        .contentType("application/octet-stream")
-                        .isFinite(true)
-                        .build()
+                "managedResources", false
         );
 
         return given()

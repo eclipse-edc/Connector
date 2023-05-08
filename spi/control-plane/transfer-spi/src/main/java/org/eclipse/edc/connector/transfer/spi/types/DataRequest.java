@@ -41,11 +41,6 @@ public class DataRequest implements Polymorphic {
 
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
-    private TransferType transferType;
-
-    private DataRequest() {
-        transferType = new TransferType();
-    }
 
     /**
      * The unique request id. Request ids are provided by the originating consumer and must be unique.
@@ -132,10 +127,6 @@ public class DataRequest implements Polymorphic {
         dataDestination = dataAddress;
     }
 
-    public TransferType getTransferType() {
-        return transferType;
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;
@@ -214,11 +205,6 @@ public class DataRequest implements Polymorphic {
                 throw new IllegalArgumentException("A data destination or type must be specified");
             }
             return request;
-        }
-
-        public Builder transferType(TransferType transferType) {
-            request.transferType = transferType;
-            return this;
         }
 
     }

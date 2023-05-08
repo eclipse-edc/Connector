@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.api.model.CallbackAddressDto;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.ArrayList;
@@ -39,8 +38,6 @@ public class TransferRequestDto {
     private DataAddress dataDestination;
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
-    @NotNull(message = "transferType cannot be null")
-    private TransferType transferType = new TransferType();
     @NotNull(message = "protocol cannot be null")
     private String protocol = "ids-multipart";
     @NotNull(message = "connectorId cannot be null")
@@ -73,10 +70,6 @@ public class TransferRequestDto {
 
     public Map<String, String> getProperties() {
         return properties;
-    }
-
-    public TransferType getTransferType() {
-        return transferType;
     }
 
     public String getProtocol() {
@@ -135,11 +128,6 @@ public class TransferRequestDto {
 
         public Builder properties(Map<String, String> properties) {
             request.properties = properties;
-            return this;
-        }
-
-        public Builder transferType(TransferType transferType) {
-            request.transferType = transferType;
             return this;
         }
 

@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.transferprocess.model;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -33,10 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TransferRequestDtoValidationTest {
     private Validator validator;
 
-    private static TransferType transferType() {
-        return new TransferType();
-    }
-
     private static DataAddress destination() {
         return DataAddress.Builder.newInstance().type("testtype").build();
     }
@@ -50,7 +45,7 @@ class TransferRequestDtoValidationTest {
 
     @ParameterizedTest
     @ArgumentsSource(InvalidPropertiesProvider.class)
-    void validate_invalidProperties(String id, String address, String contract, DataAddress destination, TransferType type, String protocol, String connectorId, String assetId) {
+    void validate_invalidProperties(String id, String address, String contract, DataAddress destination, String protocol, String connectorId, String assetId) {
         var dto = TransferRequestDto.Builder.newInstance()
                 .id(id)
                 .assetId(assetId)
@@ -58,7 +53,6 @@ class TransferRequestDtoValidationTest {
                 .connectorId(connectorId)
                 .contractId(contract)
                 .dataDestination(destination)
-                .transferType(type)
                 .protocol(protocol)
                 .build();
 
@@ -69,13 +63,12 @@ class TransferRequestDtoValidationTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of("id", null, "contractId", destination(), transferType(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", null, destination(), transferType(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", null, transferType(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", destination(), null, "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", destination(), transferType(), null, "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", destination(), transferType(), "ids-multipart", null, "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", destination(), transferType(), "ids-multipart", "connectorId", null)
+                    Arguments.of("id", null, "contractId", destination(), "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", null, destination(), "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", null, "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), null, "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), "ids-multipart", null, "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), "ids-multipart", "connectorId", null)
             );
         }
     }

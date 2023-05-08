@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Contra
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
@@ -89,10 +88,6 @@ public class FileTransferConfiguration implements TransferConfiguration {
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type("File")
                         .property("path", destinationPath)
-                        .build())
-                .transferType(TransferType.Builder.transferType()
-                        .contentType("application/octet-stream")
-                        .isFinite(true)
                         .build())
                 .connectorAddress(providerIdsUrl)
                 .contractId(contractAgreementId)

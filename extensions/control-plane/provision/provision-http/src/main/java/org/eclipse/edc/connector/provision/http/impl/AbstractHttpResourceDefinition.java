@@ -61,7 +61,7 @@ public abstract class AbstractHttpResourceDefinition extends ResourceDefinition 
         @Override
         protected void verify() {
             super.verify();
-            Objects.requireNonNull(resourceDefinition.dataAddressType, "transferType");
+            Objects.requireNonNull(resourceDefinition.dataAddressType, "dataAddressType");
         }
 
     }

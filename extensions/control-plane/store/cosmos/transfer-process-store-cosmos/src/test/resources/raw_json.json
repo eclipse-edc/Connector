@@ -28,10 +28,6 @@
         "keyName": "Test Key Name"
       },
       "managedResources": true,
-      "transferType": {
-        "contentType": "application/octet-stream",
-        "isFinite": true
-      },
       "destinationType": "Test Address Type"
     },
     "resourceManifest": {
