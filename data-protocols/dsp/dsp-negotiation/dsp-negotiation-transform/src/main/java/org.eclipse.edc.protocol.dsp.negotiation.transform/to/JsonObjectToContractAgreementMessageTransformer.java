@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
@@ -23,8 +24,12 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
@@ -32,6 +37,8 @@ import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPA
  * Creates a {@link ContractAgreementMessage} from a {@link JsonObject}.
  */
 public class JsonObjectToContractAgreementMessageTransformer extends AbstractJsonLdTransformer<JsonObject, ContractAgreementMessage> {
+    private static final Set<String> EXCLUDED_POLICY_KEYWORDS =
+            Set.of(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID);
 
     public JsonObjectToContractAgreementMessageTransformer() {
         super(JsonObject.class, ContractAgreementMessage.class);
@@ -39,36 +46,71 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
 
     @Override
     public @Nullable ContractAgreementMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var builder = ContractAgreementMessage.Builder.newInstance();
-        builder.protocol(DATASPACE_PROTOCOL_HTTP);
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
+        var messageBuilder = ContractAgreementMessage.Builder.newInstance();
+        messageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
+        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), messageBuilder::processId, context);
 
-        var policy = context.transform(object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT), Policy.class);
-        if (policy == null) {
-            context.reportProblem("Cannot transform to ContractAgreementMessage with null policy");
+        var jsonAgreement = object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
+        if (jsonAgreement == null) {
+            context.reportProblem("Cannot transform to ContractAgreementMessage with null agreement");
             return null;
         }
 
-        var agreement = contractAgreement(object, policy, context);
+        var filteredJsonAgreement = filterAgreementProperties(jsonAgreement);
+
+        var policy = context.transform(filteredJsonAgreement, Policy.class);
+        if (policy == null) {
+            context.reportProblem("Cannot transform to ContractAgreementMessage with invalid policy");
+            return null;
+        }
+
+        var agreement = contractAgreement(object, jsonAgreement, policy, context);
         if (agreement == null) {
             context.reportProblem("Cannot transform to ContractAgreementMessage with null agreement");
             return null;
         }
 
-        builder.contractAgreement(agreement);
+        messageBuilder.contractAgreement(agreement);
 
-        return builder.build();
+        return messageBuilder.build();
     }
 
-    private ContractAgreement contractAgreement(JsonObject object, Policy policy, TransformerContext context) {
+    private JsonObject filterAgreementProperties(JsonObject jsonAgreement) {
+        var copiedJsonAgreement = Json.createObjectBuilder();
+        jsonAgreement.entrySet().stream()
+                .filter(e -> !EXCLUDED_POLICY_KEYWORDS.contains(e.getKey()))
+                .forEach(e -> copiedJsonAgreement.add(e.getKey(), e.getValue()));
+        return copiedJsonAgreement.build();
+    }
+
+    @Nullable
+    private ContractAgreement contractAgreement(JsonObject jsonMessage, JsonObject jsonAgreement, Policy policy, TransformerContext context) {
         var builder = ContractAgreement.Builder.newInstance();
-        builder.id(nodeId(object));
-        builder.providerId(""); // TODO
-        builder.consumerId(""); // TODO
+        var agreementId = nodeId(jsonAgreement);
+        if (agreementId == null) {
+            context.reportProblem("No id specified on ContractAgreement");
+            return null;
+        }
+        builder.id(agreementId);
+
+        var consumerId = jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID);
+        if (consumerId == null) {
+            context.reportProblem("No consumer id specified on ContractAgreement");
+            return null;
+        }
+        transformString(consumerId, builder::consumerId, context);
+
+        var providerId = jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID);
+        if (providerId == null) {
+            context.reportProblem("No provider id specified on ContractAgreement");
+            return null;
+        }
+        transformString(providerId, builder::providerId, context);
+
         builder.policy(policy);
         builder.assetId(policy.getTarget());
 
-        var timestamp = object.getString(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP);
+        var timestamp = jsonMessage.getString(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP);
         try {
             builder.contractSigningDate(Long.parseLong(timestamp));
         } catch (NumberFormatException exception) {

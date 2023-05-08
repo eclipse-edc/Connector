@@ -36,7 +36,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,6 +49,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectFromContractAgreementMessageTransformerTest {
+    private static final String PROVIDER_ID = "providerId";
+    private static final String CONSUMER_ID = "consumerId";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -80,7 +84,12 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE);
         assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(value);
-        assertThat(result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT)).isNotNull();
+
+        var jsonAgreement = result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
+        assertThat(jsonAgreement).isNotNull();
+
+        assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID).getString()).isEqualTo(CONSUMER_ID);
+        assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID).getString()).isEqualTo(PROVIDER_ID);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -106,8 +115,8 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     private ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id(String.valueOf(UUID.randomUUID()))
-                .providerId("agentId")
-                .consumerId("agentId")
+                .providerId(PROVIDER_ID)
+                .consumerId(CONSUMER_ID)
                 .assetId("assetId")
                 .policy(policy()).build();
     }
