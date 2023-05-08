@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
     api(project(":data-protocols:dsp:dsp-api-configuration"))
+    api(project(":data-protocols:dsp:dsp-http-core"))
 
     implementation(project(":spi:common:json-ld-spi"))
 
