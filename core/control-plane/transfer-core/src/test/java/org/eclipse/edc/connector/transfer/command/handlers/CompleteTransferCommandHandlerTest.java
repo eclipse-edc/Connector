@@ -46,15 +46,15 @@ class CompleteTransferCommandHandlerTest {
                 .updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
-        when(store.find(anyString())).thenReturn(tp);
+        when(store.findById(anyString())).thenReturn(tp);
 
         handler.handle(command);
 
         assertThat(tp.getState()).isEqualTo(COMPLETING.code());
         assertThat(tp.getErrorDetail()).isNull();
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
-        verify(store).find(anyString());
-        verify(store).save(tp);
+        verify(store).findById(anyString());
+        verify(store).updateOrCreate(tp);
         verifyNoMoreInteractions(store);
     }
 
@@ -65,19 +65,19 @@ class CompleteTransferCommandHandlerTest {
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
         var command = new CompleteTransferCommand("test-id");
-        when(store.find(anyString())).thenReturn(tp);
+        when(store.findById(anyString())).thenReturn(tp);
 
         handler.handle(command);
 
         assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
-        verify(store).find(anyString());
+        verify(store).findById(anyString());
         verifyNoMoreInteractions(store);
     }
 
     @Test
     void handle_notFound() {
         var command = new CompleteTransferCommand("test-id");
-        when(store.find(anyString())).thenReturn(null);
+        when(store.findById(anyString())).thenReturn(null);
 
         assertThatThrownBy(() -> handler.handle(command)).isInstanceOf(EdcException.class).hasMessageStartingWith("Could not find TransferProcess with ID [test-id]");
     }

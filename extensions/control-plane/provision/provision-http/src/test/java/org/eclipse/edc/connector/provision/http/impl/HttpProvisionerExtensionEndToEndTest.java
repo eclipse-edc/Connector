@@ -120,7 +120,7 @@ public class HttpProvisionerExtensionEndToEndTest {
 
         assertThat(result).isSucceeded();
         await().untilAsserted(() -> {
-            var transferProcess = store.find(result.getContent().getId());
+            var transferProcess = store.findById(result.getContent().getId());
             assertThat(transferProcess).isNotNull()
                     .extracting(StatefulEntity::getState).isEqualTo(PROVISIONING_REQUESTED.code());
         });

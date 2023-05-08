@@ -108,7 +108,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded().extracting(TransferProcess::getCorrelationId).isEqualTo("processId");
         verify(listener).preCreated(any());
-        verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == INITIAL.code()));
         verify(listener).initiated(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -125,12 +125,12 @@ class TransferProcessProtocolServiceImplTest {
         when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         when(store.processIdForDataRequestId("processId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
 
         var result = service.notifyRequested(message, claimToken());
 
         assertThat(result).isSucceeded().extracting(TransferProcess::getId).isEqualTo("processId");
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
@@ -148,7 +148,7 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyRequested(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
@@ -164,14 +164,14 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyRequested(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
     @Test
     void notifyStarted_shouldTransitionToStarted() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
@@ -185,7 +185,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded();
         verify(listener).preStarted(any());
-        verify(store).save(argThat(t -> t.getState() == STARTED.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == STARTED.code()));
         verify(listener).started(any(), captor.capture());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
 
@@ -195,7 +195,7 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyStarted_shouldReturnConflict_whenStatusIsNotValid() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
+        when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
@@ -205,14 +205,14 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyStarted(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
     @Test
     void notifyCompleted_shouldTransitionToCompleted() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(STARTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
@@ -223,7 +223,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded();
         verify(listener).preCompleted(any());
-        verify(store).save(argThat(t -> t.getState() == COMPLETED.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == COMPLETED.code()));
         verify(listener).completed(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -231,7 +231,7 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyCompleted_shouldReturnConflict_whenStatusIsNotValid() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build());
+        when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build());
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
@@ -241,14 +241,14 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyCompleted(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
     @Test
     void notifyTerminated_shouldTransitionToTerminated() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(STARTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
@@ -261,7 +261,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded();
         verify(listener).preTerminated(any());
-        verify(store).save(argThat(t -> t.getState() == TERMINATED.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == TERMINATED.code()));
         verify(listener).terminated(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -269,7 +269,7 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyTerminated_shouldReturnConflict_whenStatusIsNotValid() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build());
+        when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build());
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
@@ -281,7 +281,7 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyTerminated(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
@@ -289,12 +289,12 @@ class TransferProcessProtocolServiceImplTest {
     @ArgumentsSource(NotFoundArguments.class)
     <M extends RemoteMessage> void notify_shouldFail_whenTransferProcessNotFound(MethodCall<M> methodCall, M message) {
         when(store.processIdForDataRequestId(any())).thenReturn(null);
-        when(store.find(any())).thenReturn(null);
+        when(store.findById(any())).thenReturn(null);
 
         var result = methodCall.call(service, message, claimToken());
 
         assertThat(result).matches(ServiceResult::failed);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 

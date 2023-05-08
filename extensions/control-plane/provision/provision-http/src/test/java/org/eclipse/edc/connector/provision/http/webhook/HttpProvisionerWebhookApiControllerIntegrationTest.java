@@ -90,7 +90,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     @Test
     void callProvisionWebhook(TransferProcessStore store) {
 
-        store.save(createTransferProcess());
+        store.updateOrCreate(createTransferProcess());
 
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
@@ -140,7 +140,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     @Test
     void callDeprovisionWebhook(TransferProcessStore store) {
 
-        store.save(createTransferProcess());
+        store.updateOrCreate(createTransferProcess());
 
         var rq = DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId("resource-id")

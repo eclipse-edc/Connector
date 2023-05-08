@@ -123,7 +123,7 @@ class TransferProcessManagerImplIntegrationTest {
         var processes = IntStream.range(0, numProcesses)
                 .mapToObj(i -> provisionedResourceSet())
                 .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).callbackAddresses(List.of(callback)).provisionedResourceSet(resourceSet).build())
-                .peek(store::save)
+                .peek(store::updateOrCreate)
                 .collect(Collectors.toList());
 
         transferProcessManager.start();
@@ -132,7 +132,7 @@ class TransferProcessManagerImplIntegrationTest {
             assertThat(processes).describedAs("All transfer processes state should be greater than INITIAL")
                     .allSatisfy(process -> {
                         var id = process.getId();
-                        var storedProcess = store.find(id);
+                        var storedProcess = store.findById(id);
 
                         assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore")
                                 .isNotNull().extracting(StatefulEntity::getState).asInstanceOf(comparable(Integer.class))

@@ -67,7 +67,7 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
         if (processId == null) {
             return CompletableFuture.completedFuture(Result.failure(format("Failed to found processId for DataRequestId %s", edr.getId())));
         }
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
 
         if (transferProcess == null) {
             return CompletableFuture.completedFuture(Result.failure(format("Failed to found transfer process for id %s", processId)));
