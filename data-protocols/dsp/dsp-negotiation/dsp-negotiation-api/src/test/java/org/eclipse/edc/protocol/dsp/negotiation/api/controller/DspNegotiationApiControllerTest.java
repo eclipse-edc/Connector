@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
@@ -63,6 +64,7 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
@@ -71,6 +73,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.E
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.VERIFICATION;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION_ERROR;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
@@ -192,11 +195,20 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
 
+
+
         //operation not yet supported
-        baseRequest()
+        var result = baseRequest()
                 .get(BASE_PATH + "testId")
                 .then()
-                .statusCode(501);
+                .statusCode(501)
+                .extract().as(Map.class);
+
+        assertThat(result.get("@type")).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        monitor.debug(result.keySet().toString());
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("501");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     @Test
@@ -239,12 +251,17 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
 
-        baseRequest()
+        var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(BASE_PATH + INITIAL_CONTRACT_REQUEST)
                 .then()
-                .statusCode(500);
+                .statusCode(500)
+                .extract().as(Map.class);
+
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("500");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     @Test
@@ -261,11 +278,12 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
 
-        baseRequest()
+        var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(BASE_PATH + INITIAL_CONTRACT_REQUEST)
                 .then()
+                .contentType(MediaType.APPLICATION_JSON)
                 .statusCode(500);
     }
 
@@ -275,12 +293,17 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
 
-        baseRequest()
+        var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(BASE_PATH + "testId" + CONTRACT_OFFER)
                 .then()
-                .statusCode(501);
+                .statusCode(501)
+                .extract().as(Map.class);
+
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("501");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     /**
@@ -293,12 +316,17 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.failure("error"));
 
-        baseRequest()
+        var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(path)
                 .then()
-                .statusCode(401);
+                .statusCode(401)
+                .extract().as(Map.class);
+
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("401");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     /**
@@ -314,16 +342,21 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.failure("error"));
 
-        baseRequest()
+        var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(path)
                 .then()
-                .statusCode(400);
+                .statusCode(400)
+                .extract().as(Map.class);
+
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("400");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     /**
-     * Verifies that an endpoint returns 204 if the call to the service was successful. Also verifies
+     * Verifies that an endpoint returns 200 if the call to the service was successful. Also verifies
      * that the correct service method was called. This is only applicable for endpoints that do not
      * return a response body.
      *
@@ -352,7 +385,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .body(request)
                 .post(path)
                 .then()
-                .statusCode(204);
+                .statusCode(200);
 
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
@@ -386,15 +419,20 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyTerminated(any(ContractNegotiationTerminationMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyAgreed(any(ContractAgreementMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
 
-        baseRequest()
+        var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(path)
                 .then()
-                .statusCode(409);
+                .statusCode(409)
+                .extract().as(Map.class);
 
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
+
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("409");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
 
         // verify that the message protocol was set to the DSP protocol by the controller
         assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
@@ -417,11 +455,17 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
 
-        baseRequest()
+        var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .post(path)
                 .then()
+                .statusCode(400)
+                .extract().as(Map.class);
+
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("400");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
                 .statusCode(400);
 
         // verify that the message protocol was set to the DSP protocol by the controller
