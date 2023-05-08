@@ -36,7 +36,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -408,7 +407,7 @@ class ContractNegotiationProtocolServiceImplTest {
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId("1"))
                 .policy(createPolicy())
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .assetId("assetId")
                 .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())

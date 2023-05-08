@@ -51,7 +51,7 @@ public class JsonObjectFromContractRequestTransformer extends AbstractJsonLdTran
         builder.add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE);
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getProcessId());
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_DATASET, object.getContractOffer().getAsset().getId());
+        builder.add(DSPACE_NEGOTIATION_PROPERTY_DATASET, object.getContractOffer().getAssetId());
         builder.add(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS, object.getCallbackAddress());
 
         var policy = context.transform(object.getContractOffer().getPolicy(), JsonObject.class);

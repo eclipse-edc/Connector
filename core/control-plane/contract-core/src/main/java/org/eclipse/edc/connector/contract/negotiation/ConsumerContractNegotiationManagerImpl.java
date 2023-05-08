@@ -186,7 +186,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .providerId(negotiation.getCounterPartyId())
                 .consumerId(participantId)
                 .policy(policy)
-                .assetId(lastOffer.getAsset().getId())
+                .assetId(lastOffer.getAssetId())
                 .build();
 
         var request = ContractAgreementMessage.Builder.newInstance()

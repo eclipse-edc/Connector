@@ -84,7 +84,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
         assertThat(result.getContractOffer()).isNotNull();
         assertThat(result.getContractOffer().getClass()).isEqualTo(ContractOffer.class);
         assertThat(result.getContractOffer().getPolicy()).isNotNull();
-        assertThat(result.getContractOffer().getAsset().getId()).isEqualTo("target");
+        assertThat(result.getContractOffer().getAssetId()).isEqualTo("target");
 
         verify(context, never()).reportProblem(anyString());
     }

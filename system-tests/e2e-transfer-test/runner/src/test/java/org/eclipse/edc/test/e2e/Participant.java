@@ -139,7 +139,7 @@ public class Participant {
                 "protocol", "ids-multipart",
                 "offer", Map.of(
                         "offerId", contractOffer.getId(),
-                        "assetId", contractOffer.getAsset().getId(),
+                        "assetId", contractOffer.getAssetId(),
                         "policy", contractOffer.getPolicy()
                 )
         );
@@ -157,7 +157,7 @@ public class Participant {
         var contractAgreementId = getContractAgreementId(negotiationId);
 
         var assetId = getContractAgreementField(contractAgreementId, "assetId");
-        assertThat(assetId).isEqualTo(contractOffer.getAsset().getId());
+        assertThat(assetId).isEqualTo(contractOffer.getAssetId());
 
         return contractAgreementId;
     }

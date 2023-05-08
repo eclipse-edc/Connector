@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Negoti
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +60,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
         var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(object.getOffer().getOfferId())
-                .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
+                .assetId(object.getOffer().getAssetId())
                 .providerId(getId(object.getProviderId(), object.getConnectorAddress()))
                 .policy(object.getOffer().getPolicy())
                 .contractStart(now)

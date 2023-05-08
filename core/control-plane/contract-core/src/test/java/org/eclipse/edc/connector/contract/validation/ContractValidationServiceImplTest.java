@@ -114,7 +114,7 @@ class ContractValidationServiceImplTest {
         assertThat(result.succeeded()).isTrue();
         var validatedOffer = result.getContent().getOffer();
         assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
-        assertThat(validatedOffer.getAsset()).isEqualTo(asset);
+        assertThat(validatedOffer.getAssetId()).isEqualTo(asset.getId());
         assertThat(validatedOffer.getContractStart().toInstant()).isEqualTo(clock.instant());
         assertThat(validatedOffer.getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
         assertThat(result.getContent().getConsumerIdentity()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
@@ -462,7 +462,7 @@ class ContractValidationServiceImplTest {
         var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
         return ContractOffer.Builder.newInstance()
                 .id("1:2")
-                .asset(asset)
+                .assetId(asset.getId())
                 .policy(policy)
                 .providerId(PROVIDER_ID)
                 .contractStart(now)

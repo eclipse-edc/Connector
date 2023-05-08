@@ -25,17 +25,16 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
@@ -215,7 +214,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
     private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
         return ContractNegotiation.Builder.newInstance()
                 .id(negotiationId)
-                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyId(randomUUID().toString())
                 .counterPartyAddress("address")
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
                         .uri("local://test")
@@ -228,7 +227,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
     private ContractOffer.Builder contractOfferBuilder() {
         return ContractOffer.Builder.newInstance()
                 .id("test-offer-id")
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build());
     }
 
@@ -236,9 +235,9 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
     private ContractAgreement createContractAgreement(String negotiationId) {
         return ContractAgreement.Builder.newInstance()
                 .id(negotiationId)
-                .assetId(UUID.randomUUID().toString())
-                .consumerId(UUID.randomUUID() + "-consumer")
-                .providerId(UUID.randomUUID() + "-provider")
+                .assetId(randomUUID().toString())
+                .consumerId(randomUUID() + "-consumer")
+                .providerId(randomUUID() + "-provider")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

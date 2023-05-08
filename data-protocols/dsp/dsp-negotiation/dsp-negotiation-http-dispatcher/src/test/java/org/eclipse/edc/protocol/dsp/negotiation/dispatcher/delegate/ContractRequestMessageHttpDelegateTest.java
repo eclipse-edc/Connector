@@ -30,7 +30,6 @@ import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -144,7 +143,7 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(String.valueOf(UUID.randomUUID()))
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .assetId("assetId")
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())
                 .policy(policy()).build();

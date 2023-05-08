@@ -21,7 +21,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.ids.spi.types.container.DescriptionRequest;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +66,7 @@ class CatalogServiceImplTest {
     private static ContractOffer createContractOffer(String id) {
         return ContractOffer.Builder.newInstance()
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .assetId("test-asset")
                 .id(id)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))

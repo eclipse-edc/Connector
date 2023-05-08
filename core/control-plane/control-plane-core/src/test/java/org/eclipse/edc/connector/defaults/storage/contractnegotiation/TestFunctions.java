@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -41,7 +40,7 @@ public class TestFunctions {
                 .type(ContractNegotiation.Type.CONSUMER)
                 .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
                         .policy(Policy.Builder.newInstance().build())
-                        .asset(Asset.Builder.newInstance().id("test-asset").build())
+                        .assetId("test-asset")
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build()))

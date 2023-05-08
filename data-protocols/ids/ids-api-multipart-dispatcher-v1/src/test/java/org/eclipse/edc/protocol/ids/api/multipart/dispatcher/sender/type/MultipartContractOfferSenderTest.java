@@ -29,7 +29,6 @@ import org.eclipse.edc.protocol.ids.transform.type.contract.ContractOfferToIdsCo
 import org.eclipse.edc.protocol.ids.transform.type.policy.ActionToIdsActionTransformer;
 import org.eclipse.edc.protocol.ids.transform.type.policy.PermissionToIdsPermissionTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -89,7 +88,7 @@ class MultipartContractOfferSenderTest {
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id("contract-offer")
                         .policy(policy)
-                        .asset(Asset.Builder.newInstance().id("asset-id").build())
+                        .assetId("asset-id")
                         .providerId("providerId")
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))

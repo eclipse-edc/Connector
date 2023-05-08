@@ -115,7 +115,7 @@ class ContractNegotiationEventDispatchTest {
         var now = ZonedDateTime.now();
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id("contractDefinitionId:" + UUID.randomUUID())
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .assetId("assetId")
                 .policy(policy)
                 .providerId(PROVIDER)
                 .contractStart(now)
