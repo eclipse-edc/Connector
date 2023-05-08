@@ -52,12 +52,12 @@ class ContractAgreementDtoValidationTest {
 
     @ParameterizedTest
     @ArgumentsSource(InvalidArgsProvider.class)
-    void validation_invalidProperty(String id, String assetId, String policyId, String consumerAgentId, String providerAgentId, long startDate, long endDate, long signingDate) {
+    void validation_invalidProperty(String id, String assetId, String consumerId, String providerId, long startDate, long endDate, long signingDate) {
         var agreement = ContractAgreementDto.Builder.newInstance()
                 .assetId(assetId)
                 .policy(Policy.Builder.newInstance().build())
-                .consumerAgentId(consumerAgentId)
-                .providerAgentId(providerAgentId)
+                .consumerId(consumerId)
+                .providerId(providerId)
                 .id(id)
                 .contractStartDate(startDate)
                 .contractEndDate(endDate)
@@ -72,8 +72,8 @@ class ContractAgreementDtoValidationTest {
         var agreement = ContractAgreementDto.Builder.newInstance()
                 .assetId("Asset")
                 .policy(Policy.Builder.newInstance().build())
-                .consumerAgentId("cons")
-                .providerAgentId("prov")
+                .consumerId("cons")
+                .providerId("prov")
                 .id("someId")
                 .contractStartDate(15)
                 .contractEndDate(18)

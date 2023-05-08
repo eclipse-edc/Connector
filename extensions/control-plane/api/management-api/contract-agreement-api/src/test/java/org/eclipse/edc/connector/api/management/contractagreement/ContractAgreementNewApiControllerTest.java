@@ -199,8 +199,8 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
     private ContractAgreementDto createContractAgreementDto(String negotiationId) {
         return ContractAgreementDto.Builder.newInstance()
                 .id(negotiationId)
-                .consumerAgentId("test-consumer")
-                .providerAgentId("test-provider")
+                .consumerId("test-consumer")
+                .providerId("test-provider")
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();

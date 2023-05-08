@@ -36,10 +36,10 @@ public class ContractAgreementDto {
 
     @NotNull(message = "id cannot be null")
     private String id;
-    @NotNull(message = "providerAgentId cannot be null")
-    private String providerAgentId;
-    @NotNull(message = "consumerAgentId cannot be null")
-    private String consumerAgentId;
+    @NotNull(message = "providerId cannot be null")
+    private String providerId;
+    @NotNull(message = "consumerId cannot be null")
+    private String consumerId;
     @Positive(message = "contractSigningDate must be greater than 0")
     private long contractSigningDate;
     @Positive(message = "contractStartDate must be greater than 0")
@@ -63,12 +63,12 @@ public class ContractAgreementDto {
         return id;
     }
 
-    public String getProviderAgentId() {
-        return providerAgentId;
+    public String getProviderId() {
+        return providerId;
     }
 
-    public String getConsumerAgentId() {
-        return consumerAgentId;
+    public String getConsumerId() {
+        return consumerId;
     }
 
     public long getContractSigningDate() {
@@ -107,13 +107,13 @@ public class ContractAgreementDto {
             return this;
         }
 
-        public Builder providerAgentId(String providerAgentId) {
-            agreement.providerAgentId = providerAgentId;
+        public Builder providerId(String providerId) {
+            agreement.providerId = providerId;
             return this;
         }
 
-        public Builder consumerAgentId(String consumerAgentId) {
-            agreement.consumerAgentId = consumerAgentId;
+        public Builder consumerId(String consumerId) {
+            agreement.consumerId = consumerId;
             return this;
         }
 

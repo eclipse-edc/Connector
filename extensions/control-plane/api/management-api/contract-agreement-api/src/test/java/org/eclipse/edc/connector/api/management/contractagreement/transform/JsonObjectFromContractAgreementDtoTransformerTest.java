@@ -47,8 +47,8 @@ class JsonObjectFromContractAgreementDtoTransformerTest {
     void transform() {
         var agreement = ContractAgreementDto.Builder.newInstance()
                 .id("test-id")
-                .providerAgentId("test-provider")
-                .consumerAgentId("test-consumer")
+                .providerId("test-provider")
+                .consumerId("test-consumer")
                 .assetId("test-asset")
                 .policy(Policy.Builder.newInstance().build())
                 .build();

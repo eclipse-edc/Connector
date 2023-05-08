@@ -27,9 +27,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.Builder;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSETID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_AGENTID;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_POLICY;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_AGENTID;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -48,8 +48,8 @@ class JsonObjectFromContractAgreementDtoTransformerTest {
     void transform() {
         var agreement = Builder.newInstance()
                 .id("test-id")
-                .providerAgentId("test-provider")
-                .consumerAgentId("test-consumer")
+                .providerId("test-provider")
+                .consumerId("test-consumer")
                 .assetId("test-asset")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
@@ -59,8 +59,8 @@ class JsonObjectFromContractAgreementDtoTransformerTest {
         var jobj = transformer.transform(agreement, context);
         assertThat(jobj).isNotNull();
         assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_ASSETID)).extracting(JsonString::getString).isEqualTo("test-asset");
-        assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_PROVIDER_AGENTID)).extracting(JsonString::getString).isEqualTo("test-provider");
-        assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_CONSUMER_AGENTID)).extracting(JsonString::getString).isEqualTo("test-consumer");
+        assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_PROVIDER_ID)).extracting(JsonString::getString).isEqualTo("test-provider");
+        assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_CONSUMER_ID)).extracting(JsonString::getString).isEqualTo("test-consumer");
         assertThat(jobj.getJsonObject(CONTRACT_AGREEMENT_POLICY)).isNotNull();
     }
 }

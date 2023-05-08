@@ -25,8 +25,8 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class ContractAgreementDto {
     public static final String TYPE = EDC_NAMESPACE + "ContractAgreementDto";
     public static final String CONTRACT_AGREEMENT_ASSETID = EDC_NAMESPACE + "assetId";
-    public static final String CONTRACT_AGREEMENT_PROVIDER_AGENTID = EDC_NAMESPACE + "providerAgentId";
-    public static final String CONTRACT_AGREEMENT_CONSUMER_AGENTID = EDC_NAMESPACE + "consumerAgentId";
+    public static final String CONTRACT_AGREEMENT_PROVIDER_ID = EDC_NAMESPACE + "providerId";
+    public static final String CONTRACT_AGREEMENT_CONSUMER_ID = EDC_NAMESPACE + "consumerId";
     public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
     public static final String CONTRACT_AGREEMENT_START_DATE = EDC_NAMESPACE + "contractStartDate";
     public static final String CONTRACT_AGREEMENT_END_DATE = EDC_NAMESPACE + "contractEndDate";
@@ -34,10 +34,10 @@ public class ContractAgreementDto {
 
     @NotNull(message = "id cannot be null")
     private String id;
-    @NotNull(message = "providerAgentId cannot be null")
-    private String providerAgentId;
-    @NotNull(message = "consumerAgentId cannot be null")
-    private String consumerAgentId;
+    @NotNull(message = "providerId cannot be null")
+    private String providerId;
+    @NotNull(message = "consumerId cannot be null")
+    private String consumerId;
     @Positive(message = "contractSigningDate must be greater than 0")
     private long contractSigningDate;
     @Positive(message = "contractStartDate must be greater than 0")
@@ -62,12 +62,12 @@ public class ContractAgreementDto {
         return id;
     }
 
-    public String getProviderAgentId() {
-        return providerAgentId;
+    public String getProviderId() {
+        return providerId;
     }
 
-    public String getConsumerAgentId() {
-        return consumerAgentId;
+    public String getConsumerId() {
+        return consumerId;
     }
 
     public long getContractSigningDate() {
@@ -106,13 +106,13 @@ public class ContractAgreementDto {
             return this;
         }
 
-        public Builder providerAgentId(String providerAgentId) {
-            agreement.providerAgentId = providerAgentId;
+        public Builder providerId(String providerId) {
+            agreement.providerId = providerId;
             return this;
         }
 
-        public Builder consumerAgentId(String consumerAgentId) {
-            agreement.consumerAgentId = consumerAgentId;
+        public Builder consumerId(String consumerId) {
+            agreement.consumerId = consumerId;
             return this;
         }
 
