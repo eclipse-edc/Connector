@@ -48,8 +48,7 @@ public class ErrorUtil {
         }
 
         builder.add(DSPACE_SCHEMA + "code", errorCodeMapping(throwable));
-        builder.add(DSPACE_SCHEMA + "reason", throwable.getMessage()); //TODO List.of
-
+        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
 
         return builder.build();
     }
