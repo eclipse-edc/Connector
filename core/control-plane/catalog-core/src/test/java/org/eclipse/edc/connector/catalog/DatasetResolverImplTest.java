@@ -79,7 +79,7 @@ class DatasetResolverImplTest {
         var contractPolicy = Policy.Builder.newInstance().build();
         var distribution = Distribution.Builder.newInstance().dataService(dataService).format("format").build();
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(contractDefinition));
-        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(createAsset("id").property("key", "value").build()));
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(createAsset("assetId").property("key", "value").build()));
         when(policyStore.findById("contractPolicyId")).thenReturn(PolicyDefinition.Builder.newInstance().policy(contractPolicy).build());
         when(distributionResolver.getDistributions(isA(Asset.class), any())).thenReturn(List.of(distribution));
 
@@ -91,7 +91,7 @@ class DatasetResolverImplTest {
             assertThat(dataset.getOffers()).hasSize(1).allSatisfy((id, policy) -> {
                 assertThat(id).startsWith("definitionId");
                 assertThat(ContractId.parse(id)).matches(ContractId::isValid);
-                assertThat(policy).isSameAs(contractPolicy);
+                assertThat(policy.getTarget()).isEqualTo("assetId");
             });
             assertThat(dataset.getProperties()).contains(entry("key", "value"));
         });
@@ -111,8 +111,8 @@ class DatasetResolverImplTest {
 
     @Test
     void query_shouldReturnOneDataset_whenMultipleDefinitionsOnSameAsset() {
-        var policy1 = Policy.Builder.newInstance().build();
-        var policy2 = Policy.Builder.newInstance().build();
+        var policy1 = Policy.Builder.newInstance().assignee("assignee1").build();
+        var policy2 = Policy.Builder.newInstance().assignee("assignee2").build();
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(
                 contractDefinitionBuilder("definition1").contractPolicyId("policy1").build(),
                 contractDefinitionBuilder("definition2").contractPolicyId("policy2").build()
@@ -128,11 +128,11 @@ class DatasetResolverImplTest {
             assertThat(dataset.getOffers()).hasSize(2)
                     .anySatisfy((id, policy) -> {
                         assertThat(id).startsWith("definition1");
-                        assertThat(policy).isSameAs(policy1);
+                        assertThat(policy.getAssignee()).isEqualTo("assignee1");
                     })
                     .anySatisfy((id, policy) -> {
                         assertThat(id).startsWith("definition2");
-                        assertThat(policy).isSameAs(policy2);
+                        assertThat(policy.getAssignee()).isEqualTo("assignee2");
                     });
         });
     }

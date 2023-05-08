@@ -28,12 +28,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.KEYWORDS;
@@ -138,13 +141,19 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         if (value instanceof JsonString) {
             return ((JsonString) value).getString();
         } else if (value instanceof JsonObject) {
-            var jsonString = ((JsonObject) value).getJsonString(VALUE);
-            return transformString(jsonString, context);
+            var object = value.asJsonObject();
+            return Stream.of(VALUE, ID).map(object::get)
+                    .filter(Objects::nonNull)
+                    .findFirst().map(it -> transformString(it, context))
+                    .orElseGet(() -> {
+                        context.reportProblem(format("Invalid property. Expected to find one of @value, @id into JsonObject but got %s", value));
+                        return null;
+                    });
         } else if (value instanceof JsonArray) {
             return transformString(((JsonArray) value).get(0), context);
         } else {
             context.reportProblem(format("Invalid property. Expected JsonString, JsonObject or JsonArray but got %s",
-                    value.getClass().getSimpleName()));
+                    Optional.ofNullable(value).map(it -> getClass()).map(Class::getSimpleName).orElse(null)));
             return null;
         }
     }
@@ -228,7 +237,15 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @return the transformed list, null if the value type was not valid.
      */
     protected <T> List<T> transformArray(JsonValue value, Class<T> type, TransformerContext context) {
-        if (value instanceof JsonArray) {
+        if (value instanceof JsonObject) {
+            var transformed = context.transform(value.asJsonObject(), type);
+            if (transformed == null) {
+                context.reportProblem(format("Invalid property of type %s. Expected JsonObject or JsonArray but got %s",
+                        type.getSimpleName(), value.getClass().getSimpleName()));
+                return emptyList();
+            }
+            return List.of(transformed);
+        } else if (value instanceof JsonArray) {
             return value.asJsonArray().stream()
                     .map(entry -> context.transform(entry, type))
                     .collect(toList());

@@ -33,6 +33,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -54,6 +55,7 @@ class JsonObjectToPermissionTransformerTest {
     private Action action;
     private Constraint constraint;
     private Duty duty;
+    private String target;
     
     @BeforeEach
     void setUp() {
@@ -66,6 +68,7 @@ class JsonObjectToPermissionTransformerTest {
         action = Action.Builder.newInstance().type("type").build();
         constraint = AtomicConstraint.Builder.newInstance().build();
         duty = Duty.Builder.newInstance().build();
+        target = "target";
     
         when(context.transform(actionJson, Action.class)).thenReturn(action);
         when(context.transform(constraintJson, Constraint.class)).thenReturn(constraint);
@@ -78,6 +81,7 @@ class JsonObjectToPermissionTransformerTest {
                 .add(ODRL_ACTION_ATTRIBUTE, actionJson)
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, constraintJson)
                 .add(ODRL_DUTY_ATTRIBUTE, dutyJson)
+                .add(ODRL_TARGET_ATTRIBUTE, target)
                 .build();
     
         var result = transformer.transform(permission, context);
@@ -91,6 +95,7 @@ class JsonObjectToPermissionTransformerTest {
                  .add(ODRL_ACTION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(actionJson))
                  .add(ODRL_CONSTRAINT_ATTRIBUTE, jsonFactory.createArrayBuilder().add(constraintJson))
                  .add(ODRL_DUTY_ATTRIBUTE, jsonFactory.createArrayBuilder().add(dutyJson))
+                 .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(target))
                  .build();
         
         var result = transformer.transform(permission, context);
@@ -105,6 +110,7 @@ class JsonObjectToPermissionTransformerTest {
         assertThat(result.getConstraints().get(0)).isEqualTo(constraint);
         assertThat(result.getDuties()).hasSize(1);
         assertThat(result.getDuties().get(0)).isEqualTo(duty);
+        assertThat(result.getTarget()).isEqualTo(target);
     
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(actionJson, Action.class);

@@ -81,7 +81,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                             .distributions(distributions)
                             .properties(asset.getProperties());
 
-                    offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
+                    offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy.withTarget(asset.getId())));
 
                     return datasetBuilder.build();
                 });

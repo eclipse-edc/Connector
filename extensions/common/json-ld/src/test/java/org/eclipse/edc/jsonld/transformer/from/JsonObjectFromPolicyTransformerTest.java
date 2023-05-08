@@ -51,6 +51,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -59,8 +60,8 @@ import static org.mockito.Mockito.verify;
 
 class JsonObjectFromPolicyTransformerTest {
     
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
     
     private JsonObjectFromPolicyTransformer transformer;
     
@@ -76,6 +77,7 @@ class JsonObjectFromPolicyTransformerTest {
         var prohibition = Prohibition.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance().action(action).build();
         var policy = Policy.Builder.newInstance()
+                .target("target")
                 .permission(permission)
                 .prohibition(prohibition)
                 .duty(duty)
@@ -85,6 +87,7 @@ class JsonObjectFromPolicyTransformerTest {
         
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(Namespaces.ODRL_SCHEMA + "Set");
+        assertThat(result.getString(ODRL_TARGET_ATTRIBUTE)).isEqualTo("target");
     
         assertThat(result.get(ODRL_PERMISSION_ATTRIBUTE))
                 .isNotNull()
@@ -210,6 +213,7 @@ class JsonObjectFromPolicyTransformerTest {
         var action = getAction();
         var consequence = Duty.Builder.newInstance().action(action).build();
         var duty = Duty.Builder.newInstance()
+                .target("target")
                 .action(action)
                 .constraint(constraint)
                 .consequence(consequence)
@@ -219,6 +223,7 @@ class JsonObjectFromPolicyTransformerTest {
         var result = transformer.transform(policy, context);
         
         var dutyJson = result.get(ODRL_OBLIGATION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
+        assertThat(dutyJson.getString(ODRL_TARGET_ATTRIBUTE)).isEqualTo("target");
         assertThat(dutyJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE)).hasSize(1);
         
         var constraintJson = dutyJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();

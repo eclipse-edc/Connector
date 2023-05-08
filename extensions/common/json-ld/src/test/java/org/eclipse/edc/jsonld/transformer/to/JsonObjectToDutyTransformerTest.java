@@ -32,6 +32,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSEQUENCE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -41,8 +42,8 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToDutyTransformerTest {
     
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
     
     private JsonObjectToDutyTransformer transformer;
     
@@ -53,6 +54,7 @@ class JsonObjectToDutyTransformerTest {
     private Action action;
     private Constraint constraint;
     private Duty consequence;
+    private String target;
     
     @BeforeEach
     void setUp() {
@@ -65,6 +67,7 @@ class JsonObjectToDutyTransformerTest {
         action = Action.Builder.newInstance().type("type").build();
         constraint = AtomicConstraint.Builder.newInstance().build();
         consequence = Duty.Builder.newInstance().build();
+        target = "target";
     
         when(context.transform(actionJson, Action.class)).thenReturn(action);
         when(context.transform(constraintJson, Constraint.class)).thenReturn(constraint);
@@ -77,6 +80,7 @@ class JsonObjectToDutyTransformerTest {
                 .add(ODRL_ACTION_ATTRIBUTE, actionJson)
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, constraintJson)
                 .add(ODRL_CONSEQUENCE_ATTRIBUTE, consequenceJson)
+                .add(ODRL_TARGET_ATTRIBUTE, target)
                 .build();
     
         var result = transformer.transform(duty, context);
@@ -90,6 +94,7 @@ class JsonObjectToDutyTransformerTest {
                 .add(ODRL_ACTION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(actionJson))
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, jsonFactory.createArrayBuilder().add(constraintJson))
                 .add(ODRL_CONSEQUENCE_ATTRIBUTE, jsonFactory.createArrayBuilder().add(consequenceJson))
+                .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(target))
                 .build();
         
         var result = transformer.transform(duty, context);
@@ -103,7 +108,8 @@ class JsonObjectToDutyTransformerTest {
         assertThat(result.getConstraints()).hasSize(1);
         assertThat(result.getConstraints().get(0)).isEqualTo(constraint);
         assertThat(result.getConsequence()).isEqualTo(consequence);
-    
+        assertThat(result.getTarget()).isEqualTo(target);
+
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(actionJson, Action.class);
         verify(context, times(1)).transform(constraintJson, Constraint.class);
