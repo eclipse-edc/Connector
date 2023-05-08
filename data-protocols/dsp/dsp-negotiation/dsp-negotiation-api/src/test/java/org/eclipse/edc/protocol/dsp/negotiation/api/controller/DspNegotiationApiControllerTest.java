@@ -283,7 +283,11 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .post(BASE_PATH + INITIAL_CONTRACT_REQUEST)
                 .then()
                 .contentType(MediaType.APPLICATION_JSON)
-                .statusCode(500);
+                .statusCode(500)
+                .extract().as(Map.class);
+
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("500");
     }
 
     @Test
