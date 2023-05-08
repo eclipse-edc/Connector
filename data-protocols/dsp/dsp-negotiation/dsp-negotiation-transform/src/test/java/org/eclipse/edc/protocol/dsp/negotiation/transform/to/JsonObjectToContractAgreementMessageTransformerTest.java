@@ -35,7 +35,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,6 +49,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToContractAgreementMessageTransformerTest {
+    private static final String CONSUMER_ID = "consumerId";
+    private static final String PROVIDER_ID = "providerId";
+    private static final String AGREEMENT_ID = "agreementId";
+    private static final String PROCESS_ID = "processId";
+    private static final String MESSAGE_ID = "messageId";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -60,11 +67,10 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
     @Test
     void transform() {
-        var value = "example";
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, value)
+                .add(JsonLdKeywords.ID, MESSAGE_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, value)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
                 .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, "123")
                 .build();
@@ -76,10 +82,12 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
         assertThat(result.getProtocol()).isNotEmpty();
-        assertThat(result.getProcessId()).isEqualTo(value);
+        assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
         assertThat(result.getContractAgreement()).isNotNull();
         assertThat(result.getContractAgreement().getClass()).isEqualTo(ContractAgreement.class);
-        assertThat(result.getContractAgreement().getId()).isEqualTo(value);
+        assertThat(result.getContractAgreement().getId()).isEqualTo(AGREEMENT_ID);
+        assertThat(result.getContractAgreement().getConsumerId()).isEqualTo(CONSUMER_ID);
+        assertThat(result.getContractAgreement().getProviderId()).isEqualTo(PROVIDER_ID);
         assertThat(result.getContractAgreement().getAssetId()).isEqualTo("target");
 
         verify(context, never()).reportProblem(anyString());
@@ -123,7 +131,10 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
     private JsonObject contractAgreement() {
         return jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, AGREEMENT_ID)
                 .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, CONSUMER_ID)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, PROVIDER_ID)
                 .build();
     }
 

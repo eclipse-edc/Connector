@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 
+import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
@@ -27,7 +28,9 @@ import java.util.UUID;
 
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
 
 
 /**
@@ -50,11 +53,20 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getProcessId());
 
-        var policy = context.transform(object.getContractAgreement().getPolicy(), JsonObject.class);
+        var agreement = object.getContractAgreement();
+
+        var policy = context.transform(agreement.getPolicy(), JsonObject.class);
         if (policy == null) {
             context.reportProblem("Cannot transform from ContractAgreementMessage with null policy");
             return null;
         }
+
+        // add the consumer and provider ids to the agreement
+        var copiedPolicy = Json.createObjectBuilder();
+        policy.forEach(copiedPolicy::add);
+        policy = copiedPolicy.add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, agreement.getConsumerId())
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, agreement.getProviderId())
+                .build();
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, policy);
 
