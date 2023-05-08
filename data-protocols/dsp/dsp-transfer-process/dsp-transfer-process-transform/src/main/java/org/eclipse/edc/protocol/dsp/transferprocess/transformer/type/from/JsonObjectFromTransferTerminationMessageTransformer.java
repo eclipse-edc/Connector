@@ -26,7 +26,9 @@ import java.util.UUID;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
 public class JsonObjectFromTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<TransferTerminationMessage, JsonObject> {
@@ -45,8 +47,12 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
         builder.add(ID, String.valueOf(UUID.randomUUID()));
         builder.add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferTerminationMessage.getProcessId());
-
-        //TODO Add field when Message is evolved (code, reason) issue https://github.com/eclipse-edc/Connector/issues/2764
+        if (transferTerminationMessage.getCode() != null) {
+            builder.add(DSPACE_CODE_TYPE, transferTerminationMessage.getCode());
+        }
+        if (transferTerminationMessage.getReason() != null) {
+            builder.add(DSPACE_REASON_TYPE, transferTerminationMessage.getReason());
+        }
 
         return builder.build();
 

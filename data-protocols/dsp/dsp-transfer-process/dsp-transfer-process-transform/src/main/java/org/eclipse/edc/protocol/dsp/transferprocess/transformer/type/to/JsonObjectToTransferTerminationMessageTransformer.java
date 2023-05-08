@@ -22,7 +22,10 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
 
 public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferTerminationMessage> {
 
@@ -37,7 +40,20 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
         transferTerminationMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
         transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
-        //TODO ADD missing fields (code, reason) from spec issue https://github.com/eclipse-edc/Connector/issues/2764
+
+        if (jsonObject.containsKey(DSPACE_CODE_TYPE)) {
+            transformString(jsonObject.get(DSPACE_CODE_TYPE), transferTerminationMessageBuilder::code, context);
+        }
+
+        var reasons = jsonObject.get(DSPACE_REASON_TYPE);
+        if (reasons != null) {
+            var result = typeValueArray(reasons, context);
+            if (result == null) {
+                context.reportProblem(format("Cannot transform property %s in ContractNegotiationTerminationMessage", DSPACE_REASON_TYPE));
+            } else if (result.size() > 0) {
+                transferTerminationMessageBuilder.reason(String.valueOf(result.get(0)));
+            }
+        }
 
         return transferTerminationMessageBuilder.build();
 
