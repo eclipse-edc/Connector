@@ -202,6 +202,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
         //add an offer, should modify
         var newOffer = ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plus(365, ChronoUnit.DAYS))
                 .policy(Policy.Builder.newInstance().build())
