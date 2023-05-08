@@ -119,12 +119,19 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
     @Test
     void transform_invalidTimestamp() {
+        var agreement = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, AGREEMENT_ID)
+                .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, CONSUMER_ID)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, "Invalid Timestamp")
+                .build();
+
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "processId")
-                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
-                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, "invalid timestamp")
+                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, agreement)
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -136,11 +143,18 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
     @Test
     void transform_missingTimestamp() {
+        var agreement = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, AGREEMENT_ID)
+                .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
+                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, CONSUMER_ID)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .build();
+
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "processId")
-                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
+                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, agreement)
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
