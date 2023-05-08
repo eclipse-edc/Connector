@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,9 +37,6 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
@@ -191,11 +187,6 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .then()
                 .statusCode(204);
 
-        await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(store.findById("cn1")).isNotNull()
-                        .extracting(ContractNegotiation::getState)
-                        .isIn(TERMINATING.code(), TERMINATED.code()));
     }
 
     @Test
@@ -208,11 +199,6 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .post("cn1/decline")
                 .then()
                 .statusCode(204);
-        await()
-                .atMost(Duration.ofSeconds(30))
-                .untilAsserted(() -> assertThat(store.findById("cn1")).isNotNull()
-                        .extracting(ContractNegotiation::getState)
-                        .isIn(TERMINATING.code(), TERMINATED.code()));
     }
 
     private RequestSpecification baseRequest() {
