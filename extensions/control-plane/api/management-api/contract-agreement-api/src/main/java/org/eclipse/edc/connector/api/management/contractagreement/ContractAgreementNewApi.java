@@ -39,17 +39,6 @@ public interface ContractAgreementNewApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }, deprecated = true
-    )
-    @Deprecated
-    List<JsonObject> getAllAgreements(@Valid QuerySpecDto querySpecDto);
-
-    @Operation(description = "Gets all contract agreements according to a particular query",
-            responses = {
-                    @ApiResponse(responseCode = "200",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     List<JsonObject> queryAllAgreements(@Valid QuerySpecDto querySpecDto);
@@ -64,6 +53,6 @@ public interface ContractAgreementNewApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    JsonObject getContractAgreement(String id);
+    JsonObject getAgreementById(String id);
 
 }
