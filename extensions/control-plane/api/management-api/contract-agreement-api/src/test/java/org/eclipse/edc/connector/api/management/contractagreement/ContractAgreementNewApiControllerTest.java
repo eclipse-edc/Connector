@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -165,8 +164,7 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .get("/id1")
                 .then()
-                .statusCode(400)
-                .body(containsString("test-failure"));
+                .statusCode(500);
 
         verify(service).findById(eq("id1"));
         verify(transformerRegistry).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));

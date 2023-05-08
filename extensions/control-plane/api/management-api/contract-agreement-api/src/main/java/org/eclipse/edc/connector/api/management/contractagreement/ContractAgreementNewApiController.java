@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -89,7 +90,7 @@ public class ContractAgreementNewApiController implements ContractAgreementNewAp
                 .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
                         .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
                         .compose(jsonLdService::compact)
-                        .orElseThrow(InvalidRequestException::new))
+                        .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }
 

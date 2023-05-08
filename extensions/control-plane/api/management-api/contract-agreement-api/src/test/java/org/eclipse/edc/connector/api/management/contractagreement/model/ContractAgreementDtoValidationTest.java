@@ -87,13 +87,13 @@ class ContractAgreementDtoValidationTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
             return Stream.of(
-                    Arguments.of(null, "asset", "policy", "consumer", "provider", now(), later(100), now()),
-                    Arguments.of("id", null, "policy", "consumer", "provider", now(), later(100), now()),
-                    Arguments.of("id", "asset", "policy", null, "provider", now(), later(10), now()),
-                    Arguments.of("id", "asset", "policy", "consumer", null, 0, later(50), now()),
-                    Arguments.of("id", "asset", "policy", "consumer", "provider", now(), 0, now()),
-                    Arguments.of("id", "asset", "policy", "consumer", "provider", now(), later(100), later(200)), //invalid signing date -> after end date
-                    Arguments.of("id", "asset", "policy", "consumer", "provider", now(), later(50), 0)
+                    Arguments.of(null, "asset", "consumer", "provider", now(), later(100), now()),
+                    Arguments.of("id", null, "consumer", "provider", now(), later(100), now()),
+                    Arguments.of("id", "asset", null, "provider", now(), later(10), now()),
+                    Arguments.of("id", "asset", "consumer", null, 0, later(50), now()),
+                    Arguments.of("id", "asset", "consumer", "provider", now(), 0, now()),
+                    Arguments.of("id", "asset", "consumer", "provider", now(), later(100), later(200)), //invalid signing date -> after end date
+                    Arguments.of("id", "asset", "consumer", "provider", now(), later(50), 0)
             );
         }
     }
