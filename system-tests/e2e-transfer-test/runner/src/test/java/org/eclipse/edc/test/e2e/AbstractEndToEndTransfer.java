@@ -55,7 +55,7 @@ public abstract class AbstractEndToEndTransfer {
         var contractOffer = catalog
                 .getContractOffers()
                 .stream()
-                .filter(o -> o.getAsset().getId().equals(assetId))
+                .filter(o -> o.getAssetId().equals(assetId))
                 .findFirst()
                 .get();
         var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
@@ -95,7 +95,7 @@ public abstract class AbstractEndToEndTransfer {
         var contractOffer = catalog
                 .getContractOffers()
                 .stream()
-                .filter(o -> o.getAsset().getId().equals(assetId))
+                .filter(o -> o.getAssetId().equals(assetId))
                 .findFirst()
                 .get();
         var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
@@ -123,7 +123,7 @@ public abstract class AbstractEndToEndTransfer {
         var contractOffer = catalog
                 .getContractOffers()
                 .stream()
-                .filter(o -> o.getAsset().getId().equals(assetId))
+                .filter(o -> o.getAssetId().equals(assetId))
                 .findFirst()
                 .get();
         var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
@@ -161,7 +161,7 @@ public abstract class AbstractEndToEndTransfer {
         var contractOffer = catalog
                 .getContractOffers()
                 .stream()
-                .filter(o -> o.getAsset().getId().equals(assetId))
+                .filter(o -> o.getAssetId().equals(assetId))
                 .findFirst()
                 .get();
         var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);

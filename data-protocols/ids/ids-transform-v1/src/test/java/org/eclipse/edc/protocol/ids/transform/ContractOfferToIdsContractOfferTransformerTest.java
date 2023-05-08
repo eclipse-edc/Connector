@@ -21,7 +21,6 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.ids.transform.type.contract.ContractOfferToIdsContractOfferTransformer;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +41,6 @@ class ContractOfferToIdsContractOfferTransformerTest {
     private static final String CONTRACT_OFFER_ID = "456uz984390236s";
     private static final URI OFFER_ID = URI.create("urn:contractoffer:" + CONTRACT_OFFER_ID);
     private static final String PROVIDER_ID = "https://provider.com/";
-    private static final String CONSUMER_ID = "https://consumer.com/";
 
     private ContractOfferToIdsContractOfferTransformer transformer;
 
@@ -96,7 +94,7 @@ class ContractOfferToIdsContractOfferTransformerTest {
         return ContractOffer.Builder.newInstance()
                 .id(CONTRACT_OFFER_ID)
                 .policy(policy)
-                .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .assetId("test-asset")
                 .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))

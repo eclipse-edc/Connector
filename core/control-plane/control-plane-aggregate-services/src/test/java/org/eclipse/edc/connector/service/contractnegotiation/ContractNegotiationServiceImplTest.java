@@ -28,7 +28,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -283,7 +282,7 @@ class ContractNegotiationServiceImplTest {
         return ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id("test-asset").build())
+                .assetId("test-asset")
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())
                 .build();

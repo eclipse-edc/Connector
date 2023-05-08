@@ -33,7 +33,6 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
@@ -316,7 +315,7 @@ class ContractNegotiationApiControllerTest {
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
-                        .asset(Asset.Builder.newInstance().id("test-asset").build())
+                        .assetId("test-asset")
                         .contractStart(ZonedDateTime.now())
                         .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())

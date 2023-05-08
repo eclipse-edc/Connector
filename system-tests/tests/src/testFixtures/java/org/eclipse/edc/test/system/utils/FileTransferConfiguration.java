@@ -56,7 +56,7 @@ public class FileTransferConfiguration implements TransferConfiguration {
     public NegotiationInitiateRequestDto createNegotiationRequest(ContractOffer offer) {
         var policy = Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
-                        .target(offer.getAsset().getId())
+                        .target(offer.getAssetId())
                         .action(Action.Builder.newInstance().type("USE").build())
                         .build())
                 .type(PolicyType.SET)
@@ -64,7 +64,7 @@ public class FileTransferConfiguration implements TransferConfiguration {
 
         var offerDescription = ContractOfferDescription.Builder.newInstance()
                 .offerId(offer.getId())
-                .assetId(offer.getAsset().getId())
+                .assetId(offer.getAssetId())
                 .policy(policy)
                 .validity(CONTRACT_VALIDITY)
                 .build();
@@ -82,7 +82,7 @@ public class FileTransferConfiguration implements TransferConfiguration {
     @Override
     public TransferRequestDto createTransferRequest(ContractOffer offer, String contractAgreementId) {
         return TransferRequestDto.Builder.newInstance()
-                .assetId(offer.getAsset().getId())
+                .assetId(offer.getAssetId())
                 .connectorId("consumer")
                 .protocol("ids-multipart")
                 .managedResources(false)

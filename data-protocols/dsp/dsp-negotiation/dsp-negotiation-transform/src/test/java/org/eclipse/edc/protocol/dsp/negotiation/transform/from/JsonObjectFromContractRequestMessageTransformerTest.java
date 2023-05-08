@@ -24,7 +24,6 @@ import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,7 +110,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(String.valueOf(UUID.randomUUID()))
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .assetId("assetId")
                 .policy(policy()).build();
     }
 

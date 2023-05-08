@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +40,7 @@ public class ContractOffer {
     /**
      * The offered asset
      */
-    private Asset asset;
+    private String assetId;
     /**
      * The participant who provides the offered data
      */
@@ -102,8 +101,8 @@ public class ContractOffer {
     }
 
     @NotNull
-    public Asset getAsset() {
-        return asset;
+    public String getAssetId() {
+        return assetId;
     }
 
     @NotNull
@@ -113,7 +112,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, asset, providerId, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, assetId, providerId, offerStart, offerEnd, contractStart, contractEnd);
     }
 
     @Override
@@ -125,7 +124,7 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(providerId, that.providerId) &&
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId) &&
                 Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
                 Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
@@ -154,8 +153,8 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder asset(Asset asset) {
-            contractOffer.asset = asset;
+        public Builder assetId(String assetId) {
+            contractOffer.assetId = assetId;
             return this;
         }
 
@@ -188,7 +187,7 @@ public class ContractOffer {
 
         public ContractOffer build() {
             Objects.requireNonNull(contractOffer.id);
-            Objects.requireNonNull(contractOffer.asset, "Asset must not be null");
+            Objects.requireNonNull(contractOffer.assetId, "Asset id must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
             return contractOffer;
         }

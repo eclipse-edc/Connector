@@ -36,7 +36,6 @@ import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -236,7 +235,7 @@ class ProviderContractNegotiationManagerImplTest {
         private ContractOffer contractOffer() {
             return ContractOffer.Builder.newInstance().id("id:id")
                     .policy(Policy.Builder.newInstance().build())
-                    .asset(Asset.Builder.newInstance().id("assetId").build())
+                    .assetId("assetId")
                     .contractStart(ZonedDateTime.now())
                     .contractEnd(ZonedDateTime.now())
                     .build();
@@ -268,7 +267,7 @@ class ProviderContractNegotiationManagerImplTest {
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId("1"))
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .assetId("assetId")
                 .providerId(PROVIDER_ID)
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now())

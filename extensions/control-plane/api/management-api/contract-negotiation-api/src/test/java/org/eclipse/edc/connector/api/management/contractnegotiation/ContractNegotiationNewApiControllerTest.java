@@ -36,7 +36,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
@@ -44,11 +43,11 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -331,7 +330,7 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                                 .callbackAddress("test-cb")
                                 .contractOffer(ContractOffer.Builder.newInstance()
                                         .id("test-offer-id")
-                                        .asset(Asset.Builder.newInstance().build())
+                                        .assetId(randomUUID().toString())
                                         .policy(Policy.Builder.newInstance().build())
                                         .build())
                                 .build())
@@ -468,7 +467,7 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                 .id(negotiationId)
                 .consumerId("test-consumer")
                 .providerId("test-provider")
-                .assetId(UUID.randomUUID().toString())
+                .assetId(randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }
@@ -476,7 +475,7 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
     private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
         return ContractNegotiation.Builder.newInstance()
                 .id(negotiationId)
-                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyId(randomUUID().toString())
                 .counterPartyAddress("address")
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
                         .uri("local://test")

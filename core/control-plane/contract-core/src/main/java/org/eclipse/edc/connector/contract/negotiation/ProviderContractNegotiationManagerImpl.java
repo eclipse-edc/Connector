@@ -174,7 +174,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())
                     .policy(policy)
-                    .assetId(lastOffer.getAsset().getId())
+                    .assetId(lastOffer.getAssetId())
                     .build();
         } else {
             agreement = retrievedAgreement;
