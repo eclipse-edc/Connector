@@ -29,16 +29,12 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
-import org.eclipse.edc.web.spi.exception.EdcApiException;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
@@ -48,6 +44,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.catalog.api.DspCatalogTypeNames.DSPACE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.service.spi.result.ServiceResult.badRequest;
@@ -106,7 +103,7 @@ class DspCatalogApiControllerTest {
 
         var response = controller.getCatalog(request, authHeader);
 
-        assertThat(response).isEqualTo(responseMap);
+        assertThat(response.getEntity()).isEqualTo(responseMap);
         verify(service).getCatalog(requestMessage, token);
 
         // verify that the message protocol was set to the DSP protocol by the controller
@@ -122,7 +119,16 @@ class DspCatalogApiControllerTest {
                 .add(TYPE, "not-a-catalog-request")
                 .build();
 
-        assertThatThrownBy(() -> controller.getCatalog(invalidRequest, authHeader)).isInstanceOf(InvalidRequestException.class);
+        var response = controller.getCatalog(invalidRequest, authHeader);
+
+        assertThat(response.getEntity()).isInstanceOf(JsonObject.class);
+
+        var errorObject = (JsonObject) response.getEntity();
+
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
+        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+
     }
 
     @Test
@@ -132,7 +138,15 @@ class DspCatalogApiControllerTest {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.failure("error"));
 
-        assertThatThrownBy(() -> controller.getCatalog(request, authHeader)).isInstanceOf(InvalidRequestException.class);
+        var response = controller.getCatalog(request, authHeader);
+
+        assertThat(response.getEntity()).isInstanceOf(JsonObject.class);
+
+        var errorObject = (JsonObject) response.getEntity();
+
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
+        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     @Test
@@ -140,7 +154,15 @@ class DspCatalogApiControllerTest {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
 
-        assertThatThrownBy(() -> controller.getCatalog(request, authHeader)).isInstanceOf(AuthenticationFailedException.class);
+        var response = controller.getCatalog(request, authHeader);
+
+        assertThat(response.getEntity()).isInstanceOf(JsonObject.class);
+
+        var errorObject = (JsonObject) response.getEntity();
+
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("401");
+        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     @Test
@@ -151,7 +173,16 @@ class DspCatalogApiControllerTest {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.success(requestMessage));
 
-        assertThatThrownBy(() -> controller.getCatalog(request, authHeader)).isInstanceOf(EdcApiException.class);
+        var response = controller.getCatalog(request, authHeader);
+
+        assertThat(response.getEntity()).isInstanceOf(JsonObject.class);
+
+        var errorObject = (JsonObject) response.getEntity();
+
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isNotNull();
+        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+
         verify(service).getCatalog(any(), any());
     }
 }
