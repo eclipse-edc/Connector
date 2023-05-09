@@ -598,6 +598,12 @@ components:
       type: object
       example: null
       properties:
+        authCodeId:
+          type: string
+          example: null
+        authKey:
+          type: string
+          example: null
         events:
           type: array
           example: null
