@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_STATE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_ACCEPTED;
@@ -57,7 +56,6 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getCorrelationId());
         builder.add(DSPACE_NEGOTIATION_PROPERTY_STATE, state(object.getState(), context));
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM, object.getChecksum());
 
         return builder.build();
     }

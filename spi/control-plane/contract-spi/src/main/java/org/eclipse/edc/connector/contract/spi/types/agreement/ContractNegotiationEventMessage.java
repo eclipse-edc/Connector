@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -24,8 +25,6 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
     private String callbackAddress;
     private String processId;
     private Type type;
-
-    private String checksum;
 
     @Override
     public String getProtocol() {
@@ -42,12 +41,9 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
         return processId;
     }
 
+    @NotNull
     public Type getType() {
         return type;
-    }
-
-    public String getChecksum() {
-        return checksum;
     }
 
     public static class Builder {
@@ -78,11 +74,6 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
 
         public Builder type(Type type) {
             this.message.type = type;
-            return this;
-        }
-
-        public Builder checksum(String checksum) {
-            this.message.checksum = checksum;
             return this;
         }
 

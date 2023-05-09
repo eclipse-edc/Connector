@@ -26,16 +26,18 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 class JsonObjectToContractNegotiationEventMessageTransformerTest {
+    private static final String PROCESS_ID = "processId";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -49,12 +51,10 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
 
     @Test
     void transform() {
-        var value = "example";
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, value)
+                .add(JsonLdKeywords.ID, "id1")
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, value)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM, value)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED)
                 .build();
 
@@ -63,10 +63,55 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractNegotiationEventMessage.class);
         assertThat(result.getProtocol()).isNotEmpty();
-        assertThat(result.getProcessId()).isEqualTo(value);
-        assertThat(result.getChecksum()).isEqualTo(value);
+        assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
         assertThat(result.getType()).isEqualTo(ContractNegotiationEventMessage.Type.ACCEPTED);
 
         verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void verify_failTransformWhenProcessIdMissing() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, "id1")
+                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                .add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED)
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNull();
+
+        verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
+    }
+
+    @Test
+    void verify_failTransformWhenEventTypeMissing() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, "id1")
+                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNull();
+
+        verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE));
+    }
+
+    @Test
+    void verify_failTransformWhenEventTypeInvalid() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, "id1")
+                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, "InvalidType")
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNull();
+
+        verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE));
     }
 }

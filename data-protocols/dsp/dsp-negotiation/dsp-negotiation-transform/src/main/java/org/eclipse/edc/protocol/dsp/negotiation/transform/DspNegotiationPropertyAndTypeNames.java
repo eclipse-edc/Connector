@@ -43,7 +43,6 @@ public interface DspNegotiationPropertyAndTypeNames {
     String DSPACE_NEGOTIATION_PROPERTY_REASON = DSPACE_SCHEMA + "reason";
     String DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS = DSPACE_SCHEMA + "callbackAddress";
     String DSPACE_NEGOTIATION_PROPERTY_STATE = DSPACE_SCHEMA + "state";
-    String DSPACE_NEGOTIATION_PROPERTY_CHECKSUM = DSPACE_SCHEMA + "checksum";
     String DSPACE_NEGOTIATION_PROPERTY_AGREEMENT = DSPACE_SCHEMA + "agreement";
     String DSPACE_NEGOTIATION_PROPERTY_OFFER = DSPACE_SCHEMA + "offer";
     String DSPACE_NEGOTIATION_PROPERTY_DATASET = DSPACE_SCHEMA + "dataSet";
@@ -66,8 +65,4 @@ public interface DspNegotiationPropertyAndTypeNames {
     String DSPACE_NEGOTIATION_STATE_FINALIZED = DSPACE_SCHEMA + "FINALIZED";
     String DSPACE_NEGOTIATION_STATE_TERMINATED = DSPACE_SCHEMA + "TERMINATED";
 
-    // other
-
-    String CRED_CREDENTIAL_SUBJECT = "cred:credentialSubject";
-    String SEC_PROOF = "sec:proof";
 }
