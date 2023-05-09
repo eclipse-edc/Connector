@@ -41,7 +41,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 
 /**
  * Creates CatalogError, ContractNegotiation and TransferProcessError Responses for the Dataspace Protocol Apis
- * {@DspNegotiationController}, {@CatalogController} and {@DspTransferProcessApiController}
+ * {DspNegotiationController}, {CatalogController} and {DspTransferProcessApiController}
  *
  */
 public class ErrorUtil {
@@ -51,7 +51,7 @@ public class ErrorUtil {
      * @param type dspace:ContractNegotiationError/dspace:TransferProcessError/dspace:CatalogError depending on executing Controller
      * @param processId referenced processId Error is occurring
      * @param throwable describing ErrorMessage
-     * @return {@Response} ErrorResponse
+     * @return {@link Response} ErrorResponse
      */
     public static Response createErrorResponse(String type, Optional<String> processId, Throwable throwable) {
         var builder = Json.createObjectBuilder();

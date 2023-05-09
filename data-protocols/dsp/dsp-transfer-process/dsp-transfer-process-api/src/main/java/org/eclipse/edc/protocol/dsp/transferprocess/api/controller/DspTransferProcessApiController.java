@@ -138,7 +138,7 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferStartMessage} in JSON-LD expanded form
      * @param token      the authorization header
-     * @return {@Response} Empty Success Response or ErrorResponse
+     * @return {@link Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_START)
@@ -158,7 +158,7 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferCompletionMessage} in JSON-LD expanded form
      * @param token      the authorization header
-     * @return {@Response} Empty Success Response or ErrorResponse
+     * @return {@link Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
@@ -178,7 +178,7 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferTerminationMessage} in JSON-LD expanded form
      * @param token      the authorization header
-     * @return {@Response} Empty Success Response or ErrorResponse
+     * @return {@link Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
@@ -197,7 +197,7 @@ public class DspTransferProcessApiController {
      * This functionality is not yet supported.
      *
      * @param id the ID of the process
-     * @return {@Response} ErrorResponse
+     * @return {@link Response} ErrorResponse
      */
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
