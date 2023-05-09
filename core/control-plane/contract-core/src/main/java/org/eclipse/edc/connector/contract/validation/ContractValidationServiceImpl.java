@@ -29,11 +29,14 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static java.lang.String.format;
@@ -100,6 +103,13 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var targetAsset = assetIndex.findById(offer.getAssetId());
         if (targetAsset == null) {
             return failure("Invalid target: " + offer.getAssetId());
+        }
+
+        // verify that the asset in the offer is actually in the contract definition
+        var testCriteria = new ArrayList<>(contractDefinition.getSelectorExpression().getCriteria());
+        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", offer.getAssetId()));
+        if (assetIndex.countAssets(testCriteria) <= 0) {
+            return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");
         }
 
         // if policy target is null, default to the asset, otherwise validate it
