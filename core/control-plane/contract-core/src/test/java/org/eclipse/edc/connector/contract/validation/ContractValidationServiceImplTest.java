@@ -62,6 +62,8 @@ import static org.eclipse.edc.connector.contract.spi.validation.ContractValidati
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -85,9 +87,19 @@ class ContractValidationServiceImplTest {
     private final PolicyEquality policyEquality = mock(PolicyEquality.class);
     private ContractValidationServiceImpl validationService;
 
+    private static ContractDefinition.Builder createContractDefinitionBuilder() {
+        return ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .validity(TimeUnit.MINUTES.toSeconds(10));
+    }
+
     @BeforeEach
     void setUp() {
         validationService = new ContractValidationServiceImpl(PROVIDER_ID, agentService, definitionResolver, assetIndex, policyStore, policyEngine, policyEquality, clock);
+        when(assetIndex.countAssets(anyList())).thenReturn(1L);
     }
 
     @Test
@@ -142,7 +154,7 @@ class ContractValidationServiceImplTest {
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
-        assertThat(result.failed()).isTrue();
+        assertThat(result).isFailed().detail().isEqualTo("Contract offer asset '1' does not match policy target: invalid-target");
 
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionResolver).definitionFor(isA(ParticipantAgent.class), eq("1"));
@@ -163,7 +175,7 @@ class ContractValidationServiceImplTest {
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed().detail().isEqualTo("Invalid consumer identity");
 
         verify(agentService).createFor(isA(ClaimToken.class));
     }
@@ -188,7 +200,7 @@ class ContractValidationServiceImplTest {
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed().detail().isEqualTo("Invalid consumer identity");
     }
 
     @Test
@@ -207,7 +219,7 @@ class ContractValidationServiceImplTest {
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
-        assertThat(result.failed()).isTrue();
+        assertThat(result).isFailed().detail().isEqualTo("Invalid consumer identity");
     }
 
     @Test
@@ -270,7 +282,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"malicious-actor"})
+    @ValueSource(strings = { "malicious-actor" })
     @NullSource
     void verifyContractAgreementValidation_failedIfInvalidCredentials(String counterPartyId) {
         var newPolicy = Policy.Builder.newInstance().build();
@@ -353,7 +365,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {CONSUMER_ID})
+    @ValueSource(strings = { CONSUMER_ID })
     @NullSource
     void validateConfirmed_failsIfInvalidClaims(String counterPartyId) {
         var agreement = createContractAgreement().id("1:2").build();
@@ -420,8 +432,30 @@ class ContractValidationServiceImplTest {
         verify(agentService).createFor(isA(ClaimToken.class));
     }
 
+    @Test
+    void validateInitialOffer_assetInOfferNotReferencedByDefinition_shouldFail() {
+
+        var offer = createContractOffer();
+        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var expr = AssetSelectorExpression.Builder.newInstance().constraint(Asset.PROPERTY_ID, "like", "%someAssetId%").build();
+        var contractDef = createContractDefinitionBuilder().selectorExpression(expr).build();
+
+        //prepare mocks
+        when(agentService.createFor(eq(claimToken))).thenReturn(participantAgent);
+        when(definitionResolver.definitionFor(eq(participantAgent), anyString())).thenReturn(contractDef);
+        when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
+        when(assetIndex.countAssets(anyList())).thenReturn(0L);
+
+        //act
+        var result = validationService.validateInitialOffer(claimToken, offer);
+
+        //assert
+        assertThat(result).isFailed().detail().isEqualTo("Asset ID from the ContractOffer is not included in the ContractDefinition");
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {PROVIDER_ID})
+    @ValueSource(strings = { PROVIDER_ID })
     @NullSource
     void validateConsumerRequest_failsInvalidCredentials(String counterPartyId) {
         var token = ClaimToken.Builder.newInstance().build();
@@ -476,12 +510,7 @@ class ContractValidationServiceImplTest {
     }
 
     private ContractDefinition createContractDefinition() {
-        return ContractDefinition.Builder.newInstance()
-                .id("1")
-                .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(TimeUnit.MINUTES.toSeconds(10))
+        return createContractDefinitionBuilder()
                 .build();
     }
 
