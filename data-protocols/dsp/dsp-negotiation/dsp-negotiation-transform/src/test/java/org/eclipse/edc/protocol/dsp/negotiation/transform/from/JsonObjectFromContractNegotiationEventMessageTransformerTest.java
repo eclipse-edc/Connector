@@ -38,6 +38,7 @@ import static org.mockito.Mockito.verify;
 
 class JsonObjectFromContractNegotiationEventMessageTransformerTest {
     private static final String PROCESS_ID = "processId";
+    private static final String DSP = "DSP";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -52,7 +53,7 @@ class JsonObjectFromContractNegotiationEventMessageTransformerTest {
     @Test
     void transform() {
         var message = ContractNegotiationEventMessage.Builder.newInstance()
-                .protocol("DSP")
+                .protocol(DSP)
                 .processId(PROCESS_ID)
                 .callbackAddress("https://test.com")
                 .type(ACCEPTED)

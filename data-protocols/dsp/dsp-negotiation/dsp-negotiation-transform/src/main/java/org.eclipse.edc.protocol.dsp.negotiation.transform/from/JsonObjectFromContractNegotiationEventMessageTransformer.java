@@ -18,6 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +67,7 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
                 return DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
             default:
                 // this cannot happen
-                throw new AssertionError("Unknown event type: " + message.getType());
+                throw new EdcException("Unknown event type: " + message.getType());
         }
     }
 

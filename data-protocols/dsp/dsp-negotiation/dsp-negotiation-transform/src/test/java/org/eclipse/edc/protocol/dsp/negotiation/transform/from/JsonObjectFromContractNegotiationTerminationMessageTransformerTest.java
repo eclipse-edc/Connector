@@ -39,6 +39,7 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
     private static final String PROCESS_ID = "processId";
     private static final String REJECTION_REASON = "rejection";
     private static final String REJECTION_CODE = "1";
+    private static final String DSP = "DSP";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -53,7 +54,7 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
     @Test
     void transform() {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
-                .protocol("DSP")
+                .protocol(DSP)
                 .processId(PROCESS_ID)
                 .callbackAddress("https://test.com")
                 .rejectionReason(REJECTION_REASON)
@@ -75,7 +76,7 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
     @Test
     void verify_noReasonNoCode() {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
-                .protocol("DSP")
+                .protocol(DSP)
                 .processId(PROCESS_ID)
                 .callbackAddress("https://test.com")
                 .build();

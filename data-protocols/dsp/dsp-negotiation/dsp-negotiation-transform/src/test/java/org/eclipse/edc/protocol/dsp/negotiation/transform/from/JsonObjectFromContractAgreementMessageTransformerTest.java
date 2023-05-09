@@ -54,6 +54,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     private static final String CONSUMER_ID = "consumerId";
     private static final String PROCESS_ID = "processId";
     private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
+    private static final String DSP = "dsp";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -100,7 +101,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
 
     private ContractAgreementMessage message() {
         return ContractAgreementMessage.Builder.newInstance()
-                .protocol("dsp")
+                .protocol(DSP)
                 .processId(PROCESS_ID)
                 .callbackAddress("https://example.com")
                 .contractAgreement(contractAgreement())

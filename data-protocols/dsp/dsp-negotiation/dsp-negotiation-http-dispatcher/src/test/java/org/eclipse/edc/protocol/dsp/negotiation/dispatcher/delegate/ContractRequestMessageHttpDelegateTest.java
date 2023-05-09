@@ -53,6 +53,7 @@ import static org.mockito.Mockito.when;
 class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractRequestMessage> {
     private static final String PROCESS_ID = "processId";
     private static final String DATASET_ID = "datasetId";
+    private static final String DSP = "DSP";
 
     private ContractRequestMessageHttpDelegate delegate;
     private TitaniumJsonLd jsonLdService;
@@ -119,7 +120,7 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
 
     private ContractRequestMessage message() {
         return ContractRequestMessage.Builder.newInstance()
-                .protocol("DSP")
+                .protocol(DSP)
                 .processId(PROCESS_ID)
                 .callbackAddress("http://connector")
                 .dataSet(DATASET_ID)
