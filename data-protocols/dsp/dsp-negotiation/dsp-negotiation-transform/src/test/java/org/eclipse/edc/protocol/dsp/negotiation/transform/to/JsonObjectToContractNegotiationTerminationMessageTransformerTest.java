@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +35,8 @@ import static org.mockito.Mockito.verify;
 
 class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
 
+    public static final String PROCESS_ID = "processId";
+    public static final String CODE = "code1";
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
@@ -48,26 +49,48 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
 
     @Test
     void transform() {
-        var value = "example";
         var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add("foo", "bar");
+        var reasonArray = Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build();
 
         var message = jsonFactory.createObjectBuilder()
-                .add(JsonLdKeywords.ID, value)
+                .add(JsonLdKeywords.ID, "id1")
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, value)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CODE, value)
-                .add(DSPACE_NEGOTIATION_PROPERTY_REASON, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build())
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_NEGOTIATION_PROPERTY_CODE, CODE)
+                .add(DSPACE_NEGOTIATION_PROPERTY_REASON, reasonArray)
                 .build();
 
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getClass()).isEqualTo(ContractNegotiationTerminationMessage.class);
+
         assertThat(result.getProtocol()).isNotNull();
         assertThat(result.getCallbackAddress()).isNull();
-        assertThat(result.getProcessId()).isEqualTo(value);
-        assertThat(result.getRejectionReason()).isNotNull();
+        assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
+        assertThat(result.getCode()).isEqualTo(CODE);
+
         assertThat(result.getRejectionReason()).isEqualTo("{\"foo\":\"bar\"}");
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void verify_noCodeNodReason() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, "id1")
+                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+
+        assertThat(result.getProtocol()).isNotNull();
+        assertThat(result.getCallbackAddress()).isNull();
+        assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
+        assertThat(result.getCode()).isNull();
+        assertThat(result.getRejectionReason()).isNull();
 
         verify(context, never()).reportProblem(anyString());
     }

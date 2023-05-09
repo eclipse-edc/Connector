@@ -40,11 +40,16 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
     public @Nullable ContractNegotiationTerminationMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractNegotiationTerminationMessage.Builder.newInstance();
         builder.protocol(DATASPACE_PROTOCOL_HTTP);
+
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_CODE), builder::code, context);
+
+        var code = object.get(DSPACE_NEGOTIATION_PROPERTY_CODE);
+        if (code != null) { // optional property
+            transformString(code, builder::code, context);
+        }
 
         var reasons = object.get(DSPACE_NEGOTIATION_PROPERTY_REASON);
-        if (reasons != null) {
+        if (reasons != null) {  // optional property
             var result = typeValueArray(reasons, context);
             if (result == null) {
                 context.reportProblem(format("Cannot transform property %s in ContractNegotiationTerminationMessage", DSPACE_NEGOTIATION_PROPERTY_REASON));

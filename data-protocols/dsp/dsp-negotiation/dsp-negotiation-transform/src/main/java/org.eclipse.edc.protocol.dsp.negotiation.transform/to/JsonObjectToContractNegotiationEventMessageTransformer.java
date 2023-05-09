@@ -21,9 +21,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
@@ -44,21 +44,21 @@ public class JsonObjectToContractNegotiationEventMessageTransformer extends Abst
 
         var builder = ContractNegotiationEventMessage.Builder.newInstance();
         builder.protocol(DATASPACE_PROTOCOL_HTTP);
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM), builder::checksum, context);
 
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE), (value) -> {
-            switch (value) {
-                case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED:
-                    builder.type(ACCEPTED);
-                    break;
-                case DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED:
-                    builder.type(FINALIZED);
-                    break;
-                default:
-                    context.reportProblem(String.format("Could not map type %s in ContractNegotiationEventMessage", value));
-            }
-        }, context);
+        if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
+            context.reportProblem(format("ContractNegotiationEventMessage is missing the %s property", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
+            return null;
+        }
+
+        var eventType = transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE), context);
+        if (DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED.equals(eventType)) {
+            builder.type(ACCEPTED);
+        } else if (DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED.equals(eventType)) {
+            builder.type(FINALIZED);
+        } else {
+            context.reportProblem(format("Could not map '%s' in ContractNegotiationEventMessage: %s", DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, eventType));
+            return null;
+        }
 
         return builder.build();
     }

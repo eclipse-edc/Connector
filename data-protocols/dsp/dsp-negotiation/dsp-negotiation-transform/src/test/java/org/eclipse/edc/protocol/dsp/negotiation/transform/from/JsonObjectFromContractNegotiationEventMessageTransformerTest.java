@@ -28,7 +28,6 @@ import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNeg
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
@@ -38,6 +37,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class JsonObjectFromContractNegotiationEventMessageTransformerTest {
+    private static final String PROCESS_ID = "processId";
+    private static final String DSP = "DSP";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -51,24 +52,20 @@ class JsonObjectFromContractNegotiationEventMessageTransformerTest {
 
     @Test
     void transform() {
-        var value = "example";
         var message = ContractNegotiationEventMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .callbackAddress(value)
+                .protocol(DSP)
+                .processId(PROCESS_ID)
+                .callbackAddress("https://test.com")
                 .type(ACCEPTED)
-                .checksum(value)
                 .build();
 
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(ID).getString()).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_EVENT_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(value);
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
         assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM).getString()).isEqualTo(value);
 
         verify(context, never()).reportProblem(anyString());
     }

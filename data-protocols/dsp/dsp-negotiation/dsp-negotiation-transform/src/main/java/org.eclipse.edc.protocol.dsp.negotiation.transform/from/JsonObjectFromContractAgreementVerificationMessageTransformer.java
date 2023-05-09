@@ -23,8 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
+import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 
@@ -41,14 +40,12 @@ public class JsonObjectFromContractAgreementVerificationMessageTransformer exten
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull ContractAgreementVerificationMessage object, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull ContractAgreementVerificationMessage verificationMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
+        builder.add(JsonLdKeywords.ID, randomUUID().toString());
         builder.add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getProcessId());
-        // TODO add mapping of cred:credentialSubject for signature processes
-
+        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, verificationMessage.getProcessId());
         return builder.build();
     }
 }

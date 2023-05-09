@@ -24,8 +24,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
@@ -38,7 +41,7 @@ import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPA
  */
 public class JsonObjectToContractAgreementMessageTransformer extends AbstractJsonLdTransformer<JsonObject, ContractAgreementMessage> {
     private static final Set<String> EXCLUDED_POLICY_KEYWORDS =
-            Set.of(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID);
+            Set.of(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP);
 
     public JsonObjectToContractAgreementMessageTransformer() {
         super(JsonObject.class, ContractAgreementMessage.class);
@@ -48,7 +51,10 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
     public @Nullable ContractAgreementMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var messageBuilder = ContractAgreementMessage.Builder.newInstance();
         messageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), messageBuilder::processId, context);
+        if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), messageBuilder::processId, context)) {
+            context.reportProblem(format("No '%s' specified on ContractAgreementMessage", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
+            return null;
+        }
 
         var jsonAgreement = object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
         if (jsonAgreement == null) {
@@ -93,28 +99,28 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         }
         builder.id(agreementId);
 
-        var consumerId = jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID);
-        if (consumerId == null) {
-            context.reportProblem("No consumer id specified on ContractAgreement");
+        if (!transformMandatoryString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID), builder::consumerId, context)) {
+            context.reportProblem(format("No '%s' specified on ContractAgreement", DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID));
             return null;
         }
-        transformString(consumerId, builder::consumerId, context);
 
-        var providerId = jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID);
-        if (providerId == null) {
-            context.reportProblem("No provider id specified on ContractAgreement");
+        if (!transformMandatoryString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID), builder::providerId, context)) {
+            context.reportProblem(format("No '%s' specified on ContractAgreement", DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID));
             return null;
         }
-        transformString(providerId, builder::providerId, context);
 
         builder.policy(policy);
         builder.assetId(policy.getTarget());
 
-        var timestamp = jsonMessage.getString(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP);
+        var timestamp = transformString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP), context);
+        if (timestamp == null) {
+            context.reportProblem(format("No '%s' specified on ContractAgreement", DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
+            return null;
+        }
         try {
-            builder.contractSigningDate(Long.parseLong(timestamp));
-        } catch (NumberFormatException exception) {
-            context.reportProblem(String.format("Cannot transform %s to long in ContractAgreementMessage", timestamp));
+            builder.contractSigningDate(Instant.parse(timestamp).getEpochSecond());
+        } catch (DateTimeParseException e) {
+            context.reportProblem(format("Invalid '%s' specified on ContractAgreement: %s", DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, e.getMessage()));
             return null;
         }
 
