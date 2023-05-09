@@ -53,30 +53,20 @@ class JsonObjectToPolicyTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
+    private final JsonObject permissionJson = getJsonObject("permission");
+    private final JsonObject prohibitionJson = getJsonObject("prohibition");
+    private final JsonObject dutyJson = getJsonObject("duty");
+
+    private final Permission permission = Permission.Builder.newInstance().build();
+    private final Prohibition prohibition = Prohibition.Builder.newInstance().build();
+    private final Duty duty = Duty.Builder.newInstance().build();
+    private final String target = "target";
+
     private JsonObjectToPolicyTransformer transformer;
-
-    private JsonObject permissionJson;
-    private JsonObject prohibitionJson;
-    private JsonObject dutyJson;
-
-    private Permission permission;
-    private Prohibition prohibition;
-    private Duty duty;
-    private String target;
 
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToPolicyTransformer();
-
-        permissionJson = getJsonObject("permission");
-        prohibitionJson = getJsonObject("prohibition");
-        dutyJson = getJsonObject("duty");
-
-        permission = Permission.Builder.newInstance().build();
-        prohibition = Prohibition.Builder.newInstance().build();
-        duty = Duty.Builder.newInstance().build();
-
-        target = "target";
 
         when(context.transform(permissionJson, Permission.class)).thenReturn(permission);
         when(context.transform(prohibitionJson, Prohibition.class)).thenReturn(prohibition);

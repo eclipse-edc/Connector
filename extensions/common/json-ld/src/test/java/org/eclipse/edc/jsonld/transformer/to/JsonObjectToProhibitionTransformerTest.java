@@ -41,29 +41,22 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToProhibitionTransformerTest {
     
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
-    
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
+
+    private final JsonObject actionJson = getJsonObject("action");
+    private final JsonObject constraintJson = getJsonObject("constraint");
+
+    private final Action action = Action.Builder.newInstance().type("type").build();
+    private final Constraint constraint = AtomicConstraint.Builder.newInstance().build();
+    private final String target = "target";
+
     private JsonObjectToProhibitionTransformer transformer;
-    
-    private JsonObject actionJson;
-    private JsonObject constraintJson;
-    
-    private Action action;
-    private Constraint constraint;
-    private String target;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToProhibitionTransformer();
-        
-        actionJson = getJsonObject("action");
-        constraintJson = getJsonObject("constraint");
-    
-        action = Action.Builder.newInstance().type("type").build();
-        constraint = AtomicConstraint.Builder.newInstance().build();
-        target = "target";
-    
+
         when(context.transform(actionJson, Action.class)).thenReturn(action);
         when(context.transform(constraintJson, Constraint.class)).thenReturn(constraint);
     }

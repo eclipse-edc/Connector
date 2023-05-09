@@ -146,7 +146,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .filter(Objects::nonNull)
                     .findFirst().map(it -> transformString(it, context))
                     .orElseGet(() -> {
-                        context.reportProblem(format("Invalid property. Expected to find one of @value, @id into JsonObject but got %s", value));
+                        context.reportProblem(format("Invalid property. Expected to find one of @value, @id in JsonObject but got %s", value));
                         return null;
                     });
         } else if (value instanceof JsonArray) {

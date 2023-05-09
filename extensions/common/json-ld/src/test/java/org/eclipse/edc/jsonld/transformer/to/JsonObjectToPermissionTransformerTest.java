@@ -43,33 +43,24 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToPermissionTransformerTest {
     
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
-    
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
+
+    private final JsonObject actionJson = getJsonObject("action");
+    private final JsonObject constraintJson = getJsonObject("constraint");
+    private final JsonObject dutyJson = getJsonObject("duty");
+
+    private final Action action = Action.Builder.newInstance().type("type").build();
+    private final Constraint constraint = AtomicConstraint.Builder.newInstance().build();
+    private final Duty duty = Duty.Builder.newInstance().build();
+    private final String target = "target";
+
     private JsonObjectToPermissionTransformer transformer;
-    
-    private JsonObject actionJson;
-    private JsonObject constraintJson;
-    private JsonObject dutyJson;
-    
-    private Action action;
-    private Constraint constraint;
-    private Duty duty;
-    private String target;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToPermissionTransformer();
-        
-        actionJson = getJsonObject("action");
-        constraintJson = getJsonObject("constraint");
-        dutyJson = getJsonObject("duty");
-    
-        action = Action.Builder.newInstance().type("type").build();
-        constraint = AtomicConstraint.Builder.newInstance().build();
-        duty = Duty.Builder.newInstance().build();
-        target = "target";
-    
+
         when(context.transform(actionJson, Action.class)).thenReturn(action);
         when(context.transform(constraintJson, Constraint.class)).thenReturn(constraint);
         when(context.transform(dutyJson, Duty.class)).thenReturn(duty);

@@ -49,6 +49,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.edc.policy.model.PolicyType.OFFER;
+import static org.eclipse.edc.policy.model.PolicyType.SET;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
@@ -111,8 +113,8 @@ class DatasetResolverImplTest {
 
     @Test
     void query_shouldReturnOneDataset_whenMultipleDefinitionsOnSameAsset() {
-        var policy1 = Policy.Builder.newInstance().assignee("assignee1").build();
-        var policy2 = Policy.Builder.newInstance().assignee("assignee2").build();
+        var policy1 = Policy.Builder.newInstance().type(SET).build();
+        var policy2 = Policy.Builder.newInstance().type(OFFER).build();
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(
                 contractDefinitionBuilder("definition1").contractPolicyId("policy1").build(),
                 contractDefinitionBuilder("definition2").contractPolicyId("policy2").build()
@@ -128,11 +130,11 @@ class DatasetResolverImplTest {
             assertThat(dataset.getOffers()).hasSize(2)
                     .anySatisfy((id, policy) -> {
                         assertThat(id).startsWith("definition1");
-                        assertThat(policy.getAssignee()).isEqualTo("assignee1");
+                        assertThat(policy.getType()).isEqualTo(SET);
                     })
                     .anySatisfy((id, policy) -> {
                         assertThat(id).startsWith("definition2");
-                        assertThat(policy.getAssignee()).isEqualTo("assignee2");
+                        assertThat(policy.getType()).isEqualTo(OFFER);
                     });
         });
     }

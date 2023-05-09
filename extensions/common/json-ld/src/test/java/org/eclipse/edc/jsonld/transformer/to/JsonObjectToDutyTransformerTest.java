@@ -44,31 +44,22 @@ class JsonObjectToDutyTransformerTest {
     
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
-    
+
+    private final JsonObject actionJson = getJsonObject("action");
+    private final JsonObject constraintJson = getJsonObject("constraint");
+    private final JsonObject consequenceJson = getJsonObject("consequence");
+
+    private final Action action = Action.Builder.newInstance().type("type").build();
+    private final Constraint constraint = AtomicConstraint.Builder.newInstance().build();
+    private final Duty consequence = Duty.Builder.newInstance().build();
+    private final String target = "target";
+
     private JsonObjectToDutyTransformer transformer;
-    
-    private JsonObject actionJson;
-    private JsonObject constraintJson;
-    private JsonObject consequenceJson;
-    
-    private Action action;
-    private Constraint constraint;
-    private Duty consequence;
-    private String target;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToDutyTransformer();
-    
-        actionJson = getJsonObject("action");
-        constraintJson = getJsonObject("constraint");
-        consequenceJson = getJsonObject("consequence");
-        
-        action = Action.Builder.newInstance().type("type").build();
-        constraint = AtomicConstraint.Builder.newInstance().build();
-        consequence = Duty.Builder.newInstance().build();
-        target = "target";
-    
+
         when(context.transform(actionJson, Action.class)).thenReturn(action);
         when(context.transform(constraintJson, Constraint.class)).thenReturn(constraint);
         when(context.transform(consequenceJson, Duty.class)).thenReturn(consequence);
