@@ -135,6 +135,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
         stmt.addParameter(querySpec.getLimit());
         stmt.addParameter(querySpec.getOffset());
+
         return stmt;
     }
 

@@ -85,4 +85,11 @@ class SqlConditionExpressionTest {
         var e2 = new SqlConditionExpression(new Criterion("key", "in", List.of("item1", "item2")));
         assertThat(e2.toStatementParameter()).containsExactly("key", "item1", "item2");
     }
+
+    @Test
+    void toStatementParameter_keepsValueType() {
+        var e = new SqlConditionExpression(new Criterion("key", "=", 3));
+
+        assertThat(e.toStatementParameter()).containsExactly("key", 3);
+    }
 }

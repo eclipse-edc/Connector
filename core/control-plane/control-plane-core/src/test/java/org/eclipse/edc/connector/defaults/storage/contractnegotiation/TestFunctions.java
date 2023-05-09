@@ -46,7 +46,8 @@ public class TestFunctions {
                         .build()))
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart");
+                .protocol("ids-multipart")
+                .correlationId("correlationId");
     }
 
     public static ContractAgreement createAgreement() {

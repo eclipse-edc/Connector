@@ -59,4 +59,5 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      * to return an empty Stream, others will return an unsorted Stream, depending on the backing storage implementation.
      */
     Stream<TransferProcess> findAll(QuerySpec querySpec);
+
 }

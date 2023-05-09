@@ -60,14 +60,6 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     }
 
     @Override
-    public String getNextForStateTemplate() {
-        return format("SELECT * FROM %s\n" +
-                "WHERE %s=?\n" +
-                "  AND (%s IS NULL OR %s IN (SELECT %s FROM %s WHERE (? > (%s + %s))))\n" +
-                "LIMIT ?;", getContractNegotiationTable(), getStateColumn(), getLeaseIdColumn(), getLeaseIdColumn(), getLeaseIdColumn(), getLeaseTableName(), getLeasedAtColumn(), getLeaseDurationColumn());
-    }
-
-    @Override
     public String getSelectFromAgreementsTemplate() {
         // todo: add WHERE ... AND ... ORDER BY... statements here
         return format("SELECT * FROM %s", getContractAgreementTable());

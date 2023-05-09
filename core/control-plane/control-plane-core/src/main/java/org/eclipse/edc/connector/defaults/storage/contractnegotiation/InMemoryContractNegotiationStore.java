@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.defaults.storage.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.defaults.storage.ReflectionBasedQueryResolver;
 import org.eclipse.edc.spi.persistence.Lease;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
@@ -99,8 +100,8 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-        return store.nextForState(state, max);
+    public @NotNull List<ContractNegotiation> nextNotLeased(int max, Criterion... criteria) {
+        return store.leaseAndGet(max, criteria);
     }
 
     @NotNull
@@ -109,4 +110,5 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
                 .map(ContractNegotiation::getContractAgreement)
                 .filter(Objects::nonNull);
     }
+
 }

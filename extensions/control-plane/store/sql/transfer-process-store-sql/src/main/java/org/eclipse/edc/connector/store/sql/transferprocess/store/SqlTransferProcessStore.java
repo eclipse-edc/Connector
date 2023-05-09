@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.SqlQueryExecutor;
@@ -37,8 +38,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Clock;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -63,19 +66,21 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public @NotNull List<TransferProcess> nextForState(int state, int max) {
-        var now = clock.millis();
+    public @NotNull List<TransferProcess> nextNotLeased(int max, Criterion... criteria) {
         return transactionContext.execute(() -> {
-            var stmt = statements.getNextForStateTemplate();
+            var filter = Arrays.stream(criteria).collect(toList());
+            var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
+            var statement = statements.createQuery(querySpec);
+            statement.addWhereClause(statements.getNotLeasedFilter());
+            statement.addParameter(clock.millis());
 
             try (
                     var connection = getConnection();
-                    var stream = SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, stmt, state, now, max)
+                    var stream = SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters())
             ) {
-                var transferProcesses = stream.collect(toList());
-                transferProcesses.forEach(t -> leaseContext.by(leaseHolderName).withConnection(connection).acquireLease(t.getId()));
+                var transferProcesses = stream.collect(Collectors.toList());
+                transferProcesses.forEach(transferProcess -> leaseContext.withConnection(connection).acquireLease(transferProcess.getId()));
                 return transferProcesses;
-
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -85,8 +90,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     @Override
     public @Nullable TransferProcess findById(String id) {
         return transactionContext.execute(() -> {
-            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
-            return single(findAll(q).collect(toList()));
+            var querySpec = QuerySpec.Builder.newInstance().filter(new Criterion("id", "=", id)).build();
+            return single(findAll(querySpec).collect(toList()));
         });
     }
 

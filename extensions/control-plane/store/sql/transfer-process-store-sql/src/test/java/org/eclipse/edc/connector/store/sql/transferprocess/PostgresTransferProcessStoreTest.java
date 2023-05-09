@@ -59,7 +59,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     private SqlTransferProcessStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);

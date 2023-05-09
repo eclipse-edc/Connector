@@ -16,19 +16,23 @@ package org.eclipse.edc.connector.defaults.storage;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.persistence.Lease;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.CriterionConverter;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.util.concurrency.LockManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -37,12 +41,13 @@ import static java.util.stream.Collectors.toList;
  */
 public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
     private static final long DEFAULT_LEASE_TIME_MILLIS = 60_000;
-    private final Map<String, Item<T>> entitiesById = new ConcurrentHashMap<>();
+    private final Map<String, T> entitiesById = new ConcurrentHashMap<>();
     private final QueryResolver<T> queryResolver;
     private final LockManager lockManager = new LockManager(new ReentrantReadWriteLock());
     private final String lockId;
     private final Clock clock;
     private final Map<String, Lease> leases;
+    private final CriterionConverter<Predicate<T>> criterionConverter = new DefaultCriterionToPredicateConverter<>();
 
     public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, Map<String, Lease> leases) {
         queryResolver = new ReflectionBasedQueryResolver<>(clazz);
@@ -56,12 +61,12 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
         if (t == null) {
             return null;
         }
-        return t.item.copy();
+        return t.copy();
     }
 
     public void upsert(T entity) {
         acquireLease(entity.getId(), lockId);
-        entitiesById.put(entity.getId(), new Item<>(entity.copy()));
+        entitiesById.put(entity.getId(), entity.copy());
         freeLease(entity.getId());
     }
 
@@ -76,21 +81,22 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
         return queryResolver.query(findAll(), querySpec);
     }
 
-    public @NotNull List<T> nextForState(int state, int max) {
+    public @NotNull List<T> leaseAndGet(int max, Criterion... criteria) {
         return lockManager.writeLock(() -> {
-            var items = entitiesById.values().stream()
-                    .filter(e -> e.item.getState() == state)
-                    .filter(e -> !isLeased(e.item.getId()))
-                    .sorted(Comparator.comparingLong(e -> e.item.getStateTimestamp())) //order by state timestamp, oldest first
+            var filterPredicate = Arrays.stream(criteria).map(criterionConverter::convert).reduce(x -> true, Predicate::and);
+            var entities = entitiesById.values().stream()
+                    .filter(filterPredicate)
+                    .filter(e -> !isLeased(e.getId()))
+                    .sorted(comparingLong(StatefulEntity::getStateTimestamp)) //order by state timestamp, oldest first
                     .limit(max)
                     .collect(toList());
-            items.forEach(i -> acquireLease(i.item.getId(), lockId));
-            return items.stream().map(e -> e.item.copy()).collect(toList());
+            entities.forEach(i -> acquireLease(i.getId(), lockId));
+            return entities.stream().map(StatefulEntity::copy).collect(toList());
         });
     }
 
     public Stream<T> findAll() {
-        return entitiesById.values().stream().map(e -> e.item);
+        return entitiesById.values().stream();
     }
 
     private void freeLease(String id) {
@@ -111,13 +117,5 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
 
     private boolean isLeasedBy(String id, String lockId) {
         return isLeased(id) && leases.get(id).getLeasedBy().equals(lockId);
-    }
-
-    private static class Item<V> {
-        private final V item;
-
-        Item(V item) {
-            this.item = item;
-        }
     }
 }

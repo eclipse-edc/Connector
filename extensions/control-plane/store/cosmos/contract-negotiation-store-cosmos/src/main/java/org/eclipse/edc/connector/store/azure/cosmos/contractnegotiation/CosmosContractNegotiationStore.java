@@ -31,6 +31,8 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.model.ContractNegotiationDocument;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -39,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -180,7 +183,11 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
+    public @NotNull List<ContractNegotiation> nextNotLeased(int max, Criterion... criteria) {
+        // TODO: https://github.com/eclipse-edc/Connector/issues/2924
+        var state = Arrays.stream(criteria).filter(it -> "state".equals(it.getOperandLeft()))
+                .findFirst().map(Criterion::getOperandRight)
+                .orElseThrow(() -> new EdcException("Missing mandatory 'state' criterion"));
 
         String rawJson = with(retryPolicy).get(() -> cosmosDbApi.invokeStoredProcedure(NEXT_FOR_STATE_SPROC_NAME, partitionKey, state, max, connectorId));
         if (StringUtils.isNullOrEmpty(rawJson)) {
