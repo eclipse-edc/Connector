@@ -42,7 +42,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
     public static final String CONTEXT_ALIAS = "protocol";
     public static final String DEFAULT_DSP_CALLBACK_ADDRESS = "http://localhost:8282/api/v1/dsp";
-    @Setting(value = "The address where the connector is configured to receive callbacks from the DSP API", defaultValue = DEFAULT_DSP_CALLBACK_ADDRESS)
+    @Setting(value = "The endpoint address used by the runtime to receive DSP callbacks", defaultValue = DEFAULT_DSP_CALLBACK_ADDRESS)
     public static final String DSP_CALLBACK_ADDRESS = "edc.dsp.callback.address";
     public static final int DEFAULT_PROTOCOL_PORT = 8282;
     public static final String DEFAULT_PROTOCOL_API_PATH = "/api/v1/dsp";

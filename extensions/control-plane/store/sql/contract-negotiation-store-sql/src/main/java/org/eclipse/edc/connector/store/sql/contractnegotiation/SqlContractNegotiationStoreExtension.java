@@ -36,7 +36,7 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
     private static final String DEFAULT_DATASOURCE_NAME = "contractnegotiation";
 
-    @Setting(value = "Name of the datasource used to access contract negotiation store", defaultValue = DEFAULT_DATASOURCE_NAME)
+    @Setting(value = "Name of the datasource used by SQL-based contract negotiation stores", defaultValue = DEFAULT_DATASOURCE_NAME)
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
 
     @Inject
