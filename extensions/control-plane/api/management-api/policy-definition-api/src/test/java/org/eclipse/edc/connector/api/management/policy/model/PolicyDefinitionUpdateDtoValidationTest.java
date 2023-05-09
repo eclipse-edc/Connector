@@ -18,14 +18,25 @@ package org.eclipse.edc.connector.api.management.policy.model;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyDefinitionUpdateDtoValidationTest {
 
     private Validator validator;
+    private static Locale systemLocale;
+
+    @BeforeAll
+    static void switchLocale() {
+        systemLocale = Locale.getDefault();
+        Locale.setDefault(Locale.ENGLISH);
+    }
 
     @BeforeEach
     void setUp() {
@@ -42,6 +53,11 @@ public class PolicyDefinitionUpdateDtoValidationTest {
 
         var result = validator.validate(policy);
         assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("must not be null"));
+    }
+
+    @AfterAll
+    static void restoreLocale() {
+        Locale.setDefault(systemLocale);
     }
 
 }
