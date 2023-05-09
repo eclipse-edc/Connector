@@ -20,6 +20,8 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AssetUpdateRequestDtoValidationTest {
@@ -42,6 +44,18 @@ public class AssetUpdateRequestDtoValidationTest {
         var result = validator.validate(asset);
 
         assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("properties cannot be null"));
+    }
+
+    @Test
+    void verifyValidation_assetDto_duplicateProperties() {
+        var asset = AssetCreationRequestDto.Builder.newInstance()
+                .properties(Map.of("key", "value"))
+                .privateProperties(Map.of("key", "value"))
+                .build();
+
+        var result = validator.validate(asset);
+
+        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("no empty property keys and no duplicate keys"));
     }
 
 }

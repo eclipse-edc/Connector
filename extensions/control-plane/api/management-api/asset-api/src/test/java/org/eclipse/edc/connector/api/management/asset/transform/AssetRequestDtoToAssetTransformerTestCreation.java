@@ -37,37 +37,44 @@ class AssetRequestDtoToAssetTransformerTestCreation {
     @Test
     void transform_id() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetCreationRequestDto.Builder.newInstance().id("assetId").properties(Map.of("key", "value")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance()
+                .id("assetId")
+                .properties(Map.of("key", "value"))
+                .privateProperties(Map.of("pKey", "pValue"))
+                .build();
 
         var asset = transformer.transform(assetDto, context);
 
         assertThat(asset).isNotNull();
         assertThat(asset.getId()).isEqualTo("assetId");
         assertThat(asset.getProperties()).containsAllEntriesOf(assetDto.getProperties());
+        assertThat(asset.getPrivateProperties()).containsAllEntriesOf(assetDto.getPrivateProperties());
     }
 
     @Test
     void transform_nullId() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Map.of("key", "value")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Map.of("key", "value")).privateProperties(Map.of("pKey", "pValue")).build();
 
         var asset = transformer.transform(assetDto, context);
 
         assertThat(asset).isNotNull();
         assertThat(asset.getId()).isNotBlank();
         assertThat(asset.getProperties()).containsAllEntriesOf(assetDto.getProperties());
+        assertThat(asset.getPrivateProperties()).containsAllEntriesOf(assetDto.getPrivateProperties());
     }
 
     @Test
     void transform_idFromProperties() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "key", "value")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "key", "value")).privateProperties(Map.of("pKey", "pValue")).build();
 
         var asset = transformer.transform(assetDto, context);
 
         assertThat(asset).isNotNull();
         assertThat(asset.getId()).isEqualTo("assetId");
         assertThat(asset.getProperties()).containsExactlyInAnyOrderEntriesOf(assetDto.getProperties());
+        assertThat(asset.getPrivateProperties()).containsExactlyInAnyOrderEntriesOf(assetDto.getPrivateProperties());
     }
 
 }

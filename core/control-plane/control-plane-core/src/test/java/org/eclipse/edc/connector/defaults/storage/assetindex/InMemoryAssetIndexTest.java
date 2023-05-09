@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -128,6 +129,17 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
                 .collect(Collectors.toList());
 
         var spec = QuerySpec.Builder.newInstance().sortField(Asset.PROPERTY_ID).sortOrder(SortOrder.ASC).build();
+        assertThat(index.queryAssets(spec)).containsAll(assets);
+    }
+
+    @Test
+    void findAll_withPrivateSorting() {
+        var assets = IntStream.range(0, 10)
+                .mapToObj(i -> createAsset("test-asset", "id" + i, Map.of("pKey", "pValue")))
+                .peek(a -> index.create(a, createDataAddress(a)))
+                .collect(Collectors.toList());
+
+        var spec = QuerySpec.Builder.newInstance().sortField("pKey").sortOrder(SortOrder.ASC).build();
         assertThat(index.queryAssets(spec)).containsAll(assets);
     }
 

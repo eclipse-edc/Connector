@@ -191,9 +191,15 @@ public class AssetApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getSingleAsset() {
-        var asset = Asset.Builder.newInstance().property("key", "value").build();
+        var asset = Asset.Builder.newInstance()
+                .property("key", "value")
+                .privateProperties(Map.of("pKey", "pValue"))
+                .build();
         when(service.findById("id")).thenReturn(asset);
-        var response = AssetResponseDto.Builder.newInstance().properties(Map.of("key", "value")).build();
+        var response = AssetResponseDto.Builder.newInstance()
+                .properties(Map.of("key", "value"))
+                .privateProperties(Map.of("pKey", "pValue"))
+                .build();
         when(transformerRegistry.transform(isA(Asset.class), eq(AssetResponseDto.class))).thenReturn(Result.success(response));
 
         baseRequest()
@@ -201,7 +207,8 @@ public class AssetApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("properties.size()", is(1));
+                .body("properties.size()", is(1))
+                .body("privateProperties.size()", is(1));
         verify(transformerRegistry).transform(isA(Asset.class), eq(AssetResponseDto.class));
     }
 
@@ -372,7 +379,10 @@ public class AssetApiControllerTest extends RestControllerTestBase {
         var assetEntry = AssetUpdateRequestDto.Builder.newInstance()
                 .properties(Map.of("key1", "value1"))
                 .build();
-        var asset = Asset.Builder.newInstance().property("key1", "value1").build();
+        var asset = Asset.Builder.newInstance()
+                .property("key1", "value1")
+                .privateProperties(Map.of("pKey", "pValue"))
+                .build();
         when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class)))
                 .thenReturn(Result.success(asset));
         when(service.update(any(Asset.class))).thenReturn(ServiceResult.success());
@@ -390,8 +400,12 @@ public class AssetApiControllerTest extends RestControllerTestBase {
     void updateAsset_shouldReturnNotFound_whenItDoesNotExists() {
         var assetEntry = AssetUpdateRequestDto.Builder.newInstance()
                 .properties(Map.of("key1", "value1"))
+                .privateProperties(Map.of("pKey", "pValue"))
                 .build();
-        var asset = Asset.Builder.newInstance().property("key1", "value1").build();
+        var asset = Asset.Builder.newInstance()
+                .property("key1", "value1")
+                .privateProperty("pKey", "pValue")
+                .build();
         when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class)))
                 .thenReturn(Result.success(asset));
         when(service.update(any(Asset.class))).thenReturn(ServiceResult.notFound("not found"));
@@ -408,6 +422,7 @@ public class AssetApiControllerTest extends RestControllerTestBase {
     void updateAsset_shouldReturnBadRequest_whenTransformFails() {
         var assetEntry = AssetUpdateRequestDto.Builder.newInstance()
                 .properties(Map.of("key1", "value1"))
+                .privateProperties(Map.of("pKey", "pValue"))
                 .build();
         when(transformerRegistry.transform(isA(AssetUpdateRequestWrapperDto.class), eq(Asset.class)))
                 .thenReturn(Result.failure("error"));

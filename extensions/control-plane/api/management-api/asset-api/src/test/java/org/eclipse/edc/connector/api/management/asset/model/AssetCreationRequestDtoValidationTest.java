@@ -21,6 +21,8 @@ import org.eclipse.edc.api.model.DataAddressDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AssetCreationRequestDtoValidationTest {
@@ -78,5 +80,18 @@ class AssetCreationRequestDtoValidationTest {
         var result = validator.validate(asset);
 
         assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("id must be either null or not blank"));
+    }
+
+    @Test
+    void verifyValidation_assetDto_duplicateProperties() {
+        var asset = AssetCreationRequestDto.Builder.newInstance()
+                .id("test-asset")
+                .properties(Map.of("key", "value"))
+                .privateProperties(Map.of("key", "value"))
+                .build();
+
+        var result = validator.validate(asset);
+
+        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("no empty property keys and no duplicate keys"));
     }
 }

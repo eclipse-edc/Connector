@@ -34,7 +34,10 @@ public class AssetResponseDtoTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var assetDto = AssetResponseDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
+        var assetDto = AssetResponseDto.Builder.newInstance()
+                .properties(Collections.singletonMap("Asset-1", ""))
+                .privateProperties(Collections.singletonMap("pAsset-1", ""))
+                .build();
 
         var str = objectMapper.writeValueAsString(assetDto);
 

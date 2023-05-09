@@ -70,6 +70,23 @@ class AssetPredicateConverterTest {
     }
 
     @Test
+    void convert_privatePropertyEquals() {
+        var criterion = new Criterion("test-private-property", "=", "somePrivateValue");
+        var asset = Asset.Builder.newInstance()
+                .name("test-asset")
+                .version("6.9")
+                .property("test-property", "somevalue")
+                .privateProperty("test-private-property", "somePrivateValue")
+                .build();
+
+        var predicate = converter.convert(criterion);
+
+        assertThat(predicate).isNotNull();
+        assertThat(predicate.test(asset)).isTrue();
+    }
+
+
+    @Test
     void convert_operatorIn() {
         var asset = Asset.Builder.newInstance()
                 .name("bob")

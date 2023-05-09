@@ -36,6 +36,7 @@ public class AssetUpdateRequestDtoTest {
     void verifySerDes() throws JsonProcessingException {
         var dto = AssetUpdateRequestDto.Builder.newInstance()
                 .properties(Map.of("key1", "value1", "key2", "value2"))
+                .privateProperties(Map.of("pKey", "pValue"))
                 .build();
 
         var json = objectMapper.writeValueAsString(dto);

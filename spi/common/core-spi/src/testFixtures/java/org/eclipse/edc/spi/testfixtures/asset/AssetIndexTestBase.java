@@ -632,6 +632,17 @@ public abstract class AssetIndexTestBase {
         return Asset.Builder.newInstance().id(id).name(name).version("1").contentType(contentType).build();
     }
 
+    @NotNull
+    protected Asset createAsset(String name, String id, Map<String, Object> privateProperties) {
+        return Asset.Builder.newInstance()
+                .name(name)
+                .id(id)
+                .version("1")
+                .contentType("contentType")
+                .privateProperties(privateProperties)
+                .build();
+    }
+
     /**
      * Returns an array of all operators supported by a particular AssetIndex. If no limitations or constraints exist
      * (i.e. the AssetIndex supports all operators), then an empty list can be returned. Note that the operators MUST be
