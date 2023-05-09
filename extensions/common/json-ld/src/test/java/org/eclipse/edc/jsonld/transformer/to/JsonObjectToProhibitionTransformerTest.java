@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -40,27 +41,22 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToProhibitionTransformerTest {
     
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
-    
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
+
+    private final JsonObject actionJson = getJsonObject("action");
+    private final JsonObject constraintJson = getJsonObject("constraint");
+
+    private final Action action = Action.Builder.newInstance().type("type").build();
+    private final Constraint constraint = AtomicConstraint.Builder.newInstance().build();
+    private final String target = "target";
+
     private JsonObjectToProhibitionTransformer transformer;
-    
-    private JsonObject actionJson;
-    private JsonObject constraintJson;
-    
-    private Action action;
-    private Constraint constraint;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToProhibitionTransformer();
-        
-        actionJson = getJsonObject("action");
-        constraintJson = getJsonObject("constraint");
-    
-        action = Action.Builder.newInstance().type("type").build();
-        constraint = AtomicConstraint.Builder.newInstance().build();
-    
+
         when(context.transform(actionJson, Action.class)).thenReturn(action);
         when(context.transform(constraintJson, Constraint.class)).thenReturn(constraint);
     }
@@ -70,6 +66,7 @@ class JsonObjectToProhibitionTransformerTest {
         var prohibition = jsonFactory.createObjectBuilder()
                 .add(ODRL_ACTION_ATTRIBUTE, actionJson)
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, constraintJson)
+                .add(ODRL_TARGET_ATTRIBUTE, target)
                 .build();
     
         var result = transformer.transform(prohibition, context);
@@ -82,6 +79,7 @@ class JsonObjectToProhibitionTransformerTest {
         var prohibition = jsonFactory.createObjectBuilder()
                  .add(ODRL_ACTION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(actionJson))
                  .add(ODRL_CONSTRAINT_ATTRIBUTE, jsonFactory.createArrayBuilder().add(constraintJson))
+                 .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(target))
                  .build();
         
         var result = transformer.transform(prohibition, context);
@@ -94,6 +92,7 @@ class JsonObjectToProhibitionTransformerTest {
         assertThat(result.getAction()).isEqualTo(action);
         assertThat(result.getConstraints()).hasSize(1);
         assertThat(result.getConstraints().get(0)).isEqualTo(constraint);
+        assertThat(result.getTarget()).isEqualTo(target);
     
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(actionJson, Action.class);

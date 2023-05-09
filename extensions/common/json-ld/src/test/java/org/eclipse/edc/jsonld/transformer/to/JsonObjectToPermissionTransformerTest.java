@@ -33,6 +33,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -42,31 +43,24 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToPermissionTransformerTest {
     
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
-    
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
+
+    private final JsonObject actionJson = getJsonObject("action");
+    private final JsonObject constraintJson = getJsonObject("constraint");
+    private final JsonObject dutyJson = getJsonObject("duty");
+
+    private final Action action = Action.Builder.newInstance().type("type").build();
+    private final Constraint constraint = AtomicConstraint.Builder.newInstance().build();
+    private final Duty duty = Duty.Builder.newInstance().build();
+    private final String target = "target";
+
     private JsonObjectToPermissionTransformer transformer;
-    
-    private JsonObject actionJson;
-    private JsonObject constraintJson;
-    private JsonObject dutyJson;
-    
-    private Action action;
-    private Constraint constraint;
-    private Duty duty;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToPermissionTransformer();
-        
-        actionJson = getJsonObject("action");
-        constraintJson = getJsonObject("constraint");
-        dutyJson = getJsonObject("duty");
-    
-        action = Action.Builder.newInstance().type("type").build();
-        constraint = AtomicConstraint.Builder.newInstance().build();
-        duty = Duty.Builder.newInstance().build();
-    
+
         when(context.transform(actionJson, Action.class)).thenReturn(action);
         when(context.transform(constraintJson, Constraint.class)).thenReturn(constraint);
         when(context.transform(dutyJson, Duty.class)).thenReturn(duty);
@@ -78,6 +72,7 @@ class JsonObjectToPermissionTransformerTest {
                 .add(ODRL_ACTION_ATTRIBUTE, actionJson)
                 .add(ODRL_CONSTRAINT_ATTRIBUTE, constraintJson)
                 .add(ODRL_DUTY_ATTRIBUTE, dutyJson)
+                .add(ODRL_TARGET_ATTRIBUTE, target)
                 .build();
     
         var result = transformer.transform(permission, context);
@@ -91,6 +86,7 @@ class JsonObjectToPermissionTransformerTest {
                  .add(ODRL_ACTION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(actionJson))
                  .add(ODRL_CONSTRAINT_ATTRIBUTE, jsonFactory.createArrayBuilder().add(constraintJson))
                  .add(ODRL_DUTY_ATTRIBUTE, jsonFactory.createArrayBuilder().add(dutyJson))
+                 .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(target))
                  .build();
         
         var result = transformer.transform(permission, context);
@@ -105,6 +101,7 @@ class JsonObjectToPermissionTransformerTest {
         assertThat(result.getConstraints().get(0)).isEqualTo(constraint);
         assertThat(result.getDuties()).hasSize(1);
         assertThat(result.getDuties().get(0)).isEqualTo(duty);
+        assertThat(result.getTarget()).isEqualTo(target);
     
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(actionJson, Action.class);

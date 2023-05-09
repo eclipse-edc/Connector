@@ -59,6 +59,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
 /**
  * Transforms a {@link Policy} to an ODRL type as a {@link JsonObject} in expanded JSON-LD form.
@@ -80,8 +81,8 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
      * Walks the policy object model, transforming it to a JsonObject.
      */
     private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
-        private TransformerContext context;
-        private JsonBuilderFactory jsonFactory;
+        private final TransformerContext context;
+        private final JsonBuilderFactory jsonFactory;
 
         Visitor(TransformerContext context, JsonBuilderFactory jsonFactory) {
             this.context = context;
@@ -135,13 +136,16 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             var obligationsBuilder = jsonFactory.createArrayBuilder();
             policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
 
-            return jsonFactory.createObjectBuilder()
+            var builder = jsonFactory.createObjectBuilder()
                     .add(ID, randomUUID().toString())
                     .add(TYPE, Namespaces.ODRL_SCHEMA + getTypeAsString(policy.getType()))
                     .add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder)
                     .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
-                    .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder)
-                    .build();
+                    .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
+
+            Optional.ofNullable(policy.getTarget()).ifPresent(it -> builder.add(ODRL_TARGET_ATTRIBUTE, it));
+
+            return builder.build();
         }
 
         @Override
@@ -180,6 +184,8 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
         private JsonObjectBuilder visitRule(Rule rule) {
             var ruleBuilder = jsonFactory.createObjectBuilder();
+
+            Optional.ofNullable(rule.getTarget()).ifPresent(it -> ruleBuilder.add(ODRL_TARGET_ATTRIBUTE, it));
 
             ruleBuilder.add(ODRL_ACTION_ATTRIBUTE, visitAction(rule.getAction()));
             if (rule.getConstraints() != null && !rule.getConstraints().isEmpty()) {

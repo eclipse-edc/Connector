@@ -43,29 +43,25 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
     public @Nullable ContractRequestMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractRequestMessage.Builder.newInstance()
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .type(INITIAL);
+                .type(INITIAL)
+                .processId(transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), context))
+                .callbackAddress(transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS), context))
+                .dataSet(transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_DATASET), context));
 
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS), builder::callbackAddress, context);
-        transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_DATASET), builder::dataSet, context);
-
-        var policy = context.transform(object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER), Policy.class);
+        var policy = transformObject(object.get(DSPACE_NEGOTIATION_PROPERTY_OFFER), Policy.class, context);
         if (policy == null) {
             context.reportProblem("Cannot transform to ContractRequestMessage with null policy");
             return null;
         }
 
-        builder.contractOffer(contractOffer(object, policy));
+        var contractOffer = ContractOffer.Builder.newInstance()
+                .id(nodeId(object))
+                .assetId(policy.getTarget())
+                .policy(policy).build();
+
+        builder.contractOffer(contractOffer);
 
         return builder.build();
     }
 
-    private ContractOffer contractOffer(JsonObject offer, Policy policy) {
-        var builder = ContractOffer.Builder.newInstance();
-        builder.id(nodeId(offer));
-        builder.assetId(policy.getTarget());
-        builder.policy(policy);
-
-        return builder.build();
-    }
 }
