@@ -43,11 +43,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.callback.staticendpoint.CallbackStaticEndpointExtension.EDC_CALLBACK_SETTING_PREFIX;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class CallbackStaticEndpointExtensionTest {
@@ -64,7 +60,7 @@ public class CallbackStaticEndpointExtensionTest {
         extension = factory.constructInstance(CallbackStaticEndpointExtension.class);
         this.context = spy(context);
     }
-    
+
     @Test
     void initialize_shouldConfigureMultipleCallbacks() {
 
@@ -125,7 +121,7 @@ public class CallbackStaticEndpointExtensionTest {
 
         var config = new HashMap<String, String>();
 
-        config.put(format("edc.callback.%s.url", name), callbackAddress.getUri());
+        config.put(format("edc.callback.%s.uri", name), callbackAddress.getUri());
         config.put(format("edc.callback.%s.transactional", name), String.valueOf(callbackAddress.isTransactional()));
 
         if (callbackAddress.getEvents().size() > 0) {
