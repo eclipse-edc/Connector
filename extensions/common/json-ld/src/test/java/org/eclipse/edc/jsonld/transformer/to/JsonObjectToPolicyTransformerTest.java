@@ -38,6 +38,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_A
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,27 +53,20 @@ class JsonObjectToPolicyTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
+    private final JsonObject permissionJson = getJsonObject("permission");
+    private final JsonObject prohibitionJson = getJsonObject("prohibition");
+    private final JsonObject dutyJson = getJsonObject("duty");
+
+    private final Permission permission = Permission.Builder.newInstance().build();
+    private final Prohibition prohibition = Prohibition.Builder.newInstance().build();
+    private final Duty duty = Duty.Builder.newInstance().build();
+    private final String target = "target";
+
     private JsonObjectToPolicyTransformer transformer;
-
-    private JsonObject permissionJson;
-    private JsonObject prohibitionJson;
-    private JsonObject dutyJson;
-
-    private Permission permission;
-    private Prohibition prohibition;
-    private Duty duty;
 
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToPolicyTransformer();
-
-        permissionJson = getJsonObject("permission");
-        prohibitionJson = getJsonObject("prohibition");
-        dutyJson = getJsonObject("duty");
-
-        permission = Permission.Builder.newInstance().build();
-        prohibition = Prohibition.Builder.newInstance().build();
-        duty = Duty.Builder.newInstance().build();
 
         when(context.transform(permissionJson, Permission.class)).thenReturn(permission);
         when(context.transform(prohibitionJson, Prohibition.class)).thenReturn(prohibition);
@@ -83,6 +77,7 @@ class JsonObjectToPolicyTransformerTest {
     void transform_withAllRuleTypesAsObjects_returnPolicy() {
         var policy = jsonFactory.createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
+                .add(ODRL_TARGET_ATTRIBUTE, target)
                 .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
                 .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
                 .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
@@ -97,6 +92,7 @@ class JsonObjectToPolicyTransformerTest {
     void transform_withAllRuleTypesAsArrays_returnPolicy() {
         var policy = jsonFactory.createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
+                .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(target))
                 .add(ODRL_PERMISSION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(permissionJson))
                 .add(ODRL_PROHIBITION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(prohibitionJson))
                 .add(ODRL_OBLIGATION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(dutyJson))
@@ -165,6 +161,7 @@ class JsonObjectToPolicyTransformerTest {
 
     private void assertResult(Policy result) {
         assertThat(result).isNotNull();
+        assertThat(result.getTarget()).isEqualTo(target);
         assertThat(result.getPermissions()).hasSize(1);
         assertThat(result.getPermissions().get(0)).isEqualTo(permission);
         assertThat(result.getProhibitions()).hasSize(1);

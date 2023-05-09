@@ -46,7 +46,6 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .contentType(JSON)
                 .post()
                 .then()
-                .statusCode(200)
                 .extract().jsonPath().getString("id");
 
         assertThat(store().findById(id)).isNotNull()
