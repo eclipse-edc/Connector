@@ -420,7 +420,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspNegotiationController(mock(Monitor.class), mapper, callbackAddress, identityService, registry, protocolService, jsonLdService);
+        return new DspNegotiationController(callbackAddress, identityService, registry, protocolService, jsonLdService, mapper, mock(Monitor.class));
     }
 
     private RequestSpecification baseRequest() {

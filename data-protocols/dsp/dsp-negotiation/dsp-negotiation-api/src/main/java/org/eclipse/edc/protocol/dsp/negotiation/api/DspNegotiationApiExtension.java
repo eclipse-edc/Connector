@@ -71,7 +71,7 @@ public class DspNegotiationApiExtension implements ServiceExtension {
         var callbackAddress = apiConfiguration.getDspCallbackAddress();
         var objectMapper = typeManager.getMapper(JSON_LD);
 
-        var controller = new DspNegotiationController(monitor, objectMapper, callbackAddress, identityService, transformerRegistry, protocolService, jsonLdService);
+        var controller = new DspNegotiationController(callbackAddress, identityService, transformerRegistry, protocolService, jsonLdService, objectMapper, monitor);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }
