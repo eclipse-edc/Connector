@@ -73,7 +73,6 @@ class SqlQueryStatementTest {
         var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
-
     }
 
     @Test
@@ -81,8 +80,7 @@ class SqlQueryStatementTest {
         QuerySpec.Builder builder = queryBuilder().sortField("description");
         var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
 
-        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + "  ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
-
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
     }
 
     @Test
@@ -92,8 +90,6 @@ class SqlQueryStatementTest {
         assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
-
-
     }
 
     @Test
@@ -103,8 +99,19 @@ class SqlQueryStatementTest {
         assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
+    }
 
+    @Test
+    void addWhereClause() {
+        var criterion = new Criterion("field1", "=", "testid1");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
+        var customParameter = 3;
+        var customSql = "(another_field IS null OR (another_field IN (select * from another_table where that_field > ?))";
+        t.addWhereClause(customSql);
+        t.addParameter(customParameter);
 
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? AND " + customSql + " LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsExactly("testid1", customParameter, 50, 0);
     }
 
     private QuerySpec.Builder queryBuilder(Criterion... criterion) {

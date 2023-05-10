@@ -32,8 +32,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     String getDeleteTransferProcessTemplate();
 
-    String getNextForStateTemplate();
-
     String getUpdateTransferProcessTemplate();
 
     String getInsertDataRequestTemplate();

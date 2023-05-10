@@ -33,8 +33,6 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getDeleteTemplate();
 
-    String getNextForStateTemplate();
-
     String getSelectFromAgreementsTemplate();
 
     String getInsertAgreementTemplate();
@@ -42,27 +40,6 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     String getUpdateAgreementTemplate();
 
     String getSelectNegotiationsTemplate();
-
-    @Override
-    default String getLeasedByColumn() {
-        return "leased_by";
-    }
-
-    @Override
-    default String getLeasedAtColumn() {
-        return "leased_at";
-    }
-
-    @Override
-    default String getLeaseDurationColumn() {
-        return "lease_duration";
-    }
-
-    @Override
-    default String getLeaseIdColumn() {
-        return "lease_id";
-    }
-
 
     default String getContractNegotiationTable() {
         return "edc_contract_negotiation";

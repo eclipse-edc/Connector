@@ -61,10 +61,13 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.createContractBuilder;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.createNegotiation;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.generateDocument;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 @AzureCosmosDbIntegrationTest
 class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationStoreTestBase {
@@ -242,17 +245,17 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     }
 
     @Test
-    void nextForState() {
+    void nextNotLeased() {
         var state = ContractNegotiationStates.AGREED;
         var n = TestFunctions.createNegotiation(state);
         container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
-        var result = store.nextForState(state.code(), 10);
+        var result = store.nextNotLeased(10, hasState(state.code()));
         assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
     }
 
     @Test
-    void nextForState_exceedsLimit() {
+    void nextNotLeased_exceedsLimit() {
         var state = ContractNegotiationStates.AGREED;
         var numElements = 10;
 
@@ -261,22 +264,22 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .peek(n -> container.createItem(new ContractNegotiationDocument(n, partitionKey)))
                 .collect(Collectors.toList());
 
-        var result = store.nextForState(state.code(), 4);
+        var result = store.nextNotLeased(4, hasState(state.code()));
         assertThat(result).hasSize(4).allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
     }
 
     @Test
-    void nextForState_noResult() {
+    void nextNotLeased_noResult() {
         var state = ContractNegotiationStates.AGREED;
         var n = TestFunctions.createNegotiation(state);
         container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
-        var result = store.nextForState(ContractNegotiationStates.OFFERING.code(), 10);
+        var result = store.nextNotLeased(10, hasState(OFFERING.code()));
         assertThat(result).isNotNull().isEmpty();
     }
 
     @Test
-    void nextForState_onlyReturnsFreeItems() {
+    void nextNotLeased_onlyReturnsFreeItems() {
         var state = ContractNegotiationStates.AGREED;
         var n1 = TestFunctions.createNegotiation(state);
         var doc1 = new ContractNegotiationDocument(n1, partitionKey);
@@ -291,30 +294,30 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         doc3.acquireLease("another-connector", clock);
         container.createItem(doc3);
 
-        var result = store.nextForState(state.code(), 10);
+        var result = store.nextNotLeased(10, hasState(state.code()));
         assertThat(result).hasSize(2).extracting(ContractNegotiation::getId).containsExactlyInAnyOrder(n1.getId(), n2.getId());
     }
 
     @Test
-    void nextForState_leasedBySelf() {
+    void nextNotLeased_leasedBySelf() {
         var state = ContractNegotiationStates.AGREED;
         var n = TestFunctions.createNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
         // let's verify that the first invocation correctly sets the lease
-        var result = store.nextForState(state.code(), 10);
+        var result = store.nextNotLeased(10, hasState(state.code()));
         assertThat(result).hasSize(1); //should contain the lease already
         var storedNegotiation = readItem(n.getId());
         assertThat(storedNegotiation.getLease()).isNotNull().hasFieldOrPropertyWithValue("leasedBy", CONNECTOR_ID);
 
-        // verify that the subsequent call to nextForState does not return the entity
-        result = store.nextForState(state.code(), 10);
+        // verify that the subsequent call to nextNotLeased does not return the entity
+        result = store.nextNotLeased(10, hasState(state.code()));
         assertThat(result).isEmpty();
     }
 
     @Test
-    void nextForState_leasedByAnotherExpired() {
+    void nextNotLeased_leasedByAnotherExpired() {
         var state = ContractNegotiationStates.AGREED;
         var n = TestFunctions.createNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
@@ -323,7 +326,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
         container.createItem(doc);
 
         // before the lease expired
-        var negotiationsBeforeLeaseExpired = store.nextForState(state.code(), 10);
+        var negotiationsBeforeLeaseExpired = store.nextNotLeased(10, hasState(state.code()));
         assertThat(negotiationsBeforeLeaseExpired).isEmpty();
         // after the lease expired
         await()
@@ -331,19 +334,18 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .pollInterval(Duration.ofMillis(500))
                 .pollDelay(leaseDuration) //give the lease time to expire
                 .untilAsserted(() -> {
-                    List<ContractNegotiation> negotiationsAfterLeaseExpired = store.nextForState(state.code(), 10);
+                    List<ContractNegotiation> negotiationsAfterLeaseExpired = store.nextNotLeased(10, hasState(state.code()));
                     assertThat(negotiationsAfterLeaseExpired).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
                 });
     }
 
     @Test
-    void nextForState_verifySaveClearsLease() {
-        var n = createNegotiation("test-id", ContractNegotiationStates.REQUESTED);
+    void nextNotLeased_verifySaveClearsLease() {
+        var n = createNegotiation("test-id", REQUESTED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
-        // verify nextForState sets the lease
-        var result = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var result = store.nextNotLeased(5, hasState(REQUESTED.code()));
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
         var storedDoc = readItem(n.getId());
         assertThat(storedDoc.getLease()).isNotNull();
@@ -363,13 +365,12 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
 
     @Test
     @DisplayName("Verify that a leased entity can not be deleted")
-    void nextForState_verifyDelete() {
-        var n = createNegotiation("test-id", ContractNegotiationStates.REQUESTED);
+    void nextNotLeased_verifyDelete() {
+        var n = createNegotiation("test-id", REQUESTED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
-        // verify nextForState sets the lease
-        var result = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var result = store.nextNotLeased(5, hasState(REQUESTED.code()));
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
 
         // verify entity can be deleted
@@ -558,7 +559,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .id("negotiation1")
                 .contractAgreement(null)
                 .correlationId("corr-negotiation1")
-                .state(ContractNegotiationStates.REQUESTED.code())
+                .state(REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .protocol("ids-multipart")

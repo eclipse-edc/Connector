@@ -63,6 +63,7 @@ import static org.eclipse.edc.connector.store.azure.cosmos.transferprocess.TestH
 import static org.eclipse.edc.connector.store.azure.cosmos.transferprocess.TestHelper.createTransferProcessDocument;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 @AzureCosmosDbIntegrationTest
 class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTestBase {
@@ -147,7 +148,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     }
 
     @Test
-    void nextForState_fetchMaxNewest() throws InterruptedException {
+    void nextNotLeased_fetchMaxNewest() throws InterruptedException {
 
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, INITIAL);
@@ -164,7 +165,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         store.updateOrCreate(tp3);
 
 
-        List<TransferProcess> processes = store.nextForState(INITIAL.code(), 2);
+        List<TransferProcess> processes = store.nextNotLeased(2, hasState(INITIAL.code()));
 
         assertThat(processes).hasSize(2)
                 .allMatch(p -> Arrays.asList(id1, id2).contains(p.getId()))
@@ -172,7 +173,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     }
 
     @Test
-    void nextForState_leaseByAnotherHolderExpired() {
+    void nextNotLeased_leaseByAnotherHolderExpired() {
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, INITIAL);
         TransferProcessDocument item = new TransferProcessDocument(tp, partitionKey);
@@ -180,7 +181,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         item.acquireLease("another-connector", clock, leaseDuration);
         container.upsertItem(item);
 
-        List<TransferProcess> processesBeforeLeaseBreak = store.nextForState(INITIAL.code(), 10);
+        List<TransferProcess> processesBeforeLeaseBreak = store.nextNotLeased(10, hasState(INITIAL.code()));
         assertThat(processesBeforeLeaseBreak).isEmpty();
 
         await()
@@ -188,13 +189,13 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
                 .pollInterval(Duration.ofMillis(500))
                 .pollDelay(leaseDuration) //give the lease time to expire
                 .untilAsserted(() -> {
-                    List<TransferProcess> processesAfterLeaseBreak = store.nextForState(INITIAL.code(), 10);
+                    List<TransferProcess> processesAfterLeaseBreak = store.nextNotLeased(10, hasState(INITIAL.code()));
                     assertThat(processesAfterLeaseBreak).hasSize(1).allSatisfy(transferProcess -> assertThat(transferProcess).usingRecursiveComparison().isEqualTo(tp));
                 });
     }
 
     @Test
-    void nextForState_shouldOnlyReturnFreeItems() {
+    void nextNotLeased_shouldOnlyReturnFreeItems() {
         String id1 = "process1";
         var tp = createTransferProcess(id1, INITIAL);
 
@@ -208,20 +209,20 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         container.upsertItem(item);
 
         //act - one should be ignored
-        List<TransferProcess> processes = store.nextForState(INITIAL.code(), 5);
+        List<TransferProcess> processes = store.nextNotLeased(5, hasState(INITIAL.code()));
         assertThat(processes).hasSize(1)
                 .allMatch(p -> p.getId().equals(id1));
     }
 
     @Test
-    void nextForState_selfCannotLeaseAgain() {
+    void nextNotLeased_selfCannotLeaseAgain() {
         var tp1 = createTransferProcess("process1", INITIAL);
         var doc = new TransferProcessDocument(tp1, partitionKey);
         doc.acquireLease(connectorId, clock);
         var originalTimestamp = doc.getLease().getLeasedAt();
         container.upsertItem(doc);
 
-        var result = store.nextForState(INITIAL.code(), 5);
+        var result = store.nextNotLeased(5, hasState(INITIAL.code()));
         assertThat(result).isEmpty();
 
         var updatedDoc = readDocument(tp1.getId());
@@ -232,7 +233,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     }
 
     @Test
-    void nextForState_noFreeItem_shouldReturnEmpty() {
+    void nextNotLeased_noFreeItem_shouldReturnEmpty() {
         String id1 = "process1";
         var tp = createTransferProcess(id1, INITIAL);
 
@@ -247,11 +248,11 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         container.upsertItem(d1);
         container.upsertItem(d2);
 
-        assertThat(store.nextForState(INITIAL.code(), 5)).isEmpty();
+        assertThat(store.nextNotLeased(5, hasState(INITIAL.code()))).isEmpty();
     }
 
     @Test
-    void nextForState_noneInDesiredState() {
+    void nextNotLeased_noneInDesiredState() {
 
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, INITIAL);
@@ -266,30 +267,30 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         store.updateOrCreate(tp2);
         store.updateOrCreate(tp3);
 
-        List<TransferProcess> processes = store.nextForState(STARTED.code(), 5);
+        List<TransferProcess> processes = store.nextNotLeased(5, hasState(STARTED.code()));
 
         assertThat(processes).isEmpty();
     }
 
     @Test
-    void nextForState_batchSizeLimits() {
+    void nextNotLeased_batchSizeLimits() {
         for (var i = 0; i < 5; i++) {
             var tp = createTransferProcess("process_" + i, INITIAL);
             store.updateOrCreate(tp);
         }
 
-        var processes = store.nextForState(INITIAL.code(), 3);
+        var processes = store.nextNotLeased(3, hasState(INITIAL.code()));
         assertThat(processes).hasSize(3);
     }
 
     @Test
-    @DisplayName("Verifies that calling nextForState locks the TP for any subsequent calls")
-    void nextForState_locksEntity() {
+    @DisplayName("Verifies that calling nextNotLeased locks the TP for any subsequent calls")
+    void nextNotLeased_locksEntity() {
         var tp = createTransferProcess("test-id", STARTED);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
         container.upsertItem(doc);
-        var result = store.nextForState(STARTED.code(), 5);
+        var result = store.nextNotLeased(5, hasState(STARTED.code()));
         assertThat(result).hasSize(1).containsExactly(tp);
 
         //make sure the lease is acquired
@@ -301,7 +302,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         assertThat(leasedDoc.getLease().getLeasedAt()).isGreaterThan(0);
 
         //make sure a subsequent call does not return the TP
-        assertThat(store.nextForState(STARTED.code(), 5)).isEmpty();
+        assertThat(store.nextNotLeased(5, hasState(STARTED.code()))).isEmpty();
 
         //make sure that findById still returns the entity
         assertThat(store.findById(tp.getId())).isEqualTo(tp);
@@ -309,14 +310,14 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
 
     @Test
     @DisplayName("Verify that the lease on a TP is cleared by an update")
-    void nextForState_verifyUpdateClearsLease() {
+    void nextNotLeased_verifyUpdateClearsLease() {
         var tp = createTransferProcess("test-id", STARTED);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
         var initialTimestamp = tp.getStateTimestamp();
 
         container.upsertItem(doc);
-        var result = store.nextForState(STARTED.code(), 5);
+        var result = store.nextNotLeased(5, hasState(STARTED.code()));
         assertThat(result).hasSize(1);
 
         //make sure the lease is acquired
@@ -336,12 +337,12 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
 
     @Test
     @DisplayName("Verify that a leased entity can not be deleted")
-    void nextForState_verifyDelete() {
+    void nextNotLeased_verifyDelete() {
         var tp = createTransferProcess("test-id", STARTED);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
         container.upsertItem(doc);
-        var result = store.nextForState(STARTED.code(), 5);
+        var result = store.nextNotLeased(5, hasState(STARTED.code()));
         assertThat(result).hasSize(1);
 
         //make sure the lease is acquired

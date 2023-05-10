@@ -27,6 +27,7 @@ public class TransferProcessMapping extends TranslationMapping {
 
     private static final String FIELD_ID = "id";
     private static final String FIELD_TYPE = "type";
+    private static final String FIELD_STATE = "state";
     private static final String FIELD_CREATED_TIMESTAMP = "createdAt";
     private static final String FIELD_TRACECONTEXT = "traceContext";
     private static final String FIELD_ERRORDETAIL = "errorDetail";
@@ -44,6 +45,7 @@ public class TransferProcessMapping extends TranslationMapping {
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
         add(FIELD_ID, statements.getIdColumn());
         add(FIELD_TYPE, statements.getTypeColumn());
+        add(FIELD_STATE, statements.getStateColumn());
         add(FIELD_CREATED_TIMESTAMP, statements.getCreatedAtColumn());
         add(FIELD_TRACECONTEXT, new JsonFieldMapping(statements.getTraceContextColumn()));
         add(FIELD_ERRORDETAIL, statements.getErrorDetailColumn());

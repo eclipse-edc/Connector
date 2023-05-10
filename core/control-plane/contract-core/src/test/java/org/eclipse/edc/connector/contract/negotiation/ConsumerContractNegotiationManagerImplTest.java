@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -67,10 +68,11 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
@@ -149,7 +151,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void initial_shouldTransitionRequesting() {
         var negotiation = contractNegotiationBuilder().state(INITIAL.code()).build();
-        when(store.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
 
         negotiationManager.start();
 
@@ -161,7 +163,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void requesting_shouldSendOfferAndTransitionRequested() {
         var negotiation = contractNegotiationBuilder().state(REQUESTING.code()).contractOffer(contractOffer()).build();
-        when(store.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -177,7 +179,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void accepting_shouldSendAgreementAndTransitionToApproved() {
         var negotiation = contractNegotiationBuilder().state(ACCEPTING.code()).contractOffer(contractOffer()).build();
-        when(store.nextForState(eq(ACCEPTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(ACCEPTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -193,7 +195,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void agreed_shouldTransitionToVerifying() {
         var negotiation = contractNegotiationBuilder().state(AGREED.code()).build();
-        when(store.nextForState(eq(AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(AGREED.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         negotiationManager.start();
@@ -208,7 +210,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void agreed_shouldTransitionToFinalized_whenProtocolIsIdsMultipart() {
         var negotiation = contractNegotiationBuilder().state(AGREED.code()).protocol("ids-multipart").build();
-        when(store.nextForState(eq(AGREED.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(AGREED.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         negotiationManager.start();
@@ -222,7 +224,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void verifying_shouldSendMessageAndTransitionToVerified() {
         var negotiation = contractNegotiationBuilder().state(VERIFYING.code()).build();
-        when(store.nextForState(eq(VERIFYING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(VERIFYING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture("any"));
 
@@ -238,7 +240,7 @@ class ConsumerContractNegotiationManagerImplTest {
     void terminating_shouldSendRejectionAndTransitionTerminated() {
         var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
-        when(store.nextForState(eq(TERMINATING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -255,7 +257,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @ArgumentsSource(DispatchFailureArguments.class)
     void dispatchFailure(ContractNegotiationStates starting, ContractNegotiationStates ending, UnaryOperator<ContractNegotiation.Builder> builderEnricher) {
         var negotiation = builderEnricher.apply(contractNegotiationBuilder().state(starting.code())).build();
-        when(store.nextForState(eq(starting.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -266,6 +268,10 @@ class ConsumerContractNegotiationManagerImplTest {
             verify(store).save(argThat(p -> p.getState() == ending.code()));
             verify(dispatcherRegistry, only()).send(any(), any());
         });
+    }
+
+    private Criterion[] stateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state), new Criterion("type", "=", "CONSUMER") });
     }
 
     private ContractNegotiation.Builder contractNegotiationBuilder() {

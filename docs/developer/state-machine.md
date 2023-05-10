@@ -35,7 +35,7 @@ public void stop() { // Called from ServiceExtension shutdown() method
 }
 
 private StateProcessorImpl<StatefulEntityImpl> processEntitiesInState(State state, Function<StatefulEntityImpl, Boolean> function) {
-  return new StateProcessorImpl<>(() -> store.nextForState(state, batchSize), function);
+  return new StateProcessorImpl<>(() -> store.nextNotLeased(batchSize, hasState(state.code())), function);
 }
 
 // Processor functions should return true only if the state machine has been updated
@@ -62,7 +62,9 @@ public void save(StatefulEntityImpl instance) {
   // release lease
 }
 
-public Collection<StatefulEntityImpl> nextForState(State state, int limit) {
-  // retrieve and lease at most limit instances in state
+List<T> nextNotLeased(int max, Criterion... criteria); {
+  // retrieve and lease at most limit instances that satisfy criteria
 }
+
+
 ```

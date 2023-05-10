@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.defaults.storage;
 
-import org.eclipse.edc.spi.query.BaseCriterionToPredicateConverter;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -34,6 +32,7 @@ import static org.eclipse.edc.util.reflection.ReflectionUtil.propertyComparator;
 public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
     private final Class<T> typeParameterClass;
+    private final DefaultCriterionToPredicateConverter<T> predicateConverter = new DefaultCriterionToPredicateConverter<T>();
 
     /**
      * Constructor for StreamQueryResolver
@@ -56,10 +55,10 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
      */
     @Override
     public Stream<T> query(Stream<T> stream, QuerySpec spec) {
+        var andPredicate = spec.getFilterExpression().stream()
+                .map(predicateConverter::convert)
+                .reduce(x -> true, Predicate::and);
 
-        // filter
-        Stream<Predicate<T>> predicateStream = spec.getFilterExpression().stream().map(this::toPredicate);
-        var andPredicate = predicateStream.reduce(x -> true, Predicate::and);
         Stream<T> filteredStream  = stream.filter(andPredicate);
 
         // sort
@@ -76,16 +75,6 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
         // limit
         return filteredStream.skip(spec.getOffset()).limit(spec.getLimit());
-    }
-
-    private Predicate<T> toPredicate(Criterion criterion) {
-        var predicateConverter = new BaseCriterionToPredicateConverter<T>() {
-            @Override
-            protected Object property(String key, Object object) {
-                return ReflectionUtil.getFieldValueSilent(key, object);
-            }
-        };
-        return predicateConverter.convert(criterion);
     }
 
 }

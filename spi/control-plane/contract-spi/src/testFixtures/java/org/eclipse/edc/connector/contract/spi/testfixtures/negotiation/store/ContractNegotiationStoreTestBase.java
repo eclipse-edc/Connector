@@ -41,6 +41,8 @@ import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.st
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createContractBuilder;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiationBuilder;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 public abstract class ContractNegotiationStoreTestBase {
     protected static final String CONNECTOR_NAME = "test-connector";
@@ -214,7 +216,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
         assertThat(isLockedBy(id, CONNECTOR_NAME)).isFalse();
 
-        var next = getContractNegotiationStore().nextForState(800, 10);
+        var next = getContractNegotiationStore().nextNotLeased(10, hasState(800));
         Assertions.assertThat(next).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt").containsOnly(newNegotiation);
 
     }
@@ -505,23 +507,23 @@ public abstract class ContractNegotiationStoreTestBase {
     }
 
     @Test
-    @DisplayName("Verify that nextForState returns the correct amount of items")
-    void nextForState() {
+    @DisplayName("Verify that nextNotLeased returns the correct amount of items")
+    void nextNotLeased() {
         var negotiations = IntStream
                 .range(0, 10)
                 .mapToObj(i -> createNegotiation("id" + i))
                 .collect(Collectors.toList());
         negotiations.forEach(getContractNegotiationStore()::save);
 
-        var batch = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var batch = getContractNegotiationStore().nextNotLeased(5, hasState(REQUESTED.code()));
 
         Assertions.assertThat(batch).hasSize(5).isSubsetOf(negotiations);
 
     }
 
     @Test
-    @DisplayName("nextForState: verify that only non-leased entities are returned")
-    void nextForState_withLeasedEntity() {
+    @DisplayName("nextNotLeased: verify that only non-leased entities are returned")
+    void nextNotLeased_withLeasedEntity() {
         var negotiations = IntStream
                 .range(0, 10)
                 .mapToObj(i -> createNegotiation(String.valueOf(i)))
@@ -529,9 +531,9 @@ public abstract class ContractNegotiationStoreTestBase {
         negotiations.forEach(getContractNegotiationStore()::save);
 
         // mark a few as "leased"
-        getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        getContractNegotiationStore().nextNotLeased(5, hasState(REQUESTED.code()));
 
-        var batch2 = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 10);
+        var batch2 = getContractNegotiationStore().nextNotLeased(10, hasState(REQUESTED.code()));
         Assertions.assertThat(batch2)
                 .hasSize(5)
                 .isSubsetOf(negotiations)
@@ -541,8 +543,8 @@ public abstract class ContractNegotiationStoreTestBase {
     }
 
     @Test
-    @DisplayName("nextForState: verify that an expired lease is re-acquired")
-    void nextForState_withLeasedEntity_expiredLease() throws InterruptedException {
+    @DisplayName("nextNotLeased: verify that an expired lease is re-acquired")
+    void nextNotLeased_withLeasedEntity_expiredLease() throws InterruptedException {
         var negotiations = IntStream
                 .range(0, 5)
                 .mapToObj(i -> createNegotiation(String.valueOf(i)))
@@ -555,7 +557,7 @@ public abstract class ContractNegotiationStoreTestBase {
         // let enough time pass
         Thread.sleep(50);
 
-        var leasedNegotiations = getContractNegotiationStore().nextForState(ContractNegotiationStates.REQUESTED.code(), 5);
+        var leasedNegotiations = getContractNegotiationStore().nextNotLeased(5, hasState(REQUESTED.code()));
         Assertions.assertThat(leasedNegotiations)
                 .hasSize(5)
                 .containsAll(negotiations);
@@ -564,8 +566,8 @@ public abstract class ContractNegotiationStoreTestBase {
     }
 
     @Test
-    @DisplayName("Verify that nextForState returns the agreement")
-    void nextForState_withAgreement() {
+    @DisplayName("Verify that nextNotLeased returns the agreement")
+    void nextNotLeased_withAgreement() {
         var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString(), ASSET_ID));
         var negotiation = createNegotiationBuilder(UUID.randomUUID().toString())
                 .contractAgreement(contractAgreement)
@@ -574,7 +576,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
         getContractNegotiationStore().save(negotiation);
 
-        var batch = getContractNegotiationStore().nextForState(ContractNegotiationStates.AGREED.code(), 1);
+        var batch = getContractNegotiationStore().nextNotLeased(1, hasState(ContractNegotiationStates.AGREED.code()));
 
         assertThat(batch).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(negotiation);
 

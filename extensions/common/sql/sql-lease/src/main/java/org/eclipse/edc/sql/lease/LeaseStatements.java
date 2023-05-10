@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.sql.lease;
 
+import static java.lang.String.format;
+
 /**
  * Encapsulates statements and table/column names to manipulate lease entities.
  */
@@ -25,6 +27,12 @@ public interface LeaseStatements {
     String getUpdateLeaseTemplate();
 
     String getFindLeaseByEntityTemplate();
+
+    default String getNotLeasedFilter() {
+        return format("(%s IS NULL OR %s IN (SELECT %s FROM %s WHERE (? > (%s + %s))))",
+                getLeaseIdColumn(), getLeaseIdColumn(), getLeaseIdColumn(),
+                getLeaseTableName(), getLeasedAtColumn(), getLeaseDurationColumn());
+    }
 
     default String getLeaseTableName() {
         return "edc_lease";

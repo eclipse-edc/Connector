@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.defaults.storage.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.persistence.Lease;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,11 +77,12 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public @NotNull List<TransferProcess> nextForState(int state, int max) {
-        return store.nextForState(state, max);
+    public @NotNull List<TransferProcess> nextNotLeased(int max, Criterion... criteria) {
+        return store.leaseAndGet(max, criteria);
     }
 
     public Stream<TransferProcess> findAll() {
         return store.findAll();
     }
+
 }
