@@ -23,10 +23,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage.Type.INITIAL;
+import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
@@ -40,28 +41,51 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
     }
 
     @Override
-    public @Nullable ContractRequestMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var builder = ContractRequestMessage.Builder.newInstance()
-                .protocol(DATASPACE_PROTOCOL_HTTP)
-                .type(INITIAL)
-                .processId(transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), context))
-                .callbackAddress(transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS), context))
-                .dataSet(transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_DATASET), context));
-
-        var policy = transformObject(object.get(DSPACE_NEGOTIATION_PROPERTY_OFFER), Policy.class, context);
-        if (policy == null) {
-            context.reportProblem("Cannot transform to ContractRequestMessage with null policy");
+    public @Nullable ContractRequestMessage transform(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
+        var builder = ContractRequestMessage.Builder.newInstance().protocol(DATASPACE_PROTOCOL_HTTP);
+        if (!transformMandatoryString(requestObject.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
+            context.reportProblem(format("No '%s' specified on ContractRequestMessage", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
             return null;
         }
 
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(nodeId(object))
-                .assetId(policy.getTarget())
-                .policy(policy).build();
+        var callback = requestObject.get(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS);
+        if (callback != null) {
+            transformString(callback, builder::callbackAddress, context);
+        }
 
-        builder.contractOffer(contractOffer);
+        var dataset = requestObject.get(DSPACE_NEGOTIATION_PROPERTY_DATASET);
+        if (dataset != null) {
+            builder.dataSet(transformString(dataset, context));
+        }
 
+        var contractOffer = requestObject.get(DSPACE_NEGOTIATION_PROPERTY_OFFER);
+        if (contractOffer != null) {
+            if (!(contractOffer instanceof JsonObject)) {
+                context.reportProblem(format("Invalid '%s' type on ContractRequestMessage", DSPACE_NEGOTIATION_PROPERTY_OFFER));
+                return null;
+            }
+            var contractObject = (JsonObject) contractOffer;
+            var policy = transformObject(contractObject, Policy.class, context);
+            if (policy == null) {
+                context.reportProblem("Cannot transform to ContractRequestMessage with null policy");
+                return null;
+            }
+            var id = nodeId(contractObject);
+            if (id == null) {
+                context.reportProblem(format("@id must be specified when including a '%s' in a ContractRequestMessage", DSPACE_NEGOTIATION_PROPERTY_OFFER));
+                return null;
+            }
+            var offer = ContractOffer.Builder.newInstance().id(id).assetId(policy.getTarget()).policy(policy).build();
+            builder.contractOffer(offer);
+        } else {
+            if (!transformMandatoryString(requestObject.get(DSPACE_NEGOTIATION_PROPERTY_OFFER_ID), builder::contractOfferId, context)) {
+                context.reportProblem("ContractRequestMessage must specify a contract offer or contract offer id");
+                return null;
+            }
+        }
         return builder.build();
     }
 
 }
+
+

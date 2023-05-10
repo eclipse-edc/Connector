@@ -155,6 +155,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param context the transformer context
      * @return the string result
      */
+    @Nullable
     protected String transformString(JsonValue value, TransformerContext context) {
         if (value instanceof JsonString) {
             return ((JsonString) value).getString();

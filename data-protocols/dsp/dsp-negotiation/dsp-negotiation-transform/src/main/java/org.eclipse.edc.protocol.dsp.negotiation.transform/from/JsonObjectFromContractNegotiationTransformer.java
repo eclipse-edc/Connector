@@ -49,13 +49,13 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull ContractNegotiation object, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull ContractNegotiation contractNegotiation, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, object.getCorrelationId());
+        builder.add(JsonLdKeywords.ID, contractNegotiation.getCorrelationId());
         builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, object.getCorrelationId());
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_STATE, state(object.getState(), context));
+        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, contractNegotiation.getCorrelationId());
+        builder.add(DSPACE_NEGOTIATION_PROPERTY_STATE, state(contractNegotiation.getState(), context));
 
         return builder.build();
     }

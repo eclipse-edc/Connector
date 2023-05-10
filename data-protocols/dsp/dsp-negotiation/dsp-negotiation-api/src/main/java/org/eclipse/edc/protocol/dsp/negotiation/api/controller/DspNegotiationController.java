@@ -43,6 +43,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Optional;
@@ -63,6 +64,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -71,8 +73,8 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
  * Provides consumer and provider endpoints for the contract negotiation according to the http binding
  * of the dataspace protocol.
  */
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
 public class DspNegotiationController {
 
@@ -84,9 +86,13 @@ public class DspNegotiationController {
     private final ObjectMapper mapper;
     private final JsonLd jsonLdService;
 
-    public DspNegotiationController(Monitor monitor, ObjectMapper mapper, String callbackAddress,
-                                    IdentityService identityService, TypeTransformerRegistry transformerRegistry,
-                                    ContractNegotiationProtocolService protocolService, JsonLd jsonLdService) {
+    public DspNegotiationController(String callbackAddress,
+                                    IdentityService identityService,
+                                    TypeTransformerRegistry transformerRegistry,
+                                    ContractNegotiationProtocolService protocolService,
+                                    JsonLd jsonLdService,
+                                    ObjectMapper mapper,
+                                    Monitor monitor) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
@@ -123,13 +129,18 @@ public class DspNegotiationController {
     public Map<String, Object> initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true) JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(() -> "DSP: Incoming ContractRequestMessage for initiating a contract negotiation.");
 
-        var negotiation = processMessage(token, Optional.empty(), body, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, ContractRequestMessage.class, protocolService::notifyRequested);
+        var negotiation = processMessage(token,
+                Optional.empty(),
+                body,
+                DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE,
+                ContractRequestMessage.class,
+                this::validateAndProcessRequest);
 
-        var result = transformerRegistry.transform(negotiation, JsonObject.class).orElseThrow(failure ->
-                new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
+        var result = transformerRegistry.transform(negotiation, JsonObject.class).orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
+
         var compactResult = jsonLdService.compact(result);
-        return compactResult.map(jo -> mapper.convertValue(jo, Map.class))
-                .orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+
+        return compactResult.map(jo -> mapper.convertValue(jo, Map.class)).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
     }
 
     /**
@@ -243,7 +254,11 @@ public class DspNegotiationController {
         processMessage(token, Optional.of(id), body, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, ContractAgreementMessage.class, protocolService::notifyAgreed);
     }
 
-    private <M extends ContractRemoteMessage> ContractNegotiation processMessage(String token, Optional<String> processId, JsonObject body, String expectedType, Class<M> messageClass,
+    private <M extends ContractRemoteMessage> ContractNegotiation processMessage(String token,
+                                                                                 Optional<String> processId,
+                                                                                 JsonObject body,
+                                                                                 String expectedType,
+                                                                                 Class<M> messageClass,
                                                                                  BiFunction<M, ClaimToken, ServiceResult<ContractNegotiation>> serviceCall) {
         var claimToken = checkAndReturnAuthToken(token);
         var expanded = jsonLdService.expand(body).map(ej -> ej).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
@@ -255,6 +270,14 @@ public class DspNegotiationController {
 
         // invokes negotiation protocol service method
         return serviceCall.apply(message, claimToken).orElseThrow(exceptionMapper(ContractNegotiation.class));
+    }
+
+    @NotNull
+    private ServiceResult<ContractNegotiation> validateAndProcessRequest(ContractRequestMessage message, ClaimToken claimToken) {
+        if (message.getCallbackAddress() == null) {
+            throw new InvalidRequestException(format("ContractRequestMessage must contain a '%s' property", DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS));
+        }
+        return protocolService.notifyRequested(message, claimToken);
     }
 
     private ClaimToken checkAndReturnAuthToken(String token) {

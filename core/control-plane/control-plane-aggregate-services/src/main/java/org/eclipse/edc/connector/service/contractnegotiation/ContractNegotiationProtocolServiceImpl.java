@@ -162,7 +162,9 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
     @NotNull
     private ServiceResult<ValidatedConsumerOffer> validateOffer(ContractRequestMessage message, ClaimToken claimToken) {
-        var result = validationService.validateInitialOffer(claimToken, message.getContractOffer());
+        var result = message.getContractOffer() != null ?
+                validationService.validateInitialOffer(claimToken, message.getContractOffer()) :
+                validationService.validateInitialOffer(claimToken, message.getContractOfferId());
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer rejected as invalid: " + result.getFailureDetail());
             return ServiceResult.badRequest("Contract offer is not valid: " + result.getFailureDetail());

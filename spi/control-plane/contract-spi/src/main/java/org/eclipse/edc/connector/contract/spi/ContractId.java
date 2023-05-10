@@ -21,7 +21,7 @@ import java.util.UUID;
 /**
  * Handles contract ID generation for contract offers and agreements originating in an EDC runtime.
  * Ids are architected to allow the contract definition which generated the contract to be de-referenced.
- * The id format follows the following scheme: <code>[definition-id]:UUID</code>
+ * The id format follows the following scheme: <code>[definition-id]:[asset-id]:UUID</code>
  */
 public final class ContractId {
 
