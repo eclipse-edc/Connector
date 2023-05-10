@@ -300,7 +300,7 @@ class ContractNegotiationIntegrationTest {
      */
     private ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId("1"))
+                .id(ContractId.createContractId("1", "test-asset-id"))
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .providerId("provider")

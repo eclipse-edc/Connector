@@ -103,7 +103,7 @@ class ContractNegotiationEventDispatchTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.create(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
-        service.notifyRequested(createContractOfferRequest(policy), token);
+        service.notifyRequested(createContractOfferRequest(policy, "assetId"), token);
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
@@ -111,10 +111,10 @@ class ContractNegotiationEventDispatchTest {
         });
     }
 
-    private ContractRequestMessage createContractOfferRequest(Policy policy) {
+    private ContractRequestMessage createContractOfferRequest(Policy policy, String assetId) {
         var now = ZonedDateTime.now();
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id("contractDefinitionId:" + UUID.randomUUID())
+                .id("contractDefinitionId:" + assetId + ":" + UUID.randomUUID())
                 .assetId("assetId")
                 .policy(policy)
                 .providerId(PROVIDER)
