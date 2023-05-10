@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       T-Systems International GmbH
+ *       Fraunhofer ISST
  *
  */
 
