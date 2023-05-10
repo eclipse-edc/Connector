@@ -23,9 +23,14 @@ class ContractIdTest {
 
     @Test
     void isValid() {
-        var id = ContractId.parse("thisis:avalidid");
+        var id = ContractId.parse("thisis:a:validid");
 
         assertThat(id.isValid()).isTrue();
+    }
+
+    @Test
+    void isValid_tooFewParts() {
+        assertThat(ContractId.parse("thisis:invalid").isValid()).isFalse();
     }
 
     @Test
@@ -37,7 +42,7 @@ class ContractIdTest {
 
     @Test
     void isValid_falseIfTooManyColonsPresent() {
-        var id = ContractId.parse("thisis:an:invalidid");
+        var id = ContractId.parse("thisis:a:very:invalidid");
 
         assertThat(id.isValid()).isFalse();
     }

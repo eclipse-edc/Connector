@@ -52,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
+    private static final String TEST_ASSET_ID = "test-asset-id";
     private final Map<String, Lease> leases = new HashMap<>();
     private InMemoryContractNegotiationStore store;
 
@@ -249,7 +250,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_noQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID)).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
@@ -262,7 +263,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_verifyPaging() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID)).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
@@ -396,7 +397,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                 .limit(10).offset(5).build();
 
         IntStream.range(0, 100)
-                .mapToObj(i -> org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation("" + i))
+                .mapToObj(i -> org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation(String.valueOf(i)))
                 .forEach(cn -> getContractNegotiationStore().save(cn));
 
         var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
