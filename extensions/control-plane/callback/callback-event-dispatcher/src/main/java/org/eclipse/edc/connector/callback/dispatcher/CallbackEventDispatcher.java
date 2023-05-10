@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.callback.dispatcher;
 
 import org.eclipse.edc.connector.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolverRegistry;
+import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
@@ -25,7 +26,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.net.URI;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -38,11 +41,12 @@ public class CallbackEventDispatcher implements EventSubscriber {
     private final RemoteMessageDispatcherRegistry dispatcher;
     private final boolean transactional;
     private final Monitor monitor;
-
+    private final CallbackRegistry callbackRegistry;
     private final CallbackProtocolResolverRegistry resolverRegistry;
 
-    public CallbackEventDispatcher(RemoteMessageDispatcherRegistry dispatcher, CallbackProtocolResolverRegistry resolveRegistry, boolean transactional, Monitor monitor) {
+    public CallbackEventDispatcher(RemoteMessageDispatcherRegistry dispatcher, CallbackRegistry callbackRegistry, CallbackProtocolResolverRegistry resolveRegistry, boolean transactional, Monitor monitor) {
         this.dispatcher = dispatcher;
+        this.callbackRegistry = callbackRegistry;
         this.transactional = transactional;
         this.resolverRegistry = resolveRegistry;
         this.monitor = monitor;
@@ -50,10 +54,7 @@ public class CallbackEventDispatcher implements EventSubscriber {
 
     @Override
     public <E extends Event> void on(EventEnvelope<E> eventEnvelope) {
-        var callbacks = eventEnvelope.getPayload().getCallbackAddresses()
-                .stream().filter(cb -> cb.isTransactional() == transactional)
-                .collect(Collectors.toList());
-
+        var callbacks = getCallbacks(eventEnvelope);
         var eventName = eventEnvelope.getPayload().name();
 
         for (var callback : callbacks) {
@@ -75,6 +76,17 @@ public class CallbackEventDispatcher implements EventSubscriber {
 
     public boolean isTransactional() {
         return transactional;
+    }
+
+    private <E extends Event> List<CallbackAddress> getCallbacks(EventEnvelope<E> eventEnvelope) {
+        var staticCallbacks = callbackRegistry.resolve(eventEnvelope.getPayload().name()).stream();
+        var dynamicCallbacks =
+                eventEnvelope.getPayload().getCallbackAddresses()
+                        .stream();
+
+        return Stream.concat(staticCallbacks, dynamicCallbacks)
+                .filter(cb -> cb.isTransactional() == transactional)
+                .collect(Collectors.toList());
     }
 
     private boolean matches(String eventName, CallbackAddress callbackAddress) {

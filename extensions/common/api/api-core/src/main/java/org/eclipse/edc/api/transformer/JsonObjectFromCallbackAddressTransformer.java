@@ -25,7 +25,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_CODE_ID;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_KEY;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.CALLBACKADDRESS_TYPE;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
@@ -43,11 +46,15 @@ public class JsonObjectFromCallbackAddressTransformer extends AbstractJsonLdTran
     @Override
     public @Nullable JsonObject transform(@NotNull CallbackAddress callbackAddress, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        return builder.add(TYPE, CALLBACKADDRESS_TYPE)
+        builder.add(TYPE, CALLBACKADDRESS_TYPE)
                 .add(IS_TRANSACTIONAL, callbackAddress.isTransactional())
                 .add(URI, callbackAddress.getUri())
-                .add(EVENTS, asArray(callbackAddress.getEvents()))
-                .build();
+                .add(EVENTS, asArray(callbackAddress.getEvents()));
+
+        ofNullable(callbackAddress.getAuthKey()).ifPresent((authKey) -> builder.add(AUTH_KEY, authKey));
+        ofNullable(callbackAddress.getAuthCodeId()).ifPresent((authCodeId) -> builder.add(AUTH_CODE_ID, authCodeId));
+
+        return builder.build();
     }
 
     private JsonArrayBuilder asArray(Set<String> events) {

@@ -40,6 +40,8 @@ class CallbackAddressDtoToCallbackAddressTransformerTest {
                 .uri("http://test")
                 .events(Set.of("event"))
                 .transactional(true)
+                .authCodeId("code")
+                .authKey("key")
                 .build();
 
         var callback = transformer.transform(dto, context);

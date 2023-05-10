@@ -19,6 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -39,6 +40,10 @@ public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
     @Inject
     private CallbackProtocolResolverRegistry resolverRegistry;
 
+    @Inject
+    private Vault vault;
+
+
     @Override
     public String name() {
         return NAME;
@@ -50,7 +55,7 @@ public class CallbackEventDispatcherHttpExtension implements ServiceExtension {
         resolverRegistry.registerResolver(this::resolveScheme);
 
         var baseDispatcher = new GenericHttpRemoteDispatcherImpl(client);
-        baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper()));
+        baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper(), vault));
 
         registry.register(baseDispatcher);
     }

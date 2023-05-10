@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_CODE_ID;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_KEY;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
@@ -49,6 +51,8 @@ class JsonObjectToCallbackAddressDtoTransformerTest {
                         .add("bar")
                         .add("baz")
                         .build())
+                .add(AUTH_CODE_ID, "code")
+                .add(AUTH_KEY, "key")
                 .build();
 
         var contextMock = mock(TransformerContext.class);
@@ -61,5 +65,7 @@ class JsonObjectToCallbackAddressDtoTransformerTest {
         assertThat(cba.getEvents()).containsExactlyInAnyOrder("foo", "bar", "baz");
         assertThat(cba.getUri()).isEqualTo("http://test.local/");
         assertThat(cba.isTransactional()).isTrue();
+        assertThat(cba.getAuthKey()).isEqualTo("key");
+        assertThat(cba.getAuthCodeId()).isEqualTo("code");
     }
 }

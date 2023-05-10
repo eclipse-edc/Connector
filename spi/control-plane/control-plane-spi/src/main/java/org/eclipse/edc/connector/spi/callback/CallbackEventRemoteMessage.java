@@ -25,13 +25,12 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
  */
 public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessage {
 
-    private final String connectorAddress;
     private final String protocol;
-
     private final EventEnvelope<T> envelope;
+    private final CallbackAddress callbackAddress;
 
     public CallbackEventRemoteMessage(CallbackAddress callbackAddress, EventEnvelope<T> envelope, String protocol) {
-        this.connectorAddress = callbackAddress.getUri();
+        this.callbackAddress = callbackAddress;
         this.protocol = protocol;
         this.envelope = envelope;
     }
@@ -43,7 +42,15 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
 
     @Override
     public String getCallbackAddress() {
-        return connectorAddress;
+        return callbackAddress.getUri();
+    }
+
+    public String getAuthKey() {
+        return callbackAddress.getAuthKey();
+    }
+
+    public String getAuthCodeId() {
+        return callbackAddress.getAuthCodeId();
     }
 
     public EventEnvelope<T> getEventEnvelope() {

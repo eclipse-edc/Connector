@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.AfterEach;
@@ -43,8 +44,10 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -58,10 +61,13 @@ public class GenericHttpRemoteDispatcherWrapperTest {
     private final TypeManager typeManager = new TypeManager();
     private EdcHttpClient httpClient;
 
+    private Vault vault;
+
     @BeforeEach
     void setup() {
         receiverEndpointServer = startClientAndServer(CALLBACK_PORT);
         httpClient = spy(testHttpClient());
+        vault = mock(Vault.class);
     }
 
     @AfterEach
@@ -85,6 +91,43 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         var request = request().withPath("/" + CALLBACK_PATH)
                 .withMethod(HttpMethod.POST.name())
+                .withBody(typeManager.writeValueAsString(event));
+
+        receiverEndpointServer.when(request).respond(successfulResponse());
+
+
+        dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
+
+        verify(httpClient, atMostOnce()).execute(any());
+
+
+    }
+
+    @Test
+    public void send_shouldCallTheHttpCallback_WithAuthHeader() throws ExecutionException, InterruptedException, IOException {
+        var dispatcher = createDispatcher();
+
+        var authKey = "authHeader";
+        var authCodeId = "authCodeId";
+        var authCodeIdValue = "authCodeIdValue";
+
+
+        when(vault.resolveSecret(authCodeId)).thenReturn(authCodeIdValue);
+
+        var callback = CallbackAddress.Builder.newInstance()
+                .events(Set.of("test"))
+                .uri(callbackUrl())
+                .authKey(authKey)
+                .authCodeId(authCodeId)
+                .build();
+
+        var tpEvent = TransferProcessCompleted.Builder.newInstance().transferProcessId("test").callbackAddresses(List.of(callback)).build();
+
+        var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
+
+        var request = request().withPath("/" + CALLBACK_PATH)
+                .withMethod(HttpMethod.POST.name())
+                .withHeader(authKey, authCodeIdValue)
                 .withBody(typeManager.writeValueAsString(event));
 
         receiverEndpointServer.when(request).respond(successfulResponse());
@@ -128,7 +171,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
     private RemoteMessageDispatcher createDispatcher() {
         var baseDispatcher = new GenericHttpRemoteDispatcherImpl(httpClient);
-        baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper()));
+        baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper(), vault));
         return baseDispatcher;
     }
 
