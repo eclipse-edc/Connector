@@ -467,7 +467,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     @Test
     void queryAgreements_noQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString(), "test-asset-id")).build();
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
@@ -480,7 +480,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     @Test
     void queryAgreements_verifyPaging() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString(), "test-asset-id")).build();
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });

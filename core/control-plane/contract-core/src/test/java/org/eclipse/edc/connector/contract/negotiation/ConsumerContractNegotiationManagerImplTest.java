@@ -279,7 +279,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     private ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance().id("id:id")
+        return ContractOffer.Builder.newInstance().id("id:assetId:random")
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("assetId")
                 .contractStart(ZonedDateTime.now())
@@ -309,7 +309,7 @@ class ConsumerContractNegotiationManagerImplTest {
         }
 
         private ContractOffer contractOffer() {
-            return ContractOffer.Builder.newInstance().id("id:id")
+            return ContractOffer.Builder.newInstance().id("id:assetId:random")
                     .policy(Policy.Builder.newInstance().build())
                     .assetId("assetId")
                     .contractStart(ZonedDateTime.now())
