@@ -62,17 +62,6 @@ class ContractRequestMessageTest {
     }
 
     @Test
-    void verify_noDataset() {
-        assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
-                .type(INITIAL)
-                .protocol(PROTOCOL)
-                .processId(PROCESS_ID)
-                .contractOfferId(OFFER_ID)
-                .callbackAddress(CALLBACK_ADDRESS)
-                .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("dataSet");
-    }
-
-    @Test
     void verify_contractOfferIdOrContractOffer() {
         ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)

@@ -66,6 +66,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -181,7 +182,7 @@ class MultipartDispatcherIntegrationTest {
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
         when(transformerRegistry.transform(any(), eq(ContractOffer.class))).thenReturn(Result.success(contractOffer));
         var validatedOffer = new ValidatedConsumerOffer("urn:connector:consumer", contractOffer);
-        when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(validatedOffer));
+        when(validationService.validateInitialOffer(any(), anyString())).thenReturn(Result.success(validatedOffer));
 
         var request = ContractRequestMessage.Builder.newInstance()
                 .type(ContractRequestMessage.Type.INITIAL)

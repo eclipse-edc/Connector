@@ -58,7 +58,7 @@ public interface ContractValidationService {
      * @return The referenced {@link ContractOffer}.
      */
     @NotNull
-    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, String offerId, String assetId);
+    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, String offerId);
 
     /**
      * Validates the contract agreement that the consumer referenced in its transfer request.

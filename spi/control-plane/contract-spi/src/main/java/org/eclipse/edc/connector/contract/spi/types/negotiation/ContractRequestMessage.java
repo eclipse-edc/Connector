@@ -136,7 +136,6 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             if (contractRequestMessage.contractOfferId == null) {
                 requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
             } else {
-                requireNonNull(contractRequestMessage.dataSet, "dataSet");
                 requireNonNull(contractRequestMessage.contractOfferId, "contractOfferId");
             }
             return contractRequestMessage;
