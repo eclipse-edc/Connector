@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 
 /**
  * Implementation of {@link GenericHttpDispatcherDelegate} that works for message of type {@link CallbackEventRemoteMessage}
@@ -53,15 +52,17 @@ public class CallbackEventRemoteMessageDispatcher implements GenericHttpDispatch
     @Override
     public Request buildRequest(CallbackEventRemoteMessage message) {
         try {
+            var eventName = message.getEventEnvelope().getPayload().name();
             var body = mapper.writeValueAsString(((CallbackEventRemoteMessage<?>) message).getEventEnvelope());
 
             var builder = new Request.Builder()
                     .url(message.getCallbackAddress())
                     .post((RequestBody.create(body, MediaType.get(APPLICATION_JSON))));
 
-            ofNullable(message.getAuthKey())
-                    .ifPresent(authKey -> builder.addHeader(authKey, extractAuthCode(message.getEventEnvelope().getPayload().name(), message.getAuthCodeId())));
-
+            if (message.getAuthKey() != null) {
+                var authCode = extractAuthCode(eventName, message.getAuthCodeId());
+                builder.addHeader(message.getAuthKey(), authCode);
+            }
             return builder.build();
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

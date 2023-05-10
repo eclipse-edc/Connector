@@ -42,7 +42,6 @@ public class CallbackEventDispatcherExtension implements ServiceExtension {
     @Inject
     Monitor monitor;
 
-    @Inject(required = false)
     CallbackRegistry callbackRegistry;
 
     @Override

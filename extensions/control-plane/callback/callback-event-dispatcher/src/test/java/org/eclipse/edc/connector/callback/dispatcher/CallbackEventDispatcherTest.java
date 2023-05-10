@@ -36,10 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class CallbackEventDispatcherTest {
 
@@ -66,6 +63,34 @@ public class CallbackEventDispatcherTest {
     }
 
     @Test
+    void verifyShouldDispatch_WhenCallbacksMatchedOnRegistry() {
+
+        dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, true, monitor);
+        when(resolverRegistry.resolve("local")).thenReturn("local");
+        var event = TransferProcessCompleted.Builder.newInstance().transferProcessId("id").build();
+        var callbacks = List.of(CallbackAddress.Builder.newInstance()
+                .uri("local://test")
+                .events(Set.of("transfer.process.completed"))
+                .transactional(true)
+                .build());
+
+        when(callbackRegistry.resolve(event.name())).thenReturn(callbacks);
+        when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+
+        dispatcher.on(envelope(event));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
+
+        verify(registry).send(any(), captor.capture());
+
+        assertThat(captor.getValue().getEventEnvelope().getPayload())
+                .usingRecursiveComparison()
+                .isEqualTo(event);
+
+    }
+
+    @Test
     void verifyDispatchShouldThrowException() {
         dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, true, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
@@ -85,11 +110,11 @@ public class CallbackEventDispatcherTest {
                 .build();
 
         assertThatThrownBy(() -> dispatcher.on(envelope(event))).isInstanceOf(EdcException.class);
-
+        
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = { true, false })
+    @ValueSource(booleans = {true, false})
     void verifyShouldDispatchWithSameTransactionalConfiguration(boolean transactional) {
 
         when(resolverRegistry.resolve("local")).thenReturn("local");
@@ -123,7 +148,7 @@ public class CallbackEventDispatcherTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = { true, false })
+    @ValueSource(booleans = {true, false})
     void verifyShouldNotDispatchWithDifferentTransactionalConfiguration(boolean transactional) {
 
         dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, transactional, monitor);

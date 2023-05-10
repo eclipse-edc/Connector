@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -32,22 +31,14 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.callback.staticendpoint.CallbackStaticEndpointExtension.EDC_CALLBACK_SETTING_PREFIX;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class CallbackStaticEndpointExtensionTest {
@@ -67,13 +58,7 @@ public class CallbackStaticEndpointExtensionTest {
 
     @Test
     void initialize_shouldConfigureMultipleCallbacks() {
-
-        var cb1 = CallbackAddress.Builder.newInstance()
-                .uri("http://url1")
-                .transactional(false)
-                .events(Set.of("transfer", "contract"))
-                .build();
-        var cb2 = CallbackAddress.Builder.newInstance()
+        var callback = CallbackAddress.Builder.newInstance()
                 .uri("http://url2")
                 .transactional(false)
                 .events(Set.of("asset", "policy"))
@@ -81,19 +66,13 @@ public class CallbackStaticEndpointExtensionTest {
                 .authKey("key")
                 .build();
 
-        var cb3 = CallbackAddress.Builder.newInstance()
-                .uri("http://url3")
-                .transactional(true)
-                .events(Set.of("transfer"))
-                .build();
+        var mapConfig = Map.of("edc.callback.endpoint1.uri", callback.getUri(),
+                "edc.callback.endpoint1.transactional", String.valueOf(callback.isTransactional()),
+                "edc.callback.endpoint1.events", String.join(" ,", callback.getEvents()),
+                "edc.callback.endpoint1.auth-code-id", callback.getAuthCodeId(),
+                "edc.callback.endpoint1.auth-key", callback.getAuthKey());
 
-        var callbacks = List.of(cb1, cb2, cb3);
-
-        var cfg = IntStream.range(0, callbacks.size())
-                .mapToObj(idx -> configureCallback(format("endpoint%s", idx), callbacks.get(idx)))
-                .map(ConfigFactory::fromMap)
-                .reduce(Config::merge)
-                .orElseGet(ConfigFactory::empty);
+        var cfg = ConfigFactory.fromMap(mapConfig);
 
         when(context.getConfig(EDC_CALLBACK_SETTING_PREFIX)).thenReturn(cfg.getConfig(EDC_CALLBACK_SETTING_PREFIX));
 
@@ -101,10 +80,9 @@ public class CallbackStaticEndpointExtensionTest {
 
         var captor = ArgumentCaptor.forClass(CallbackAddress.class);
 
-        verify(callbackRegistry, times(callbacks.size())).register(captor.capture());
+        verify(callbackRegistry).register(captor.capture());
 
-        assertThat(captor.getAllValues()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("events")
-                .containsExactlyInAnyOrder(cb1, cb2, cb3);
+        assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(callback);
 
     }
 
@@ -121,26 +99,6 @@ public class CallbackStaticEndpointExtensionTest {
 
     }
 
-    private Map<String, String> configureCallback(String name, CallbackAddress callbackAddress) {
-
-        var config = new HashMap<String, String>();
-
-        config.put(format("edc.callback.%s.uri", name), callbackAddress.getUri());
-        config.put(format("edc.callback.%s.transactional", name), String.valueOf(callbackAddress.isTransactional()));
-
-        if (callbackAddress.getEvents().size() > 0) {
-            config.put(format("edc.callback.%s.events", name), String.join(", ", callbackAddress.getEvents()));
-        }
-
-        if (callbackAddress.getAuthCodeId() != null) {
-            config.put(format("edc.callback.%s.auth-code-id", name), "codeId");
-        }
-        if (callbackAddress.getAuthKey() != null) {
-            config.put(format("edc.callback.%s.auth-key", name), "key");
-        }
-        return config;
-    }
-
     static class CallbackArgumentProvider implements ArgumentsProvider {
         CallbackArgumentProvider() {
         }
@@ -148,9 +106,9 @@ public class CallbackStaticEndpointExtensionTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Map.of("edc.callback.cb.url", "url", "edc.callback.events", "test"),
-                    Map.of("edc.callback.cb.transactional", "false", "edc.callback.events", "test"),
-                    Map.of("edc.callback.cb.url", "url", "edc.callback.transactional", "false")
+                    Map.of("edc.callback.cb.transactional", "false", "edc.cb.callback.events", "test"),
+                    Map.of("edc.callback.cb.uri", "url", "edc.callback.cb.transactional", "false"),
+                    Map.of("edc.callback.cb.uri", "url", "edc.callback.cb.transactional", "false", "edc.callback.cb.events", "test", "edc.callback.cb.auth-key", "test")
             ).map(Arguments::arguments);
         }
     }

@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.callback.staticendpoint;
 import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -24,6 +25,8 @@ import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 /**
  * Extension for configuring the static endpoints for callbacks
@@ -60,11 +63,18 @@ public class CallbackStaticEndpointExtension implements ServiceExtension {
                 .map(String::trim)
                 .collect(Collectors.toSet());
 
+        var authKey = config.getString(EDC_CALLBACK_AUTH_KEY, null);
+        var authCodeId = config.getString(EDC_CALLBACK_AUTH_CODE_ID, null);
+
+        if (authKey != null && authCodeId == null) {
+            throw new EdcException(format("%s cannot be null if %s is present", EDC_CALLBACK_AUTH_CODE_ID, EDC_CALLBACK_AUTH_KEY));
+        }
+
         return CallbackAddress.Builder.newInstance()
                 .uri(config.getString(EDC_CALLBACK_URI))
                 .transactional(config.getBoolean(EDC_CALLBACK_TRANSACTIONAL, false))
-                .authKey(config.getString(EDC_CALLBACK_AUTH_KEY, null))
-                .authCodeId(config.getString(EDC_CALLBACK_AUTH_CODE_ID, null))
+                .authKey(authKey)
+                .authCodeId(authCodeId)
                 .events(events)
                 .build();
     }

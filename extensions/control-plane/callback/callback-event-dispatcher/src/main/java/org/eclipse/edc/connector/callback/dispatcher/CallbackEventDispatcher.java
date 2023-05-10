@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 
 /**
  * Subscriber for invoking callbacks associated to {@link Event}. If the {@link CallbackAddress#getEvents()} matches
@@ -80,9 +79,7 @@ public class CallbackEventDispatcher implements EventSubscriber {
     }
 
     private <E extends Event> List<CallbackAddress> getCallbacks(EventEnvelope<E> eventEnvelope) {
-        var staticCallbacks = ofNullable(callbackRegistry)
-                .map(registry -> registry.resolve(eventEnvelope.getPayload().name()).stream())
-                .orElseGet(Stream::empty);
+        var staticCallbacks = callbackRegistry.resolve(eventEnvelope.getPayload().name()).stream();
         var dynamicCallbacks =
                 eventEnvelope.getPayload().getCallbackAddresses()
                         .stream();
