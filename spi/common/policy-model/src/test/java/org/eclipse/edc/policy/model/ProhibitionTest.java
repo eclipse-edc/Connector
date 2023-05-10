@@ -24,7 +24,6 @@ class ProhibitionTest {
     void withTarget() {
         var target = "target-id";
         var prohibition = Prohibition.Builder.newInstance()
-                .uid("id")
                 .assigner("assigner")
                 .assignee("assignee")
                 .action(Action.Builder.newInstance().type("DELETE").build())
@@ -37,7 +36,6 @@ class ProhibitionTest {
 
         var copy = prohibition.withTarget(target);
 
-        assertThat(copy.getUid()).isEqualTo(prohibition.getUid());
         assertThat(copy.getAssigner()).isEqualTo(prohibition.getAssigner());
         assertThat(copy.getAssignee()).isEqualTo(prohibition.getAssignee());
         assertThat(copy.getAction()).isEqualTo(prohibition.getAction());

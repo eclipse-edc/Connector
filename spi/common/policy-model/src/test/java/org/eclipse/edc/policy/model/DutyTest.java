@@ -34,7 +34,6 @@ class DutyTest {
     void withTarget() {
         var target = "target-id";
         var duty = Duty.Builder.newInstance()
-                .uid("id")
                 .assigner("assigner")
                 .assignee("assignee")
                 .action(Action.Builder.newInstance().type("DELETE").build())
@@ -48,7 +47,6 @@ class DutyTest {
 
         var copy = duty.withTarget(target);
 
-        assertThat(copy.getUid()).isEqualTo(duty.getUid());
         assertThat(copy.getAssigner()).isEqualTo(duty.getAssigner());
         assertThat(copy.getAssignee()).isEqualTo(duty.getAssignee());
         assertThat(copy.getAction()).isEqualTo(duty.getAction());

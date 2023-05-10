@@ -74,7 +74,6 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, policy);
 
-
         return builder.build();
     }
 

@@ -55,14 +55,12 @@ public class TestFunctions {
 
     public static Policy.Builder createPolicyBuilder(String id) {
         var permission = Permission.Builder.newInstance()
-                .uid(id)
                 .build();
 
         var prohibition = createProhibitionBuilder(id)
                 .build();
 
         var duty = Duty.Builder.newInstance()
-                .uid(id)
                 .build();
 
         return Policy.Builder.newInstance()
@@ -77,17 +75,15 @@ public class TestFunctions {
     }
 
     public static Prohibition.Builder createProhibitionBuilder(String id) {
-        return Prohibition.Builder.newInstance()
-                .uid(id);
+        return Prohibition.Builder.newInstance();
     }
 
     public static Duty.Builder createDutyBuilder(String id) {
-        return Duty.Builder.newInstance()
-                .uid(id);
+        return Duty.Builder.newInstance();
     }
 
     public static Permission.Builder createPermissionBuilder(String id) {
-        return Permission.Builder.newInstance().uid(id);
+        return Permission.Builder.newInstance();
     }
 
     public static Action createAction() {

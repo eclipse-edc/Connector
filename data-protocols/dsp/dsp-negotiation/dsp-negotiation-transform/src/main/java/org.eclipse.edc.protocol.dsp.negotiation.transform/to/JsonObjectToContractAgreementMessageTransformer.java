@@ -70,7 +70,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
             return null;
         }
 
-        var agreement = contractAgreement(object, jsonAgreement, policy, context);
+        var agreement = contractAgreement(jsonAgreement, policy, context);
         if (agreement == null) {
             context.reportProblem("Cannot transform to ContractAgreementMessage with null agreement");
             return null;
@@ -90,7 +90,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
     }
 
     @Nullable
-    private ContractAgreement contractAgreement(JsonObject jsonMessage, JsonObject jsonAgreement, Policy policy, TransformerContext context) {
+    private ContractAgreement contractAgreement(JsonObject jsonAgreement, Policy policy, TransformerContext context) {
         var builder = ContractAgreement.Builder.newInstance();
         var agreementId = nodeId(jsonAgreement);
         if (agreementId == null) {

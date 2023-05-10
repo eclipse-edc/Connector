@@ -82,7 +82,6 @@ public class ScopeFilter {
         var filteredDuties = permission.getDuties().stream().map(d -> applyScope(d, scope)).filter(Objects::nonNull).collect(toList());
 
         return Permission.Builder.newInstance()
-                .uid(permission.getUid())
                 .action(permission.getAction())
                 .assignee(permission.getAssignee())
                 .assigner(permission.getAssigner())
@@ -101,7 +100,6 @@ public class ScopeFilter {
         var filteredConstraints = applyScope(duty.getConstraints(), scope);
 
         return Duty.Builder.newInstance()
-                .uid(duty.getUid())
                 .action(duty.getAction())
                 .assignee(duty.getAssignee())
                 .assigner(duty.getAssigner())
@@ -120,7 +118,6 @@ public class ScopeFilter {
         var filteredConstraints = applyScope(prohibition.getConstraints(), scope);
 
         return Prohibition.Builder.newInstance()
-                .uid(prohibition.getUid())
                 .action(prohibition.getAction())
                 .assignee(prohibition.getAssignee())
                 .assigner(prohibition.getAssigner())
