@@ -274,7 +274,7 @@ public class DspNegotiationController {
 
     @NotNull
     private ServiceResult<ContractNegotiation> validateAndProcessRequest(ContractRequestMessage message, ClaimToken claimToken) {
-        if (message.getCallbackAddress() == null){
+        if (message.getCallbackAddress() == null) {
             throw new InvalidRequestException(format("ContractRequestMessage must contain a '%s' property", DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS));
         }
         return protocolService.notifyRequested(message, claimToken);
