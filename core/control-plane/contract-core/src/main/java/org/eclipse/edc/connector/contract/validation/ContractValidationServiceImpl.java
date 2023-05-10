@@ -116,9 +116,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         var result = validateInitialOffer(contractId, agent);
 
-        var offer = createContractOffer(result.getContent().getDefinition(), result.getContent().getPolicy(), contractId.assetIdPart());
-
-        return success(new ValidatedConsumerOffer(agent.getIdentity(), offer));
+        return result.map(r -> {
+            var offer = createContractOffer(result.getContent().getDefinition(), result.getContent().getPolicy(), contractId.assetIdPart());
+            return new ValidatedConsumerOffer(agent.getIdentity(), offer);
+        });
 
     }
 
