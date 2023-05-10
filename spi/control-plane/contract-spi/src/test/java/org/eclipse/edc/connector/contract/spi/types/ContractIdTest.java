@@ -16,14 +16,17 @@ package org.eclipse.edc.connector.contract.spi.types;
 
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ContractIdTest {
 
-    @Test
-    void isValid() {
-        var id = ContractId.parse("thisis:a:validid");
+    @ParameterizedTest
+    @ValueSource(strings = { "this:is:valid", "this:is:valid:" })
+    void isValid(String idString) {
+        var id = ContractId.parse(idString);
 
         assertThat(id.isValid()).isTrue();
     }
@@ -40,17 +43,24 @@ class ContractIdTest {
         assertThat(id.isValid()).isFalse();
     }
 
-    @Test
-    void isValid_falseIfTooManyColonsPresent() {
-        var id = ContractId.parse("thisis:a:very:invalidid");
-
+    @ParameterizedTest
+    @ValueSource(strings = { "thisis:a:very:invalidid", ":this:is:invalid" })
+    void isValid_falseIfTooManyColonsPresent(String idString) {
+        var id = ContractId.parse(idString);
         assertThat(id.isValid()).isFalse();
     }
 
     @Test
     void definitionPart_returnsTheFirstPartOfTheId() {
-        var id = ContractId.parse("definitionPart:agreementPart");
+        var id = ContractId.parse("definitionPart:assetPart:agreementPart");
 
         assertThat(id.definitionPart()).isEqualTo("definitionPart");
+    }
+
+    @Test
+    void assetIdPart_returnsSecondPartOfTheId() {
+        var id = ContractId.parse("definitionPart:assetPart:agreementPart");
+
+        assertThat(id.assetIdPart()).isEqualTo("assetPart");
     }
 }
