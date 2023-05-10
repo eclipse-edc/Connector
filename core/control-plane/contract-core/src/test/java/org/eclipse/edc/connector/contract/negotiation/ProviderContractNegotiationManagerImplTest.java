@@ -211,6 +211,38 @@ class ProviderContractNegotiationManagerImplTest {
         });
     }
 
+    private ContractNegotiation.Builder contractNegotiationBuilder() {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .type(ContractNegotiation.Type.PROVIDER)
+                .correlationId("processId")
+                .counterPartyId("connectorId")
+                .counterPartyAddress("callbackAddress")
+                .protocol("protocol")
+                .state(400)
+                .stateTimestamp(Instant.now().toEpochMilli());
+    }
+
+    private ContractAgreement.Builder contractAgreementBuilder() {
+        return ContractAgreement.Builder.newInstance()
+                .id(ContractId.createContractId(UUID.randomUUID().toString(), "test-asset-id"))
+                .providerId("any")
+                .consumerId("any")
+                .assetId("default")
+                .policy(Policy.Builder.newInstance().build());
+    }
+
+    private ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(ContractId.createContractId("1", "test-asset-id"))
+                .policy(Policy.Builder.newInstance().build())
+                .assetId("assetId")
+                .providerId(PROVIDER_ID)
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now())
+                .build();
+    }
+
     private static class DispatchFailureArguments implements ArgumentsProvider {
 
         private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
@@ -233,45 +265,13 @@ class ProviderContractNegotiationManagerImplTest {
         }
 
         private ContractOffer contractOffer() {
-            return ContractOffer.Builder.newInstance().id("id:id")
+            return ContractOffer.Builder.newInstance().id("id:assetId:random")
                     .policy(Policy.Builder.newInstance().build())
                     .assetId("assetId")
                     .contractStart(ZonedDateTime.now())
                     .contractEnd(ZonedDateTime.now())
                     .build();
         }
-    }
-
-    private ContractNegotiation.Builder contractNegotiationBuilder() {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .type(ContractNegotiation.Type.PROVIDER)
-                .correlationId("processId")
-                .counterPartyId("connectorId")
-                .counterPartyAddress("callbackAddress")
-                .protocol("protocol")
-                .state(400)
-                .stateTimestamp(Instant.now().toEpochMilli());
-    }
-
-    private ContractAgreement.Builder contractAgreementBuilder() {
-        return ContractAgreement.Builder.newInstance()
-                .id(ContractId.createContractId(UUID.randomUUID().toString()))
-                .providerId("any")
-                .consumerId("any")
-                .assetId("default")
-                .policy(Policy.Builder.newInstance().build());
-    }
-
-    private ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId("1"))
-                .policy(Policy.Builder.newInstance().build())
-                .assetId("assetId")
-                .providerId(PROVIDER_ID)
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
-                .build();
     }
 
 }

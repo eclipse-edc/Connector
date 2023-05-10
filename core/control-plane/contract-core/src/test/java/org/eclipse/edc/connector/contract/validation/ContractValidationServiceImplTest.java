@@ -264,7 +264,7 @@ class ContractValidationServiceImplTest {
                 .contractStartDate(now.getEpochSecond())
                 .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(now.getEpochSecond())
-                .id("1:2")
+                .id("1:2:3")
                 .consumerId(CONSUMER_ID)
                 .build();
 
@@ -298,7 +298,7 @@ class ContractValidationServiceImplTest {
                 .contractStartDate(now.getEpochSecond())
                 .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(now.getEpochSecond())
-                .id("1:2")
+                .id("1:2:3")
                 .consumerId(CONSUMER_ID)
                 .build();
 
@@ -338,7 +338,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void validateConfirmed_succeed() {
-        var agreement = createContractAgreement().id("1:2").build();
+        var agreement = createContractAgreement().id("1:2:3").build();
         var offer = createContractOffer();
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -355,7 +355,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void validateConfirmed_failsIfOfferIsNull() {
-        var agreement = createContractAgreement().id("1:2").build();
+        var agreement = createContractAgreement().id("1:2:3").build();
         var token = ClaimToken.Builder.newInstance().build();
 
         var result = validationService.validateConfirmed(token, agreement, null);
@@ -368,7 +368,7 @@ class ContractValidationServiceImplTest {
     @ValueSource(strings = { CONSUMER_ID })
     @NullSource
     void validateConfirmed_failsIfInvalidClaims(String counterPartyId) {
-        var agreement = createContractAgreement().id("1:2").build();
+        var agreement = createContractAgreement().id("1:2:3").build();
         var offer = createContractOffer();
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -397,7 +397,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void validateConfirmed_failsIfPoliciesAreNotEqual() {
-        var agreement = createContractAgreement().id("1:2").build();
+        var agreement = createContractAgreement().id("1:2:3").build();
         var offer = createContractOffer();
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -483,7 +483,7 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
-                .id("1:2")
+                .id("1:2:3")
                 .contractSigningDate(signingDate)
                 .contractStartDate(startDate)
                 .contractEndDate(endDate)
@@ -495,7 +495,7 @@ class ContractValidationServiceImplTest {
     private ContractOffer createContractOffer(Asset asset, Policy policy, long validity) {
         var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
         return ContractOffer.Builder.newInstance()
-                .id("1:2")
+                .id("1:2:3")
                 .assetId(asset.getId())
                 .policy(policy)
                 .providerId(PROVIDER_ID)

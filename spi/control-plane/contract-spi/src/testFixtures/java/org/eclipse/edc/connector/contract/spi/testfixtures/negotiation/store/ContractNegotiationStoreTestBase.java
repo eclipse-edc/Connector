@@ -44,6 +44,7 @@ import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.st
 
 public abstract class ContractNegotiationStoreTestBase {
     protected static final String CONNECTOR_NAME = "test-connector";
+    private static final String ASSET_ID = "TEST_ASSET_ID";
 
     @Test
     @DisplayName("Verify that an entity is found by ID")
@@ -393,7 +394,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .limit(10).offset(5).build();
 
         IntStream.range(0, 100)
-                .mapToObj(i -> createNegotiation("" + i))
+                .mapToObj(i -> createNegotiation(String.valueOf(i)))
                 .forEach(cn -> getContractNegotiationStore().save(cn));
 
         var result = getContractNegotiationStore().queryNegotiations(querySpec);
@@ -409,7 +410,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .limit(10).offset(5).build();
 
         IntStream.range(0, 100)
-                .mapToObj(i -> createNegotiation("" + i))
+                .mapToObj(i -> createNegotiation(String.valueOf(i)))
                 .forEach(cn -> getContractNegotiationStore().save(cn));
 
         var result = getContractNegotiationStore().queryNegotiations(querySpec);
@@ -480,7 +481,7 @@ public abstract class ContractNegotiationStoreTestBase {
         IntStream.range(0, 100)
                 .mapToObj(i -> {
                     var agreement = createContract("contract" + i);
-                    return createNegotiation("" + i, agreement);
+                    return createNegotiation(String.valueOf(i), agreement);
                 })
                 .forEach(cn -> getContractNegotiationStore().save(cn));
 
@@ -495,7 +496,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var querySpec = QuerySpec.Builder.newInstance().limit(10).offset(50).build();
 
         IntStream.range(0, 10)
-                .mapToObj(i -> createNegotiation("" + i))
+                .mapToObj(i -> createNegotiation(String.valueOf(i)))
                 .forEach(cn -> getContractNegotiationStore().save(cn));
 
         var result = getContractNegotiationStore().queryNegotiations(querySpec);
@@ -565,7 +566,7 @@ public abstract class ContractNegotiationStoreTestBase {
     @Test
     @DisplayName("Verify that nextForState returns the agreement")
     void nextForState_withAgreement() {
-        var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+        var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString(), ASSET_ID));
         var negotiation = createNegotiationBuilder(UUID.randomUUID().toString())
                 .contractAgreement(contractAgreement)
                 .state(ContractNegotiationStates.AGREED.code())
@@ -582,7 +583,7 @@ public abstract class ContractNegotiationStoreTestBase {
     @Test
     void queryAgreements_noQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString(), ASSET_ID));
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
             getContractNegotiationStore().save(negotiation);
         });
@@ -595,7 +596,7 @@ public abstract class ContractNegotiationStoreTestBase {
     @Test
     void queryAgreements_verifyPaging() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString(), ASSET_ID));
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
             getContractNegotiationStore().save(negotiation);
         });
