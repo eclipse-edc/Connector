@@ -298,27 +298,21 @@ jobs:
 
   Kafka-Integration-Tests:
     runs-on: ubuntu-latest
+
+    services:
+      kraft:
+        image: bashj79/kafka-kraft:latest
+        ports:
+          - 9092:9092
+
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
-      - name: 'Upgrade docker-compose (for --wait option)'
-        run: |
-          sudo curl -L https://github.com/docker/compose/releases/download/v2.6.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-
-      - name: 'Deploy Zookeeper and Kafka'
-        run: docker-compose -f system-tests/e2e-transfer-test/resources/kafka/docker-compose.yaml up --build --wait
-        timeout-minutes: 10
-
       - name: 'Kafka Integration Tests'
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew test -DincludeTags="KafkaIntegrationTest"
-
-      - name: 'docker-compose logs'
-        run: docker-compose -f system-tests/e2e-transfer-test/resources/kafka/docker-compose.yaml logs
-        if: always()
+          command: ./gradlew -p system-tests/e2e-transfer-test/runner test -DincludeTags="KafkaIntegrationTest"
 
   #  TODO: this test has been commented out because it was flaky. Further investigation needed. ref: https://github.com/eclipse-edc/Connector/issues/2403
   #  Azure-Cloud-Integration-Test:
