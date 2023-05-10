@@ -277,7 +277,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var contractStartTime = ZonedDateTime.ofInstant(start, zone);
 
         return ContractOffer.Builder.newInstance()
-                .id(createContractId(definition.getId()))
+                .id(createContractId(definition.getId(), assetId))
                 .providerId(participantId)
                 .policy(policy)
                 .assetId(assetId)
