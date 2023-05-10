@@ -288,7 +288,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     /**
      * This method will be removed when policy contract expiration is implemented.
      *
-     * @deprecated
+     * @deprecated this method will be removed when policy contract expiration is implemented
      */
     @Deprecated
     private Instant calculateContractEnd(ContractDefinition definition, Instant start) {
