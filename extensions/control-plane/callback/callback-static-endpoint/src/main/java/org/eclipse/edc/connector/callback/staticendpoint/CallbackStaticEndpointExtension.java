@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.callback.staticendpoint;
 
 import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 /**
  * Extension for configuring the static endpoints for callbacks
  */
+@Extension(CallbackStaticEndpointExtension.NAME)
 public class CallbackStaticEndpointExtension implements ServiceExtension {
 
     public static final String EDC_CALLBACK_SETTING_PREFIX = "edc.callback";
@@ -35,7 +37,7 @@ public class CallbackStaticEndpointExtension implements ServiceExtension {
     public static final String EDC_CALLBACK_TRANSACTIONAL = "transactional";
     public static final String EDC_CALLBACK_AUTH_KEY = "auth-key";
     public static final String EDC_CALLBACK_AUTH_CODE_ID = "auth-code-id";
-
+    static final String NAME = "Static callbacks extension";
     @Inject
     private CallbackRegistry callbackRegistry;
 
@@ -46,6 +48,11 @@ public class CallbackStaticEndpointExtension implements ServiceExtension {
                 .map(this::configureCallback)
                 .forEach(callbackRegistry::register);
 
+    }
+
+    @Override
+    public String name() {
+        return NAME;
     }
 
     public CallbackAddress configureCallback(Config config) {
