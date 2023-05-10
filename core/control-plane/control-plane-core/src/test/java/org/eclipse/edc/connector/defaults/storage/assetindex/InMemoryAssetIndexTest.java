@@ -135,7 +135,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     @Test
     void findAll_withPrivateSorting() {
         var assets = IntStream.range(0, 10)
-                .mapToObj(i -> createAsset("test-asset", "id" + i, Map.of("pKey", "pValue")))
+                .mapToObj(i -> createAssetBuilder("" + i).privateProperty("pKey", "pValue").build())
                 .peek(a -> index.create(a, createDataAddress(a)))
                 .collect(Collectors.toList());
 

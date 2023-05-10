@@ -92,6 +92,6 @@ class AssetCreationRequestDtoValidationTest {
 
         var result = validator.validate(asset);
 
-        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("no empty property keys and no duplicate keys"));
+        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("no duplicate keys in properties and private properties"));
     }
 }

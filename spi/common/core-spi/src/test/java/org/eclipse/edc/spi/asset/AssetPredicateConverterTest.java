@@ -85,7 +85,6 @@ class AssetPredicateConverterTest {
         assertThat(predicate.test(asset)).isTrue();
     }
 
-
     @Test
     void convert_operatorIn() {
         var asset = Asset.Builder.newInstance()

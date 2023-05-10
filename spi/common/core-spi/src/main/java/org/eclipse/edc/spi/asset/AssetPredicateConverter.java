@@ -35,7 +35,7 @@ public class AssetPredicateConverter extends BaseCriterionToPredicateConverter<A
             boolean emptyProperties = asset.getProperties() == null || asset.getProperties().isEmpty();
             boolean emptyPrivateProperties = asset.getPrivateProperties() == null || asset.getPrivateProperties().isEmpty();
             if (!emptyProperties) {
-                if (asset.getProperties().containsKey(key)){
+                if (asset.getProperties().containsKey(key)) {
                     return asset.getProperty(key);
                 }
             }

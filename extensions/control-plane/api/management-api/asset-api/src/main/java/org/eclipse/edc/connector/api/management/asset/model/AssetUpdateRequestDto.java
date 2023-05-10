@@ -35,15 +35,15 @@ public class AssetUpdateRequestDto extends AssetRequestDto {
         //check for empty keys
         boolean validPrivate = privateProperties != null && privateProperties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
         boolean validPublic = properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
+        return validPrivate && validPublic;
+    }
 
-        //check for duplicates
-        if (validPrivate && validPublic) {
-            for (String key : properties.keySet()) {
-                if (privateProperties.containsKey(key)) return false;
-            }
-            return true;
+    @JsonIgnore
+    @AssertTrue(message = "no duplicate keys in properties and private properties")
+    public boolean isMapValid() {
+        if (privateProperties != null && properties != null) {
+            return properties.keySet().stream().distinct().noneMatch(privateProperties::containsKey);
         }
-
         return false;
     }
 
