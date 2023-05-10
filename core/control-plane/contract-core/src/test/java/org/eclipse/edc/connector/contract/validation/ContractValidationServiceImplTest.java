@@ -103,8 +103,9 @@ class ContractValidationServiceImplTest {
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
     }
 
-    @Test
-    void verifyContractOfferValidation() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void verifyContractOfferValidation(boolean verifyById) {
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
         var originalPolicy = Policy.Builder.newInstance().target("1").build();
         var newPolicy = Policy.Builder.newInstance().target("1").build();
@@ -122,7 +123,7 @@ class ContractValidationServiceImplTest {
         var claimToken = ClaimToken.Builder.newInstance().build();
         var offer = createContractOffer(asset, originalPolicy, contractDefinition.getValidity());
 
-        var result = validationService.validateInitialOffer(claimToken, offer);
+        var result = verifyById ? validationService.validateInitialOffer(claimToken, offer) : validationService.validateInitialOffer(claimToken, offer.getId());
 
         assertThat(result.succeeded()).isTrue();
         var validatedOffer = result.getContent().getOffer();
