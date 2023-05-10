@@ -63,7 +63,7 @@ public class TestFunctions {
     }
 
     public static ContractAgreement.Builder createContractBuilder() {
-        return createContractBuilder("1:2");
+        return createContractBuilder("1:2:3");
     }
 
     public static ContractAgreement.Builder createContractBuilder(String id) {

@@ -331,6 +331,51 @@ class ContractNegotiationProtocolServiceImplTest {
         verify(store, never()).save(any());
     }
 
+    private ClaimToken claimToken() {
+        return ClaimToken.Builder.newInstance()
+                .claim("key", "value")
+                .build();
+    }
+
+    private ContractNegotiation createContractNegotiationRequested() {
+        var lastOffer = contractOffer();
+
+        return contractNegotiationBuilder()
+                .state(REQUESTED.code())
+                .contractOffer(lastOffer)
+                .build();
+    }
+
+    private ContractNegotiation.Builder contractNegotiationBuilder() {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .correlationId("processId")
+                .counterPartyId("connectorId")
+                .counterPartyAddress("callbackAddress")
+                .protocol("protocol")
+                .stateTimestamp(Instant.now().toEpochMilli());
+    }
+
+    private Policy createPolicy() {
+        return Policy.Builder.newInstance().build();
+    }
+
+    private ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(ContractId.createContractId("1", "test-asset-id"))
+                .policy(createPolicy())
+                .assetId("assetId")
+                .providerId(PROVIDER_ID)
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now())
+                .build();
+    }
+
+    @FunctionalInterface
+    private interface MethodCall<M extends RemoteMessage> {
+        ServiceResult<?> call(ContractNegotiationProtocolService service, M message, ClaimToken token);
+    }
+
     private static class NotFoundArguments implements ArgumentsProvider {
 
         @Override
@@ -367,50 +412,5 @@ class ContractNegotiationProtocolServiceImplTest {
                             .build())
             );
         }
-    }
-
-    @FunctionalInterface
-    private interface MethodCall<M extends RemoteMessage> {
-        ServiceResult<?> call(ContractNegotiationProtocolService service, M message, ClaimToken token);
-    }
-
-    private ClaimToken claimToken() {
-        return ClaimToken.Builder.newInstance()
-                .claim("key", "value")
-                .build();
-    }
-
-    private ContractNegotiation createContractNegotiationRequested() {
-        var lastOffer = contractOffer();
-
-        return contractNegotiationBuilder()
-                .state(REQUESTED.code())
-                .contractOffer(lastOffer)
-                .build();
-    }
-
-    private ContractNegotiation.Builder contractNegotiationBuilder() {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .correlationId("processId")
-                .counterPartyId("connectorId")
-                .counterPartyAddress("callbackAddress")
-                .protocol("protocol")
-                .stateTimestamp(Instant.now().toEpochMilli());
-    }
-
-    private Policy createPolicy() {
-        return Policy.Builder.newInstance().build();
-    }
-
-    private ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId("1"))
-                .policy(createPolicy())
-                .assetId("assetId")
-                .providerId(PROVIDER_ID)
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
-                .build();
     }
 }

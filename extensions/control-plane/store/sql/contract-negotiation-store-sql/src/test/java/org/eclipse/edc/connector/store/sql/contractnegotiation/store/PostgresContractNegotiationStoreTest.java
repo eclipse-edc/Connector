@@ -58,6 +58,7 @@ import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.st
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
 
+    private static final String TEST_ASSET_ID = "test-asset-id";
     private SqlContractNegotiationStore store;
     private LeaseUtil leaseUtil;
 
@@ -160,7 +161,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -176,7 +177,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_invalidOperand() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -190,7 +191,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_noFilter() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -204,7 +205,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_invalidValue() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);

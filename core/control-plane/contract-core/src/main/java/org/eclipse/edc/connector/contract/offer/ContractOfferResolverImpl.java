@@ -128,7 +128,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
         var contractStartTime = ZonedDateTime.ofInstant(start, zone);
 
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId(definition.getId()))
+                .id(ContractId.createContractId(definition.getId(), assetId))
                 .policy(policy.withTarget(assetId))
                 .assetId(assetId)
                 .contractStart(contractStartTime)
