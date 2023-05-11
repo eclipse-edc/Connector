@@ -23,12 +23,14 @@ import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDistributionTransfo
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToActionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToAtomicConstraintTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToConstraintTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataServiceTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDatasetTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDutyTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToMultiplicityConstraintTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPermissionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToProhibitionTransformer;
@@ -92,6 +94,8 @@ public class DspTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToDutyTransformer());
         registry.register(new JsonObjectToActionTransformer());
         registry.register(new JsonObjectToConstraintTransformer());
+        registry.register(new JsonObjectToAtomicConstraintTransformer());
+        registry.register(new JsonObjectToMultiplicityConstraintTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(mapper));
         registry.register(new JsonObjectToAssetTransformer());
     }
