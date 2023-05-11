@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_ERROR;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_PROPERTY_REASON;
 import static org.mockito.Mockito.mock;
 
 public class CatalogErrorToResponseTransformerTest {
@@ -53,8 +53,8 @@ public class CatalogErrorToResponseTransformerTest {
         var jsonObject = (JsonObject) result.getEntity();
 
         assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("400");
-        assertThat(jsonObject.get(DSPACE_NEGOTIATION_PROPERTY_REASON)).isNotNull();
+        assertThat(jsonObject.getJsonString(DSPACE_CATALOG_PROPERTY_CODE).getString()).isEqualTo("400");
+        assertThat(jsonObject.get(DSPACE_CATALOG_PROPERTY_REASON)).isNotNull();
 
     }
 
@@ -72,7 +72,7 @@ public class CatalogErrorToResponseTransformerTest {
         var jsonObject = (JsonObject) result.getEntity();
 
         assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("500");
+        assertThat(jsonObject.getJsonString(DSPACE_CATALOG_PROPERTY_CODE).getString()).isEqualTo("500");
         assertThat(jsonObject.containsKey(DSPACE_SCHEMA + "reason")).isFalse();
     }
 }

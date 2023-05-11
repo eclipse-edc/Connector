@@ -27,7 +27,7 @@ public interface DspCatalogPropertyAndTypeNames {
 
     String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogErrorMessage";
     String DSPACE_FILTER_PROPERTY = Namespaces.DSPACE_SCHEMA + "filter";
-    String DSPACE_NEGOTIATION_PROPERTY_CODE = DSPACE_SCHEMA + "code";
-    String DSPACE_NEGOTIATION_PROPERTY_REASON = DSPACE_SCHEMA + "reason";
+    String DSPACE_CATALOG_PROPERTY_CODE = DSPACE_SCHEMA + "code";
+    String DSPACE_CATALOG_PROPERTY_REASON = DSPACE_SCHEMA + "reason";
 
 }

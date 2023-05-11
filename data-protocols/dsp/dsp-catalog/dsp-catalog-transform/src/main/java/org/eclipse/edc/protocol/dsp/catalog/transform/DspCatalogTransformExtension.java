@@ -53,5 +53,6 @@ public class DspCatalogTransformExtension implements ServiceExtension {
 
         registry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, mapper));
         registry.register(new JsonObjectToCatalogRequestMessageTransformer(mapper));
+        registry.register(new CatalogErrorToResponseTransformer());
     }
 }

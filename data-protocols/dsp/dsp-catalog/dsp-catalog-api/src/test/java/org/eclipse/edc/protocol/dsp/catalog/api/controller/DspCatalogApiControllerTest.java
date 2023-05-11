@@ -17,11 +17,14 @@ package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.protocol.dsp.catalog.transform.CatalogError;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -44,7 +47,9 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.catalog.api.DspCatalogTypeNames.DSPACE_CATALOG_ERROR;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_ERROR;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.service.spi.result.ServiceResult.badRequest;
@@ -114,6 +119,8 @@ class DspCatalogApiControllerTest {
     void getCatalog_invalidTypeInRequest_throwException() {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(createToken()));
+        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+                .thenReturn(Result.success(catalogErrorResponseBadRequest()));
 
         var invalidRequest = Json.createObjectBuilder()
                 .add(TYPE, "not-a-catalog-request")
@@ -137,6 +144,8 @@ class DspCatalogApiControllerTest {
                 .thenReturn(Result.success(createToken()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+                .thenReturn(Result.success(catalogErrorResponseBadRequest()));
 
         var response = controller.getCatalog(request, authHeader);
 
@@ -153,6 +162,8 @@ class DspCatalogApiControllerTest {
     void getCatalog_authenticationFails_throwException() {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+                .thenReturn(Result.success(catalogErrorResponseNotAuthorized()));
 
         var response = controller.getCatalog(request, authHeader);
 
@@ -172,6 +183,8 @@ class DspCatalogApiControllerTest {
                 .thenReturn(Result.success(createToken()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.success(requestMessage));
+        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+                .thenReturn(Result.success(catalogErrorResponseNotAuthorized()));
 
         var response = controller.getCatalog(request, authHeader);
 
@@ -184,5 +197,25 @@ class DspCatalogApiControllerTest {
         assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
 
         verify(service).getCatalog(any(), any());
+    }
+
+    private static Response catalogErrorResponseBadRequest() {
+        var builder = Json.createObjectBuilder();
+
+        builder.add(JsonLdKeywords.TYPE, DSPACE_CATALOG_ERROR);
+        builder.add(DSPACE_CATALOG_PROPERTY_CODE, "400");
+        builder.add(DSPACE_CATALOG_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
+
+        return Response.status(400).entity(builder.build()).build();
+    }
+
+    private static Response catalogErrorResponseNotAuthorized() {
+        var builder = Json.createObjectBuilder();
+
+        builder.add(JsonLdKeywords.TYPE, DSPACE_CATALOG_ERROR);
+        builder.add(DSPACE_CATALOG_PROPERTY_CODE, "401");
+        builder.add(DSPACE_CATALOG_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
+
+        return Response.status(401).entity(builder.build()).build();
     }
 }
