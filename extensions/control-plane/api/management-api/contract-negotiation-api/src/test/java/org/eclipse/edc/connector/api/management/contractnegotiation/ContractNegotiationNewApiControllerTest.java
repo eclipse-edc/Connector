@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -40,6 +41,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -48,7 +50,13 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.UUID.randomUUID;
+import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_TYPE;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,7 +73,12 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
     private final ContractNegotiationService service = mock(ContractNegotiationService.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
-    private final JsonLd jsonLd = mock(JsonLd.class);
+    private final JsonLd jsonLd = new TitaniumJsonLd(monitor);
+
+    @BeforeEach
+    public void setup() {
+        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
+    }
 
     @Test
     void getAllContractNegotiations() {
@@ -81,7 +94,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(createContractNegotiationDto().build()));
         when(transformerRegistry.transform(any(ContractNegotiationDto.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(responseBody));
-        when(jsonLd.compact(responseBody)).thenReturn(Result.success(responseBody));
 
         baseRequest()
                 .contentType(JSON)
@@ -105,7 +117,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
         )));
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.failure("test-failure"));
-        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
 
         var requestBody = Json.createObjectBuilder().build();
         baseRequest()
@@ -157,8 +168,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(Json.createObjectBuilder().build()))
                 .thenReturn(Result.failure("test-failure"));
 
-        when(jsonLd.compact(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
-
         baseRequest()
                 .contentType(JSON)
                 .post("/request")
@@ -186,7 +195,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(createContractNegotiationDto().build()));
         when(transformerRegistry.transform(any(ContractNegotiationDto.class), eq(JsonObject.class)))
                 .thenReturn(Result.failure("test-failure"));
-        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
 
         var requestBody = Json.createObjectBuilder().build();
         baseRequest()
@@ -213,7 +221,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(createContractNegotiationDto().build()));
         when(transformerRegistry.transform(any(ContractNegotiationDto.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(Json.createObjectBuilder().build()));
-        when(jsonLd.compact(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
 
         baseRequest()
                 .get("/cn1")
@@ -265,18 +272,20 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getSingleContractNegotationState() {
-        var expanded = Json.createObjectBuilder().build();
-        var compacted = Json.createObjectBuilder().add("state", "REQUESTED").build();
+        var expanded = Json.createObjectBuilder()
+                .add(TYPE, NEGOTIATION_STATE_TYPE)
+                .add(NEGOTIATION_STATE_STATE, "REQUESTED")
+                .build();
+
         when(service.getState(eq("cn1"))).thenReturn("REQUESTED");
         when(transformerRegistry.transform(any(NegotiationState.class), eq(JsonObject.class))).thenReturn(Result.success(expanded));
-        when(jsonLd.compact(expanded)).thenReturn(Result.success(compacted));
 
         baseRequest()
                 .get("/cn1/state")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("state", is("REQUESTED"));
+                .body("'edc:state'", is("REQUESTED"));
         verify(service).getState(eq("cn1"));
         verify(transformerRegistry).transform(any(NegotiationState.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
@@ -289,7 +298,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(ContractAgreementDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(Json.createObjectBuilder().build()));
-        when(jsonLd.compact(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
 
         baseRequest()
                 .get("/cn1/agreement")
@@ -340,7 +348,7 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
     void initiate() {
 
         var contractNegotiation = createContractNegotiation("cn1");
-        var responseBody = Json.createObjectBuilder().add(ID, contractNegotiation.getId()).build();
+        var responseBody = Json.createObjectBuilder().add(TYPE, EDC_ID_RESPONSE_DTO_TYPE).add(ID, contractNegotiation.getId()).build();
 
         when(transformerRegistry.transform(any(JsonObject.class), eq(NegotiationInitiateRequestDto.class))).thenReturn(Result.success(NegotiationInitiateRequestDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(NegotiationInitiateRequestDto.class), eq(ContractRequest.class))).thenReturn(Result.success(
@@ -360,7 +368,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
         when(service.initiateNegotiation(any(ContractRequest.class))).thenReturn(contractNegotiation);
 
         when(transformerRegistry.transform(any(IdResponseDto.class), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
-        when(jsonLd.compact(responseBody)).thenReturn(Result.success(responseBody));
 
         baseRequest()
                 .contentType(JSON)
@@ -374,7 +381,6 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(any(JsonObject.class), eq(NegotiationInitiateRequestDto.class));
         verify(transformerRegistry).transform(any(NegotiationInitiateRequestDto.class), eq(ContractRequest.class));
         verify(transformerRegistry).transform(any(IdResponseDto.class), eq(JsonObject.class));
-        verify(jsonLd).compact(responseBody);
         verifyNoMoreInteractions(transformerRegistry, service);
     }
 

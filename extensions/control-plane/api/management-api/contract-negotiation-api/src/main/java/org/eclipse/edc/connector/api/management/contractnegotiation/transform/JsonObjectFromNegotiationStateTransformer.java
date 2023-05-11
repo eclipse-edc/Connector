@@ -22,12 +22,14 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromStateTransformer extends AbstractJsonLdTransformer<NegotiationState, JsonObject> {
+public class JsonObjectFromNegotiationStateTransformer extends AbstractJsonLdTransformer<NegotiationState, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromStateTransformer(JsonBuilderFactory jsonFactory) {
+    public JsonObjectFromNegotiationStateTransformer(JsonBuilderFactory jsonFactory) {
         super(NegotiationState.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
     }
@@ -35,8 +37,8 @@ public class JsonObjectFromStateTransformer extends AbstractJsonLdTransformer<Ne
     @Override
     public @Nullable JsonObject transform(@NotNull NegotiationState dto, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
-                .add(TYPE, NegotiationState.TYPE)
-                .add(NegotiationState.STATE, dto.getState())
+                .add(TYPE, NEGOTIATION_STATE_TYPE)
+                .add(NEGOTIATION_STATE_STATE, dto.getState())
                 .build();
     }
 }
