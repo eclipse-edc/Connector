@@ -57,10 +57,13 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void queryAllAgreements_whenExists() {
+        var expanded = Json.createObjectBuilder().build();
+
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
         when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto(UUID.randomUUID().toString())));
-        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.success(expanded));
 
         baseRequest()
                 .contentType(JSON)
@@ -70,6 +73,7 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("size()", equalTo(2));
 
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
         verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
@@ -79,6 +83,7 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void queryAllAgreements_whenNoneExists() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of()));
 
@@ -90,6 +95,7 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("size()", equalTo(0));
 
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
         verify(transformerRegistry, never()).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
@@ -99,6 +105,7 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void queryAllAgreements_whenTransformationFails() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
         when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto(UUID.randomUUID().toString())));
@@ -112,6 +119,7 @@ class ContractAgreementNewApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("size()", equalTo(0));
 
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
         verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));

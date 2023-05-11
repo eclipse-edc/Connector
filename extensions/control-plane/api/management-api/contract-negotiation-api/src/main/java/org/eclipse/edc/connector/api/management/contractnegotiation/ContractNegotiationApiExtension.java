@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.transform.Co
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.ContractNegotiationToContractNegotiationDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationDtoTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToNegotiationInitiateRequestDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.NegotiationInitiateRequestDtoToDataRequestTransformer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
@@ -72,6 +73,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromContractNegotiationDtoTransformer(factory));
         transformerRegistry.register(new JsonObjectFromContractAgreementDtoTransformer(factory));
         transformerRegistry.register(new JsonObjectToNegotiationInitiateRequestDtoTransformer());
+        transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
 
         var monitor = context.getMonitor();
 
