@@ -15,17 +15,23 @@
 package org.eclipse.edc.connector.transfer.edr;
 
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
-import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.event.Event;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.edr.EndpointDataAddressConstants;
+import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -37,7 +43,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
     private EndpointDataReferenceReceiver receiver1;
     private EndpointDataReferenceReceiver receiver2;
-    private EndpointDataReferenceReceiverRegistry registry;
+    private EndpointDataReferenceReceiverRegistryImpl registry;
 
     @BeforeEach
     public void setUp() {
@@ -117,5 +123,73 @@ class EndpointDataReferenceReceiverRegistryImplTest {
                 .withThrowableOfType(ExecutionException.class)
                 .withRootCauseInstanceOf(EdcException.class)
                 .withMessageContaining("no registered receivers.");
+    }
+
+    @Test
+    void onEvent_success() {
+        registry.registerReceiver(receiver1);
+        registry.registerReceiver(receiver2);
+
+        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+
+        when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
+        when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
+
+        var envelope = EventEnvelope.Builder.newInstance()
+                .at(10)
+                .id("id")
+                .payload(TransferProcessStarted.Builder.newInstance()
+                        .transferProcessId("id")
+                        .dataAddress(EndpointDataAddressConstants.from(edr))
+                        .build())
+                .build();
+
+        registry.on(envelope);
+
+        var captor = ArgumentCaptor.forClass(EndpointDataReference.class);
+
+        verify(receiver1, times(1)).send(captor.capture());
+        assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(edr);
+
+        var captor1 = ArgumentCaptor.forClass(EndpointDataReference.class);
+
+        verify(receiver2, times(1)).send(captor1.capture());
+        assertThat(captor1.getValue()).usingRecursiveComparison().isEqualTo(edr);
+
+    }
+
+    @Test
+    void onEvent_failsBecauseReceiverReturnsFailedResult_shouldReturnFailedResult() {
+        registry.registerReceiver(receiver1);
+        registry.registerReceiver(receiver2);
+
+        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var errorMsg = "Test error message";
+
+        when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
+        when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.failure(errorMsg)));
+
+        var envelope = envelope(startedEvent(edr));
+
+        assertThatThrownBy(() -> registry.on(envelope)).isInstanceOf(EdcException.class).hasMessage(errorMsg);
+
+        verify(receiver1, times(1)).send(any());
+        verify(receiver2, times(1)).send(any());
+        
+    }
+
+    private TransferProcessStarted startedEvent(EndpointDataReference edr) {
+        return TransferProcessStarted.Builder.newInstance()
+                .transferProcessId("id")
+                .dataAddress(EndpointDataAddressConstants.from(edr))
+                .build();
+    }
+
+    private <E extends Event> EventEnvelope<E> envelope(E e) {
+        return EventEnvelope.Builder.newInstance()
+                .at(10)
+                .id("id")
+                .payload(e)
+                .build();
     }
 }

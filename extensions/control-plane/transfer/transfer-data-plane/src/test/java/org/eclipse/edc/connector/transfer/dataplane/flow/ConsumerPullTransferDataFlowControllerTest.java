@@ -63,7 +63,7 @@ class ConsumerPullTransferDataFlowControllerTest {
     private static DataRequest createDataRequest() {
         return DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .protocol("test-protocol")
+                .protocol("ids-multipart")
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .connectorAddress("test.connector.address")
