@@ -14,25 +14,18 @@
 
 package org.eclipse.edc.jsonld.transformer.to;
 
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Consumer;
-
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
+import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 
 /**
  * Converts from an ODRL constraint as a {@link JsonObject} in JSON-LD expanded form to a {@link Constraint}.
@@ -42,51 +35,19 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
     public JsonObjectToConstraintTransformer() {
         super(JsonObject.class, Constraint.class);
     }
-
+    
     @Override
     public @Nullable Constraint transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        //TODO check for type of constraint (atomic, and, or, ...)
-        var builder = AtomicConstraint.Builder.newInstance();
-        visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
-        return builderResult(builder::build, context);
-    }
-
-    private void transformProperties(String key, JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {
-        if (ODRL_LEFT_OPERAND_ATTRIBUTE.equals(key)) {
-            transformOperand(value, builder::leftExpression, context);
-        } else if (ODRL_OPERATOR_ATTRIBUTE.equals(key)) {
-            transformOperator(value, builder, context);
-        } else if (ODRL_RIGHT_OPERAND_ATTRIBUTE.equals(key)) {
-            transformOperand(value, builder::rightExpression, context);
-        }
-    }
-
-    private void transformOperand(JsonValue value, Consumer<LiteralExpression> builderFunction, TransformerContext context) {
-        if (value instanceof JsonObject) {
-            var object = (JsonObject) value;
-            var operand = new LiteralExpression(object.getString(VALUE));
-            builderFunction.accept(operand);
-        } else if (value instanceof JsonArray) {
-            var array = (JsonArray) value;
-            transformOperand(array.getJsonObject(0), builderFunction, context);
+        if (object.containsKey(ODRL_OPERAND_ATTRIBUTE)) {
+            // logical/multiplicity constraint
+            return context.transform(object, MultiplicityConstraint.class);
+        } else if (object.containsKey(ODRL_OPERATOR_ATTRIBUTE)) {
+            // atomic constraint
+            return context.transform(object, AtomicConstraint.class);
         } else {
-            context.reportProblem("Invalid operand property");
-        }
-    }
-
-    private void transformOperator(JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {
-        if (value instanceof JsonString) {
-            var string = (JsonString) value;
-            var operator = Operator.valueOf(string.getString());
-            builder.operator(operator);
-        } else if (value instanceof JsonObject) {
-            var object = (JsonObject) value;
-            transformOperator(object.getJsonString(VALUE), builder, context);
-        } else if (value instanceof JsonArray) {
-            var array = (JsonArray) value;
-            transformOperator(array.getJsonObject(0), builder, context);
-        } else {
-            context.reportProblem("Invalid operator property");
+            context.reportProblem(format("Failed to identify constraint type. Neither of these properties found: %s, %s",
+                    ODRL_OPERAND_ATTRIBUTE, ODRL_OPERATOR_ATTRIBUTE));
+            return null;
         }
     }
 }

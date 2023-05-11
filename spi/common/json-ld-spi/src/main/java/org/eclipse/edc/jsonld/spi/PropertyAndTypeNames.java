@@ -65,5 +65,9 @@ public interface PropertyAndTypeNames {
     String ODRL_OPERATOR_ATTRIBUTE = ODRL_SCHEMA + "operator";
     String ODRL_RIGHT_OPERAND_ATTRIBUTE = ODRL_SCHEMA + "rightOperand";
     String ODRL_DUTY_ATTRIBUTE = ODRL_SCHEMA + "duty";
+    String ODRL_OPERAND_ATTRIBUTE = ODRL_SCHEMA + "operand";
+    String ODRL_AND_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "and";
+    String ODRL_OR_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "or";
+    String ODRL_XONE_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "xone";
 
 }

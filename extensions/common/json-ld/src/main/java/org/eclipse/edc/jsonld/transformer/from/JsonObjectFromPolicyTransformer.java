@@ -28,6 +28,7 @@ import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
@@ -41,25 +42,28 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSEQUENCE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAINT_ATTRIBUTE;
 
 /**
  * Transforms a {@link Policy} to an ODRL type as a {@link JsonObject} in expanded JSON-LD form.
@@ -91,20 +95,34 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
         @Override
         public JsonObject visitAndConstraint(AndConstraint andConstraint) {
-            context.reportProblem(format("AtomicConstraint required, got: %s", andConstraint.getClass().getSimpleName()));
-            return null;
+            return visitMultiplicityConstraint(ODRL_AND_CONSTRAINT_ATTRIBUTE, andConstraint);
         }
 
         @Override
         public JsonObject visitOrConstraint(OrConstraint orConstraint) {
-            context.reportProblem(format("AtomicConstraint required, got: %s", orConstraint.getClass().getSimpleName()));
-            return null;
+            return visitMultiplicityConstraint(ODRL_OR_CONSTRAINT_ATTRIBUTE, orConstraint);
         }
 
         @Override
         public JsonObject visitXoneConstraint(XoneConstraint xoneConstraint) {
-            context.reportProblem(format("AtomicConstraint required, got: %s", xoneConstraint.getClass().getSimpleName()));
-            return null;
+            return visitMultiplicityConstraint(ODRL_XONE_CONSTRAINT_ATTRIBUTE, xoneConstraint);
+        }
+    
+        private JsonObject visitMultiplicityConstraint(String operandType, MultiplicityConstraint multiplicityConstraint) {
+            var constraintsBuilder = jsonFactory.createArrayBuilder();
+            for (Constraint constraint : multiplicityConstraint.getConstraints()) {
+                Optional.of(constraint)
+                        .map(c -> c.accept(this))
+                        .ifPresent(constraintsBuilder::add);
+            }
+        
+            var operand = jsonFactory.createObjectBuilder()
+                    .add(operandType, constraintsBuilder.build())
+                    .build();
+        
+            return jsonFactory.createObjectBuilder()
+                    .add(ODRL_OPERAND_ATTRIBUTE, operand)
+                    .build();
         }
 
         @Override
