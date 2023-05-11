@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api.management.policy;
 
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -33,6 +32,7 @@ import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpd
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -41,9 +41,11 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
+import java.util.function.Function;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -67,13 +69,24 @@ public class PolicyDefinitionNewApiController implements PolicyDefinitionNewApi 
     @POST
     @Path("request")
     @Override
-    public List<JsonObject> queryPolicyDefinitions(@Valid QuerySpecDto querySpecDto) {
-        var querySpec = transformerRegistry.transform(querySpecDto, QuerySpec.class).orElseThrow(InvalidRequestException::new);
+    public List<JsonObject> queryPolicyDefinitions(JsonObject querySpecDto) {
+
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
+
+        var querySpec = ofNullable(querySpecDto)
+                .map(jsonLd::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
+                .orElseThrow(InvalidRequestException::new);
+
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
             return stream
                     .map(policyDefinition -> transformerRegistry.transform(policyDefinition, PolicyDefinitionResponseDto.class)
                             .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)
-                            .compose(jsonLd::compact)))
+                                    .compose(jsonLd::compact)))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
                     .collect(toList());
@@ -97,7 +110,7 @@ public class PolicyDefinitionNewApiController implements PolicyDefinitionNewApi 
 
     @POST
     @Override
-    public IdResponseDto createPolicyDefinition(JsonObject request) {
+    public JsonObject createPolicyDefinition(JsonObject request) {
         var definition = jsonLd.expand(request)
                 .compose(json -> transformerRegistry.transform(json, PolicyDefinitionRequestDto.class))
                 .compose(dto -> transformerRegistry.transform(dto, PolicyDefinition.class))
@@ -107,10 +120,14 @@ public class PolicyDefinitionNewApiController implements PolicyDefinitionNewApi 
                 .onSuccess(d -> monitor.debug(format("Policy Definition created %s", d.getId())))
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, definition.getId()));
 
-        return IdResponseDto.Builder.newInstance()
+        var responseDto = IdResponseDto.Builder.newInstance()
                 .id(createdDefinition.getId())
                 .createdAt(createdDefinition.getCreatedAt())
                 .build();
+
+        return transformerRegistry.transform(responseDto, JsonObject.class)
+                .compose(jsonLd::compact)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
     @DELETE
