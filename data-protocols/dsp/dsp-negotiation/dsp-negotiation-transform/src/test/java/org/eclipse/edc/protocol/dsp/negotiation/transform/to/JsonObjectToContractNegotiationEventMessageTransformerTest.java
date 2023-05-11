@@ -29,6 +29,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
@@ -58,7 +59,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
                 .add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED)
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractNegotiationEventMessage.class);
@@ -77,7 +78,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
                 .add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED)
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNull();
 
@@ -92,7 +93,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNull();
 
@@ -108,7 +109,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
                 .add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, "InvalidType")
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNull();
 
