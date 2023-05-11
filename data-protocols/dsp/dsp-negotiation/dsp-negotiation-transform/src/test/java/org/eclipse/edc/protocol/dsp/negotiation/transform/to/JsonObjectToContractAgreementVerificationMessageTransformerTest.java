@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
@@ -55,7 +56,7 @@ class JsonObjectToContractAgreementVerificationMessageTransformerTest {
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractAgreementVerificationMessage.class);
@@ -72,7 +73,7 @@ class JsonObjectToContractAgreementVerificationMessageTransformerTest {
                 .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE)
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNull();
 

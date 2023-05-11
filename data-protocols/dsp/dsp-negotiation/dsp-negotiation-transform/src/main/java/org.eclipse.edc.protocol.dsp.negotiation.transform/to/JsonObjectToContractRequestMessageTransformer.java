@@ -58,25 +58,22 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
             builder.dataSet(transformString(dataset, context));
         }
 
-        var contractOffer = requestObject.get(DSPACE_NEGOTIATION_PROPERTY_OFFER);
+        var contractOffer = returnJsonObject(requestObject.get(DSPACE_NEGOTIATION_PROPERTY_OFFER), context, DSPACE_NEGOTIATION_PROPERTY_OFFER, false);
         if (contractOffer != null) {
-            if (!(contractOffer instanceof JsonObject)) {
-                context.reportProblem(format("Invalid '%s' type on ContractRequestMessage", DSPACE_NEGOTIATION_PROPERTY_OFFER));
-                return null;
-            }
-            var contractObject = (JsonObject) contractOffer;
-            var policy = transformObject(contractObject, Policy.class, context);
+            var policy = transformObject(contractOffer, Policy.class, context);
             if (policy == null) {
                 context.reportProblem("Cannot transform to ContractRequestMessage with null policy");
                 return null;
             }
-            var id = nodeId(contractObject);
+            var id = nodeId(contractOffer);
             if (id == null) {
                 context.reportProblem(format("@id must be specified when including a '%s' in a ContractRequestMessage", DSPACE_NEGOTIATION_PROPERTY_OFFER));
                 return null;
             }
             var offer = ContractOffer.Builder.newInstance().id(id).assetId(policy.getTarget()).policy(policy).build();
             builder.contractOffer(offer);
+        } else if (context.hasProblems()) {
+            return null;
         } else {
             if (!transformMandatoryString(requestObject.get(DSPACE_NEGOTIATION_PROPERTY_OFFER_ID), builder::contractOfferId, context)) {
                 context.reportProblem("ContractRequestMessage must specify a contract offer or contract offer id");

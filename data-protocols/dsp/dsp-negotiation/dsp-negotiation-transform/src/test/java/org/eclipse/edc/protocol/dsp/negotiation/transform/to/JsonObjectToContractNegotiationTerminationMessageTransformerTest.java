@@ -23,11 +23,14 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -49,7 +52,7 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
 
     @Test
     void transform() {
-        var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add("foo", "bar");
+        var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add(DSPACE_SCHEMA + "foo", "bar");
         var reasonArray = Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build();
 
         var message = jsonFactory.createObjectBuilder()
@@ -60,7 +63,7 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
                 .add(DSPACE_NEGOTIATION_PROPERTY_REASON, reasonArray)
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNotNull();
 
@@ -69,7 +72,7 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
         assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
         assertThat(result.getCode()).isEqualTo(CODE);
 
-        assertThat(result.getRejectionReason()).isEqualTo("{\"foo\":\"bar\"}");
+        assertThat(result.getRejectionReason()).isEqualTo(format("[{\"%sfoo\":[{\"@value\":\"bar\"}]}]", DSPACE_SCHEMA));
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -82,7 +85,7 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .build();
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNotNull();
 
