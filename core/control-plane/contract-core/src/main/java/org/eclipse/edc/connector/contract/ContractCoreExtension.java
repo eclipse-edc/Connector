@@ -198,6 +198,7 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ContractValidationService.class, validationService);
 
         // bind/register rule to evaluate contract expiry
+        ruleBindingRegistry.bind("USE", TRANSFER_SCOPE);
         ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
         var function = new ContractExpiryCheckFunction();
         policyEngine.registerFunction(TRANSFER_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, function);

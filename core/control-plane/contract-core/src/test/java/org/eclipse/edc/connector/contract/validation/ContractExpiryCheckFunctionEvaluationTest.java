@@ -35,6 +35,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -76,10 +77,8 @@ class ContractExpiryCheckFunctionEvaluationTest {
     @ParameterizedTest
     @ArgumentsSource(ValidTimeProvider.class)
     void evaluate_fixed_isValid(Operator startOp, Instant start, Operator endOp, Instant end) {
-        var policy = createInForcePolicy(start, startOp, end, endOp);
+        var policy = createInForcePolicy(startOp, start, endOp, end);
         var contextInfo = new HashMap<Class<?>, Object>();
-        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement"));
-
         contextInfo.put(Instant.class, NOW);
         assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isSucceeded();
     }
@@ -87,9 +86,8 @@ class ContractExpiryCheckFunctionEvaluationTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidTimeProvider.class)
     void evaluate_fixed_isInvalid(Operator startOp, Instant start, Operator endOp, Instant end) {
-        var policy = createInForcePolicy(start, startOp, end, endOp);
+        var policy = createInForcePolicy(startOp, start, endOp, end);
         var contextInfo = new HashMap<Class<?>, Object>();
-        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement"));
 
         contextInfo.put(Instant.class, NOW);
         assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo))
@@ -97,7 +95,29 @@ class ContractExpiryCheckFunctionEvaluationTest {
                 .detail().contains(CONTRACT_EXPIRY_EVALUATION_KEY);
     }
 
-    private Policy createInForcePolicy(Instant startDate, Operator operatorStart, Instant endDate, Operator operatorEnd) {
+    @ParameterizedTest
+    @ValueSource(strings = { "100d", "25h", "2m", "67s" })
+    void evaluate_durationAsEnd_isValid(String numeric) {
+        var policy = createInForcePolicy(GEQ, NOW.minusSeconds(60), LEQ, "contractAgreement+" + numeric);
+        var contextInfo = new HashMap<Class<?>, Object>();
+
+        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement", NOW));
+        contextInfo.put(Instant.class, NOW);
+        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isSucceeded();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "-100d", "-25h", "-2m", "-67s" })
+    void evaluate_durationAsStart_isValid(String numeric) {
+        var policy = createInForcePolicy(GEQ, "contractAgreement+" + numeric, LEQ, NOW.plusSeconds(60));
+        var contextInfo = new HashMap<Class<?>, Object>();
+
+        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement", NOW));
+        contextInfo.put(Instant.class, NOW);
+        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isSucceeded();
+    }
+
+    private Policy createInForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
         var fixedInForceTimeConstraint = AndConstraint.Builder.newInstance()
                 .constraint(AtomicConstraint.Builder.newInstance()
                         .leftExpression(new LiteralExpression(CONTRACT_EXPIRY_EVALUATION_KEY))
@@ -120,11 +140,16 @@ class ContractExpiryCheckFunctionEvaluationTest {
     }
 
     private ContractAgreement createAgreement(String agreementId) {
+        return createAgreement(agreementId, NOW);
+    }
+
+    private ContractAgreement createAgreement(String agreementId, Instant signingTime) {
         return ContractAgreement.Builder.newInstance()
                 .id(agreementId)
                 .providerId(UUID.randomUUID().toString())
                 .consumerId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
+                .contractSigningDate(signingTime.getEpochSecond())
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }
