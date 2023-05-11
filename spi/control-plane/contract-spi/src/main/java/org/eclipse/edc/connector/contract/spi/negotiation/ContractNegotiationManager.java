@@ -15,7 +15,7 @@
 
 package org.eclipse.edc.connector.contract.spi.negotiation;
 
-import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
+import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 
 /**
  * Manages contract negotiations on a consumer or provider. Subtypes define consumer- and provider-specific operations.
