@@ -39,8 +39,10 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  */
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class DataAddress {
-    public static final String TYPE = "type";
-    public static final String KEY_NAME = "keyName";
+    public static final String SIMPLE_TYPE = "type";
+    public static final String TYPE = EDC_NAMESPACE + SIMPLE_TYPE;
+    public static final String SIMPLE_KEY_NAME = "keyName";
+    public static final String KEY_NAME = EDC_NAMESPACE + "keyName";
     protected final Map<String, String> properties = new HashMap<>();
 
     protected DataAddress() {
@@ -115,6 +117,11 @@ public class DataAddress {
 
         public B property(String key, String value) {
             Objects.requireNonNull(key, "Property key null.");
+            if (SIMPLE_TYPE.equals(key)) {
+                key = TYPE;
+            } else if (SIMPLE_KEY_NAME.equals(key)) {
+                key = KEY_NAME;
+            }
             address.properties.put(key, value);
             return self();
         }

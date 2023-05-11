@@ -34,24 +34,26 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
     }
 
     @Override
-    public @Nullable TransferTerminationMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+    public @Nullable TransferTerminationMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferTerminationMessageBuilder = TransferTerminationMessage.Builder.newInstance();
 
         transferTerminationMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
-        transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
+        transformString(messageObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
 
-        if (jsonObject.containsKey(DSPACE_CODE_TYPE)) {
-            transformString(jsonObject.get(DSPACE_CODE_TYPE), transferTerminationMessageBuilder::code, context);
+        if (messageObject.containsKey(DSPACE_CODE_TYPE)) {
+            transformString(messageObject.get(DSPACE_CODE_TYPE), transferTerminationMessageBuilder::code, context);
         }
 
-        var reasons = jsonObject.get(DSPACE_REASON_TYPE);
-        if (reasons != null) {
+        var reasons = messageObject.get(DSPACE_REASON_TYPE);
+        if (reasons != null) {  // optional property
             var result = typeValueArray(reasons, context);
             if (result == null) {
                 context.reportProblem(format("Cannot transform property %s in ContractNegotiationTerminationMessage", DSPACE_REASON_TYPE));
-            } else if (result.size() > 0) {
-                transferTerminationMessageBuilder.reason(String.valueOf(result.get(0)));
+            } else {
+                if (result.size() > 0) {
+                    transferTerminationMessageBuilder.reason(result.toString());
+                }
             }
         }
 

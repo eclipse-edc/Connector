@@ -14,14 +14,12 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+
 /**
  * Dataspace protocol types and attributes for catalog request.
  */
 public interface DspTransferProcessPropertyAndTypeNames {
-    
-    String DSPACE_PREFIX = "dspace";
-
-    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
 
     String DSPACE_TRANSFERPROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferRequestMessage";
 
@@ -33,13 +31,13 @@ public interface DspTransferProcessPropertyAndTypeNames {
 
     String DSPACE_TRANSFERPROCESS_TYPE = DSPACE_SCHEMA + "TransferProcess";
 
-    String DSPACE_CONTRACTAGREEMENT_TYPE = DSPACE_SCHEMA + "agreementId";
+    String DSPACE_CONTRACT_AGREEMENT_TYPE = DSPACE_SCHEMA + "agreementId";
 
-    String DSPACE_CALLBACKADDRESS_TYPE = DSPACE_SCHEMA + "callbackAddress";
+    String DSPACE_CALLBACK_ADDRESS_TYPE = DSPACE_SCHEMA + "callbackAddress";
 
     String DSPACE_PROCESSID_TYPE = DSPACE_SCHEMA + "processId";
 
-    String DSPACE_DATAADDRESS_TYPE = DSPACE_SCHEMA + "dataAddress";
+    String DSPACE_DATA_ADDRESS_TYPE = DSPACE_SCHEMA + "dataAddress";
 
     String DSPACE_CORRELATIONID_TYPE = DSPACE_SCHEMA + "correlationId";
 

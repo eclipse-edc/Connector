@@ -54,8 +54,8 @@ class JsonObjectFromDataAddressDtoTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TEST_KEY).getString()).isEqualTo(TEST_VALUE);
-        assertThat(result.getJsonString(DataAddress.TYPE).getString()).isEqualTo(type);
-        assertThat(result.getJsonString(DataAddress.KEY_NAME).getString()).isEqualTo(key);
+        assertThat(result.getJsonString(DataAddress.SIMPLE_TYPE).getString()).isEqualTo(type);
+        assertThat(result.getJsonString(DataAddress.SIMPLE_KEY_NAME).getString()).isEqualTo(key);
 
         verify(context, never()).reportProblem(anyString());
     }

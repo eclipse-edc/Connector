@@ -41,7 +41,7 @@ class TransferProcessDocumentSerializationTest {
 
         var document = new TransferProcessDocument(transferProcess, "test-process");
 
-        String s = typeManager.writeValueAsString(document);
+        var s = typeManager.writeValueAsString(document);
 
         assertThat(s).isNotNull();
         assertThat(s).contains("\"partitionKey\":\"test-process\""); //should use the process id as partition key
@@ -49,8 +49,8 @@ class TransferProcessDocumentSerializationTest {
         assertThat(s).contains("\"type\":\"CONSUMER\"");
         assertThat(s).contains("\"errorDetail\":null");
         assertThat(s).contains("\"destinationType\":\"Test Address Type\"");
-        assertThat(s).contains("\"keyName\":\"Test Key Name\"");
-        assertThat(s).contains("\"type\":\"Test Address Type\"");
+        assertThat(s).contains("\"https://foo.bar.org/ds/schema/keyName\":\"Test Key Name\"");
+        assertThat(s).contains("\"https://foo.bar.org/ds/schema/type\":\"Test Address Type\"");
     }
 
     @Test

@@ -14,12 +14,9 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.transform;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+
 public interface DspNegotiationPropertyAndTypeNames {
-
-    // namespace
-
-    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/";
-    String DSPACE_PREFIX = "dspace";
 
     // types
 

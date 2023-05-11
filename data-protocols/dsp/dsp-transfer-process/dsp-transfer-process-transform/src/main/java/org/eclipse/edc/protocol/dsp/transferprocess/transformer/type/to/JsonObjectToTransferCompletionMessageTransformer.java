@@ -17,11 +17,11 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 
 public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferCompletionMessage> {
@@ -31,13 +31,12 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
     }
 
     @Override
-    public @Nullable TransferCompletionMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+    public @Nullable TransferCompletionMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferCompletionMessageBuilder = TransferCompletionMessage.Builder.newInstance();
 
-        transferCompletionMessageBuilder
-                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        transferCompletionMessageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
 
-        transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferCompletionMessageBuilder::processId, context);
+        transformString(messageObject.get(DSPACE_PROCESSID_TYPE), transferCompletionMessageBuilder::processId, context);
 
         return transferCompletionMessageBuilder.build();
 
