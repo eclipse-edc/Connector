@@ -377,8 +377,7 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .id("1")
                 .accessPolicyId("ap-id")
                 .contractPolicyId("cp-id")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
     }
 
     private ContractDefinitionResponseDto.Builder createContractDefinitionDto() {

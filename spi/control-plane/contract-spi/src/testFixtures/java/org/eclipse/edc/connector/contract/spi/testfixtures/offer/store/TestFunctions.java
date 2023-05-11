@@ -18,15 +18,12 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 public class TestFunctions {
-
-    public static final long CONTRACT_DURATION = TimeUnit.MINUTES.toSeconds(10);
 
     private TestFunctions() {
     }
@@ -37,7 +34,6 @@ public class TestFunctions {
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
                 .selectorExpression(selectorExpression)
-                .validity(CONTRACT_DURATION)
                 .build();
     }
 

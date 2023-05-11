@@ -50,7 +50,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static java.time.Instant.MAX;
@@ -93,8 +92,7 @@ class ContractValidationServiceImplTest {
                 .id("1")
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
     }
 
     @BeforeEach
@@ -121,7 +119,7 @@ class ContractValidationServiceImplTest {
         when(policyEquality.test(any(), any())).thenReturn(true);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = createContractOffer(asset, originalPolicy, contractDefinition.getValidity());
+        var offer = createContractOffer(asset, originalPolicy);
 
         var result = verifyById ? validationService.validateInitialOffer(claimToken, offer) : validationService.validateInitialOffer(claimToken, offer.getId());
 
@@ -148,7 +146,7 @@ class ContractValidationServiceImplTest {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = createContractOffer(asset, originalPolicy, contractDefinition.getValidity());
+        var offer = createContractOffer(asset, originalPolicy);
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
@@ -173,7 +171,7 @@ class ContractValidationServiceImplTest {
         when(policyEquality.test(any(), any())).thenReturn(true);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = createContractOffer(asset, originalPolicy, contractDefinition.getValidity() + 1);
+        var offer = createContractOffer(asset, originalPolicy);
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
@@ -192,7 +190,7 @@ class ContractValidationServiceImplTest {
         when(assetIndex.findById("1")).thenReturn(asset);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = createContractOffer(asset, originalPolicy, contractDefinition.getValidity());
+        var offer = createContractOffer(asset, originalPolicy);
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
@@ -215,7 +213,7 @@ class ContractValidationServiceImplTest {
         when(policyEquality.test(any(), any())).thenReturn(false);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = createContractOffer(asset, offeredPolicy, contractDefinition.getValidity());
+        var offer = createContractOffer(asset, offeredPolicy);
 
         var result = validationService.validateInitialOffer(claimToken, offer);
 
@@ -469,7 +467,7 @@ class ContractValidationServiceImplTest {
         return validationService.validateAgreement(claimToken, agreement);
     }
 
-    private ContractOffer createContractOffer(Asset asset, Policy policy, long validity) {
+    private ContractOffer createContractOffer(Asset asset, Policy policy) {
         var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
         return ContractOffer.Builder.newInstance()
                 .id(format("1:%s:3", asset.getId()))
@@ -481,7 +479,7 @@ class ContractValidationServiceImplTest {
 
     @NotNull
     private ContractOffer createContractOffer() {
-        return createContractOffer(Asset.Builder.newInstance().build(), Policy.Builder.newInstance().build(), TimeUnit.DAYS.toSeconds(1));
+        return createContractOffer(Asset.Builder.newInstance().build(), Policy.Builder.newInstance().build());
     }
 
     private ContractDefinition createContractDefinition() {

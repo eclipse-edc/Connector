@@ -36,7 +36,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -252,7 +251,6 @@ class ContractDefinitionApiControllerIntegrationTest {
                             .accessPolicyId(dto.getAccessPolicyId())
                             .contractPolicyId(dto.getContractPolicyId())
                             .selectorExpression(assetSelector)
-                            .validity(dto.getValidity())
                             .createdAt(contractDefinition.getCreatedAt())
                             .build();
                     assertThat(contractDefinition).usingRecursiveComparison().isEqualTo(contractDefinitionUpdated);
@@ -299,7 +297,6 @@ class ContractDefinitionApiControllerIntegrationTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
     }
 

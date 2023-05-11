@@ -38,7 +38,6 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -240,20 +239,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     private boolean isStarted(ContractAgreement contractAgreement) {
         return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
-    }
-
-    /**
-     * This method will be removed when policy contract expiration is implemented.
-     *
-     * @deprecated this method will be removed when policy contract expiration is implemented
-     */
-    @Deprecated
-    private Instant calculateContractEnd(ContractDefinition definition, Instant start) {
-        try {
-            return start.plusSeconds(definition.getValidity());
-        } catch (ArithmeticException exception) {
-            return Instant.ofEpochMilli(Long.MAX_VALUE);
-        }
     }
 
     private static class SanitizedResult {

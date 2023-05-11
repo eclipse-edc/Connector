@@ -52,6 +52,11 @@ class DatasetResolverImplPerformanceTest {
 
     private final Clock clock = Clock.systemUTC();
 
+    @NotNull
+    private static PolicyDefinition.Builder createPolicyDefinition(String id) {
+        return PolicyDefinition.Builder.newInstance().id(id).policy(Policy.Builder.newInstance().build());
+    }
+
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
@@ -110,8 +115,7 @@ class DatasetResolverImplPerformanceTest {
                 .id(id)
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(SELECT_ALL)
-                .validity(100);
+                .selectorExpression(SELECT_ALL);
     }
 
     @NotNull
@@ -121,10 +125,5 @@ class DatasetResolverImplPerformanceTest {
 
     private Asset.Builder createAsset(String id) {
         return Asset.Builder.newInstance().id(id).name("test asset " + id);
-    }
-
-    @NotNull
-    private static PolicyDefinition.Builder createPolicyDefinition(String id) {
-        return PolicyDefinition.Builder.newInstance().id(id).policy(Policy.Builder.newInstance().build());
     }
 }

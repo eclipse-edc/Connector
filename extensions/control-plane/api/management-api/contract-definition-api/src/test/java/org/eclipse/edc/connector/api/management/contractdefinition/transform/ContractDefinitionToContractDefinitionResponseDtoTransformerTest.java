@@ -22,7 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,7 +49,6 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "=", "right").build())
-                .validity(TimeUnit.MINUTES.toSeconds(10))
                 .build();
 
         var dto = transformer.transform(contractDefinition, context);
@@ -61,7 +59,6 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
         assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
         assertThat(dto.getCreatedAt()).isNotZero();
         assertThat(dto.getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinition.getSelectorExpression().getCriteria());
-        assertThat(dto.getValidity()).isEqualTo(contractDefinition.getValidity());
         verify(context).transform(isA(Criterion.class), eq(CriterionDto.class));
     }
 

@@ -96,7 +96,6 @@ class ContractNegotiationEventDispatchTest {
                 .contractPolicyId("policyId")
                 .accessPolicyId("policyId")
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(CONTRACT_VALIDITY)
                 .build();
         contractDefinitionStore.save(contractDefinition);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());

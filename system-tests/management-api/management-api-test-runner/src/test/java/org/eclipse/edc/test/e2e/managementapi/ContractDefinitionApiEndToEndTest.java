@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -180,7 +179,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .contractPolicyId(TEST_CP_ID)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance()
                         .criteria(List.of(new Criterion("foo", "=", "bar"),
-                                new Criterion("bar", "=", "baz"))).build())
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                                new Criterion("bar", "=", "baz"))).build());
     }
 }

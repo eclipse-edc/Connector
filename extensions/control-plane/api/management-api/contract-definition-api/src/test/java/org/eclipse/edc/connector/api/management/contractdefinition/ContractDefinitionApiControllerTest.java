@@ -284,7 +284,6 @@ class ContractDefinitionApiControllerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(100)
                 .build();
     }
 }

@@ -31,7 +31,6 @@ public class TestFunctions {
                 .contractPolicyId(CONTRACT_POLICY_ID)
                 .accessPolicyId(ACCESS_POLICY_ID)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
-                .validity(100)
                 .build();
     }
 

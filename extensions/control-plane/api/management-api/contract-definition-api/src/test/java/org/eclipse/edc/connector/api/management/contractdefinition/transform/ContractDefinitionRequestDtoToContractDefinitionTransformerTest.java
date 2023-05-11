@@ -62,7 +62,6 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
         assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
         assertThat(contractDefinition.getSelectorExpression().getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinitionDto.getCriteria());
-        assertThat(contractDefinition.getValidity()).isEqualTo(contractDefinitionDto.getValidity());
         assertThat(contractDefinition.getCreatedAt()).isNotZero(); //should be set automatically
         verify(context, times(1)).transform(isA(CriterionDto.class), eq(Criterion.class));
     }

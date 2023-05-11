@@ -45,7 +45,6 @@ public class ContractDefinitionToContractDefinitionResponseDtoTransformer implem
                 .createdAt(object.getCreatedAt())
                 .contractPolicyId(object.getContractPolicyId())
                 .criteria(criteria)
-                .validity(object.getValidity())
                 .build();
     }
 }

@@ -40,7 +40,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -247,7 +246,6 @@ class ContractOfferResolverImplTest {
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "1").build())
-                .validity(10)
                 .build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
@@ -279,7 +277,7 @@ class ContractOfferResolverImplTest {
     @Test
     void shouldReturnMaximumContractEndtime_whenItExceedsMaximimLongValue() {
 
-        var contractDefinition = getContractDefBuilder("ContractForever").validity(Long.MAX_VALUE).build();
+        var contractDefinition = getContractDefBuilder("ContractForever").build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
@@ -309,8 +307,7 @@ class ContractOfferResolverImplTest {
                 .id(id)
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
     }
 
     private Asset.Builder createAsset(String id) {

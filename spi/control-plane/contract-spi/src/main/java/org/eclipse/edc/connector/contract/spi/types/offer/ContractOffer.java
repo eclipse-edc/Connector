@@ -64,16 +64,6 @@ public class ContractOffer {
         return providerId;
     }
 
-    @Nullable
-    public ZonedDateTime getOfferStart() {
-        return offerStart;
-    }
-
-    @Nullable
-    public ZonedDateTime getOfferEnd() {
-        return offerEnd;
-    }
-
 
     @NotNull
     public String getAssetId() {
@@ -129,16 +119,6 @@ public class ContractOffer {
 
         public Builder assetId(String assetId) {
             contractOffer.assetId = assetId;
-            return this;
-        }
-
-        public Builder offerStart(ZonedDateTime date) {
-            contractOffer.offerStart = date;
-            return this;
-        }
-
-        public Builder offerEnd(ZonedDateTime date) {
-            contractOffer.offerEnd = date;
             return this;
         }
 

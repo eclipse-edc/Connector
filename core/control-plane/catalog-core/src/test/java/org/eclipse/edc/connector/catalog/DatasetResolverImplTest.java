@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -230,8 +229,7 @@ class DatasetResolverImplTest {
                 .id(id)
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
     }
 
     private Asset.Builder createAsset(String id) {
