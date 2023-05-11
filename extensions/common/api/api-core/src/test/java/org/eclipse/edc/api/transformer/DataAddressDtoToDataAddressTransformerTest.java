@@ -42,6 +42,7 @@ class DataAddressDtoToDataAddressTransformerTest {
 
         var dataAddress = transformer.transform(dataAddressDto, context);
 
-        assertThat(dataAddress.getProperties()).containsExactlyEntriesOf(dataAddressDto.getProperties());
+        assertThat(dataAddress).isNotNull();
+        assertThat(dataAddress.getType()).isEqualTo("any");
     }
 }

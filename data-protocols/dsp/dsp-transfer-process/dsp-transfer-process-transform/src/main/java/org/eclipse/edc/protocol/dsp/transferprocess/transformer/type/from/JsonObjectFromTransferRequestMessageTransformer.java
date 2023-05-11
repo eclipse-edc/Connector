@@ -26,9 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACK_ADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACT_AGREEMENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 
@@ -50,13 +50,13 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
 
-        builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
+        builder.add(DSPACE_CONTRACT_AGREEMENT_TYPE, transferRequestMessage.getContractId());
         builder.add(DCT_FORMAT_ATTRIBUTE, transferRequestMessage.getDataDestination().getType());
-        builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getCallbackAddress());
+        builder.add(DSPACE_CALLBACK_ADDRESS_TYPE, transferRequestMessage.getCallbackAddress());
         builder.add(DSPACE_PROCESSID_TYPE, transferRequestMessage.getProcessId());
 
         if (transferRequestMessage.getDataDestination().getProperties().size() > 1) {
-            builder.add(DSPACE_DATAADDRESS_TYPE, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
+            builder.add(DSPACE_DATA_ADDRESS_TYPE, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
         }
         return builder.build();
     }

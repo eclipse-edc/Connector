@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Constants for {@link EndpointDataReference} mapping to {@link DataAddress}
@@ -35,7 +36,17 @@ public class EndpointDataAddressConstants {
     public static final String ENDPOINT = "endpoint";
     public static final String TYPE_FIELD = "type";
 
-    private static final Set<String> PROPERTIES = Set.of(ID, TYPE_FIELD, AUTH_CODE, ENDPOINT, AUTH_KEY);
+    private static final Set<String> PROPERTIES = Set.of(
+            ID,
+            EDC_NAMESPACE + ID,
+            TYPE_FIELD,
+            EDC_NAMESPACE + TYPE_FIELD,
+            AUTH_CODE,
+            EDC_NAMESPACE + AUTH_CODE,
+            ENDPOINT,
+            EDC_NAMESPACE + ENDPOINT,
+            AUTH_KEY,
+            EDC_NAMESPACE + AUTH_KEY);
 
     private EndpointDataAddressConstants() {
     }

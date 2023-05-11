@@ -31,9 +31,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACK_ADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACT_AGREEMENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -96,11 +96,11 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
 
         Assertions.assertNotNull(result);
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
-        assertThat(result.getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(DSPACE_CONTRACT_AGREEMENT_TYPE).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
-        assertThat(result.getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonString(DSPACE_CALLBACK_ADDRESS_TYPE).getString()).isEqualTo(callbackAddress);
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(id);
-        assertThat(result.getJsonObject(DSPACE_DATAADDRESS_TYPE).getString("keyName")).isEqualTo(dataAddressKey);
+        assertThat(result.getJsonObject(DSPACE_DATA_ADDRESS_TYPE).getString("keyName")).isEqualTo(dataAddressKey);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -123,11 +123,11 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
-        assertThat(result.getJsonString(DSPACE_CONTRACTAGREEMENT_TYPE).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(DSPACE_CONTRACT_AGREEMENT_TYPE).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
-        assertThat(result.getJsonString(DSPACE_CALLBACKADDRESS_TYPE).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonString(DSPACE_CALLBACK_ADDRESS_TYPE).getString()).isEqualTo(callbackAddress);
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(id);
-        assertThat(result.getJsonObject(DSPACE_DATAADDRESS_TYPE)).isEqualTo(null);
+        assertThat(result.getJsonObject(DSPACE_DATA_ADDRESS_TYPE)).isEqualTo(null);
 
         verify(context, never()).reportProblem(anyString());
     }

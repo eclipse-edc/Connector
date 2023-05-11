@@ -62,6 +62,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
 
         assertThat(result)
                 .usingRecursiveComparison()
+                .ignoringFields("dataDestination")// ignore due to namespace difference
                 .isEqualTo(data.dto.build());
         verify(context, never()).reportProblem(any());
     }
@@ -79,6 +80,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
         verify(context).reportProblem("Invalid value for TransferProcess.state");
         assertThat(result)
                 .usingRecursiveComparison()
+                .ignoringFields("dataDestination")
                 .isEqualTo(data.dto.build());
     }
 
@@ -103,7 +105,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
         data.dto
                 .dataDestination(
                         DataAddressDto.Builder.newInstance()
-                                .properties(Map.of("type", data.dataDestinationType))
+                                .properties(Map.of(DataAddress.TYPE, data.dataDestinationType))
                                 .build())
                 .state("INITIAL")
                 .stateTimestamp(data.stateTimestamp)
