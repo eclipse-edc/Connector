@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -89,12 +88,10 @@ class ContractAgreementToIdsContractAgreementTransformerTest {
 
     private ContractAgreementMessage contractAgreementRequest(Policy policy) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
-                .id(String.valueOf(AGREEMENT_ID))
+                .id(AGREEMENT_ID)
                 .providerId(PROVIDER_ID)
                 .assetId(UUID.randomUUID().toString())
                 .consumerId("id")
-                .contractStartDate(Instant.now().getEpochSecond())
-                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())
                 .policy(policy)
                 .build();

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CRITERIA;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_VALIDITY;
 
 public class JsonObjectToContractDefinitionRequestDtoTransformer extends AbstractJsonLdTransformer<JsonObject, ContractDefinitionRequestDto> {
 
@@ -50,9 +49,6 @@ public class JsonObjectToContractDefinitionRequestDtoTransformer extends Abstrac
             transformString(value, builder::accessPolicyId, context);
         } else if (CONTRACT_DEFINITION_CONTRACTPOLICY_ID.equals(key)) {
             transformString(value, builder::contractPolicyId, context);
-        } else if (CONTRACT_DEFINITION_VALIDITY.equals(key)) {
-            var validity = transformGenericProperty(value, context).toString();
-            builder.validity((long) Double.parseDouble(validity));
         } else if (CONTRACT_DEFINITION_CRITERIA.equals(key)) {
             var list = new ArrayList<CriterionDto>();
             transformArrayOrObject(value, CriterionDto.class, list::add, context);

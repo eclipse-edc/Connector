@@ -57,7 +57,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.URI;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
 
@@ -132,8 +131,6 @@ class MultipartDispatcherIntegrationTest {
                 .assetId("1")
                 .policy(Policy.Builder.newInstance().build())
                 .contractSigningDate(Instant.now().getEpochSecond())
-                .contractStartDate(Instant.now().getEpochSecond())
-                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .id("1:2:3").build());
         when(validationService.validateAgreement(any(), any(ContractAgreement.class))).thenReturn(Result.success(null));
 

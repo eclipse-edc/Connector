@@ -234,11 +234,13 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractEndDate() * 1000L < clock.millis();
+//        return contractAgreement.getContractEndDate() * 1000L < clock.millis();
+        return false; //todo:change
     }
 
     private boolean isStarted(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
+//        return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
+        return true; //todo:change
     }
 
     private static class SanitizedResult {

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.api.model.CriterionDto;
 
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ public class ContractDefinitionRequestDto {
     public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + "ContractDefinition";
     public static final String CONTRACT_DEFINITION_ACCESSPOLICY_ID = EDC_NAMESPACE + "accessPolicyId";
     public static final String CONTRACT_DEFINITION_CONTRACTPOLICY_ID = EDC_NAMESPACE + "contractPolicyId";
-    public static final String CONTRACT_DEFINITION_VALIDITY = EDC_NAMESPACE + "validity";
     public static final String CONTRACT_DEFINITION_CRITERIA = EDC_NAMESPACE + "criteria";
     /**
      * Default validity is set to one year.
@@ -49,8 +47,6 @@ public class ContractDefinitionRequestDto {
     @Valid
     @NotNull(message = "criteria cannot be null")
     protected List<CriterionDto> criteria = new ArrayList<>();
-    @Positive(message = "validity must be positive")
-    protected long validity = DEFAULT_VALIDITY;
 
     //this cannot be non-null, because that would break backwards compatibility with the old API
     protected String id;
@@ -68,10 +64,6 @@ public class ContractDefinitionRequestDto {
 
     public List<CriterionDto> getCriteria() {
         return criteria;
-    }
-
-    public long getValidity() {
-        return validity;
     }
 
     @AssertTrue(message = "id must be either be null or not blank, and it cannot contain the ':' character")
@@ -113,11 +105,6 @@ public class ContractDefinitionRequestDto {
 
         public Builder criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
-            return self();
-        }
-
-        public Builder validity(long validity) {
-            dto.validity = validity;
             return self();
         }
 

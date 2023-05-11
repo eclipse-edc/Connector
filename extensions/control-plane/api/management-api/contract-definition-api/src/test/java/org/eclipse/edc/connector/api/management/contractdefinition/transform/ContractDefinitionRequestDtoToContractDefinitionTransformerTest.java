@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,7 +51,6 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
-                .validity(TimeUnit.MINUTES.toSeconds(10))
                 .build();
 
         var contractDefinition = transformer.transform(contractDefinitionDto, context);

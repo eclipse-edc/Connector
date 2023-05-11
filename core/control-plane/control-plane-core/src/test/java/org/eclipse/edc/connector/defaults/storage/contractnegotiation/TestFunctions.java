@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,8 +58,6 @@ public class TestFunctions {
                 .consumerId("consumer")
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .contractStartDate(Instant.now().getEpochSecond())
-                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
     }
 }

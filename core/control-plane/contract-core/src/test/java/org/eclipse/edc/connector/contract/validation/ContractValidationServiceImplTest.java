@@ -47,12 +47,10 @@ import org.mockito.ArgumentCaptor;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
-import static java.time.Instant.MAX;
 import static java.time.Instant.MIN;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
@@ -236,8 +234,6 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
-                .contractStartDate(now.getEpochSecond())
-                .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(now.getEpochSecond())
                 .id("1:2:3")
                 .consumerId(CONSUMER_ID)
@@ -270,8 +266,6 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
-                .contractStartDate(now.getEpochSecond())
-                .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(now.getEpochSecond())
                 .id("1:2:3")
                 .consumerId(CONSUMER_ID)
@@ -287,14 +281,14 @@ class ContractValidationServiceImplTest {
     @Test
     void verifyContractAgreementExpired() {
         var past = Instant.now().getEpochSecond() - 5000;
-        var isValid = validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), past);
+        var isValid = validateAgreementDate(MIN.getEpochSecond());
 
         assertThat(isValid.failed()).isTrue();
     }
 
     @Test
     void verifyContractAgreementNotStartedYet() {
-        var isValid = validateAgreementDate(MIN.getEpochSecond(), MAX.getEpochSecond(), MAX.getEpochSecond());
+        var isValid = validateAgreementDate(MIN.getEpochSecond());
 
         assertThat(isValid.failed()).isTrue();
     }
@@ -451,7 +445,7 @@ class ContractValidationServiceImplTest {
         verify(agentService).createFor(isA(ClaimToken.class));
     }
 
-    private Result<ContractAgreement> validateAgreementDate(long signingDate, long startDate, long endDate) {
+    private Result<ContractAgreement> validateAgreementDate(long signingDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(createContractDefinition());
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
@@ -460,8 +454,6 @@ class ContractValidationServiceImplTest {
         var agreement = createContractAgreement()
                 .id("1:2:3")
                 .contractSigningDate(signingDate)
-                .contractStartDate(startDate)
-                .contractEndDate(endDate)
                 .build();
 
         return validationService.validateAgreement(claimToken, agreement);

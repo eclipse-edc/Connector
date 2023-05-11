@@ -107,7 +107,6 @@ class ContractNegotiationServiceImplTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "contractAgreement.contractStartDate=123455",
             "contractAgreement.assetId=test-asset",
             "contractAgreement.policy.assignee=123455",
     })

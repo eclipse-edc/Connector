@@ -42,9 +42,7 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
                 .providerId("providerId")
                 .assetId("assetId")
                 .policy(policy)
-                .contractStartDate(1)
                 .contractSigningDate(2)
-                .contractEndDate(3)
                 .build();
 
         var dto = transformer.transform(contractAgreement, context);
@@ -52,9 +50,7 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
         assertThat(dto.getId()).isEqualTo("agreementId");
         assertThat(dto.getAssetId()).isEqualTo("assetId");
         assertThat(dto.getPolicy()).isEqualTo(policy);
-        assertThat(dto.getContractStartDate()).isEqualTo(1);
         assertThat(dto.getContractSigningDate()).isEqualTo(2);
-        assertThat(dto.getContractEndDate()).isEqualTo(3);
         assertThat(dto.getConsumerId()).isEqualTo("consumerId");
         assertThat(dto.getProviderId()).isEqualTo("providerId");
     }

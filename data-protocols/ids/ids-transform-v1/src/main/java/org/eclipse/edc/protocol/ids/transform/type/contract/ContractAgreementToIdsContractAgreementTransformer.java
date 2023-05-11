@@ -97,18 +97,6 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
         }
 
         try {
-            builder._contractStart_(CalendarUtil.gregorianFromEpochSeconds(agreement.getContractStartDate()));
-        } catch (DatatypeConfigurationException e) {
-            context.reportProblem("cannot convert contract start time to XMLGregorian");
-        }
-
-        try {
-            builder._contractEnd_(CalendarUtil.gregorianFromEpochSeconds(agreement.getContractEndDate()));
-        } catch (DatatypeConfigurationException e) {
-            context.reportProblem("cannot convert contract end time to XMLGregorian");
-        }
-
-        try {
             builder._contractDate_(CalendarUtil.gregorianFromEpochSeconds(agreement.getContractSigningDate()));
         } catch (DatatypeConfigurationException e) {
             context.reportProblem("cannot convert contract signing time to XMLGregorian");
