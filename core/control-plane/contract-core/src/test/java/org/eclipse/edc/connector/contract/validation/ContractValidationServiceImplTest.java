@@ -61,6 +61,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -280,9 +281,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractAgreementExpired() {
-        var past = Instant.now().getEpochSecond() - 5000;
         var isValid = validateAgreementDate(MIN.getEpochSecond());
-
         assertThat(isValid.failed()).isTrue();
     }
 
@@ -443,6 +442,25 @@ class ContractValidationServiceImplTest {
         assertThat(result.succeeded()).isFalse();
 
         verify(agentService).createFor(isA(ClaimToken.class));
+    }
+
+    @Test
+    void validateAgreement_failWhenOutsideInForcePeriod_fixed() {
+        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
+        when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(createContractDefinition());
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
+
+        when((policyEngine.evaluate(eq(TRANSFER_SCOPE), any(Policy.class), any(ParticipantAgent.class), anyMap()))).thenReturn(Result.failure("test-failure"));
+
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement()
+                .id("1:2:3")
+                .contractSigningDate(Instant.now().toEpochMilli())
+                .build();
+
+        assertThat(validationService.validateAgreement(claimToken, agreement)).isFailed()
+                .detail().startsWith("Policy does not fulfill the agreement " + agreement.getId()).contains("test-failure");
     }
 
     private Result<ContractAgreement> validateAgreementDate(long signingDate) {

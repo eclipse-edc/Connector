@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -127,10 +128,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure(format("The contract id %s does not follow the expected scheme", agreement.getId()));
         }
 
-        if (!isStarted(agreement) || isExpired(agreement)) {
-            return failure("The agreement has not started yet or it has expired");
-        }
-
         var agent = agentService.createFor(token);
         var consumerIdentity = agent.getIdentity();
         if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerId())) {
@@ -140,6 +137,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         // Create additional context information for policy engine to make agreement available in context
         var contextInformation = new HashMap<Class<?>, Object>();
         contextInformation.put(ContractAgreement.class, agreement);
+        contextInformation.put(Instant.class, Instant.now());
 
         var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), agent, contextInformation);
         if (!policyResult.succeeded()) {
@@ -231,16 +229,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                 .policy(policy)
                 .assetId(assetId)
                 .build();
-    }
-
-    private boolean isExpired(ContractAgreement contractAgreement) {
-        //        return contractAgreement.getContractEndDate() * 1000L < clock.millis();
-        return false; //todo:change
-    }
-
-    private boolean isStarted(ContractAgreement contractAgreement) {
-        //        return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
-        return true; //todo:change
     }
 
     private static class SanitizedResult {
