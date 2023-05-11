@@ -55,7 +55,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
 import java.time.Duration;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -305,8 +304,6 @@ class ContractNegotiationIntegrationTest {
     private ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId("1", "test-asset-id"))
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .providerId("provider")
                 .assetId(randomUUID().toString())
                 .policy(Policy.Builder.newInstance()

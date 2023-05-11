@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -64,9 +63,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractOfferResolverImplTest {
-    private static final String PARTICIPANT_ID = "urn:connector:provider";
     public static final String CONSUMER_ID = "urn:connector:consumer";
-
+    private static final String PARTICIPANT_ID = "urn:connector:provider";
     private static final Range DEFAULT_RANGE = new Range(0, 10);
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
@@ -102,11 +100,7 @@ class ContractOfferResolverImplTest {
 
         assertThat(offers)
                 .hasSize(2)
-                .allSatisfy(contractOffer -> {
-                    assertThat(contractOffer.getContractEnd().toInstant())
-                            .isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
-                    assertThat(contractOffer.getProviderId()).isEqualTo(PARTICIPANT_ID);
-                });
+                .allSatisfy(contractOffer -> assertThat(contractOffer.getProviderId()).isEqualTo(PARTICIPANT_ID));
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionResolver).definitionsFor(isA(ParticipantAgent.class));
         verify(assetIndex).queryAssets(isA(QuerySpec.class));
@@ -300,9 +294,7 @@ class ContractOfferResolverImplTest {
         var offers = contractOfferResolver.queryContractOffers(query);
 
         assertThat(offers)
-                .hasSize(1)
-                .allSatisfy(contractOffer -> assertThat(contractOffer.getContractEnd()).isEqualTo(Instant.ofEpochMilli(Long.MAX_VALUE).atZone(ZoneOffset.UTC)));
-
+                .hasSize(1);
     }
 
     private ContractOfferQuery getQuery(int from, int to) {

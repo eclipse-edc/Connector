@@ -50,7 +50,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.ZonedDateTime;
 import java.util.Map;
 
 import static java.util.UUID.randomUUID;
@@ -144,8 +143,6 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .id(randomUUID().toString())
                 .assetId(randomUUID().toString())
                 .policy(policy)
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .build();
         return ContractNegotiation.Builder.newInstance()
                 .id(randomUUID().toString())

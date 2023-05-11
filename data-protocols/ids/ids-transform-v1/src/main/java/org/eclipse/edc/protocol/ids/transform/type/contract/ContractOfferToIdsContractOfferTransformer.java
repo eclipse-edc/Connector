@@ -29,10 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.Objects;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 
 public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransformer<ContractOffer, de.fraunhofer.iais.eis.ContractOffer> {
 
@@ -86,22 +83,6 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
         builder._prohibition_(idsProhibitions);
         builder._permission_(idsPermissions);
         builder._provider_(URI.create(object.getProviderId()));
-
-        if (object.getContractStart() != null) {
-            try {
-                builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar.from(object.getContractStart()))));
-            } catch (DatatypeConfigurationException e) {
-                context.reportProblem("cannot convert contract start time to XMLGregorian");
-            }
-        }
-
-        if (object.getContractEnd() != null) {
-            try {
-                builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(((GregorianCalendar.from(object.getContractEnd())))));
-            } catch (DatatypeConfigurationException e) {
-                context.reportProblem("cannot convert contract end time to XMLGregorian");
-            }
-        }
 
         return PropertyUtil.addPolicyPropertiesToIdsContract(policy, builder.build());
     }

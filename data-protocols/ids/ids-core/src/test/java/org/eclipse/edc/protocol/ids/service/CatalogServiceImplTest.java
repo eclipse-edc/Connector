@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +37,14 @@ class CatalogServiceImplTest {
 
     private final ContractOfferResolver contractOfferResolver = mock(ContractOfferResolver.class);
     private CatalogServiceImpl dataCatalogService;
+
+    private static ContractOffer createContractOffer(String id) {
+        return ContractOffer.Builder.newInstance()
+                .policy(Policy.Builder.newInstance().build())
+                .assetId("test-asset")
+                .id(id)
+                .build();
+    }
 
     @BeforeEach
     void setUp() {
@@ -61,15 +68,5 @@ class CatalogServiceImplTest {
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
         assertThat(result.getContractOffers()).hasSameElementsAs(offers);
         verify(contractOfferResolver).queryContractOffers(any(ContractOfferQuery.class));
-    }
-
-    private static ContractOffer createContractOffer(String id) {
-        return ContractOffer.Builder.newInstance()
-                .policy(Policy.Builder.newInstance().build())
-                .assetId("test-asset")
-                .id(id)
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
-                .build();
     }
 }

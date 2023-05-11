@@ -36,7 +36,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -89,11 +88,7 @@ class ContractOfferResolverImplClockSkewTest {
         var offers = contractOfferResolver.queryContractOffers(query);
 
         assertThat(offers)
-                .hasSize(1)
-                .allSatisfy(contractOffer -> assertThat(ChronoUnit.SECONDS.between(
-                        contractOffer.getContractStart(),
-                        contractOffer.getContractEnd()))
-                        .isEqualTo(VALIDITY));
+                .hasSize(1);
     }
 
     private ContractDefinition.Builder getContractDefBuilder() {

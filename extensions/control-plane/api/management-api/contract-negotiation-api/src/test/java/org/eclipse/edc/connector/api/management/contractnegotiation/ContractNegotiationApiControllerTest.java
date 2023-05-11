@@ -45,7 +45,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -316,8 +315,6 @@ class ContractNegotiationApiControllerTest {
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .assetId("test-asset")
-                        .contractStart(ZonedDateTime.now())
-                        .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())
                 .build();
         return ContractRequest.Builder.newInstance()

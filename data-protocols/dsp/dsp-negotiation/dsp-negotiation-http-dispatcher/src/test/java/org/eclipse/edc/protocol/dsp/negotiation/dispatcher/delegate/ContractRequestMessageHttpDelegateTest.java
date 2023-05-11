@@ -34,7 +34,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -145,8 +144,6 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
         return ContractOffer.Builder.newInstance()
                 .id(String.valueOf(UUID.randomUUID()))
                 .assetId("assetId")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .policy(policy()).build();
     }
 

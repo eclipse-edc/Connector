@@ -36,7 +36,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatcher;
 
-import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -283,8 +282,6 @@ class ContractNegotiationServiceImplTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("test-asset")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .build();
     }
 }

@@ -44,7 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -112,14 +111,11 @@ class ContractNegotiationEventDispatchTest {
     }
 
     private ContractRequestMessage createContractOfferRequest(Policy policy, String assetId) {
-        var now = ZonedDateTime.now();
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id("contractDefinitionId:" + assetId + ":" + UUID.randomUUID())
                 .assetId("assetId")
                 .policy(policy)
                 .providerId(PROVIDER)
-                .contractStart(now)
-                .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))
                 .build();
 
         return ContractRequestMessage.Builder.newInstance()

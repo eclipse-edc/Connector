@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -41,8 +40,6 @@ public class TestFunctions {
                 .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
                         .policy(Policy.Builder.newInstance().build())
                         .assetId("test-asset")
-                        .contractStart(ZonedDateTime.now())
-                        .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build()))
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")

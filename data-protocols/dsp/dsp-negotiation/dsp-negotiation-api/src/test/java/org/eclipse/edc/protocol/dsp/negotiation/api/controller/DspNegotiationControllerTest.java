@@ -55,7 +55,6 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -136,8 +135,6 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
         return ContractOffer.Builder.newInstance()
                 .id(String.valueOf(UUID.randomUUID()))
                 .assetId("assetId")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .policy(policy()).build();
     }
 

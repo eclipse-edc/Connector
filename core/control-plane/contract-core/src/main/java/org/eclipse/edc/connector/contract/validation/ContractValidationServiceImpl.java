@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -99,8 +98,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                                 .assetId(contractId.assetIdPart())
                                 .providerId(participantId)
                                 .policy(r.getPolicy())
-                                .contractStart(offer.getContractStart())
-                                .contractEnd(offer.getContractEnd())
                                 .build())
         );
     }
@@ -229,18 +226,12 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @NotNull
     private ContractOffer createContractOffer(ContractDefinition definition, Policy policy, String assetId) {
-        var start = clock.instant();
-        var zone = clock.getZone();
-        var contractEndTime = ZonedDateTime.ofInstant(calculateContractEnd(definition, start), zone);
-        var contractStartTime = ZonedDateTime.ofInstant(start, zone);
-
         return ContractOffer.Builder.newInstance()
                 .id(createContractId(definition.getId(), assetId))
                 .providerId(participantId)
                 .policy(policy)
                 .assetId(assetId)
-                .contractStart(contractStartTime)
-                .contractEnd(contractEndTime).build();
+                .build();
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {
@@ -266,8 +257,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     private static class SanitizedResult {
-        private ContractDefinition definition;
-        private Policy policy;
+        private final ContractDefinition definition;
+        private final Policy policy;
 
         SanitizedResult(ContractDefinition definition, Policy policy) {
             this.definition = definition;

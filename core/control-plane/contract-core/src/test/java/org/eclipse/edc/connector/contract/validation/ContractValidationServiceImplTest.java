@@ -104,7 +104,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void verifyContractOfferValidation(boolean verifyById) {
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
         var originalPolicy = Policy.Builder.newInstance().target("1").build();
@@ -129,8 +129,6 @@ class ContractValidationServiceImplTest {
         var validatedOffer = result.getContent().getOffer();
         assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         assertThat(validatedOffer.getAssetId()).isEqualTo(asset.getId());
-        assertThat(validatedOffer.getContractStart().toInstant()).isEqualTo(clock.instant());
-        assertThat(validatedOffer.getContractEnd().toInstant()).isEqualTo(clock.instant().plusSeconds(contractDefinition.getValidity()));
         assertThat(result.getContent().getConsumerIdentity()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
         assertThat(validatedOffer.getProviderId()).isEqualTo(offer.getProviderId());
 
@@ -261,7 +259,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"malicious-actor"})
+    @ValueSource(strings = { "malicious-actor" })
     @NullSource
     void verifyContractAgreementValidation_failedIfInvalidCredentials(String counterPartyId) {
         var newPolicy = Policy.Builder.newInstance().build();
@@ -344,7 +342,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {CONSUMER_ID})
+    @ValueSource(strings = { CONSUMER_ID })
     @NullSource
     void validateConfirmed_failsIfInvalidClaims(String counterPartyId) {
         var agreement = createContractAgreement().id("1:2:3").build();
@@ -434,7 +432,7 @@ class ContractValidationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {PROVIDER_ID})
+    @ValueSource(strings = { PROVIDER_ID })
     @NullSource
     void validateConsumerRequest_failsInvalidCredentials(String counterPartyId) {
         var token = ClaimToken.Builder.newInstance().build();
@@ -478,8 +476,6 @@ class ContractValidationServiceImplTest {
                 .assetId(asset.getId())
                 .policy(policy)
                 .providerId(PROVIDER_ID)
-                .contractStart(now)
-                .contractEnd(now.plusSeconds(validity))
                 .build();
     }
 

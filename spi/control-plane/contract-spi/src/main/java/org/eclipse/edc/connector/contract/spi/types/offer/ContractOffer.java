@@ -53,20 +53,6 @@ public class ContractOffer {
      * Timestamp defining the end date when the offer becomes ineffective
      */
     private ZonedDateTime offerEnd;
-    /**
-     * Timestamp defining the start date when the contract becomes effective
-     *
-     * @deprecated replaced with policy implementation
-     */
-    @Deprecated(forRemoval = true)
-    private ZonedDateTime contractStart;
-    /**
-     * Timestamp defining the end date when the contract becomes terminated
-     *
-     * @deprecated replaced with policy implementation
-     */
-    @Deprecated(forRemoval = true)
-    private ZonedDateTime contractEnd;
 
     @NotNull
     public String getId() {
@@ -88,17 +74,6 @@ public class ContractOffer {
         return offerEnd;
     }
 
-    @Deprecated
-    @NotNull
-    public ZonedDateTime getContractStart() {
-        return contractStart;
-    }
-
-    @Deprecated
-    @NotNull
-    public ZonedDateTime getContractEnd() {
-        return contractEnd;
-    }
 
     @NotNull
     public String getAssetId() {
@@ -112,7 +87,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, assetId, providerId, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, assetId, providerId, offerStart, offerEnd);
     }
 
     @Override
@@ -125,8 +100,7 @@ public class ContractOffer {
         }
         ContractOffer that = (ContractOffer) o;
         return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId) &&
-                Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
-                Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
+                Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -165,18 +139,6 @@ public class ContractOffer {
 
         public Builder offerEnd(ZonedDateTime date) {
             contractOffer.offerEnd = date;
-            return this;
-        }
-
-        @Deprecated
-        public Builder contractStart(ZonedDateTime date) {
-            contractOffer.contractStart = date;
-            return this;
-        }
-
-        @Deprecated
-        public Builder contractEnd(ZonedDateTime date) {
-            contractOffer.contractEnd = date;
             return this;
         }
 

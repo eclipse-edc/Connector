@@ -47,7 +47,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -296,8 +295,6 @@ class ConsumerContractNegotiationManagerImplTest {
         return ContractOffer.Builder.newInstance().id("id:assetId:random")
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("assetId")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .build();
     }
 
@@ -326,8 +323,6 @@ class ConsumerContractNegotiationManagerImplTest {
             return ContractOffer.Builder.newInstance().id("id:assetId:random")
                     .policy(Policy.Builder.newInstance().build())
                     .assetId("assetId")
-                    .contractStart(ZonedDateTime.now())
-                    .contractEnd(ZonedDateTime.now())
                     .build();
         }
     }

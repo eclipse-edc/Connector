@@ -30,7 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,8 +56,6 @@ class OfferedAssetToIdsResourceTransformerTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("test-asset")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
     }
 
