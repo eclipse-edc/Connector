@@ -40,22 +40,25 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSEQUENCE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAINT_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 class JsonObjectFromPolicyTransformerTest {
@@ -241,7 +244,7 @@ class JsonObjectFromPolicyTransformerTest {
     }
     
     @Test
-    void transform_andConstraint_reportProblem() {
+    void transform_andConstraint_returnJsonObject() {
         var constraint = getConstraint();
         var andConstraint = AndConstraint.Builder.newInstance().constraint(constraint).build();
         var permission = Permission.Builder.newInstance()
@@ -255,13 +258,18 @@ class JsonObjectFromPolicyTransformerTest {
         var permissionJson = result.get(ODRL_PERMISSION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
         assertThat(permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE))
                 .isNotNull()
-                .isEmpty();
+                .hasSize(1);
         
-        verify(context, times(1)).reportProblem(anyString());
+        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0);
+        var operandJson = constraintJson.asJsonObject().getJsonObject(ODRL_OPERAND_ATTRIBUTE);
+        assertThat(operandJson.asJsonObject().containsKey(ODRL_AND_CONSTRAINT_ATTRIBUTE));
+        assertThat(operandJson.getJsonArray(ODRL_AND_CONSTRAINT_ATTRIBUTE)).hasSize(1);
+    
+        verify(context, never()).reportProblem(anyString());
     }
     
     @Test
-    void transform_orConstraint_reportProblem() {
+    void transform_orConstraint_returnJsonObject() {
         var constraint = getConstraint();
         var orConstraint = OrConstraint.Builder.newInstance().constraint(constraint).build();
         var permission = Permission.Builder.newInstance()
@@ -275,13 +283,18 @@ class JsonObjectFromPolicyTransformerTest {
         var permissionJson = result.get(ODRL_PERMISSION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
         assertThat(permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE))
                 .isNotNull()
-                .isEmpty();
-        
-        verify(context, times(1)).reportProblem(anyString());
+                .hasSize(1);
+    
+        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0);
+        var operandJson = constraintJson.asJsonObject().getJsonObject(ODRL_OPERAND_ATTRIBUTE);
+        assertThat(operandJson.asJsonObject().containsKey(ODRL_OR_CONSTRAINT_ATTRIBUTE));
+        assertThat(operandJson.getJsonArray(ODRL_OR_CONSTRAINT_ATTRIBUTE)).hasSize(1);
+    
+        verify(context, never()).reportProblem(anyString());
     }
     
     @Test
-    void transform_xoneConstraint_reportProblem() {
+    void transform_xoneConstraint_returnJsonObject() {
         var constraint = getConstraint();
         var xoneConstraint = XoneConstraint.Builder.newInstance().constraint(constraint).build();
         var permission = Permission.Builder.newInstance()
@@ -295,9 +308,14 @@ class JsonObjectFromPolicyTransformerTest {
         var permissionJson = result.get(ODRL_PERMISSION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
         assertThat(permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE))
                 .isNotNull()
-                .isEmpty();
-        
-        verify(context, times(1)).reportProblem(anyString());
+                .hasSize(1);
+    
+        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0);
+        var operandJson = constraintJson.asJsonObject().getJsonObject(ODRL_OPERAND_ATTRIBUTE);
+        assertThat(operandJson.asJsonObject().containsKey(ODRL_XONE_CONSTRAINT_ATTRIBUTE));
+        assertThat(operandJson.getJsonArray(ODRL_XONE_CONSTRAINT_ATTRIBUTE)).hasSize(1);
+    
+        verify(context, never()).reportProblem(anyString());
     }
     
     private Action getAction() {
