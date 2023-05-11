@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.api.management.contractdefinition.model.Contrac
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -39,6 +40,7 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -63,11 +65,19 @@ public class ContractDefinitionNewApiController implements ContractDefinitionNew
     @POST
     @Path("/request")
     @Override
-    public List<JsonObject> queryAllContractDefinitions(QuerySpecDto query) {
+    public List<JsonObject> queryAllContractDefinitions(JsonObject querySpecDto) {
 
-        query = ofNullable(query).orElse(QuerySpecDto.Builder.newInstance().build());
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
 
-        var querySpec = transformerRegistry.transform(query, QuerySpec.class).orElseThrow(InvalidRequestException::new);
+        var querySpec = ofNullable(querySpecDto)
+                .map(jsonLdService::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
+                .orElseThrow(InvalidRequestException::new);
+
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class))) {
             return stream
                     .map(contractDefinition -> transformerRegistry.transform(contractDefinition, ContractDefinitionResponseDto.class)
@@ -94,20 +104,23 @@ public class ContractDefinitionNewApiController implements ContractDefinitionNew
 
     @POST
     @Override
-    public IdResponseDto createContractDefinition(JsonObject createObject) {
+    public JsonObject createContractDefinition(JsonObject createObject) {
 
         var transform = jsonLdService.expand(createObject)
                 .compose(expandedJson -> transformerRegistry.transform(expandedJson, ContractDefinitionRequestDto.class))
                 .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
                 .orElseThrow(InvalidRequestException::new);
 
-
-        return service.create(transform)
-                .map(sr -> IdResponseDto.Builder.newInstance()
-                        .id(sr.getId())
-                        .createdAt(sr.getCreatedAt())
+        var responseDto = service.create(transform)
+                .map(contractDefinition -> IdResponseDto.Builder.newInstance()
+                        .id(contractDefinition.getId())
+                        .createdAt(contractDefinition.getCreatedAt())
                         .build())
                 .orElseThrow(exceptionMapper(ContractDefinition.class));
+
+        return transformerRegistry.transform(responseDto, JsonObject.class)
+                .compose(jsonLdService::compact)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
     @DELETE

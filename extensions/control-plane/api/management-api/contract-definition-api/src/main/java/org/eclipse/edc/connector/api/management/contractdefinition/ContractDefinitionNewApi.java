@@ -22,9 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
@@ -43,7 +41,7 @@ public interface ContractDefinitionNewApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    List<JsonObject> queryAllContractDefinitions(@Valid QuerySpecDto query);
+    List<JsonObject> queryAllContractDefinitions(JsonObject querySpecDto);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {
@@ -66,7 +64,7 @@ public interface ContractDefinitionNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject createObject);
+    JsonObject createContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject createObject);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",

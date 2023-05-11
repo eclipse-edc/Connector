@@ -85,7 +85,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .post()
                 .then()
                 .statusCode(200)
-                .body("id", equalTo(TEST_ID));
+                .body("@id", equalTo(TEST_ID));
 
         assertThat(defStore.findAll(QuerySpec.none())).hasSize(1)
                 .allMatch(cd -> cd.getId().equals(TEST_ID));
