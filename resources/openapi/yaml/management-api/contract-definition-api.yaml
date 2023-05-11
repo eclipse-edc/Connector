@@ -511,10 +511,6 @@ components:
         id:
           type: string
           example: null
-        validity:
-          type: integer
-          format: int64
-          example: null
     CriterionDto:
       type: object
       example: null
