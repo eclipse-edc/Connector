@@ -36,6 +36,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
@@ -46,7 +47,6 @@ import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 @EndToEndTest
 public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEndTest {
@@ -113,15 +113,13 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
         var state = ContractNegotiationStates.FINALIZED.code(); // all other states could be modified by the state machine
         store.save(createContractNegotiationBuilder("cn1").state(state).build());
 
-        var json = baseRequest()
+        baseRequest()
                 .contentType(JSON)
                 .get("cn1/state")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .extract().jsonPath();
-
-        assertThat((String) json.get("state")).isEqualTo("FINALIZED");
+                .body("'edc:state'", is("FINALIZED"));
     }
 
     @Test
@@ -161,17 +159,14 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                         .build())
                 .build();
 
-        var jsonPath = baseRequest()
+        var id = baseRequest()
                 .contentType(JSON)
                 .body(requestJson)
                 .post()
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("id", notNullValue())
-                .extract().body().jsonPath();
-
-        var id = jsonPath.getString("id");
+                .extract().jsonPath().getString(ID);
 
         var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
         assertThat(store.findById(id)).isNotNull();
