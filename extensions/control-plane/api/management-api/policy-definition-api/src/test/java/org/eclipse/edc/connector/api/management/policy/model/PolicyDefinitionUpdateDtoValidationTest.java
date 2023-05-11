@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       T-Systems International GmbH
- *       Fraunhofer ISST
+ *       Fraunhofer Institute for Software and Systems Engineering ISST
  *
  */
 
