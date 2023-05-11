@@ -40,7 +40,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -382,7 +381,6 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .id("1")
                 .accessPolicyId("ap-id")
                 .contractPolicyId("cp-id")
-                .criteria(List.of())
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                .criteria(List.of());
     }
 }

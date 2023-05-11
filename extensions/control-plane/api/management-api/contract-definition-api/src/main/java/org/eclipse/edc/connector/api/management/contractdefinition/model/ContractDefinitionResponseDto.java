@@ -30,7 +30,6 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
     private String accessPolicyId;
     private String contractPolicyId;
     private List<CriterionDto> criteria = new ArrayList<>();
-    private long validity;
 
     private ContractDefinitionResponseDto() {
     }
@@ -45,10 +44,6 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
 
     public List<CriterionDto> getCriteria() {
         return criteria;
-    }
-
-    public long getValidity() {
-        return validity;
     }
 
     public String getId() {
@@ -78,11 +73,6 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
 
         public Builder criteria(List<CriterionDto> criteria) {
             dto.criteria = criteria;
-            return this;
-        }
-
-        public Builder validity(long validity) {
-            dto.validity = validity;
             return this;
         }
 

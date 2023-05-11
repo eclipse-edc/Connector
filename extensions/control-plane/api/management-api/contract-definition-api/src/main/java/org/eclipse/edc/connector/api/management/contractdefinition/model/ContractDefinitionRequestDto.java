@@ -25,7 +25,6 @@ import org.eclipse.edc.api.model.CriterionDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -39,7 +38,6 @@ public class ContractDefinitionRequestDto {
     /**
      * Default validity is set to one year.
      */
-    private static final long DEFAULT_VALIDITY = TimeUnit.DAYS.toSeconds(365);
     @NotNull(message = "accessPolicyId cannot be null")
     protected String accessPolicyId;
     @NotNull(message = "contractPolicyId cannot be null")

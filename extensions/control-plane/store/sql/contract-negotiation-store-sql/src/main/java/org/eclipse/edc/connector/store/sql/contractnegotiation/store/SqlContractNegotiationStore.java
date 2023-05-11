@@ -297,6 +297,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .providerId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
+                .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
                 }))
                 //todo

@@ -67,16 +67,16 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getInsertAgreementTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?%s);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?%s);",
                 getContractAgreementTable(), getContractAgreementIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
-                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator());
+                getSigningDateColumn(), getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator());
     }
 
     @Override
     public String getUpdateAgreementTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s WHERE %s =?",
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?%s WHERE %s =?",
                 getContractAgreementTable(), getProviderAgentColumn(), getConsumerAgentColumn(), getSigningDateColumn(),
-                getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator(), getContractAgreementIdColumn());
+                getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator(), getContractAgreementIdColumn());
     }
 
     @Override
