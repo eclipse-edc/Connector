@@ -34,7 +34,6 @@ class PermissionTest {
     void withTarget() {
         var target = "target-id";
         var permission = Permission.Builder.newInstance()
-                .uid("id")
                 .assigner("assigner")
                 .assignee("assignee")
                 .action(Action.Builder.newInstance().type("USE").build())
@@ -48,7 +47,6 @@ class PermissionTest {
 
         var copy = permission.withTarget(target);
 
-        assertThat(copy.getUid()).isEqualTo(permission.getUid());
         assertThat(copy.getAssigner()).isEqualTo(permission.getAssigner());
         assertThat(copy.getAssignee()).isEqualTo(permission.getAssignee());
         assertThat(copy.getAction()).isEqualTo(permission.getAction());

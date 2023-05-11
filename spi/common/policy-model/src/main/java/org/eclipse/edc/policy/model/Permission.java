@@ -56,7 +56,6 @@ public class Permission extends Rule {
      */
     public Permission withTarget(String target) {
         return Builder.newInstance()
-                .uid(this.uid)
                 .assigner(this.assigner)
                 .assignee(this.assignee)
                 .action(this.action)
@@ -81,11 +80,6 @@ public class Permission extends Rule {
         public Builder duty(Duty duty) {
             duty.setParentPermission(rule);
             rule.duties.add(duty);
-            return this;
-        }
-
-        public Builder uid(String uid) {
-            rule.uid = uid;
             return this;
         }
 

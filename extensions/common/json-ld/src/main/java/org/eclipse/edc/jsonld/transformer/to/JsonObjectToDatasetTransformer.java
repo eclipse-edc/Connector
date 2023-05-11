@@ -65,7 +65,7 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
             builder.offer(id, policy);
         } else if (value instanceof JsonArray) {
             var array = (JsonArray) value;
-            array.stream().forEach(entry -> transformPolicies(entry, builder, context));
+            array.forEach(entry -> transformPolicies(entry, builder, context));
         } else {
             context.reportProblem("Invalid hasPolicy property");
         }

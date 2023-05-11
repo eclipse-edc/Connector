@@ -23,7 +23,7 @@ import java.util.List;
  * A permission, prohibition, or duty contained in a {@link Policy}.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
-public abstract class Rule extends Identifiable {
+public abstract class Rule {
 
     public interface Visitor<R> {
         R visitPermission(Permission policy);

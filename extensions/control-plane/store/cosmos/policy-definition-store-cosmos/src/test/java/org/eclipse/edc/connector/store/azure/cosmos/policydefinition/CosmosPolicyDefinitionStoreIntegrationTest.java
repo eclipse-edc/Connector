@@ -160,7 +160,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
 
         //modify a single field
         policyToUpdate.getPolicy().getPermissions().add(Permission.Builder.newInstance().target("test-permission-target").build());
-        policyToUpdate.getPolicy().getObligations().add(Duty.Builder.newInstance().uid("test-obligation-id").build());
+        policyToUpdate.getPolicy().getObligations().add(Duty.Builder.newInstance().build());
 
 
         var saveResult = store.create(policyToUpdate);

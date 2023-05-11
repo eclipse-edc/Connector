@@ -269,9 +269,6 @@ components:
         target:
           type: string
           example: null
-        uid:
-          type: string
-          example: null
     JsonObject:
       type: object
       additionalProperties:
@@ -330,9 +327,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
         target:
-          type: string
-          example: null
-        uid:
           type: string
           example: null
     Policy:
@@ -397,9 +391,6 @@ components:
           items:
             $ref: '#/components/schemas/Constraint'
         target:
-          type: string
-          example: null
-        uid:
           type: string
           example: null
     QuerySpecDto:

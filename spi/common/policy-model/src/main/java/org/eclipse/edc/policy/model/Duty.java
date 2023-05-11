@@ -70,7 +70,6 @@ public class Duty extends Rule {
      */
     public Duty withTarget(String target) {
         return Builder.newInstance()
-                .uid(this.uid)
                 .assigner(this.assigner)
                 .assignee(this.assignee)
                 .action(this.action)
@@ -91,11 +90,6 @@ public class Duty extends Rule {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder uid(String uid) {
-            rule.uid = uid;
-            return this;
         }
 
         public Builder parentPermission(Permission parentPermission) {

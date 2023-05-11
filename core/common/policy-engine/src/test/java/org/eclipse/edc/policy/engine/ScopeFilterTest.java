@@ -94,7 +94,6 @@ class ScopeFilterTest {
                 .build();
         var permission = Permission.Builder.newInstance()
                 .action(REPORT_ACTION)
-                .uid("1")
                 .assignee("assignee")
                 .assigner("assigner")
                 .target("target")
@@ -110,7 +109,6 @@ class ScopeFilterTest {
         assertThat(filteredPermission.getAssignee()).isNotNull();
         assertThat(filteredPermission.getAssigner()).isNotNull();
         assertThat(filteredPermission.getTarget()).isNotNull();
-        assertThat(filteredPermission.getUid()).isNotNull();
         assertThat(filteredPermission.getDuties()).isNotEmpty();
         assertThat(filteredPermission.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
         assertThat(filteredPermission.getConstraints()).contains(BOUND_CONSTRAINT);
@@ -131,7 +129,6 @@ class ScopeFilterTest {
 
         var prohibition = Prohibition.Builder.newInstance()
                 .action(REPORT_ACTION)
-                .uid("1")
                 .assignee("assignee")
                 .assigner("assigner")
                 .target("target")
@@ -146,7 +143,6 @@ class ScopeFilterTest {
         assertThat(filteredPermission.getAssignee()).isNotNull();
         assertThat(filteredPermission.getAssigner()).isNotNull();
         assertThat(filteredPermission.getTarget()).isNotNull();
-        assertThat(filteredPermission.getUid()).isNotNull();
         assertThat(filteredPermission.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
         assertThat(filteredPermission.getConstraints()).contains(BOUND_CONSTRAINT);
     }
@@ -170,7 +166,6 @@ class ScopeFilterTest {
 
         var duty = Duty.Builder.newInstance()
                 .action(REPORT_ACTION)
-                .uid("1")
                 .assignee("assignee")
                 .assigner("assigner")
                 .target("target")
@@ -186,7 +181,6 @@ class ScopeFilterTest {
         assertThat(filteredDuty.getAssignee()).isNotNull();
         assertThat(filteredDuty.getAssigner()).isNotNull();
         assertThat(filteredDuty.getTarget()).isNotNull();
-        assertThat(filteredDuty.getUid()).isNotNull();
         assertThat(filteredDuty.getConsequence()).isNotNull();
         assertThat(filteredDuty.getConstraints().size()).isEqualTo(1);  // verify that the unbound constraint was removed
         assertThat(filteredDuty.getConstraints()).contains(BOUND_CONSTRAINT);

@@ -833,9 +833,6 @@ components:
         target:
           type: string
           example: null
-        uid:
-          type: string
-          example: null
     IdResponseDto:
       type: object
       example: null
@@ -945,9 +942,6 @@ components:
         target:
           type: string
           example: null
-        uid:
-          type: string
-          example: null
     Policy:
       type: object
       example: null
@@ -1010,9 +1004,6 @@ components:
           items:
             $ref: '#/components/schemas/Constraint'
         target:
-          type: string
-          example: null
-        uid:
           type: string
           example: null
     QuerySpecDto:
