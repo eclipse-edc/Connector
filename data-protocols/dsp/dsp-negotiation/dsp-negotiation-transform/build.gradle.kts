@@ -22,4 +22,7 @@ dependencies {
     api(project(":extensions:common:json-ld"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:common:web-spi"))
+
+    implementation(libs.bundles.jersey.core)
 }

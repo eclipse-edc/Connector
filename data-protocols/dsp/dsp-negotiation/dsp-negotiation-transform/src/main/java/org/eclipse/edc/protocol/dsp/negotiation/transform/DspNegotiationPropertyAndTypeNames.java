@@ -22,6 +22,8 @@ public interface DspNegotiationPropertyAndTypeNames {
 
     String DSPACE_CONTRACT_NEGOTIATION = DSPACE_SCHEMA + "ContractNegotiation";
 
+    String DSPACE_CONTRACT_NEGOTIATION_ERROR = DSPACE_SCHEMA + "ContractNegotiationError";
+
     // messages
 
     String DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE = DSPACE_SCHEMA + "ContractRequestMessage";
