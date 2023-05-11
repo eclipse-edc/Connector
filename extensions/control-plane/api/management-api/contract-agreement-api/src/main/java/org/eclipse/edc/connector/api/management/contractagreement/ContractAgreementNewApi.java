@@ -22,8 +22,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
-import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
@@ -41,7 +39,7 @@ public interface ContractAgreementNewApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    List<JsonObject> queryAllAgreements(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> queryAllAgreements(JsonObject querySpecDto);
 
     @Operation(description = "Gets an contract agreement with the given ID",
             responses = {

@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api.management.contractagreement;
 
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -38,6 +37,7 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -62,12 +62,18 @@ public class ContractAgreementNewApiController implements ContractAgreementNewAp
     @POST
     @Path("/request")
     @Override
-    public List<JsonObject> queryAllAgreements(@Valid QuerySpecDto querySpecDto) {
-        querySpecDto = ofNullable(querySpecDto).orElseGet(() -> QuerySpecDto.Builder.newInstance().build());
+    public List<JsonObject> queryAllAgreements(JsonObject querySpecDto) {
 
-        var query = transformerRegistry.transform(querySpecDto, QuerySpec.class)
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
+
+        var query = ofNullable(querySpecDto)
+                .map(jsonLdService::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
                 .orElseThrow(InvalidRequestException::new);
-
 
         try (var stream = service.query(query).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
             return stream

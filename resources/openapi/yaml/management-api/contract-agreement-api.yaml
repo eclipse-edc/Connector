@@ -133,7 +133,25 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+                  example: null
       responses:
         "200":
           content:
