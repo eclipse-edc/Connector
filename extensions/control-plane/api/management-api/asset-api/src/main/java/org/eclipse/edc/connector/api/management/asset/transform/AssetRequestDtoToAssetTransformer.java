@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.api.management.asset.transform;
 
-import java.util.HashMap;
-
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.model.AssetCreationRequestDto;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
 
 public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetCreationRequestDto, Asset> {
 

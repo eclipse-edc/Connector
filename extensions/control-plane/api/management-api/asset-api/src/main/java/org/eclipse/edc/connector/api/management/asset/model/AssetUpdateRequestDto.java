@@ -37,7 +37,7 @@ public class AssetUpdateRequestDto extends AssetRequestDto {
 
     @JsonIgnore
     @AssertTrue(message = "no duplicate keys in properties and private properties")
-    public boolean containsDistinctKeys() {
+    public boolean isDistinctKeysValid() {
         return checkDistinctKeys();
     }
 

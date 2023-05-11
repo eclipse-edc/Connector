@@ -14,10 +14,11 @@
 
 package org.eclipse.edc.connector.api.management.asset.model;
 
+import jakarta.validation.constraints.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.validation.constraints.NotNull;
 
 public abstract class AssetRequestDto {
 
