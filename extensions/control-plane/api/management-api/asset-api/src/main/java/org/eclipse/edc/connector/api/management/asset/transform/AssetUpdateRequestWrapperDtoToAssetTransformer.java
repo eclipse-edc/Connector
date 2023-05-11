@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.api.management.asset.transform;
 
+import java.util.HashMap;
+
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -34,6 +36,13 @@ public class AssetUpdateRequestWrapperDtoToAssetTransformer implements DtoTransf
 
     @Override
     public @Nullable Asset transform(@NotNull AssetUpdateRequestWrapperDto object, @NotNull TransformerContext context) {
+        if (object.getRequestDto().getPrivateProperties() == null) {
+            return Asset.Builder.newInstance()
+                    .properties(object.getRequestDto().getProperties())
+                    .privateProperties(new HashMap<>())
+                    .id(object.getAssetId())
+                    .build();
+        }
         return Asset.Builder.newInstance()
                 .properties(object.getRequestDto().getProperties())
                 .privateProperties(object.getRequestDto().getPrivateProperties())

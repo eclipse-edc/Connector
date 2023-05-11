@@ -34,19 +34,13 @@ public class AssetCreationRequestDto extends AssetRequestDto {
     @JsonIgnore
     @AssertTrue(message = "no empty property keys and no duplicate keys")
     public boolean isValid() {
-        //check for empty keys
-        boolean validPrivate = privateProperties != null && privateProperties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
-        boolean validPublic = properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
-        return validPrivate && validPublic;
+        return mapKeysValid();
     }
 
     @JsonIgnore
     @AssertTrue(message = "no duplicate keys in properties and private properties")
-    public boolean isMapValid() {
-        if (privateProperties != null && properties != null) {
-            return properties.keySet().stream().distinct().noneMatch(privateProperties::containsKey);
-        }
-        return false;
+    public boolean containsDistinctKeys() {
+        return checkDistinctKeys();
     }
 
     @JsonIgnore

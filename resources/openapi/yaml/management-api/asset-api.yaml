@@ -622,6 +622,12 @@ components:
         id:
           type: string
           example: null
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
         properties:
           type: object
           additionalProperties:
@@ -666,6 +672,12 @@ components:
         id:
           type: string
           example: null
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
         properties:
           type: object
           additionalProperties:
@@ -688,6 +700,12 @@ components:
       type: object
       example: null
       properties:
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
         properties:
           type: object
           additionalProperties:
