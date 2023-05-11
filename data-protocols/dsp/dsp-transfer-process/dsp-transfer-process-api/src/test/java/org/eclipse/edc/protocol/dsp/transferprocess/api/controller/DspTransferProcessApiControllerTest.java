@@ -20,6 +20,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -30,6 +31,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTermination
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -62,8 +64,11 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_TERMINATION;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.hamcrest.Matchers.is;
@@ -146,8 +151,65 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .build();
     }
 
+    private static Response transferErrorResponseUnsupperted() {
+        var builder = Json.createObjectBuilder();
+
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
+        builder.add(DSPACE_PROCESSID_TYPE, "testID");
+        builder.add(DSPACE_SCHEMA + "code", "501");
+        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+
+        return Response.status(501).entity(builder.build()).build();
+    }
+
+    private static Response transferErrorResponseTransformationFailed() {
+        var builder = Json.createObjectBuilder();
+
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
+        builder.add(DSPACE_PROCESSID_TYPE, "testID");
+        builder.add(DSPACE_SCHEMA + "code", "500");
+        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+
+        return Response.status(500).entity(builder.build()).build();
+    }
+
+    private static Response transferErrorResponseNotAuthorized() {
+        var builder = Json.createObjectBuilder();
+
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
+        builder.add(DSPACE_PROCESSID_TYPE, "testID");
+        builder.add(DSPACE_SCHEMA + "code", "401");
+        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+
+        return Response.status(401).entity(builder.build()).build();
+    }
+
+    private static Response transferErrorResponseBadRequest() {
+        var builder = Json.createObjectBuilder();
+
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
+        builder.add(DSPACE_PROCESSID_TYPE, "testID");
+        builder.add(DSPACE_SCHEMA + "code", "400");
+        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+
+        return Response.status(400).entity(builder.build()).build();
+    }
+
+    private static Response transferErrorResponseConflict() {
+        var builder = Json.createObjectBuilder();
+
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
+        builder.add(DSPACE_PROCESSID_TYPE, "testID");
+        builder.add(DSPACE_SCHEMA + "code", "409");
+        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+
+        return Response.status(409).entity(builder.build()).build();
+    }
+
     @Test
     void getTransferProcess_shouldReturnNotImplemented_whenOperationNotSupported() {
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
+
         //operation not yet supported
         var result = baseRequest()
                 .get(BASE_PATH + PROCESS_ID)
@@ -203,6 +265,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(JsonObject.class), eq(TransferRequestMessage.class)))
                 .thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
 
         var result = baseRequest()
@@ -231,6 +294,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
 
         var result = baseRequest()
@@ -247,6 +311,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Test
     void consumerTransferProcessSuspension_shouldReturnNotImplemented_whenOperationNotSupported() {
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
+
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Json.createObjectBuilder().build())
@@ -270,6 +336,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path, JsonObject request) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseNotAuthorized()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -299,6 +366,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.failure("error"));
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -330,6 +398,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
+
+
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -400,6 +471,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
+        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseConflict()));
 
         when(protocolService.notifyRequested(any(TransferRequestMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyStarted(any(TransferStartMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));

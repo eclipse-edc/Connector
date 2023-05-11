@@ -72,5 +72,8 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToTransferStartMessageTransformer());
         registry.register(new JsonObjectToTransferTerminationMessageTransformer());
         registry.register(new JsonObjectToDataAddressTransformer());
+
+        //No JsonObjectTransfromer
+        registry.register(new TransferErrorToResponseTransformer());
     }
 }

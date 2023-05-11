@@ -23,6 +23,8 @@ public interface DspTransferProcessPropertyAndTypeNames {
 
     String DSPACE_TRANSFER_PROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferRequestMessage";
 
+    String DSPACE_TRANSFER_PROCESS_ERROR = DSPACE_SCHEMA + "TransferError";
+
     String DSPACE_TRANSFER_START_TYPE = DSPACE_SCHEMA + "TransferStartMessage";
 
     String DSPACE_TRANSFER_COMPLETION_TYPE = DSPACE_SCHEMA + "TransferCompletionMessage";

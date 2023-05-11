@@ -1,0 +1,36 @@
+/*
+ *  Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
+
+import java.util.Optional;
+
+public class TransferError {
+    private Optional<String> processId;
+
+    private Throwable throwable;
+
+    public TransferError(Optional<String> processId, Throwable throwable) {
+        this.processId = processId;
+        this.throwable = throwable;
+    }
+
+    public Optional<String> getProcessId() {
+        return processId;
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
+    }
+}

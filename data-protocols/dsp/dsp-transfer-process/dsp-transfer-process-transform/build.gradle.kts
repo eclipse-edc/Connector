@@ -19,9 +19,12 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:common:transform-spi"))
+    api(project(":spi:common:web-spi"))
     api(project(":extensions:common:json-ld"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":data-protocols:dsp:dsp-transform"))
+
+    implementation(libs.bundles.jersey.core)
 
     testImplementation(project(":core:common:junit"))
 }

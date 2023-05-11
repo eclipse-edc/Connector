@@ -12,21 +12,24 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.util;
+package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 
 import jakarta.json.Json;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_GATEWAY;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -37,29 +40,25 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 
+public class TransferErrorToResponseTransformer extends AbstractJsonLdTransformer<TransferError, Response> {
+    protected TransferErrorToResponseTransformer() {
+        super(TransferError.class, Response.class);
+    }
 
-/**
- * Creates CatalogError, ContractNegotiation and TransferProcessError Responses for the Dataspace Protocol Apis
- * {DspNegotiationController}, {CatalogController} and {DspTransferProcessApiController}
- *
- */
-public class ErrorUtil {
-
-    /** Creating ErrorResponse
-     *
-     * @param type dspace:ContractNegotiationError/dspace:TransferProcessError/dspace:CatalogError depending on executing Controller
-     * @param processId referenced processId Error is occurring
-     * @param throwable describing ErrorMessage
-     * @return {@link Response} ErrorResponse
-     */
-    public static Response createErrorResponse(String type, Optional<String> processId, Throwable throwable) {
+    @Nullable
+    @Override
+    public Response transform(@NotNull TransferError error, @NotNull TransformerContext context) {
         var builder = Json.createObjectBuilder();
 
-        builder.add(JsonLdKeywords.TYPE, type);
-        if (processId.isPresent()) {
-            builder.add(DSPACE_SCHEMA + "processId", processId.get());
-        }
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
+
+        error.getProcessId().map(e -> builder.add(DSPACE_PROCESSID_TYPE, e))
+                .orElseGet(() -> builder.add(DSPACE_PROCESSID_TYPE, "null"));
+
+        var throwable = error.getThrowable();
 
         var code = errorCodeMapping(throwable);
 
@@ -69,7 +68,9 @@ public class ErrorUtil {
             builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
         }
 
-        return Response.status(code).type(MediaType.APPLICATION_JSON).entity(builder.build()).build();
+        var json = builder.build();
+
+        return Response.status(code).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
     }
 
     private static int errorCodeMapping(Throwable throwable) {

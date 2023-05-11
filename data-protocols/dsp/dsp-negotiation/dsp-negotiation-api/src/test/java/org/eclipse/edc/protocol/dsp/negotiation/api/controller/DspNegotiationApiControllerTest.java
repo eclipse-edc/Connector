@@ -195,8 +195,6 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
 
-
-
         //operation not yet supported
         var result = baseRequest()
                 .get(BASE_PATH + "testId")
@@ -204,7 +202,6 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(501)
                 .extract().as(Map.class);
 
-        monitor.debug(result.keySet().toString());
         assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("501");
         assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
