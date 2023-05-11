@@ -50,7 +50,7 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
 
         var callback = requestObject.get(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS);
         if (callback != null) {
-            transformString(callback, builder::callbackAddress, context);
+            builder.callbackAddress(transformString(callback, context));
         }
 
         var dataset = requestObject.get(DSPACE_NEGOTIATION_PROPERTY_DATASET);

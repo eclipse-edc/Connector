@@ -48,7 +48,7 @@ class ContractRequestMessageTest {
                 .type(INITIAL)
                 .protocol(PROTOCOL)
                 .dataSet(DATA_SET)
-                .callbackAddress(CALLBACK_ADDRESS)
+                .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
 
         // verify process id must be included if type is counter offer
@@ -57,7 +57,7 @@ class ContractRequestMessageTest {
                 .protocol(PROTOCOL)
                 .contractOfferId(OFFER_ID)
                 .dataSet(DATA_SET)
-                .callbackAddress(CALLBACK_ADDRESS)
+                .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
     }
 
@@ -69,7 +69,7 @@ class ContractRequestMessageTest {
                 .protocol(PROTOCOL)
                 .contractOfferId(OFFER_ID)
                 .dataSet(DATA_SET)
-                .callbackAddress(CALLBACK_ADDRESS)
+                .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
         ContractRequestMessage.Builder.newInstance()
@@ -82,7 +82,7 @@ class ContractRequestMessageTest {
                         .policy(Policy.Builder.newInstance().build())
                         .build())
                 .dataSet(DATA_SET)
-                .callbackAddress(CALLBACK_ADDRESS)
+                .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
         // verify no contract offer or contract offer id set
@@ -91,7 +91,7 @@ class ContractRequestMessageTest {
                 .processId(PROCESS_ID)
                 .protocol(PROTOCOL)
                 .dataSet(DATA_SET)
-                .callbackAddress(CALLBACK_ADDRESS)
+                .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("contractOffer");
 
     }

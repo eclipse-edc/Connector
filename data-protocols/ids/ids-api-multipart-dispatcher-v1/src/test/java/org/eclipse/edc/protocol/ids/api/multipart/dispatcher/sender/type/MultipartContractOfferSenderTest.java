@@ -95,7 +95,7 @@ class MultipartContractOfferSenderTest {
                         .build())
                 .protocol("protocol")
                 .connectorId("connector")
-                .callbackAddress("https://connector")
+                .counterPartyAddress("https://connector")
                 .type(type)
                 .processId("processId")
                 .build();

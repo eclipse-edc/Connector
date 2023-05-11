@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -25,6 +24,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,7 +62,7 @@ class TransferProcessControlApiControllerIntegrationTest {
         var registry = mock(RemoteMessageDispatcherRegistry.class);
         when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
     }
 
     @Test

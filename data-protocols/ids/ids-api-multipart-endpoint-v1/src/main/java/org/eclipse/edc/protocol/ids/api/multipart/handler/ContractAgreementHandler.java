@@ -89,7 +89,7 @@ public class ContractAgreementHandler implements Handler {
         var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .connectorId(String.valueOf(message.getIssuerConnector()))
-                .callbackAddress("") // this will be used by DSP
+                .counterPartyAddress("") // this will be used by DSP
                 .contractAgreement(output.getContractAgreement())
                 .processId(String.valueOf(message.getTransferContract()))
                 .policy(output.getPolicy())

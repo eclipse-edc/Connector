@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -55,6 +54,7 @@ import java.time.Clock;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
@@ -106,7 +106,10 @@ class TransferProcessProtocolServiceImplTest {
 
         var result = service.notifyRequested(message, claimToken());
 
-        assertThat(result).isSucceeded().extracting(TransferProcess::getCorrelationId).isEqualTo("processId");
+        assertThat(result).isSucceeded().satisfies(tp -> {
+            assertThat(tp.getCorrelationId()).isEqualTo("processId");
+            assertThat(tp.getDataRequest().getConnectorAddress()).isEqualTo("http://any");
+        });
         verify(listener).preCreated(any());
         verify(store).updateOrCreate(argThat(t -> t.getState() == INITIAL.code()));
         verify(listener).initiated(any());
@@ -174,7 +177,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .dataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
@@ -189,7 +192,7 @@ class TransferProcessProtocolServiceImplTest {
         verify(listener).started(any(), captor.capture());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
 
-        Assertions.assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
+        assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
     }
 
     @Test
@@ -198,7 +201,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -215,7 +218,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -234,7 +237,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build());
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -251,7 +254,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .code("TestCode")
                 .reason("TestReason")
@@ -272,7 +275,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build());
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .code("TestCode")
                 .reason("TestReason")
@@ -335,11 +338,11 @@ class TransferProcessProtocolServiceImplTest {
             MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
             return Stream.of(
                     Arguments.of(started, TransferStartMessage.Builder.newInstance().protocol("protocol")
-                            .callbackAddress("http://any").processId("dataRequestId").build()),
+                            .counterPartyAddress("http://any").processId("dataRequestId").build()),
                     Arguments.of(completed, TransferCompletionMessage.Builder.newInstance().protocol("protocol")
-                            .callbackAddress("http://any").processId("dataRequestId").build()),
+                            .counterPartyAddress("http://any").processId("dataRequestId").build()),
                     Arguments.of(terminated, TransferTerminationMessage.Builder.newInstance().protocol("protocol")
-                            .callbackAddress("http://any").processId("dataRequestId").code("TestCode")
+                            .counterPartyAddress("http://any").processId("dataRequestId").code("TestCode")
                             .reason("TestReason").build())
             );
         }

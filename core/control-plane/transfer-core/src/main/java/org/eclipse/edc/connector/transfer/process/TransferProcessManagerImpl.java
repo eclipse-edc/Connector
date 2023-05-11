@@ -48,6 +48,7 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
@@ -137,6 +138,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private EntityRetryProcessFactory entityRetryProcessFactory;
     private Clock clock;
     private EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
+    private ProtocolWebhook protocolWebhook;
 
     private TransferProcessManagerImpl() {
     }
@@ -387,14 +389,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .id(dataRequest.getId())
                 .protocol(dataRequest.getProtocol())
                 .connectorId(dataRequest.getConnectorId())
-                .callbackAddress(dataRequest.getConnectorAddress())
+                .counterPartyAddress(dataRequest.getConnectorAddress())
+                .callbackAddress(protocolWebhook.url())
                 .dataDestination(dataRequest.getDataDestination())
                 .properties(dataRequest.getProperties())
                 .assetId(dataRequest.getAssetId())
                 .contractId(dataRequest.getContractId())
                 .build();
 
-        var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCallbackAddress());
+        var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCounterPartyAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToRequested(t))
@@ -463,7 +466,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
                 .dataAddress(dataFlowResponse.getDataAddress())
-                .callbackAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? it shouldn't be for provider.
+                .counterPartyAddress(dataRequest.getConnectorAddress())
                 .processId(dataRequest.getId())
                 .build();
 
@@ -532,7 +535,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var dataRequest = process.getDataRequest();
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
-                .callbackAddress(dataRequest.getConnectorAddress())
+                .counterPartyAddress(dataRequest.getConnectorAddress())
                 .processId(dataRequest.getId())
                 .build();
 
@@ -562,7 +565,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataRequest = process.getDataRequest();
         var message = TransferTerminationMessage.Builder.newInstance()
-                .callbackAddress(dataRequest.getConnectorAddress())
+                .counterPartyAddress(dataRequest.getConnectorAddress())
                 .protocol(dataRequest.getProtocol())
                 .processId(dataRequest.getId())
                 .build();
@@ -926,6 +929,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
             manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
+            return this;
+        }
+
+        public Builder protocolWebhook(ProtocolWebhook protocolWebhook) {
+            manager.protocolWebhook = protocolWebhook;
             return this;
         }
 

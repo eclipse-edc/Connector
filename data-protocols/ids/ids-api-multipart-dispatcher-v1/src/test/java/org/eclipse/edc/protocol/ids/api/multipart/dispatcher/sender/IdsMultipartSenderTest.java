@@ -56,7 +56,7 @@ class IdsMultipartSenderTest {
         }
 
         @Override
-        public String getCallbackAddress() {
+        public String getCounterPartyAddress() {
             return "some.remote.url";
         }
     }

@@ -31,7 +31,7 @@ import java.util.Objects;
 public class QueryRequest implements RemoteMessage {
     private String protocol;
     private String connectorId;
-    private String callbackAddress;
+    private String counterPartyAddress;
     private String queryLanguage;
     private String query;
 
@@ -56,8 +56,8 @@ public class QueryRequest implements RemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -83,8 +83,8 @@ public class QueryRequest implements RemoteMessage {
             return this;
         }
 
-        public Builder callbackAddress(String callbackAddress) {
-            queryRequest.callbackAddress = callbackAddress;
+        public Builder counterPartyAddress(String callbackAddress) {
+            queryRequest.counterPartyAddress = callbackAddress;
             return this;
         }
 
@@ -103,7 +103,7 @@ public class QueryRequest implements RemoteMessage {
             Objects.requireNonNull(queryRequest.connectorId, "connectorId");
             Objects.requireNonNull(queryRequest.queryLanguage, "queryLanguage");
             Objects.requireNonNull(queryRequest.query, "query");
-            Objects.requireNonNull(queryRequest.callbackAddress, "callbackAddress");
+            Objects.requireNonNull(queryRequest.counterPartyAddress, "callbackAddress");
             return queryRequest;
         }
     }

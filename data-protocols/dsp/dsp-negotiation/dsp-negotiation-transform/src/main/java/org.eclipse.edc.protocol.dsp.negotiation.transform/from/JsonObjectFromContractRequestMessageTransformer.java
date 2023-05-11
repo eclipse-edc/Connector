@@ -35,11 +35,11 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 /**
  * Creates a {@link JsonObject} from a {@link ContractRequestMessage}.
  */
-public class JsonObjectFromContractRequestTransformer extends AbstractJsonLdTransformer<ContractRequestMessage, JsonObject> {
+public class JsonObjectFromContractRequestMessageTransformer extends AbstractJsonLdTransformer<ContractRequestMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromContractRequestTransformer(JsonBuilderFactory jsonFactory) {
+    public JsonObjectFromContractRequestMessageTransformer(JsonBuilderFactory jsonFactory) {
         super(ContractRequestMessage.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
     }

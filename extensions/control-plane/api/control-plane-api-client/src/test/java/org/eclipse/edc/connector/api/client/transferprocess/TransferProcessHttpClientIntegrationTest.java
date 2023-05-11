@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.client.transferprocess;
 
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
@@ -30,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -72,7 +72,7 @@ public class TransferProcessHttpClientIntegrationTest {
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         var registry = mock(RemoteMessageDispatcherRegistry.class);
         when(registry.send(any(), any())).thenReturn(completedFuture("any"));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);

@@ -109,7 +109,6 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
         assertThatThrownBy(() -> delegate.parseResponse().apply(response)).isInstanceOf(EdcException.class);
     }
 
-
     @Test
     void parseResponse_expandingJsonLdFails_throwException() throws IOException {
         // JSON is missing @context -> expanding returns empty JsonArray
@@ -146,6 +145,7 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
                 .id("testId")
                 .protocol("dataspace-protocol")
                 .callbackAddress("http://test-connector-address")
+                .counterPartyAddress("http://test-connector-address")
                 .contractId("contractId")
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type("type")

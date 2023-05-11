@@ -70,7 +70,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
 
         var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId(object.getConnectorId())
-                .callbackAddress(object.getConnectorAddress())
+                .counterPartyAddress(object.getConnectorAddress())
                 .protocol(object.getProtocol())
                 .contractOffer(contractOffer)
                 .build();

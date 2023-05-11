@@ -122,7 +122,7 @@ class ConsumerPullTransferDataFlowControllerTest {
         var edrRequest = edrRequestCaptor.getValue();
         assertThat(edrRequest.getConnectorId()).isEqualTo(connectorId);
         assertThat(edrRequest.getProtocol()).isEqualTo(request.getProtocol());
-        assertThat(edrRequest.getCallbackAddress()).isEqualTo(request.getConnectorAddress());
+        assertThat(edrRequest.getCounterPartyAddress()).isEqualTo(request.getConnectorAddress());
         assertThat(edrRequest.getEndpointDataReference()).isEqualTo(edr);
 
         var proxyCreationRequest = proxyCreationRequestCaptor.getValue();

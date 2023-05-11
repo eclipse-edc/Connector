@@ -26,7 +26,7 @@ public class ContractRequestData {
     private String protocol;
     @Deprecated(forRemoval = true)
     private String connectorId;
-    private String callbackAddress;
+    private String counterPartyAddress;
     private ContractOffer contractOffer;
     private String dataSet;
 
@@ -34,8 +34,8 @@ public class ContractRequestData {
         return protocol;
     }
 
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @Deprecated
@@ -74,8 +74,8 @@ public class ContractRequestData {
             return this;
         }
 
-        public Builder callbackAddress(String callbackAddress) {
-            contractRequestMessage.callbackAddress = callbackAddress;
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            contractRequestMessage.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
@@ -91,7 +91,7 @@ public class ContractRequestData {
 
         public ContractRequestData build() {
             Objects.requireNonNull(contractRequestMessage.protocol, "protocol");
-            Objects.requireNonNull(contractRequestMessage.callbackAddress, "callbackAddress");
+            Objects.requireNonNull(contractRequestMessage.counterPartyAddress, "callbackAddress");
             Objects.requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
             return contractRequestMessage;
         }

@@ -103,7 +103,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         return ContractAgreementMessage.Builder.newInstance()
                 .protocol(DSP)
                 .processId(PROCESS_ID)
-                .callbackAddress("https://example.com")
+                .counterPartyAddress("https://example.com")
                 .contractAgreement(contractAgreement())
                 .build();
     }

@@ -95,7 +95,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .correlationId(id)
                 .protocol(requestData.getProtocol())
                 .counterPartyId(requestData.getConnectorId())
-                .counterPartyAddress(requestData.getCallbackAddress())
+                .counterPartyAddress(requestData.getCounterPartyAddress())
                 .callbackAddresses(request.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
@@ -135,7 +135,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var offer = negotiation.getLastContractOffer();
         var request = ContractRequestMessage.Builder.newInstance()
                 .contractOffer(offer)
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(protocolWebhook.url())
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .processId(negotiation.getId())
@@ -185,7 +186,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .processId(negotiation.getId())
                 .policy(policy)
@@ -228,7 +229,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processVerifying(ContractNegotiation negotiation) {
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
                 .build();
 
@@ -253,7 +254,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();

@@ -26,7 +26,7 @@ import java.util.Objects;
  */
 public class TransferCompletionMessage implements TransferRemoteMessage {
 
-    private String callbackAddress;
+    private String counterPartyAddress;
     private String protocol;
     private String processId;
 
@@ -36,8 +36,8 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     public String getProcessId() {
@@ -57,8 +57,8 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
             return new Builder();
         }
 
-        public Builder callbackAddress(String address) {
-            message.callbackAddress = address;
+        public Builder counterPartyAddress(String address) {
+            message.counterPartyAddress = address;
             return this;
         }
 

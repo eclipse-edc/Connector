@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.provision.http.impl;
 
 import okhttp3.Interceptor;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -37,6 +36,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -90,7 +90,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerServiceMock(EdcHttpClient.class, testHttpClient(delegate));
         extension.registerServiceMock(ContractValidationService.class, contractValidationService);
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerSystemExtension(ServiceExtension.class, new DummyCallbackUrlExtension());
         extension.setConfiguration(PROVISIONER_CONFIG);
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
@@ -169,6 +169,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .id(randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .protocol("any")
+                .counterPartyAddress("http://any")
                 .callbackAddress("http://any")
                 .contractId(CONTRACT_ID)
                 .assetId(ASSET_ID)

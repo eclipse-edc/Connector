@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,12 +37,8 @@ import static org.mockito.Mockito.verify;
 
 class JsonObjectToTransferRequestMessageTransformerTest {
 
-    private final String processId = "TestProcessId";
-
     private final String callbackAddress = "https://callback.de";
-
     private final String contractId = "TestContreactID";
-
     private final String destinationType = "dspace:s3+push";
 
     private TransformerContext context = mock(TransformerContext.class);
@@ -68,8 +63,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
 
         var result = transformer.transform(json, context);
 
-        Assertions.assertNotNull(result);
-
+        assertThat(result).isNotNull();
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
@@ -91,11 +85,9 @@ class JsonObjectToTransferRequestMessageTransformerTest {
         var result = transformer.transform(json, context);
 
         assertThat(result).isNotNull();
-
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
-
         assertThat(result.getDataDestination().getProperty("accessKeyId")).isEqualTo("TESTID");
         assertThat(result.getDataDestination().getProperty("region")).isEqualTo("eu-central-1");
 

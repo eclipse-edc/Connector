@@ -61,7 +61,7 @@ class ContractNegotiationEventMessageHttpDelegateTest extends DspHttpDispatcherD
         return ContractNegotiationEventMessage.Builder.newInstance()
                 .protocol(value)
                 .processId(value)
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .build();
     }

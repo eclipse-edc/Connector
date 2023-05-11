@@ -45,7 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-class JsonObjectFromTransferRequestTransformerTest {
+class JsonObjectFromTransferRequestMessageTransformerTest {
 
     private final String dataAddressKey = "testDataAddressKey";
 

@@ -101,6 +101,7 @@ class MultipartTransferRequestSenderTest {
                 .properties(Map.of("foo", "bar", "hello", "world"))
                 .protocol("ids-multipart")
                 .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .build();
     }
 }

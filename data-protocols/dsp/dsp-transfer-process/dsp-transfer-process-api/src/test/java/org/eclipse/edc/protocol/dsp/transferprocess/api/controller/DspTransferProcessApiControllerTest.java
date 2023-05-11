@@ -113,13 +113,14 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .protocol("protocol")
                 .id(PROCESS_ID)
                 .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .build();
     }
 
     private static TransferStartMessage transferStartMessage() {
         return TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .processId(PROCESS_ID)
                 .build();
     }
@@ -127,7 +128,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     private static TransferCompletionMessage transferCompletionMessage() {
         return TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .processId(PROCESS_ID)
                 .build();
     }
@@ -135,7 +136,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     private static TransferTerminationMessage transferTerminationMessage() {
         return TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .processId(PROCESS_ID)
                 .build();
     }

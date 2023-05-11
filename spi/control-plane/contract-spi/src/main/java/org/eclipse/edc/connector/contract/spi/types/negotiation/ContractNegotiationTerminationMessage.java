@@ -24,7 +24,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
     private String protocol;
     @Deprecated(forRemoval = true)
     private String connectorId;
-    private String callbackAddress;
+    private String counterPartyAddress;
     private String processId;
     private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
     private String code;
@@ -35,8 +35,8 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @Deprecated
@@ -81,8 +81,8 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
             return this;
         }
 
-        public Builder callbackAddress(String callbackAddress) {
-            this.contractNegotiationTerminationMessage.callbackAddress = callbackAddress;
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            this.contractNegotiationTerminationMessage.counterPartyAddress = counterPartyAddress;
             return this;
         }
 

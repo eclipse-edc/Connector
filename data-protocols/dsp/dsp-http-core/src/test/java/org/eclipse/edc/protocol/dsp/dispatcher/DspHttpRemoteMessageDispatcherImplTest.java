@@ -82,7 +82,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         assertThat(result.get()).isEqualTo(responseBody);
 
         verify(delegate).buildRequest(message);
-        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCallbackAddress())));
+        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCounterPartyAddress())));
         verify(httpClient).executeAsync(argThat(r -> r.headers().get("Authorization").equals(authToken)), eq(responseFunction));
     }
 
@@ -108,7 +108,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         }
 
         @Override
-        public String getCallbackAddress() {
+        public String getCounterPartyAddress() {
             return "http://connector";
         }
     }

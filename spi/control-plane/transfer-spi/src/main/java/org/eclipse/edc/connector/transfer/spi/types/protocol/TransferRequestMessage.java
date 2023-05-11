@@ -27,7 +27,7 @@ import java.util.Objects;
  */
 public class TransferRequestMessage implements TransferRemoteMessage {
 
-    private String callbackAddress;
+    private String counterPartyAddress;
     private String protocol;
     private String id;
     private String contractId;
@@ -36,6 +36,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     private DataAddress dataDestination;
     @Deprecated(forRemoval = true)
     private String connectorId;
+    private String callbackAddress;
     private Map<String, String> properties = new HashMap<>();
 
     @Override
@@ -44,8 +45,8 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @Override
@@ -79,6 +80,10 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         return dataDestination;
     }
 
+    public String getCallbackAddress() {
+        return callbackAddress;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final TransferRequestMessage message;
@@ -94,6 +99,11 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
         public Builder id(String id) {
             message.id = id;
+            return this;
+        }
+
+        public Builder counterPartyAddress(String callbackAddress) {
+            message.counterPartyAddress = callbackAddress;
             return this;
         }
 

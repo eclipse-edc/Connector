@@ -29,6 +29,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     private String protocol;
     @Deprecated(forRemoval = true)
     private String connectorId;
+    private String counterPartyAddress;
     private String callbackAddress;
     private String processId;
     private ContractOffer contractOffer;
@@ -41,8 +42,8 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @Deprecated
@@ -71,6 +72,10 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
     public String getDataSet() {
         return dataSet;
+    }
+
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     public enum Type {
@@ -102,6 +107,11 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
         public Builder callbackAddress(String callbackAddress) {
             contractRequestMessage.callbackAddress = callbackAddress;
+            return this;
+        }
+
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            contractRequestMessage.counterPartyAddress = counterPartyAddress;
             return this;
         }
 

@@ -34,7 +34,7 @@ class IdsMultipartRemoteMessageDispatcherTest {
     void shouldNotSendTransferStartMessage() {
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("ids-multipart")
-                .callbackAddress("http://an/address")
+                .counterPartyAddress("http://an/address")
                 .processId("processId")
                 .build();
 
@@ -48,7 +48,7 @@ class IdsMultipartRemoteMessageDispatcherTest {
     void shouldNotSendTransferCompletionMessage() {
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("ids-multipart")
-                .callbackAddress("http://an/address")
+                .counterPartyAddress("http://an/address")
                 .processId("processId")
                 .build();
 

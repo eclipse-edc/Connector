@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
@@ -32,6 +33,7 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -69,6 +71,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -89,10 +92,13 @@ class ConsumerContractNegotiationManagerImplTest {
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
+    private final ProtocolWebhook protocolWebhook = mock(ProtocolWebhook.class);
+    private final String procotolWebhookUrl = "http://protocol.webhook/url";
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
     void setUp() {
+        when(protocolWebhook.url()).thenReturn(procotolWebhookUrl);
         CommandQueue<ContractNegotiationCommand> queue = mock(CommandQueue.class);
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
 
@@ -111,6 +117,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .store(store)
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
+                .protocolWebhook(protocolWebhook)
                 .build();
     }
 
@@ -120,7 +127,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
         var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
-                .callbackAddress("callbackAddress")
+                .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
                 .build();
@@ -138,7 +145,7 @@ class ConsumerContractNegotiationManagerImplTest {
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == INITIAL.code() &&
                         negotiation.getCounterPartyId().equals(requestData.getConnectorId()) &&
-                        negotiation.getCounterPartyAddress().equals(requestData.getCallbackAddress()) &&
+                        negotiation.getCounterPartyAddress().equals(requestData.getCounterPartyAddress()) &&
                         negotiation.getProtocol().equals(requestData.getProtocol()) &&
                         negotiation.getCorrelationId().equals(negotiation.getId()) &&
                         negotiation.getContractOffers().size() == 1 &&
@@ -166,12 +173,13 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhook.url()).thenReturn(procotolWebhookUrl);
 
         negotiationManager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
-            verify(dispatcherRegistry, only()).send(any(), any());
+            verify(dispatcherRegistry, only()).send(any(), and(isA(ContractRequestMessage.class), argThat(it -> procotolWebhookUrl.equals(it.getCallbackAddress()))));
             verify(listener).requested(any());
         });
     }

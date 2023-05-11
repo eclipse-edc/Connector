@@ -311,7 +311,7 @@ class ContractNegotiationApiControllerTest {
         var requestData = ContractRequestData.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .callbackAddress("callbackAddress")
+                .counterPartyAddress("callbackAddress")
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())

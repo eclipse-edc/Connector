@@ -20,6 +20,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
@@ -31,7 +32,7 @@ import static java.lang.String.format;
 /**
  * Provides configuration information for IDS API endpoints to other extensions.
  */
-@Provides({ IdsApiConfiguration.class, DataService.class })
+@Provides({ IdsApiConfiguration.class, DataService.class, ProtocolWebhook.class })
 @Extension(value = IdsApiConfigurationExtension.NAME)
 public class IdsApiConfigurationExtension implements ServiceExtension {
 
@@ -98,6 +99,8 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
         var idsWebhookAddress = context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS) + webhookPath;
 
         context.registerService(IdsApiConfiguration.class, new IdsApiConfiguration(config.getContextAlias(), idsWebhookAddress));
+
+        context.registerService(ProtocolWebhook.class, () -> idsWebhookAddress);
 
         var dataService = DataService.Builder.newInstance()
                 .terms("connector")

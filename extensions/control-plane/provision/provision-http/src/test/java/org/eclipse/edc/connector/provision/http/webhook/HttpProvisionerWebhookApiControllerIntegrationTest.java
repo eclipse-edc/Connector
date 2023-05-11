@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
@@ -23,6 +22,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 "web.http.provisioner.path", PROVISIONER_BASE_PATH,
                 "edc.api.auth.key", authKey
         ));
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
     }
 
     @ParameterizedTest
