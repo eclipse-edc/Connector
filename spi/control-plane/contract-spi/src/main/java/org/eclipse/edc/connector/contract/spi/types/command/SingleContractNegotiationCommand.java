@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.contract.spi.types.command;
 
-import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
-
 /**
  * Sub-type of {@link ContractNegotiationCommand} that references a specific ContractNegotiation
  * by ID.

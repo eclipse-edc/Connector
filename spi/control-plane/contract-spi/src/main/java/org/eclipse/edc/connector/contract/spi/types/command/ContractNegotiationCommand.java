@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.contract.spi.types.negotiation.command;
+package org.eclipse.edc.connector.contract.spi.types.command;
 
 import org.eclipse.edc.spi.command.Command;
 
