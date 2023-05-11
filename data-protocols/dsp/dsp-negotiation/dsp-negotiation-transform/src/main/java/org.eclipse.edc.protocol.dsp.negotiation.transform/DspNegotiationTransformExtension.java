@@ -66,5 +66,7 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToContractNegotiationEventMessageTransformer());
         registry.register(new JsonObjectToContractRequestMessageTransformer());
         registry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer());
+
+        registry.register(new ContractNegotiationErrorToResponseTransformer());
     }
 }
