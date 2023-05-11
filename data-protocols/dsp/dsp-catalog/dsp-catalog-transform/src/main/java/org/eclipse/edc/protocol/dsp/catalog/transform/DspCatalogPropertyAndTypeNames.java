@@ -16,12 +16,18 @@ package org.eclipse.edc.protocol.dsp.catalog.transform;
 
 import org.eclipse.edc.jsonld.spi.Namespaces;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+
 /**
  * Dataspace protocol types and attributes for catalog request.
  */
 public interface DspCatalogPropertyAndTypeNames {
 
     String DSPACE_CATALOG_REQUEST_TYPE = Namespaces.DSPACE_SCHEMA + "CatalogRequestMessage";
+
+    String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogErrorMessage";
     String DSPACE_FILTER_PROPERTY = Namespaces.DSPACE_SCHEMA + "filter";
+    String DSPACE_NEGOTIATION_PROPERTY_CODE = DSPACE_SCHEMA + "code";
+    String DSPACE_NEGOTIATION_PROPERTY_REASON = DSPACE_SCHEMA + "reason";
 
 }

@@ -12,16 +12,16 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.edc.protocol.dsp.catalog.transform;
 
-dependencies {
-    api(project(":spi:common:catalog-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":extensions:common:json-ld"))
-    api(project(":data-protocols:dsp:dsp-http-spi"))
-    api(project(":spi:common:web-spi"))
+public class CatalogError {
+    private Throwable throwable;
 
-    implementation(libs.bundles.jersey.core)
+    public CatalogError(Throwable throwable) {
+        this.throwable = throwable;
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
+    }
 }
