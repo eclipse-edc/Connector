@@ -53,7 +53,7 @@ public class MetadataRequest implements RemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
+    public String getCounterPartyAddress() {
         return callbackAddress;
     }
 

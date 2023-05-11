@@ -41,7 +41,7 @@ public class CallbackEventRemoteMessage<T extends Event> implements RemoteMessag
     }
 
     @Override
-    public String getCallbackAddress() {
+    public String getCounterPartyAddress() {
         return callbackAddress.getUri();
     }
 

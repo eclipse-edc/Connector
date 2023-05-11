@@ -23,7 +23,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     private String protocol;
     @Deprecated(forRemoval = true)
     private String connectorId;
-    private String callbackAddress;
+    private String counterPartyAddress;
     private String processId;
     private ContractAgreement contractAgreement;
     @Deprecated(forRemoval = true)
@@ -35,8 +35,8 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @Deprecated
@@ -80,8 +80,8 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             return this;
         }
 
-        public Builder callbackAddress(String callbackAddress) {
-            this.contractAgreementMessage.callbackAddress = callbackAddress;
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            this.contractAgreementMessage.counterPartyAddress = counterPartyAddress;
             return this;
         }
 

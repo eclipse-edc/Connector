@@ -55,19 +55,17 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
-    private JsonObjectFromContractRequestTransformer transformer;
+    private JsonObjectFromContractRequestMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromContractRequestTransformer(jsonFactory);
+        transformer = new JsonObjectFromContractRequestMessageTransformer(jsonFactory);
     }
 
     @Test
     void verify_contractOffer() {
         var message = requestMessage();
-
         var obj = jsonFactory.createObjectBuilder().build();
-
         when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(obj);
 
         var result = transformer.transform(message, context);
@@ -108,12 +106,12 @@ class JsonObjectFromContractRequestMessageTransformerTest {
 
     @Test
     void verify_nullPolicyFails() {
-        ContractRequestMessage message = requestMessage();
-
+        var message = requestMessage();
         when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(null);
 
-        assertThat(transformer.transform(message, context)).isNull();
+        var result = transformer.transform(message, context);
 
+        assertThat(result).isNull();
         verify(context, times(1)).reportProblem(anyString());
     }
 

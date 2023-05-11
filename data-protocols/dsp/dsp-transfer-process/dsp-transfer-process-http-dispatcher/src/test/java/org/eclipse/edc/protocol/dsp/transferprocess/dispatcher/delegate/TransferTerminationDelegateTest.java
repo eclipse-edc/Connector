@@ -60,7 +60,7 @@ class TransferTerminationDelegateTest extends DspHttpDispatcherDelegateTestBase<
         return TransferTerminationMessage.Builder.newInstance()
                 .processId("testId")
                 .protocol("dataspace-protocol")
-                .callbackAddress("http://test-connector-address")
+                .counterPartyAddress("http://test-connector-address")
                 .build();
     }
 

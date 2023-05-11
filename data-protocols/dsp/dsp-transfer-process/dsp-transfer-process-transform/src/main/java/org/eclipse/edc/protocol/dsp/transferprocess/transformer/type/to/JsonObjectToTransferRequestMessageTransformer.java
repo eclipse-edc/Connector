@@ -57,7 +57,7 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
         if (jsonObject.containsKey(DSPACE_DATAADDRESS_TYPE)) {
             var dataAddressJsonObject = jsonObject.getJsonObject(DSPACE_DATAADDRESS_TYPE);
 
-            dataAddressJsonObject.entrySet().forEach((k) -> dataAddressBuilder.property(k.getKey(), dataAddressJsonObject.getString(k.getKey())));
+            dataAddressJsonObject.forEach((key, value) -> dataAddressBuilder.property(key, dataAddressJsonObject.getString(key)));
         }
 
         return dataAddressBuilder.build();

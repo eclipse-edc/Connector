@@ -327,7 +327,7 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
                 ContractRequest.Builder.newInstance()
                         .requestData(ContractRequestData.Builder.newInstance()
                                 .protocol("test-protocol")
-                                .callbackAddress("test-cb")
+                                .counterPartyAddress("test-cb")
                                 .contractOffer(ContractOffer.Builder.newInstance()
                                         .id("test-offer-id")
                                         .assetId(randomUUID().toString())

@@ -61,7 +61,7 @@ class ContractNegotiationTerminationMessageHttpDelegateTest extends DspHttpDispa
         return ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(value)
                 .processId(value)
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .rejectionReason(value)
                 .build();
     }

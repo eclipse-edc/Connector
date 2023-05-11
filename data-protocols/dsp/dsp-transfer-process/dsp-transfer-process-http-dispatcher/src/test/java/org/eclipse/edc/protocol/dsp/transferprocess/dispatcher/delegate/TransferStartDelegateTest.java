@@ -60,7 +60,7 @@ class TransferStartDelegateTest extends DspHttpDispatcherDelegateTestBase<Transf
         return TransferStartMessage.Builder.newInstance()
                 .processId("testId")
                 .protocol("dataspace-protocol")
-                .callbackAddress("http://test-connector-address")
+                .counterPartyAddress("http://test-connector-address")
                 .build();
     }
 

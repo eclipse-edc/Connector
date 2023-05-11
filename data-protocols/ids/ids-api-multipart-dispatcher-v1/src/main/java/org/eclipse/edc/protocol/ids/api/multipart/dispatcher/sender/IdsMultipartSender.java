@@ -72,7 +72,7 @@ public class IdsMultipartSender {
      * @return the response as {@link CompletableFuture}.
      */
     public <M extends RemoteMessage, R> CompletableFuture<R> send(M request, MultipartSenderDelegate<M, R> senderDelegate) {
-        var remoteConnectorAddress = request.getCallbackAddress();
+        var remoteConnectorAddress = request.getCounterPartyAddress();
 
         // Get Dynamic Attribute Token
         var tokenResult = tokenService.obtainDynamicAttributeToken(remoteConnectorAddress);

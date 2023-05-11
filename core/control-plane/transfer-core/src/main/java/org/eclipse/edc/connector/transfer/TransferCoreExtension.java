@@ -53,6 +53,7 @@ import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -126,6 +127,9 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private Telemetry telemetry;
 
+    @Inject
+    private ProtocolWebhook protocolWebhook;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -192,6 +196,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
+                .protocolWebhook(protocolWebhook)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);

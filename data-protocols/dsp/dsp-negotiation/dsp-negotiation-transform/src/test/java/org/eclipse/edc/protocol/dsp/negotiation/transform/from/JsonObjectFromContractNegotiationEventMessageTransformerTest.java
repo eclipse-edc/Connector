@@ -55,7 +55,7 @@ class JsonObjectFromContractNegotiationEventMessageTransformerTest {
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .protocol(DSP)
                 .processId(PROCESS_ID)
-                .callbackAddress("https://test.com")
+                .counterPartyAddress("https://test.com")
                 .type(ACCEPTED)
                 .build();
 

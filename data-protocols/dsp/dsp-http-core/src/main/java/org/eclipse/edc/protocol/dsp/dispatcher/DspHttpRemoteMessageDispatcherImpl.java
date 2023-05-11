@@ -85,7 +85,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
     private TokenRepresentation obtainToken(RemoteMessage message) {
         var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience(message.getCallbackAddress())
+                .audience(message.getCounterPartyAddress())
                 .build();
         var tokenResult = identityService.obtainClientCredentials(tokenParameters);
         if (tokenResult.failed()) {

@@ -56,7 +56,7 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(DSP)
                 .processId(PROCESS_ID)
-                .callbackAddress("https://test.com")
+                .counterPartyAddress("https://test.com")
                 .rejectionReason(REJECTION_REASON)
                 .code(REJECTION_CODE)
                 .build();
@@ -78,7 +78,7 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(DSP)
                 .processId(PROCESS_ID)
-                .callbackAddress("https://test.com")
+                .counterPartyAddress("https://test.com")
                 .build();
 
         var result = transformer.transform(message, context);

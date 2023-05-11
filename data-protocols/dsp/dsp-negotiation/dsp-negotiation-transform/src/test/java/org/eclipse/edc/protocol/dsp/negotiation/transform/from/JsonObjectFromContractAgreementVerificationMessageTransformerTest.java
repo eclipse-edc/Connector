@@ -51,7 +51,7 @@ class JsonObjectFromContractAgreementVerificationMessageTransformerTest {
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(value)
                 .processId(value)
-                .callbackAddress(value)
+                .counterPartyAddress(value)
                 .build();
 
         var result = transformer.transform(message, context);

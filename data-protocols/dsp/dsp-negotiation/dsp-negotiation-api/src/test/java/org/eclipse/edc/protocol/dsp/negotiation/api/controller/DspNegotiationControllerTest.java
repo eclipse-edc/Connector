@@ -107,7 +107,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
         return ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("testId")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .contractAgreement(contractAgreement())
                 .build();
     }
@@ -125,6 +125,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
         return ContractRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("testId")
+                .counterPartyAddress("http://connector")
                 .callbackAddress("http://connector")
                 .dataSet("dataSet")
                 .contractOffer(contractOffer())
@@ -155,7 +156,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
     private static ContractAgreementVerificationMessage contractAgreementVerificationMessage() {
         return ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .processId("testId")
                 .build();
     }
@@ -163,7 +164,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
     private static ContractNegotiationEventMessage contractNegotiationEventMessage_accepted() {
         return ContractNegotiationEventMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .processId("testId")
                 .type(ACCEPTED)
                 .build();
@@ -172,7 +173,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
     private static ContractNegotiationEventMessage contractNegotiationEventMessage_finalized() {
         return ContractNegotiationEventMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .processId("testId")
                 .type(FINALIZED)
                 .build();
@@ -181,7 +182,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
     private static ContractNegotiationTerminationMessage contractNegotiationTerminationMessage() {
         return ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .processId("testId")
                 .rejectionReason("reason")
                 .build();

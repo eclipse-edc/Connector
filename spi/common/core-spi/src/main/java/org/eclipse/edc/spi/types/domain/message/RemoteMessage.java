@@ -27,6 +27,6 @@ public interface RemoteMessage {
     /**
      * Returns the recipient's callback address.
      */
-    String getCallbackAddress();
+    String getCounterPartyAddress();
 
 }

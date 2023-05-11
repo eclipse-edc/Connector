@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.api.configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -35,7 +36,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
  * parameters.
  */
 @Extension(value = DspApiConfigurationExtension.NAME)
-@Provides({ DspApiConfiguration.class })
+@Provides({ DspApiConfiguration.class, ProtocolWebhook.class })
 public class DspApiConfigurationExtension implements ServiceExtension {
     
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
@@ -78,6 +79,8 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var config = configurator.configure(context, webServer, SETTINGS);
         var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS);
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
+
+        context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
         
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));

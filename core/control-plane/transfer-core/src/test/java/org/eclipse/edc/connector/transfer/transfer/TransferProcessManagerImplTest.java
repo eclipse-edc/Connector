@@ -55,6 +55,7 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -105,6 +106,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -143,11 +145,14 @@ class TransferProcessManagerImplTest {
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
     private final CommandQueue<TransferProcessCommand> commandQueue = mock(CommandQueue.class);
     private final CommandRunner<TransferProcessCommand> commandRunner = mock(CommandRunner.class);
+    private final ProtocolWebhook protocolWebhook = mock(ProtocolWebhook.class);
+    private final String procotolWebhookUrl = "http://protocol.webhook/url";
 
     private TransferProcessManagerImpl manager;
 
     @BeforeEach
     void setup() {
+        when(protocolWebhook.url()).thenReturn(procotolWebhookUrl);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
@@ -171,6 +176,7 @@ class TransferProcessManagerImplTest {
                 .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
+                .protocolWebhook(protocolWebhook)
                 .build();
     }
 
@@ -194,7 +200,6 @@ class TransferProcessManagerImplTest {
         verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(captor.capture());
         assertThat(captor.getValue().getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
         verify(listener).initiated(any());
-
     }
 
     @Test
@@ -419,7 +424,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(eq(Object.class), isA(TransferRequestMessage.class));
+            verify(dispatcherRegistry).send(eq(Object.class), and(isA(TransferRequestMessage.class), argThat(m -> procotolWebhookUrl.equals(m.getCallbackAddress()))));
             verify(transferProcessStore, times(1)).updateOrCreate(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
         });

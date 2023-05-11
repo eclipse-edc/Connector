@@ -43,6 +43,7 @@ import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -87,6 +88,7 @@ class ContractNegotiationIntegrationTest {
     private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     protected ClaimToken token = ClaimToken.Builder.newInstance().build();
+    private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
     private String consumerNegotiationId;
 
     private ProviderContractNegotiationManagerImpl providerManager;
@@ -113,6 +115,7 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(providerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
+                .protocolWebhook(protocolWebhook)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -123,6 +126,7 @@ class ContractNegotiationIntegrationTest {
                 .observable(new ContractNegotiationObservableImpl())
                 .store(consumerStore)
                 .policyStore(mock(PolicyDefinitionStore.class))
+                .protocolWebhook(protocolWebhook)
                 .build();
 
         consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, new ContractNegotiationObservableImpl(), monitor, mock(Telemetry.class));
@@ -149,7 +153,7 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId(PROVIDER_ID).callbackAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId(PROVIDER_ID).counterPartyAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
 
         var request = ContractRequest.Builder.newInstance().callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).requestData(requestData).build();
 
@@ -193,7 +197,7 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").callbackAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
 
         var request = ContractRequest.Builder.newInstance().requestData(requestData).build();
 
@@ -218,7 +222,7 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").callbackAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
 
         var request = ContractRequest.Builder.newInstance().requestData(requestData).callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).build();
         consumerManager.initiate(request);

@@ -192,7 +192,7 @@ class ContractNegotiationServiceImplTest {
         when(consumerManager.initiate(isA(ContractRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
         var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
-                .callbackAddress("address")
+                .counterPartyAddress("address")
                 .protocol("protocol")
                 .contractOffer(createContractOffer())
                 .build();

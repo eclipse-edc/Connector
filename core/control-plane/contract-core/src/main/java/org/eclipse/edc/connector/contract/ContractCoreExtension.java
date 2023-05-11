@@ -54,6 +54,7 @@ import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -145,6 +146,9 @@ public class ContractCoreExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private ProtocolWebhook protocolWebhook;
+
     @Override
     public String name() {
         return NAME;
@@ -212,6 +216,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .entityRetryProcessConfiguration(consumerEntityRetryProcessConfiguration(context))
+                .protocolWebhook(protocolWebhook)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -229,6 +234,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .entityRetryProcessConfiguration(providerEntityRetryProcessConfiguration(context))
+                .protocolWebhook(protocolWebhook)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
