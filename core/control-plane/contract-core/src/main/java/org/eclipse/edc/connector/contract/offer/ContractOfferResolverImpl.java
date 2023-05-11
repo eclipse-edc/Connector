@@ -119,39 +119,6 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, String assetId) {
-
-
-//        var fixedInForceTimeConstraint = AndConstraint.Builder.newInstance()
-//                .constraint(AtomicConstraint.Builder.newInstance()
-//                        .leftExpression(new LiteralExpression("inForceDate"))
-//                        .operator(Operator.GEQ)
-//                        .rightExpression(new LiteralExpression(start.toString()))
-//                        .build())
-//                .constraint(AtomicConstraint.Builder.newInstance()
-//                        .leftExpression(new LiteralExpression("inForceDate"))
-//                        .operator(Operator.LEQ)
-//                        .rightExpression(new LiteralExpression(start.plusSeconds(definition.getValidity())))
-//                        .build())
-//                .build();
-//
-//        var durationInForceTimeConstraint = AndConstraint.Builder.newInstance()
-//                .constraint(AtomicConstraint.Builder.newInstance()
-//                        .leftExpression(new LiteralExpression("inForceDate"))
-//                        .operator(Operator.GEQ)
-//                        .rightExpression(new LiteralExpression("contractAgreement"))
-//                        .build())
-//                .constraint(AtomicConstraint.Builder.newInstance()
-//                        .leftExpression(new LiteralExpression("inForceDate"))
-//                        .operator(Operator.LEQ)
-//                        .rightExpression(new LiteralExpression("contractAgreement"))
-//                        .build())
-//                .build();
-//
-//        policy.getPermissions().add(Permission.Builder.newInstance()
-//                .action(Action.Builder.newInstance().type("USE").constraint(fixedInForceTimeConstraint).build())
-//                .action(Action.Builder.newInstance().type("USE").constraint(durationInForceTimeConstraint).build())
-//                .build());
-
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId(), assetId))
                 .policy(policy.withTarget(assetId))

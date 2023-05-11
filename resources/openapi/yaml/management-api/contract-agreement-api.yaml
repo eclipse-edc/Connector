@@ -243,15 +243,7 @@ components:
         consumerId:
           type: string
           example: null
-        contractEndDate:
-          type: integer
-          format: int64
-          example: null
         contractSigningDate:
-          type: integer
-          format: int64
-          example: null
-        contractStartDate:
           type: integer
           format: int64
           example: null
