@@ -66,6 +66,60 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
+     * Extracts the {@link JsonObject} from the value. If the value is a {@link JsonObject}, it will be returned. If it is a {@link JsonArray}, the first entry will be returned if it is a {@link JsonObject}, otherwise null.
+     * Note that if a JsonObject cannot be returned, a problem will be reported to the context.
+     *
+     * @param value        the value to extract the object from
+     * @param context      the current transformation context
+     * @param propertyName the property name to use for error reporting
+     * @return the extracted object or null if one cannot be returned
+     */
+    protected JsonObject returnMandatoryJsonObject(@Nullable JsonValue value, TransformerContext context, String propertyName) {
+        return returnJsonObject(value, context, propertyName, true);
+    }
+
+
+    /**
+     * Extracts the {@link JsonObject} from the value. If the value is a {@link JsonObject}, it will be returned. If it is a {@link JsonArray}, the first entry will be returned if it is a {@link JsonObject}, otherwise null.
+     * Note that if a JsonObject cannot be returned, a problem will be reported to the context.
+     *
+     * @param value        the value to extract the object from
+     * @param context      the current transformation context
+     * @param propertyName the property name to use for error reporting
+     * @param mandatory    if false and the value is null, no error is reported
+     * @return the extracted object or null if one cannot be returned
+     */
+    @Nullable
+    protected JsonObject returnJsonObject(@Nullable JsonValue value, TransformerContext context, String propertyName, boolean mandatory) {
+        if (value instanceof JsonArray) {
+            return value.asJsonArray().stream().filter(Objects::nonNull)
+                    .findFirst().map(entry -> {
+                        if (entry instanceof JsonObject) {
+                            return entry.asJsonObject();
+                        } else {
+                            context.reportProblem(format("Property '%s' contains an unexpected type: %s", propertyName, entry));
+                            return null;
+                        }
+                    })
+                    .orElseGet(() -> {
+                        context.reportProblem(format("Property '%s' contains an empty array", propertyName));
+                        return null;
+                    });
+
+        } else if (value instanceof JsonObject) {
+            return value.asJsonObject();
+        } else if (value == null) {
+            if (mandatory) {
+                context.reportProblem(format("Property '%s' is null", propertyName));
+            }
+            return null;
+        } else {
+            context.reportProblem(format("Property '%s' contains an unexpected type: %s", propertyName, value));
+            return null;
+        }
+    }
+
+    /**
      * Transforms properties of a Java type. The properties are mapped to generic JSON values.
      *
      * @param properties the properties to map
@@ -194,8 +248,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         } else if (value instanceof JsonArray) {
             return transformInt(value.asJsonArray().get(0), context);
         } else {
-            context.reportProblem(format("Invalid property. Expected JsonNumber, JsonObject or JsonArray but got %s",
-                    value.getClass().getSimpleName()));
+            context.reportProblem(format("Invalid property. Expected JsonNumber, JsonObject or JsonArray but got %s", value.getClass().getSimpleName()));
             return 0;
         }
     }
@@ -204,7 +257,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * Transforms a JsonValue to boolean. If the value parameter is not of type JsonObject or JsonArray,
      * a problem is reported to the context.
      *
-     * @param value the value to transform
+     * @param value   the value to transform
      * @param context the transformer context
      * @return the int value
      */
@@ -214,8 +267,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         } else if (value instanceof JsonArray) {
             return transformBoolean(value.asJsonArray().get(0), context);
         } else {
-            context.reportProblem(format("Invalid property. Expected JsonObject or JsonArray but got %s",
-                    value.getClass().getSimpleName()));
+            context.reportProblem(format("Invalid property. Expected JsonObject or JsonArray but got %s", value.getClass().getSimpleName()));
             return false;
         }
     }
@@ -232,8 +284,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param context        the transformer context
      * @param <T>            the desired result type
      */
-    protected <T> void transformArrayOrObject(JsonValue value, Class<T> type, Consumer<T> resultFunction,
-                                              TransformerContext context) {
+    protected <T> void transformArrayOrObject(JsonValue value, Class<T> type, Consumer<T> resultFunction, TransformerContext context) {
         if (value instanceof JsonArray) {
             var jsonArray = (JsonArray) value;
             jsonArray.stream().map(entry -> context.transform(entry, type)).forEach(resultFunction);
@@ -241,8 +292,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             var result = context.transform(value, type);
             resultFunction.accept(result);
         } else {
-            context.reportProblem(format("Invalid property of type %s. Expected JsonObject or JsonArray but got %s",
-                    type.getSimpleName(), value.getClass().getSimpleName()));
+            context.reportProblem(format("Invalid property of type %s. Expected JsonObject or JsonArray but got %s", type.getSimpleName(), value.getClass().getSimpleName()));
         }
     }
 
@@ -293,14 +343,14 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .findFirst()
                     .orElseGet(() -> {
                         context.reportProblem(format("Invalid property of type %s. Cannot map array values %s",
-                                type.getSimpleName(), value.getClass().getSimpleName()));
+                                type.getSimpleName(),
+                                value.getClass().getSimpleName()));
                         return null;
                     });
         } else if (value instanceof JsonObject) {
             return context.transform(value, type);
         } else {
-            context.reportProblem(format("Invalid property of type %s. Expected JsonObject but got %s",
-                    type.getSimpleName(), value.getClass().getSimpleName()));
+            context.reportProblem(format("Invalid property of type %s. Expected JsonObject but got %s", type.getSimpleName(), value.getClass().getSimpleName()));
             return null;
         }
     }

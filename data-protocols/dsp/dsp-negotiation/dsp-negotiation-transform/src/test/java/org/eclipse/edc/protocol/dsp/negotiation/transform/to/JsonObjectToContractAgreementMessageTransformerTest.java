@@ -40,6 +40,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -80,7 +81,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        var result = transformer.transform(message, context);
+        var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
@@ -112,7 +113,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(null);
 
-        assertThat(transformer.transform(message, context)).isNull();
+        assertThat(transformer.transform(getExpanded(message), context)).isNull();
 
         verify(context, times(1)).reportProblem(anyString());
     }
@@ -136,7 +137,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        assertThat(transformer.transform(message, context)).isNull();
+        assertThat(transformer.transform(getExpanded(message), context)).isNull();
 
         verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
     }
@@ -159,7 +160,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        assertThat(transformer.transform(message, context)).isNull();
+        assertThat(transformer.transform(getExpanded(message), context)).isNull();
 
         verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
     }
@@ -186,4 +187,6 @@ class JsonObjectToContractAgreementMessageTransformerTest {
                 .target(TARGET)
                 .build();
     }
+
+
 }

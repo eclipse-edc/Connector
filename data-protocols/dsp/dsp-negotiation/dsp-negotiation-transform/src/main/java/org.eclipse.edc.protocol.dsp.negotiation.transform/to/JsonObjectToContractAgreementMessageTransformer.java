@@ -56,9 +56,8 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
             return null;
         }
 
-        var jsonAgreement = object.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
+        var jsonAgreement = returnMandatoryJsonObject(object.get(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT), context, DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
         if (jsonAgreement == null) {
-            context.reportProblem("Cannot transform to ContractAgreementMessage with null agreement");
             return null;
         }
 
