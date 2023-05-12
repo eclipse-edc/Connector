@@ -117,6 +117,17 @@ class ContractExpiryCheckFunctionEvaluationTest {
         assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isSucceeded();
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "d", "*25h", "2ms" })
+    void evaluate_duration_invalidExpression(String numeric) {
+        var policy = createInForcePolicy(GEQ, "contractAgreement+" + numeric, LEQ, NOW.plusSeconds(60));
+        var contextInfo = new HashMap<Class<?>, Object>();
+
+        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement", NOW));
+        contextInfo.put(Instant.class, NOW);
+        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isFailed();
+    }
+
     private Policy createInForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
         var fixedInForceTimeConstraint = AndConstraint.Builder.newInstance()
                 .constraint(AtomicConstraint.Builder.newInstance()
