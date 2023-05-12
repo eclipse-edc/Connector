@@ -37,15 +37,17 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
  * Converts from an ODRL logical constraint as a {@link JsonObject} in JSON-LD expanded form to a {@link MultiplicityConstraint}.
  */
 public class JsonObjectToMultiplicityConstraintTransformer extends AbstractJsonLdTransformer<JsonObject, MultiplicityConstraint> {
-    
+
     public JsonObjectToMultiplicityConstraintTransformer() {
         super(JsonObject.class, MultiplicityConstraint.class);
     }
-    
+
     @Override
     public @Nullable MultiplicityConstraint transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var operand = object.getJsonObject(ODRL_OPERAND_ATTRIBUTE);
-        
+        var operand = returnMandatoryJsonObject(object.get(ODRL_OPERAND_ATTRIBUTE), context, ODRL_OPERAND_ATTRIBUTE);
+        if (operand == null) {
+            return null;
+        }
         if (operand.containsKey(ODRL_AND_CONSTRAINT_ATTRIBUTE)) {
             var builder = transformConstraints(operand.getJsonArray(ODRL_AND_CONSTRAINT_ATTRIBUTE), AndConstraint.Builder.newInstance(), context);
             return builderResult(builder::build, context);
@@ -62,8 +64,8 @@ public class JsonObjectToMultiplicityConstraintTransformer extends AbstractJsonL
             return null;
         }
     }
-    
-    private MultiplicityConstraint.Builder transformConstraints(JsonArray constraints, MultiplicityConstraint.Builder builder, TransformerContext context) {
+
+    private MultiplicityConstraint.Builder<?, ?> transformConstraints(JsonArray constraints, MultiplicityConstraint.Builder<?, ?> builder, TransformerContext context) {
         if (constraints != null) {
             constraints.forEach(c -> builder.constraint(context.transform(c, Constraint.class)));
         }

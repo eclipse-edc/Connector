@@ -18,17 +18,19 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -39,9 +41,11 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_O
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.transformer.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -49,18 +53,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToPolicyTransformerTest {
+    private static final String TARGET = "target";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
-    private final JsonObject permissionJson = getJsonObject("permission");
-    private final JsonObject prohibitionJson = getJsonObject("prohibition");
-    private final JsonObject dutyJson = getJsonObject("duty");
 
     private final Permission permission = Permission.Builder.newInstance().build();
     private final Prohibition prohibition = Prohibition.Builder.newInstance().build();
     private final Duty duty = Duty.Builder.newInstance().build();
-    private final String target = "target";
 
     private JsonObjectToPolicyTransformer transformer;
 
@@ -68,39 +69,32 @@ class JsonObjectToPolicyTransformerTest {
     void setUp() {
         transformer = new JsonObjectToPolicyTransformer();
 
-        when(context.transform(permissionJson, Permission.class)).thenReturn(permission);
-        when(context.transform(prohibitionJson, Prohibition.class)).thenReturn(prohibition);
-        when(context.transform(dutyJson, Duty.class)).thenReturn(duty);
+        when(context.transform(isA(JsonObject.class), eq(Permission.class))).thenReturn(permission);
+        when(context.transform(isA(JsonObject.class), eq(Prohibition.class))).thenReturn(prohibition);
+        when(context.transform(isA(JsonObject.class), eq(Duty.class))).thenReturn(duty);
     }
 
-    @Test
-    void transform_withAllRuleTypesAsObjects_returnPolicy() {
-        var policy = jsonFactory.createObjectBuilder()
-                .add(TYPE, ODRL_POLICY_TYPE_SET)
-                .add(ODRL_TARGET_ATTRIBUTE, target)
-                .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
-                .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
-                .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
-                .build();
 
-        var result = transformer.transform(policy, context);
+    @ParameterizedTest
+    @MethodSource("jsonSource")
+    void transform_withAllRuleTypesAsObjects_returnPolicy(JsonObject policy) {
 
-        assertResult(result);
-    }
+        var result = transformer.transform(getExpanded(policy), context);
 
-    @Test
-    void transform_withAllRuleTypesAsArrays_returnPolicy() {
-        var policy = jsonFactory.createObjectBuilder()
-                .add(TYPE, ODRL_POLICY_TYPE_SET)
-                .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(target))
-                .add(ODRL_PERMISSION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(permissionJson))
-                .add(ODRL_PROHIBITION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(prohibitionJson))
-                .add(ODRL_OBLIGATION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(dutyJson))
-                .build();
+        assertThat(result).isNotNull();
+        assertThat(result.getTarget()).isEqualTo(TARGET);
+        assertThat(result.getPermissions()).hasSize(1);
+        assertThat(result.getPermissions().get(0)).isEqualTo(permission);
+        assertThat(result.getProhibitions()).hasSize(1);
+        assertThat(result.getProhibitions().get(0)).isEqualTo(prohibition);
+        assertThat(result.getObligations()).hasSize(1);
+        assertThat(result.getObligations().get(0)).isEqualTo(duty);
 
-        var result = transformer.transform(policy, context);
+        verify(context, never()).reportProblem(anyString());
+        verify(context, times(1)).transform(isA(JsonObject.class), eq(Permission.class));
+        verify(context, times(1)).transform(isA(JsonObject.class), eq(Prohibition.class));
+        verify(context, times(1)).transform(isA(JsonObject.class), eq(Duty.class));
 
-        assertResult(result);
     }
 
     @Test
@@ -115,7 +109,7 @@ class JsonObjectToPolicyTransformerTest {
                 .add(propertyKey, propertyValue)
                 .build();
 
-        var result = transformer.transform(policy, context);
+        var result = transformer.transform(getExpanded(policy), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getExtensibleProperties()).hasSize(1);
@@ -133,10 +127,11 @@ class JsonObjectToPolicyTransformerTest {
     })
     void transform_differentPolicyTypes_returnPolicy(String type) {
         var policy = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, JsonObject.EMPTY_JSON_OBJECT)
                 .add(TYPE, type)
                 .build();
 
-        var result = transformer.transform(policy, context);
+        var result = transformer.transform(getExpanded(policy), context);
 
         assertThat(result).isNotNull();
         verify(context, never()).reportProblem(anyString());
@@ -148,30 +143,35 @@ class JsonObjectToPolicyTransformerTest {
                 .add(TYPE, "not-a-policy")
                 .build();
 
-        transformer.transform(policy, context);
+        transformer.transform(getExpanded(policy), context);
 
         verify(context, never()).reportProblem(anyString());
     }
 
-    private JsonObject getJsonObject(String type) {
-        return jsonFactory.createObjectBuilder()
-                .add(TYPE, type)
-                .build();
+
+    static Stream<JsonObject> jsonSource() {
+        var jsonFactory = Json.createBuilderFactory(Map.of());
+        var permissionJson = jsonFactory.createObjectBuilder().add(TYPE, "permission").build();
+        var prohibitionJson = jsonFactory.createObjectBuilder().add(TYPE, "prohibition").build();
+        var dutyJson = jsonFactory.createObjectBuilder().add(TYPE, "duty").build();
+
+        return Stream.of(
+                jsonFactory.createObjectBuilder()
+                        .add(TYPE, ODRL_POLICY_TYPE_SET)
+                        .add(ODRL_TARGET_ATTRIBUTE, TARGET)
+                        .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
+                        .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
+                        .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
+                        .build(),
+                jsonFactory.createObjectBuilder()
+                        .add(TYPE, ODRL_POLICY_TYPE_SET)
+                        .add(ODRL_TARGET_ATTRIBUTE, jsonFactory.createArrayBuilder().add(TARGET))
+                        .add(ODRL_PERMISSION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(permissionJson))
+                        .add(ODRL_PROHIBITION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(prohibitionJson))
+                        .add(ODRL_OBLIGATION_ATTRIBUTE, jsonFactory.createArrayBuilder().add(dutyJson))
+                        .build()
+
+        );
     }
 
-    private void assertResult(Policy result) {
-        assertThat(result).isNotNull();
-        assertThat(result.getTarget()).isEqualTo(target);
-        assertThat(result.getPermissions()).hasSize(1);
-        assertThat(result.getPermissions().get(0)).isEqualTo(permission);
-        assertThat(result.getProhibitions()).hasSize(1);
-        assertThat(result.getProhibitions().get(0)).isEqualTo(prohibition);
-        assertThat(result.getObligations()).hasSize(1);
-        assertThat(result.getObligations().get(0)).isEqualTo(duty);
-
-        verify(context, never()).reportProblem(anyString());
-        verify(context, times(1)).transform(permissionJson, Permission.class);
-        verify(context, times(1)).transform(prohibitionJson, Prohibition.class);
-        verify(context, times(1)).transform(dutyJson, Duty.class);
-    }
 }

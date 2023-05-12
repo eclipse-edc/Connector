@@ -35,7 +35,7 @@ public class LiteralExpression extends Expression {
 
     @Override
     public String toString() {
-        return value + "'";
+        return "'" + value + "'";
     }
 
     @NotNull

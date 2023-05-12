@@ -57,8 +57,8 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_TERMINATION;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.hamcrest.Matchers.is;
@@ -87,7 +87,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     }
 
     private static JsonObject transferRequestJson() {
-        return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE).build();
+        return Json.createObjectBuilder().add(TYPE, DSPACE_TRANSFER_PROCESS_REQUEST_TYPE).build();
     }
 
     private static JsonObject transferStartJson() {

@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -62,7 +62,7 @@ class JsonObjectFromTransferStartMessageTransformerTest {
                 .protocol(protocol)
                 .dataAddress(dataAddress)
                 .build();
-        
+
         var dataAddressJson = jsonFactory.createObjectBuilder().build();
         when(context.transform(dataAddress, JsonObject.class)).thenReturn(dataAddressJson);
 
@@ -70,8 +70,8 @@ class JsonObjectFromTransferStartMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_START_TYPE);
-        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(processId);
-        assertThat(result.getJsonObject(DSPACE_DATA_ADDRESS_TYPE)).isEqualTo(dataAddressJson);
+        assertThat(result.getJsonString(DSPACE_PROCESS_ID).getString()).isEqualTo(processId);
+        assertThat(result.getJsonObject(DSPACE_DATA_ADDRESS)).isEqualTo(dataAddressJson);
 
         verify(context, times(1)).transform(dataAddress, JsonObject.class);
         verify(context, never()).reportProblem(anyString());

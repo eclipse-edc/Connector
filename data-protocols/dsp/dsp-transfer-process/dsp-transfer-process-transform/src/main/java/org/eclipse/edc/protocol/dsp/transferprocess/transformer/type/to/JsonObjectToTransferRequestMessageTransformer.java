@@ -24,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACK_ADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACT_AGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACT_AGREEMENT_ID;
 
 public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
@@ -37,22 +37,22 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
     @Override
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
-        var builder = TransferRequestMessage.Builder.newInstance();
+        var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
 
-        builder.protocol(DATASPACE_PROTOCOL_HTTP);
+        transferRequestMessageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
 
         visitProperties(messageObject, k -> {
             switch (k) {
-                case DSPACE_PROCESSID_TYPE: return v -> builder.processId(transformString(v, context));
-                case DSPACE_CONTRACT_AGREEMENT_TYPE: return v -> builder.contractId(transformString(v, context));
-                case DSPACE_CALLBACK_ADDRESS_TYPE: return v -> builder.callbackAddress(transformString(v, context));
+                case DSPACE_PROCESS_ID: return v -> transferRequestMessageBuilder.processId(transformString(v, context));
+                case DSPACE_CONTRACT_AGREEMENT_ID: return v -> transferRequestMessageBuilder.contractId(transformString(v, context));
+                case DSPACE_CALLBACK_ADDRESS: return v -> transferRequestMessageBuilder.callbackAddress(transformString(v, context));
                 default: return doNothing();
             }
         });
 
-        builder.dataDestination(createDataAddress(messageObject, context));
+        transferRequestMessageBuilder.dataDestination(createDataAddress(messageObject, context));
 
-        return builder.build();
+        return transferRequestMessageBuilder.build();
     }
 
     // TODO replace with JsonObjectToDataAddressTransformer
@@ -61,7 +61,7 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
         transformString(requestObject.get(DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
 
-        var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_DATA_ADDRESS_TYPE), context, DSPACE_DATA_ADDRESS_TYPE, false);
+        var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_DATA_ADDRESS), context, DSPACE_DATA_ADDRESS, false);
         if (dataAddressObject != null) {
             dataAddressObject.forEach((key, value) -> transformString(value, v -> dataAddressBuilder.property(key, v), context));
         }

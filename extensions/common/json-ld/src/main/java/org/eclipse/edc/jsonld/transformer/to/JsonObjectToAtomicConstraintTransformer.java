@@ -37,18 +37,21 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND
  * Converts from an ODRL constraint as a {@link JsonObject} in JSON-LD expanded form to an {@link AtomicConstraint}.
  */
 public class JsonObjectToAtomicConstraintTransformer extends AbstractJsonLdTransformer<JsonObject, AtomicConstraint> {
-    
+
     public JsonObjectToAtomicConstraintTransformer() {
         super(JsonObject.class, AtomicConstraint.class);
     }
-    
+
     @Override
     public @Nullable AtomicConstraint transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = AtomicConstraint.Builder.newInstance();
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
+        if (context.hasProblems()) {
+            return null;
+        }
         return builderResult(builder::build, context);
     }
-    
+
     private void transformProperties(String key, JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {
         if (ODRL_LEFT_OPERAND_ATTRIBUTE.equals(key)) {
             transformOperand(value, builder::leftExpression, context);
@@ -58,11 +61,15 @@ public class JsonObjectToAtomicConstraintTransformer extends AbstractJsonLdTrans
             transformOperand(value, builder::rightExpression, context);
         }
     }
-    
+
     private void transformOperand(JsonValue value, Consumer<LiteralExpression> builderFunction, TransformerContext context) {
         if (value instanceof JsonObject) {
             var object = (JsonObject) value;
-            var operand = new LiteralExpression(object.getString(VALUE));
+            var result = transformString(object, context);
+            if (result == null) {
+                return;
+            }
+            var operand = new LiteralExpression(result);
             builderFunction.accept(operand);
         } else if (value instanceof JsonArray) {
             var array = (JsonArray) value;
@@ -71,20 +78,26 @@ public class JsonObjectToAtomicConstraintTransformer extends AbstractJsonLdTrans
             context.reportProblem("Invalid operand property");
         }
     }
-    
+
     private void transformOperator(JsonValue value, AtomicConstraint.Builder builder, TransformerContext context) {
         if (value instanceof JsonString) {
-            var string = (JsonString) value;
-            var operator = Operator.valueOf(string.getString());
-            builder.operator(operator);
+            transformOperator(((JsonString) value).getString(), builder, context);
         } else if (value instanceof JsonObject) {
             var object = (JsonObject) value;
-            transformOperator(object.getJsonString(VALUE), builder, context);
+            transformOperator(object.get(VALUE), builder, context);
         } else if (value instanceof JsonArray) {
             var array = (JsonArray) value;
             transformOperator(array.getJsonObject(0), builder, context);
         } else {
-            context.reportProblem("Invalid operator property");
+            context.reportProblem("Invalid operator property: " + value);
+        }
+    }
+
+    private void transformOperator(String value, AtomicConstraint.Builder builder, TransformerContext context) {
+        try {
+            builder.operator(Operator.valueOf(value));
+        } catch (IllegalArgumentException e) {
+            context.reportProblem("Invalid operator type: " + value);
         }
     }
 }

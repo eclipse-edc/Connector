@@ -34,9 +34,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.transformer.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -60,12 +62,9 @@ class JsonObjectToCatalogTransformerTest {
 
     @Test
     void transform_emptyCatalog_returnCatalog() {
-        var catalog = jsonFactory.createObjectBuilder()
-                .add(ID, CATALOG_ID)
-                .add(TYPE, DCAT_CATALOG_TYPE)
-                .build();
+        var catalog = jsonFactory.createObjectBuilder().add(ID, CATALOG_ID).add(TYPE, DCAT_CATALOG_TYPE).build();
 
-        var result = transformer.transform(catalog, context);
+        var result = transformer.transform(getExpanded(catalog), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
@@ -88,7 +87,7 @@ class JsonObjectToCatalogTransformerTest {
                 .add(propertyKey, propertyValue)
                 .build();
 
-        var result = transformer.transform(catalog, context);
+        var result = transformer.transform(getExpanded(catalog), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
@@ -125,7 +124,7 @@ class JsonObjectToCatalogTransformerTest {
                 .add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServiceJson)
                 .build();
 
-        var result = transformer.transform(catalog, context);
+        var result = transformer.transform(getExpanded(catalog), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
@@ -135,25 +134,21 @@ class JsonObjectToCatalogTransformerTest {
         assertThat(result.getDataServices().get(0)).isEqualTo(dataService);
 
         verify(context, never()).reportProblem(anyString());
-        verify(context, times(1)).transform(dataSetJson, Dataset.class);
-        verify(context, times(1)).transform(dataServiceJson, DataService.class);
+        verify(context, times(1)).transform(isA(JsonObject.class), eq(Dataset.class));
+        verify(context, times(1)).transform(isA(JsonObject.class), eq(DataService.class));
     }
 
     @Test
     void transform_invalidType_reportProblem() {
-        var catalog = jsonFactory.createObjectBuilder()
-                .add(TYPE, "not-a-catalog")
-                .build();
+        var catalog = jsonFactory.createObjectBuilder().add(TYPE, "not-a-catalog").build();
 
-        transformer.transform(catalog, context);
+        transformer.transform(getExpanded(catalog), context);
 
         verify(context, never()).reportProblem(anyString());
     }
 
     private JsonObject getJsonObject(String type) {
-        return jsonFactory.createObjectBuilder()
-                .add(TYPE, type)
-                .build();
+        return jsonFactory.createObjectBuilder().add(TYPE, type).build();
     }
 
 }

@@ -21,7 +21,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
  */
 public interface DspTransferProcessPropertyAndTypeNames {
 
-    String DSPACE_TRANSFERPROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferRequestMessage";
+    String DSPACE_TRANSFER_PROCESS_REQUEST_TYPE = DSPACE_SCHEMA + "TransferRequestMessage";
 
     String DSPACE_TRANSFER_START_TYPE = DSPACE_SCHEMA + "TransferStartMessage";
 
@@ -29,21 +29,21 @@ public interface DspTransferProcessPropertyAndTypeNames {
 
     String DSPACE_TRANSFER_TERMINATION_TYPE = DSPACE_SCHEMA + "TransferTerminationMessage";
 
-    String DSPACE_TRANSFERPROCESS_TYPE = DSPACE_SCHEMA + "TransferProcess";
+    String DSPACE_TRANSFER_PROCESS_TYPE = DSPACE_SCHEMA + "TransferProcess";
 
-    String DSPACE_CONTRACT_AGREEMENT_TYPE = DSPACE_SCHEMA + "agreementId";
+    String DSPACE_CONTRACT_AGREEMENT_ID = DSPACE_SCHEMA + "agreementId";
 
-    String DSPACE_CALLBACK_ADDRESS_TYPE = DSPACE_SCHEMA + "callbackAddress";
+    String DSPACE_CALLBACK_ADDRESS = DSPACE_SCHEMA + "callbackAddress";
 
-    String DSPACE_PROCESSID_TYPE = DSPACE_SCHEMA + "processId";
+    String DSPACE_PROCESS_ID = DSPACE_SCHEMA + "processId";
 
-    String DSPACE_DATA_ADDRESS_TYPE = DSPACE_SCHEMA + "dataAddress";
+    String DSPACE_DATA_ADDRESS = DSPACE_SCHEMA + "dataAddress";
 
-    String DSPACE_CORRELATIONID_TYPE = DSPACE_SCHEMA + "correlationId";
+    String DSPACE_CORRELATION_ID = DSPACE_SCHEMA + "correlationId";
 
-    String DSPACE_STATE_TYPE = DSPACE_SCHEMA + "state";
+    String DSPACE_STATE = DSPACE_SCHEMA + "state";
 
-    String DSPACE_REASON_TYPE = DSPACE_SCHEMA + "reason";
+    String DSPACE_REASON = DSPACE_SCHEMA + "reason";
 
-    String DSPACE_CODE_TYPE = DSPACE_SCHEMA + "code";
+    String DSPACE_CODE = DSPACE_SCHEMA + "code";
 }

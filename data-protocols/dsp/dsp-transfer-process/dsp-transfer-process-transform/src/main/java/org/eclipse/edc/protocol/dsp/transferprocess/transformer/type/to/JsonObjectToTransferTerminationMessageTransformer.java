@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON;
 
 public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferTerminationMessage> {
 
@@ -39,17 +39,17 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
 
         transferTerminationMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
-        transformString(messageObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
+        transformString(messageObject.get(DSPACE_PROCESS_ID), transferTerminationMessageBuilder::processId, context);
 
-        if (messageObject.containsKey(DSPACE_CODE_TYPE)) {
-            transformString(messageObject.get(DSPACE_CODE_TYPE), transferTerminationMessageBuilder::code, context);
+        if (messageObject.containsKey(DSPACE_CODE)) {
+            transformString(messageObject.get(DSPACE_CODE), transferTerminationMessageBuilder::code, context);
         }
 
-        var reasons = messageObject.get(DSPACE_REASON_TYPE);
+        var reasons = messageObject.get(DSPACE_REASON);
         if (reasons != null) {  // optional property
             var result = typeValueArray(reasons, context);
             if (result == null) {
-                context.reportProblem(format("Cannot transform property %s in ContractNegotiationTerminationMessage", DSPACE_REASON_TYPE));
+                context.reportProblem(format("Cannot transform property %s in ContractNegotiationTerminationMessage", DSPACE_REASON));
             } else {
                 if (result.size() > 0) {
                     transferTerminationMessageBuilder.reason(result.toString());

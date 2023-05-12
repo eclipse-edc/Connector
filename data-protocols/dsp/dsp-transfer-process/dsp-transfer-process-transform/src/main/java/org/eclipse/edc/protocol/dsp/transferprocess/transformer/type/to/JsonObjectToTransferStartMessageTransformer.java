@@ -23,8 +23,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
 
 public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferStartMessage> {
 
@@ -38,9 +38,9 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
 
         transferStartMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
-        transformString(messageObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
+        transformString(messageObject.get(DSPACE_PROCESS_ID), transferStartMessageBuilder::processId, context);
 
-        var dataAddressObject = returnJsonObject(messageObject.get(DSPACE_DATA_ADDRESS_TYPE), context, DSPACE_DATA_ADDRESS_TYPE, false);
+        var dataAddressObject = returnJsonObject(messageObject.get(DSPACE_DATA_ADDRESS), context, DSPACE_DATA_ADDRESS, false);
         if (dataAddressObject != null) {
             transferStartMessageBuilder.dataAddress(context.transform(dataAddressObject, DataAddress.class));
         }
