@@ -41,7 +41,18 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
         var builder = jsonFactory.createObjectBuilder();
         builder.add(ID, asset.getId());
         builder.add(TYPE, Asset.EDC_ASSET_TYPE);
-        transformProperties(asset.getProperties(), builder, mapper, context);
+        //transform public properties
+        var propBuilder = jsonFactory.createObjectBuilder();
+        transformProperties(asset.getProperties(), propBuilder, mapper, context);
+        builder.add(Asset.EDC_ASSET_PROPERTIES, propBuilder);
+
+
+        //transform private properties
+        if (asset.getPrivateProperties() != null && !asset.getPrivateProperties().isEmpty()) {
+            var privatePropBuilder = jsonFactory.createObjectBuilder();
+            transformProperties(asset.getPrivateProperties(), privatePropBuilder, mapper, context);
+            builder.add(Asset.EDC_ASSET_PRIVATE_PROPERTIES, privatePropBuilder);
+        }
         return builder.build();
     }
 }

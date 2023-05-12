@@ -29,6 +29,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromAssetTransformerTest {
@@ -52,14 +54,17 @@ class JsonObjectFromAssetTransformerTest {
 
         var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
 
-        assertThat(jsonObject).isNotNull().hasSize(7);
+        assertThat(jsonObject).isNotNull();
+
+        var propsJson = jsonObject.getJsonObject(EDC_ASSET_PROPERTIES);
+        assertThat(propsJson).hasSize(5);
         assertThat(jsonObject.getJsonString(ID).getString()).isEqualTo(TEST_ASSET_ID);
         assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(Asset.EDC_ASSET_TYPE);
-        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "id").getString()).isEqualTo(TEST_ASSET_ID);
-        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "contenttype").getString()).isEqualTo(TEST_CONTENT_TYPE);
-        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "description").getString()).isEqualTo(TEST_DESCRIPTION);
-        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "name").getString()).isEqualTo(TEST_ASSET_NAME);
-        assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "version").getString()).isEqualTo(TEST_VERSION);
+        assertThat(propsJson.getJsonString(EDC_NAMESPACE + "id").getString()).isEqualTo(TEST_ASSET_ID);
+        assertThat(propsJson.getJsonString(EDC_NAMESPACE + "contenttype").getString()).isEqualTo(TEST_CONTENT_TYPE);
+        assertThat(propsJson.getJsonString(EDC_NAMESPACE + "description").getString()).isEqualTo(TEST_DESCRIPTION);
+        assertThat(propsJson.getJsonString(EDC_NAMESPACE + "name").getString()).isEqualTo(TEST_ASSET_NAME);
+        assertThat(propsJson.getJsonString(EDC_NAMESPACE + "version").getString()).isEqualTo(TEST_VERSION);
     }
 
     @Test
@@ -71,7 +76,19 @@ class JsonObjectFromAssetTransformerTest {
         var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getJsonString("some-key").getString()).isEqualTo("some-value");
+        assertThat(jsonObject.getJsonObject(EDC_ASSET_PROPERTIES).getJsonString("some-key").getString()).isEqualTo("some-value");
+    }
+
+    @Test
+    void transform_withPrivateProperties_simpleTypes() {
+        var asset = createAssetBuilder()
+                .privateProperty("some-key", "some-value")
+                .build();
+
+        var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
+
+        assertThat(jsonObject).isNotNull();
+        assertThat(jsonObject.getJsonObject(EDC_ASSET_PRIVATE_PROPERTIES).getJsonString("some-key").getString()).isEqualTo("some-value");
     }
 
     @Test
@@ -83,7 +100,7 @@ class JsonObjectFromAssetTransformerTest {
         var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getJsonString("https://foo.bar.org/schema/some-key").getString()).isEqualTo("some-value");
+        assertThat(jsonObject.getJsonObject(EDC_ASSET_PROPERTIES).getJsonString("https://foo.bar.org/schema/some-key").getString()).isEqualTo("some-value");
     }
 
     @Test
@@ -96,7 +113,7 @@ class JsonObjectFromAssetTransformerTest {
         var jsonObject = transformer.transform(asset, mock);
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getJsonObject("https://foo.bar.org/schema/payload")).isInstanceOf(JsonObject.class);
+        assertThat(jsonObject.getJsonObject(EDC_ASSET_PROPERTIES).getJsonObject("https://foo.bar.org/schema/payload")).isInstanceOf(JsonObject.class);
     }
 
     private Asset.Builder createAssetBuilder() {

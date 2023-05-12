@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
@@ -39,7 +38,13 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_CONTENT_TYPE;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_DESCRIPTION;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_NAME;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_VERSION;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 @EndToEndTest
 public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
@@ -54,21 +59,23 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void getAssetById() {
         //insert one asset into the index
         controlPlane.getContext().getService(AssetIndex.class)
-                .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").build(),
-                        DataAddress.Builder.newInstance().type("test-type").build()));
+                .create(new AssetEntry(createAsset().build(),
+                        createDataAddress().build()));
 
         var body = baseRequest()
-                .get("/test-asset")
+                .get("/" + TEST_ASSET_ID)
                 .then()
                 .statusCode(200)
-                .extract().body().as(new TypeRef<Map<String, Object>>() {
-                });
+                .extract().body().jsonPath();
 
         assertThat(body).isNotNull();
-        assertThat(body).containsKey("asset");
-        assertThat(body.get("asset")).isInstanceOf(Map.class);
-        Map<String, Object> asset = (Map<String, Object>) body.get("asset");
-        assertThat(asset.get(Asset.PROPERTY_ID).toString()).contains("test-asset");
+        assertThat(body.getString(ID)).isEqualTo(TEST_ASSET_ID);
+        assertThat(body.getMap("edc:properties"))
+                .hasSize(5)
+                .containsEntry("edc:name", TEST_ASSET_NAME)
+                .containsEntry("edc:description", TEST_ASSET_DESCRIPTION)
+                .containsEntry("edc:contenttype", TEST_ASSET_CONTENTTYPE)
+                .containsEntry("edc:version", TEST_ASSET_VERSION);
     }
 
     @Test
@@ -95,7 +102,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .then()
                 .log().ifError()
                 .statusCode(200)
-                .body("id", is("test-asset-id"));
+                .body(ID, is("test-asset-id"));
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
@@ -128,7 +135,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .then()
                 .log().ifError()
                 .statusCode(200)
-                .body("id", is("test-asset-id"));
+                .body(ID, is("test-asset-id"));
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
@@ -152,11 +159,11 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
         //insert one asset into the index
         controlPlane.getContext().getService(AssetIndex.class)
                 .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").contentType("application/octet-stream").build(),
-                        DataAddress.Builder.newInstance().type("test-type").build()));
+                        createDataAddress().build()));
 
         // create the query by content type
         //TODO: once the queryspec dto is JSON-LD aware, we can just use "contentype", and the JSON-LD expansion takes care of prefixing the namespace
-        var byContentType = CriterionDto.Builder.newInstance().operandLeft(Asset.PROPERTY_CONTENT_TYPE).operator("=").operandRight("application/octet-stream").build();
+        var byContentType = CriterionDto.Builder.newInstance().operandLeft(PROPERTY_CONTENT_TYPE).operator("=").operandRight("application/octet-stream").build();
         var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byContentType)).build();
 
         baseRequest()
@@ -179,7 +186,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .contentType("application/octet-stream")
                 .property("myProp", "myVal")
                 .build(),
-                DataAddress.Builder.newInstance().type("test-type").build()));
+                createDataAddress().build()));
 
         var byCustomProp = CriterionDto.Builder.newInstance()
                 .operandLeft("myProp")
@@ -207,7 +214,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 // use a custom, complex object type
                 .property("myProp", new TestObject("test desc", 42))
                 .build(),
-                DataAddress.Builder.newInstance().type("test-type").build()));
+                createDataAddress().build()));
 
         var byCustomProp = CriterionDto.Builder.newInstance()
                 .operandLeft("myProp.description") //access in "json-path style", will not work
@@ -236,7 +243,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 // use a custom, complex object type
                 .property("myProp", new TestObject("test desc", 42))
                 .build(),
-                DataAddress.Builder.newInstance().type("test-type").build()));
+                createDataAddress().build()));
 
         var byCustomProp = CriterionDto.Builder.newInstance()
                 .operandLeft("myProp") //access with LIKE operator, will not work, because the inmem query convert does not support this
@@ -254,12 +261,66 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .statusCode(500);
     }
 
+    @Test
+    void updateAsset() {
+        var asset = createAsset();
+        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
+        assetIndex.create(new AssetEntry(asset.build(), createDataAddress().build()));
+
+        var assetJson = Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_ASSET_TYPE)
+                .add(ID, TEST_ASSET_ID)
+                .add("properties", createPropertiesBuilder()
+                        .add("some-new-property", "some-new-value").build())
+                .build();
+
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(assetJson)
+                .put()
+                .then()
+                .statusCode(204)
+                .body(notNullValue());
+
+        var dbAsset = assetIndex.findById(TEST_ASSET_ID);
+        assertThat(dbAsset).isNotNull();
+        assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
+    }
+
+    @Test
+    void getDataAddress() {
+        controlPlane.getContext().getService(AssetIndex.class)
+                .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").build(),
+                        DataAddress.Builder.newInstance().type("test-type").property(EDC_NAMESPACE + "another-key", "another-value").build()));
+
+        baseRequest()
+                .get("/test-asset/dataaddress")
+                .then()
+                .statusCode(200)
+                .body("'edc:type'", equalTo("test-type"))
+                .body("'edc:another-key'", equalTo("another-value"));
+    }
+
+    private DataAddress.Builder createDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type");
+    }
+
+    private Asset.Builder createAsset() {
+        return Asset.Builder.newInstance()
+                .id(TEST_ASSET_ID)
+                .name(TEST_ASSET_NAME)
+                .description(TEST_ASSET_DESCRIPTION)
+                .contentType(TEST_ASSET_CONTENTTYPE)
+                .version(TEST_ASSET_VERSION);
+    }
+
     private JsonObjectBuilder createPropertiesBuilder() {
         return Json.createObjectBuilder()
-                .add(EDC_NAMESPACE + "name", TEST_ASSET_NAME)
-                .add(EDC_NAMESPACE + "description", TEST_ASSET_DESCRIPTION)
-                .add(EDC_NAMESPACE + "version", TEST_ASSET_VERSION)
-                .add(EDC_NAMESPACE + "contenttype", TEST_ASSET_CONTENTTYPE);
+                .add(PROPERTY_NAME, TEST_ASSET_NAME)
+                .add(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
+                .add(PROPERTY_VERSION, TEST_ASSET_VERSION)
+                .add(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE);
     }
 
     private JsonObjectBuilder createContextBuilder() {
