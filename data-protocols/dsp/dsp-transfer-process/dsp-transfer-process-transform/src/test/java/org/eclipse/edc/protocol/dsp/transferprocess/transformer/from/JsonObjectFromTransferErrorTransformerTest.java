@@ -12,10 +12,11 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
+package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
-import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferErrorTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,15 +30,15 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransf
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 import static org.mockito.Mockito.mock;
 
-public class TransferErrorToResponseTransformerTest {
+public class JsonObjectFromTransferErrorTransformerTest {
 
-    private TransferErrorToResponseTransformer transformer;
+    private JsonObjectFromTransferErrorTransformer transformer;
 
     private TransformerContext context = mock(TransformerContext.class);
 
     @BeforeEach
     void setUp() {
-        transformer = new TransferErrorToResponseTransformer();
+        transformer = new JsonObjectFromTransferErrorTransformer();
     }
 
     @Test
@@ -47,16 +48,10 @@ public class TransferErrorToResponseTransformerTest {
         var result = transformer.transform(transferError, context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getStatus()).isEqualTo(400);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("testId");
-        assertThat(jsonObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
-        assertThat(jsonObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
+        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("testId");
+        assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
 
     }
 
@@ -67,16 +62,10 @@ public class TransferErrorToResponseTransformerTest {
         var result = transformer.transform(transferError, context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getStatus()).isEqualTo(400);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("null");
-        assertThat(jsonObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
-        assertThat(jsonObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
+        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("InvalidId");
+        assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
+        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     @Test
@@ -86,15 +75,9 @@ public class TransferErrorToResponseTransformerTest {
         var result = transformer.transform(transferError, context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getStatus()).isEqualTo(500);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("testId");
-        assertThat(jsonObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("500");
-        assertThat(!jsonObject.containsKey(DSPACE_SCHEMA + "reason"));
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
+        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("testId");
+        assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("500");
+        assertThat(result.containsKey(DSPACE_SCHEMA + "reason")).isFalse();
     }
 }

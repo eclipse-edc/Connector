@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
+package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from;
 
 import jakarta.json.Json;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
@@ -39,38 +39,37 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 
-public class TransferErrorToResponseTransformer extends AbstractJsonLdTransformer<TransferError, Response> {
-    protected TransferErrorToResponseTransformer() {
-        super(TransferError.class, Response.class);
+public class JsonObjectFromTransferErrorTransformer extends AbstractJsonLdTransformer<TransferError, JsonObject> {
+    public JsonObjectFromTransferErrorTransformer() {
+        super(TransferError.class, JsonObject.class);
     }
 
     @Nullable
     @Override
-    public Response transform(@NotNull TransferError error, @NotNull TransformerContext context) {
+    public JsonObject transform(@NotNull TransferError error, @NotNull TransformerContext context) {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
 
         error.getProcessId().map(e -> builder.add(DSPACE_PROCESSID_TYPE, e))
-                .orElseGet(() -> builder.add(DSPACE_PROCESSID_TYPE, "null"));
+                .orElseGet(() -> builder.add(DSPACE_PROCESSID_TYPE, "InvalidId"));
 
         var throwable = error.getThrowable();
 
         var code = errorCodeMapping(throwable);
 
-        builder.add(DSPACE_SCHEMA + "code", String.valueOf(code));
+        builder.add(DSPACE_CODE_TYPE, String.valueOf(code));
 
         if (throwable.getMessage() != null) {
-            builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
+            builder.add(DSPACE_REASON_TYPE, Json.createArrayBuilder().add(throwable.getMessage()));
         }
 
-        var json = builder.build();
-
-        return Response.status(code).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+        return builder.build();
     }
 
     private static int errorCodeMapping(Throwable throwable) {

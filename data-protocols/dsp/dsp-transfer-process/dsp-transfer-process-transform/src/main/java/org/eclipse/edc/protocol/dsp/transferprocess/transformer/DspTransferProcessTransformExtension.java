@@ -19,6 +19,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferErrorTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferStartMessageTransformer;
@@ -74,6 +75,6 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToDataAddressTransformer());
 
         //No JsonObjectTransfromer
-        registry.register(new TransferErrorToResponseTransformer());
+        registry.register(new JsonObjectFromTransferErrorTransformer());
     }
 }
