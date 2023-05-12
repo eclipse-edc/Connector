@@ -315,25 +315,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
           content:
