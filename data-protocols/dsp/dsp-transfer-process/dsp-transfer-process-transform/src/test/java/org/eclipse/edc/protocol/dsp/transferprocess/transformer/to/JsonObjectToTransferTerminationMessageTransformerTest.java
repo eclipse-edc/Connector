@@ -27,9 +27,9 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -59,9 +59,9 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE)
-                .add(DSPACE_PROCESSID_TYPE, "TestProcessId")
-                .add(DSPACE_CODE_TYPE, "testCode")
-                .add(DSPACE_REASON_TYPE, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
+                .add(DSPACE_PROCESS_ID, "TestProcessId")
+                .add(DSPACE_CODE, "testCode")
+                .add(DSPACE_REASON, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);

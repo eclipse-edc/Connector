@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
 
 public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferCompletionMessage> {
 
@@ -36,7 +36,7 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
 
         transferCompletionMessageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
 
-        transformString(messageObject.get(DSPACE_PROCESSID_TYPE), transferCompletionMessageBuilder::processId, context);
+        transformString(messageObject.get(DSPACE_PROCESS_ID), transferCompletionMessageBuilder::processId, context);
 
         return transferCompletionMessageBuilder.build();
 

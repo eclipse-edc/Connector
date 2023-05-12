@@ -54,8 +54,8 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_TERMINATION;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
@@ -65,8 +65,8 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
  * Provides the endpoints for receiving messages regarding transfers, like initiating, completing
  * and terminating a transfer process.
  */
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
 public class DspTransferProcessApiController {
 
@@ -113,7 +113,7 @@ public class DspTransferProcessApiController {
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
     public Map<String, Object> initiateTransferProcess(JsonObject jsonObject, @HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
-        var transferProcess = handleMessage(jsonObject, Optional.empty(), token, DSPACE_TRANSFERPROCESS_REQUEST_TYPE, TransferRequestMessage.class, protocolService::notifyRequested);
+        var transferProcess = handleMessage(jsonObject, Optional.empty(), token, DSPACE_TRANSFER_PROCESS_REQUEST_TYPE, TransferRequestMessage.class, protocolService::notifyRequested);
 
         var transferProcessJson = registry.transform(transferProcess, JsonObject.class)
                 .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
@@ -193,8 +193,8 @@ public class DspTransferProcessApiController {
      * @return the transfer process returned by the service call
      */
     private <M extends TransferRemoteMessage> TransferProcess handleMessage(JsonObject request, Optional<String> processId, String token, String expectedType,
-                                                                 Class<M> messageClass, BiFunction<M, ClaimToken, ServiceResult<TransferProcess>> serviceCall) {
-        processId.ifPresentOrElse(id ->  monitor.debug(() -> format("DSP: Incoming %s for transfer process %s", messageClass.getSimpleName(), id)),
+                                                                            Class<M> messageClass, BiFunction<M, ClaimToken, ServiceResult<TransferProcess>> serviceCall) {
+        processId.ifPresentOrElse(id -> monitor.debug(() -> format("DSP: Incoming %s for transfer process %s", messageClass.getSimpleName(), id)),
                 () -> monitor.debug(() -> format("DSP: Incoming %s for initiating a transfer process", messageClass.getSimpleName())));
 
         var claimToken = checkAuthToken(token);

@@ -29,9 +29,9 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CORRELATIONID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_STATE_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CORRELATION_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_STATE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_TYPE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -73,10 +73,10 @@ class JsonObjectFromTransferProcessTransformerTest {
         var result = transformer.transform(transferProcess, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFERPROCESS_TYPE);
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_TYPE);
         assertThat(result.getJsonString(JsonLdKeywords.ID).getString()).isEqualTo("transferProcessID");
-        assertThat(result.getJsonString(DSPACE_STATE_TYPE).getString()).isEqualTo("INITIAL");
-        assertThat(result.getJsonString(DSPACE_CORRELATIONID_TYPE).getString()).isEqualTo("dataRequestID");
+        assertThat(result.getJsonString(DSPACE_STATE).getString()).isEqualTo("INITIAL");
+        assertThat(result.getJsonString(DSPACE_CORRELATION_ID).getString()).isEqualTo("dataRequestID");
 
         verify(context, never()).reportProblem(anyString());
     }

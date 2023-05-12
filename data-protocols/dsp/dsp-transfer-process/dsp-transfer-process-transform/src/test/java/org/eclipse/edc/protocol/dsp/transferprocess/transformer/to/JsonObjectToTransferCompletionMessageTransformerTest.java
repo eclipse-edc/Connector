@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -49,7 +49,7 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
 
         var json = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
-                .add(DSPACE_PROCESSID_TYPE, processId)
+                .add(DSPACE_PROCESS_ID, processId)
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);

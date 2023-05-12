@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -37,6 +36,7 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.KEYWORDS;
@@ -157,6 +157,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         };
     }
 
+    @Nullable
     protected Object transformGenericProperty(JsonValue value, TransformerContext context) {
         if (value instanceof JsonArray) {
             var jsonArray = (JsonArray) value;
@@ -219,14 +220,14 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .filter(Objects::nonNull)
                     .findFirst().map(it -> transformString(it, context))
                     .orElseGet(() -> {
-                        context.reportProblem(format("Invalid property. Expected to find one of @value, @id in JsonObject but got %s", value));
+                        // no need to report problem as it will have been donne above with call to transformString()
                         return null;
                     });
         } else if (value instanceof JsonArray) {
             return transformString(((JsonArray) value).get(0), context);
         } else {
-            context.reportProblem(format("Invalid property. Expected JsonString, JsonObject or JsonArray but got %s",
-                    Optional.ofNullable(value).map(it -> getClass()).map(Class::getSimpleName).orElse(null)));
+            context.reportProblem(format("Invalid property. Expected JsonString, JsonObject or JsonArray but got: %s",
+                    ofNullable(value).map(it -> value.toString()).orElse(null)));
             return null;
         }
     }
@@ -305,6 +306,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param <T>     the desired result type
      * @return the transformed list, null if the value type was not valid.
      */
+    @Nullable
     protected <T> List<T> transformArray(JsonValue value, Class<T> type, TransformerContext context) {
         if (value instanceof JsonObject) {
             var transformed = context.transform(value.asJsonObject(), type);

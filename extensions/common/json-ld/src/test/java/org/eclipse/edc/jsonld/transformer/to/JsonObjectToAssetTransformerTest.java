@@ -38,6 +38,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.transformer.to.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
@@ -85,7 +86,7 @@ class JsonObjectToAssetTransformerTest {
                 .add("properties", createPropertiesBuilder().build())
                 .build();
         jsonObj = expand(jsonObj);
-        var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
 
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
@@ -135,7 +136,7 @@ class JsonObjectToAssetTransformerTest {
                         .build())
                 .build();
         jsonObj = expand(jsonObj);
-        var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
                 .hasSize(6)
@@ -155,7 +156,7 @@ class JsonObjectToAssetTransformerTest {
                 .build();
         jsonObj = expand(jsonObj);
 
-        var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
 
         assertThat(asset.getContent().getProperties()).hasSize(2)
                 .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
@@ -170,12 +171,10 @@ class JsonObjectToAssetTransformerTest {
                 .add(CONTEXT, createContextBuilder().addNull(EDC_PREFIX).build())
                 .add(TYPE, EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
-                .add("properties", createPropertiesBuilder()
-                        .add("payload", createPayloadBuilder().build())
-                        .build())
+                .add("properties", createPropertiesBuilder().add("payload", createPayloadBuilder().build()).build())
                 .build();
         jsonObj = expand(jsonObj);
-        var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
 
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getVersion()).isNull();

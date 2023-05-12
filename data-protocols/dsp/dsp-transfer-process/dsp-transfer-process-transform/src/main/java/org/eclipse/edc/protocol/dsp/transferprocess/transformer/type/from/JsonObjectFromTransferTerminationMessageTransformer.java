@@ -26,9 +26,9 @@ import java.util.UUID;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 
 public class JsonObjectFromTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<TransferTerminationMessage, JsonObject> {
@@ -46,12 +46,12 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
 
         builder.add(ID, String.valueOf(UUID.randomUUID()));
         builder.add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
-        builder.add(DSPACE_PROCESSID_TYPE, transferTerminationMessage.getProcessId());
+        builder.add(DSPACE_PROCESS_ID, transferTerminationMessage.getProcessId());
         if (transferTerminationMessage.getCode() != null) {
-            builder.add(DSPACE_CODE_TYPE, transferTerminationMessage.getCode());
+            builder.add(DSPACE_CODE, transferTerminationMessage.getCode());
         }
         if (transferTerminationMessage.getReason() != null) {
-            builder.add(DSPACE_REASON_TYPE, transferTerminationMessage.getReason());
+            builder.add(DSPACE_REASON, transferTerminationMessage.getReason());
         }
 
         return builder.build();
