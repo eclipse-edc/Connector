@@ -23,7 +23,6 @@ import com.apicatalog.jsonld.loader.DocumentLoaderOptions;
 import com.apicatalog.jsonld.loader.FileLoader;
 import com.apicatalog.jsonld.loader.HttpLoader;
 import com.apicatalog.jsonld.loader.SchemeRouter;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -35,7 +34,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static jakarta.json.Json.createBuilderFactory;
+import static jakarta.json.Json.createObjectBuilder;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Implementation of the {@link JsonLd} interface that uses the Titanium library for all JSON-LD operations.
@@ -57,14 +61,15 @@ public class TitaniumJsonLd implements JsonLd {
     @Override
     public Result<JsonObject> expand(JsonObject json) {
         try {
-            var document = JsonDocument.of(json);
+
+            var document = JsonDocument.of(injectVocab(json));
             var expanded = com.apicatalog.jsonld.JsonLd.expand(document)
                     .options(new JsonLdOptions(documentLoader))
                     .get();
             if (expanded.size() > 0) {
                 return Result.success(expanded.getJsonObject(0));
             }
-            return Result.success(Json.createObjectBuilder().build());
+            return Result.success(createObjectBuilder().build());
         } catch (JsonLdError error) {
             monitor.warning("Error expanding JSON-LD structure", error);
             return Result.failure(error.getMessage());
@@ -75,7 +80,7 @@ public class TitaniumJsonLd implements JsonLd {
     public Result<JsonObject> compact(JsonObject json) {
         try {
             var document = JsonDocument.of(json);
-            var jsonFactory = Json.createBuilderFactory(Map.of());
+            var jsonFactory = createBuilderFactory(Map.of());
             var contextDocument = JsonDocument.of(jsonFactory.createObjectBuilder()
                     .add(CONTEXT, createContextObject())
                     .build());
@@ -97,8 +102,21 @@ public class TitaniumJsonLd implements JsonLd {
         documentLoader.register(contextUrl, file);
     }
 
+    private JsonObject injectVocab(JsonObject json) {
+        var jsonObjectBuilder = createObjectBuilder(json);
+        var contextObject = ofNullable(json.getJsonObject(CONTEXT)).orElseGet(() -> createObjectBuilder().build());
+        var contextBuilder = createObjectBuilder(contextObject);
+        if (!contextObject.containsKey(VOCAB)) {
+            var newContextObject = contextBuilder
+                    .add(VOCAB, EDC_NAMESPACE)
+                    .build();
+            jsonObjectBuilder.add(CONTEXT, newContextObject);
+        }
+        return jsonObjectBuilder.build();
+    }
+
     private JsonObject createContextObject() {
-        var builder = Json.createObjectBuilder();
+        var builder = createObjectBuilder();
         additionalNamespaces.forEach(builder::add);
         return builder.build();
     }

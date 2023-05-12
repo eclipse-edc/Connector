@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.edc.api.model.DataAddressDto;
 
 @JsonDeserialize(builder = AssetEntryNewDto.Builder.class)
 public class AssetEntryNewDto {
@@ -30,9 +29,10 @@ public class AssetEntryNewDto {
 
     @NotNull(message = "dataAddress cannot be null")
     @Valid
-    private DataAddressDto dataAddress;
+    private JsonObject dataAddress;
 
-    public DataAddressDto getDataAddress() {
+    @NotNull(message = "dataAddress cannot be null")
+    public JsonObject getDataAddress() {
         return dataAddress;
     }
 
@@ -61,7 +61,7 @@ public class AssetEntryNewDto {
             return this;
         }
 
-        public AssetEntryNewDto.Builder dataAddress(DataAddressDto dataAddress) {
+        public AssetEntryNewDto.Builder dataAddress(@NotNull JsonObject dataAddress) {
             assetEntryDto.dataAddress = dataAddress;
             return this;
         }

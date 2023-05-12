@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -75,6 +76,18 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     private final AssetService service = mock(AssetService.class);
     private final DataAddressResolver dataAddressResolver = mock(DataAddressResolver.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
+
+    private static JsonObject createDataAddressJson() {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "test-type")
+                .build();
+    }
+
+    @BeforeEach
+    void setup() {
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("test-tyhpe").build()));
+    }
 
     @Test
     void requestAsset() {
@@ -262,7 +275,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
         var assetEntryDto = AssetEntryNewDto.Builder.newInstance()
                 .asset(Json.createObjectBuilder().build())
-                .dataAddress(DataAddressDto.Builder.newInstance().properties(Map.of("type", "any")).build())
+                .dataAddress(createDataAddressJson())
                 .build();
 
         baseRequest()
@@ -450,7 +463,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     private AssetEntryNewDto createAssetEntryDto() {
         return AssetEntryNewDto.Builder.newInstance()
                 .asset(createAssetJson().build())
-                .dataAddress(DataAddressDto.Builder.newInstance().properties(Map.of("type", "any")).build())
+                .dataAddress(createDataAddressJson())
                 .build();
     }
 

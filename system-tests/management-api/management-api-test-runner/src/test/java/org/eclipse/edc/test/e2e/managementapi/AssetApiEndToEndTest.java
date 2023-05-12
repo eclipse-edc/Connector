@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
@@ -82,8 +81,12 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add("properties", createPropertiesBuilder().build())
                 .build();
 
+        var dataAddressJson = Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "test-type").build();git c
         var json = Map.of("asset", assetJson,
-                "dataAddress", Map.of("properties", Map.of("type", "test-type")));
+                "dataAddress", dataAddressJson);
 
         baseRequest()
                 .contentType(ContentType.JSON)
@@ -97,6 +100,49 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
         assertThat(assetIndex.findById("test-asset-id")).isNotNull();
+    }
+
+    @Test
+    void createAsset_withoutPrefix_shouldAddEdcNamespace() {
+        var assetJson = Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_ASSET_TYPE)
+                .add(ID, TEST_ASSET_ID)
+                .add(EDC_NAMESPACE + "properties", createPropertiesBuilder()
+                        .add("unprefixed-key", "test-value").build())
+                .build();
+
+        var dataAddressJson = Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "test-type")
+                .add("unprefixed-key", "test-value").build();
+
+        var json = Map.of("asset", assetJson,
+                "dataAddress", dataAddressJson);
+
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(json)
+                .post()
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("id", is("test-asset-id"));
+        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
+
+        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+        var asset = assetIndex.findById("test-asset-id");
+        assertThat(asset).isNotNull();
+        //make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
+        assertThat(asset.getProperties().keySet())
+                .hasSize(6)
+                .allMatch(key -> key.startsWith(EDC_NAMESPACE));
+
+        var dataAddress = assetIndex.resolveForAsset(asset.getId());
+        assertThat(dataAddress).isNotNull();
+        assertThat(dataAddress.getProperties()).hasSize(2);
+
     }
 
     @Test
@@ -208,15 +254,14 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     private JsonObjectBuilder createPropertiesBuilder() {
         return Json.createObjectBuilder()
-                .add("name", TEST_ASSET_NAME)
-                .add("description", TEST_ASSET_DESCRIPTION)
-                .add("edc:version", TEST_ASSET_VERSION)
-                .add("contenttype", TEST_ASSET_CONTENTTYPE);
+                .add(EDC_NAMESPACE + "name", TEST_ASSET_NAME)
+                .add(EDC_NAMESPACE + "description", TEST_ASSET_DESCRIPTION)
+                .add(EDC_NAMESPACE + "version", TEST_ASSET_VERSION)
+                .add(EDC_NAMESPACE + "contenttype", TEST_ASSET_CONTENTTYPE);
     }
 
     private JsonObjectBuilder createContextBuilder() {
         return Json.createObjectBuilder()
-                .add(VOCAB, EDC_NAMESPACE)
                 .add(EDC_PREFIX, EDC_NAMESPACE);
     }
 
