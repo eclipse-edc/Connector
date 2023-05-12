@@ -56,7 +56,6 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
@@ -113,7 +112,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var calls = ArgumentCaptor.forClass(ContractNegotiation.class);
         verify(store).save(calls.capture());
         assertThat(calls.getAllValues()).anySatisfy(n -> {
-            assertThat(n.getState()).isEqualTo(AGREEING.code());
+            assertThat(n.getState()).isEqualTo(REQUESTED.code());
             assertThat(n.getCounterPartyId()).isEqualTo(message.getConnectorId());
             assertThat(n.getCounterPartyAddress()).isEqualTo(message.getCallbackAddress());
             assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
