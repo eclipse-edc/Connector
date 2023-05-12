@@ -109,7 +109,7 @@ class ArtifactRequestHandlerTest {
 
         var requestMessage = trCapture.getValue();
 
-        assertThat(requestMessage.getId()).hasToString(artifactRequestId);
+        assertThat(requestMessage.getProcessId()).hasToString(artifactRequestId);
         assertThat(requestMessage.getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
         assertThat(requestMessage.getConnectorId()).isEqualTo(connectorId.toString());
         assertThat(requestMessage.getAssetId()).isEqualTo(agreement.getAssetId());

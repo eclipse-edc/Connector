@@ -142,7 +142,7 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
 
     private TransferRequestMessage message() {
         return TransferRequestMessage.Builder.newInstance()
-                .id("testId")
+                .processId("testId")
                 .protocol("dataspace-protocol")
                 .callbackAddress("http://test-connector-address")
                 .counterPartyAddress("http://test-connector-address")

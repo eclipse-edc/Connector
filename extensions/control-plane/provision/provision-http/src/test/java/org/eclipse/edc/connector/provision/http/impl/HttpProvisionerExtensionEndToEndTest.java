@@ -166,7 +166,7 @@ public class HttpProvisionerExtensionEndToEndTest {
 
     private TransferRequestMessage createTransferRequestMessage() {
         return TransferRequestMessage.Builder.newInstance()
-                .id(randomUUID().toString())
+                .processId(randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .protocol("any")
                 .counterPartyAddress("http://any")

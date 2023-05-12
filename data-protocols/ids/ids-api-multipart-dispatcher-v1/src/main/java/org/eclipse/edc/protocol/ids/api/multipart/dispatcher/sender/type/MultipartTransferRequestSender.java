@@ -74,7 +74,7 @@ public class MultipartTransferRequestSender implements MultipartSenderDelegate<T
                 .type(IdsType.CONTRACT_AGREEMENT)
                 .build().toUri();
 
-        var artifactRequestId = request.getId() != null ? request.getId() : UUID.randomUUID().toString();
+        var artifactRequestId = request.getProcessId() != null ? request.getProcessId() : UUID.randomUUID().toString();
         var message = new ArtifactRequestMessageBuilder(URI.create(artifactRequestId))
                 ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())

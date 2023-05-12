@@ -27,6 +27,7 @@ import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPA
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACK_ADDRESS_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACT_AGREEMENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 
 public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
@@ -36,16 +37,22 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
     @Override
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
-        var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
+        var builder = TransferRequestMessage.Builder.newInstance();
 
-        transferRequestMessageBuilder.id(nodeId(messageObject)).protocol(DATASPACE_PROTOCOL_HTTP);
+        builder.protocol(DATASPACE_PROTOCOL_HTTP);
 
-        transformString(messageObject.get(DSPACE_CONTRACT_AGREEMENT_TYPE), transferRequestMessageBuilder::contractId, context);
-        transformString(messageObject.get(DSPACE_CALLBACK_ADDRESS_TYPE), transferRequestMessageBuilder::callbackAddress, context);
+        visitProperties(messageObject, k -> {
+            switch (k) {
+                case DSPACE_PROCESSID_TYPE: return v -> builder.processId(transformString(v, context));
+                case DSPACE_CONTRACT_AGREEMENT_TYPE: return v -> builder.contractId(transformString(v, context));
+                case DSPACE_CALLBACK_ADDRESS_TYPE: return v -> builder.callbackAddress(transformString(v, context));
+                default: return doNothing();
+            }
+        });
 
-        transferRequestMessageBuilder.dataDestination(createDataAddress(messageObject, context));
+        builder.dataDestination(createDataAddress(messageObject, context));
 
-        return transferRequestMessageBuilder.build();
+        return builder.build();
     }
 
     // TODO replace with JsonObjectToDataAddressTransformer
