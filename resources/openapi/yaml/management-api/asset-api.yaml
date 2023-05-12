@@ -371,6 +371,51 @@ paths:
             \ exists"
       tags:
       - Asset
+    put:
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or are ongoing in contract negotiations."
+      operationId: updateAsset_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+                  example: null
+      responses:
+        "200":
+          description: Asset was updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: "Asset could not be updated, because it does not exist."
+      tags:
+      - Asset
   /v2/assets/request:
     post:
       description: ' all assets according to a particular query'
@@ -400,41 +445,6 @@ paths:
           description: Request body was malformed
       tags:
       - Asset
-  /v2/assets/{assetId}:
-    put:
-      description: "Updates an asset with the given ID if it exists. If the asset\
-        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
-        \ assets can have unexpected results, especially for contract offers that\
-        \ have been sent out or are ongoing in contract negotiations."
-      operationId: updateAsset_1
-      parameters:
-      - in: path
-        name: assetId
-        required: true
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssetUpdateRequestDto'
-      responses:
-        "200":
-          description: Asset was updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: "Request was malformed, e.g. id was null"
-        "404":
-          description: "Asset could not be updated, because it does not exist."
-      tags:
-      - Asset
   /v2/assets/{assetId}/dataaddress:
     put:
       description: Updates a DataAddress for an asset with the given ID.
@@ -450,7 +460,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataAddressDto'
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+                  example: null
       responses:
         "200":
           description: Asset was updated successfully
@@ -657,7 +685,25 @@ components:
             Cannot be null.
           example: null
         dataAddress:
-          $ref: '#/components/schemas/DataAddressDto'
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+            valueType:
+              type: string
+              enum:
+              - ARRAY
+              - OBJECT
+              - STRING
+              - NUMBER
+              - "TRUE"
+              - "FALSE"
+              - "NULL"
+              example: null
       required:
       - asset
       - dataAddress
@@ -683,18 +729,6 @@ components:
           additionalProperties:
             type: object
             example: null
-          example: null
-    AssetResponseNewDto:
-      type: object
-      example: null
-      properties:
-        asset:
-          type: object
-          description: A JSON structure in JSON-LD format containing the Asset's properties.
-          example: null
-        createdAt:
-          type: integer
-          format: int64
           example: null
     AssetUpdateRequestDto:
       type: object
@@ -752,6 +786,41 @@ components:
           example: null
         id:
           type: string
+          example: null
+    JsonObject:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+      example: null
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+          example: null
+    JsonValue:
+      type: object
+      example: null
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
           example: null
     QuerySpecDto:
       type: object

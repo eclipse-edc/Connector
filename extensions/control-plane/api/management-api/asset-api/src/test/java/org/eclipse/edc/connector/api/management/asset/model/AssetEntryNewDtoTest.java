@@ -16,11 +16,9 @@ package org.eclipse.edc.connector.api.management.asset.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.api.model.DataAddressDto;
+import jakarta.json.Json;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +48,7 @@ public class AssetEntryNewDtoTest {
                 .add(EDC_NAMESPACE + "properties", createObjectBuilder()
                         .add(EDC_NAMESPACE + "name", "test-name"))
                 .build();
-        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("type", "test-type")).build();
+        var dataAddress = Json.createObjectBuilder().build();
         var assetEntryDto = AssetEntryNewDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
 
         var str = objectMapper.writeValueAsString(assetEntryDto);

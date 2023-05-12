@@ -67,7 +67,7 @@ public class AssetApiExtension implements ServiceExtension {
         transformerRegistry.register(new AssetToAssetResponseDtoTransformer());
 
         webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, dataAddressResolver, transformerRegistry));
-        webService.registerResource(config.getContextAlias(), new AssetNewApiController(assetService, dataAddressResolver, transformerRegistry, jsonLdService));
+        webService.registerResource(config.getContextAlias(), new AssetNewApiController(assetService, dataAddressResolver, transformerRegistry, jsonLdService, monitor));
     }
 
 }
