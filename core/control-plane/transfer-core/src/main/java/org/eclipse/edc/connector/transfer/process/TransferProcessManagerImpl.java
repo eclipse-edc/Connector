@@ -73,7 +73,6 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
-import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
@@ -179,9 +178,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (processId != null) {
             return StatusResult.success(transferProcessStore.findById(processId));
         }
-        var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance()
-                .id(id)
+                .id(dataRequest.getId())
                 .dataRequest(dataRequest)
                 .type(CONSUMER)
                 .clock(clock)
