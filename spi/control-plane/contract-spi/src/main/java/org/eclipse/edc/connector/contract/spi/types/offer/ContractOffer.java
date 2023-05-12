@@ -21,7 +21,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
@@ -45,14 +44,6 @@ public class ContractOffer {
      * The participant who provides the offered data
      */
     private String providerId;
-    /**
-     * Timestamp defining the start time when the offer becomes effective
-     */
-    private ZonedDateTime offerStart;
-    /**
-     * Timestamp defining the end date when the offer becomes ineffective
-     */
-    private ZonedDateTime offerEnd;
 
     @NotNull
     public String getId() {
@@ -77,7 +68,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, assetId, providerId, offerStart, offerEnd);
+        return Objects.hash(id, policy, assetId, providerId);
     }
 
     @Override
@@ -89,8 +80,7 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId) &&
-                Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd);
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
