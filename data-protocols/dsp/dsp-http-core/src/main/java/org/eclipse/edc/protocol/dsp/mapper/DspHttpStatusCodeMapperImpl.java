@@ -33,7 +33,19 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 
+/**
+ * Maps status code to the depending Exception
+ *
+ */
+
 public class DspHttpStatusCodeMapperImpl implements DspHttpStatusCodeMapper {
+
+    /**
+     * Returns the status code for a specifiv Exception
+     *
+     * @param exception thrown Exception in API-Controller
+     * @return mapped statuscode
+     */
     @Override
     public int mapErrorToStatusCode(Exception exception) {
         var exceptionMap = Map.of(
