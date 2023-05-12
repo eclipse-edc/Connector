@@ -14,6 +14,17 @@
 
 package org.eclipse.edc.protocol.dsp.spi.mapper;
 
+/**
+ * Mapper for mapping Exceptions to their corresponding status code.
+ */
+
 public interface DspHttpStatusCodeMapper {
+
+    /**
+     * Returns the status code of an Exception.
+     *
+     * @param exception input Exception
+     * @return corresponding status code
+     */
     int mapErrorToStatusCode(Exception exception);
 }
