@@ -115,7 +115,9 @@ public class ContractExpiryCheckFunction implements AtomicConstraintFunction<Per
             var number = Integer.parseInt(matcher.group(REGEX_GROUP_NUMERIC));
             var unit = matcher.group(REGEX_GROUP_UNIT);
             return Duration.of(number, asChrono(unit));
-        } else return null;
+        } else {
+            return null;
+        }
     }
 
     /**
