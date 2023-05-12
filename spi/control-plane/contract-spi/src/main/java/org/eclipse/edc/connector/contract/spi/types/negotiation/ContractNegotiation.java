@@ -66,7 +66,6 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
-    private String checksum;
     private String protocol;
     private Type type = CONSUMER;
     private ContractAgreement contractAgreement;
@@ -82,10 +81,6 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
 
     public String getCounterPartyAddress() {
         return counterPartyAddress;
-    }
-
-    public String getChecksum() {
-        return checksum;
     }
 
     /**
@@ -418,11 +413,6 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
 
         public Builder counterPartyAddress(String address) {
             entity.counterPartyAddress = address;
-            return this;
-        }
-
-        public Builder checksum(String checksum) {
-            entity.checksum = checksum;
             return this;
         }
 
