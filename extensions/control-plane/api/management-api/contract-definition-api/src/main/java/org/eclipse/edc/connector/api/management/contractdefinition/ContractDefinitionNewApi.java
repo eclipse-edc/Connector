@@ -19,10 +19,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
@@ -36,6 +36,7 @@ import java.util.List;
 public interface ContractDefinitionNewApi {
 
     @Operation(description = "Returns all contract definitions according to a query",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionResponseDto.class)))),
@@ -43,7 +44,7 @@ public interface ContractDefinitionNewApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    List<JsonObject> queryAllContractDefinitions(@Valid QuerySpecDto query);
+    List<JsonObject> queryAllContractDefinitions(JsonObject querySpecDto);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {
@@ -66,7 +67,7 @@ public interface ContractDefinitionNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject createObject);
+    JsonObject createContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject createObject);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
