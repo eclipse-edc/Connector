@@ -26,13 +26,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Describes an endpoint serving data.
  */
 @JsonDeserialize(builder = EndpointDataReference.Builder.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EndpointDataReference {
+
+    public static final String EDR_SIMPLE_TYPE = "EDR";
+    public static final String EDR_TYPE = EDC_NAMESPACE + EDR_SIMPLE_TYPE;
     
+    public static final String ID = EDC_NAMESPACE + "id";
+    public static final String AUTH_CODE = EDC_NAMESPACE + "authCode";
+    public static final String AUTH_KEY = EDC_NAMESPACE + "authKey";
+    public static final String ENDPOINT = EDC_NAMESPACE + "endpoint";
     private final String id;
     private final String endpoint;
     private final String authKey;

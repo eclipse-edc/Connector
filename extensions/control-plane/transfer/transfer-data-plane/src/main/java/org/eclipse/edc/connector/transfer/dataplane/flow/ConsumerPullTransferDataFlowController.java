@@ -83,11 +83,15 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
                 .build();
 
 
-        // TODO this should be removed once the new dsp lands
-        return dispatcherRegistry.send(Object.class, request)
-                .thenApply(o -> StatusResult.success(createResponse(edr)))
-                .exceptionally(throwable -> StatusResult.failure(ResponseStatus.ERROR_RETRY, "Transfer failed: " + throwable.getMessage()))
-                .join();
+        var response = createResponse(edr);
+        if ("ids-multipart".equals(dataRequest.getProtocol())) {
+            return dispatcherRegistry.send(Object.class, request)
+                    .thenApply(o -> StatusResult.success(response))
+                    .exceptionally(throwable -> StatusResult.failure(ResponseStatus.ERROR_RETRY, "Transfer failed: " + throwable.getMessage()))
+                    .join();
+        } else {
+            return StatusResult.success(response);
+        }
     }
 
     private DataFlowResponse createResponse(EndpointDataReference edr) {
