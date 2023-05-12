@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher;
 
 
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate.TransferCompletionDelegate;
@@ -26,10 +25,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 
 /**
@@ -43,13 +38,7 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
     @Inject
     private DspHttpRemoteMessageDispatcher messageDispatcher;
     @Inject
-    private TypeManager typeManager;
-    @Inject
     private JsonLdRemoteMessageSerializer remoteMessageSerializer;
-    @Inject
-    private TypeTransformerRegistry transformerRegistry;
-    @Inject
-    private JsonLd jsonLdService;
 
     @Override
     public String name() {
@@ -58,7 +47,7 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        messageDispatcher.registerDelegate(new TransferRequestDelegate(remoteMessageSerializer, typeManager.getMapper(JSON_LD), transformerRegistry, jsonLdService));
+        messageDispatcher.registerDelegate(new TransferRequestDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new TransferCompletionDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new TransferStartDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new TransferTerminationDelegate(remoteMessageSerializer));
