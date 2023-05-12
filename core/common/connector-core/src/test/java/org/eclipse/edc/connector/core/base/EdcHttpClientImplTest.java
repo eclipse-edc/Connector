@@ -30,6 +30,7 @@ import org.mockserver.model.HttpResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -154,6 +155,51 @@ class EdcHttpClientImplTest {
 
         assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
                 .first().asString().matches(it -> it.startsWith("Failed to connect to"));
+    }
+
+    @Test
+    void executeAsync_fallback_shouldRetryIfStatusIsNotSuccessful() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+        var request = new Request.Builder()
+                .url("http://localhost:" + port)
+                .build();
+
+        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
+
+        var result = client.executeAsync(request, List.of(statusMustBeSuccessful()), handleResponse());
+
+        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
+        server.verify(request(), exactly(2));
+    }
+
+    @Test
+    void executeAsync_fallback_shouldRetryIfStatusIsNotAsExpected() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+        var request = new Request.Builder()
+                .url("http://localhost:" + port)
+                .build();
+        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
+
+        var result = client.executeAsync(request, List.of(statusMustBe(204)), handleResponse());
+
+        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
+        server.verify(request(), exactly(2));
+    }
+
+    @Test
+    void executeAsync_fallback_shouldFailAfterAttemptsExpired_whenServerIsDown() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+        server.stop();
+
+        var request = new Request.Builder()
+                .url("http://localhost:" + port)
+                .build();
+
+        var result = client.executeAsync(request, handleResponse());
+
+        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
     }
 
     @NotNull
