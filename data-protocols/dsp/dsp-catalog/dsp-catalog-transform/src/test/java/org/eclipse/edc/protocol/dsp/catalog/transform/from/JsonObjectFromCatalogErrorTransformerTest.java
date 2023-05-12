@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.catalog.transform;
+package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
-import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.protocol.dsp.catalog.transform.CatalogError;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,15 +28,15 @@ import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyA
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_PROPERTY_REASON;
 import static org.mockito.Mockito.mock;
 
-public class CatalogErrorToResponseTransformerTest {
+public class JsonObjectFromCatalogErrorTransformerTest {
 
-    private CatalogErrorToResponseTransformer transformer;
+    private JsonObjectFromCatalogErrorTransformer transformer;
 
     private TransformerContext context = mock(TransformerContext.class);
 
     @BeforeEach
     void setUp() {
-        transformer = new CatalogErrorToResponseTransformer();
+        transformer = new JsonObjectFromCatalogErrorTransformer();
     }
 
     @Test
@@ -46,15 +46,9 @@ public class CatalogErrorToResponseTransformerTest {
         var result = transformer.transform(transferError, context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getStatus()).isEqualTo(400);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_CATALOG_PROPERTY_CODE).getString()).isEqualTo("400");
-        assertThat(jsonObject.get(DSPACE_CATALOG_PROPERTY_REASON)).isNotNull();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(result.getJsonString(DSPACE_CATALOG_PROPERTY_CODE).getString()).isEqualTo("400");
+        assertThat(result.get(DSPACE_CATALOG_PROPERTY_REASON)).isNotNull();
 
     }
 
@@ -66,13 +60,8 @@ public class CatalogErrorToResponseTransformerTest {
 
         assertThat(result).isNotNull();
 
-        assertThat(result.getStatus()).isEqualTo(500);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_CATALOG_PROPERTY_CODE).getString()).isEqualTo("500");
-        assertThat(jsonObject.containsKey(DSPACE_SCHEMA + "reason")).isFalse();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(result.getJsonString(DSPACE_CATALOG_PROPERTY_CODE).getString()).isEqualTo("500");
+        assertThat(result.containsKey(DSPACE_SCHEMA + "reason")).isFalse();
     }
 }

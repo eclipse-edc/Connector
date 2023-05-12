@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.catalog.transform;
 
 import jakarta.json.Json;
+import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogErrorTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToCatalogRequestMessageTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -53,6 +54,6 @@ public class DspCatalogTransformExtension implements ServiceExtension {
 
         registry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, mapper));
         registry.register(new JsonObjectToCatalogRequestMessageTransformer(mapper));
-        registry.register(new CatalogErrorToResponseTransformer());
+        registry.register(new JsonObjectFromCatalogErrorTransformer());
     }
 }

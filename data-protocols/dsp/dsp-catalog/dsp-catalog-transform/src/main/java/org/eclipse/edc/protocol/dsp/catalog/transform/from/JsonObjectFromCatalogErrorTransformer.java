@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.catalog.transform;
+package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
 import jakarta.json.Json;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.CatalogError;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
@@ -42,14 +42,14 @@ import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_ERROR;
 
-public class CatalogErrorToResponseTransformer extends AbstractJsonLdTransformer<CatalogError, Response> {
-    protected CatalogErrorToResponseTransformer() {
-        super(CatalogError.class, Response.class);
+public class JsonObjectFromCatalogErrorTransformer extends AbstractJsonLdTransformer<CatalogError, JsonObject> {
+    public JsonObjectFromCatalogErrorTransformer() {
+        super(CatalogError.class, JsonObject.class);
     }
 
     @Nullable
     @Override
-    public Response transform(@NotNull CatalogError error, @NotNull TransformerContext context) {
+    public JsonObject transform(@NotNull CatalogError error, @NotNull TransformerContext context) {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CATALOG_ERROR);
@@ -64,7 +64,7 @@ public class CatalogErrorToResponseTransformer extends AbstractJsonLdTransformer
             builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
         }
 
-        return Response.status(code).type(MediaType.APPLICATION_JSON_TYPE).entity(builder.build()).build();
+        return builder.build();
     }
 
     private static int errorCodeMapping(Throwable throwable) {
