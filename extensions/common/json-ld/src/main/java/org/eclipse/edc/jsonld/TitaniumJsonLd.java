@@ -104,13 +104,17 @@ public class TitaniumJsonLd implements JsonLd {
 
     private JsonObject injectVocab(JsonObject json) {
         var jsonObjectBuilder = createObjectBuilder(json);
-        var contextObject = ofNullable(json.getJsonObject(CONTEXT)).orElseGet(() -> createObjectBuilder().build());
-        var contextBuilder = createObjectBuilder(contextObject);
-        if (!contextObject.containsKey(VOCAB)) {
-            var newContextObject = contextBuilder
-                    .add(VOCAB, EDC_NAMESPACE)
-                    .build();
-            jsonObjectBuilder.add(CONTEXT, newContextObject);
+
+        //only inject the vocab if the @context is an object, not a URL
+        if (json.get(CONTEXT) instanceof JsonObject) {
+            var contextObject = ofNullable(json.getJsonObject(CONTEXT)).orElseGet(() -> createObjectBuilder().build());
+            var contextBuilder = createObjectBuilder(contextObject);
+            if (!contextObject.containsKey(VOCAB)) {
+                var newContextObject = contextBuilder
+                        .add(VOCAB, EDC_NAMESPACE)
+                        .build();
+                jsonObjectBuilder.add(CONTEXT, newContextObject);
+            }
         }
         return jsonObjectBuilder.build();
     }
