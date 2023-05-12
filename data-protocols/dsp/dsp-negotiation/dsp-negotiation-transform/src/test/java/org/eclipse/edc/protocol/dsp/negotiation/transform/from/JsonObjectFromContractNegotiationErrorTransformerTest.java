@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.transform;
+package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationErrorTransformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.ContractNegotiationError;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;

@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.ContractNegotiationError;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
