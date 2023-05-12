@@ -72,22 +72,13 @@ public class AssetNewApiController implements AssetNewApi {
     @POST
     @Override
     public IdResponseDto createAsset(@Valid AssetEntryNewDto assetEntryDto) {
-        var expandedJson = jsonLdService.expand(assetEntryDto.getAsset());
-        if (expandedJson.failed()) {
-            throw new InvalidRequestException(expandedJson.getFailureDetail());
-        }
+        var asset = jsonLdService.expand(assetEntryDto.getAsset())
+                .compose(jo -> transformerRegistry.transform(jo, Asset.class))
+                .orElseThrow(InvalidRequestException::new);
 
-        var assetResult = transformerRegistry.transform(expandedJson.getContent(), Asset.class);
-        var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
-
-        var result = assetResult.merge(dataAddressResult);
-        if (result.failed()) {
-            var errorMessages = result.getFailureMessages();
-            throw new InvalidRequestException(errorMessages);
-        }
-
-        var dataAddress = dataAddressResult.getContent();
-        var asset = assetResult.getContent();
+        var dataAddress = jsonLdService.expand(assetEntryDto.getDataAddress())
+                .compose(jo -> transformerRegistry.transform(jo, DataAddress.class))
+                .orElseThrow(InvalidRequestException::new);
 
         var resultContent = service.create(asset, dataAddress).orElseThrow(exceptionMapper(Asset.class, asset.getId()));
 

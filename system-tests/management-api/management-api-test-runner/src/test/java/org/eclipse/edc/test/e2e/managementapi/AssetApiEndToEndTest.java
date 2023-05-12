@@ -36,9 +36,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 import static org.hamcrest.Matchers.is;
 
 @EndToEndTest
@@ -84,7 +84,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
         var dataAddressJson = Json.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + "type", "test-type").build();git c
+                .add(EDC_NAMESPACE + "type", "test-type").build();
         var json = Map.of("asset", assetJson,
                 "dataAddress", dataAddressJson);
 
@@ -141,7 +141,9 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
         var dataAddress = assetIndex.resolveForAsset(asset.getId());
         assertThat(dataAddress).isNotNull();
-        assertThat(dataAddress.getProperties()).hasSize(2);
+        assertThat(dataAddress.getProperties().keySet())
+                .hasSize(2)
+                .allMatch(key -> key.startsWith(EDC_NAMESPACE));
 
     }
 

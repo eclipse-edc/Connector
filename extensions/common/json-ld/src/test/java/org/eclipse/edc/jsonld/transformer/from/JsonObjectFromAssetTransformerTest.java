@@ -16,7 +16,6 @@ package org.eclipse.edc.jsonld.transformer.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.transformer.Payload;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -55,7 +54,7 @@ class JsonObjectFromAssetTransformerTest {
 
         assertThat(jsonObject).isNotNull().hasSize(7);
         assertThat(jsonObject.getJsonString(ID).getString()).isEqualTo(TEST_ASSET_ID);
-        assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(PropertyAndTypeNames.EDC_ASSET_TYPE);
+        assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(Asset.EDC_ASSET_TYPE);
         assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "id").getString()).isEqualTo(TEST_ASSET_ID);
         assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "contenttype").getString()).isEqualTo(TEST_CONTENT_TYPE);
         assertThat(jsonObject.getJsonString(EDC_NAMESPACE + "description").getString()).isEqualTo(TEST_DESCRIPTION);

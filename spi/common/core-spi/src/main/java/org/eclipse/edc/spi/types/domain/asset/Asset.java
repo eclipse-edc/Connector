@@ -40,6 +40,9 @@ public class Asset extends Entity {
     public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
     public static final String PROPERTY_VERSION = EDC_NAMESPACE + "version";
     public static final String PROPERTY_CONTENT_TYPE = EDC_NAMESPACE + "contenttype";
+    public static final String EDC_ASSET_TYPE = EDC_NAMESPACE + "Asset";
+    public static final String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String EDC_ASSET_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
 
     @Deprecated(since = "milestone9")
     private static final String DEPRECATED_PROPERTY_PREFIX = "asset:prop:";
@@ -87,17 +90,17 @@ public class Asset extends Entity {
         return properties.get(key);
     }
 
-    private String getPropertyAsString(String key) {
-        var val = getProperty(key);
-        return val != null ? val.toString() : null;
-    }
-
     public Map<String, Object> getPrivateProperties() {
         return privateProperties;
     }
 
     public Object getPrivateProperty(String key) {
         return privateProperties.get(key);
+    }
+
+    private String getPropertyAsString(String key) {
+        var val = getProperty(key);
+        return val != null ? val.toString() : null;
     }
 
     private String getPrivatePropertyAsString(String key) {

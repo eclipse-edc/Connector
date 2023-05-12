@@ -17,7 +17,6 @@ package org.eclipse.edc.jsonld.transformer.from;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -41,7 +40,7 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
     public @Nullable JsonObject transform(@NotNull Asset asset, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
         builder.add(ID, asset.getId());
-        builder.add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE);
+        builder.add(TYPE, Asset.EDC_ASSET_TYPE);
         transformProperties(asset.getProperties(), builder, mapper, context);
         return builder.build();
     }
