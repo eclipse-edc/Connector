@@ -19,32 +19,21 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.CatalogError;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
-import org.eclipse.edc.web.spi.exception.BadGatewayException;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
-import org.eclipse.edc.web.spi.exception.ObjectConflictException;
-import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
-import static jakarta.ws.rs.core.Response.Status.BAD_GATEWAY;
-import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
-import static jakarta.ws.rs.core.Response.Status.CONFLICT;
-import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
-import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
-import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
-import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_ERROR;
 
 public class JsonObjectFromCatalogErrorTransformer extends AbstractJsonLdTransformer<CatalogError, JsonObject> {
-    public JsonObjectFromCatalogErrorTransformer() {
+
+    private DspHttpStatusCodeMapper statusCodeMapper;
+
+    public JsonObjectFromCatalogErrorTransformer(DspHttpStatusCodeMapper statusCodeMapper) {
         super(CatalogError.class, JsonObject.class);
+        this.statusCodeMapper = statusCodeMapper;
     }
 
     @Nullable
@@ -54,32 +43,14 @@ public class JsonObjectFromCatalogErrorTransformer extends AbstractJsonLdTransfo
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CATALOG_ERROR);
 
-        var throwable = error.getThrowable();
+        var exception = error.getException();
 
-        var code = errorCodeMapping(throwable);
+        builder.add(DSPACE_SCHEMA + "code", String.valueOf(statusCodeMapper.mapErrorToStatusCode(exception)));
 
-        builder.add(DSPACE_SCHEMA + "code", String.valueOf(code));
-
-        if (throwable.getMessage() != null) {
-            builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(throwable.getMessage()));
+        if (exception.getMessage() != null) {
+            builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add(exception.getMessage()));
         }
 
         return builder.build();
-    }
-
-    private static int errorCodeMapping(Throwable throwable) {
-        var exceptionMap = Map.of(
-                AuthenticationFailedException.class, UNAUTHORIZED,
-                NotAuthorizedException.class, FORBIDDEN,
-                InvalidRequestException.class, BAD_REQUEST,
-                ObjectNotFoundException.class, NOT_FOUND,
-                ObjectConflictException.class, CONFLICT,
-                BadGatewayException.class, BAD_GATEWAY,
-                UnsupportedOperationException.class, NOT_IMPLEMENTED
-        );
-
-        var status = exceptionMap.getOrDefault(throwable.getClass(), INTERNAL_SERVER_ERROR);
-
-        return status.getStatusCode();
     }
 }

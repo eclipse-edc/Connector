@@ -40,7 +40,9 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.ContractNegotiationError;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -48,6 +50,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -107,6 +112,8 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
             .add("http://schema/key", "value")
             .build();
     private final JsonLd jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
+
+    private final DspHttpStatusCodeMapper statusCodeMapper = mock(DspHttpStatusCodeMapper.class);
 
     private static ClaimToken token() {
         return ClaimToken.Builder.newInstance().build();
@@ -261,6 +268,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseUnsupperted()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(UnsupportedOperationException.class))).thenReturn(501);
 
         //operation not yet supported
         var result = baseRequest()
@@ -314,6 +322,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseTransformationFailed()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(EdcException.class))).thenReturn(500);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -342,6 +351,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseTransformationFailed()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -362,6 +372,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseUnsupperted()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(UnsupportedOperationException.class))).thenReturn(501);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -386,6 +397,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.failure("error"));
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseNotAuthorized()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(AuthenticationFailedException.class))).thenReturn(401);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -413,6 +425,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.failure("error"));
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseBadRequest()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
 
 
         var result = baseRequest()
@@ -493,6 +506,8 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyAgreed(any(ContractAgreementMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseConflict()));
 
+        when(statusCodeMapper.mapErrorToStatusCode(any(ObjectConflictException.class))).thenReturn(409);
+
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
@@ -530,6 +545,8 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
         when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseBadRequest()));
 
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
@@ -548,7 +565,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspNegotiationApiController(callbackAddress, identityService, registry, protocolService, jsonLdService, mapper, mock(Monitor.class));
+        return new DspNegotiationApiController(callbackAddress, identityService, registry, protocolService, jsonLdService, mapper, mock(Monitor.class), statusCodeMapper);
     }
 
     private RequestSpecification baseRequest() {

@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.api;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.controller.DspTransferProcessApiController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -54,9 +55,13 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
     @Inject
     private JsonLd jsonLdService;
 
+    @Inject
+    private DspHttpStatusCodeMapper statusCodeMapper;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var controller = new DspTransferProcessApiController(monitor, typeManager.getMapper(JSON_LD), registry, transferProcessProtocolService, identityService, config.getDspCallbackAddress(), jsonLdService);
+        var controller = new DspTransferProcessApiController(monitor, typeManager.getMapper(JSON_LD), registry,
+                transferProcessProtocolService, identityService, config.getDspCallbackAddress(), jsonLdService, statusCodeMapper);
 
         webService.registerResource(config.getContextAlias(), controller);
     }

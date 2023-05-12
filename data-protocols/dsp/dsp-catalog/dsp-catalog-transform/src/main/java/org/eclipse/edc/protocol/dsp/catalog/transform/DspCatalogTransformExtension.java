@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogErrorTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToCatalogRequestMessageTransformer;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -42,6 +43,9 @@ public class DspCatalogTransformExtension implements ServiceExtension {
     @Inject
     private TypeTransformerRegistry registry;
 
+    @Inject
+    private DspHttpStatusCodeMapper statusCodeMapper;
+
     @Override
     public String name() {
         return NAME;
@@ -54,6 +58,6 @@ public class DspCatalogTransformExtension implements ServiceExtension {
 
         registry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, mapper));
         registry.register(new JsonObjectToCatalogRequestMessageTransformer(mapper));
-        registry.register(new JsonObjectFromCatalogErrorTransformer());
+        registry.register(new JsonObjectFromCatalogErrorTransformer(statusCodeMapper));
     }
 }

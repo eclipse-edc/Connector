@@ -19,18 +19,18 @@ import java.util.Optional;
 public class TransferError {
     private Optional<String> processId;
 
-    private Throwable throwable;
+    private Exception exception;
 
-    public TransferError(Optional<String> processId, Throwable throwable) {
+    public TransferError(Optional<String> processId, Exception exception) {
         this.processId = processId;
-        this.throwable = throwable;
+        this.exception = exception;
     }
 
     public Optional<String> getProcessId() {
         return processId;
     }
 
-    public Throwable getThrowable() {
-        return throwable;
+    public Exception getException() {
+        return exception;
     }
 }

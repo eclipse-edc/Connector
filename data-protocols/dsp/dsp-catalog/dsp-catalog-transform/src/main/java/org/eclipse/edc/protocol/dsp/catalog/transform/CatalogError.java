@@ -15,13 +15,13 @@
 package org.eclipse.edc.protocol.dsp.catalog.transform;
 
 public class CatalogError {
-    private Throwable throwable;
+    private Exception exception;
 
-    public CatalogError(Throwable throwable) {
-        this.throwable = throwable;
+    public CatalogError(Exception exception) {
+        this.exception = exception;
     }
 
-    public Throwable getThrowable() {
-        return throwable;
+    public Exception getException() {
+        return exception;
     }
 }

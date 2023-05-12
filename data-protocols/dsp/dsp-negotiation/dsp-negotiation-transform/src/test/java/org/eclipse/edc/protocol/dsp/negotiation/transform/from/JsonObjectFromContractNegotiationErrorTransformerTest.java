@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.ContractNegotiationError;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +29,9 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JsonObjectFromContractNegotiationErrorTransformerTest {
 
@@ -36,13 +39,17 @@ public class JsonObjectFromContractNegotiationErrorTransformerTest {
 
     private TransformerContext context = mock(TransformerContext.class);
 
+    private DspHttpStatusCodeMapper statusCodeMapper = mock(DspHttpStatusCodeMapper.class);
+
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromContractNegotiationErrorTransformer();
+        transformer = new JsonObjectFromContractNegotiationErrorTransformer(statusCodeMapper);
     }
 
     @Test
     void transferErrorToResponseWithId() {
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+
         var contractNegotiationError = new ContractNegotiationError(Optional.of("testId"), new InvalidRequestException("testError"));
 
         var result = transformer.transform(contractNegotiationError, context);
@@ -57,6 +64,8 @@ public class JsonObjectFromContractNegotiationErrorTransformerTest {
 
     @Test
     void transferErrorToResponseWithoutId() {
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+
         var contractNegotiationError = new ContractNegotiationError(Optional.empty(), new InvalidRequestException("testError"));
 
         var result = transformer.transform(contractNegotiationError, context);
@@ -70,7 +79,9 @@ public class JsonObjectFromContractNegotiationErrorTransformerTest {
 
     @Test
     void transferErrorWithoutReason() {
-        var contractNegotiationError = new ContractNegotiationError(Optional.of("testId"), new Throwable());
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
+
+        var contractNegotiationError = new ContractNegotiationError(Optional.of("testId"), new Exception());
 
         var result = transformer.transform(contractNegotiationError, context);
 

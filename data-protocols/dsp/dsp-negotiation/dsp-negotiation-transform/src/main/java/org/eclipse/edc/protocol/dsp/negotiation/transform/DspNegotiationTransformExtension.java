@@ -27,6 +27,7 @@ import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContrac
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractNegotiationEventMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractNegotiationTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractRequestMessageTransformer;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -45,6 +46,9 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
 
     @Inject
     private TypeTransformerRegistry registry;
+
+    @Inject
+    private DspHttpStatusCodeMapper statusCodeMapper;
 
     @Override
     public String name() {
@@ -68,6 +72,6 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToContractRequestMessageTransformer());
         registry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer());
 
-        registry.register(new JsonObjectFromContractNegotiationErrorTransformer());
+        registry.register(new JsonObjectFromContractNegotiationErrorTransformer(statusCodeMapper));
     }
 }

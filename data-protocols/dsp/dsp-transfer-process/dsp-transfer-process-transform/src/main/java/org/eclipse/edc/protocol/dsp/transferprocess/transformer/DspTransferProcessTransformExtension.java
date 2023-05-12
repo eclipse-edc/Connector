@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferErrorTransformer;
@@ -49,6 +50,9 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
     @Inject
     private JsonLd jsonLdService;
 
+    @Inject
+    private DspHttpStatusCodeMapper statusCodeMapper;
+
     @Override
     public String name() {
         return NAME;
@@ -66,6 +70,7 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
         registry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
         registry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
+        registry.register(new JsonObjectFromTransferErrorTransformer(statusCodeMapper));
 
         //to
         registry.register(new JsonObjectToTransferRequestMessageTransformer());
@@ -74,7 +79,5 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToTransferTerminationMessageTransformer());
         registry.register(new JsonObjectToDataAddressTransformer());
 
-        //No JsonObjectTransfromer
-        registry.register(new JsonObjectFromTransferErrorTransformer());
     }
 }

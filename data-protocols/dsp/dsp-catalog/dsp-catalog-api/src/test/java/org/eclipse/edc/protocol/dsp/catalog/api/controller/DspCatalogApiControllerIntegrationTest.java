@@ -25,10 +25,12 @@ import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,6 +66,8 @@ class DspCatalogApiControllerIntegrationTest {
     private final IdentityService identityService = mock(IdentityService.class);
     private final CatalogProtocolService service = mock(CatalogProtocolService.class);
 
+    private final DspHttpStatusCodeMapper statusCodeMapper = mock(DspHttpStatusCodeMapper.class);
+
 
     private JsonObject request;
 
@@ -81,6 +85,7 @@ class DspCatalogApiControllerIntegrationTest {
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(CatalogProtocolService.class, service);
         extension.registerServiceMock(DataServiceRegistry.class, mock(DataServiceRegistry.class));
+        extension.registerServiceMock(DspHttpStatusCodeMapper.class, statusCodeMapper);
 
         request = Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder()
@@ -108,6 +113,7 @@ class DspCatalogApiControllerIntegrationTest {
     @Test
     void catalogRequest_authenticationFailed_returnUnauthorized() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("error"));
+        when(statusCodeMapper.mapErrorToStatusCode(any(UnsupportedOperationException.class))).thenReturn(501);
 
         var result = baseRequest()
                 .body(request)
@@ -126,6 +132,7 @@ class DspCatalogApiControllerIntegrationTest {
     void catalogRequest_requestTransformationFailed_returnBadRequest() {
         when(identityService.verifyJwtToken(any(), any()))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
 
         var invalidRequest = Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder()

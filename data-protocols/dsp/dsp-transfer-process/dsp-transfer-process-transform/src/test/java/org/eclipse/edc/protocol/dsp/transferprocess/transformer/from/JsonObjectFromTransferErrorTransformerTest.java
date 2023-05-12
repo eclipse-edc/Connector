@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferErrorTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -28,7 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JsonObjectFromTransferErrorTransformerTest {
 
@@ -36,13 +39,17 @@ public class JsonObjectFromTransferErrorTransformerTest {
 
     private TransformerContext context = mock(TransformerContext.class);
 
+    private DspHttpStatusCodeMapper statusCodeMapper = mock(DspHttpStatusCodeMapper.class);
+
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromTransferErrorTransformer();
+        transformer = new JsonObjectFromTransferErrorTransformer(statusCodeMapper);
     }
 
     @Test
     void transferErrorToResponseWithId() {
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+
         var transferError = new TransferError(Optional.of("testId"), new InvalidRequestException("testError"));
 
         var result = transformer.transform(transferError, context);
@@ -52,11 +59,12 @@ public class JsonObjectFromTransferErrorTransformerTest {
         assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("testId");
         assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
         assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
-
     }
 
     @Test
     void transferErrorToResponseWithoutId() {
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+
         var transferError = new TransferError(Optional.empty(), new InvalidRequestException("testError"));
 
         var result = transformer.transform(transferError, context);
@@ -70,7 +78,9 @@ public class JsonObjectFromTransferErrorTransformerTest {
 
     @Test
     void transferErrorWithoutReason() {
-        var transferError = new TransferError(Optional.of("testId"), new Throwable());
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
+
+        var transferError = new TransferError(Optional.of("testId"), new Exception());
 
         var result = transformer.transform(transferError, context);
 

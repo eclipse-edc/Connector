@@ -17,6 +17,8 @@ package org.eclipse.edc.protocol.dsp.negotiation.api;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
+import org.eclipse.edc.protocol.dsp.negotiation.api.controller.DspNegotiationController;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.negotiation.api.controller.DspNegotiationApiController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -61,6 +63,9 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     @Inject
     private JsonLd jsonLdService;
 
+    @Inject
+    private DspHttpStatusCodeMapper statusCodeMapper;
+
     @Override
     public String name() {
         return NAME;
@@ -71,7 +76,7 @@ public class DspNegotiationApiExtension implements ServiceExtension {
         var callbackAddress = apiConfiguration.getDspCallbackAddress();
         var objectMapper = typeManager.getMapper(JSON_LD);
 
-        var controller = new DspNegotiationApiController(callbackAddress, identityService, transformerRegistry, protocolService, jsonLdService, objectMapper, monitor);
+        var controller = new DspNegotiationApiController(callbackAddress, identityService, transformerRegistry, protocolService, jsonLdService, objectMapper, monitor, statusCodeMapper);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }

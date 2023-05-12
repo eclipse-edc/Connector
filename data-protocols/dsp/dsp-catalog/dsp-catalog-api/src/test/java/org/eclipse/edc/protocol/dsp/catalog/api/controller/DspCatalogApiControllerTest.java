@@ -24,6 +24,7 @@ import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.catalog.transform.CatalogError;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -73,6 +74,8 @@ class DspCatalogApiControllerTest {
     private CatalogRequestMessage requestMessage;
     private DspCatalogApiController controller;
 
+    private final DspHttpStatusCodeMapper statusCodeMapper = mock(DspHttpStatusCodeMapper.class);
+
     private static ClaimToken createToken() {
         return ClaimToken.Builder.newInstance().build();
     }
@@ -83,7 +86,7 @@ class DspCatalogApiControllerTest {
         jsonLdService.registerNamespace(DCT_PREFIX, DCT_SCHEMA);
         jsonLdService.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);
         jsonLdService.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
-        controller = new DspCatalogApiController(monitor, mapper, identityService, transformerRegistry, callbackAddress, service, jsonLdService);
+        controller = new DspCatalogApiController(monitor, mapper, identityService, transformerRegistry, callbackAddress, service, jsonLdService, statusCodeMapper);
 
         request = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)

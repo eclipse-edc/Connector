@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.catalog.transform.CatalogError;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,9 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_PROPERTY_REASON;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JsonObjectFromCatalogErrorTransformerTest {
 
@@ -34,13 +37,17 @@ public class JsonObjectFromCatalogErrorTransformerTest {
 
     private TransformerContext context = mock(TransformerContext.class);
 
+    private DspHttpStatusCodeMapper statusCodeMapper = mock(DspHttpStatusCodeMapper.class);
+
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromCatalogErrorTransformer();
+        transformer = new JsonObjectFromCatalogErrorTransformer(statusCodeMapper);
     }
 
     @Test
     void transErrorToResponseWithId() {
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+
         var transferError = new CatalogError(new InvalidRequestException("testError"));
 
         var result = transformer.transform(transferError, context);
@@ -54,7 +61,9 @@ public class JsonObjectFromCatalogErrorTransformerTest {
 
     @Test
     void transferErrorWithoutReason() {
-        var transferError = new CatalogError(new Throwable());
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
+
+        var transferError = new CatalogError(new Exception());
 
         var result = transformer.transform(transferError, context);
 

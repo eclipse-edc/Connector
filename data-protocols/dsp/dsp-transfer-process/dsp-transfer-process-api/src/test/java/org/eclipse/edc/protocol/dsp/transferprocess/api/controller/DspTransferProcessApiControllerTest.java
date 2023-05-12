@@ -31,6 +31,7 @@ import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -40,6 +41,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -93,6 +97,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     private final TransferProcessProtocolService protocolService = mock(TransferProcessProtocolService.class);
     private final String callbackAddress = "http://callback";
     private final String authHeader = "auth";
+
+    private final DspHttpStatusCodeMapper statusCodeMapper = mock(DspHttpStatusCodeMapper.class);
 
     private final JsonLd jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
 
@@ -218,6 +224,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     @Test
     void getTransferProcess_shouldReturnNotImplemented_whenOperationNotSupported() {
         when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(UnsupportedOperationException.class))).thenReturn(501);
 
         //operation not yet supported
         var result = baseRequest()
@@ -276,6 +283,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -305,6 +313,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
+
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -321,6 +331,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     @Test
     void consumerTransferProcessSuspension_shouldReturnNotImplemented_whenOperationNotSupported() {
         when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(UnsupportedOperationException.class))).thenReturn(501);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -346,6 +357,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
         when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseNotAuthorized()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(AuthenticationFailedException.class))).thenReturn(401);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -376,6 +388,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.failure("error"));
         when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -408,7 +421,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
         when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
-
+        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
 
 
         var result = baseRequest()
@@ -487,6 +500,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyCompleted(any(TransferCompletionMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyTerminated(any(TransferTerminationMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
 
+        when(statusCodeMapper.mapErrorToStatusCode(any(ObjectConflictException.class))).thenReturn(409);
+
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
@@ -505,7 +520,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress, jsonLdService);
+        return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress, jsonLdService, statusCodeMapper);
     }
 
     private RequestSpecification baseRequest() {
