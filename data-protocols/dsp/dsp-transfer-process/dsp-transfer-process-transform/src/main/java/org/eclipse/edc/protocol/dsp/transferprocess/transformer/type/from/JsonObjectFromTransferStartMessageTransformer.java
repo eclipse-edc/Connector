@@ -47,7 +47,7 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
         builder.add(TYPE, DSPACE_TRANSFER_START_TYPE);
         builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
         if (transferStartMessage.getDataAddress() != null) {
-            builder.add(DSPACE_DATA_ADDRESS_TYPE, context.transform(transferStartMessage, JsonObject.class));
+            builder.add(DSPACE_DATA_ADDRESS_TYPE, context.transform(transferStartMessage.getDataAddress(), JsonObject.class));
         }
 
         return builder.build();
