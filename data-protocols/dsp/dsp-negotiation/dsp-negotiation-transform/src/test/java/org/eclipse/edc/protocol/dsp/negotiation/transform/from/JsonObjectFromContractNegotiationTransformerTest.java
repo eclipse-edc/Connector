@@ -84,7 +84,6 @@ class JsonObjectFromContractNegotiationTransformerTest {
                 .counterPartyAddress("counterPartyAddress")
                 .protocol("protocol")
                 .state(REQUESTED.code())
-                .checksum(value)
                 .build();
 
         var result = transformer.transform(negotiation, context);
@@ -108,7 +107,6 @@ class JsonObjectFromContractNegotiationTransformerTest {
                 .counterPartyAddress("counterPartyAddress")
                 .protocol("protocol")
                 .state(inputState.code())
-                .checksum(value)
                 .build();
 
         var result = transformer.transform(negotiation, context);
