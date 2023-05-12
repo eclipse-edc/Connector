@@ -181,7 +181,7 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void verifyCallbacks() {
+    void initiateConsumerRequest() {
         when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
         var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
@@ -193,12 +193,12 @@ class TransferProcessManagerImplTest {
 
         var captor = ArgumentCaptor.forClass(TransferProcess.class);
 
-        manager.start();
         manager.initiateConsumerRequest(transferRequest);
-        manager.stop();
 
         verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(captor.capture());
-        assertThat(captor.getValue().getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
+        var transferProcess = captor.getValue();
+        assertThat(transferProcess.getId()).isEqualTo("1").isEqualTo(transferProcess.getCorrelationId());
+        assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
         verify(listener).initiated(any());
     }
 
