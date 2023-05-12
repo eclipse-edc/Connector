@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.transform;
 
-import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationErrorTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,15 +30,15 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
 import static org.mockito.Mockito.mock;
 
-public class ContractNegotiationErrorToResponseTransformerTest {
+public class JsonObjectFromContractNegotiationErrorTransformerTest {
 
-    private ContractNegotiationErrorToResponseTransformer transformer;
+    private JsonObjectFromContractNegotiationErrorTransformer transformer;
 
     private TransformerContext context = mock(TransformerContext.class);
 
     @BeforeEach
     void setUp() {
-        transformer = new ContractNegotiationErrorToResponseTransformer();
+        transformer = new JsonObjectFromContractNegotiationErrorTransformer();
     }
 
     @Test
@@ -48,16 +48,10 @@ public class ContractNegotiationErrorToResponseTransformerTest {
         var result = transformer.transform(contractNegotiationError, context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getStatus()).isEqualTo(400);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo("testId");
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("400");
-        assertThat(jsonObject.get(DSPACE_NEGOTIATION_PROPERTY_REASON)).isNotNull();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("400");
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo("testId");
+        assertThat(result.get(DSPACE_NEGOTIATION_PROPERTY_REASON)).isNotNull();
 
     }
 
@@ -68,16 +62,10 @@ public class ContractNegotiationErrorToResponseTransformerTest {
         var result = transformer.transform(contractNegotiationError, context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getStatus()).isEqualTo(400);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo("null");
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("400");
-        assertThat(jsonObject.get(DSPACE_NEGOTIATION_PROPERTY_REASON)).isNotNull();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo("InvalidId");
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("400");
+        assertThat(result.get(DSPACE_NEGOTIATION_PROPERTY_REASON)).isNotNull();
     }
 
     @Test
@@ -87,15 +75,9 @@ public class ContractNegotiationErrorToResponseTransformerTest {
         var result = transformer.transform(contractNegotiationError, context);
 
         assertThat(result).isNotNull();
-
-        assertThat(result.getStatus()).isEqualTo(500);
-
-        assertThat(result.getEntity()).isInstanceOf(JsonObject.class);
-        var jsonObject = (JsonObject) result.getEntity();
-
-        assertThat(jsonObject.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo("testId");
-        assertThat(jsonObject.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("500");
-        assertThat(!jsonObject.containsKey(DSPACE_NEGOTIATION_PROPERTY_REASON));
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo("testId");
+        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo("500");
+        assertThat(result.containsKey(DSPACE_NEGOTIATION_PROPERTY_REASON)).isFalse();
     }
 }

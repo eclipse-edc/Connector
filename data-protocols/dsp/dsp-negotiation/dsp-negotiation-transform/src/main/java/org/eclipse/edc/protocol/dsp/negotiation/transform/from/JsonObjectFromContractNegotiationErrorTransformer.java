@@ -12,11 +12,10 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.negotiation.transform;
+package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 
 import jakarta.json.Json;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -44,20 +43,20 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
 
-public class ContractNegotiationErrorToResponseTransformer extends AbstractJsonLdTransformer<ContractNegotiationError, Response> {
-    protected ContractNegotiationErrorToResponseTransformer() {
-        super(ContractNegotiationError.class, Response.class);
+public class JsonObjectFromContractNegotiationErrorTransformer extends AbstractJsonLdTransformer<ContractNegotiationError, JsonObject> {
+    public JsonObjectFromContractNegotiationErrorTransformer() {
+        super(ContractNegotiationError.class, JsonObject.class);
     }
 
     @Nullable
     @Override
-    public Response transform(@NotNull ContractNegotiationError error, @NotNull TransformerContext context) {
+    public JsonObject transform(@NotNull ContractNegotiationError error, @NotNull TransformerContext context) {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION_ERROR);
 
         error.getProcessId().map(e -> builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, e))
-                .orElseGet(() -> builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "null"));
+                .orElseGet(() -> builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "InvalidId"));
 
         var throwable = error.getThrowable();
 
@@ -69,9 +68,7 @@ public class ContractNegotiationErrorToResponseTransformer extends AbstractJsonL
             builder.add(DSPACE_NEGOTIATION_PROPERTY_REASON, Json.createArrayBuilder().add(throwable.getMessage()));
         }
 
-        var json = builder.build();
-
-        return Response.status(code).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+        return builder.build();
     }
 
     private static int errorCodeMapping(Throwable throwable) {

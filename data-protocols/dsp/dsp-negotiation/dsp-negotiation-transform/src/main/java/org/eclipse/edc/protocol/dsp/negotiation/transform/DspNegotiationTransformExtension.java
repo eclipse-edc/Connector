@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform;
 import jakarta.json.Json;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractAgreementVerificationMessageTransformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationErrorTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationEventMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationTransformer;
@@ -67,6 +68,6 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToContractRequestMessageTransformer());
         registry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer());
 
-        registry.register(new ContractNegotiationErrorToResponseTransformer());
+        registry.register(new JsonObjectFromContractNegotiationErrorTransformer());
     }
 }
