@@ -115,7 +115,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message) {
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(message.getId())
+                .id(message.getProcessId())
                 .protocol(message.getProtocol())
                 .connectorId(message.getConnectorId())
                 .connectorAddress(message.getCallbackAddress())

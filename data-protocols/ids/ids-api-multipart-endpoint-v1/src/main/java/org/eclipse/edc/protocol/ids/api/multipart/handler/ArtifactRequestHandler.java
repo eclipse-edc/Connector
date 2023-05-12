@@ -144,7 +144,7 @@ public class ArtifactRequestHandler implements Handler {
         }
 
         var requestMessage = TransferRequestMessage.Builder.newInstance()
-                .id(message.getId().toString())
+                .processId(message.getId().toString())
                 .protocol(MessageProtocol.IDS_MULTIPART)
                 .connectorId(connectorId.toString())
                 .callbackAddress(idsWebhookAddress)

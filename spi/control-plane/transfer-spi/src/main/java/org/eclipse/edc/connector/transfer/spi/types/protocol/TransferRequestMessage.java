@@ -29,7 +29,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     private String counterPartyAddress;
     private String protocol;
-    private String id;
+    private String processId;
     private String contractId;
     @Deprecated(forRemoval = true)
     private String assetId;
@@ -51,7 +51,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     @Override
     public String getProcessId() {
-        return id;
+        return processId;
     }
 
     @Deprecated
@@ -61,10 +61,6 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     public String getContractId() {
         return contractId;
-    }
-
-    public String getId() {
-        return id;
     }
 
     @Deprecated
@@ -97,8 +93,8 @@ public class TransferRequestMessage implements TransferRemoteMessage {
             return new Builder();
         }
 
-        public Builder id(String id) {
-            message.id = id;
+        public Builder processId(String processId) {
+            message.processId = processId;
             return this;
         }
 

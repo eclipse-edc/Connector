@@ -111,7 +111,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     private static TransferRequestMessage transferRequestMessage() {
         return TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
-                .id(PROCESS_ID)
+                .processId(PROCESS_ID)
                 .callbackAddress("http://connector")
                 .counterPartyAddress("http://connector")
                 .build();

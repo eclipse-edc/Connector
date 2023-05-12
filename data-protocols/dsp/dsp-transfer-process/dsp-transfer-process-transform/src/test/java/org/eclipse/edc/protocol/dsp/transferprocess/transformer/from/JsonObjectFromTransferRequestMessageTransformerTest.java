@@ -84,7 +84,7 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         properties.put("key", "value");
 
         var message = TransferRequestMessage.Builder.newInstance()
-                .id(id)
+                .processId(id)
                 .properties(properties)
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)
@@ -111,7 +111,7 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         properties.put("key", "value");
 
         var message = TransferRequestMessage.Builder.newInstance()
-                .id(id)
+                .processId(id)
                 .properties(properties)
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)

@@ -95,7 +95,7 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyRequested_validAgreement_shouldInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .id("processId")
+                .processId("processId")
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -119,7 +119,7 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyRequested_doNothingIfProcessAlreadyExist() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .id("processId")
+                .processId("processId")
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())

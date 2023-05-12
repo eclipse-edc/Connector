@@ -386,7 +386,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var dataRequest = process.getDataRequest();
 
         var message = TransferRequestMessage.Builder.newInstance()
-                .id(dataRequest.getId())
+                .processId(dataRequest.getId())
                 .protocol(dataRequest.getProtocol())
                 .connectorId(dataRequest.getConnectorId())
                 .counterPartyAddress(dataRequest.getConnectorAddress())

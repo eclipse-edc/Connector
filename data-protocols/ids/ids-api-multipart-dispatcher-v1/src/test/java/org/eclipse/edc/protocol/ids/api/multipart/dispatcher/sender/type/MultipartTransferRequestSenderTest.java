@@ -68,7 +68,7 @@ class MultipartTransferRequestSenderTest {
         var message = sender.buildMessageHeader(request, token);
 
         assertThat(message).isInstanceOf(ArtifactRequestMessage.class);
-        assertThat(message.getId()).hasToString(request.getId());
+        assertThat(message.getId()).hasToString(request.getProcessId());
         assertThat(message.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
         assertThat(message.getSecurityToken()).isEqualTo(token);
         assertThat(message.getIssuerConnector()).isEqualTo(senderContext.getConnectorId().toUri());
@@ -93,7 +93,7 @@ class MultipartTransferRequestSenderTest {
 
     private static TransferRequestMessage createRequest() {
         return TransferRequestMessage.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
