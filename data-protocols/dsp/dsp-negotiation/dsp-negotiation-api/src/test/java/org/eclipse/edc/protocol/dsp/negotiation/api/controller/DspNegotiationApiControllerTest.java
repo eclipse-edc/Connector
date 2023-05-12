@@ -20,7 +20,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
@@ -49,6 +48,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -66,6 +66,7 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
@@ -194,7 +195,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .build();
     }
 
-    private static Response contractNegotiationErrorResponseUnsupperted() {
+    private static JsonObject contractNegotiationErrorResponseUnsupperted() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION_ERROR);
@@ -202,10 +203,10 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_NEGOTIATION_PROPERTY_CODE, "501");
         builder.add(DSPACE_NEGOTIATION_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(501).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response contractNegotiationErrorResponseTransformationFailed() {
+    private static JsonObject contractNegotiationErrorResponseTransformationFailed() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION_ERROR);
@@ -213,10 +214,10 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_NEGOTIATION_PROPERTY_CODE, "500");
         builder.add(DSPACE_NEGOTIATION_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(500).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response contractNegotiationErrorResponseNotAuthorized() {
+    private static JsonObject contractNegotiationErrorResponseNotAuthorized() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION_ERROR);
@@ -224,10 +225,10 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_NEGOTIATION_PROPERTY_CODE, "401");
         builder.add(DSPACE_NEGOTIATION_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(401).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response contractNegotiationErrorResponseBadRequest() {
+    private static JsonObject contractNegotiationErrorResponseBadRequest() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION_ERROR);
@@ -235,10 +236,10 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_NEGOTIATION_PROPERTY_CODE, "400");
         builder.add(DSPACE_NEGOTIATION_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(400).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response contractNegotiationErrorResponseConflict() {
+    private static JsonObject contractNegotiationErrorResponseConflict() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION_ERROR);
@@ -246,7 +247,12 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_NEGOTIATION_PROPERTY_CODE, "409");
         builder.add(DSPACE_NEGOTIATION_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(409).entity(builder.build()).build();
+        return builder.build();
+    }
+
+    @BeforeEach
+    void setUp() {
+        jsonLdService.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
     }
 
     @Test
@@ -254,7 +260,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var token = token();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseUnsupperted()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseUnsupperted()));
 
         //operation not yet supported
         var result = baseRequest()
@@ -263,9 +269,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(501)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("501");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("501");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Test
@@ -307,7 +313,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(JsonObject.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseTransformationFailed()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseTransformationFailed()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -317,9 +323,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(500)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("500");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("500");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Test
@@ -335,7 +341,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseTransformationFailed()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseTransformationFailed()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -346,8 +352,8 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(500)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("500");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("500");
     }
 
     @Test
@@ -355,7 +361,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var token = token();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseUnsupperted()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseUnsupperted()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -365,9 +371,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(501)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("501");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("501");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     /**
@@ -379,7 +385,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.failure("error"));
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseNotAuthorized()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseNotAuthorized()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -389,9 +395,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(401)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("401");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("401");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     /**
@@ -406,7 +412,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.failure("error"));
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseBadRequest()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseBadRequest()));
 
 
         var result = baseRequest()
@@ -417,9 +423,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("400");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     /**
@@ -485,7 +491,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         when(protocolService.notifyVerified(any(ContractAgreementVerificationMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyTerminated(any(ContractNegotiationTerminationMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyAgreed(any(ContractAgreementMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseConflict()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseConflict()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -498,9 +504,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("409");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("409");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
 
         // verify that the message protocol was set to the DSP protocol by the controller
         assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
@@ -522,7 +528,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
-        when(registry.transform(any(ContractNegotiationError.class), eq(Response.class))).thenReturn(Result.success(contractNegotiationErrorResponseBadRequest()));
+        when(registry.transform(any(ContractNegotiationError.class), eq(JsonObject.class))).thenReturn(Result.success(contractNegotiationErrorResponseBadRequest()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -532,10 +538,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("400");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
-                .statusCode(400);
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
 
         // verify that the message protocol was set to the DSP protocol by the controller
         assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);

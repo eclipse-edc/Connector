@@ -20,7 +20,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -29,6 +28,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
@@ -40,6 +40,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,6 +56,7 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.DspTransferProcessTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -91,6 +93,8 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     private final TransferProcessProtocolService protocolService = mock(TransferProcessProtocolService.class);
     private final String callbackAddress = "http://callback";
     private final String authHeader = "auth";
+
+    private final JsonLd jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
 
     private static ClaimToken token() {
         return ClaimToken.Builder.newInstance().build();
@@ -151,7 +155,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .build();
     }
 
-    private static Response transferErrorResponseUnsupperted() {
+    private static JsonObject transferErrorResponseUnsupperted() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
@@ -159,10 +163,10 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_SCHEMA + "code", "501");
         builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(501).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response transferErrorResponseTransformationFailed() {
+    private static JsonObject transferErrorResponseTransformationFailed() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
@@ -170,10 +174,10 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_SCHEMA + "code", "500");
         builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(500).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response transferErrorResponseNotAuthorized() {
+    private static JsonObject transferErrorResponseNotAuthorized() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
@@ -181,10 +185,10 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_SCHEMA + "code", "401");
         builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(401).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response transferErrorResponseBadRequest() {
+    private static JsonObject transferErrorResponseBadRequest() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
@@ -192,10 +196,10 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_SCHEMA + "code", "400");
         builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(400).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response transferErrorResponseConflict() {
+    private static JsonObject transferErrorResponseConflict() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
@@ -203,12 +207,17 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         builder.add(DSPACE_SCHEMA + "code", "409");
         builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(409).entity(builder.build()).build();
+        return builder.build();
+    }
+
+    @BeforeEach
+    void setUp() {
+        jsonLdService.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
     }
 
     @Test
     void getTransferProcess_shouldReturnNotImplemented_whenOperationNotSupported() {
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
 
         //operation not yet supported
         var result = baseRequest()
@@ -217,9 +226,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(501)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("501");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("501");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Test
@@ -265,7 +274,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         when(registry.transform(any(JsonObject.class), eq(TransferRequestMessage.class)))
                 .thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
 
         var result = baseRequest()
@@ -276,9 +285,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(500)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("500");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("500");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Test
@@ -294,7 +303,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
         when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseTransformationFailed()));
         when(mapper.convertValue(any(JsonObject.class), eq(Map.class))).thenThrow(IllegalArgumentException.class);
 
         var result = baseRequest()
@@ -305,13 +314,13 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(500)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("500");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("500");
     }
 
     @Test
     void consumerTransferProcessSuspension_shouldReturnNotImplemented_whenOperationNotSupported() {
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseUnsupperted()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -321,9 +330,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(501)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("501");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("501");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     /**
@@ -336,7 +345,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path, JsonObject request) {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseNotAuthorized()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseNotAuthorized()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -346,9 +355,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(401)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("401");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("401");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     /**
@@ -366,7 +375,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.failure("error"));
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -376,9 +385,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("400");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     /**
@@ -398,7 +407,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseBadRequest()));
 
 
 
@@ -410,9 +419,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("400");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     /**
@@ -471,7 +480,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), argThat(TransferRemoteMessage.class::isAssignableFrom)))
                 .thenReturn(Result.success(message));
-        when(registry.transform(any(TransferError.class), eq(Response.class))).thenReturn(Result.success(transferErrorResponseConflict()));
+        when(registry.transform(any(TransferError.class), eq(JsonObject.class))).thenReturn(Result.success(transferErrorResponseConflict()));
 
         when(protocolService.notifyRequested(any(TransferRequestMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyStarted(any(TransferStartMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
@@ -489,14 +498,14 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("409");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:TransferError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("409");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Override
     protected Object controller() {
-        return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress, new TitaniumJsonLd(monitor));
+        return new DspTransferProcessApiController(mock(Monitor.class), mapper, registry, protocolService, identityService, callbackAddress, jsonLdService);
     }
 
     private RequestSpecification baseRequest() {

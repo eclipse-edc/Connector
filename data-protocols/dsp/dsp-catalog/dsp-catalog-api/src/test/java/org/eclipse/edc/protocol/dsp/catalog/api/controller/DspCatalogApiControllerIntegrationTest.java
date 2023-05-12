@@ -23,6 +23,7 @@ import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -45,7 +46,6 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -53,7 +53,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//@ApiTest
+@ApiTest
 @ExtendWith(EdcExtension.class)
 class DspCatalogApiControllerIntegrationTest {
 
@@ -117,9 +117,9 @@ class DspCatalogApiControllerIntegrationTest {
                 .statusCode(401)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("401");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:CatalogError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("401");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Test
@@ -142,9 +142,9 @@ class DspCatalogApiControllerIntegrationTest {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(result.get(DSPACE_SCHEMA + "code")).isEqualTo("400");
-        assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:CatalogError");
+        assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
+        assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     private RequestSpecification baseRequest() {

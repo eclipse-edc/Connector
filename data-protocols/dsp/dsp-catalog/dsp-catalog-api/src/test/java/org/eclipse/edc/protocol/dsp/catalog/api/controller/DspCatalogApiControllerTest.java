@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
@@ -119,7 +118,7 @@ class DspCatalogApiControllerTest {
     void getCatalog_invalidTypeInRequest_throwException() {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.success(createToken()));
-        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+        when(transformerRegistry.transform(any(CatalogError.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(catalogErrorResponseBadRequest()));
 
         var invalidRequest = Json.createObjectBuilder()
@@ -132,9 +131,9 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
-        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isEqualTo("400");
+        assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
 
     }
 
@@ -144,7 +143,7 @@ class DspCatalogApiControllerTest {
                 .thenReturn(Result.success(createToken()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.failure("error"));
-        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+        when(transformerRegistry.transform(any(CatalogError.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(catalogErrorResponseBadRequest()));
 
         var response = controller.getCatalog(request, authHeader);
@@ -153,16 +152,16 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
-        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isEqualTo("400");
+        assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Test
     void getCatalog_authenticationFails_throwException() {
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
                 .thenReturn(Result.failure("error"));
-        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+        when(transformerRegistry.transform(any(CatalogError.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(catalogErrorResponseNotAuthorized()));
 
         var response = controller.getCatalog(request, authHeader);
@@ -171,9 +170,9 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("401");
-        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isEqualTo("401");
+        assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
 
     @Test
@@ -183,7 +182,7 @@ class DspCatalogApiControllerTest {
                 .thenReturn(Result.success(createToken()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
                 .thenReturn(Result.success(requestMessage));
-        when(transformerRegistry.transform(any(CatalogError.class), eq(Response.class)))
+        when(transformerRegistry.transform(any(CatalogError.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(catalogErrorResponseNotAuthorized()));
 
         var response = controller.getCatalog(request, authHeader);
@@ -192,30 +191,30 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
-        assertThat(errorObject.getJsonString(DSPACE_SCHEMA + "code").getString()).isNotNull();
-        assertThat(errorObject.get(DSPACE_SCHEMA + "reason")).isNotNull();
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isNotNull();
+        assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
 
         verify(service).getCatalog(any(), any());
     }
 
-    private static Response catalogErrorResponseBadRequest() {
+    private static JsonObject catalogErrorResponseBadRequest() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CATALOG_ERROR);
         builder.add(DSPACE_CATALOG_PROPERTY_CODE, "400");
         builder.add(DSPACE_CATALOG_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(400).entity(builder.build()).build();
+        return builder.build();
     }
 
-    private static Response catalogErrorResponseNotAuthorized() {
+    private static JsonObject catalogErrorResponseNotAuthorized() {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_CATALOG_ERROR);
         builder.add(DSPACE_CATALOG_PROPERTY_CODE, "401");
         builder.add(DSPACE_CATALOG_PROPERTY_REASON, Json.createArrayBuilder().add("reasonTest"));
 
-        return Response.status(401).entity(builder.build()).build();
+        return builder.build();
     }
 }
