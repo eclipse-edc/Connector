@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -70,8 +69,6 @@ class CatalogApiControllerIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
     }
 

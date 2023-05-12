@@ -51,6 +51,15 @@ class ContractDefinitionResolverImplTest {
 
     private ContractDefinitionResolverImpl definitionService;
 
+    private static ContractDefinition createContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
+                .selectorExpression(SELECT_ALL)
+                .build();
+    }
+
     @BeforeEach
     void setUp() {
         definitionService = new ContractDefinitionResolverImpl(mock(Monitor.class), definitionStore, policyEngine, policyStore);
@@ -125,15 +134,5 @@ class ContractDefinitionResolverImplTest {
 
         assertThat(result).isNull();
         verify(policyEngine, never()).evaluate(any(), any(), any());
-    }
-
-    private static ContractDefinition createContractDefinition() {
-        return ContractDefinition.Builder.newInstance()
-                .id("1")
-                .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(SELECT_ALL)
-                .validity(100)
-                .build();
     }
 }

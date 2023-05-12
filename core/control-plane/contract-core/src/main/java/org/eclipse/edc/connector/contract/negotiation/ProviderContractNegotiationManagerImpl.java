@@ -185,8 +185,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
             agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId, lastOffer.getAssetId()))
-                    .contractStartDate(lastOffer.getContractStart().toEpochSecond())
-                    .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())

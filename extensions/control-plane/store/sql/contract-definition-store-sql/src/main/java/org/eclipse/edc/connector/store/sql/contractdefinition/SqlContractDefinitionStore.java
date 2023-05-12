@@ -137,7 +137,6 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
                 .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
                 .selectorExpression(fromJson(resultSet.getString(statements.getSelectorExpressionColumn()), AssetSelectorExpression.class))
-                .validity(resultSet.getLong(statements.getValidity()))
                 .build();
     }
 
@@ -148,7 +147,6 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                     definition.getAccessPolicyId(),
                     definition.getContractPolicyId(),
                     toJson(definition.getSelectorExpression()),
-                    definition.getValidity(),
                     definition.getCreatedAt());
         });
     }
@@ -160,7 +158,6 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 definition.getAccessPolicyId(),
                 definition.getContractPolicyId(),
                 toJson(definition.getSelectorExpression()),
-                definition.getValidity(),
                 definition.getCreatedAt(),
                 definition.getId());
 

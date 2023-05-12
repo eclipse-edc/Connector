@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.contractagreement.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.policy.model.Policy;
@@ -29,8 +27,6 @@ public class ContractAgreementDto {
     public static final String CONTRACT_AGREEMENT_PROVIDER_ID = EDC_NAMESPACE + "providerId";
     public static final String CONTRACT_AGREEMENT_CONSUMER_ID = EDC_NAMESPACE + "consumerId";
     public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
-    public static final String CONTRACT_AGREEMENT_START_DATE = EDC_NAMESPACE + "contractStartDate";
-    public static final String CONTRACT_AGREEMENT_END_DATE = EDC_NAMESPACE + "contractEndDate";
     public static final String CONTRACT_AGREEMENT_POLICY = EDC_NAMESPACE + "policy";
 
 
@@ -42,22 +38,10 @@ public class ContractAgreementDto {
     private String consumerId;
     @Positive(message = "contractSigningDate must be greater than 0")
     private long contractSigningDate;
-    @Positive(message = "contractStartDate must be greater than 0")
-    private long contractStartDate;
-    @Positive(message = "contractEndDate must be greater than 0")
-    private long contractEndDate;
     @NotNull(message = "assetId Id cannot be null")
     private String assetId;
     @NotNull(message = "policy cannot be null")
     private Policy policy;
-
-    @AssertTrue(message = "contractStartDate and contractSigningDate must be lower than contractEndDate")
-    @JsonIgnore
-    public boolean isDatesValid() {
-
-        return contractStartDate < contractEndDate &&
-                contractSigningDate < contractEndDate;
-    }
 
     public String getId() {
         return id;
@@ -73,14 +57,6 @@ public class ContractAgreementDto {
 
     public long getContractSigningDate() {
         return contractSigningDate;
-    }
-
-    public long getContractStartDate() {
-        return contractStartDate;
-    }
-
-    public long getContractEndDate() {
-        return contractEndDate;
     }
 
     public String getAssetId() {
@@ -119,16 +95,6 @@ public class ContractAgreementDto {
 
         public Builder contractSigningDate(long contractSigningDate) {
             agreement.contractSigningDate = contractSigningDate;
-            return this;
-        }
-
-        public Builder contractStartDate(long contractStartDate) {
-            agreement.contractStartDate = contractStartDate;
-            return this;
-        }
-
-        public Builder contractEndDate(long contractEndDate) {
-            agreement.contractEndDate = contractEndDate;
             return this;
         }
 

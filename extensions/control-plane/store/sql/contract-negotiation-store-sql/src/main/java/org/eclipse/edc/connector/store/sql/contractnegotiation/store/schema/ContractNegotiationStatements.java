@@ -77,14 +77,6 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "consumer_agent_id";
     }
 
-    default String getEndDateColumn() {
-        return "end_date";
-    }
-
-    default String getStartDateColumn() {
-        return "start_date";
-    }
-
     default String getSigningDateColumn() {
         return "signing_date";
     }

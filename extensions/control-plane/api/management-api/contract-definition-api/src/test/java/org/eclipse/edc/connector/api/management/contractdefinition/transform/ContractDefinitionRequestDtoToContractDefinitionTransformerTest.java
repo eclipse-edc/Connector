@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,7 +51,6 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .criteria(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
-                .validity(TimeUnit.MINUTES.toSeconds(10))
                 .build();
 
         var contractDefinition = transformer.transform(contractDefinitionDto, context);
@@ -62,7 +60,6 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
         assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
         assertThat(contractDefinition.getSelectorExpression().getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinitionDto.getCriteria());
-        assertThat(contractDefinition.getValidity()).isEqualTo(contractDefinitionDto.getValidity());
         assertThat(contractDefinition.getCreatedAt()).isNotZero(); //should be set automatically
         verify(context, times(1)).transform(isA(CriterionDto.class), eq(Criterion.class));
     }

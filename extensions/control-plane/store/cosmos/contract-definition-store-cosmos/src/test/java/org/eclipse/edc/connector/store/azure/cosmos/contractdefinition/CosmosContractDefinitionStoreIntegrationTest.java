@@ -48,7 +48,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -349,7 +348,6 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
                 .contractPolicyId("test-cp-id-new")
                 .accessPolicyId("test-ap-id-new")
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
-                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
 
         store.update(modifiedDef);

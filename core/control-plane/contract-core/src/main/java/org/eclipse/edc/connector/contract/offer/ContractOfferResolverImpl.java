@@ -33,8 +33,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -121,30 +119,9 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
 
     @NotNull
     private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, String assetId) {
-
-        var start = clock.instant();
-        var zone = clock.getZone();
-        var contractEndTime = ZonedDateTime.ofInstant(calculateContractEnd(definition, start), zone);
-        var contractStartTime = ZonedDateTime.ofInstant(start, zone);
-
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.createContractId(definition.getId(), assetId))
                 .policy(policy.withTarget(assetId))
-                .assetId(assetId)
-                .contractStart(contractStartTime)
-                .contractEnd(contractEndTime);
+                .assetId(assetId);
     }
-
-    @NotNull
-    private Instant calculateContractEnd(ContractDefinition definition, Instant start) {
-
-        try {
-            return start.plusSeconds(definition.getValidity());
-        } catch (ArithmeticException exception) {
-            monitor.warning("The added ContractEnd value is bigger than the maximum number allowed by a long value. " +
-                    "Changing contractEndTime to Maximum value possible in the ContractOffer");
-            return Instant.ofEpochMilli(Long.MAX_VALUE);
-        }
-    }
-
 }

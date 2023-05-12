@@ -41,7 +41,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -52,7 +51,6 @@ import static org.eclipse.edc.connector.api.management.contractdefinition.model.
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CRITERIA;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_VALIDITY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -221,7 +219,6 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .add(TYPE, CONTRACT_DEFINITION_TYPE)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
-                .add(CONTRACT_DEFINITION_VALIDITY, 3600)
                 .add(CONTRACT_DEFINITION_CRITERIA, createCriterionBuilder().build())
                 .build();
 
@@ -360,7 +357,6 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .add(ID, "test-id")
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
-                .add(CONTRACT_DEFINITION_VALIDITY, 3600)
                 .add(CONTRACT_DEFINITION_CRITERIA, createCriterionBuilder().build())
                 .build();
     }
@@ -376,8 +372,7 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .id("1")
                 .accessPolicyId("ap-id")
                 .contractPolicyId("cp-id")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
     }
 
     private ContractDefinitionResponseDto.Builder createContractDefinitionDto() {
@@ -385,7 +380,6 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .id("1")
                 .accessPolicyId("ap-id")
                 .contractPolicyId("cp-id")
-                .criteria(List.of())
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                .criteria(List.of());
     }
 }

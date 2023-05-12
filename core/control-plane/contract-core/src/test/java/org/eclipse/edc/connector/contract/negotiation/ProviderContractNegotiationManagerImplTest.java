@@ -47,7 +47,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -254,9 +253,11 @@ class ProviderContractNegotiationManagerImplTest {
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("assetId")
                 .providerId(PROVIDER_ID)
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .build();
+    }
+
+    private Criterion[] stateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state), new Criterion("type", "=", "PROVIDER") });
     }
 
     private static class DispatchFailureArguments implements ArgumentsProvider {
@@ -284,14 +285,8 @@ class ProviderContractNegotiationManagerImplTest {
             return ContractOffer.Builder.newInstance().id("id:assetId:random")
                     .policy(Policy.Builder.newInstance().build())
                     .assetId("assetId")
-                    .contractStart(ZonedDateTime.now())
-                    .contractEnd(ZonedDateTime.now())
                     .build();
         }
-    }
-
-    private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), new Criterion("type", "=", "PROVIDER") });
     }
 
 }

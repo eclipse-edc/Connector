@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.util.Map;
 
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
@@ -52,10 +51,6 @@ public class ContractValidationRule implements TokenValidationRule {
         var contractAgreement = contractNegotiationStore.findContractAgreement(contractId);
         if (contractAgreement == null) {
             return Result.failure("No contract agreement found for id: " + contractId);
-        }
-
-        if (clock.instant().isAfter(Instant.ofEpochSecond(contractAgreement.getContractEndDate()))) {
-            return Result.failure("Contract has expired");
         }
 
         return Result.success();

@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -99,8 +98,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                                 .assetId(contractId.assetIdPart())
                                 .providerId(participantId)
                                 .policy(r.getPolicy())
-                                .contractStart(offer.getContractStart())
-                                .contractEnd(offer.getContractEnd())
                                 .build())
         );
     }
@@ -131,10 +128,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure(format("The contract id %s does not follow the expected scheme", agreement.getId()));
         }
 
-        if (!isStarted(agreement) || isExpired(agreement)) {
-            return failure("The agreement has not started yet or it has expired");
-        }
-
         var agent = agentService.createFor(token);
         var consumerIdentity = agent.getIdentity();
         if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerId())) {
@@ -144,6 +137,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         // Create additional context information for policy engine to make agreement available in context
         var contextInformation = new HashMap<Class<?>, Object>();
         contextInformation.put(ContractAgreement.class, agreement);
+        contextInformation.put(Instant.class, Instant.now());
 
         var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), agent, contextInformation);
         if (!policyResult.succeeded()) {
@@ -229,45 +223,17 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @NotNull
     private ContractOffer createContractOffer(ContractDefinition definition, Policy policy, String assetId) {
-        var start = clock.instant();
-        var zone = clock.getZone();
-        var contractEndTime = ZonedDateTime.ofInstant(calculateContractEnd(definition, start), zone);
-        var contractStartTime = ZonedDateTime.ofInstant(start, zone);
-
         return ContractOffer.Builder.newInstance()
                 .id(createContractId(definition.getId(), assetId))
                 .providerId(participantId)
                 .policy(policy)
                 .assetId(assetId)
-                .contractStart(contractStartTime)
-                .contractEnd(contractEndTime).build();
-    }
-
-    private boolean isExpired(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractEndDate() * 1000L < clock.millis();
-    }
-
-    private boolean isStarted(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
-    }
-
-    /**
-     * This method will be removed when policy contract expiration is implemented.
-     *
-     * @deprecated this method will be removed when policy contract expiration is implemented
-     */
-    @Deprecated
-    private Instant calculateContractEnd(ContractDefinition definition, Instant start) {
-        try {
-            return start.plusSeconds(definition.getValidity());
-        } catch (ArithmeticException exception) {
-            return Instant.ofEpochMilli(Long.MAX_VALUE);
-        }
+                .build();
     }
 
     private static class SanitizedResult {
-        private ContractDefinition definition;
-        private Policy policy;
+        private final ContractDefinition definition;
+        private final Policy policy;
 
         SanitizedResult(ContractDefinition definition, Policy policy) {
             this.definition = definition;

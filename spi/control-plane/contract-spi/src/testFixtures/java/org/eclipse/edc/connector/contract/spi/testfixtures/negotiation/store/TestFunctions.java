@@ -27,7 +27,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -60,8 +59,6 @@ public class TestFunctions {
                 .consumerId("consumer")
                 .assetId(UUID.randomUUID().toString())
                 .policy(createPolicy())
-                .contractStartDate(Instant.now().getEpochSecond())
-                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
     }
 

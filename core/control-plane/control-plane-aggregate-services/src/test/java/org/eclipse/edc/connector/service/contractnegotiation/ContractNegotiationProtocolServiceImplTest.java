@@ -49,7 +49,6 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -365,8 +364,6 @@ class ContractNegotiationProtocolServiceImplTest {
                 .policy(createPolicy())
                 .assetId("assetId")
                 .providerId(PROVIDER_ID)
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .build();
     }
 

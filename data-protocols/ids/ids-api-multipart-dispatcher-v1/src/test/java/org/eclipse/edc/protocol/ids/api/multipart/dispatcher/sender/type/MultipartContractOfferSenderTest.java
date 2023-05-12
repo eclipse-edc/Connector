@@ -32,8 +32,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.ZonedDateTime;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MultipartContractOfferSenderTest {
@@ -90,8 +88,6 @@ class MultipartContractOfferSenderTest {
                         .policy(policy)
                         .assetId("asset-id")
                         .providerId("providerId")
-                        .contractStart(ZonedDateTime.now())
-                        .contractEnd(ZonedDateTime.now().plusMonths(1))
                         .build())
                 .protocol("protocol")
                 .connectorId("connector")

@@ -79,7 +79,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
@@ -266,8 +265,6 @@ class MultipartControllerIntegrationTest {
                 .assetId(asset.getId())
                 .policy(createEverythingAllowedPolicy())
                 .providerId("provider")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 
@@ -529,8 +526,6 @@ class MultipartControllerIntegrationTest {
                 .assetId(asset.getId())
                 .policy(createEverythingAllowedPolicy())
                 .providerId("provider")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         when(contractOfferResolver.queryContractOffers(any())).thenReturn(Stream.of(contractOffer));
 

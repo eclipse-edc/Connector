@@ -29,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -49,6 +48,14 @@ class CatalogToIdsResourceCatalogTransformerTest {
 
     private TransformerContext context;
     private AssetIndex assetIndex;
+
+    private static ContractOffer createContractOffer(String id, Asset asset) {
+        return ContractOffer.Builder.newInstance()
+                .id(id)
+                .assetId(asset.getId())
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
 
     @BeforeEach
     void setUp() {
@@ -79,15 +86,5 @@ class CatalogToIdsResourceCatalogTransformerTest {
         assertThat(result.getOfferedResource()).hasSize(2);
         verify(context, times(2)).transform(isA(OfferedAsset.class), eq(Resource.class));
         verify(assetIndex).queryAssets(isA(QuerySpec.class));
-    }
-
-    private static ContractOffer createContractOffer(String id, Asset asset) {
-        return ContractOffer.Builder.newInstance()
-                .id(id)
-                .assetId(asset.getId())
-                .policy(Policy.Builder.newInstance().build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
-                .build();
     }
 }

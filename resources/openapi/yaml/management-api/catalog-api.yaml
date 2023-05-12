@@ -160,24 +160,8 @@ components:
         assetId:
           type: string
           example: null
-        contractEnd:
-          type: string
-          format: date-time
-          example: null
-        contractStart:
-          type: string
-          format: date-time
-          example: null
         id:
           type: string
-          example: null
-        offerEnd:
-          type: string
-          format: date-time
-          example: null
-        offerStart:
-          type: string
-          format: date-time
           example: null
         policy:
           $ref: '#/components/schemas/Policy'

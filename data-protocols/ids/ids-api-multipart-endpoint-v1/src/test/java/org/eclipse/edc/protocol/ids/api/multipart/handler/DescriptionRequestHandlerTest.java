@@ -52,7 +52,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -195,8 +194,6 @@ class DescriptionRequestHandlerTest {
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("test-asset")
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .build();
         var request = MultipartRequest.Builder.newInstance()
                 .header(descriptionRequestMessage(URI.create("urn:resource:" + assetId)))

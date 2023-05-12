@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -49,7 +48,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
     public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + "ContractDefinition";
     public static final String CONTRACT_DEFINITION_ACCESSPOLICY_ID = EDC_NAMESPACE + "accessPolicyId";
     public static final String CONTRACT_DEFINITION_CONTRACTPOLICY_ID = EDC_NAMESPACE + "contractPolicyId";
-    public static final String CONTRACT_DEFINITION_VALIDITY = EDC_NAMESPACE + "validity";
     public static final String CONTRACT_DEFINITION_CRITERIA = EDC_NAMESPACE + "criteria";
     private static final TypeRef<List<JsonObject>> LIST_TYPE = new TypeRef<>() {
     };
@@ -147,7 +145,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .add(ID, TEST_ID)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, TEST_AP_ID)
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, TEST_CP_ID)
-                .add(CONTRACT_DEFINITION_VALIDITY, 3600)
                 .add(CONTRACT_DEFINITION_CRITERIA, createCriterionBuilder().build());
     }
 
@@ -180,7 +177,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .contractPolicyId(TEST_CP_ID)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance()
                         .criteria(List.of(new Criterion("foo", "=", "bar"),
-                                new Criterion("bar", "=", "baz"))).build())
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                                new Criterion("bar", "=", "baz"))).build());
     }
 }

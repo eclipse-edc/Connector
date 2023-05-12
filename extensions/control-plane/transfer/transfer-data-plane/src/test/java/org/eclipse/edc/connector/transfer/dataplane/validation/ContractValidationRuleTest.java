@@ -26,8 +26,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
-import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
@@ -51,25 +49,13 @@ class ContractValidationRuleTest {
     @Test
     void shouldSucceedIfContractIsStillValid() {
         var contractId = UUID.randomUUID().toString();
-        var contractAgreement = createContractAgreement(contractId, now.plus(1, HOURS));
+        var contractAgreement = createContractAgreement(contractId);
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(contractAgreement);
         var claimToken = ClaimToken.Builder.newInstance().claim(CONTRACT_ID, contractId).build();
 
         var result = rule.checkRule(claimToken, emptyMap());
 
         assertThat(result.succeeded()).isTrue();
-    }
-
-    @Test
-    void shouldFailIfContractIsExpired() {
-        var contractId = UUID.randomUUID().toString();
-        var contractAgreement = createContractAgreement(contractId, now.minus(1, SECONDS));
-        when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(contractAgreement);
-        var claimToken = ClaimToken.Builder.newInstance().claim(CONTRACT_ID, contractId).build();
-
-        var result = rule.checkRule(claimToken, emptyMap());
-
-        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -91,12 +77,11 @@ class ContractValidationRuleTest {
         assertThat(result.succeeded()).isFalse();
     }
 
-    private ContractAgreement createContractAgreement(String contractId, Instant endDate) {
+    private ContractAgreement createContractAgreement(String contractId) {
         return ContractAgreement.Builder.newInstance()
                 .id(contractId)
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .contractEndDate(endDate.getEpochSecond())
                 .consumerId("consumer-agent-id")
                 .providerId("provider-agent-id")
                 .build();

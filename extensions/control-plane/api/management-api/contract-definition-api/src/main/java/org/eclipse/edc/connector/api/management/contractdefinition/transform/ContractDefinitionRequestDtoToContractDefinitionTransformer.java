@@ -46,7 +46,6 @@ public class ContractDefinitionRequestDtoToContractDefinitionTransformer impleme
                 .accessPolicyId(object.getAccessPolicyId())
                 .contractPolicyId(object.getContractPolicyId())
                 .selectorExpression(selectorExpression)
-                .validity(object.getValidity())
                 .build();
     }
 }

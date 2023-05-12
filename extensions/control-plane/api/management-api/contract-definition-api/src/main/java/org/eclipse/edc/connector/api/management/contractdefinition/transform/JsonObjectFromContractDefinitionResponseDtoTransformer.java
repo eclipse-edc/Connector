@@ -27,7 +27,6 @@ import static org.eclipse.edc.connector.api.management.contractdefinition.model.
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CRITERIA;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_VALIDITY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -45,8 +44,7 @@ public class JsonObjectFromContractDefinitionResponseDtoTransformer extends Abst
         builder.add(ID, dto.getId())
                 .add(TYPE, CONTRACT_DEFINITION_TYPE)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, dto.getAccessPolicyId())
-                .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, dto.getContractPolicyId())
-                .add(CONTRACT_DEFINITION_VALIDITY, dto.getValidity());
+                .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, dto.getContractPolicyId());
 
         // todo: does the criterionDto need to be json-ld-ified?
         var criteria = dto.getCriteria().stream()

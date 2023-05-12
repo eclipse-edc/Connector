@@ -41,8 +41,6 @@ public class ContractAgreementToContractAgreementDtoTransformer implements DtoTr
                 .policy(object.getPolicy())
                 .consumerId(object.getConsumerId())
                 .providerId(object.getProviderId())
-                .contractStartDate(object.getContractStartDate())
-                .contractEndDate(object.getContractEndDate())
                 .contractSigningDate(object.getContractSigningDate())
                 .build();
     }

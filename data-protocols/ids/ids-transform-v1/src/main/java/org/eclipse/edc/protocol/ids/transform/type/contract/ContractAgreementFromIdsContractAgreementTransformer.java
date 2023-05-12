@@ -110,13 +110,6 @@ public class ContractAgreementFromIdsContractAgreementTransformer implements Ids
 
         builder.id(idsId.getValue());
 
-        if (contractAgreement.getContractEnd() != null) {
-            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().toZonedDateTime().toEpochSecond());
-        }
-
-        if (contractAgreement.getContractStart() != null) {
-            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().toZonedDateTime().toEpochSecond());
-        }
 
         if (contractAgreement.getContractDate() != null) {
             builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().toZonedDateTime().toEpochSecond());

@@ -16,23 +16,31 @@ package org.eclipse.edc.test.e2e;
 
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AndConstraint;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
+import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
@@ -42,6 +50,7 @@ public abstract class AbstractEndToEndTransfer {
 
     protected static final Participant CONSUMER = new Participant("consumer", "urn:connector:consumer");
     protected static final Participant PROVIDER = new Participant("provider", "urn:connector:provider");
+    private static final Object CONTRACT_EXPIRY_EVALUATION_KEY = EDC_NAMESPACE + "inForceDate";
     protected final Duration timeout = Duration.ofSeconds(60);
 
     @Test
@@ -77,6 +86,64 @@ public abstract class AbstractEndToEndTransfer {
         // pull the data with additional query parameter
         var msg = UUID.randomUUID().toString();
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
+    }
+
+    /**
+     * This test is disabled because rejection messages are not processed correctly in IDS. The Policy that is attached to the contract definition
+     * contains a validity period, that will be violated, so we expect the transfer request to be rejected with a 409 CONFLICT.
+     * Once that case is handled properly by the DSP, we can re-enable the test and add a proper assertion
+     */
+    @Test
+    @Disabled
+    void httpPull_withExpiredContract_fixedInForcePeriod() {
+        var assetId = "test-asset-id";
+        var now = Instant.now();
+        // contract was valid from t-10d to t-5d, so "now" it is expired
+        createResourcesOnProvider(assetId, createInForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, now.minus(ofDays(5))), "test-definition-id", httpDataAddressProperties());
+
+        var catalog = CONSUMER.getCatalog(PROVIDER);
+        assertThat(catalog.getContractOffers()).hasSize(1);
+
+        var offer = catalog.getContractOffers().get(0);
+        assertThat(offer.getAssetId()).isEqualTo(assetId);
+
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, offer);
+
+        var dataRequestId = "test-data-request-id";
+        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
+
+        await().atMost(timeout).untilAsserted(() -> {
+            //todo: assert transfer request rejection
+        });
+    }
+
+    /**
+     * This test is disabled because rejection messages are not processed correctly in IDS. The Policy that is attached to the contract definition
+     * contains a validity period, that will be violated, so we expect the transfer request to be rejected with a 409 CONFLICT.
+     * Once that case is handled properly by the DSP, we can re-enable the test and add a proper assertion
+     */
+    @Test
+    @Disabled
+    void httpPull_withExpiredContract_durationInForcePeriod() {
+        var assetId = "test-asset-id";
+        var now = Instant.now();
+        // contract was valid from t-10d to t-5d, so "now" it is expired
+        createResourcesOnProvider(assetId, createInForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, "contractAgreement+2s"), "test-definition-id", httpDataAddressProperties());
+
+        var catalog = CONSUMER.getCatalog(PROVIDER);
+        assertThat(catalog.getContractOffers()).hasSize(1);
+
+        var offer = catalog.getContractOffers().get(0);
+        assertThat(offer.getAssetId()).isEqualTo(assetId);
+
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, offer);
+
+        var dataRequestId = "test-data-request-id";
+        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
+
+        await().atMost(timeout).untilAsserted(() -> {
+            //todo: assert transfer request rejection
+        });
     }
 
     @Test
@@ -238,4 +305,30 @@ public abstract class AbstractEndToEndTransfer {
                 .build();
     }
 
+    private PolicyDefinition createInForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
+        var fixedInForceTimeConstraint = AndConstraint.Builder.newInstance()
+                .constraint(AtomicConstraint.Builder.newInstance()
+                        .leftExpression(new LiteralExpression(CONTRACT_EXPIRY_EVALUATION_KEY))
+                        .operator(operatorStart)
+                        .rightExpression(new LiteralExpression(startDate.toString()))
+                        .build())
+                .constraint(AtomicConstraint.Builder.newInstance()
+                        .leftExpression(new LiteralExpression(CONTRACT_EXPIRY_EVALUATION_KEY))
+                        .operator(operatorEnd)
+                        .rightExpression(new LiteralExpression(endDate.toString()))
+                        .build())
+                .build();
+        var permission = Permission.Builder.newInstance()
+                .action(Action.Builder.newInstance().type("USE").build())
+                .constraint(fixedInForceTimeConstraint).build();
+
+        var p = Policy.Builder.newInstance()
+                .permission(permission)
+                .build();
+
+        return PolicyDefinition.Builder.newInstance()
+                .policy(p)
+                .id("in-force-policy")
+                .build();
+    }
 }

@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 import static java.util.UUID.randomUUID;
@@ -49,6 +48,14 @@ class CatalogApiControllerTest {
     private final CatalogService service = mock(CatalogService.class);
     private final Monitor monitor = mock(Monitor.class);
     private TypeTransformerRegistry transformerRegistry;
+
+    private static ContractOffer createContractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .assetId(randomUUID().toString())
+                .build();
+    }
 
     @BeforeEach
     void setup() {
@@ -104,15 +111,5 @@ class CatalogApiControllerTest {
         controller.requestCatalog(request, response);
 
         verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
-    }
-
-    private static ContractOffer createContractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .assetId(randomUUID().toString())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
-                .build();
     }
 }

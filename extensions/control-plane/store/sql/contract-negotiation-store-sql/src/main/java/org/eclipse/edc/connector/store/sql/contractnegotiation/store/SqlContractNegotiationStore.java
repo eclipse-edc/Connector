@@ -261,8 +261,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                             contractAgreement.getProviderId(),
                             contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
-                            contractAgreement.getContractStartDate(),
-                            contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
                             toJson(contractAgreement.getPolicy())
                     );
@@ -272,8 +270,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                     executeQuery(connection, query, contractAgreement.getProviderId(),
                             contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
-                            contractAgreement.getContractStartDate(),
-                            contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
                             toJson(contractAgreement.getPolicy()),
                             agrId);
@@ -301,11 +297,9 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .providerId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
+                .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
                 }))
-                .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
-                .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
-                .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 //todo
                 .build();
     }

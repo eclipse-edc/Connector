@@ -52,15 +52,13 @@ class ContractAgreementDtoValidationTest {
 
     @ParameterizedTest
     @ArgumentsSource(InvalidArgsProvider.class)
-    void validation_invalidProperty(String id, String assetId, String consumerId, String providerId, long startDate, long endDate, long signingDate) {
+    void validation_invalidProperty(String id, String assetId, String consumerId, String providerId, long signingDate) {
         var agreement = ContractAgreementDto.Builder.newInstance()
                 .assetId(assetId)
                 .policy(Policy.Builder.newInstance().build())
                 .consumerId(consumerId)
                 .providerId(providerId)
                 .id(id)
-                .contractStartDate(startDate)
-                .contractEndDate(endDate)
                 .contractSigningDate(signingDate)
                 .build();
 
@@ -75,8 +73,6 @@ class ContractAgreementDtoValidationTest {
                 .consumerId("cons")
                 .providerId("prov")
                 .id("someId")
-                .contractStartDate(15)
-                .contractEndDate(18)
                 .contractSigningDate(14)
                 .build();
 
@@ -87,13 +83,11 @@ class ContractAgreementDtoValidationTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
             return Stream.of(
-                    Arguments.of(null, "asset", "consumer", "provider", now(), later(100), now()),
-                    Arguments.of("id", null, "consumer", "provider", now(), later(100), now()),
-                    Arguments.of("id", "asset", null, "provider", now(), later(10), now()),
-                    Arguments.of("id", "asset", "consumer", null, 0, later(50), now()),
-                    Arguments.of("id", "asset", "consumer", "provider", now(), 0, now()),
-                    Arguments.of("id", "asset", "consumer", "provider", now(), later(100), later(200)), //invalid signing date -> after end date
-                    Arguments.of("id", "asset", "consumer", "provider", now(), later(50), 0)
+                    Arguments.of(null, "asset", "consumer", "provider", now()),
+                    Arguments.of("id", null, "consumer", "provider", now()),
+                    Arguments.of("id", "asset", null, "provider", now()),
+                    Arguments.of("id", "asset", "consumer", null, now()),
+                    Arguments.of("id", "asset", "consumer", "provider", 0)
             );
         }
     }

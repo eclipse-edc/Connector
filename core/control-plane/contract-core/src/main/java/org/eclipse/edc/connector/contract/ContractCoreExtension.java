@@ -36,10 +36,13 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.contract.validation.ContractExpiryCheckFunction;
 import org.eclipse.edc.connector.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -65,6 +68,9 @@ import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+
+import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
+import static org.eclipse.edc.connector.contract.validation.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 
 @Provides({
         ContractOfferResolver.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
@@ -145,6 +151,8 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+    @Inject
+    private RuleBindingRegistry ruleBindingRegistry;
 
     @Inject
     private ProtocolWebhook protocolWebhook;
@@ -188,6 +196,13 @@ public class ContractCoreExtension implements ServiceExtension {
         var policyEquality = new PolicyEquality(typeManager);
         var validationService = new ContractValidationServiceImpl(participantId, agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality, clock);
         context.registerService(ContractValidationService.class, validationService);
+
+        // bind/register rule to evaluate contract expiry
+        ruleBindingRegistry.bind("USE", TRANSFER_SCOPE);
+        ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
+        var function = new ContractExpiryCheckFunction();
+        policyEngine.registerFunction(TRANSFER_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, function);
+
 
         var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);

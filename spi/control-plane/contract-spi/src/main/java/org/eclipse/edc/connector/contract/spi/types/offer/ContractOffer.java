@@ -21,7 +21,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
@@ -45,28 +44,6 @@ public class ContractOffer {
      * The participant who provides the offered data
      */
     private String providerId;
-    /**
-     * Timestamp defining the start time when the offer becomes effective
-     */
-    private ZonedDateTime offerStart;
-    /**
-     * Timestamp defining the end date when the offer becomes ineffective
-     */
-    private ZonedDateTime offerEnd;
-    /**
-     * Timestamp defining the start date when the contract becomes effective
-     *
-     * @deprecated replaced with policy implementation
-     */
-    @Deprecated(forRemoval = true)
-    private ZonedDateTime contractStart;
-    /**
-     * Timestamp defining the end date when the contract becomes terminated
-     *
-     * @deprecated replaced with policy implementation
-     */
-    @Deprecated(forRemoval = true)
-    private ZonedDateTime contractEnd;
 
     @NotNull
     public String getId() {
@@ -78,27 +55,6 @@ public class ContractOffer {
         return providerId;
     }
 
-    @Nullable
-    public ZonedDateTime getOfferStart() {
-        return offerStart;
-    }
-
-    @Nullable
-    public ZonedDateTime getOfferEnd() {
-        return offerEnd;
-    }
-
-    @Deprecated
-    @NotNull
-    public ZonedDateTime getContractStart() {
-        return contractStart;
-    }
-
-    @Deprecated
-    @NotNull
-    public ZonedDateTime getContractEnd() {
-        return contractEnd;
-    }
 
     @NotNull
     public String getAssetId() {
@@ -112,7 +68,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, assetId, providerId, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, assetId, providerId);
     }
 
     @Override
@@ -124,9 +80,7 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId) &&
-                Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
-                Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -155,28 +109,6 @@ public class ContractOffer {
 
         public Builder assetId(String assetId) {
             contractOffer.assetId = assetId;
-            return this;
-        }
-
-        public Builder offerStart(ZonedDateTime date) {
-            contractOffer.offerStart = date;
-            return this;
-        }
-
-        public Builder offerEnd(ZonedDateTime date) {
-            contractOffer.offerEnd = date;
-            return this;
-        }
-
-        @Deprecated
-        public Builder contractStart(ZonedDateTime date) {
-            contractOffer.contractStart = date;
-            return this;
-        }
-
-        @Deprecated
-        public Builder contractEnd(ZonedDateTime date) {
-            contractOffer.contractEnd = date;
             return this;
         }
 
