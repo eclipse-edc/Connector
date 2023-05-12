@@ -45,9 +45,11 @@ public class Asset extends Entity {
     private static final String DEPRECATED_PROPERTY_PREFIX = "asset:prop:";
 
     private final Map<String, Object> properties;
+    private final Map<String, Object> privateProperties;
 
     protected Asset() {
         properties = new HashMap<>();
+        privateProperties = new HashMap<>();
     }
 
     @Override
@@ -87,6 +89,19 @@ public class Asset extends Entity {
 
     private String getPropertyAsString(String key) {
         var val = getProperty(key);
+        return val != null ? val.toString() : null;
+    }
+
+    public Map<String, Object> getPrivateProperties() {
+        return privateProperties;
+    }
+
+    public Object getPrivateProperty(String key) {
+        return privateProperties.get(key);
+    }
+
+    private String getPrivatePropertyAsString(String key) {
+        var val = getPrivateProperty(key);
         return val != null ? val.toString() : null;
     }
 
@@ -160,6 +175,16 @@ public class Asset extends Entity {
             return self();
         }
 
+        public B privateProperties(Map<String, Object> privateProperties) {
+            Objects.requireNonNull(privateProperties);
+            entity.privateProperties.putAll(privateProperties);
+            return self();
+        }
+
+        public B privateProperty(String key, Object value) {
+            entity.privateProperties.put(key, value);
+            return self();
+        }
     }
 
 }

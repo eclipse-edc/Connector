@@ -36,12 +36,16 @@ class AssetToAssetResponseDtoTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
-        var asset = Asset.Builder.newInstance().properties(Map.of("key", "value")).build();
+        var asset = Asset.Builder.newInstance()
+                .properties(Map.of("key", "value"))
+                .privateProperties(Map.of("pKey", "pValue"))
+                .build();
 
         var assetDto = transformer.transform(asset, context);
 
         assertThat(assetDto).isNotNull();
         assertThat(assetDto.getProperties()).containsExactlyEntriesOf(asset.getProperties());
+        assertThat(assetDto.getPrivateProperties()).containsExactlyEntriesOf(asset.getPrivateProperties());
         assertThat(assetDto.getCreatedAt()).isEqualTo(asset.getCreatedAt());
         assertThat(assetDto.getId()).isEqualTo(asset.getId());
     }

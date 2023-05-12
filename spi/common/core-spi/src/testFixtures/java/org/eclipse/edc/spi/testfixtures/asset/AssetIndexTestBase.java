@@ -662,7 +662,7 @@ public abstract class AssetIndexTestBase {
                 .build();
     }
 
-    private Asset.Builder createAssetBuilder(String id) {
+    protected Asset.Builder createAssetBuilder(String id) {
         return Asset.Builder.newInstance()
                 .id(id)
                 .createdAt(Clock.systemUTC().millis())
