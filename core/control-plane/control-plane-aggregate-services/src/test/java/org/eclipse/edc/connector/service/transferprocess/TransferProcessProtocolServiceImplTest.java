@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -96,6 +97,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_validAgreement_shouldInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("processId")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -109,6 +111,7 @@ class TransferProcessProtocolServiceImplTest {
         assertThat(result).isSucceeded().satisfies(tp -> {
             assertThat(tp.getCorrelationId()).isEqualTo("processId");
             assertThat(tp.getDataRequest().getConnectorAddress()).isEqualTo("http://any");
+            assertThat(tp.getDataRequest().getAssetId()).isEqualTo("assetId");
         });
         verify(listener).preCreated(any());
         verify(store).updateOrCreate(argThat(t -> t.getState() == INITIAL.code()));
@@ -120,6 +123,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_doNothingIfProcessAlreadyExist() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("processId")
+                .contractId("contractId")
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())

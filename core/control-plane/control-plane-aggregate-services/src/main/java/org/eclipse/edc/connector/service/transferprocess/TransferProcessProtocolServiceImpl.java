@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
@@ -114,6 +115,14 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message) {
+        var contractId = ContractId.parse(message.getContractId());
+        String assetId;
+        if (contractId.isValid()) {
+            assetId = contractId.assetIdPart();
+        } else {
+            assetId = message.getAssetId(); // this is to support IDS protocol, as soon as it gets removed, this can go away
+        }
+
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(message.getProcessId())
                 .protocol(message.getProtocol())
@@ -121,7 +130,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .connectorAddress(message.getCallbackAddress())
                 .dataDestination(message.getDataDestination())
                 .properties(message.getProperties())
-                .assetId(message.getAssetId())
+                .assetId(assetId)
                 .contractId(message.getContractId())
                 .build();
 
