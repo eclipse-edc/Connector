@@ -51,7 +51,8 @@ public interface EdcHttpClient {
      * Accepts a list of {@link FallbackFactories} that could apply retry in particular occasions.
      *
      * @param request the {@link Request}.
-     *                @param mappingFunction the function that will be applied to the {@link Response}.
+     * @param fallbacks a list of fallbacks to be applied.
+     * @param mappingFunction the function that will be applied to the {@link Response}.
      * @return a {@link Result}, containing the object returned by the mappingFunction
      */
     <T> Result<T> execute(Request request, List<FallbackFactory> fallbacks, Function<Response, Result<T>> mappingFunction);
@@ -65,6 +66,18 @@ public interface EdcHttpClient {
      * @param <T> the result value.
      */
     <T> CompletableFuture<T> executeAsync(Request request, Function<Response, T> mappingFunction);
+
+    /**
+     * Executes the specified request asynchronously, maps the response with the mappingFunction.
+     * ccepts a list of {@link FallbackFactories} that could apply retry in particular occasions.
+     *
+     * @param request the {@link Request}.
+     * @param fallbacks a list of fallbacks to be applied.
+     * @param mappingFunction the function that will be applied to the {@link Response}.
+     * @return a {@link CompletableFuture} containing the result value.
+     * @param <T> the result value.
+     */
+    <T> CompletableFuture<T> executeAsync(Request request, List<FallbackFactory> fallbacks, Function<Response, T> mappingFunction);
 
     /**
      * Returns a new client instance with a custom dns server set.
