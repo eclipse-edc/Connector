@@ -366,6 +366,25 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
+     * Returns the {@code @value} of the JSON object.
+     */
+    protected String nodeValue(JsonValue value, TransformerContext context) {
+        if (value instanceof JsonString) {
+            var jsonString = (JsonString) value;
+            return jsonString.getString();
+        } else if (value instanceof JsonObject) {
+            var object = (JsonObject) value;
+            return object.getString(VALUE);
+        } else if (value instanceof JsonArray) {
+            var array = (JsonArray) value;
+            return nodeValue(array.get(0), context);
+        } else {
+            context.reportProblem("Invalid @value property: " + value);
+            return null;
+        }
+    }
+
+    /**
      * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first.
      */
     protected String nodeType(JsonObject object, TransformerContext context) {

@@ -55,7 +55,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
@@ -110,18 +109,14 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     
         private JsonObject visitMultiplicityConstraint(String operandType, MultiplicityConstraint multiplicityConstraint) {
             var constraintsBuilder = jsonFactory.createArrayBuilder();
-            for (Constraint constraint : multiplicityConstraint.getConstraints()) {
+            for (var constraint : multiplicityConstraint.getConstraints()) {
                 Optional.of(constraint)
                         .map(c -> c.accept(this))
                         .ifPresent(constraintsBuilder::add);
             }
-        
-            var operand = jsonFactory.createObjectBuilder()
-                    .add(operandType, constraintsBuilder.build())
-                    .build();
-        
+
             return jsonFactory.createObjectBuilder()
-                    .add(ODRL_OPERAND_ATTRIBUTE, operand)
+                    .add(operandType, constraintsBuilder.build())
                     .build();
         }
 
