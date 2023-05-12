@@ -37,7 +37,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +58,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final PolicyDefinitionStore policyStore;
     private final PolicyEngine policyEngine;
     private final PolicyEquality policyEquality;
-    private final Clock clock;
 
     public ContractValidationServiceImpl(String participantId,
                                          ParticipantAgentService agentService,
@@ -67,8 +65,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                                          AssetIndex assetIndex,
                                          PolicyDefinitionStore policyStore,
                                          PolicyEngine policyEngine,
-                                         PolicyEquality policyEquality,
-                                         Clock clock) {
+                                         PolicyEquality policyEquality) {
         this.participantId = participantId;
         this.agentService = agentService;
         this.contractDefinitionResolver = contractDefinitionResolver;
@@ -76,7 +73,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         this.policyStore = policyStore;
         this.policyEngine = policyEngine;
         this.policyEquality = policyEquality;
-        this.clock = clock;
     }
 
     @Override

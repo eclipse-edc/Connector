@@ -44,15 +44,12 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
 import static java.time.Instant.MIN;
-import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.NEGOTIATION_SCOPE;
@@ -81,7 +78,6 @@ class ContractValidationServiceImplTest {
     private final ContractDefinitionResolver definitionResolver = mock(ContractDefinitionResolver.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
-    private final Clock clock = Clock.fixed(now, UTC);
     private final PolicyEngine policyEngine = mock(PolicyEngine.class);
     private final PolicyEquality policyEquality = mock(PolicyEquality.class);
     private ContractValidationServiceImpl validationService;
@@ -96,7 +92,7 @@ class ContractValidationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        validationService = new ContractValidationServiceImpl(PROVIDER_ID, agentService, definitionResolver, assetIndex, policyStore, policyEngine, policyEquality, clock);
+        validationService = new ContractValidationServiceImpl(PROVIDER_ID, agentService, definitionResolver, assetIndex, policyStore, policyEngine, policyEquality);
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
     }
 
@@ -140,7 +136,6 @@ class ContractValidationServiceImplTest {
         var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
         var originalPolicy = Policy.Builder.newInstance().target("a").build();
         var asset = Asset.Builder.newInstance().id("1").build();
-        var contractDefinition = createContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
 
@@ -478,7 +473,6 @@ class ContractValidationServiceImplTest {
     }
 
     private ContractOffer createContractOffer(Asset asset, Policy policy) {
-        var now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
         return ContractOffer.Builder.newInstance()
                 .id(format("1:%s:3", asset.getId()))
                 .assetId(asset.getId())
