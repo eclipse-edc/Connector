@@ -35,7 +35,6 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 /**
  * Constraint function that evaluates a time-based constraint. That is a constraint that either uses the "inForceDate" operand
  * with a fixed time (ISO-8061 UTC) as:
- * <p>
  * <pre>
  * {
  *   "leftOperand": "edc:inForceDate",
@@ -43,9 +42,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  *   "rightOperand": "2024-01-01T00:00:01Z"
  * }
  * </pre>
- * </p>
  * Alternatively, it is possible to use a duration expression:
- * <p>
  * <pre>
  * {
  *   "leftOperand": "edc:inForceDate",
@@ -53,7 +50,6 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  *   "rightOperand": "contractAgreement+365d"
  * }
  * </pre>
- * </p>
  * following the following schema: {@code <offset> + <numeric value>s|m|h|d} where {@code offset} must be equal to {@code "contractAgreement"}
  * (not case-sensitive) and refers to the signing date of the contract in Epoch seconds. Omitting the {@code offset} is not permitted.
  * The numeric value can have negative values.
@@ -62,9 +58,8 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  *     <li>contractAgreement+15s</li>
  *     <li>contractAgreement+7d</li>
  *     <li>contractAgreement+1h</li>
- *     <li>contractAgreement+-5m</li> means "5 minutes before the signing of the contract"
+ *     <li>contractAgreement+-5m (means "5 minutes before the signing of the contract")</li>
  * </ul>
- * <p>
  * Please note that all {@link Operator}s except {@link Operator#IN} are supported.
  */
 public class ContractExpiryCheckFunction implements AtomicConstraintFunction<Permission> {
