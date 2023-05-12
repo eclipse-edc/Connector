@@ -18,12 +18,13 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_STATE;
@@ -50,30 +51,35 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractNegotiation contractNegotiation, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, contractNegotiation.getCorrelationId());
-        builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION);
-
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, contractNegotiation.getCorrelationId());
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_STATE, state(contractNegotiation.getState(), context));
-
-        return builder.build();
+        return jsonFactory.createObjectBuilder()
+                .add(ID, contractNegotiation.getCorrelationId())
+                .add(TYPE, DSPACE_CONTRACT_NEGOTIATION)
+                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, contractNegotiation.getCorrelationId())
+                .add(DSPACE_NEGOTIATION_PROPERTY_STATE, state(contractNegotiation.getState(), context))
+                .build();
     }
 
     private String state(Integer state, TransformerContext context) {
         switch (ContractNegotiationStates.from(state)) {
+            case REQUESTING:
             case REQUESTED:
                 return DSPACE_NEGOTIATION_STATE_REQUESTED;
+            case OFFERING:
             case OFFERED:
                 return DSPACE_NEGOTIATION_STATE_OFFERED;
+            case ACCEPTING:
             case ACCEPTED:
                 return DSPACE_NEGOTIATION_STATE_ACCEPTED;
+            case AGREEING:
             case AGREED:
                 return DSPACE_NEGOTIATION_STATE_AGREED;
+            case VERIFYING:
             case VERIFIED:
                 return DSPACE_NEGOTIATION_STATE_VERIFIED;
+            case FINALIZING:
             case FINALIZED:
                 return DSPACE_NEGOTIATION_STATE_FINALIZED;
+            case TERMINATING:
             case TERMINATED:
                 return DSPACE_NEGOTIATION_STATE_TERMINATED;
             default:
