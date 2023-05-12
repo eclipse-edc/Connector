@@ -19,10 +19,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
@@ -37,12 +37,13 @@ import java.util.List;
 public interface PolicyDefinitionNewApi {
 
     @Operation(description = "Returns all policy definitions according to a query",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<JsonObject> queryPolicyDefinitions(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> queryPolicyDefinitions(JsonObject querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {
@@ -65,7 +66,7 @@ public interface PolicyDefinitionNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createPolicyDefinition(@Schema(implementation = PolicyDefinitionRequestDto.class) JsonObject policyDefinition);
+    JsonObject createPolicyDefinition(@Schema(implementation = PolicyDefinitionRequestDto.class) JsonObject policyDefinition);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
             "by a contract definition, in which case an error is returned. " +

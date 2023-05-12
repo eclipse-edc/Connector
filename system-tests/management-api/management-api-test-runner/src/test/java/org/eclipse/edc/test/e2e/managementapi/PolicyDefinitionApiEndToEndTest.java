@@ -38,15 +38,21 @@ import static org.hamcrest.Matchers.is;
 @EndToEndTest
 public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
+    private static RequestSpecification baseRequest() {
+        return given()
+                .port(PORT)
+                .basePath("/management/v2/policydefinitions");
+    }
+
     @Test
-    void shouldStorePolicyDefinition()  {
+    void shouldStorePolicyDefinition() {
         var json = getResourceFileContentAsString("policy-definition.json");
         var id = baseRequest()
                 .body(json)
                 .contentType(JSON)
                 .post()
                 .then()
-                .extract().jsonPath().getString("id");
+                .extract().jsonPath().getString(ID);
 
         assertThat(store().findById(id)).isNotNull()
                 .extracting(PolicyDefinition::getPolicy).isNotNull()
@@ -70,7 +76,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .post()
                 .then()
                 .statusCode(200)
-                .extract().jsonPath().getString("id");
+                .extract().jsonPath().getString(ID);
 
         var createdAt = baseRequest()
                 .body(Json.createObjectBuilder().build())
@@ -103,7 +109,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .post()
                 .then()
                 .statusCode(200)
-                .extract().jsonPath().getString("id");
+                .extract().jsonPath().getString(ID);
 
         baseRequest()
                 .contentType(JSON)
@@ -120,12 +126,6 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
     private PolicyDefinitionStore store() {
         return controlPlane.getContext().getService(PolicyDefinitionStore.class);
-    }
-
-    private static RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .basePath("/management/v2/policydefinitions");
     }
 
 }

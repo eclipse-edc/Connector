@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.policy;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
@@ -47,6 +48,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
@@ -56,19 +58,23 @@ class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
     private final PolicyDefinitionService service = mock(PolicyDefinitionService.class);
     private final JsonLd jsonLd = mock(JsonLd.class);
 
-    @Override
-    protected Object controller() {
-        return new PolicyDefinitionNewApiController(monitor, transformerRegistry, service, jsonLd);
-    }
-
     @Test
     void create_shouldReturnDefinitionId() {
         var dto = PolicyDefinitionRequestDto.Builder.newInstance().build();
         var policyDefinition = createPolicyDefinition().id("policyDefinitionId").createdAt(1234).build();
+        var response = Json.createObjectBuilder()
+                .add("id", policyDefinition.getId())
+                .add("createdAt", policyDefinition.getCreatedAt())
+                .build();
+
         when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(transformerRegistry.transform(any(), eq(PolicyDefinitionRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(policyDefinition));
+        when(transformerRegistry.transform(any(IdResponseDto.class), eq(JsonObject.class))).thenReturn(Result.success(response));
+        when(jsonLd.compact(any())).thenReturn(Result.success(response));
+
+
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
@@ -295,10 +301,12 @@ class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
         var dto = PolicyDefinitionResponseDto.Builder.newInstance().id("id").createdAt(1234).build();
         var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         var responseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
         when(transformerRegistry.transform(any(), eq(PolicyDefinitionResponseDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
+        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(jsonLd.compact(any())).thenReturn(Result.success(responseBody));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -326,6 +334,10 @@ class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .add("offset", -1)
                 .build();
 
+        when(jsonLd.expand(any())).thenReturn(Result.success(requestBody));
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.failure("failure"));
+
+
         given()
                 .port(port)
                 .body(requestBody)
@@ -333,13 +345,19 @@ class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .post("/v2/policydefinitions/request")
                 .then()
                 .statusCode(400);
-        verifyNoInteractions(transformerRegistry, service);
+
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
+        verifyNoInteractions(service);
+        verifyNoMoreInteractions(transformerRegistry);
     }
 
     @Test
     void query_shouldReturnBadRequest_whenQuerySpecTransformFails() {
-        when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
+
+        when(jsonLd.expand(any())).thenReturn(Result.success(requestBody));
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.failure("error"));
 
         given()
                 .port(port)
@@ -387,6 +405,11 @@ class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .contentType(JSON)
                 .body("size()", is(0));
+    }
+
+    @Override
+    protected Object controller() {
+        return new PolicyDefinitionNewApiController(monitor, transformerRegistry, service, jsonLd);
     }
 
     @NotNull
