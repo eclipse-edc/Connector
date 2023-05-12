@@ -41,6 +41,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
@@ -57,6 +58,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(OFFERING, this::processOffering))
+                .processor(processNegotiationsInState(REQUESTED, this::processRequested))
                 .processor(processNegotiationsInState(AGREEING, this::processAgreeing))
                 .processor(processNegotiationsInState(VERIFIED, this::processVerified))
                 .processor(processNegotiationsInState(FINALIZING, this::processFinalizing))
@@ -143,6 +145,17 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .onFailure((n, throwable) -> transitionToTerminating(n))
                 .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send rejection");
+    }
+
+    /**
+     * Processes {@link ContractNegotiation} in state REQUESTED. It transitions to AGREEING, because the automatic agreement.
+     *
+     * @return true if processed, false otherwise
+     */
+    @WithSpan
+    private boolean processRequested(ContractNegotiation negotiation) {
+        transitionToAgreeing(negotiation);
+        return true;
     }
 
     /**

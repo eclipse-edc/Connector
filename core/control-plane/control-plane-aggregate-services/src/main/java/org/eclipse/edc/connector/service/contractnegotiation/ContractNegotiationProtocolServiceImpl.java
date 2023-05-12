@@ -65,15 +65,14 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ClaimToken claimToken) {
-        return transactionContext.execute(() ->
-                validateOffer(message, claimToken)
-                        .compose(validatedOffer -> createNegotiation(message, validatedOffer)).onSuccess(negotiation -> {
-                            negotiation.transitionRequested();
-                            monitor.debug(() -> "[Provider] Contract offer received. Will be approved automatically.");
-                            negotiation.transitionAgreeing(); // automatic agree
-                            update(negotiation);
-                            observable.invokeForEach(l -> l.requested(negotiation));
-                        }));
+        return transactionContext.execute(() -> validateOffer(message, claimToken)
+                    .compose(validatedOffer -> createNegotiation(message, validatedOffer))
+                    .onSuccess(negotiation -> {
+                        monitor.debug(() -> "[Provider] Contract offer received.");
+                        negotiation.transitionRequested();
+                        update(negotiation);
+                        observable.invokeForEach(l -> l.requested(negotiation));
+                    }));
     }
 
     @Override

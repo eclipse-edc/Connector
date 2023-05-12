@@ -64,6 +64,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
@@ -125,6 +126,20 @@ class ProviderContractNegotiationManagerImplTest {
             verify(store).save(argThat(p -> p.getState() == OFFERED.code()));
             verify(dispatcherRegistry, only()).send(any(), isA(ContractRequestMessage.class));
             verify(listener).offered(any());
+        });
+    }
+
+    @Test
+    void requested_shouldTransitionToAgreeing() {
+        var negotiation = contractNegotiationBuilder().state(REQUESTED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(REQUESTED.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+
+        negotiationManager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == AGREEING.code()));
+            verifyNoInteractions(dispatcherRegistry);
         });
     }
 
