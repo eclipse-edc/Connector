@@ -657,7 +657,25 @@ components:
             Cannot be null.
           example: null
         dataAddress:
-          $ref: '#/components/schemas/DataAddressDto'
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          example: null
+          properties:
+            empty:
+              type: boolean
+              example: null
+            valueType:
+              type: string
+              enum:
+              - ARRAY
+              - OBJECT
+              - STRING
+              - NUMBER
+              - "TRUE"
+              - "FALSE"
+              - "NULL"
+              example: null
       required:
       - asset
       - dataAddress
@@ -752,6 +770,41 @@ components:
           example: null
         id:
           type: string
+          example: null
+    JsonObject:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/JsonValue'
+      example: null
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+          example: null
+    JsonValue:
+      type: object
+      example: null
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
           example: null
     QuerySpecDto:
       type: object
