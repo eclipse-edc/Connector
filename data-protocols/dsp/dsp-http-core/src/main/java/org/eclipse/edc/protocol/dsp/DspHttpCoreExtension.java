@@ -16,8 +16,10 @@ package org.eclipse.edc.protocol.dsp;
 
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.dispatcher.DspHttpRemoteMessageDispatcherImpl;
+import org.eclipse.edc.protocol.dsp.mapper.DspHttpStatusCodeMapperImpl;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdRemoteMessageSerializerImpl;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -69,6 +71,11 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
         return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(JSON_LD), jsonLdService);
+    }
+
+    @Provider
+    public DspHttpStatusCodeMapper dspHttpStatusCodeMapper() {
+        return new DspHttpStatusCodeMapperImpl();
     }
 
 }

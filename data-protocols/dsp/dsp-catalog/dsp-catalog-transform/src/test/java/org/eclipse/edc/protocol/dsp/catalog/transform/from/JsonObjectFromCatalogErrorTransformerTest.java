@@ -45,12 +45,12 @@ public class JsonObjectFromCatalogErrorTransformerTest {
     }
 
     @Test
-    void transErrorToResponseWithId() {
+    void catalogErrorWithReason() {
         when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
 
-        var transferError = new CatalogError(new InvalidRequestException("testError"));
+        var catalogError = new CatalogError(new InvalidRequestException("testError"));
 
-        var result = transformer.transform(transferError, context);
+        var result = transformer.transform(catalogError, context);
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
@@ -60,12 +60,12 @@ public class JsonObjectFromCatalogErrorTransformerTest {
     }
 
     @Test
-    void transferErrorWithoutReason() {
+    void catalogErrorWithoutReason() {
         when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
 
-        var transferError = new CatalogError(new Exception());
+        var catalogError = new CatalogError(new Exception());
 
-        var result = transformer.transform(transferError, context);
+        var result = transformer.transform(catalogError, context);
 
         assertThat(result).isNotNull();
 

@@ -47,7 +47,7 @@ public class JsonObjectFromContractNegotiationErrorTransformerTest {
     }
 
     @Test
-    void transferErrorToResponseWithId() {
+    void contractNegotiationErrorToResponseWithId() {
         when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
 
         var contractNegotiationError = new ContractNegotiationError(Optional.of("testId"), new InvalidRequestException("testError"));
@@ -63,7 +63,7 @@ public class JsonObjectFromContractNegotiationErrorTransformerTest {
     }
 
     @Test
-    void transferErrorToResponseWithoutId() {
+    void contractNegotiationErrorToResponseWithoutId() {
         when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
 
         var contractNegotiationError = new ContractNegotiationError(Optional.empty(), new InvalidRequestException("testError"));
@@ -78,7 +78,7 @@ public class JsonObjectFromContractNegotiationErrorTransformerTest {
     }
 
     @Test
-    void transferErrorWithoutReason() {
+    void contractNegotiationErrorWithoutReason() {
         when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
 
         var contractNegotiationError = new ContractNegotiationError(Optional.of("testId"), new Exception());

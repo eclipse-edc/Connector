@@ -134,7 +134,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_PREFIX + ":CatalogError");
         assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isEqualTo("400");
         assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
 
@@ -155,7 +155,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_PREFIX + ":CatalogError");
         assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isEqualTo("400");
         assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -173,7 +173,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_PREFIX + ":CatalogError");
         assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isEqualTo("401");
         assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -194,7 +194,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo("dspace:CatalogError");
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_PREFIX + ":CatalogError");
         assertThat(errorObject.getJsonString(DSPACE_PREFIX + ":code").getString()).isNotNull();
         assertThat(errorObject.get(DSPACE_PREFIX + ":reason")).isNotNull();
 

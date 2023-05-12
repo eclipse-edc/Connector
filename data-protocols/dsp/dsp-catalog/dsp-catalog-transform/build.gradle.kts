@@ -22,6 +22,4 @@ dependencies {
     api(project(":extensions:common:json-ld"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":spi:common:web-spi"))
-
-    implementation(libs.bundles.jersey.core)
 }

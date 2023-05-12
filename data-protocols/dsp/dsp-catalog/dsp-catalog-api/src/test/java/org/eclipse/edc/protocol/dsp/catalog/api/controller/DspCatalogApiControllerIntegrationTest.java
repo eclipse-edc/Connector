@@ -30,6 +30,7 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,7 +114,7 @@ class DspCatalogApiControllerIntegrationTest {
     @Test
     void catalogRequest_authenticationFailed_returnUnauthorized() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("error"));
-        when(statusCodeMapper.mapErrorToStatusCode(any(UnsupportedOperationException.class))).thenReturn(501);
+        when(statusCodeMapper.mapErrorToStatusCode(any(AuthenticationFailedException.class))).thenReturn(401);
 
         var result = baseRequest()
                 .body(request)
@@ -123,7 +124,7 @@ class DspCatalogApiControllerIntegrationTest {
                 .statusCode(401)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:CatalogError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":CatalogError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("401");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -149,7 +150,7 @@ class DspCatalogApiControllerIntegrationTest {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:CatalogError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":CatalogError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }

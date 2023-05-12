@@ -24,8 +24,6 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":data-protocols:dsp:dsp-transform"))
 
-    implementation(libs.bundles.jersey.core)
-
     testImplementation(project(":core:common:junit"))
 }
 

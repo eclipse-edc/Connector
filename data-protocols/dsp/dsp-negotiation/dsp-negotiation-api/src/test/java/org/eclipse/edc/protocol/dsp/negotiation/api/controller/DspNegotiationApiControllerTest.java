@@ -277,7 +277,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(501)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("501");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -332,7 +332,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(500)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("500");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -362,7 +362,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(500)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("500");
     }
 
@@ -382,7 +382,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(501)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("501");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -407,7 +407,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(401)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("401");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -436,7 +436,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
     }
@@ -519,7 +519,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("409");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
 
@@ -555,7 +555,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo("dspace:ContractNegotiationError");
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_PREFIX + ":ContractNegotiationError");
         assertThat(result.get(DSPACE_PREFIX + ":code")).isEqualTo("400");
         assertThat(result.get(DSPACE_PREFIX + ":reason")).isNotNull();
 
