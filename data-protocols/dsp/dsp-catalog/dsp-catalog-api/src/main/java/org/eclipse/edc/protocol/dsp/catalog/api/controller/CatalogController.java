@@ -41,7 +41,7 @@ import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.protocol.dsp.transform.util.TypeUtil.isOfExpectedType;
+import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -51,7 +51,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(BASE_PATH)
 public class CatalogController {
-    
+
     private final Monitor monitor;
     private final ObjectMapper mapper;
     private final IdentityService identityService;
@@ -76,7 +76,7 @@ public class CatalogController {
     @Path(CATALOG_REQUEST)
     public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(() -> "DSP: Incoming catalog request.");
-        
+
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();

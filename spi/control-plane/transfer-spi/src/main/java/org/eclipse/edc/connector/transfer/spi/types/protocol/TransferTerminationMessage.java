@@ -31,7 +31,7 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
 
     private String id;
     private String counterPartyAddress;
-    private String protocol;
+    private String protocol = "unknown";
     private String processId;
 
     private String code;
@@ -47,6 +47,12 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    @Override
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
@@ -116,7 +122,6 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
                 message.id = randomUUID().toString();
             }
 
-            Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.processId, "The processId must be specified");
             //TODO add Nullcheck for message.code Issue https://github.com/eclipse-edc/Connector/issues/2810
             return message;

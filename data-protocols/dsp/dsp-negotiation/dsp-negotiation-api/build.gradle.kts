@@ -19,8 +19,9 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-api-configuration"))
+
+    // TODO remove this dependency by moving type constants to another module
     api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform"))
-    api(project(":data-protocols:dsp:dsp-transform"))
 
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:control-plane-spi"))

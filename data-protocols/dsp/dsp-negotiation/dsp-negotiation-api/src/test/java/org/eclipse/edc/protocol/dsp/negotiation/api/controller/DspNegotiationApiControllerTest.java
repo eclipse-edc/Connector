@@ -85,7 +85,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-public class DspNegotiationControllerTest extends RestControllerTestBase {
+public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final IdentityService identityService = mock(IdentityService.class);
@@ -418,7 +418,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspNegotiationController(callbackAddress, identityService, registry, protocolService, jsonLdService, mapper, mock(Monitor.class));
+        return new DspNegotiationApiController(callbackAddress, identityService, registry, protocolService, jsonLdService, mapper, mock(Monitor.class));
     }
 
     private RequestSpecification baseRequest() {

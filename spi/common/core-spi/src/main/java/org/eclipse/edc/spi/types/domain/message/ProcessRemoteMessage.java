@@ -36,4 +36,6 @@ public interface ProcessRemoteMessage extends RemoteMessage {
      */
     @NotNull
     String getProcessId();
+
+    void setProtocol(String protocol);
 }

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transform.util;
+package org.eclipse.edc.jsonld.spi;
 
 import jakarta.json.Json;
 import org.junit.jupiter.api.Assertions;

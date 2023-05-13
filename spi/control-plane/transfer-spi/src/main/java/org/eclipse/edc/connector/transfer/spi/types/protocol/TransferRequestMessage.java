@@ -32,7 +32,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     private String id;
     private String counterPartyAddress;
-    private String protocol;
+    private String protocol = "unknown";
     private String processId;
     private String contractId;
     @Deprecated(forRemoval = true)
@@ -52,6 +52,12 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    @Override
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
@@ -161,7 +167,6 @@ public class TransferRequestMessage implements TransferRemoteMessage {
                 message.id = randomUUID().toString();
             }
 
-            Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.callbackAddress, "The callbackAddress must be specified");
             return message;
         }
