@@ -15,14 +15,24 @@
 package org.eclipse.edc.connector.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+import static java.util.UUID.randomUUID;
+
 public class ContractAgreementVerificationMessage implements ContractRemoteMessage {
 
+    private String id;
     private String protocol;
     private String counterPartyAddress;
     private String processId;
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -35,6 +45,7 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
     }
 
     @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -48,6 +59,11 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            this.message.id = id;
+            return this;
         }
 
         public Builder protocol(String protocol) {
@@ -66,6 +82,10 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
         }
 
         public ContractAgreementVerificationMessage build() {
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
+
             Objects.requireNonNull(message.protocol, "protocol");
             Objects.requireNonNull(message.processId, "processId");
             return message;

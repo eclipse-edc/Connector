@@ -17,16 +17,20 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * The {@link TransferRequestMessage} is sent by a consumer to initiate a transfer process.
  */
 public class TransferRequestMessage implements TransferRemoteMessage {
 
+    private String id;
     private String counterPartyAddress;
     private String protocol;
     private String processId;
@@ -39,6 +43,12 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     private String callbackAddress;
     private Map<String, String> properties = new HashMap<>();
 
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
+
     @Override
     public String getProtocol() {
         return protocol;
@@ -50,6 +60,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     }
 
     @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -91,6 +102,11 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            this.message.id = id;
+            return this;
         }
 
         public Builder processId(String processId) {
@@ -141,6 +157,10 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         }
 
         public TransferRequestMessage build() {
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
+
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.callbackAddress, "The callbackAddress must be specified");
             return message;

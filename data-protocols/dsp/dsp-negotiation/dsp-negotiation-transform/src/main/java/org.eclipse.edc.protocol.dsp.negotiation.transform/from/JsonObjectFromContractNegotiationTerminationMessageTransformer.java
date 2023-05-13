@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
@@ -46,7 +44,7 @@ public class JsonObjectFromContractNegotiationTerminationMessageTransformer exte
     @Override
     public @Nullable JsonObject transform(@NotNull ContractNegotiationTerminationMessage terminationMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(ID, UUID.randomUUID().toString());
+        builder.add(ID, terminationMessage.getId());
         builder.add(TYPE, DSPACE_NEGOTIATION_TERMINATION_MESSAGE);
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, terminationMessage.getProcessId());

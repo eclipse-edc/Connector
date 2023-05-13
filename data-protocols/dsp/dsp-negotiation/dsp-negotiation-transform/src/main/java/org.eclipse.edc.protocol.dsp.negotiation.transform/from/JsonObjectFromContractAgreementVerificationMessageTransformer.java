@@ -23,7 +23,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 
@@ -42,7 +41,7 @@ public class JsonObjectFromContractAgreementVerificationMessageTransformer exten
     @Override
     public @Nullable JsonObject transform(@NotNull ContractAgreementVerificationMessage verificationMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, randomUUID().toString());
+        builder.add(JsonLdKeywords.ID, verificationMessage.getId());
         builder.add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE);
 
         builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, verificationMessage.getProcessId());

@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE;
@@ -44,7 +42,7 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
     public @Nullable JsonObject transform(@NotNull TransferTerminationMessage transferTerminationMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(ID, String.valueOf(UUID.randomUUID()));
+        builder.add(ID, transferTerminationMessage.getId());
         builder.add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
         builder.add(DSPACE_PROCESS_ID, transferTerminationMessage.getProcessId());
         if (transferTerminationMessage.getCode() != null) {

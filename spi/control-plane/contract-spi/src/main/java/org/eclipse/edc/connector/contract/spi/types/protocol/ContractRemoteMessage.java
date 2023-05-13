@@ -14,17 +14,12 @@
 
 package org.eclipse.edc.connector.contract.spi.types.protocol;
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 
 /**
  * A remote message related to the ContractNegotiation context
  */
-public interface ContractRemoteMessage extends RemoteMessage {
+public interface ContractRemoteMessage extends ProcessRemoteMessage {
 
-    /**
-     * Returns the process id.
-     *
-     * @return the processId property.
-     */
-    String getProcessId();
+
 }

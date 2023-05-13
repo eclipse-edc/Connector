@@ -16,15 +16,18 @@ package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.UUID.randomUUID;
 
 /**
  * Object that wraps the contract offer and provides additional information about e.g. protocol and recipient.
  */
 public class ContractRequestMessage implements ContractRemoteMessage {
 
+    private String id;
     private Type type = Type.COUNTER_OFFER;
     private String protocol;
     @Deprecated(forRemoval = true)
@@ -35,6 +38,12 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     private ContractOffer contractOffer;
     private String contractOfferId;
     private String dataSet;
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -52,6 +61,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     }
 
     @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -92,6 +102,11 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            this.contractRequestMessage.id = id;
+            return this;
         }
 
         public Builder protocol(String protocol) {
@@ -141,6 +156,9 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         }
 
         public ContractRequestMessage build() {
+            if (contractRequestMessage.id == null) {
+                contractRequestMessage.id = randomUUID().toString();
+            }
             requireNonNull(contractRequestMessage.protocol, "protocol");
             requireNonNull(contractRequestMessage.processId, "processId");
             if (contractRequestMessage.contractOfferId == null) {

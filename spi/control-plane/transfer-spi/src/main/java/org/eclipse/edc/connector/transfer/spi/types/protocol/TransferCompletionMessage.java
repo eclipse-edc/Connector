@@ -16,8 +16,11 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * The {@link TransferCompletionMessage} is sent by the provider or consumer when asset transfer has completed. Note
@@ -25,10 +28,16 @@ import java.util.Objects;
  * protocol. In those cases, a {@link TransferCompletionMessage} message does not need to be sent.
  */
 public class TransferCompletionMessage implements TransferRemoteMessage {
-
+    private String id;
     private String counterPartyAddress;
     private String protocol;
     private String processId;
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -40,6 +49,8 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
         return counterPartyAddress;
     }
 
+    @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -55,6 +66,11 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            this.message.id = id;
+            return this;
         }
 
         public Builder counterPartyAddress(String address) {
@@ -73,6 +89,10 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
         }
 
         public TransferCompletionMessage build() {
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
+
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;

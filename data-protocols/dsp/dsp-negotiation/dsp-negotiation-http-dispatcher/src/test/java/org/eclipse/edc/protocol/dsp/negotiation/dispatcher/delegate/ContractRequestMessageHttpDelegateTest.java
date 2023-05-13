@@ -34,8 +34,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.UUID;
 
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.CONTRACT_REQUEST;
@@ -142,7 +142,7 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(randomUUID().toString())
                 .assetId("assetId")
                 .policy(policy()).build();
     }
