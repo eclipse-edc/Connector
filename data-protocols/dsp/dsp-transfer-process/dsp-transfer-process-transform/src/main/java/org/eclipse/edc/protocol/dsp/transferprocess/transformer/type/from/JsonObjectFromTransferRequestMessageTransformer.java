@@ -23,8 +23,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACT_AGREEMENT_ID;
@@ -47,7 +45,7 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
     public @Nullable JsonObject transform(@NotNull TransferRequestMessage transferRequestMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
+        builder.add(JsonLdKeywords.ID, transferRequestMessage.getId());
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_REQUEST_TYPE);
 
         builder.add(DSPACE_CONTRACT_AGREEMENT_ID, transferRequestMessage.getContractId());

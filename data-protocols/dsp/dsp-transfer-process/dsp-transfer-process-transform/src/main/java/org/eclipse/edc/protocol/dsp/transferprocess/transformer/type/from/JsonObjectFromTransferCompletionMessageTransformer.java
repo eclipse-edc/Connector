@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
@@ -43,7 +41,7 @@ public class JsonObjectFromTransferCompletionMessageTransformer extends Abstract
     public @Nullable JsonObject transform(@NotNull TransferCompletionMessage transferCompletionMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(ID, String.valueOf(UUID.randomUUID()));
+        builder.add(ID, transferCompletionMessage.getId());
         builder.add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE);
         builder.add(DSPACE_PROCESS_ID, transferCompletionMessage.getProcessId());
 

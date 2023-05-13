@@ -12,22 +12,28 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.spi.types.protocol;
+package org.eclipse.edc.spi.types.domain.message;
 
-import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A remote message related to the TransferProcess context
+ * A remote message that conveys state modifications of a process. These messages are idempotent.
  */
-public interface TransferRemoteMessage extends ProcessRemoteMessage {
+public interface ProcessRemoteMessage extends RemoteMessage {
+
+    /**
+     * Returns the unique message id.
+     *
+     * @return the id;
+     */
+    @NotNull
+    String getId();
 
     /**
      * Returns the process id.
      *
-     * @return the processId property.
+     * @return the processId.
      */
-    @Override
     @NotNull
     String getProcessId();
 }

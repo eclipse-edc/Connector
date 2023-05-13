@@ -56,10 +56,10 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
@@ -113,7 +113,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
     private static ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(randomUUID().toString())
                 .providerId("agentId")
                 .consumerId("agentId")
                 .assetId("assetId")
@@ -133,7 +133,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
     private static ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(String.valueOf(randomUUID()))
                 .assetId("assetId")
                 .policy(policy()).build();
     }
@@ -432,7 +432,7 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
     private ContractNegotiation contractNegotiation() {
         return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(randomUUID().toString())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .correlationId("testId")
                 .counterPartyId("connectorId")

@@ -17,19 +17,29 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * The {@link TransferStartMessage} is sent by the provider to indicate the asset transfer has been initiated.
  */
 public class TransferStartMessage implements TransferRemoteMessage {
 
+    private String id;
     private String counterPartyAddress;
     private String protocol;
     private String processId;
 
     private DataAddress dataAddress;
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -42,6 +52,7 @@ public class TransferStartMessage implements TransferRemoteMessage {
     }
 
     @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -61,6 +72,11 @@ public class TransferStartMessage implements TransferRemoteMessage {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            this.message.id = id;
+            return this;
         }
 
         public Builder counterPartyAddress(String counterPartyAddress) {
@@ -84,6 +100,10 @@ public class TransferStartMessage implements TransferRemoteMessage {
         }
 
         public TransferStartMessage build() {
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
+
             Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;

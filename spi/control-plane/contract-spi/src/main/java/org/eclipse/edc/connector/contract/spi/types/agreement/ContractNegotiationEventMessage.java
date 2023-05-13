@@ -19,12 +19,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class ContractNegotiationEventMessage implements ContractRemoteMessage {
+import static java.util.UUID.randomUUID;
 
+public class ContractNegotiationEventMessage implements ContractRemoteMessage {
+    private String id;
     private String protocol;
     private String counterPartyAddress;
     private String processId;
     private Type type;
+
+    @Override
+    @NotNull
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -37,6 +45,7 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
     }
 
     @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -55,6 +64,11 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            this.message.id = id;
+            return this;
         }
 
         public Builder protocol(String protocol) {
@@ -78,6 +92,9 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
         }
 
         public ContractNegotiationEventMessage build() {
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
             Objects.requireNonNull(message.protocol, "protocol");
             Objects.requireNonNull(message.processId, "processId");
             Objects.requireNonNull(message.type, "type");

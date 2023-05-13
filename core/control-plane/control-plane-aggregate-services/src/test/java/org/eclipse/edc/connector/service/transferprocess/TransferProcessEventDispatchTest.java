@@ -52,9 +52,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.UUID.randomUUID;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.awaitility.Awaitility.await;
@@ -204,7 +204,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(randomUUID().toString())
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
@@ -232,7 +232,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(String.valueOf(randomUUID()))
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
