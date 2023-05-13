@@ -55,6 +55,12 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         this.output = output;
     }
 
+    @NotNull
+    protected static Consumer<JsonValue> doNothing() {
+        return v -> {
+        };
+    }
+
     @Override
     public Class<INPUT> getInputType() {
         return input;
@@ -77,7 +83,6 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     protected JsonObject returnMandatoryJsonObject(@Nullable JsonValue value, TransformerContext context, String propertyName) {
         return returnJsonObject(value, context, propertyName, true);
     }
-
 
     /**
      * Extracts the {@link JsonObject} from the value. If the value is a {@link JsonObject}, it will be returned. If it is a {@link JsonArray}, the first entry will be returned if it is a {@link JsonObject}, otherwise null.
@@ -151,10 +156,31 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                 .forEach(entry -> consumer.apply(entry.getKey()).accept(entry.getValue()));
     }
 
-    @NotNull
-    protected static Consumer<JsonValue> doNothing() {
-        return v -> {
-        };
+    /**
+     * Visit all the elements of the value and apply the result function. If the input value
+     * it's not an array, report an error.
+     *
+     * @param value          The input value
+     * @param resultFunction The function to apply to each element
+     * @param context        the transformer context
+     */
+    protected void visitArray(JsonValue value, Consumer<JsonValue> resultFunction, TransformerContext context) {
+        if (value instanceof JsonArray) {
+            visitArray(value.asJsonArray(), resultFunction);
+        } else {
+            context.reportProblem(format("Invalid JsonValue. Expected JsonArray but got: %s",
+                    ofNullable(value).map(it -> value.toString()).orElse(null)));
+        }
+    }
+
+    /**
+     * Visit all the elements of the value and apply the result function.
+     *
+     * @param array          The input array
+     * @param resultFunction The function to apply to each element
+     */
+    protected void visitArray(JsonArray array, Consumer<JsonValue> resultFunction) {
+        array.forEach(resultFunction);
     }
 
     @Nullable

@@ -15,7 +15,10 @@
 package org.eclipse.edc.api.transformer;
 
 import jakarta.json.Json;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +37,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToCallbackAddressDtoTransformerTest {
 
+    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private JsonObjectToCallbackAddressDtoTransformer transformer;
 
     @BeforeEach
@@ -59,7 +63,7 @@ class JsonObjectToCallbackAddressDtoTransformerTest {
         var genericTransformer = new JsonValueToGenericTypeTransformer(createObjectMapper());
         when(contextMock.transform(any(), eq(String.class))).thenAnswer(a -> genericTransformer.transform(a.getArgument(0), contextMock));
 
-        var cba = transformer.transform(jobj, contextMock);
+        var cba = transformer.transform(jsonLd.expand(jobj).getContent(), contextMock);
 
         assertThat(cba).isNotNull();
         assertThat(cba.getEvents()).containsExactlyInAnyOrder("foo", "bar", "baz");

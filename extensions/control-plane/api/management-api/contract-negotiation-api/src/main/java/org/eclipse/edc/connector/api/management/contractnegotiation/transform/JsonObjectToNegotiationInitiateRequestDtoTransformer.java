@@ -20,21 +20,17 @@ import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.ASSET_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.CONNECTOR_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.CONSUMER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.OFFER;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.OFFER_ID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.POLICY;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.PROTOCOL;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto.PROVIDER_ID;
 
@@ -77,10 +73,7 @@ public class JsonObjectToNegotiationInitiateRequestDtoTransformer extends Abstra
                 builder.callbackAddresses(addresses);
                 break;
             case OFFER:
-                transformString(value.asJsonObject().get(OFFER_ID), contractOfferDesc::offerId, context);
-                transformString(value.asJsonObject().get(ASSET_ID), contractOfferDesc::assetId, context);
-                contractOfferDesc.policy(context.transform(value.asJsonObject().get(POLICY), Policy.class));
-                builder.offer(contractOfferDesc.build());
+                transformArrayOrObject(value, ContractOfferDescription.class, builder::offer, context);
                 break;
             default:
                 context.reportProblem("Cannot convert key " + key + " as it is not known");

@@ -48,14 +48,14 @@ public class JsonObjectToCallbackAddressDtoTransformer extends AbstractJsonLdTra
     private void setProperties(String key, JsonValue value, CallbackAddressDto.Builder builder, TransformerContext context) {
         switch (key) {
             case IS_TRANSACTIONAL:
-                builder.transactional(Boolean.parseBoolean(value.toString()));
+                builder.transactional(transformBoolean(value, context));
                 break;
             case URI:
                 transformString(value, builder::uri, context);
                 break;
             case EVENTS:
                 var evt = new HashSet<String>();
-                transformArrayOrObject(value, String.class, evt::add, context);
+                visitArray(value, v -> evt.add(transformString(v, context)), context);
                 builder.events(evt);
                 break;
             case AUTH_KEY:
