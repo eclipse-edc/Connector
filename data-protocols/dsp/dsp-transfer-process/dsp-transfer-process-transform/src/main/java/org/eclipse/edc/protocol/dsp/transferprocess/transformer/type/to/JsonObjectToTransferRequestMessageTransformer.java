@@ -39,8 +39,6 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
 
-        transferRequestMessageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
-
         visitProperties(messageObject, k -> {
             switch (k) {
                 case DSPACE_PROCESS_ID: return v -> transferRequestMessageBuilder.processId(transformString(v, context));

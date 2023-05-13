@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.to;
 
 import jakarta.json.Json;
-import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferTerminationMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +68,6 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
         assertThat(result).isNotNull();
 
         assertThat(result.getProcessId()).isEqualTo("TestProcessId");
-        assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
         assertThat(result.getReason()).isEqualTo(format("[{\"%sfoo\":[{\"@value\":\"bar\"}]}]", DSPACE_SCHEMA));
         assertThat(result.getCode()).isEqualTo("testCode");
 

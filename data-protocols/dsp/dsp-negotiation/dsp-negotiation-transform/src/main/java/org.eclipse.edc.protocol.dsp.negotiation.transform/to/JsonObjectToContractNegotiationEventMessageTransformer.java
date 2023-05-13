@@ -28,7 +28,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Creates a {@link ContractNegotiationEventMessage} from a {@link JsonObject}.
@@ -43,7 +42,6 @@ public class JsonObjectToContractNegotiationEventMessageTransformer extends Abst
     public @Nullable ContractNegotiationEventMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
 
         var builder = ContractNegotiationEventMessage.Builder.newInstance();
-        builder.protocol(DATASPACE_PROTOCOL_HTTP);
 
         if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
             context.reportProblem(format("ContractNegotiationEventMessage is missing the %s property", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));

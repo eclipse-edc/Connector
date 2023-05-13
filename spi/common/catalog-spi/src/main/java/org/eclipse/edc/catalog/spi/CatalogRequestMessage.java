@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -29,24 +28,20 @@ import java.util.Objects;
 @JsonDeserialize(builder = CatalogRequestMessage.Builder.class)
 public class CatalogRequestMessage implements RemoteMessage {
 
-    private final String protocol;
+    private String protocol = "unknown";
     @Deprecated(forRemoval = true)
-    private final String connectorId;
-    private final String counterPartyAddress;
-    private final QuerySpec querySpec;
-
-    private CatalogRequestMessage(@NotNull String protocol, @NotNull String connectorId, @NotNull String counterPartyAddress,
-                                  @Nullable QuerySpec querySpec) {
-        this.protocol = protocol;
-        this.connectorId = connectorId;
-        this.counterPartyAddress = counterPartyAddress;
-        this.querySpec = querySpec;
-    }
+    private String connectorId;
+    private String counterPartyAddress;
+    private QuerySpec querySpec;
 
     @NotNull
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     @NotNull
@@ -65,24 +60,11 @@ public class CatalogRequestMessage implements RemoteMessage {
         return querySpec;
     }
 
-    public Builder toBuilder() {
-        return new Builder(protocol, connectorId, counterPartyAddress, querySpec);
+    private CatalogRequestMessage() {
     }
 
     public static class Builder {
-        private String protocol;
-        private String connectorId;
-        private String counterPartyAddress;
-        private QuerySpec querySpec;
-
-        private Builder() {}
-
-        private Builder(String protocol, String connectorId, String counterPartyAddress, QuerySpec querySpec) {
-            this.protocol = protocol;
-            this.connectorId = connectorId;
-            this.counterPartyAddress = counterPartyAddress;
-            this.querySpec = querySpec;
-        }
+        private CatalogRequestMessage message;
 
         @JsonCreator
         public static CatalogRequestMessage.Builder newInstance() {
@@ -90,34 +72,39 @@ public class CatalogRequestMessage implements RemoteMessage {
         }
 
         public CatalogRequestMessage.Builder protocol(String protocol) {
-            this.protocol = protocol;
+            this.message.protocol = protocol;
             return this;
         }
 
         @Deprecated
         public CatalogRequestMessage.Builder connectorId(String connectorId) {
-            this.connectorId = connectorId;
+            this.message.connectorId = connectorId;
             return this;
         }
 
         public CatalogRequestMessage.Builder counterPartyAddress(String callbackAddress) {
-            this.counterPartyAddress = callbackAddress;
+            this.message.counterPartyAddress = callbackAddress;
             return this;
         }
 
         public CatalogRequestMessage.Builder querySpec(QuerySpec querySpec) {
-            this.querySpec = querySpec;
+            this.message.querySpec = querySpec;
             return this;
         }
 
         public CatalogRequestMessage build() {
-            Objects.requireNonNull(protocol, "protocol");
+            Objects.requireNonNull(message.protocol, "protocol");
 
-            if (querySpec == null) {
-                querySpec = QuerySpec.none();
+            if (message.querySpec == null) {
+                message.querySpec = QuerySpec.none();
             }
 
-            return new CatalogRequestMessage(protocol, connectorId, counterPartyAddress, querySpec);
+            return message;
         }
+
+        private Builder() {
+            message = new CatalogRequestMessage();
+        }
+
     }
 }

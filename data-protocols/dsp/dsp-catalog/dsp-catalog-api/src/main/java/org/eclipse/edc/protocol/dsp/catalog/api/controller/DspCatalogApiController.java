@@ -42,6 +42,7 @@ import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -50,7 +51,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(BASE_PATH)
-public class CatalogController {
+public class DspCatalogApiController {
 
     private final Monitor monitor;
     private final ObjectMapper mapper;
@@ -60,9 +61,9 @@ public class CatalogController {
     private final CatalogProtocolService service;
     private final JsonLd jsonLdService;
 
-    public CatalogController(Monitor monitor, ObjectMapper mapper, IdentityService identityService,
-                             TypeTransformerRegistry transformerRegistry, String dspCallbackAddress,
-                             CatalogProtocolService service, JsonLd jsonLdService) {
+    public DspCatalogApiController(Monitor monitor, ObjectMapper mapper, IdentityService identityService,
+                                   TypeTransformerRegistry transformerRegistry, String dspCallbackAddress,
+                                   CatalogProtocolService service, JsonLd jsonLdService) {
         this.monitor = monitor;
         this.mapper = mapper;
         this.identityService = identityService;
@@ -96,6 +97,9 @@ public class CatalogController {
         var message = transformerRegistry.transform(expandedJson, CatalogRequestMessage.class)
                 .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
 
+        // set protocol
+        message.setProtocol(DATASPACE_PROTOCOL_HTTP);
+
         var catalog = service.getCatalog(message, claimToken)
                 .orElseThrow(exceptionMapper(Catalog.class));
 
@@ -106,6 +110,7 @@ public class CatalogController {
         if (compacted.failed()) {
             throw new InvalidRequestException(compacted.getFailureDetail());
         }
+        //noinspection unchecked
         return mapper.convertValue(compacted.getContent(), Map.class);
     }
 

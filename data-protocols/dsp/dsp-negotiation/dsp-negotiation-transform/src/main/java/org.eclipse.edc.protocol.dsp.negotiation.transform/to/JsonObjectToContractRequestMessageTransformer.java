@@ -29,7 +29,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Creates a {@link ContractRequestMessage} from a {@link JsonObject}.
@@ -42,7 +41,7 @@ public class JsonObjectToContractRequestMessageTransformer extends AbstractJsonL
 
     @Override
     public @Nullable ContractRequestMessage transform(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
-        var builder = ContractRequestMessage.Builder.newInstance().protocol(DATASPACE_PROTOCOL_HTTP);
+        var builder = ContractRequestMessage.Builder.newInstance();
         if (!transformMandatoryString(requestObject.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
             context.reportProblem(format("No '%s' specified on ContractRequestMessage", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
             return null;

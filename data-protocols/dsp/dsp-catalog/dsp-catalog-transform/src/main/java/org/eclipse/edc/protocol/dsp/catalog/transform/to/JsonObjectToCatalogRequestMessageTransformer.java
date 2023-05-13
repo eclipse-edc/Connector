@@ -27,32 +27,30 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
  */
 public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequestMessage> {
-    
+
     private final ObjectMapper mapper;
-    
+
     public JsonObjectToCatalogRequestMessageTransformer(ObjectMapper mapper) {
         super(JsonObject.class, CatalogRequestMessage.class);
         this.mapper = mapper;
     }
-    
+
     @Override
     public @Nullable CatalogRequestMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = CatalogRequestMessage.Builder.newInstance();
-        builder.protocol(DATASPACE_PROTOCOL_HTTP);
-        
+
         if (object.get(DSPACE_FILTER_PROPERTY) != null) {
             builder.querySpec(transformQuerySpec(object.get(DSPACE_FILTER_PROPERTY), context));
         }
-        
+
         return builder.build();
     }
-    
+
     private QuerySpec transformQuerySpec(JsonValue value, TransformerContext context) {
         if (value instanceof JsonObject) {
             return mapper.convertValue(value, QuerySpec.class);

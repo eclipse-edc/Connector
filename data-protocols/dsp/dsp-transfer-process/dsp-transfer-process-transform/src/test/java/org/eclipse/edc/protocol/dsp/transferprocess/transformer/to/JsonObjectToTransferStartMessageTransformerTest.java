@@ -63,7 +63,6 @@ class JsonObjectToTransferStartMessageTransformerTest {
         assertThat(result).isNotNull();
 
         assertThat(result.getProcessId()).isEqualTo(processId);
-        assertThat(result.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -86,7 +85,6 @@ class JsonObjectToTransferStartMessageTransformerTest {
         assertThat(result).isNotNull();
 
         assertThat(result.getProcessId()).isEqualTo(processId);
-        assertThat(result.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
         assertThat(result.getDataAddress()).isSameAs(dataAddress);
 
         verify(context, never()).reportProblem(anyString());
@@ -105,7 +103,6 @@ class JsonObjectToTransferStartMessageTransformerTest {
         assertThat(result).isNotNull();
 
         assertThat(result.getProcessId()).isEqualTo(processId);
-        assertThat(result.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
         assertThat(result.getDataAddress()).isNull();
 
         verify(context, never()).reportProblem(anyString());

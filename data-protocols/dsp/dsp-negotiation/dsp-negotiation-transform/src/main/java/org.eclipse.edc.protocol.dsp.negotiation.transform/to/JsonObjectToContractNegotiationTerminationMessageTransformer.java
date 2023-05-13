@@ -39,7 +39,6 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
     @Override
     public @Nullable ContractNegotiationTerminationMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractNegotiationTerminationMessage.Builder.newInstance();
-        builder.protocol(DATASPACE_PROTOCOL_HTTP);
 
         transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context);
 

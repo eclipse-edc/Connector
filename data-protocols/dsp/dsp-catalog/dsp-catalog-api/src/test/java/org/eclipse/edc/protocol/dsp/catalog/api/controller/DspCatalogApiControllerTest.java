@@ -49,6 +49,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.service.spi.result.ServiceResult.badRequest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -57,7 +58,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CatalogControllerTest {
+class DspCatalogApiControllerTest {
 
     private final Monitor monitor = mock(Monitor.class);
     private final ObjectMapper mapper = mock(ObjectMapper.class);
@@ -69,7 +70,7 @@ class CatalogControllerTest {
     private final JsonLd jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
     private JsonObject request;
     private CatalogRequestMessage requestMessage;
-    private CatalogController controller;
+    private DspCatalogApiController controller;
 
     private static ClaimToken createToken() {
         return ClaimToken.Builder.newInstance().build();
@@ -81,7 +82,7 @@ class CatalogControllerTest {
         jsonLdService.registerNamespace(DCT_PREFIX, DCT_SCHEMA);
         jsonLdService.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);
         jsonLdService.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
-        controller = new CatalogController(monitor, mapper, identityService, transformerRegistry, callbackAddress, service, jsonLdService);
+        controller = new DspCatalogApiController(monitor, mapper, identityService, transformerRegistry, callbackAddress, service, jsonLdService);
 
         request = Json.createObjectBuilder()
                 .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
@@ -107,6 +108,9 @@ class CatalogControllerTest {
 
         assertThat(response).isEqualTo(responseMap);
         verify(service).getCatalog(requestMessage, token);
+
+        // verify that the message protocol was set to the DSP protocol by the controller
+        assertThat(requestMessage.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
     }
 
     @Test

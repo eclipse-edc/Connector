@@ -34,8 +34,6 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
     public @Nullable TransferCompletionMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferCompletionMessageBuilder = TransferCompletionMessage.Builder.newInstance();
 
-        transferCompletionMessageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
-
         transformString(messageObject.get(DSPACE_PROCESS_ID), transferCompletionMessageBuilder::processId, context);
 
         return transferCompletionMessageBuilder.build();
