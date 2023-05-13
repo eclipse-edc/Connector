@@ -45,6 +45,7 @@ import java.util.Map;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
@@ -56,7 +57,6 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransf
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
-import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -210,7 +210,8 @@ public class DspTransferProcessApiController {
      * the one from the path. Then calls the service method with message and claim token. Will throw
      * an exception if any of the operations fail.
      *
-     * @param messageSpec@return the transfer process returned by the service call
+     * @param messageSpec the message spec
+     * @return the transfer process returned by the service call
      */
     private <M extends TransferRemoteMessage> TransferProcess handleMessage(MessageSpec<M> messageSpec) {
         monitor.debug(() -> format("DSP: Incoming %s for transfer process%s",
