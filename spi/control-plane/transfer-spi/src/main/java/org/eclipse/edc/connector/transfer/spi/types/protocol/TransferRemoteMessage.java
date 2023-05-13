@@ -27,5 +27,7 @@ public interface TransferRemoteMessage extends ProcessRemoteMessage {
      *
      * @return the processId property.
      */
-    @NotNull String getProcessId();
+    @Override
+    @NotNull
+    String getProcessId();
 }
