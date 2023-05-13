@@ -47,7 +47,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_DUTY_ATTRIBUT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
@@ -260,10 +259,8 @@ class JsonObjectFromPolicyTransformerTest {
                 .isNotNull()
                 .hasSize(1);
         
-        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0);
-        var operandJson = constraintJson.asJsonObject().getJsonObject(ODRL_OPERAND_ATTRIBUTE);
-        assertThat(operandJson.asJsonObject().containsKey(ODRL_AND_CONSTRAINT_ATTRIBUTE));
-        assertThat(operandJson.getJsonArray(ODRL_AND_CONSTRAINT_ATTRIBUTE)).hasSize(1);
+        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();
+        assertThat(constraintJson.getJsonArray(ODRL_AND_CONSTRAINT_ATTRIBUTE)).hasSize(1);
     
         verify(context, never()).reportProblem(anyString());
     }
@@ -284,11 +281,9 @@ class JsonObjectFromPolicyTransformerTest {
         assertThat(permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE))
                 .isNotNull()
                 .hasSize(1);
-    
-        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0);
-        var operandJson = constraintJson.asJsonObject().getJsonObject(ODRL_OPERAND_ATTRIBUTE);
-        assertThat(operandJson.asJsonObject().containsKey(ODRL_OR_CONSTRAINT_ATTRIBUTE));
-        assertThat(operandJson.getJsonArray(ODRL_OR_CONSTRAINT_ATTRIBUTE)).hasSize(1);
+
+        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();
+        assertThat(constraintJson.getJsonArray(ODRL_OR_CONSTRAINT_ATTRIBUTE)).hasSize(1);
     
         verify(context, never()).reportProblem(anyString());
     }
@@ -309,11 +304,9 @@ class JsonObjectFromPolicyTransformerTest {
         assertThat(permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE))
                 .isNotNull()
                 .hasSize(1);
-    
-        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0);
-        var operandJson = constraintJson.asJsonObject().getJsonObject(ODRL_OPERAND_ATTRIBUTE);
-        assertThat(operandJson.asJsonObject().containsKey(ODRL_XONE_CONSTRAINT_ATTRIBUTE));
-        assertThat(operandJson.getJsonArray(ODRL_XONE_CONSTRAINT_ATTRIBUTE)).hasSize(1);
+
+        var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();
+        assertThat(constraintJson.getJsonArray(ODRL_XONE_CONSTRAINT_ATTRIBUTE)).hasSize(1);
     
         verify(context, never()).reportProblem(anyString());
     }
