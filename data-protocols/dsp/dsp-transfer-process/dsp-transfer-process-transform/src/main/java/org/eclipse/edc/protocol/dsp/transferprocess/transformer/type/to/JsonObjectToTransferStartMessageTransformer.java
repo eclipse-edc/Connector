@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +34,6 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
     @Override
     public @Nullable TransferStartMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferStartMessageBuilder = TransferStartMessage.Builder.newInstance();
-
-        transferStartMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
         transformString(messageObject.get(DSPACE_PROCESS_ID), transferStartMessageBuilder::processId, context);
 

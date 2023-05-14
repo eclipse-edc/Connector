@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
-class CatalogControllerIntegrationTest {
+class DspCatalogApiControllerIntegrationTest {
 
     private final int dspApiPort = getFreePort();
     private final String dspApiPath = "/api/v1/dsp";

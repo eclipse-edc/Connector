@@ -76,6 +76,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -85,7 +86,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-public class DspNegotiationControllerTest extends RestControllerTestBase {
+public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final IdentityService identityService = mock(IdentityService.class);
@@ -355,6 +356,10 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
+
+        // verify that the message protocol was set to the DSP protocol by the controller
+        assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
+
     }
 
     /**
@@ -390,6 +395,10 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
 
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
+
+        // verify that the message protocol was set to the DSP protocol by the controller
+        assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
+
     }
 
     /**
@@ -414,11 +423,14 @@ public class DspNegotiationControllerTest extends RestControllerTestBase {
                 .post(path)
                 .then()
                 .statusCode(400);
+
+        // verify that the message protocol was set to the DSP protocol by the controller
+        assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
     }
 
     @Override
     protected Object controller() {
-        return new DspNegotiationController(callbackAddress, identityService, registry, protocolService, jsonLdService, mapper, mock(Monitor.class));
+        return new DspNegotiationApiController(callbackAddress, identityService, registry, protocolService, jsonLdService, mapper, mock(Monitor.class));
     }
 
     private RequestSpecification baseRequest() {

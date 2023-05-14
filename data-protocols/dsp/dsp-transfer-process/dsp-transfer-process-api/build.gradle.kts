@@ -22,8 +22,9 @@ dependencies {
     api(project(":extensions:common:http"))
     api(project(":data-protocols:dsp:dsp-api-configuration"))
 
-    implementation(project(":extensions:common:json-ld"))
-    implementation(project(":data-protocols:dsp:dsp-transform"))
+    implementation(project(":spi:common:json-ld-spi"))
+
+    // TODO remove this dependency by moving type constants to another module
     implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
 
     implementation(libs.jakarta.rsApi)

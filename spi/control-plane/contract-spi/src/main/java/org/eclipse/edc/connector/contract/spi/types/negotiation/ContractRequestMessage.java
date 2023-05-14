@@ -19,6 +19,8 @@ import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessa
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 
@@ -29,7 +31,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
     private String id;
     private Type type = Type.COUNTER_OFFER;
-    private String protocol;
+    private String protocol = "unknown";
     @Deprecated(forRemoval = true)
     private String connectorId;
     private String counterPartyAddress;
@@ -48,6 +50,12 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    @Override
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
@@ -159,7 +167,6 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             if (contractRequestMessage.id == null) {
                 contractRequestMessage.id = randomUUID().toString();
             }
-            requireNonNull(contractRequestMessage.protocol, "protocol");
             requireNonNull(contractRequestMessage.processId, "processId");
             if (contractRequestMessage.contractOfferId == null) {
                 requireNonNull(contractRequestMessage.contractOffer, "contractOffer");

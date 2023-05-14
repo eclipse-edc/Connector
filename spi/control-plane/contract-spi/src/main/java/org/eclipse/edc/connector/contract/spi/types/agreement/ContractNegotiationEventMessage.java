@@ -23,7 +23,7 @@ import static java.util.UUID.randomUUID;
 
 public class ContractNegotiationEventMessage implements ContractRemoteMessage {
     private String id;
-    private String protocol;
+    private String protocol = "unknown";
     private String counterPartyAddress;
     private String processId;
     private Type type;
@@ -37,6 +37,12 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    @Override
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
@@ -95,7 +101,6 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
             if (message.id == null) {
                 message.id = randomUUID().toString();
             }
-            Objects.requireNonNull(message.protocol, "protocol");
             Objects.requireNonNull(message.processId, "processId");
             Objects.requireNonNull(message.type, "type");
             return message;

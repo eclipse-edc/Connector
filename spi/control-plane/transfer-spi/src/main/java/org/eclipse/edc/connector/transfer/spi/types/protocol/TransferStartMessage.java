@@ -30,7 +30,7 @@ public class TransferStartMessage implements TransferRemoteMessage {
 
     private String id;
     private String counterPartyAddress;
-    private String protocol;
+    private String protocol = "unknown";
     private String processId;
 
     private DataAddress dataAddress;
@@ -44,6 +44,12 @@ public class TransferStartMessage implements TransferRemoteMessage {
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    @Override
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
@@ -104,7 +110,6 @@ public class TransferStartMessage implements TransferRemoteMessage {
                 message.id = randomUUID().toString();
             }
 
-            Objects.requireNonNull(message.protocol, "The protocol must be specified");
             Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;
         }

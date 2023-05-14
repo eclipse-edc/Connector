@@ -50,7 +50,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
@@ -335,6 +337,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .post(path)
                 .then()
                 .statusCode(204);
+
+        // verify that the message protocol was set to the DSP protocol by the controller
+        assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
 
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);

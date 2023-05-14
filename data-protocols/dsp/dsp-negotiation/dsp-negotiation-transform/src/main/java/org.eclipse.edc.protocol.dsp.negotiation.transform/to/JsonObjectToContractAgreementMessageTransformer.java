@@ -34,7 +34,6 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Creates a {@link ContractAgreementMessage} from a {@link JsonObject}.
@@ -50,7 +49,6 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
     @Override
     public @Nullable ContractAgreementMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var messageBuilder = ContractAgreementMessage.Builder.newInstance();
-        messageBuilder.protocol(DATASPACE_PROTOCOL_HTTP);
         if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), messageBuilder::processId, context)) {
             context.reportProblem(format("No '%s' specified on ContractAgreementMessage", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
             return null;

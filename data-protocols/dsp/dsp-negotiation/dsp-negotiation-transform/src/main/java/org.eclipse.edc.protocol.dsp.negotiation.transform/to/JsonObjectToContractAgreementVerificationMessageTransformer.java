@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Creates a {@link ContractAgreementVerificationMessage} from a {@link JsonObject}.
@@ -37,7 +36,6 @@ public class JsonObjectToContractAgreementVerificationMessageTransformer extends
     @Override
     public @Nullable ContractAgreementVerificationMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractAgreementVerificationMessage.Builder.newInstance();
-        builder.protocol(DATASPACE_PROTOCOL_HTTP);
         if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
             context.reportProblem(format("ContractAgreementVerificationMessage is missing the '%s' property", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
             return null;
