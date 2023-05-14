@@ -17,9 +17,13 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.api.model.CallbackAddressDto;
+import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +57,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToNegotiationInitiateRequestDtoTransformerTest {
 
-
+    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private JsonObjectToNegotiationInitiateRequestDtoTransformer transformer;
 
     @BeforeEach
@@ -79,7 +83,8 @@ class JsonObjectToNegotiationInitiateRequestDtoTransformerTest {
                 .build();
 
         var context = mock(TransformerContext.class);
-        when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(Policy.Builder.newInstance().build());
+        when(context.transform(any(JsonValue.class), eq(ContractOfferDescription.class))).thenReturn(ContractOfferDescription.Builder.newInstance().build());
+
         when(context.transform(any(JsonObject.class), eq(CallbackAddress.class))).thenReturn(CallbackAddress.Builder.newInstance()
                 .uri("http://test.local")
                 .events(Set.of("foo", "bar"))
@@ -90,7 +95,7 @@ class JsonObjectToNegotiationInitiateRequestDtoTransformerTest {
                 .events(Set.of("foo", "bar"))
                 .transactional(true)
                 .build());
-        var dto = transformer.transform(jsonObject, context);
+        var dto = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getCallbackAddresses()).isNotEmpty();
@@ -99,9 +104,7 @@ class JsonObjectToNegotiationInitiateRequestDtoTransformerTest {
         assertThat(dto.getConnectorId()).isEqualTo("test-conn-id");
         assertThat(dto.getProviderId()).isEqualTo("test-provider-id");
         assertThat(dto.getConsumerId()).isEqualTo("test-consumer-id");
-        assertThat(dto.getOffer().getOfferId()).isEqualTo("test-offer-id");
-        assertThat(dto.getOffer().getAssetId()).isEqualTo("test-asset");
-        assertThat(dto.getOffer().getPolicy()).isNotNull();
+        assertThat(dto.getOffer()).isNotNull();
 
     }
 

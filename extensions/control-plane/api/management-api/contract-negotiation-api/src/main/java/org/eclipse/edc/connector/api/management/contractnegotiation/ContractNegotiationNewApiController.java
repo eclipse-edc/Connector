@@ -137,7 +137,8 @@ public class ContractNegotiationNewApiController implements ContractNegotiationN
     @POST
     @Override
     public JsonObject initiateContractNegotiation(JsonObject requestObject) {
-        var contractRequest = transformerRegistry.transform(requestObject, NegotiationInitiateRequestDto.class)
+        var contractRequest = jsonLdService.expand(requestObject)
+                .compose(expanded -> transformerRegistry.transform(expanded, NegotiationInitiateRequestDto.class))
                 .compose(dto -> transformerRegistry.transform(dto, ContractRequest.class))
                 .orElseThrow(InvalidRequestException::new);
 

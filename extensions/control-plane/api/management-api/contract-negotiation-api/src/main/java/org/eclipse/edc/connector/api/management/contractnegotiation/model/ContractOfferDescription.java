@@ -22,7 +22,14 @@ import org.eclipse.edc.policy.model.Policy;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 public class ContractOfferDescription {
+
+    public static final String TYPE = EDC_NAMESPACE + "ContractOfferDescription";
+    public static final String OFFER_ID = EDC_NAMESPACE + "offerId";
+    public static final String ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String POLICY = EDC_NAMESPACE + "policy";
 
     /**
      * Default validity is set to one year.
