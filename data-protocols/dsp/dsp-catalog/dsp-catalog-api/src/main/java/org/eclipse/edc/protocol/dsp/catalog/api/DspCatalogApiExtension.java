@@ -19,9 +19,8 @@ import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
-import org.eclipse.edc.protocol.dsp.catalog.api.controller.CatalogController;
-import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -71,7 +70,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var mapper = typeManager.getMapper(JSON_LD);
         var dspCallbackAddress = apiConfiguration.getDspCallbackAddress();
-        var catalogController = new DspCatalogApiController(context.getMonitor(), mapper, identityService, transformerRegistry, dspCallbackAddress, service, jsonLdService ,statusCodeMapper);
+        var catalogController = new DspCatalogApiController(context.getMonitor(), mapper, identityService, transformerRegistry, dspCallbackAddress, service, jsonLdService, statusCodeMapper);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
 
         dataServiceRegistry.register(DataService.Builder.newInstance()

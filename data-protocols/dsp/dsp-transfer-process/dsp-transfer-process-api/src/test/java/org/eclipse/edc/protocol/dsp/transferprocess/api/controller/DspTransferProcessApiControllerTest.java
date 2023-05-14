@@ -62,7 +62,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transferprocess.api.DspTransferProcessTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
@@ -70,11 +69,12 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_TERMINATION;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
 import static org.hamcrest.Matchers.is;
@@ -165,9 +165,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
-        builder.add(DSPACE_PROCESSID_TYPE, "testID");
-        builder.add(DSPACE_SCHEMA + "code", "501");
-        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+        builder.add(DSPACE_PROCESS_ID, "testID");
+        builder.add(DSPACE_CODE, "501");
+        builder.add(DSPACE_REASON, Json.createArrayBuilder().add("reasonTest"));
 
         return builder.build();
     }
@@ -176,9 +176,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
-        builder.add(DSPACE_PROCESSID_TYPE, "testID");
-        builder.add(DSPACE_SCHEMA + "code", "500");
-        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+        builder.add(DSPACE_PROCESS_ID, "testID");
+        builder.add(DSPACE_CODE, "500");
+        builder.add(DSPACE_REASON, Json.createArrayBuilder().add("reasonTest"));
 
         return builder.build();
     }
@@ -187,9 +187,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
-        builder.add(DSPACE_PROCESSID_TYPE, "testID");
-        builder.add(DSPACE_SCHEMA + "code", "401");
-        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+        builder.add(DSPACE_PROCESS_ID, "testID");
+        builder.add(DSPACE_CODE, "401");
+        builder.add(DSPACE_REASON, Json.createArrayBuilder().add("reasonTest"));
 
         return builder.build();
     }
@@ -198,9 +198,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
-        builder.add(DSPACE_PROCESSID_TYPE, "testID");
-        builder.add(DSPACE_SCHEMA + "code", "400");
-        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+        builder.add(DSPACE_PROCESS_ID, "testID");
+        builder.add(DSPACE_CODE, "400");
+        builder.add(DSPACE_REASON, Json.createArrayBuilder().add("reasonTest"));
 
         return builder.build();
     }
@@ -209,9 +209,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
         var builder = Json.createObjectBuilder();
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
-        builder.add(DSPACE_PROCESSID_TYPE, "testID");
-        builder.add(DSPACE_SCHEMA + "code", "409");
-        builder.add(DSPACE_SCHEMA + "reason", Json.createArrayBuilder().add("reasonTest"));
+        builder.add(DSPACE_PROCESS_ID, "testID");
+        builder.add(DSPACE_CODE, "409");
+        builder.add(DSPACE_REASON, Json.createArrayBuilder().add("reasonTest"));
 
         return builder.build();
     }

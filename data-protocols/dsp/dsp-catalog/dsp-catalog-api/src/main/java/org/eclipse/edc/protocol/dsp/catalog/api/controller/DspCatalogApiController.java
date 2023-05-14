@@ -22,10 +22,13 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.protocol.dsp.catalog.transform.CatalogError;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -60,10 +63,11 @@ public class DspCatalogApiController {
     private final String dspCallbackAddress;
     private final CatalogProtocolService service;
     private final JsonLd jsonLdService;
+    private final DspHttpStatusCodeMapper statusCodeMapper;
 
     public DspCatalogApiController(Monitor monitor, ObjectMapper mapper, IdentityService identityService,
                                    TypeTransformerRegistry transformerRegistry, String dspCallbackAddress,
-                                   CatalogProtocolService service, JsonLd jsonLdService) {
+                                   CatalogProtocolService service, JsonLd jsonLdService, DspHttpStatusCodeMapper statusCodeMapper) {
         this.monitor = monitor;
         this.mapper = mapper;
         this.identityService = identityService;
@@ -71,47 +75,66 @@ public class DspCatalogApiController {
         this.dspCallbackAddress = dspCallbackAddress;
         this.service = service;
         this.jsonLdService = jsonLdService;
+        this.statusCodeMapper = statusCodeMapper;
     }
 
     @POST
     @Path(CATALOG_REQUEST)
-    public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(() -> "DSP: Incoming catalog request.");
 
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
-                .token(token)
-                .build();
+        try {
+            var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                    .token(token)
+                    .build();
 
-        var claimToken = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress)
-                .orElseThrow(failure -> new AuthenticationFailedException());
+            var claimToken = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress)
+                    .orElseThrow(failure -> new AuthenticationFailedException());
 
-        var expanded = jsonLdService.expand(jsonObject);
-        if (expanded.failed()) {
-            throw new InvalidRequestException(expanded.getFailureDetail());
+            var expanded = jsonLdService.expand(jsonObject);
+            if (expanded.failed()) {
+                throw new InvalidRequestException(expanded.getFailureDetail());
+            }
+            var expandedJson = expanded.getContent();
+            if (!isOfExpectedType(expandedJson, DSPACE_CATALOG_REQUEST_TYPE)) {
+                throw new InvalidRequestException(format("Request body was not of expected type: %s", DSPACE_CATALOG_REQUEST_TYPE));
+            }
+
+            var message = transformerRegistry.transform(expandedJson, CatalogRequestMessage.class)
+                    .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
+
+            // set protocol
+            message.setProtocol(DATASPACE_PROTOCOL_HTTP);
+
+            var catalog = service.getCatalog(message, claimToken)
+                    .orElseThrow(exceptionMapper(Catalog.class));
+
+            var catalogJson = transformerRegistry.transform(catalog, JsonObject.class)
+                    .orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
+
+            var compacted = jsonLdService.compact(catalogJson);
+            if (compacted.failed()) {
+                throw new InvalidRequestException(compacted.getFailureDetail());
+            }
+            //noinspection unchecked
+            var result = mapper.convertValue(compacted.getContent(), Map.class);
+
+            return Response.status(Response.Status.OK).entity(result).build();
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new CatalogError(exception), JsonObject.class).getContent();
+            return createResponse(entity, exception);
         }
-        var expandedJson = expanded.getContent();
-        if (!isOfExpectedType(expandedJson, DSPACE_CATALOG_REQUEST_TYPE)) {
-            throw new InvalidRequestException(format("Request body was not of expected type: %s", DSPACE_CATALOG_REQUEST_TYPE));
-        }
 
-        var message = transformerRegistry.transform(expandedJson, CatalogRequestMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
-
-        // set protocol
-        message.setProtocol(DATASPACE_PROTOCOL_HTTP);
-
-        var catalog = service.getCatalog(message, claimToken)
-                .orElseThrow(exceptionMapper(Catalog.class));
-
-        var catalogJson = transformerRegistry.transform(catalog, JsonObject.class)
-                .orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
-
-        var compacted = jsonLdService.compact(catalogJson);
-        if (compacted.failed()) {
-            throw new InvalidRequestException(compacted.getFailureDetail());
-        }
-        //noinspection unchecked
-        return mapper.convertValue(compacted.getContent(), Map.class);
     }
 
+    private Response createResponse(JsonObject jsonEntity, Exception exception) {
+        JsonObject compacted = null;
+        try {
+            compacted = jsonLdService.compact(jsonEntity)
+                    .orElseThrow(failure -> new EdcException("Failed to compact JSON-LD."));
+            return Response.status(statusCodeMapper.mapErrorToStatusCode(exception)).entity(compacted).build();
+        } catch (EdcException e) {
+            return Response.status(500).entity("{\"message\": \"Failed to create response\"").build();
+        }
+    }
 }

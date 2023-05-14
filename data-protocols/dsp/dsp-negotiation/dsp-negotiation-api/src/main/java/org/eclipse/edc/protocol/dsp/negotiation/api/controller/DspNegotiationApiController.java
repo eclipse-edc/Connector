@@ -25,6 +25,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
@@ -34,6 +35,8 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.ContractNegotiationError;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -47,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
@@ -85,6 +89,7 @@ public class DspNegotiationApiController {
     private final ContractNegotiationProtocolService protocolService;
     private final ObjectMapper mapper;
     private final JsonLd jsonLdService;
+    private final DspHttpStatusCodeMapper statusCodeMapper;
 
     public DspNegotiationApiController(String callbackAddress,
                                        IdentityService identityService,
@@ -92,7 +97,8 @@ public class DspNegotiationApiController {
                                        ContractNegotiationProtocolService protocolService,
                                        JsonLd jsonLdService,
                                        ObjectMapper mapper,
-                                       Monitor monitor) {
+                                       Monitor monitor,
+                                       DspHttpStatusCodeMapper statusCodeMapper) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
@@ -100,6 +106,7 @@ public class DspNegotiationApiController {
         this.transformerRegistry = transformerRegistry;
         this.mapper = mapper;
         this.jsonLdService = jsonLdService;
+        this.statusCodeMapper = statusCodeMapper;
     }
 
     /**
@@ -107,12 +114,19 @@ public class DspNegotiationApiController {
      *
      * @param id    of contract negotiation.
      * @param token identity token.
+     * @return {@link Response} ErrorResponse
      */
     @GET
     @Path("{id}")
-    public Map<String, Object> getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        checkAndReturnAuthToken(token);
-        throw new UnsupportedOperationException("Currently not supported.");
+    public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            checkAndReturnAuthToken(token);
+            throw new UnsupportedOperationException("Currently not supported.");
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.empty(), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -120,27 +134,34 @@ public class DspNegotiationApiController {
      *
      * @param jsonObject dspace:ContractRequestMessage sent by a consumer.
      * @param token      identity token.
+     * @return {@link Response} ContractNegotiation or ErrorResponse
      */
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
-    public Map<String, Object> initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
-                                                   JsonObject jsonObject,
-                                                   @HeaderParam(AUTHORIZATION) String token) {
+    public Response initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
+                                        JsonObject jsonObject,
+                                        @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            var negotiation = handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(this::validateAndProcessRequest)
+                    .build());
 
-        var negotiation = handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(this::validateAndProcessRequest)
-                .build());
+            var result = transformerRegistry.transform(negotiation, JsonObject.class)
+                    .orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
 
-        var result = transformerRegistry.transform(negotiation, JsonObject.class)
-                .orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
+            var compactResult = jsonLdService.compact(result);
 
-        var compactResult = jsonLdService.compact(result);
+            //noinspection unchecked
+            var entity = compactResult.map(jo -> mapper.convertValue(jo, Map.class)).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+            return Response.status(Response.Status.OK).entity(entity).build();
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.empty(), exception), JsonObject.class).getContent();
 
-        //noinspection unchecked
-        return compactResult.map(jo -> mapper.convertValue(jo, Map.class)).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -149,21 +170,29 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractRequestMessage sent by a consumer.
      * @param token      identity token.
+     * @return {@link Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
-    public void consumerOffer(@PathParam("id") String id,
-                              @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
-                              JsonObject jsonObject,
-                              @HeaderParam(AUTHORIZATION) String token) {
+    public Response consumerOffer(@PathParam("id") String id,
+                                  @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
+                                  JsonObject jsonObject,
+                                  @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyRequested)
+                    .build());
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyRequested)
-                .build());
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -172,22 +201,29 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractNegotiationEventMessage sent by consumer or provider.
      * @param token      identity token.
+     * @return {@link Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + EVENT)
-    public void createEvent(@PathParam("id") String id,
-                            @RequestBody(description = DSPACE_NEGOTIATION_EVENT_MESSAGE, required = true)
-                            JsonObject jsonObject,
-                            @HeaderParam(AUTHORIZATION) String token) {
+    public Response createEvent(@PathParam("id") String id,
+                                @RequestBody(description = DSPACE_NEGOTIATION_EVENT_MESSAGE, required = true)
+                                JsonObject jsonObject,
+                                @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationEventMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(this::dispatchEventMessage)
+                    .build());
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationEventMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_EVENT_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(this::dispatchEventMessage)
-                .build());
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.of(id), exception), JsonObject.class).getContent();
 
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -196,21 +232,30 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractAgreementVerificationMessage sent by a consumer.
      * @param token      identity token.
+     * @return {@link Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + AGREEMENT + VERIFICATION)
-    public void verifyAgreement(@PathParam("id") String id,
-                                @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true)
-                                JsonObject jsonObject,
-                                @HeaderParam(AUTHORIZATION) String token) {
+    public Response verifyAgreement(@PathParam("id") String id,
+                                    @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true)
+                                    JsonObject jsonObject,
+                                    @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractAgreementVerificationMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyVerified)
+                    .build());
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractAgreementVerificationMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyVerified)
-                .build());
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
+
     }
 
     /**
@@ -219,21 +264,29 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractNegotiationTerminationMessage sent by consumer or provider.
      * @param token      identity token.
+     * @return {@link Response} Empty Success Response or ErrorResponse
      */
     @POST
     @Path("{id}" + TERMINATION)
-    public void terminateNegotiation(@PathParam("id") String id,
+    public Response terminateNegotiation(@PathParam("id") String id,
                                      @RequestBody(description = DSPACE_NEGOTIATION_TERMINATION_MESSAGE, required = true)
                                      JsonObject jsonObject,
                                      @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationTerminationMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyTerminated)
+                    .build());
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationTerminationMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyTerminated)
-                .build());
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -242,18 +295,25 @@ public class DspNegotiationApiController {
      * @param id    of contract negotiation.
      * @param body  dspace:ContractOfferMessage sent by a provider.
      * @param token identity token.
+     * @return {@link Response} ErrorResponse
      */
     @POST
     @Path("{id}" + CONTRACT_OFFER)
-    public void providerOffer(@PathParam("id") String id,
+    public Response providerOffer(@PathParam("id") String id,
                               @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE, required = true)
                               JsonObject body,
                               @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(() -> format("DSP: Incoming ContractOfferMessage for process %s", id));
 
-        checkAndReturnAuthToken(token);
+        try {
+            checkAndReturnAuthToken(token);
 
-        throw new UnsupportedOperationException("Currently not supported.");
+            throw new UnsupportedOperationException("Currently not supported.");
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -262,21 +322,28 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractAgreementMessage sent by a provider.
      * @param token      identity token.
+     * @return {@link Response} Empty Response or ErrorResponse
      */
     @POST
     @Path("{id}" + AGREEMENT)
-    public void createAgreement(@PathParam("id") String id,
+    public Response createAgreement(@PathParam("id") String id,
                                 @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, required = true)
                                 JsonObject jsonObject,
                                 @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractAgreementMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyAgreed)
+                    .build());
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = transformerRegistry.transform(new ContractNegotiationError(Optional.of(id), exception), JsonObject.class).getContent();
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractAgreementMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyAgreed)
-                .build());
+            return createResponse(entity, exception);
+        }
     }
 
     private <M extends ContractRemoteMessage> ContractNegotiation handleMessage(MessageSpec<M> messageSpec) {
@@ -342,4 +409,14 @@ public class DspNegotiationApiController {
         }
     }
 
+    private Response createResponse(JsonObject jsonEntity, Exception exception) {
+        JsonObject compacted = null;
+        try {
+            compacted = jsonLdService.compact(jsonEntity)
+                    .orElseThrow(failure -> new EdcException("Failed to compact JSON-LD."));
+            return Response.status(statusCodeMapper.mapErrorToStatusCode(exception)).entity(compacted).build();
+        } catch (EdcException e) {
+            return Response.status(500).entity("{\"message\": \"Failed to create response\"").build();
+        }
+    }
 }

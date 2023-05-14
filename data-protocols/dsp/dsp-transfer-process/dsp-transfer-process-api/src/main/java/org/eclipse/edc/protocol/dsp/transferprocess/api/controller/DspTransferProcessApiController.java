@@ -24,6 +24,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -32,6 +33,8 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
+import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -42,6 +45,7 @@ import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
@@ -75,6 +79,7 @@ public class DspTransferProcessApiController {
     private final IdentityService identityService;
     private final String dspCallbackAddress;
     private final JsonLd jsonLdService;
+    private final DspHttpStatusCodeMapper statusCodeMapper;
 
     public DspTransferProcessApiController(Monitor monitor,
                                            ObjectMapper mapper,
@@ -82,7 +87,8 @@ public class DspTransferProcessApiController {
                                            TransferProcessProtocolService protocolService,
                                            IdentityService identityService,
                                            String dspCallbackAddress,
-                                           JsonLd jsonLdService) {
+                                           JsonLd jsonLdService,
+                                           DspHttpStatusCodeMapper statusCodeMapper) {
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.registry = registry;
@@ -90,6 +96,7 @@ public class DspTransferProcessApiController {
         this.identityService = identityService;
         this.dspCallbackAddress = dspCallbackAddress;
         this.jsonLdService = jsonLdService;
+        this.statusCodeMapper = statusCodeMapper;
     }
 
     /**
@@ -100,10 +107,16 @@ public class DspTransferProcessApiController {
      */
     @GET
     @Path("/{id}")
-    public JsonObject getTransferProcess(@PathParam("id") String id) {
+    public Response getTransferProcess(@PathParam("id") String id) {
         monitor.debug(() -> format("DSP: Incoming request for transfer process with id %s", id));
 
-        throw new UnsupportedOperationException("Getting a transfer process not yet supported.");
+        try {
+            throw new UnsupportedOperationException("Getting a transfer process not yet supported.");
+        } catch (Exception exception) {
+            var entity = registry.transform(new TransferError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -115,21 +128,29 @@ public class DspTransferProcessApiController {
      */
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
-    public Map<String, Object> initiateTransferProcess(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var transferProcessResponse = handleMessage(MessageSpec.Builder.newInstance(TransferRequestMessage.class)
-                .expectedMessageType(DSPACE_TRANSFER_PROCESS_REQUEST_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyRequested)
-                .build());
+    public Response initiateTransferProcess(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            var transferProcessResponse = handleMessage(MessageSpec.Builder.newInstance(TransferRequestMessage.class)
+                    .expectedMessageType(DSPACE_TRANSFER_PROCESS_REQUEST_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyRequested)
+                    .build());
 
-        var transferProcessJson = registry.transform(transferProcessResponse, JsonObject.class)
-                .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
+            var transferProcessJson = registry.transform(transferProcessResponse, JsonObject.class)
+                    .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
 
-        var compacted = jsonLdService.compact(transferProcessJson);
+            var compacted = jsonLdService.compact(transferProcessJson);
 
-        //noinspection unchecked
-        return compacted.map(jo -> mapper.convertValue(jo, Map.class)).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+            //noinspection unchecked
+            var entity = compacted.map(jo -> mapper.convertValue(jo, Map.class)).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+
+            return Response.status(Response.Status.OK).entity(entity).build();
+        } catch (Exception exception) {
+            var entity = registry.transform(new TransferError(Optional.empty(), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -142,14 +163,22 @@ public class DspTransferProcessApiController {
      */
     @POST
     @Path("{id}" + TRANSFER_START)
-    public void transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        handleMessage(MessageSpec.Builder.newInstance(TransferStartMessage.class)
-                .processId(id)
-                .expectedMessageType(DSPACE_TRANSFER_START_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyStarted)
-                .build());
+    public Response transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(TransferStartMessage.class)
+                    .processId(id)
+                    .expectedMessageType(DSPACE_TRANSFER_START_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyStarted)
+                    .build());
+
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = registry.transform(new TransferError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -162,14 +191,22 @@ public class DspTransferProcessApiController {
      */
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
-    public void transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        handleMessage(MessageSpec.Builder.newInstance(TransferCompletionMessage.class)
-                .processId(id)
-                .expectedMessageType(DSPACE_TRANSFER_COMPLETION_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyCompleted)
-                .build());
+    public Response transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(TransferCompletionMessage.class)
+                    .processId(id)
+                    .expectedMessageType(DSPACE_TRANSFER_COMPLETION_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyCompleted)
+                    .build());
+
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = registry.transform(new TransferError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -182,14 +219,22 @@ public class DspTransferProcessApiController {
      */
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
-    public void transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        handleMessage(MessageSpec.Builder.newInstance(TransferTerminationMessage.class)
-                .processId(id)
-                .expectedMessageType(DSPACE_TRANSFER_TERMINATION_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyTerminated)
-                .build());
+    public Response transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(TransferTerminationMessage.class)
+                    .processId(id)
+                    .expectedMessageType(DSPACE_TRANSFER_TERMINATION_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyTerminated)
+                    .build());
+
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception exception) {
+            var entity = registry.transform(new TransferError(Optional.of(id), exception), JsonObject.class).getContent();
+
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -201,10 +246,15 @@ public class DspTransferProcessApiController {
      */
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
-    public void transferProcessSuspension(@PathParam("id") String id) {
+    public Response transferProcessSuspension(@PathParam("id") String id) {
         monitor.debug(() -> format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
+        try {
+            throw new UnsupportedOperationException("Suspension not yet supported.");
+        } catch (Exception exception) {
+            var entity = registry.transform(new TransferError(Optional.of(id), exception), JsonObject.class).getContent();
 
-        throw new UnsupportedOperationException("Suspension not yet supported.");
+            return createResponse(entity, exception);
+        }
     }
 
     /**
@@ -264,4 +314,14 @@ public class DspTransferProcessApiController {
         }
     }
 
+    private Response createResponse(JsonObject jsonEntity, Exception exception) {
+        JsonObject compacted = null;
+        try {
+            compacted = jsonLdService.compact(jsonEntity)
+                    .orElseThrow(failure -> new EdcException("Failed to compact JSON-LD."));
+            return Response.status(statusCodeMapper.mapErrorToStatusCode(exception)).entity(compacted).build();
+        } catch (EdcException e) {
+            return Response.status(500).entity("{\"message\": \"Failed to create response\"").build();
+        }
+    }
 }

@@ -24,9 +24,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CODE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_REASON;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 
 public class JsonObjectFromTransferErrorTransformer extends AbstractJsonLdTransformer<TransferError, JsonObject> {
@@ -45,15 +45,15 @@ public class JsonObjectFromTransferErrorTransformer extends AbstractJsonLdTransf
 
         builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFER_PROCESS_ERROR);
 
-        error.getProcessId().map(e -> builder.add(DSPACE_PROCESSID_TYPE, e))
-                .orElseGet(() -> builder.add(DSPACE_PROCESSID_TYPE, "InvalidId"));
+        error.getProcessId().map(e -> builder.add(DSPACE_PROCESS_ID, e))
+                .orElseGet(() -> builder.add(DSPACE_PROCESS_ID, "InvalidId"));
 
         var exception = error.getException();
 
-        builder.add(DSPACE_CODE_TYPE, String.valueOf(statusCodeMapper.mapErrorToStatusCode(exception)));
+        builder.add(DSPACE_CODE, String.valueOf(statusCodeMapper.mapErrorToStatusCode(exception)));
 
         if (exception.getMessage() != null) {
-            builder.add(DSPACE_REASON_TYPE, Json.createArrayBuilder().add(exception.getMessage()));
+            builder.add(DSPACE_REASON, Json.createArrayBuilder().add(exception.getMessage()));
         }
 
         return builder.build();
