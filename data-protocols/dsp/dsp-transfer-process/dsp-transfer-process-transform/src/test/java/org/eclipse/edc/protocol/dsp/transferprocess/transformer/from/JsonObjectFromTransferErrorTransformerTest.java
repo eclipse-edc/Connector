@@ -19,7 +19,6 @@ import org.eclipse.edc.protocol.dsp.spi.mapper.DspHttpStatusCodeMapper;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.TransferError;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferErrorTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +26,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -48,31 +47,31 @@ public class JsonObjectFromTransferErrorTransformerTest {
 
     @Test
     void transferErrorToResponseWithId() {
-        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
 
-        var transferError = new TransferError(Optional.of("testId"), new InvalidRequestException("testError"));
+        var transferError = new TransferError(Optional.of("testId"), new Exception("testError"));
 
         var result = transformer.transform(transferError, context);
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("testId");
-        assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
+        assertThat(result.getJsonString(DSPACE_PROCESS_ID).getString()).isEqualTo("testId");
+        assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("500");
         assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
     @Test
     void transferErrorToResponseWithoutId() {
-        when(statusCodeMapper.mapErrorToStatusCode(any(InvalidRequestException.class))).thenReturn(400);
+        when(statusCodeMapper.mapErrorToStatusCode(any(Exception.class))).thenReturn(500);
 
-        var transferError = new TransferError(Optional.empty(), new InvalidRequestException("testError"));
+        var transferError = new TransferError(Optional.empty(), new Exception("testError"));
 
         var result = transformer.transform(transferError, context);
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("InvalidId");
-        assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("400");
+        assertThat(result.getJsonString(DSPACE_PROCESS_ID).getString()).isEqualTo("InvalidId");
+        assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("500");
         assertThat(result.get(DSPACE_SCHEMA + "reason")).isNotNull();
     }
 
@@ -86,7 +85,7 @@ public class JsonObjectFromTransferErrorTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_ERROR);
-        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo("testId");
+        assertThat(result.getJsonString(DSPACE_PROCESS_ID).getString()).isEqualTo("testId");
         assertThat(result.getJsonString(DSPACE_SCHEMA + "code").getString()).isEqualTo("500");
         assertThat(result.containsKey(DSPACE_SCHEMA + "reason")).isFalse();
     }
