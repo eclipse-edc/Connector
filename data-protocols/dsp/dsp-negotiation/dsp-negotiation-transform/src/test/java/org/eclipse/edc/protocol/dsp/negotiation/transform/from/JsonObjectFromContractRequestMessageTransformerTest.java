@@ -77,6 +77,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
         assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_DATASET).getString()).isEqualTo(DATASET_ID);
         assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
         assertThat(result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER)).isNotNull();
+        assertThat(result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
 
         verify(context, never()).reportProblem(anyString());
     }

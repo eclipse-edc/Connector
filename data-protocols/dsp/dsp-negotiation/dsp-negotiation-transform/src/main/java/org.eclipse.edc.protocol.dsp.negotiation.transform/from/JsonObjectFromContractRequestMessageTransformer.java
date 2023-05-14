@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 
+import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
@@ -23,6 +24,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_DATASET;
@@ -62,7 +64,11 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
                 context.reportProblem("Cannot transform from ContractRequestMessage policy");
                 return null;
             }
-            builder.add(DSPACE_NEGOTIATION_PROPERTY_OFFER, policy);
+
+            var enrichedPolicy = Json.createObjectBuilder(policy)
+                    .add(ID, requestMessage.getContractOffer().getId())
+                    .build();
+            builder.add(DSPACE_NEGOTIATION_PROPERTY_OFFER, enrichedPolicy);
 
         } else {
             builder.add(DSPACE_NEGOTIATION_PROPERTY_OFFER_ID, requestMessage.getContractOfferId());

@@ -90,4 +90,9 @@ public final class ContractId {
     private String[] parseContractId(@NotNull String id) {
         return id.split(DELIMITER);
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

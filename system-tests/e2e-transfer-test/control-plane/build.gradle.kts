@@ -19,7 +19,7 @@ plugins {
 dependencies {
     implementation(project(":core:common:jwt-core"))
     implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:dsp"))
     implementation(project(":extensions:common:vault:vault-filesystem"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))

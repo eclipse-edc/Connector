@@ -386,9 +386,25 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     /**
      * Returns the {@code @id} of the JSON object.
      */
-    protected String nodeId(JsonObject object) {
-        var id = object.get(ID);
-        return id instanceof JsonString ? ((JsonString) id).getString() : null;
+    protected String nodeId(JsonValue object) {
+        if (object instanceof JsonArray) {
+            return nodeId(object.asJsonArray().get(0));
+        } else {
+            var id = object.asJsonObject().get(ID);
+            return id instanceof JsonString ? ((JsonString) id).getString() : null;
+        }
+    }
+
+    /**
+     * Returns the @value of the JSON object.
+     */
+    protected String nodeValue(JsonValue object) {
+        if (object instanceof JsonArray) {
+            return nodeValue(object.asJsonArray().get(0));
+        } else {
+            var value = object.asJsonObject().get(VALUE);
+            return value instanceof JsonString ? ((JsonString) value).getString() : null;
+        }
     }
 
     /**

@@ -126,7 +126,7 @@ public class TransferProcessNewApiController implements TransferProcessNewApi {
                 .orElseThrow(InvalidRequestException::new);
 
         var createdTransfer = service.initiateTransfer(transferRequest)
-                .onSuccess(d -> monitor.debug(format("Policy Definition created %s", d.getId())))
+                .onSuccess(d -> monitor.debug(format("Transfer Process created %s", d.getId())))
                 .orElseThrow(it -> mapToException(it, TransferProcess.class));
 
         var responseDto = IdResponseDto.Builder.newInstance()

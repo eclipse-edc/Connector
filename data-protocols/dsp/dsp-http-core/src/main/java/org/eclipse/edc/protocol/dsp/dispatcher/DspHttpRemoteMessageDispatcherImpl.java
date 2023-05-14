@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBe;
+import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBeSuccessful;
 
 /**
  * Dispatches remote messages using the dataspace protocol. Uses {@link DspHttpDispatcherDelegate}s
@@ -90,7 +90,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
                 .header("Authorization", token.getToken())
                 .build();
 
-        return httpClient.executeAsync(requestWithAuth, List.of(statusMustBe(200)), delegate.parseResponse());
+        return httpClient.executeAsync(requestWithAuth, List.of(statusMustBeSuccessful()), delegate.parseResponse());
     }
 
 }

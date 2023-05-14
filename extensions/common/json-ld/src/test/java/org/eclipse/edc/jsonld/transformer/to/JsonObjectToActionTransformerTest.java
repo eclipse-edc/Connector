@@ -30,6 +30,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
@@ -46,8 +47,8 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToActionTransformerTest {
 
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock(TransformerContext.class);
 
     private JsonObjectToActionTransformer transformer;
 
@@ -61,6 +62,22 @@ class JsonObjectToActionTransformerTest {
         var action = jsonFactory.createObjectBuilder().add(ODRL_ACTION_TYPE_ATTRIBUTE, "USE").build();
 
         var result = transformer.transform(getExpanded(action), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo("USE");
+        assertThat(result.getIncludedIn()).isNull();
+        assertThat(result.getConstraint()).isNull();
+
+        verifyNoInteractions(context);
+    }
+
+    @Test
+    void transform_onlyActionAttribute_returnAction() {
+        var actionContainer = jsonFactory.createObjectBuilder().add(ODRL_ACTION_ATTRIBUTE, "USE").build();
+        var expanded = getExpanded(actionContainer);
+        var action = expanded.getJsonArray(ODRL_ACTION_ATTRIBUTE).get(0).asJsonObject();
+
+        var result = transformer.transform(action, context);
 
         assertThat(result).isNotNull();
         assertThat(result.getType()).isEqualTo("USE");

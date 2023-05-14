@@ -23,6 +23,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
@@ -39,7 +41,8 @@ public class JsonObjectToActionTransformer extends AbstractJsonLdTransformer<Jso
     @Override
     public @Nullable Action transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Action.Builder.newInstance();
-        builder.type(nodeId(object));
+        var type = Optional.ofNullable(nodeId(object)).orElseGet(() -> nodeValue(object));
+        builder.type(type);
         visitProperties(object, (key, value) -> transformProperties(key, value, builder, context));
         return builderResult(builder::build, context);
     }

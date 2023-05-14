@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static java.time.Instant.ofEpochSecond;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
@@ -64,14 +65,14 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
         // add the consumer id, provider id, and signing timestamp to the agreement
         var signing = ofEpochSecond(agreement.getContractSigningDate()).toString();
 
-        var copiedPolicy = Json.createObjectBuilder();
-        policy.forEach(copiedPolicy::add);
-        policy = copiedPolicy.add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, agreement.getConsumerId())
+        var copiedPolicy = Json.createObjectBuilder(policy)
+                .add(ID, agreement.getId())
+                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, agreement.getConsumerId())
                 .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, agreement.getProviderId())
                 .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, signing)
                 .build();
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, policy);
+        builder.add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, copiedPolicy);
 
         return builder.build();
     }
