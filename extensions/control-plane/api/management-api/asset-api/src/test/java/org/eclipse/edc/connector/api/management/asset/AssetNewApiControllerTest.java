@@ -107,11 +107,14 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(ServiceResult.success(Stream.of(Asset.Builder.newInstance().build())));
         when(transformerRegistry.transform(isA(Asset.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(createAssetJson().build()));
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpecDto.class)))
+                .thenReturn(Result.success(QuerySpecDto.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
 
         baseRequest()
                 .contentType(JSON)
+                .body("{}")
                 .post("/assets/request")
                 .then()
                 .log().ifError()
@@ -143,6 +146,10 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestAsset_shouldReturnBadRequest_whenQueryIsInvalid() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
+        when(service.query(any())).thenReturn(ServiceResult.badRequest("test-message"));
+
         baseRequest()
                 .body(Map.of("offset", -1))
                 .contentType(JSON)
@@ -153,12 +160,14 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestAsset_shouldReturnBadRequest_whenQueryTransformFails() {
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.failure("error"));
         when(service.query(any())).thenReturn(ServiceResult.success());
 
         baseRequest()
                 .contentType(JSON)
+                .body("{}")
                 .post("/assets/request")
                 .then()
                 .statusCode(400);
@@ -223,8 +232,9 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     void createAsset() {
         var assetEntry = createAssetEntryDto();
         var asset = createAssetBuilder().build();
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(Asset.class))).thenReturn(Result.success(asset));
-        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
+        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        var assetEntryDto = AssetEntryNewDto.Builder.newInstance().asset(asset).dataAddress(dataAddress).build();
+        when(transformerRegistry.transform(any(JsonObject.class), eq(AssetEntryNewDto.class))).thenReturn(Result.success(assetEntryDto));
         when(service.create(any(), any())).thenReturn(ServiceResult.success(asset));
 
         baseRequest()
@@ -237,8 +247,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
                 .body(ID, is(TEST_ASSET_ID))
                 .body("'" + EDC_NAMESPACE + "createdAt'", greaterThan(0L));
 
-        verify(transformerRegistry).transform(any(), eq(Asset.class));
-        verify(transformerRegistry).transform(any(), eq(DataAddress.class));
+        verify(transformerRegistry).transform(any(), eq(AssetEntryNewDto.class));
         verify(transformerRegistry).transform(isA(IdResponseDto.class), eq(JsonObject.class));
         verify(service).create(isA(Asset.class), isA(DataAddress.class));
         verifyNoMoreInteractions(service, transformerRegistry);
@@ -247,7 +256,9 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     @Test
     void createAsset_shouldReturnBadRequest_whenDataAddressIsNull() {
         var assetDto = createAssetJson().build();
-        var assetEntryDto = AssetEntryNewDto.Builder.newInstance().asset(assetDto).dataAddress(null).build();
+        var assetEntryDto = createAssetEntryDto(assetDto);
+        when(transformerRegistry.transform(any(JsonObject.class), eq(AssetEntryNewDto.class))).thenReturn(Result.failure("failure"));
+
 
         baseRequest()
                 .body(assetEntryDto)
@@ -260,8 +271,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void createAsset_shouldReturnBadRequest_whenTransformFails() {
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(Asset.class))).thenReturn(Result.failure("failed"));
-        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.failure("failed"));
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(AssetEntryNewDto.class))).thenReturn(Result.failure("failed"));
 
         baseRequest()
                 .body(createAssetEntryDto())
@@ -275,8 +285,9 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     @Test
     void createAsset_alreadyExists() {
         var asset = createAssetBuilder().build();
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(Asset.class))).thenReturn(Result.success(asset));
-        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
+        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        var assetNewDto = AssetEntryNewDto.Builder.newInstance().asset(asset).dataAddress(dataAddress).build();
+        when(transformerRegistry.transform(any(JsonObject.class), eq(AssetEntryNewDto.class))).thenReturn(Result.success(assetNewDto));
         when(service.create(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
 
         baseRequest()
@@ -289,12 +300,8 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void createAsset_emptyAttributes() {
-        when(transformerRegistry.transform(isA(JsonObject.class), eq(Asset.class))).thenReturn(Result.failure("Cannot be transformed"));
-        when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("any").build()));
-        var assetEntryDto = AssetEntryNewDto.Builder.newInstance()
-                .asset(Json.createObjectBuilder().build())
-                .dataAddress(createDataAddressJson())
-                .build();
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(AssetEntryNewDto.class))).thenReturn(Result.failure("Cannot be transformed"));
+        var assetEntryDto = createAssetEntryDto(Json.createObjectBuilder().build(), createDataAddressJson());
 
         baseRequest()
                 .body(assetEntryDto)
@@ -461,10 +468,20 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
         return new AssetNewApiController(service, dataAddressResolver, transformerRegistry, new TitaniumJsonLd(mock(Monitor.class)), monitor);
     }
 
-    private AssetEntryNewDto createAssetEntryDto() {
-        return AssetEntryNewDto.Builder.newInstance()
-                .asset(createAssetJson().build())
-                .dataAddress(createDataAddressJson())
+    private JsonObject createAssetEntryDto() {
+        return createAssetEntryDto(createAssetJson().build(), createDataAddressJson());
+    }
+
+    private JsonObject createAssetEntryDto(JsonObject asset, JsonObject dataAddress) {
+        return Json.createObjectBuilder()
+                .add("asset", asset)
+                .add("dataAddress", dataAddress)
+                .build();
+    }
+
+    private JsonObject createAssetEntryDto(JsonObject asset) {
+        return Json.createObjectBuilder()
+                .add("asset", asset)
                 .build();
     }
 

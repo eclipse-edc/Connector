@@ -17,6 +17,7 @@ package org.eclipse.edc.test.e2e.managementapi;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
@@ -28,10 +29,15 @@ import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_RIGHT;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
+import static org.eclipse.edc.api.model.CriterionDto.CRITERION_TYPE;
+import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_FILTER_EXPRESSION;
+import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -92,12 +98,17 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(EDC_NAMESPACE + "type", "test-type").build();
-        var json = Map.of("asset", assetJson,
-                "dataAddress", dataAddressJson);
+
+        var assetNewJson = Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_NAMESPACE + "AssetEntryDto")
+                .add("asset", assetJson)
+                .add("dataAddress", dataAddressJson)
+                .build();
 
         baseRequest()
                 .contentType(ContentType.JSON)
-                .body(json)
+                .body(assetNewJson)
                 .post()
                 .then()
                 .log().ifError()
@@ -125,12 +136,16 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add(EDC_NAMESPACE + "type", "test-type")
                 .add("unprefixed-key", "test-value").build();
 
-        var json = Map.of("asset", assetJson,
-                "dataAddress", dataAddressJson);
+        var assetNewJson = Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_NAMESPACE + "AssetEntryDto")
+                .add("asset", assetJson)
+                .add("dataAddress", dataAddressJson)
+                .build();
 
         baseRequest()
                 .contentType(ContentType.JSON)
-                .body(json)
+                .body(assetNewJson)
                 .post()
                 .then()
                 .log().ifError()
@@ -216,11 +231,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .build(),
                 createDataAddress().build()));
 
-        var byCustomProp = CriterionDto.Builder.newInstance()
-                .operandLeft("myProp.description") //access in "json-path style", will not work
-                .operator("=")
-                .operandRight("test desc").build();
-        var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byCustomProp)).build();
+        var query = createSingleFilterQuery("myProp.description", "=", "test desc");
 
         // querying custom complex types in "json-path" style is expected not to work.
         baseRequest()
@@ -245,11 +256,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .build(),
                 createDataAddress().build()));
 
-        var byCustomProp = CriterionDto.Builder.newInstance()
-                .operandLeft("myProp") //access with LIKE operator, will not work, because the inmem query convert does not support this
-                .operator("LIKE")
-                .operandRight("test desc").build();
-        var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byCustomProp)).build();
+        var query = createSingleFilterQuery("myProp", "LIKE", "test desc");
 
         // querying custom complex types in "json-path" style is expected not to work.
         baseRequest()
@@ -321,6 +328,23 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
                 .add(PROPERTY_VERSION, TEST_ASSET_VERSION)
                 .add(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE);
+    }
+
+    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
+        var criteria = Json.createArrayBuilder()
+                .add(Json.createObjectBuilder()
+                        .add(TYPE, CRITERION_TYPE)
+                        .add(CRITERION_OPERAND_LEFT, leftOperand)
+                        .add(CRITERION_OPERATOR, operator)
+                        .add(CRITERION_OPERAND_RIGHT, rightOperand)
+                        .build()
+                )
+                .build();
+
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_QUERY_SPEC_TYPE)
+                .add(EDC_QUERY_SPEC_FILTER_EXPRESSION, criteria)
+                .build();
     }
 
     private JsonObjectBuilder createContextBuilder() {

@@ -341,7 +341,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetEntryNewDto'
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/AssetEntryNewDto'
+              example: null
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+                  example: null
       responses:
         "200":
           content:
@@ -643,6 +661,29 @@ components:
         type:
           type: string
           example: null
+    Asset:
+      type: object
+      example: null
+      properties:
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+        id:
+          type: string
+          example: null
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
     AssetCreationRequestDto:
       type: object
       example: null
@@ -680,30 +721,9 @@ components:
       example: null
       properties:
         asset:
-          type: object
-          description: A JSON structure in JSON-LD format containing the Asset's properties.
-            Cannot be null.
-          example: null
+          $ref: '#/components/schemas/Asset'
         dataAddress:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/JsonValue'
-          example: null
-          properties:
-            empty:
-              type: boolean
-              example: null
-            valueType:
-              type: string
-              enum:
-              - ARRAY
-              - OBJECT
-              - STRING
-              - NUMBER
-              - "TRUE"
-              - "FALSE"
-              - "NULL"
-              example: null
+          $ref: '#/components/schemas/DataAddress'
       required:
       - asset
       - dataAddress
@@ -764,6 +784,16 @@ components:
       required:
       - operandLeft
       - operator
+    DataAddress:
+      type: object
+      example: null
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
+          example: null
     DataAddressDto:
       type: object
       example: null
