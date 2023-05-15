@@ -245,5 +245,7 @@ include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
+include(":system-tests:telemetry:telemetry-test-runner")
+include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")

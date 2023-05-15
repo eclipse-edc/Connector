@@ -62,7 +62,7 @@ public abstract class AbstractEndToEndTransfer {
     void httpPullDataTransfer() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
-        createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressProperties());
+        createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
 
         var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
         var contractId = getContractId(dataset);
@@ -87,18 +87,14 @@ public abstract class AbstractEndToEndTransfer {
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
     }
 
-    /**
-     * This test is disabled because rejection messages are not processed correctly in IDS. The Policy that is attached to the contract definition
-     * contains a validity period, that will be violated, so we expect the transfer request to be rejected with a 409 CONFLICT.
-     * Once that case is handled properly by the DSP, we can re-enable the test and add a proper assertion
-     */
     @Test
     void httpPull_withExpiredContract_fixedInForcePeriod() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
         var now = Instant.now();
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        createResourcesOnProvider(assetId, inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, now.minus(ofDays(5))), UUID.randomUUID().toString(), httpDataAddressProperties());
+        var contractPolicy = inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, now.minus(ofDays(5)));
+        createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
         var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
         var contractId = getContractId(dataset);
@@ -113,18 +109,14 @@ public abstract class AbstractEndToEndTransfer {
         });
     }
 
-    /**
-     * This test is disabled because rejection messages are not processed correctly in IDS. The Policy that is attached to the contract definition
-     * contains a validity period, that will be violated, so we expect the transfer request to be rejected with a 409 CONFLICT.
-     * Once that case is handled properly by the DSP, we can re-enable the test and add a proper assertion
-     */
     @Test
     void httpPull_withExpiredContract_durationInForcePeriod() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
         var now = Instant.now();
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        createResourcesOnProvider(assetId, inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, "contractAgreement+1s"), UUID.randomUUID().toString(), httpDataAddressProperties());
+        var contractPolicy = inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, "contractAgreement+1s");
+        createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
         var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
         var contractId = getContractId(dataset);
@@ -143,7 +135,7 @@ public abstract class AbstractEndToEndTransfer {
     void httpPullDataTransferProvisioner() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
-        createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), Map.of(
+        createResourcesOnProvider(assetId, noConstraintPolicy(), Map.of(
                 "name", "transfer-test",
                 "baseUrl", PROVIDER.backendService() + "/api/provider/data",
                 "type", "HttpProvision",
@@ -170,7 +162,7 @@ public abstract class AbstractEndToEndTransfer {
     void httpPushDataTransfer() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
-        createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressProperties());
+        createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
 
         var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
         var contractId = getContractId(dataset);
@@ -202,7 +194,7 @@ public abstract class AbstractEndToEndTransfer {
     void httpPushDataTransfer_oauth2Provisioning() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
-        createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressOauth2Properties());
+        createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressOauth2Properties());
 
         var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
         var contractId = getContractId(dataset);
@@ -279,12 +271,11 @@ public abstract class AbstractEndToEndTransfer {
         CONSUMER.registerDataPlane();
     }
 
-    private void createResourcesOnProvider(String assetId, JsonObject contractPolicy, String definitionId, Map<String, String> dataAddressProperties) {
+    private void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, String> dataAddressProperties) {
         PROVIDER.createAsset(assetId, dataAddressProperties);
-        var accessPolicy = noConstraintPolicy();
-        var accessPolicyId = PROVIDER.createPolicyDefinition(accessPolicy);
+        var accessPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
-        PROVIDER.createContractDefinition(assetId, definitionId, accessPolicyId, contractPolicyId);
+        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), accessPolicyId, contractPolicyId);
     }
 
     private JsonObject noConstraintPolicy() {
