@@ -19,8 +19,10 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-api-configuration"))
+    api(project(":data-protocols:dsp:dsp-core"))
+    api(project(":data-protocols:dsp:dsp-http-core"))
 
-    // TODO remove this dependency by moving type constants to another module
+    // TODO remove this dependency by moving type constants to another module https://github.com/eclipse-edc/Connector/issues/3014
     api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform"))
 
     api(project(":spi:common:core-spi"))
