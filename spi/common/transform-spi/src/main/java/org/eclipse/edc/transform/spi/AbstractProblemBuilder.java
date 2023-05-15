@@ -55,9 +55,9 @@ public abstract class AbstractProblemBuilder<B extends AbstractProblemBuilder<?>
     /**
      * Concatenates the strings to a comma-separated list with the following form:
      * <pre>
-     * ["one"] --> "one"
-     * ["one", "two"] --> "one or two"
-     * ["one", "two", "three"] --> "one, two, or three"
+     * ["one"] : "one"
+     * ["one", "two"] : "one or two"
+     * ["one", "two", "three"] : "one, two, or three"
      * </pre>
      */
     protected String concatList(List<String> elements) {
