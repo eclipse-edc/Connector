@@ -37,14 +37,20 @@ import static java.util.UUID.randomUUID;
 public class Dataset {
 
     private String id;
-    
-    /** Policies under which this Dataset is available. */
+
+    /**
+     * Policies under which this Dataset is available.
+     */
     private Map<String, Policy> offers;
-    
-    /** Representations of this Dataset. */
+
+    /**
+     * Representations of this Dataset.
+     */
     private List<Distribution> distributions;
-    
-    /** Properties for describing the Dataset. */
+
+    /**
+     * Properties for describing the Dataset.
+     */
     private Map<String, Object> properties = new HashMap<>();
 
     public String getId() {
@@ -83,6 +89,11 @@ public class Dataset {
 
         public Builder id(String id) {
             dataset.id = id;
+            return this;
+        }
+
+        public Builder offers(Map<String, Policy> offers) {
+            this.dataset.offers = offers;
             return this;
         }
 
