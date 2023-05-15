@@ -20,10 +20,10 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
@@ -47,16 +47,17 @@ public interface AssetNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    JsonObject createAsset(@Valid AssetEntryNewDto assetEntryDto);
+    JsonObject createAsset(@Schema(implementation = AssetEntryNewDto.class) JsonObject assetEntryDto);
 
     @Operation(description = " all assets according to a particular query",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
-    List<JsonObject> requestAssets(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> requestAssets(JsonObject querySpecDto);
 
     @Operation(description = "Gets an asset with the given ID",
             responses = {
