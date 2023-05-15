@@ -40,10 +40,14 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
         visitProperties(messageObject, k -> {
             switch (k) {
-                case DSPACE_PROCESS_ID: return v -> transferRequestMessageBuilder.processId(transformString(v, context));
-                case DSPACE_CONTRACT_AGREEMENT_ID: return v -> transferRequestMessageBuilder.contractId(transformString(v, context));
-                case DSPACE_CALLBACK_ADDRESS: return v -> transferRequestMessageBuilder.callbackAddress(transformString(v, context));
-                default: return doNothing();
+                case DSPACE_PROCESS_ID:
+                    return v -> transferRequestMessageBuilder.processId(transformString(v, context));
+                case DSPACE_CONTRACT_AGREEMENT_ID:
+                    return v -> transferRequestMessageBuilder.contractId(transformString(v, context));
+                case DSPACE_CALLBACK_ADDRESS:
+                    return v -> transferRequestMessageBuilder.callbackAddress(transformString(v, context));
+                default:
+                    return doNothing();
             }
         });
 

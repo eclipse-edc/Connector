@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.core.transform;
 
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +43,11 @@ public class TransformerContextImpl implements TransformerContext {
     @Override
     public void reportProblem(String problem) {
         problems.add(problem);
+    }
+
+    @Override
+    public ProblemBuilder problem() {
+        return new ProblemBuilder(this);
     }
 
     @Override

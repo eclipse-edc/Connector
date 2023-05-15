@@ -76,7 +76,19 @@ public class JsonObjectToNegotiationInitiateRequestDtoTransformer extends Abstra
                 transformArrayOrObject(value, ContractOfferDescription.class, builder::offer, context);
                 break;
             default:
-                context.reportProblem("Cannot convert key " + key + " as it is not known");
+                context.problem()
+                        .unexpectedType()
+                        .type(NegotiationInitiateRequestDto.TYPE)
+                        .property(key)
+                        .actual(key)
+                        .expected(CONNECTOR_ADDRESS)
+                        .expected(PROTOCOL)
+                        .expected(CONNECTOR_ID)
+                        .expected(PROVIDER_ID)
+                        .expected(CONSUMER_ID)
+                        .expected(CALLBACK_ADDRESSES)
+                        .expected(OFFER)
+                        .report();
                 break;
         }
     }

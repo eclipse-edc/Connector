@@ -58,7 +58,11 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
         var policy = context.transform(agreement.getPolicy(), JsonObject.class);
         if (policy == null) {
-            context.reportProblem("Cannot transform from ContractAgreementMessage with null policy");
+            context.problem()
+                    .nullProperty()
+                    .type(ContractAgreementMessage.class)
+                    .property("policy")
+                    .report();
             return null;
         }
 

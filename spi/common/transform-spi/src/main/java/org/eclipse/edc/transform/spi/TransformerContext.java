@@ -36,8 +36,17 @@ public interface TransformerContext {
 
     /**
      * Reports a problem.
+     * <p>
+     * Note {@link #problem()} should be used in most cases.
      */
     void reportProblem(String problem);
+
+    /**
+     * Returns a problem builder that can be used to report problems in a typed manner.
+     * <p>
+     * Note this method should be preferred to reporting untyped problems using {@link #reportProblem(String)}.
+     */
+    ProblemBuilder problem();
 
     /**
      * Transforms the input object and any contained types, returning its transformed representation or null if the

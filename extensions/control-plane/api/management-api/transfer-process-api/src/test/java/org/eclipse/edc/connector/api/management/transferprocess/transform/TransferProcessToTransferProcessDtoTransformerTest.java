@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -71,13 +73,14 @@ class TransferProcessToTransferProcessDtoTransformerTest {
     void transform_whenInvalidState() {
         when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
         when(context.transform(any(), eq(CallbackAddressDto.class))).thenReturn(data.callbackAddressDto);
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
 
         data.entity.state(invalidStateCode());
         data.dto.state(null);
 
         var result = transformer.transform(data.entity.build(), context);
 
-        verify(context).reportProblem("Invalid value for TransferProcess.state");
+        verify(context).reportProblem(contains("TransferProcess property 'state' must be"));
         assertThat(result)
                 .usingRecursiveComparison()
                 .ignoringFields("dataDestination")

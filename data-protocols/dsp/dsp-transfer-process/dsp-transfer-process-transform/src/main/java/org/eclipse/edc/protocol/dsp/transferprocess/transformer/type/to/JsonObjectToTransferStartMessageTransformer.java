@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 
 public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferStartMessage> {
 
@@ -35,7 +36,14 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
     public @Nullable TransferStartMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferStartMessageBuilder = TransferStartMessage.Builder.newInstance();
 
-        transformString(messageObject.get(DSPACE_PROCESS_ID), transferStartMessageBuilder::processId, context);
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROCESS_ID), transferStartMessageBuilder::processId, context)) {
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_TRANSFER_START_TYPE)
+                    .property(DSPACE_PROCESS_ID)
+                    .report();
+            return null;
+        }
 
         var dataAddressObject = returnJsonObject(messageObject.get(DSPACE_DATA_ADDRESS), context, DSPACE_DATA_ADDRESS, false);
         if (dataAddressObject != null) {

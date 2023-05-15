@@ -65,7 +65,16 @@ public class JsonObjectToCallbackAddressDtoTransformer extends AbstractJsonLdTra
                 transformString(value, builder::authCodeId, context);
                 break;
             default:
-                context.reportProblem("Cannot convert key " + key + " as it is not known");
+                context.problem()
+                        .unexpectedType()
+                        .type("CallbackAddress")
+                        .property(key)
+                        .expected(IS_TRANSACTIONAL)
+                        .expected(URI)
+                        .expected(EVENTS)
+                        .expected(AUTH_KEY)
+                        .expected(AUTH_CODE_ID)
+                        .report();
                 break;
         }
     }

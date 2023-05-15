@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class JsonObjectToContractNegotiationEventMessageTransformerTest {
     private static final String PROCESS_ID = "processId";
@@ -48,6 +50,7 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToContractNegotiationEventMessageTransformer();
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
     @Test
