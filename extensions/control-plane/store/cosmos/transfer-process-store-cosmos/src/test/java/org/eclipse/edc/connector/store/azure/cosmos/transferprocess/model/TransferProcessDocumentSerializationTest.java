@@ -49,8 +49,8 @@ class TransferProcessDocumentSerializationTest {
         assertThat(s).contains("\"type\":\"CONSUMER\"");
         assertThat(s).contains("\"errorDetail\":null");
         assertThat(s).contains("\"destinationType\":\"Test Address Type\"");
-        assertThat(s).contains("\"https://foo.bar.org/ds/schema/keyName\":\"Test Key Name\"");
-        assertThat(s).contains("\"https://foo.bar.org/ds/schema/type\":\"Test Address Type\"");
+        assertThat(s).contains("\"https://w3id.org/edc/v0.0.1/ns/keyName\":\"Test Key Name\"");
+        assertThat(s).contains("\"https://w3id.org/edc/v0.0.1/ns/type\":\"Test Address Type\"");
     }
 
     @Test
