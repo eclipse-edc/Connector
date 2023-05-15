@@ -77,8 +77,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Extracts the {@link JsonObject} from the value. If the value is a {@link JsonObject}, it will be returned. If it is a {@link JsonArray}, the first entry will be returned if it is a {@link JsonObject}, otherwise null.
-     * Note that if a JsonObject cannot be returned, a problem will be reported to the context.
+     * Extracts the {@link JsonObject} from the value. If the value is a {@link JsonObject}, it will be returned. If it is a {@link JsonArray}, the first entry will be
+     * returned if it is a {@link JsonObject}, otherwise null. Note that if a JsonObject cannot be returned, a problem will be reported to the context.
      *
      * @param value        the value to extract the object from
      * @param context      the current transformation context
@@ -90,8 +90,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Extracts the {@link JsonObject} from the value. If the value is a {@link JsonObject}, it will be returned. If it is a {@link JsonArray}, the first entry will be returned if it is a {@link JsonObject}, otherwise null.
-     * Note that if a JsonObject cannot be returned, a problem will be reported to the context.
+     * Extracts the {@link JsonObject} from the value. If the value is a {@link JsonObject}, it will be returned. If it is a {@link JsonArray}, the first entry will be
+     * returned if it is a {@link JsonObject}, otherwise null. Note that if a JsonObject cannot be returned, a problem will be reported to the context.
      *
      * @param value        the value to extract the object from
      * @param context      the current transformation context
@@ -193,8 +193,11 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         if (value instanceof JsonArray) {
             visitArray(value.asJsonArray(), resultFunction);
         } else {
-            context.reportProblem(format("Invalid JsonValue. Expected JsonArray but got: %s",
-                    ofNullable(value).map(it -> value.toString()).orElse(null)));
+            context.problem()
+                    .unexpectedType()
+                    .actual(value != null ? value.getValueType() : null)
+                    .expected(ARRAY)
+                    .report();
         }
     }
 
@@ -224,8 +227,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to a string and applies the result function. If the value parameter
-     * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
+     * Transforms a JsonValue to a string and applies the result function. If the value parameter is not of type JsonString, JsonObject or JsonArray,
+     * a problem is reported to the context.
      *
      * @param value          the value to transform
      * @param resultFunction the function to apply to the transformation result
@@ -236,8 +239,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a mandatory JsonValue to a string and applies the result function. If the value parameter
-     * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
+     * Transforms a mandatory JsonValue to a string and applies the result function. If the value parameter is not of type JsonString, JsonObject or JsonArray,
+     * a problem is reported to the context.
      *
      * @param value          the value to transform
      * @param resultFunction the function to apply to the transformation result
@@ -254,8 +257,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to a string and applies the result function. If the value parameter
-     * is not of type JsonString, JsonObject or JsonArray, a problem is reported to the context.
+     * Transforms a JsonValue to a string and applies the result function. If the value parameter is not of type JsonString, JsonObject or JsonArray,
+     * a problem is reported to the context.
      *
      * @param value   the value to transform
      * @param context the transformer context
@@ -290,8 +293,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to int. If the value parameter is not of type JsonNumber, JsonObject or JsonArray,
-     * a problem is reported to the context.
+     * Transforms a JsonValue to int. If the value parameter is not of type JsonNumber, JsonObject or JsonArray, a problem is reported to the context.
      *
      * @param value   the value to transform
      * @param context the transformer context
@@ -316,8 +318,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to boolean. If the value parameter is not of type JsonObject or JsonArray,
-     * a problem is reported to the context.
+     * Transforms a JsonValue to boolean. If the value parameter is not of type JsonObject or JsonArray, a problem is reported to the context.
      *
      * @param value   the value to transform
      * @param context the transformer context
@@ -347,10 +348,9 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to the desired output type. The result can be a single instance or a
-     * list of that type, depending on whether the given value is a JsonObject or a JsonArray. The
-     * result function is applied to every instance. If the value parameter is neither of type
-     * JsonObject nor JsonArray, a problem is reported to the context.
+     * Transforms a JsonValue to the desired output type. The result can be a single instance or a list of that type, depending on whether the given value is a
+     * JsonObject or a JsonArray. The result function is applied to every instance. If the value parameter is neither of type JsonObject nor JsonArray, a problem
+     * is reported to the context.
      *
      * @param value          the value to transform
      * @param type           the desired result type
@@ -410,8 +410,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Transforms a JsonValue to the desired output type. If the value parameter is neither of type
-     * JsonObject nor JsonArray, a problem is reported to the context.
+     * Transforms a JsonValue to the desired output type. If the value parameter is neither of type JsonObject nor JsonArray, a problem is reported to the context.
      * <p>
      * This method reports errors it encounters.
      *
@@ -539,9 +538,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
-     * Tries to return the instance given by a supplier (a builder's build method). If this fails
-     * due to validation errors, e.g. a required property is missing, reports a problem to the
-     * context.
+     * Tries to return the instance given by a supplier (a builder's build method). If this fails due to validation errors, e.g. a required property is missing,
+     * reports a problem to the context.
      *
      * @param builder the supplier
      * @param context the context
