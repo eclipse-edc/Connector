@@ -31,7 +31,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationP
 
 public class JsonObjectFromContractNegotiationErrorTransformer extends AbstractJsonLdTransformer<ContractNegotiationError, JsonObject> {
 
-    private DspHttpStatusCodeMapper statusCodeMapper;
+    private final DspHttpStatusCodeMapper statusCodeMapper;
 
     public JsonObjectFromContractNegotiationErrorTransformer(DspHttpStatusCodeMapper statusCodeMapper) {
         super(ContractNegotiationError.class, JsonObject.class);

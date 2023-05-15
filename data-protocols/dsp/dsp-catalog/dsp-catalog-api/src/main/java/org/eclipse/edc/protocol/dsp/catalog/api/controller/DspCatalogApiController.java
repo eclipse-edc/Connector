@@ -128,13 +128,13 @@ public class DspCatalogApiController {
     }
 
     private Response createResponse(JsonObject jsonEntity, Exception exception) {
-        JsonObject compacted = null;
         try {
-            compacted = jsonLdService.compact(jsonEntity)
+            var compacted = jsonLdService.compact(jsonEntity)
                     .orElseThrow(failure -> new EdcException("Failed to compact JSON-LD."));
             return Response.status(statusCodeMapper.mapErrorToStatusCode(exception)).entity(compacted).build();
         } catch (EdcException e) {
-            return Response.status(500).entity("{\"message\": \"Failed to create response\"").build();
+            monitor.severe("Failed to create Error Response in the DspCatalogApiController.", exception);
+            return Response.status(500).entity(Map.of("message", "Failed to create response")).build();
         }
     }
 }

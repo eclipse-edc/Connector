@@ -29,7 +29,7 @@ import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyA
 
 public class JsonObjectFromCatalogErrorTransformer extends AbstractJsonLdTransformer<CatalogError, JsonObject> {
 
-    private DspHttpStatusCodeMapper statusCodeMapper;
+    private final DspHttpStatusCodeMapper statusCodeMapper;
 
     public JsonObjectFromCatalogErrorTransformer(DspHttpStatusCodeMapper statusCodeMapper) {
         super(CatalogError.class, JsonObject.class);

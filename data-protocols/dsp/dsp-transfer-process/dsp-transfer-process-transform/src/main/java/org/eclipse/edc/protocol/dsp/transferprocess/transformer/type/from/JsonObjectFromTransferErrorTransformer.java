@@ -31,7 +31,7 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransf
 
 public class JsonObjectFromTransferErrorTransformer extends AbstractJsonLdTransformer<TransferError, JsonObject> {
 
-    private DspHttpStatusCodeMapper statusCodeMapper;
+    private final DspHttpStatusCodeMapper statusCodeMapper;
 
     public JsonObjectFromTransferErrorTransformer(DspHttpStatusCodeMapper statusCodeMapper) {
         super(TransferError.class, JsonObject.class);
