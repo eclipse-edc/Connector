@@ -19,13 +19,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * A context used to report problems and perform recursive transformation of a type tree.
- * If a problem is reported, the transformation will fail.
+ * A context used to perform recursive transformation of a type tree.If a problem is reported, the transformation will fail.
  */
 public interface TransformerContext {
 
     /**
-     * Returns if problems have been problems reported during the transformation.
+     * Returns if problems have been reported during the transformation.
      */
     boolean hasProblems();
 
