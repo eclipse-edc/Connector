@@ -69,7 +69,7 @@ public interface EdcHttpClient {
 
     /**
      * Executes the specified request asynchronously, maps the response with the mappingFunction.
-     * ccepts a list of {@link FallbackFactories} that could apply retry in particular occasions.
+     * Accepts a list of {@link FallbackFactories} that could apply retry in particular occasions.
      *
      * @param request the {@link Request}.
      * @param fallbacks a list of fallbacks to be applied.

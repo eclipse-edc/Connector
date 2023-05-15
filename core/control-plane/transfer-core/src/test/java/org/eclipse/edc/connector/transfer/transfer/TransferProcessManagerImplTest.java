@@ -146,13 +146,13 @@ class TransferProcessManagerImplTest {
     private final CommandQueue<TransferProcessCommand> commandQueue = mock(CommandQueue.class);
     private final CommandRunner<TransferProcessCommand> commandRunner = mock(CommandRunner.class);
     private final ProtocolWebhook protocolWebhook = mock(ProtocolWebhook.class);
-    private final String procotolWebhookUrl = "http://protocol.webhook/url";
+    private final String protocolWebhookUrl = "http://protocol.webhook/url";
 
     private TransferProcessManagerImpl manager;
 
     @BeforeEach
     void setup() {
-        when(protocolWebhook.url()).thenReturn(procotolWebhookUrl);
+        when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
@@ -424,7 +424,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(eq(Object.class), and(isA(TransferRequestMessage.class), argThat(m -> procotolWebhookUrl.equals(m.getCallbackAddress()))));
+            verify(dispatcherRegistry).send(eq(Object.class), and(isA(TransferRequestMessage.class), argThat(m -> protocolWebhookUrl.equals(m.getCallbackAddress()))));
             verify(transferProcessStore, times(1)).updateOrCreate(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
         });
@@ -959,7 +959,7 @@ class TransferProcessManagerImplTest {
                     new DispatchFailure(COMPLETING, COMPLETING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     // retries exhausted
-                    new DispatchFailure(REQUESTING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(REQUESTING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED)),
                     new DispatchFailure(STARTING, TERMINATING, b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
                     new DispatchFailure(COMPLETING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
                     new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED))

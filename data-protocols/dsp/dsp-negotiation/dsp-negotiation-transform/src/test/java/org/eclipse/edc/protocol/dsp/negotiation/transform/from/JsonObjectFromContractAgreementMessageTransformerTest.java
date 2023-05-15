@@ -55,6 +55,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     private static final String PROCESS_ID = "processId";
     private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
     private static final String DSP = "dsp";
+    public static final String AGREEMENT_ID = UUID.randomUUID().toString();
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -68,7 +69,9 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
 
     @Test
     void transform() {
-        var policyObject = jsonFactory.createObjectBuilder().build();
+        var policyObject = jsonFactory.createObjectBuilder()
+                .add(ID, "contractOfferId")
+                .build();
 
         when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(policyObject);
 
@@ -82,6 +85,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
 
         var jsonAgreement = result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
         assertThat(jsonAgreement).isNotNull();
+        assertThat(jsonAgreement.getJsonString(ID).getString()).isEqualTo(AGREEMENT_ID);
         assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP).getString()).isEqualTo(TIMESTAMP);
         assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID).getString()).isEqualTo(CONSUMER_ID);
         assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID).getString()).isEqualTo(PROVIDER_ID);
@@ -110,7 +114,7 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
 
     private ContractAgreement contractAgreement() {
         return ContractAgreement.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(AGREEMENT_ID)
                 .providerId(PROVIDER_ID)
                 .consumerId(CONSUMER_ID)
                 .assetId("assetId")

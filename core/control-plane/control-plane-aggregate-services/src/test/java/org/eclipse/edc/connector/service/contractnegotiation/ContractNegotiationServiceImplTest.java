@@ -93,7 +93,7 @@ class ContractNegotiationServiceImplTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "contractAgreement.contractStartDate.begin=123455", //invalid path
-            "contractOffers.policy.uid=some-id", //invalid path
+            "contractOffers.policy.unexistent=some-id", //invalid path
             "contractOffers.policy.assetid=some-id", //wrong case
             "contractOffers.policy.=some-id", //incomplete path
     })

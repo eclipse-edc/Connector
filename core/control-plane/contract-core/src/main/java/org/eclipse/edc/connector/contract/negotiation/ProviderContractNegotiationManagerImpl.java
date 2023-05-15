@@ -251,11 +251,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .execute("[Provider] send finalization");
     }
 
-    /**
-     * Builder for ProviderContractNegotiationManagerImpl.
-     */
     public static class Builder extends AbstractContractNegotiationManager.Builder<ProviderContractNegotiationManagerImpl> {
-
 
         private Builder() {
             super(new ProviderContractNegotiationManagerImpl());

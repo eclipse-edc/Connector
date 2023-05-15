@@ -47,8 +47,9 @@ public interface PropertyAndTypeNames {
     String ODRL_POLICY_TYPE_SET = ODRL_SCHEMA + "Set";
     String ODRL_POLICY_TYPE_OFFER = ODRL_SCHEMA + "Offer";
     String ODRL_POLICY_TYPE_AGREEMENT = ODRL_SCHEMA + "Agreement";
+
     String ODRL_CONSTRAINT_TYPE = ODRL_SCHEMA + "Constraint";
-    String ODRL_CONSTRAINT_TYPE_LOGICAL = ODRL_SCHEMA + "LogicalConstraint";
+    String ODRL_LOGICAL_CONSTRAINT_TYPE = ODRL_SCHEMA + "LogicalConstraint";
 
     String ODRL_TARGET_ATTRIBUTE = ODRL_SCHEMA + "target";
     String ODRL_PERMISSION_ATTRIBUTE = ODRL_SCHEMA + "permission";

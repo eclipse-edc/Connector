@@ -25,6 +25,8 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-cosmos-core")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(libs.jakartaJson)
 
     testImplementation(libs.postgres)
     testImplementation(libs.restAssured)

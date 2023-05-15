@@ -14,19 +14,11 @@
 
 package org.eclipse.edc.test.e2e;
 
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.AndConstraint;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +31,20 @@ import static io.restassured.RestAssured.given;
 import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LOGICAL_CONSTRAINT_TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.anyOf;
@@ -50,7 +55,7 @@ public abstract class AbstractEndToEndTransfer {
 
     protected static final Participant CONSUMER = new Participant("consumer", "urn:connector:consumer");
     protected static final Participant PROVIDER = new Participant("provider", "urn:connector:provider");
-    private static final Object CONTRACT_EXPIRY_EVALUATION_KEY = EDC_NAMESPACE + "inForceDate";
+    private static final String CONTRACT_EXPIRY_EVALUATION_KEY = EDC_NAMESPACE + "inForceDate";
     protected final Duration timeout = Duration.ofSeconds(60);
 
     @Test
@@ -59,26 +64,20 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressProperties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER);
+        var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
+        var contractId = getContractId(dataset);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
 
-        var contractOffer = catalog
-                .getContractOffers()
-                .stream()
-                .filter(o -> o.getAssetId().equals(assetId))
-                .findFirst()
-                .get();
-        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
-
-        var dataRequestId = UUID.randomUUID().toString();
-        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
+        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, syncDataAddress());
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(COMPLETED.name());
+            assertThat(state).isEqualTo(STARTED.name());
         });
 
         // retrieve the data reference
-        var edr = CONSUMER.getDataReference(dataRequestId);
+        var edr = CONSUMER.getDataReference(transferProcessId);
 
         // pull the data without query parameter
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of(), equalTo("some information")));
@@ -94,26 +93,23 @@ public abstract class AbstractEndToEndTransfer {
      * Once that case is handled properly by the DSP, we can re-enable the test and add a proper assertion
      */
     @Test
-    @Disabled
     void httpPull_withExpiredContract_fixedInForcePeriod() {
-        var assetId = "test-asset-id";
+        registerDataPlanes();
+        var assetId = UUID.randomUUID().toString();
         var now = Instant.now();
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        createResourcesOnProvider(assetId, createInForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, now.minus(ofDays(5))), "test-definition-id", httpDataAddressProperties());
+        createResourcesOnProvider(assetId, inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, now.minus(ofDays(5))), UUID.randomUUID().toString(), httpDataAddressProperties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER);
-        assertThat(catalog.getContractOffers()).hasSize(1);
+        var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
+        var contractId = getContractId(dataset);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
 
-        var offer = catalog.getContractOffers().get(0);
-        assertThat(offer.getAssetId()).isEqualTo(assetId);
-
-        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, offer);
-
-        var dataRequestId = "test-data-request-id";
-        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
+        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, syncDataAddress());
 
         await().atMost(timeout).untilAsserted(() -> {
-            //todo: assert transfer request rejection
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(TERMINATED.name());
         });
     }
 
@@ -123,26 +119,23 @@ public abstract class AbstractEndToEndTransfer {
      * Once that case is handled properly by the DSP, we can re-enable the test and add a proper assertion
      */
     @Test
-    @Disabled
     void httpPull_withExpiredContract_durationInForcePeriod() {
-        var assetId = "test-asset-id";
+        registerDataPlanes();
+        var assetId = UUID.randomUUID().toString();
         var now = Instant.now();
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        createResourcesOnProvider(assetId, createInForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, "contractAgreement+2s"), "test-definition-id", httpDataAddressProperties());
+        createResourcesOnProvider(assetId, inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, "contractAgreement+1s"), UUID.randomUUID().toString(), httpDataAddressProperties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER);
-        assertThat(catalog.getContractOffers()).hasSize(1);
+        var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
+        var contractId = getContractId(dataset);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
 
-        var offer = catalog.getContractOffers().get(0);
-        assertThat(offer.getAssetId()).isEqualTo(assetId);
-
-        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, offer);
-
-        var dataRequestId = "test-data-request-id";
-        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
+        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, syncDataAddress());
 
         await().atMost(timeout).untilAsserted(() -> {
-            //todo: assert transfer request rejection
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(TERMINATED.name());
         });
     }
 
@@ -157,25 +150,19 @@ public abstract class AbstractEndToEndTransfer {
                 "proxyQueryParams", "true"
         ));
 
-        var catalog = CONSUMER.getCatalog(PROVIDER);
+        var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
+        var contractId = getContractId(dataset);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
 
-        var contractOffer = catalog
-                .getContractOffers()
-                .stream()
-                .filter(o -> o.getAssetId().equals(assetId))
-                .findFirst()
-                .get();
-        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
-
-        var dataRequestId = UUID.randomUUID().toString();
-        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
+        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, syncDataAddress());
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(COMPLETED.name());
+            assertThat(state).isEqualTo(STARTED.name());
         });
 
-        var edr = CONSUMER.getDataReference(dataRequestId);
+        var edr = CONSUMER.getDataReference(transferProcessId);
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of(), equalTo("some information")));
     }
 
@@ -185,24 +172,18 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressProperties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER);
+        var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
+        var contractId = getContractId(dataset);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
 
-        var contractOffer = catalog
-                .getContractOffers()
-                .stream()
-                .filter(o -> o.getAssetId().equals(assetId))
-                .findFirst()
-                .get();
-        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
 
-        var destination = HttpDataAddress.Builder.newInstance()
-                .baseUrl(CONSUMER.backendService() + "/api/consumer/store")
-                .build();
-        var transferProcessId = CONSUMER.dataRequest(UUID.randomUUID().toString(), contractAgreementId, assetId, PROVIDER, destination);
+        var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
+        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, destination);
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(COMPLETED.name());
+            assertThat(state).isEqualTo(STARTED.name());
         });
 
         await().atMost(timeout).untilAsserted(() -> {
@@ -223,24 +204,18 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), httpDataAddressOauth2Properties());
 
-        var catalog = CONSUMER.getCatalog(PROVIDER);
+        var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
+        var contractId = getContractId(dataset);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
 
-        var contractOffer = catalog
-                .getContractOffers()
-                .stream()
-                .filter(o -> o.getAssetId().equals(assetId))
-                .findFirst()
-                .get();
-        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
+        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
 
-        var destination = HttpDataAddress.Builder.newInstance()
-                .baseUrl(CONSUMER.backendService() + "/api/consumer/store")
-                .build();
-        var transferProcessId = CONSUMER.dataRequest(UUID.randomUUID().toString(), contractAgreementId, assetId, PROVIDER, destination);
+        var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
+        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, destination);
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(COMPLETED.name());
+            assertThat(state).isEqualTo(STARTED.name());
         });
 
         await().atMost(timeout).untilAsserted(() -> {
@@ -252,6 +227,28 @@ public abstract class AbstractEndToEndTransfer {
                     .statusCode(anyOf(is(200), is(204)))
                     .body(is(notNullValue()));
         });
+    }
+
+    private ContractId getContractId(JsonObject dataset) {
+        var id = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
+        return ContractId.parse(id);
+    }
+
+    private JsonObject httpDataAddress(String baseUrl) {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "HttpData")
+                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
+                        .add(EDC_NAMESPACE + "baseUrl", baseUrl)
+                        .build())
+                .build();
+    }
+
+    private JsonObject syncDataAddress() {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "HttpProxy")
+                .build();
     }
 
     @NotNull
@@ -282,53 +279,46 @@ public abstract class AbstractEndToEndTransfer {
         CONSUMER.registerDataPlane();
     }
 
-    private void createResourcesOnProvider(String assetId, PolicyDefinition contractPolicy, String definitionId, Map<String, String> dataAddressProperties) {
+    private void createResourcesOnProvider(String assetId, JsonObject contractPolicy, String definitionId, Map<String, String> dataAddressProperties) {
         PROVIDER.createAsset(assetId, dataAddressProperties);
         var accessPolicy = noConstraintPolicy();
-        PROVIDER.createPolicy(accessPolicy);
-        PROVIDER.createPolicy(contractPolicy);
-        PROVIDER.createContractDefinition(assetId, definitionId, accessPolicy.getUid(), contractPolicy.getUid(), 31536000L);
+        var accessPolicyId = PROVIDER.createPolicyDefinition(accessPolicy);
+        var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
+        PROVIDER.createContractDefinition(assetId, definitionId, accessPolicyId, contractPolicyId);
     }
 
-    private DataAddress sync() {
-        return DataAddress.Builder.newInstance().type("HttpProxy").build();
+    private JsonObject noConstraintPolicy() {
+        return Json.createObjectBuilder()
+                .add(TYPE, "use")
+                .build();
     }
 
-    private PolicyDefinition noConstraintPolicy() {
-        return PolicyDefinition.Builder.newInstance()
-                .policy(Policy.Builder.newInstance()
-                        .permission(Permission.Builder.newInstance()
-                                .action(Action.Builder.newInstance().type("USE").build())
+    private JsonObject inForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
+        return Json.createObjectBuilder()
+                .add(ODRL_PERMISSION_ATTRIBUTE, Json.createArrayBuilder()
+                        .add(permission(operatorStart, startDate, operatorEnd, endDate)))
+                .build();
+    }
+
+    private JsonObject permission(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
+        return Json.createObjectBuilder()
+                .add(ODRL_ACTION_ATTRIBUTE, "USE")
+                .add(ODRL_CONSTRAINT_ATTRIBUTE, Json.createObjectBuilder()
+                        .add(TYPE, ODRL_LOGICAL_CONSTRAINT_TYPE)
+                        .add(ODRL_AND_CONSTRAINT_ATTRIBUTE, Json.createArrayBuilder()
+                                .add(atomicConstraint(CONTRACT_EXPIRY_EVALUATION_KEY, operatorStart, startDate))
+                                .add(atomicConstraint(CONTRACT_EXPIRY_EVALUATION_KEY, operatorEnd, endDate))
                                 .build())
-                        .type(PolicyType.SET)
                         .build())
                 .build();
     }
 
-    private PolicyDefinition createInForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
-        var fixedInForceTimeConstraint = AndConstraint.Builder.newInstance()
-                .constraint(AtomicConstraint.Builder.newInstance()
-                        .leftExpression(new LiteralExpression(CONTRACT_EXPIRY_EVALUATION_KEY))
-                        .operator(operatorStart)
-                        .rightExpression(new LiteralExpression(startDate.toString()))
-                        .build())
-                .constraint(AtomicConstraint.Builder.newInstance()
-                        .leftExpression(new LiteralExpression(CONTRACT_EXPIRY_EVALUATION_KEY))
-                        .operator(operatorEnd)
-                        .rightExpression(new LiteralExpression(endDate.toString()))
-                        .build())
-                .build();
-        var permission = Permission.Builder.newInstance()
-                .action(Action.Builder.newInstance().type("USE").build())
-                .constraint(fixedInForceTimeConstraint).build();
-
-        var p = Policy.Builder.newInstance()
-                .permission(permission)
-                .build();
-
-        return PolicyDefinition.Builder.newInstance()
-                .policy(p)
-                .id("in-force-policy")
+    private JsonObject atomicConstraint(String leftOperand, Operator operator, Object rightOperand) {
+        return Json.createObjectBuilder()
+                .add(TYPE, ODRL_CONSTRAINT_TYPE)
+                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, leftOperand)
+                .add(ODRL_OPERATOR_ATTRIBUTE, operator.toString())
+                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, rightOperand.toString())
                 .build();
     }
 }

@@ -229,7 +229,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (CONSUMER == type) {
             throw new IllegalStateException("Consumer processes have no AGREEING state");
         }
-        transition(AGREEING, AGREEING, REQUESTED, OFFERED);
+        transition(AGREEING, AGREEING, REQUESTED, OFFERED, ACCEPTED);
     }
 
     /**
@@ -248,7 +248,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionVerifying() {
         if (PROVIDER == type) {
-            throw new IllegalStateException("Consumer processes have no VERIFYING state");
+            throw new IllegalStateException("Provider processes have no VERIFYING state");
         }
 
         transition(VERIFYING, VERIFYING, AGREED, ACCEPTED);
