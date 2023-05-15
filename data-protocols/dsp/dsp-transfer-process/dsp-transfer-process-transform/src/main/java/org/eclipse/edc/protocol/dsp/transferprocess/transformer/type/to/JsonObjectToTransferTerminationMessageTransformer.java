@@ -54,7 +54,8 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
                         .type(DSPACE_TRANSFER_TERMINATION_TYPE)
                         .property(DSPACE_REASON)
                         .actual(reasons.getValueType())
-                        .expected(ARRAY).report();
+                        .expected(ARRAY)
+                        .report();
             } else {
                 var array = (JsonArray) reasons;
                 if (array.size() > 0) {
