@@ -53,7 +53,7 @@ class JsonObjectFromCatalogRequestMessageTransformerTest {
     void transform_returnJsonObject() {
         var querySpec = QuerySpec.Builder.newInstance().build();
         var querySpecJson = jsonFactory.createObjectBuilder().build();
-        when(mapper.convertValue(querySpec, JsonObject.class)).thenReturn(querySpecJson);
+        when(context.transform(querySpec, JsonObject.class)).thenReturn(querySpecJson);
 
         var message = CatalogRequestMessage.Builder.newInstance()
                 .protocol("protocol")

@@ -17,14 +17,17 @@ package org.eclipse.edc.protocol.dsp.transform;
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCatalogTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromCriterionTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDatasetTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.jsonld.transformer.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToActionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToAssetTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToConstraintTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataServiceTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDatasetTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDistributionTransformer;
@@ -32,6 +35,7 @@ import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDutyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPermissionTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonObjectToProhibitionTransformer;
+import org.eclipse.edc.jsonld.transformer.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -80,6 +84,8 @@ public class DspTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory));
         registry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory));
         registry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
+        registry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
+        registry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
 
         // JSON-LD to EDC model transformers
         registry.register(new JsonObjectToCatalogTransformer());
@@ -94,5 +100,8 @@ public class DspTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectToConstraintTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(mapper));
         registry.register(new JsonObjectToAssetTransformer());
+        registry.register(new JsonObjectToQuerySpecTransformer());
+        registry.register(new JsonObjectToCriterionTransformer());
+
     }
 }
