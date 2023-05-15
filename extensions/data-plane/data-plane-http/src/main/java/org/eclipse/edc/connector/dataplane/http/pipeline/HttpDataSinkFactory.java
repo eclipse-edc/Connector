@@ -39,7 +39,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     private final int partitionSize;
     private final Monitor monitor;
     private final HttpRequestParamsProvider requestParamsProvider;
-    private HttpRequestFactory requestFactory;
+    private final HttpRequestFactory requestFactory;
 
     public HttpDataSinkFactory(EdcHttpClient httpClient,
                                ExecutorService executorService,

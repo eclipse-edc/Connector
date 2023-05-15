@@ -67,7 +67,7 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
         var producerProps = propertiesFactory.getProducerProperties(destination.getProperties())
                 .orElseThrow(failure -> new IllegalArgumentException(failure.getFailureDetail()));
 
-        var topic = Optional.ofNullable(destination.getProperties().get(TOPIC))
+        var topic = Optional.ofNullable(destination.getProperty(TOPIC))
                 .orElseThrow(() -> new IllegalArgumentException(format("Missing `%s` config", TOPIC)));
 
         return KafkaDataSink.Builder.newInstance()

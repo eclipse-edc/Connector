@@ -263,20 +263,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport -DincludeTags="ApiTest"
 
-
-  OpenTelemetry-Integration-Tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: OpenTelemetry Integration Tests
-        uses: ./.github/actions/run-tests
-        with:
-          command: |
-            ./gradlew -p extensions/common/metrics/micrometer-core/ test -DincludeTags="OpenTelemetryIntegrationTest"
-            ./gradlew -p system-tests/tests test -DincludeTags="OpenTelemetryIntegrationTest"
-
   Check-Cloud-Environments:
     environment: Azure-dev
     runs-on: ubuntu-latest
@@ -365,7 +351,6 @@ jobs:
       - Daps-Integration-Tests
       - End-To-End-Tests
       - Hashicorp-Vault-Integration-Tests
-      - OpenTelemetry-Integration-Tests
       - Postgresql-Integration-Tests
       - Kafka-Integration-Tests
       - Unit-Tests

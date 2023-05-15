@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpMethod;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -29,26 +30,17 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.eclipse.edc.connector.contract.spi.ContractId;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.test.e2e.annotations.KafkaIntegrationTest;
 import org.eclipse.edc.test.e2e.serializers.JacksonDeserializer;
 import org.eclipse.edc.test.e2e.serializers.JacksonSerializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
-import org.mockserver.verify.VerificationTimes;
 
 import java.time.Duration;
 import java.util.List;
@@ -64,15 +56,17 @@ import javax.validation.constraints.NotNull;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.stop.Stop.stopQuietly;
+import static org.mockserver.verify.VerificationTimes.atLeast;
 
 @KafkaIntegrationTest
-@Disabled // TODO: they started breaking when we switched the runtimes to dsp
 class KafkaTransferTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -140,7 +134,7 @@ class KafkaTransferTest {
         PROVIDER.registerDataPlane();
 
         var assetId = UUID.randomUUID().toString();
-        createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), kafkaSourceProperty());
+        createResourcesOnProvider(assetId, kafkaSourceProperty());
         var agreementId = negotiateContractForAssetId(assetId);
         initiateTransfer(agreementId, assetId, httpSink());
 
@@ -148,7 +142,7 @@ class KafkaTransferTest {
                 .withMethod(HttpMethod.POST.name())
                 .withPath(SINK_HTTP_PATH)
                 .withBody(OBJECT_MAPPER.writeValueAsBytes(JSON_MESSAGE));
-        await().atMost(timeout).untilAsserted(() -> eventDestination.verify(requestDefinition, VerificationTimes.atLeast(1)));
+        await().atMost(timeout).untilAsserted(() -> eventDestination.verify(requestDefinition, atLeast(1)));
     }
 
     @Test
@@ -159,7 +153,7 @@ class KafkaTransferTest {
             PROVIDER.registerDataPlane();
 
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, noConstraintPolicy(), UUID.randomUUID().toString(), kafkaSourceProperty());
+            createResourcesOnProvider(assetId, kafkaSourceProperty());
             var agreementId = negotiateContractForAssetId(assetId);
             initiateTransfer(agreementId, assetId, kafkaSink());
 
@@ -196,12 +190,12 @@ class KafkaTransferTest {
                 0, 100, TimeUnit.MILLISECONDS);
     }
 
-    private void initiateTransfer(String contractAgreementId, String assetId, DataAddress destination) {
-        var transferProcessId = CONSUMER.dataRequest(UUID.randomUUID().toString(), contractAgreementId, assetId, PROVIDER, destination);
+    private void initiateTransfer(String contractAgreementId, String assetId, JsonObject destination) {
+        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, destination);
 
         await().atMost(timeout).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(COMPLETED.name());
+            assertThat(state).isEqualTo(STARTED.name());
         });
     }
 
@@ -220,29 +214,33 @@ class KafkaTransferTest {
         return ContractId.parse(id);
     }
 
-    private void createResourcesOnProvider(String assetId, PolicyDefinition contractPolicy, String definitionId, Map<String, String> dataAddressProperties) {
+    private void createResourcesOnProvider(String assetId, Map<String, String> dataAddressProperties) {
         PROVIDER.createAsset(assetId, dataAddressProperties);
-        var accessPolicy = noConstraintPolicy();
-        PROVIDER.createPolicy(accessPolicy);
-        PROVIDER.createPolicy(contractPolicy);
-        PROVIDER.createContractDefinition(assetId, definitionId, accessPolicy.getUid(), contractPolicy.getUid());
+        var noConstraintPolicyDefinition = PROVIDER.createPolicyDefinition(noConstraintPolicy());
+        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyDefinition, noConstraintPolicyDefinition);
     }
 
-    @NotNull
-    private HttpDataAddress httpSink() {
-        return HttpDataAddress.Builder.newInstance()
-                .name("data")
-                .baseUrl(format("http://localhost:%s", EVENT_DESTINATION_PORT))
-                .path(SINK_HTTP_PATH)
+    private JsonObject httpSink() {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "HttpData")
+                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
+                        .add(EDC_NAMESPACE + "name", "data")
+                        .add(EDC_NAMESPACE + "baseUrl", format("http://localhost:%s", EVENT_DESTINATION_PORT))
+                        .add(EDC_NAMESPACE + "path", SINK_HTTP_PATH)
+                        .build())
                 .build();
     }
 
     @NotNull
-    private DataAddress kafkaSink() {
-        return DataAddress.Builder.newInstance()
-                .property("type", "Kafka")
-                .property("topic", SINK_TOPIC)
-                .property(kafkaProperty("bootstrap.servers"), KAFKA_SERVER)
+    private JsonObject kafkaSink() {
+        return Json.createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(EDC_NAMESPACE + "type", "Kafka")
+                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
+                        .add(EDC_NAMESPACE + "topic", SINK_TOPIC)
+                        .add(EDC_NAMESPACE + kafkaProperty("bootstrap.servers"), KAFKA_SERVER)
+                        .build())
                 .build();
     }
 
@@ -257,14 +255,9 @@ class KafkaTransferTest {
         );
     }
 
-    private PolicyDefinition noConstraintPolicy() {
-        return PolicyDefinition.Builder.newInstance()
-                .policy(Policy.Builder.newInstance()
-                        .permission(Permission.Builder.newInstance()
-                                .action(Action.Builder.newInstance().type("USE").build())
-                                .build())
-                        .type(PolicyType.SET)
-                        .build())
+    private JsonObject noConstraintPolicy() {
+        return Json.createObjectBuilder()
+                .add(TYPE, "use")
                 .build();
     }
 

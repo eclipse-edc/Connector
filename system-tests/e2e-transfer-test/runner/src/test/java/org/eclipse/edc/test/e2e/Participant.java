@@ -20,15 +20,11 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.contract.spi.ContractId;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
 import org.hamcrest.Matcher;
@@ -75,7 +71,6 @@ public class Participant {
     private final String name;
     private final String participantId;
 
-    private final TypeManager typeManager = new TypeManager();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd;
 
@@ -83,7 +78,6 @@ public class Participant {
         this.name = name;
         this.participantId = participantId;
         jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
-        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
     }
 
     public void createAsset(String assetId, Map<String, String> dataAddressProperties) {
@@ -106,18 +100,6 @@ public class Participant {
                 .body(asset)
                 .when()
                 .post("/assets")
-                .then()
-                .statusCode(200)
-                .contentType(JSON);
-    }
-
-    public void createPolicy(PolicyDefinition policyDefinition) {
-        given()
-                .baseUri(controlPlaneManagement.toString())
-                .contentType(JSON)
-                .body(policyDefinition)
-                .when()
-                .post("/policydefinitions")
                 .then()
                 .statusCode(200)
                 .contentType(JSON);
@@ -174,7 +156,7 @@ public class Participant {
     public String negotiateContract(Participant provider, String offerId, String assetId, JsonObject policy) {
         var requestBody = Json.createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "NegotiationInitiateRequestDto")
-                .add(EDC_NAMESPACE + "connectorId", "urn:connector:provider")
+                .add(EDC_NAMESPACE + "connectorId", provider.participantId)
                 .add(EDC_NAMESPACE + "consumerId", participantId)
                 .add(EDC_NAMESPACE + "providerId", provider.participantId)
                 .add(EDC_NAMESPACE + "connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH)
@@ -219,29 +201,6 @@ public class Participant {
         return id;
     }
 
-    public String dataRequest(String id, String contractAgreementId, String assetId, Participant provider, DataAddress dataAddress) {
-        var request = Map.of(
-                "id", id,
-                "contractId", contractAgreementId,
-                "assetId", assetId,
-                "connectorId", "provider",
-                "connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH,
-                "protocol", "dataspace-protocol-http",
-                "dataDestination", dataAddress,
-                "managedResources", false
-        );
-
-        return given()
-                .baseUri(controlPlaneManagement.toString())
-                .contentType(JSON)
-                .body(request)
-                .when()
-                .post("/transferprocess")
-                .then()
-                .statusCode(200)
-                .extract().body().jsonPath().getString("id");
-    }
-
     public String initiateTransfer(String contractId, String assetId, Participant provider, JsonObject destination) {
         var requestBody = Json.createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "TransferRequestDto")
@@ -274,15 +233,15 @@ public class Participant {
                 .extract().body().jsonPath().getString("'edc:state'");
     }
 
-    public String getTransferProcessState(String transferProcessId) {
+    public String getTransferProcessState(String id) {
         return given()
                 .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
                 .when()
-                .get("/transferprocess/{id}/state", transferProcessId)
+                .get("/v2/transferprocesses/{id}/state", id)
                 .then()
                 .statusCode(200)
-                .extract().body().jsonPath().getString("state");
+                .extract().body().jsonPath().getString("'edc:state'");
     }
 
     public EndpointDataReference getDataReference(String id) {
