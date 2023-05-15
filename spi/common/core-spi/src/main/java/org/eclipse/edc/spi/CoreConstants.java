@@ -17,6 +17,5 @@ package org.eclipse.edc.spi;
 public interface CoreConstants {
     String JSON_LD = "json-ld";
     String EDC_PREFIX = "edc";
-    //todo: this must be replaced once we have a default EDC schema!
-    String EDC_NAMESPACE = "https://foo.bar.org/ds/schema/";
+    String EDC_NAMESPACE = "https://w3id.org/edc/v0.0.1/ns/";
 }

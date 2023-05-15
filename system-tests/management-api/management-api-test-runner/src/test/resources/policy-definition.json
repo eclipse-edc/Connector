@@ -1,6 +1,6 @@
 {
   "@context": {
-    "edc": "https://foo.bar.org/ds/schema/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
     "uid": "@id",
     "type": "@type",
     "PolicyDefinition": "edc:PolicyDefinition",
