@@ -60,7 +60,16 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
     }
 
     private String state(Integer state, TransformerContext context) {
-        switch (ContractNegotiationStates.from(state)) {
+        var negotiationState = ContractNegotiationStates.from(state);
+        if (negotiationState == null) {
+            context.problem()
+                    .nullProperty()
+                    .type(ContractNegotiation.class)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_STATE)
+                    .report();
+            return null;
+        }
+        switch (negotiationState) {
             case REQUESTING:
             case REQUESTED:
                 return DSPACE_NEGOTIATION_STATE_REQUESTED;
@@ -83,7 +92,13 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
             case TERMINATED:
                 return DSPACE_NEGOTIATION_STATE_TERMINATED;
             default:
-                context.reportProblem(String.format("Could not map state %s in ContractNegotiation", state));
+                context.problem()
+                        .unexpectedType()
+                        .type(ContractNegotiation.class)
+                        .property("state")
+                        .actual(negotiationState.toString())
+                        .expected(ContractNegotiationStates.class)
+                        .report();
                 return null;
         }
     }

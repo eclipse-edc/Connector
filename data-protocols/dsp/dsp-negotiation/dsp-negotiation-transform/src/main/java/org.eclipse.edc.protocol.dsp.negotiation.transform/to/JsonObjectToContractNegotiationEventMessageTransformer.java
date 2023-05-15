@@ -21,9 +21,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
@@ -44,7 +44,11 @@ public class JsonObjectToContractNegotiationEventMessageTransformer extends Abst
         var builder = ContractNegotiationEventMessage.Builder.newInstance();
 
         if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
-            context.reportProblem(format("ContractNegotiationEventMessage is missing the %s property", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID)
+                    .report();
             return null;
         }
 
@@ -54,7 +58,13 @@ public class JsonObjectToContractNegotiationEventMessageTransformer extends Abst
         } else if (DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED.equals(eventType)) {
             builder.type(FINALIZED);
         } else {
-            context.reportProblem(format("Could not map '%s' in ContractNegotiationEventMessage: %s", DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, eventType));
+            context.problem()
+                    .unexpectedType()
+                    .type(DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE)
+                    .expected(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED)
+                    .expected(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED)
+                    .report();
             return null;
         }
 

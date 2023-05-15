@@ -25,6 +25,7 @@ import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToContractAgreementMessageTransformer();
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
     @Test

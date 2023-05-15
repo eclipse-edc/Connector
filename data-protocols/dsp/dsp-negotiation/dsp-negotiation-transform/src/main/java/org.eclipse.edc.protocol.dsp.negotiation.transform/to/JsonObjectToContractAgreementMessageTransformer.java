@@ -28,7 +28,8 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Set;
 
-import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
@@ -50,7 +51,11 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
     public @Nullable ContractAgreementMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var messageBuilder = ContractAgreementMessage.Builder.newInstance();
         if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), messageBuilder::processId, context)) {
-            context.reportProblem(format("No '%s' specified on ContractAgreementMessage", DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID));
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID)
+                    .report();
             return null;
         }
 
@@ -63,13 +68,17 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
 
         var policy = context.transform(filteredJsonAgreement, Policy.class);
         if (policy == null) {
-            context.reportProblem("Cannot transform to ContractAgreementMessage with invalid policy");
+            context.problem()
+                    .invalidProperty()
+                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT)
+                    .report();
             return null;
         }
 
         var agreement = contractAgreement(jsonAgreement, policy, context);
         if (agreement == null) {
-            context.reportProblem("Cannot transform to ContractAgreementMessage with null agreement");
+            // problem already reported
             return null;
         }
 
@@ -91,18 +100,30 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         var builder = ContractAgreement.Builder.newInstance();
         var agreementId = nodeId(jsonAgreement);
         if (agreementId == null) {
-            context.reportProblem("No id specified on ContractAgreement");
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .property(ID)
+                    .report();
             return null;
         }
         builder.id(agreementId);
 
         if (!transformMandatoryString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID), builder::consumerId, context)) {
-            context.reportProblem(format("No '%s' specified on ContractAgreement", DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID));
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID)
+                    .report();
             return null;
         }
 
         if (!transformMandatoryString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID), builder::providerId, context)) {
-            context.reportProblem(format("No '%s' specified on ContractAgreement", DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID));
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID)
+                    .report();
             return null;
         }
 
@@ -111,13 +132,23 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
 
         var timestamp = transformString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP), context);
         if (timestamp == null) {
-            context.reportProblem(format("No '%s' specified on ContractAgreement", DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP)
+                    .report();
             return null;
         }
         try {
             builder.contractSigningDate(Instant.parse(timestamp).getEpochSecond());
         } catch (DateTimeParseException e) {
-            context.reportProblem(format("Invalid '%s' specified on ContractAgreement: %s", DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, e.getMessage()));
+            context.problem()
+                    .invalidProperty()
+                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .property(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP)
+                    .value(timestamp)
+                    .error(e.getMessage())
+                    .report();
             return null;
         }
 

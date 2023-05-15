@@ -25,6 +25,7 @@ import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,71 +48,72 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectFromCatalogTransformerTest {
-    
+
     private static final String CATALOG_PROPERTY = "catalog:prop:key";
-    
+
     private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private ObjectMapper mapper = mock(ObjectMapper.class);
     private TransformerContext context = mock(TransformerContext.class);
-    
+
     private JsonObjectFromCatalogTransformer transformer;
-    
+
     private JsonObject datasetJson;
     private JsonObject dataServiceJson;
-    
+
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectFromCatalogTransformer(jsonFactory, mapper);
-    
+
         datasetJson = getJsonObject("dataset");
         dataServiceJson = getJsonObject("dataService");
-    
+
         when(context.transform(isA(Dataset.class), eq(JsonObject.class))).thenReturn(datasetJson);
         when(context.transform(isA(DataService.class), eq(JsonObject.class))).thenReturn(dataServiceJson);
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
-    
+
     @Test
     void transform_returnJsonObject() {
         when(mapper.convertValue(any(), eq(JsonValue.class))).thenReturn(Json.createValue("value"));
-        
+
         var catalog = getCatalog();
         var result = transformer.transform(catalog, context);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isEqualTo(catalog.getId());
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DCAT_CATALOG_TYPE);
-        
+
         assertThat(result.get(DCAT_DATASET_ATTRIBUTE))
                 .isNotNull()
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(datasetJson));
-        
+
         assertThat(result.get(DCAT_DATA_SERVICE_ATTRIBUTE))
                 .isNotNull()
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-        
+
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
-        
+
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);
         verify(context, times(1)).transform(catalog.getDataServices().get(0), JsonObject.class);
     }
-    
+
     @Test
     void transform_mappingPropertyFails_reportProblem() {
         when(mapper.convertValue(any(), eq(JsonValue.class))).thenThrow(IllegalArgumentException.class);
-    
+
         var catalog = getCatalog();
         var result = transformer.transform(catalog, context);
-    
+
         assertThat(result).isNotNull();
         assertThat(result.get(CATALOG_PROPERTY)).isNull();
-        
+
         verify(context, times(1)).reportProblem(anyString());
     }
-    
+
     private Catalog getCatalog() {
         return Catalog.Builder.newInstance()
                 .id("catalog")
@@ -126,7 +128,7 @@ class JsonObjectFromCatalogTransformerTest {
                 .property(CATALOG_PROPERTY, "value")
                 .build();
     }
-    
+
     private JsonObject getJsonObject(String type) {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, type)

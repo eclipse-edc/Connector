@@ -25,6 +25,7 @@ import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.XoneConstraint;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,7 @@ class JsonObjectToConstraintTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToConstraintTransformer();
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
     @Test

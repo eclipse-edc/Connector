@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectFromContractRequestMessageTransformer(jsonFactory);
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
     @Test

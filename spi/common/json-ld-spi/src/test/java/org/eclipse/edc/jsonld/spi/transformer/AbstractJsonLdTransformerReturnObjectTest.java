@@ -16,6 +16,7 @@ package org.eclipse.edc.jsonld.spi.transformer;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class AbstractJsonLdTransformerReturnObjectTest {
 
@@ -53,7 +55,7 @@ class AbstractJsonLdTransformerReturnObjectTest {
 
         jsonFactory = Json.createBuilderFactory(Map.of());
         context = mock(TransformerContext.class);
-
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
     @Test
@@ -71,7 +73,7 @@ class AbstractJsonLdTransformerReturnObjectTest {
         var result = transformer.returnMandatoryJsonObject(null, context, TEST_PROPERTY);
 
         assertThat(result).isNull();
-        verify(context, times(1)).reportProblem(eq(format("Property '%s' is null", TEST_PROPERTY)));
+        verify(context, times(1)).reportProblem(eq(format("Property '%s' was null", TEST_PROPERTY)));
     }
 
     @Test
@@ -89,7 +91,7 @@ class AbstractJsonLdTransformerReturnObjectTest {
         var result = transformer.returnMandatoryJsonObject(value, context, TEST_PROPERTY);
 
         assertThat(result).isNull();
-        verify(context, times(1)).reportProblem(eq(format("Property '%s' contains an unexpected type: \"test\"", TEST_PROPERTY)));
+        verify(context, times(1)).reportProblem(eq("Property 'testProperty' must be OBJECT or ARRAY but was: \"test\""));
     }
 
     @Test

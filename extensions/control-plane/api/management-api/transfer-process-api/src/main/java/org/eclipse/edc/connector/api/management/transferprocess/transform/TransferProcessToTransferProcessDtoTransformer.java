@@ -69,7 +69,13 @@ public class TransferProcessToTransferProcessDtoTransformer implements DtoTransf
     private String getState(int value, TransformerContext context) {
         var result = TransferProcessStates.from(value);
         if (result == null) {
-            context.reportProblem("Invalid value for TransferProcess.state");
+            context.problem()
+                    .unexpectedType()
+                    .type(TransferProcess.class)
+                    .property("state")
+                    .expected(TransferProcessStates.class)
+                    .actual(String.valueOf(value))
+                    .report();
             return null;
         }
         return result.name();

@@ -23,6 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static jakarta.json.JsonValue.ValueType.STRING;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 
@@ -54,7 +55,13 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
             if (object instanceof String) {
                 builder.property(key, object.toString());
             } else {
-                context.reportProblem("DataAddress#properties can only contain Strings, but an attempt was made to put in a " + object.getClass());
+                context.problem()
+                        .unexpectedType()
+                        .type("property")
+                        .property(key)
+                        .actual(object == null ? "null" : object.toString())
+                        .expected(STRING)
+                        .report();
             }
         }
 

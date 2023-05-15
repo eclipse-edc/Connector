@@ -61,7 +61,11 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
             builder.add(DSPACE_NEGOTIATION_PROPERTY_DATASET, requestMessage.getContractOffer().getAssetId());
             var policy = context.transform(requestMessage.getContractOffer().getPolicy(), JsonObject.class);
             if (policy == null) {
-                context.reportProblem("Cannot transform from ContractRequestMessage policy");
+                context.problem()
+                        .nullProperty()
+                        .type(ContractRequestMessage.class)
+                        .property("contractOffer")
+                        .report();
                 return null;
             }
 

@@ -22,6 +22,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.transformer.Payload;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,7 @@ class JsonObjectToDataAddressTransformerTest {
         transformerContext = mock(TransformerContext.class);
         when(transformerContext.transform(isA(JsonObject.class), eq(Object.class)))
                 .thenAnswer(i -> objectTransformer.transform(i.getArgument(0), transformerContext));
+        when(transformerContext.problem()).thenReturn(new ProblemBuilder(transformerContext));
     }
 
     @Test

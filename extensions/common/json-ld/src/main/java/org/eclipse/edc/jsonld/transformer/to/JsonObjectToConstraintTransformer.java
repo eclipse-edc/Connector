@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OR_CONSTRAINT_ATTRIBUTE;
@@ -53,7 +53,7 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
     public JsonObjectToConstraintTransformer() {
         super(JsonObject.class, Constraint.class);
     }
-    
+
     @Override
     public @Nullable Constraint transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var logicalConstraint = transformLogicalConstraint(object, context);
@@ -69,12 +69,20 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
         var builder = AtomicConstraint.Builder.newInstance();
 
         if (!transformMandatoryString(object.get(ODRL_LEFT_OPERAND_ATTRIBUTE), s -> builder.leftExpression(new LiteralExpression(s)), context)) {
-            context.reportProblem(format("No mandatory attribute %s found in Constraint", ODRL_LEFT_OPERAND_ATTRIBUTE));
+            context.problem()
+                    .missingProperty()
+                    .type("Constraint")
+                    .property(ODRL_LEFT_OPERAND_ATTRIBUTE)
+                    .report();
             return null;
         }
 
         if (!transformMandatoryString(object.get(ODRL_OPERATOR_ATTRIBUTE), s -> builder.operator(Operator.valueOf(s)), context)) {
-            context.reportProblem(format("No mandatory attribute %s found in Constraint", ODRL_LEFT_OPERAND_ATTRIBUTE));
+            context.problem()
+                    .missingProperty()
+                    .type(ODRL_CONSTRAINT_TYPE)
+                    .property(ODRL_LEFT_OPERAND_ATTRIBUTE)
+                    .report();
             return null;
         }
 

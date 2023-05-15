@@ -25,6 +25,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static jakarta.json.JsonValue.ValueType.ARRAY;
+import static jakarta.json.JsonValue.ValueType.OBJECT;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DISTRIBUTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 
@@ -67,7 +70,14 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
             var array = (JsonArray) value;
             array.forEach(entry -> transformPolicies(entry, builder, context));
         } else {
-            context.reportProblem("Invalid hasPolicy property");
+            context.problem()
+                    .unexpectedType()
+                    .type(DCAT_DATASET_TYPE)
+                    .property(ODRL_POLICY_ATTRIBUTE)
+                    .actual(value == null ? "null" : value.getValueType().toString())
+                    .expected(OBJECT)
+                    .expected(ARRAY)
+                    .report();
         }
     }
 }
