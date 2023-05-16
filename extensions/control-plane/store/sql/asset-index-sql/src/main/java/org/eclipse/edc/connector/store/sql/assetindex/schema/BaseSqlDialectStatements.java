@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - added private property support
  *
  */
 
@@ -48,10 +49,10 @@ public class BaseSqlDialectStatements implements AssetStatements {
         return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?)",
                 getAssetPropertyTable(),
                 getPropertyAssetIdFkColumn(),
-                getAssetPropertyColumnName(),
-                getAssetPropertyColumnValue(),
-                getAssetPropertyColumnType(),
-                getAssetPropertyColumnIsPrivate());
+                getAssetPropertyNameColumn(),
+                getAssetPropertyValueColumn(),
+                getAssetPropertyTypeColumn(),
+                getAssetPropertyIsPrivateColumn());
     }
 
     @Override
@@ -110,8 +111,8 @@ public class BaseSqlDialectStatements implements AssetStatements {
                 getAssetPropertyTable(),
                 getPropertyAssetIdFkColumn(),
                 getAssetIdColumn(),
-                getAssetPropertyColumnName(),
-                getAssetPropertyColumnValue());
+                getAssetPropertyNameColumn(),
+                getAssetPropertyValueColumn());
     }
 
     @Override

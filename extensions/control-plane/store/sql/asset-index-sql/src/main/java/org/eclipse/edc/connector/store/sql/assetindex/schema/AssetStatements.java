@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - added private property support
  *
  */
 
@@ -65,28 +66,28 @@ public interface AssetStatements {
     /**
      * The asset property name column.
      */
-    default String getAssetPropertyColumnName() {
+    default String getAssetPropertyNameColumn() {
         return "property_name";
     }
 
     /**
      * The asset property value column.
      */
-    default String getAssetPropertyColumnValue() {
+    default String getAssetPropertyValueColumn() {
         return "property_value";
     }
 
     /**
      * The asset property type column.
      */
-    default String getAssetPropertyColumnType() {
+    default String getAssetPropertyTypeColumn() {
         return "property_type";
     }
 
     /**
      * The asset property is private column.
      */
-    default String getAssetPropertyColumnIsPrivate() {
+    default String getAssetPropertyIsPrivateColumn() {
         return "property_is_private";
     }
 

@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *
+ *       ZF Friedrichshafen AG - added private property support
  */
 
 package org.eclipse.edc.connector.store.sql.assetindex;
@@ -41,6 +41,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.DUPLICATE_KEYS;
 
 @PostgresqlDbIntegrationTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -139,6 +140,19 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         assertThatThrownBy(() -> sqlAssetIndex.queryAssets(query)).isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    @DisplayName("Verify that creating an asset that contains duplicate keys in properties and private properties fails")
+    void createAsset_withDuplicatePropertyKeys() {
+        var asset = TestFunctions.createAssetBuilder("id1")
+                .property("testproperty", "testvalue")
+                .privateProperty("testproperty", "testvalue")
+                .build();
+
+        var result = sqlAssetIndex.create(asset, TestFunctions.createDataAddress("test-type"));
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.reason()).isEqualTo(DUPLICATE_KEYS);
+    }
+
     @Override
     protected SqlAssetIndex getAssetIndex() {
         return sqlAssetIndex;
@@ -163,7 +177,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         return IntStream.range(0, amount).mapToObj(i -> {
             var asset = TestFunctions.createAssetBuilder("test-asset" + i)
                     .property("test-key", "test-value" + i)
-                    .property("test-pKey", "test-pValue" + i)
+                    .privateProperty("test-pKey", "test-pValue" + i)
                     .build();
             var dataAddress = TestFunctions.createDataAddress("test-type");
             sqlAssetIndex.create(asset, dataAddress);

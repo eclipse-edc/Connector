@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       ZF Friedrichshafen AG - added private property support
  *
  */
 
@@ -39,6 +40,7 @@ public interface AssetIndex extends DataAddressResolver {
     String ASSET_EXISTS_TEMPLATE = "Asset with ID %s already exists";
     String ASSET_NOT_FOUND_TEMPLATE = "Asset with ID %s not found";
     String DATAADDRESS_NOT_FOUND_TEMPLATE = "DataAddress with ID %s not found";
+    String DUPLICATE_PROPERTY_KEYS = "Duplicate keys in properties and private properties are not allowed";
 
     /**
      * Finds all assets that are covered by a specific {@link QuerySpec}. Results are always sorted. If no {@link QuerySpec#getSortField()}
