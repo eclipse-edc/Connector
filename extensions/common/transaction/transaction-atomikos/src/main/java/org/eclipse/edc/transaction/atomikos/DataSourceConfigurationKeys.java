@@ -58,9 +58,6 @@ public interface DataSourceConfigurationKeys {
     String MAX_IDLE = "max.idle";
 
     @Setting
-    String REAP = "reap";
-
-    @Setting
     String QUERY = "query";
 
     @Setting

@@ -50,7 +50,6 @@ public class DataSourceConfigurationParser {
                     setIfProvidedInt(DataSourceConfigurationKeys.LOGIN_TIMEOUT, builder::loginTimeout, config);
                     setIfProvidedInt(DataSourceConfigurationKeys.MAINTENANCE_INTERVAL, builder::maintenanceInterval, config);
                     setIfProvidedInt(DataSourceConfigurationKeys.MAX_IDLE, builder::maxIdle, config);
-                    setIfProvidedInt(DataSourceConfigurationKeys.REAP, builder::reap, config);
                     setIfProvided(DataSourceConfigurationKeys.QUERY, builder::query, config);
 
                     builder.properties(config.getRelativeEntries(DataSourceConfigurationKeys.DRIVER_PROPERTIES));

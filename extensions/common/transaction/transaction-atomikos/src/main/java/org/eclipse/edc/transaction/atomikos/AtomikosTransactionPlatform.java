@@ -16,13 +16,14 @@ package org.eclipse.edc.transaction.atomikos;
 
 import com.atomikos.icatch.config.UserTransactionServiceImp;
 import com.atomikos.icatch.jta.TransactionManagerImp;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.TransactionManager;
 import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-import javax.transaction.SystemException;
 
 import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.ATOMIKOS_CHECKPOINT_INTERVAL;
 import static org.eclipse.edc.transaction.atomikos.TransactionManagerConfigurationKeys.ATOMIKOS_ENABLE_LOGGING;
@@ -41,7 +42,7 @@ public class AtomikosTransactionPlatform {
 
     private TransactionManagerConfiguration configuration;
     private UserTransactionServiceImp transactionService;
-    private TransactionManagerImp transactionManager;
+    private TransactionManager transactionManager;
 
     public AtomikosTransactionPlatform(TransactionManagerConfiguration configuration) {
         this.configuration = configuration;
@@ -53,11 +54,11 @@ public class AtomikosTransactionPlatform {
      */
     public void recover() {
         var properties = initializeProperties();
-        transactionManager = (TransactionManagerImp) TransactionManagerImp.getTransactionManager();
+        transactionManager = TransactionManagerImp.getTransactionManager();
         if (transactionManager == null) {
             transactionService = new UserTransactionServiceImp(properties);
             transactionService.init(properties);
-            transactionManager = (TransactionManagerImp) TransactionManagerImp.getTransactionManager();
+            transactionManager = TransactionManagerImp.getTransactionManager();
         }
         if (configuration.getTimeout() != -1) {
             try {
@@ -81,7 +82,7 @@ public class AtomikosTransactionPlatform {
     /**
      * Returns the configured transaction manager.
      */
-    public TransactionManagerImp getTransactionManager() {
+    public TransactionManager getTransactionManager() {
         return transactionManager;
     }
 
