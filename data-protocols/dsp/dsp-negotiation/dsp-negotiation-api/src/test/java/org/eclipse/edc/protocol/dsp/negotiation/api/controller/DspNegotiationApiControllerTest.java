@@ -213,7 +213,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void initiateNegotiation_shouldReturnTransferProcess_whenValidRequest() {
+    void initiateNegotiation_shouldReturnContractNegotiation_whenValidRequest() {
         var token = token();
         var message = contractRequestMessage();
         var process = contractNegotiation();

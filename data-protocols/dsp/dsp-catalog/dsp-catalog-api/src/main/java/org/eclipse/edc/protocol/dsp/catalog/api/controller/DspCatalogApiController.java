@@ -52,7 +52,7 @@ import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPA
 @Path(BASE_PATH)
 public class DspCatalogApiController {
 
-    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogErrorMessage"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
+    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
 
     private final Monitor monitor;
     private final IdentityService identityService;
@@ -139,7 +139,7 @@ public class DspCatalogApiController {
         return Response.status(code).type(MediaType.APPLICATION_JSON)
                 .entity(DspError.Builder.newInstance()
                         .type(DSPACE_CATALOG_ERROR)
-                        .code(String.valueOf(code.getStatusCode()))
+                        .code(Integer.toString(code.getStatusCode()))
                         .messages(List.of(message))
                         .build().toJson())
                 .build();

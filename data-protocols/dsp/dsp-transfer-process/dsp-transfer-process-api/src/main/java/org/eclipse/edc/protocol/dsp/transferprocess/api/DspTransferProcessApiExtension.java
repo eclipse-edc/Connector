@@ -24,11 +24,8 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
-
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Creates and registers the controller for dataspace protocol transfer process requests.
@@ -39,8 +36,6 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
     public static final String NAME = "Dataspace Protocol: TransferProcess API Extension";
     @Inject
     private DspApiConfiguration config;
-    @Inject
-    private TypeManager typeManager;
     @Inject
     private Monitor monitor;
     @Inject
@@ -56,7 +51,7 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var controller = new DspTransferProcessApiController(monitor, typeManager.getMapper(JSON_LD), registry, transferProcessProtocolService, identityService, config.getDspCallbackAddress(), jsonLdService);
+        var controller = new DspTransferProcessApiController(monitor, registry, transferProcessProtocolService, identityService, config.getDspCallbackAddress(), jsonLdService);
 
         webService.registerResource(config.getContextAlias(), controller);
     }

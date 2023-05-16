@@ -158,7 +158,7 @@ public class DspNegotiationApiController {
             return errorResponse(Optional.of(negotiation.getCorrelationId()), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
-        return Response.status(Response.Status.OK).type(MediaType.APPLICATION_JSON).entity(result).build();
+        return Response.status(Response.Status.OK).type(MediaType.APPLICATION_JSON).entity(result.getContent()).build();
     }
 
     /**
@@ -429,7 +429,7 @@ public class DspNegotiationApiController {
     private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
         var builder = DspError.Builder.newInstance()
                 .type(DSPACE_CONTRACT_NEGOTIATION_ERROR)
-                .code(String.valueOf(code.getStatusCode()))
+                .code(Integer.toString(code.getStatusCode()))
                 .messages(List.of(message));
 
         processId.ifPresent(builder::processId);

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -24,6 +23,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -32,7 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.protocol.dsp.DspError;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -41,11 +41,17 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.BAD_REQUEST;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.NOT_IMPLEMENTED;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.UNAUTHORIZED;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
@@ -68,16 +74,16 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Path(BASE_PATH)
 public class DspTransferProcessApiController {
 
+    private static final String DSPACE_TRANSFER_ERROR = DSPACE_SCHEMA + "TransferError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
+
     private final Monitor monitor;
     private final TypeTransformerRegistry registry;
     private final TransferProcessProtocolService protocolService;
-    private final ObjectMapper mapper;
     private final IdentityService identityService;
     private final String dspCallbackAddress;
     private final JsonLd jsonLdService;
 
     public DspTransferProcessApiController(Monitor monitor,
-                                           ObjectMapper mapper,
                                            TypeTransformerRegistry registry,
                                            TransferProcessProtocolService protocolService,
                                            IdentityService identityService,
@@ -86,7 +92,6 @@ public class DspTransferProcessApiController {
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.registry = registry;
-        this.mapper = mapper;
         this.identityService = identityService;
         this.dspCallbackAddress = dspCallbackAddress;
         this.jsonLdService = jsonLdService;
@@ -96,14 +101,12 @@ public class DspTransferProcessApiController {
      * Retrieves an existing transfer process. This functionality is not yet supported.
      *
      * @param id the ID of the process
-     * @return the transfer process in JSON-LD expanded form
+     * @return the requested transfer process or an error.
      */
     @GET
     @Path("/{id}")
-    public JsonObject getTransferProcess(@PathParam("id") String id) {
-        monitor.debug(() -> format("DSP: Incoming request for transfer process with id %s", id));
-
-        throw new UnsupportedOperationException("Getting a transfer process not yet supported.");
+    public Response getTransferProcess(@PathParam("id") String id) {
+        return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
     }
 
     /**
@@ -111,25 +114,38 @@ public class DspTransferProcessApiController {
      *
      * @param jsonObject the {@link TransferRequestMessage} in JSON-LD expanded form
      * @param token      the authorization header
-     * @return the created transfer process  in JSON-LD expanded form
+     * @return the created transfer process or an error.
      */
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
-    public Map<String, Object> initiateTransferProcess(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var transferProcessResponse = handleMessage(MessageSpec.Builder.newInstance(TransferRequestMessage.class)
-                .expectedMessageType(DSPACE_TRANSFER_PROCESS_REQUEST_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyRequested)
-                .build());
+    public Response initiateTransferProcess(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        TransferProcess transferProcess;
+        try {
+            transferProcess = handleMessage(MessageSpec.Builder.newInstance(TransferRequestMessage.class)
+                    .expectedMessageType(DSPACE_TRANSFER_PROCESS_REQUEST_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyRequested)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            return errorResponse(Optional.empty(), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + ": %s", exception.getMessages()));
+            return errorResponse(Optional.empty(), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            return errorResponse(Optional.empty(), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
 
-        var transferProcessJson = registry.transform(transferProcessResponse, JsonObject.class)
-                .orElseThrow(failure -> new EdcException(format("Response could not be created: %s", failure.getFailureDetail())));
+        var result = registry.transform(transferProcess, JsonObject.class);
+        if (result.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, result.getFailureDetail()));
+            return errorResponse(Optional.of(transferProcess.getCorrelationId()), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
 
-        var compacted = jsonLdService.compact(transferProcessJson);
-
-        //noinspection unchecked
-        return compacted.map(jo -> mapper.convertValue(jo, Map.class)).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+        return Response.status(Response.Status.OK).type(MediaType.APPLICATION_JSON).entity(result.getContent()).build();
     }
 
     /**
@@ -138,17 +154,32 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferStartMessage} in JSON-LD expanded form
      * @param token      the authorization header
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + TRANSFER_START)
-    public void transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        handleMessage(MessageSpec.Builder.newInstance(TransferStartMessage.class)
-                .processId(id)
-                .expectedMessageType(DSPACE_TRANSFER_START_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyStarted)
-                .build());
+    public Response transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(TransferStartMessage.class)
+                    .processId(id)
+                    .expectedMessageType(DSPACE_TRANSFER_START_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyStarted)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
+
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
@@ -157,17 +188,32 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferCompletionMessage} in JSON-LD expanded form
      * @param token      the authorization header
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
-    public void transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        handleMessage(MessageSpec.Builder.newInstance(TransferCompletionMessage.class)
-                .processId(id)
-                .expectedMessageType(DSPACE_TRANSFER_COMPLETION_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyCompleted)
-                .build());
+    public Response transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(TransferCompletionMessage.class)
+                    .processId(id)
+                    .expectedMessageType(DSPACE_TRANSFER_COMPLETION_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyCompleted)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
+
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
@@ -176,17 +222,32 @@ public class DspTransferProcessApiController {
      * @param id         the ID of the process
      * @param jsonObject the {@link TransferTerminationMessage} in JSON-LD expanded form
      * @param token      the authorization header
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
-    public void transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        handleMessage(MessageSpec.Builder.newInstance(TransferTerminationMessage.class)
-                .processId(id)
-                .expectedMessageType(DSPACE_TRANSFER_TERMINATION_TYPE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyTerminated)
-                .build());
+    public Response transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(TransferTerminationMessage.class)
+                    .processId(id)
+                    .expectedMessageType(DSPACE_TRANSFER_TERMINATION_TYPE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyTerminated)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
+
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
@@ -197,10 +258,8 @@ public class DspTransferProcessApiController {
      */
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
-    public void transferProcessSuspension(@PathParam("id") String id) {
-        monitor.debug(() -> format("DSP: Incoming TransferSuspensionMessage for transfer process %s", id));
-
-        throw new UnsupportedOperationException("Suspension not yet supported.");
+    public Response transferProcessSuspension(@PathParam("id") String id) {
+        return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
     }
 
     /**
@@ -258,6 +317,19 @@ public class DspTransferProcessApiController {
                 throw new InvalidRequestException(format("Invalid process ID. Expected: %s, actual: %s", expected, actual));
             }
         }
+    }
+
+    private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
+        var builder = DspError.Builder.newInstance()
+                .type(DSPACE_TRANSFER_ERROR)
+                .code(Integer.toString(code.getStatusCode()))
+                .messages(List.of(message));
+
+        processId.ifPresent(builder::processId);
+
+        return Response.status(code).type(MediaType.APPLICATION_JSON)
+                .entity(builder.build().toJson())
+                .build();
     }
 
 }
