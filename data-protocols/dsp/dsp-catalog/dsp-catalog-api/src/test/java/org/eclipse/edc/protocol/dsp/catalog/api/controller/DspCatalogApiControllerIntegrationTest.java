@@ -60,7 +60,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 class DspCatalogApiControllerIntegrationTest {
 
-    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogErrorMessage";
+    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogError";
 
     private final int dspApiPort = getFreePort();
     private final String dspApiPath = "/api/v1/dsp";

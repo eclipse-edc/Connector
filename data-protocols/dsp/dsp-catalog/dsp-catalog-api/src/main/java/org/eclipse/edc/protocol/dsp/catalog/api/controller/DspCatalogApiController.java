@@ -114,21 +114,21 @@ public class DspCatalogApiController {
         var catalog = service.getCatalog(message, claimToken);
         if (catalog.failed()) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP catalog error id %s: %s", errorCode, catalog.getFailureMessages()));
+            monitor.warning(String.format("Error returning catalog, error id %s: %s", errorCode, catalog.getFailureMessages()));
             return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
         var catalogJson = transformerRegistry.transform(catalog.getContent(), JsonObject.class);
         if (catalogJson.failed()) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP catalog error id %s: %s", errorCode, catalogJson.getFailureMessages()));
+            monitor.warning(String.format("Error transforming catalog, error id %s: %s", errorCode, catalogJson.getFailureMessages()));
             return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
         var compacted = jsonLdService.compact(catalogJson.getContent());
         if (compacted.failed()) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP catalog error id %s: %s", errorCode, catalogJson.getFailureMessages()));
+            monitor.warning(String.format("Error compacting catalog, error id %s: %s", errorCode, catalogJson.getFailureMessages()));
             return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 

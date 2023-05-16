@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
 
 class DspCatalogApiControllerTest {
 
-    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogErrorMessage";
+    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogError";
 
     private final Monitor monitor = mock(Monitor.class);
     private final IdentityService identityService = mock(IdentityService.class);

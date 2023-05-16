@@ -134,14 +134,14 @@ public class DspTransferProcessApiController {
             return errorResponse(Optional.empty(), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_PROCESS_REQUEST_TYPE, errorCode, exception));
             return errorResponse(Optional.empty(), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
         var result = registry.transform(transferProcess, JsonObject.class);
         if (result.failed()) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, result.getFailureDetail()));
+            monitor.warning(String.format("Error transforming transfer process, error id %s: %s", errorCode, result.getFailureDetail()));
             return errorResponse(Optional.of(transferProcess.getCorrelationId()), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
@@ -175,7 +175,7 @@ public class DspTransferProcessApiController {
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_START_TYPE, errorCode, exception));
             return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
@@ -209,7 +209,7 @@ public class DspTransferProcessApiController {
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_COMPLETION_TYPE, errorCode, exception));
             return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
@@ -243,7 +243,7 @@ public class DspTransferProcessApiController {
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
             var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("DSP transfer error id %s: %s", errorCode, exception));
+            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_TERMINATION_TYPE, errorCode, exception));
             return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
 
