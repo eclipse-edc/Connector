@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
@@ -32,7 +30,6 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 /**
  * A dsp process error.
  */
-@JsonDeserialize(builder = DspError.Builder.class)
 public class DspError {
 
     private String type;
@@ -62,7 +59,6 @@ public class DspError {
     public static class Builder {
         private final DspError error;
 
-        @JsonCreator
         public static DspError.Builder newInstance() {
             return new DspError.Builder();
         }
