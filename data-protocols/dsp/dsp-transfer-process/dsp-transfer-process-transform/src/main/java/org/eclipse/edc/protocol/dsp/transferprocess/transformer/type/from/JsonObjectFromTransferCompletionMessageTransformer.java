@@ -24,8 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 
 
 public class JsonObjectFromTransferCompletionMessageTransformer extends AbstractJsonLdTransformer<TransferCompletionMessage, JsonObject> {
@@ -42,8 +42,8 @@ public class JsonObjectFromTransferCompletionMessageTransformer extends Abstract
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(ID, transferCompletionMessage.getId());
-        builder.add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE);
-        builder.add(DSPACE_PROCESS_ID, transferCompletionMessage.getProcessId());
+        builder.add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE);
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, transferCompletionMessage.getProcessId());
 
         return builder.build();
     }

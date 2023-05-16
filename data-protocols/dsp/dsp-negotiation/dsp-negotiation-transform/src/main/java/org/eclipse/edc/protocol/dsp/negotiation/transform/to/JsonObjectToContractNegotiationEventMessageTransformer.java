@@ -23,11 +23,11 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_EVENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 
 /**
  * Creates a {@link ContractNegotiationEventMessage} from a {@link JsonObject}.
@@ -43,27 +43,27 @@ public class JsonObjectToContractNegotiationEventMessageTransformer extends Abst
 
         var builder = ContractNegotiationEventMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROCESS_ID), builder::processId, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_NEGOTIATION_EVENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID)
+                    .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_PROCESS_ID)
                     .report();
             return null;
         }
 
-        var eventType = transformString(object.get(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE), context);
-        if (DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED.equals(eventType)) {
+        var eventType = transformString(object.get(DSPACE_PROPERTY_EVENT_TYPE), context);
+        if (DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED.equals(eventType)) {
             builder.type(ACCEPTED);
-        } else if (DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED.equals(eventType)) {
+        } else if (DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED.equals(eventType)) {
             builder.type(FINALIZED);
         } else {
             context.problem()
                     .unexpectedType()
-                    .type(DSPACE_NEGOTIATION_EVENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE)
-                    .expected(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED)
-                    .expected(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED)
+                    .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_EVENT_TYPE)
+                    .expected(DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED)
+                    .expected(DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED)
                     .report();
             return null;
         }

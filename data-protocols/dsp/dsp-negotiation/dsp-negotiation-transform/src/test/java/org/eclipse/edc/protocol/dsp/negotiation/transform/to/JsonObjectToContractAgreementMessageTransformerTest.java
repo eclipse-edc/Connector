@@ -35,13 +35,13 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -76,9 +76,9 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     void transform() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -107,10 +107,10 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var value = "example";
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, value)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, value)
-                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, contractAgreement())
-                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, "123")
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, value)
+                .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
+                .add(DSPACE_PROPERTY_TIMESTAMP, "123")
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(null);
@@ -125,23 +125,23 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var agreement = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, AGREEMENT_ID)
                 .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, CONSUMER_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, PROVIDER_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, "Invalid Timestamp")
+                .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
+                .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .add(DSPACE_PROPERTY_TIMESTAMP, "Invalid Timestamp")
                 .build();
 
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "processId")
-                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, agreement)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
+                .add(DSPACE_PROPERTY_AGREEMENT, agreement)
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
         assertThat(transformer.transform(getExpanded(message), context)).isNull();
 
-        verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
+        verify(context, times(1)).reportProblem(contains(DSPACE_PROPERTY_TIMESTAMP));
     }
 
     @Test
@@ -149,31 +149,31 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var agreement = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, AGREEMENT_ID)
                 .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, CONSUMER_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
+                .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
                 .build();
 
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, "processId")
-                .add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, agreement)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
+                .add(DSPACE_PROPERTY_AGREEMENT, agreement)
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
         assertThat(transformer.transform(getExpanded(message), context)).isNull();
 
-        verify(context, times(1)).reportProblem(contains(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP));
+        verify(context, times(1)).reportProblem(contains(DSPACE_PROPERTY_TIMESTAMP));
     }
 
     private JsonObject contractAgreement() {
         return jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, AGREEMENT_ID)
                 .add(JsonLdKeywords.TYPE, ODRL_POLICY_TYPE_AGREEMENT)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, CONSUMER_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, PROVIDER_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, TIMESTAMP)
+                .add(DSPACE_PROPERTY_CONSUMER_ID, CONSUMER_ID)
+                .add(DSPACE_PROPERTY_PROVIDER_ID, PROVIDER_ID)
+                .add(DSPACE_PROPERTY_TIMESTAMP, TIMESTAMP)
                 .build();
     }
 

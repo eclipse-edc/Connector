@@ -47,16 +47,16 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_STATE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_ACCEPTED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_AGREED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_FINALIZED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_OFFERED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_REQUESTED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_TERMINATED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_VERIFIED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_AGREED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_OFFERED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -90,8 +90,8 @@ class JsonObjectFromContractNegotiationTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getString(ID)).isEqualTo(value);
-        assertThat(result.getString(TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION);
-        assertThat(result.getString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID)).isEqualTo(value);
+        assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION);
+        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo(value);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -112,7 +112,7 @@ class JsonObjectFromContractNegotiationTransformerTest {
         var result = transformer.transform(negotiation, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(DSPACE_NEGOTIATION_PROPERTY_STATE)).isEqualTo(expectedDspState);
+        assertThat(result.getString(DSPACE_PROPERTY_STATE)).isEqualTo(expectedDspState);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -122,20 +122,20 @@ class JsonObjectFromContractNegotiationTransformerTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.arguments(REQUESTING, DSPACE_NEGOTIATION_STATE_REQUESTED),
-                    Arguments.arguments(REQUESTED, DSPACE_NEGOTIATION_STATE_REQUESTED),
-                    Arguments.arguments(OFFERING, DSPACE_NEGOTIATION_STATE_OFFERED),
-                    Arguments.arguments(OFFERED, DSPACE_NEGOTIATION_STATE_OFFERED),
-                    Arguments.arguments(ACCEPTING, DSPACE_NEGOTIATION_STATE_ACCEPTED),
-                    Arguments.arguments(ACCEPTED, DSPACE_NEGOTIATION_STATE_ACCEPTED),
-                    Arguments.arguments(AGREEING, DSPACE_NEGOTIATION_STATE_AGREED),
-                    Arguments.arguments(AGREED, DSPACE_NEGOTIATION_STATE_AGREED),
-                    Arguments.arguments(VERIFYING, DSPACE_NEGOTIATION_STATE_VERIFIED),
-                    Arguments.arguments(VERIFIED, DSPACE_NEGOTIATION_STATE_VERIFIED),
-                    Arguments.arguments(FINALIZING, DSPACE_NEGOTIATION_STATE_FINALIZED),
-                    Arguments.arguments(FINALIZED, DSPACE_NEGOTIATION_STATE_FINALIZED),
-                    Arguments.arguments(TERMINATING, DSPACE_NEGOTIATION_STATE_TERMINATED),
-                    Arguments.arguments(TERMINATED, DSPACE_NEGOTIATION_STATE_TERMINATED)
+                    Arguments.arguments(REQUESTING, DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED),
+                    Arguments.arguments(REQUESTED, DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED),
+                    Arguments.arguments(OFFERING, DSPACE_VALUE_NEGOTIATION_STATE_OFFERED),
+                    Arguments.arguments(OFFERED, DSPACE_VALUE_NEGOTIATION_STATE_OFFERED),
+                    Arguments.arguments(ACCEPTING, DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED),
+                    Arguments.arguments(ACCEPTED, DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED),
+                    Arguments.arguments(AGREEING, DSPACE_VALUE_NEGOTIATION_STATE_AGREED),
+                    Arguments.arguments(AGREED, DSPACE_VALUE_NEGOTIATION_STATE_AGREED),
+                    Arguments.arguments(VERIFYING, DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED),
+                    Arguments.arguments(VERIFIED, DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED),
+                    Arguments.arguments(FINALIZING, DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED),
+                    Arguments.arguments(FINALIZED, DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED),
+                    Arguments.arguments(TERMINATING, DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED),
+                    Arguments.arguments(TERMINATED, DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED)
             );
         }
     }

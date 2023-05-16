@@ -21,8 +21,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 
 /**
  * Creates a {@link ContractAgreementVerificationMessage} from a {@link JsonObject}.
@@ -36,11 +36,11 @@ public class JsonObjectToContractAgreementVerificationMessageTransformer extends
     @Override
     public @Nullable ContractAgreementVerificationMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractAgreementVerificationMessage.Builder.newInstance();
-        if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROCESS_ID), builder::processId, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
+                    .property(DSPACE_PROPERTY_PROCESS_ID)
                     .report();
             return null;
         }

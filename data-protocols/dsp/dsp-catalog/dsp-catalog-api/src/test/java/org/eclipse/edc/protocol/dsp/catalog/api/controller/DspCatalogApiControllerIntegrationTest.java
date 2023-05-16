@@ -47,7 +47,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.hamcrest.CoreMatchers.is;
@@ -90,7 +90,7 @@ class DspCatalogApiControllerIntegrationTest {
                 .add(CONTEXT, Json.createObjectBuilder()
                         .add(DSPACE_PREFIX, DSPACE_SCHEMA)
                         .build())
-                .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
+                .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
                 .build();
     }
 

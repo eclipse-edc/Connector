@@ -29,19 +29,19 @@ import java.time.format.DateTimeParseException;
 import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 
 /**
  * Creates a {@link ContractAgreementMessage} from a {@link JsonObject}.
  */
 public class JsonObjectToContractAgreementMessageTransformer extends AbstractJsonLdTransformer<JsonObject, ContractAgreementMessage> {
     private static final Set<String> EXCLUDED_POLICY_KEYWORDS =
-            Set.of(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP);
+            Set.of(DSPACE_PROPERTY_CONSUMER_ID, DSPACE_PROPERTY_PROVIDER_ID, DSPACE_PROPERTY_TIMESTAMP);
 
     public JsonObjectToContractAgreementMessageTransformer() {
         super(JsonObject.class, ContractAgreementMessage.class);
@@ -50,16 +50,16 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
     @Override
     public @Nullable ContractAgreementMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var messageBuilder = ContractAgreementMessage.Builder.newInstance();
-        if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), messageBuilder::processId, context)) {
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROCESS_ID), messageBuilder::processId, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_PROCESS_ID)
                     .report();
             return null;
         }
 
-        var jsonAgreement = returnMandatoryJsonObject(object.get(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT), context, DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
+        var jsonAgreement = returnMandatoryJsonObject(object.get(DSPACE_PROPERTY_AGREEMENT), context, DSPACE_PROPERTY_AGREEMENT);
         if (jsonAgreement == null) {
             return null;
         }
@@ -70,8 +70,8 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         if (policy == null) {
             context.problem()
                     .invalidProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_AGREEMENT)
                     .report();
             return null;
         }
@@ -102,27 +102,27 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         if (agreementId == null) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                     .property(ID)
                     .report();
             return null;
         }
         builder.id(agreementId);
 
-        if (!transformMandatoryString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID), builder::consumerId, context)) {
+        if (!transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_CONSUMER_ID), builder::consumerId, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_CONSUMER_ID)
                     .report();
             return null;
         }
 
-        if (!transformMandatoryString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID), builder::providerId, context)) {
+        if (!transformMandatoryString(jsonAgreement.get(DSPACE_PROPERTY_PROVIDER_ID), builder::providerId, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_PROVIDER_ID)
                     .report();
             return null;
         }
@@ -130,12 +130,12 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         builder.policy(policy);
         builder.assetId(policy.getTarget());
 
-        var timestamp = transformString(jsonAgreement.get(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP), context);
+        var timestamp = transformString(jsonAgreement.get(DSPACE_PROPERTY_TIMESTAMP), context);
         if (timestamp == null) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_TIMESTAMP)
                     .report();
             return null;
         }
@@ -144,8 +144,8 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
         } catch (DateTimeParseException e) {
             context.problem()
                     .invalidProperty()
-                    .type(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP)
+                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                    .property(DSPACE_PROPERTY_TIMESTAMP)
                     .value(timestamp)
                     .error(e.getMessage())
                     .report();

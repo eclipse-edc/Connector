@@ -26,11 +26,11 @@ import java.util.Map;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -57,10 +57,10 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
 
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "id1")
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CODE, CODE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_REASON, reasonArray)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_CODE, CODE)
+                .add(DSPACE_PROPERTY_REASON, reasonArray)
                 .build();
 
         var result = transformer.transform(getExpanded(message), context);
@@ -81,8 +81,8 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
     void verify_noCodeNodReason() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "id1")
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .build();
 
         var result = transformer.transform(getExpanded(message), context);

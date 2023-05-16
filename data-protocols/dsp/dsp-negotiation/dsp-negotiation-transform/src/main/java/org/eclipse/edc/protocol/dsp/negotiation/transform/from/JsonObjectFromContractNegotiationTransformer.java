@@ -25,16 +25,16 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_STATE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_ACCEPTED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_AGREED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_FINALIZED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_OFFERED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_REQUESTED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_TERMINATED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_VERIFIED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_AGREED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_OFFERED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
 
 
 /**
@@ -53,9 +53,9 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
     public @Nullable JsonObject transform(@NotNull ContractNegotiation contractNegotiation, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
                 .add(ID, contractNegotiation.getCorrelationId())
-                .add(TYPE, DSPACE_CONTRACT_NEGOTIATION)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, contractNegotiation.getCorrelationId())
-                .add(DSPACE_NEGOTIATION_PROPERTY_STATE, state(contractNegotiation.getState(), context))
+                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION)
+                .add(DSPACE_PROPERTY_PROCESS_ID, contractNegotiation.getCorrelationId())
+                .add(DSPACE_PROPERTY_STATE, state(contractNegotiation.getState(), context))
                 .build();
     }
 
@@ -65,32 +65,32 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
             context.problem()
                     .nullProperty()
                     .type(ContractNegotiation.class)
-                    .property(DSPACE_NEGOTIATION_PROPERTY_STATE)
+                    .property(DSPACE_PROPERTY_STATE)
                     .report();
             return null;
         }
         switch (negotiationState) {
             case REQUESTING:
             case REQUESTED:
-                return DSPACE_NEGOTIATION_STATE_REQUESTED;
+                return DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
             case OFFERING:
             case OFFERED:
-                return DSPACE_NEGOTIATION_STATE_OFFERED;
+                return DSPACE_VALUE_NEGOTIATION_STATE_OFFERED;
             case ACCEPTING:
             case ACCEPTED:
-                return DSPACE_NEGOTIATION_STATE_ACCEPTED;
+                return DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED;
             case AGREEING:
             case AGREED:
-                return DSPACE_NEGOTIATION_STATE_AGREED;
+                return DSPACE_VALUE_NEGOTIATION_STATE_AGREED;
             case VERIFYING:
             case VERIFIED:
-                return DSPACE_NEGOTIATION_STATE_VERIFIED;
+                return DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED;
             case FINALIZING:
             case FINALIZED:
-                return DSPACE_NEGOTIATION_STATE_FINALIZED;
+                return DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED;
             case TERMINATING:
             case TERMINATED:
-                return DSPACE_NEGOTIATION_STATE_TERMINATED;
+                return DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED;
             default:
                 context.problem()
                         .unexpectedType()

@@ -43,8 +43,8 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.service.spi.result.ServiceResult.badRequest;
@@ -83,7 +83,7 @@ class DspCatalogApiControllerTest {
         controller = new DspCatalogApiController(monitor, identityService, transformerRegistry, callbackAddress, service, jsonLdService);
 
         request = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
+                .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
                 .build();
         requestMessage = CatalogRequestMessage.Builder.newInstance().protocol("protocol").build();
     }

@@ -12,16 +12,16 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.catalog.transform;
+package org.eclipse.edc.protocol.dsp.type;
 
-import org.eclipse.edc.jsonld.spi.Namespaces;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 
 /**
  * Dataspace protocol types and attributes for catalog request.
  */
 public interface DspCatalogPropertyAndTypeNames {
 
-    String DSPACE_CATALOG_REQUEST_TYPE = Namespaces.DSPACE_SCHEMA + "CatalogRequestMessage";
-    String DSPACE_FILTER_PROPERTY = Namespaces.DSPACE_SCHEMA + "filter";
+    String DSPACE_TYPE_CATALOG_REQUEST_MESSAGE = DSPACE_SCHEMA + "CatalogRequestMessage";
+    String DSPACE_PROPERTY_FILTER = DSPACE_SCHEMA + "filter";
 
 }

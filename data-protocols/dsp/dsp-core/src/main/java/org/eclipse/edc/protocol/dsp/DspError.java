@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -50,7 +50,7 @@ public class DspError {
                 .add(DSPACE_PROPERTY_REASON, arrayBuilder.build());
 
         if (this.processId != null) {
-            objectBuilder.add(DSPACE_PROCESS_ID, this.processId);
+            objectBuilder.add(DSPACE_PROPERTY_PROCESS_ID, this.processId);
         }
 
         return objectBuilder.build();

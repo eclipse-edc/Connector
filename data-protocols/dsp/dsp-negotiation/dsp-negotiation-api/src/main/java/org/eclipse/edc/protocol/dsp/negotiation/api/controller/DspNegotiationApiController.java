@@ -65,14 +65,14 @@ import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.E
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.VERIFICATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -129,13 +129,13 @@ public class DspNegotiationApiController {
      */
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
-    public Response initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
+    public Response initiateNegotiation(@RequestBody(description = DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, required = true)
                                                    JsonObject jsonObject,
                                                    @HeaderParam(AUTHORIZATION) String token) {
         ContractNegotiation negotiation;
         try {
             negotiation = handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
-                    .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
+                    .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                     .message(jsonObject)
                     .token(token)
                     .serviceCall(this::validateAndProcessRequest)
@@ -146,7 +146,7 @@ public class DspNegotiationApiController {
             monitor.debug(String.format(BAD_REQUEST + ": %s", exception.getMessages()));
             return errorResponse(Optional.empty(), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, exception));
             throw exception;
         }
 
@@ -171,12 +171,12 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
     public Response consumerOffer(@PathParam("id") String id,
-                              @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
+                              @RequestBody(description = DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, required = true)
                               JsonObject jsonObject,
                               @HeaderParam(AUTHORIZATION) String token) {
         try {
             handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
-                    .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
+                    .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                     .processId(id)
                     .message(jsonObject)
                     .token(token)
@@ -189,7 +189,7 @@ public class DspNegotiationApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, exception));
             throw exception;
         }
 
@@ -207,12 +207,12 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + EVENT)
     public Response createEvent(@PathParam("id") String id,
-                            @RequestBody(description = DSPACE_NEGOTIATION_EVENT_MESSAGE, required = true)
+                            @RequestBody(description = DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE, required = true)
                             JsonObject jsonObject,
                             @HeaderParam(AUTHORIZATION) String token) {
         try {
             handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationEventMessage.class)
-                    .expectedMessageType(DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                    .expectedMessageType(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
                     .processId(id)
                     .message(jsonObject)
                     .token(token)
@@ -225,7 +225,7 @@ public class DspNegotiationApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_EVENT_MESSAGE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE, exception));
             throw exception;
         }
 
@@ -243,12 +243,12 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + AGREEMENT + VERIFICATION)
     public Response verifyAgreement(@PathParam("id") String id,
-                                @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true)
+                                @RequestBody(description = DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE, required = true)
                                 JsonObject jsonObject,
                                 @HeaderParam(AUTHORIZATION) String token) {
         try {
             handleMessage(MessageSpec.Builder.newInstance(ContractAgreementVerificationMessage.class)
-                    .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE)
+                    .expectedMessageType(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE)
                     .processId(id)
                     .message(jsonObject)
                     .token(token)
@@ -261,7 +261,7 @@ public class DspNegotiationApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE, exception));
             throw exception;
         }
 
@@ -279,12 +279,12 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + TERMINATION)
     public Response terminateNegotiation(@PathParam("id") String id,
-                                     @RequestBody(description = DSPACE_NEGOTIATION_TERMINATION_MESSAGE, required = true)
+                                     @RequestBody(description = DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, required = true)
                                      JsonObject jsonObject,
                                      @HeaderParam(AUTHORIZATION) String token) {
         try {
             handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationTerminationMessage.class)
-                    .expectedMessageType(DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
+                    .expectedMessageType(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE)
                     .processId(id)
                     .message(jsonObject)
                     .token(token)
@@ -297,7 +297,7 @@ public class DspNegotiationApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_TERMINATION_MESSAGE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, exception));
             throw exception;
         }
 
@@ -315,7 +315,7 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + CONTRACT_OFFER)
     public Response providerOffer(@PathParam("id") String id,
-                              @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE, required = true)
+                              @RequestBody(description = DSPACE_TYPE_CONTRACT_OFFER_MESSAGE, required = true)
                               JsonObject body,
                               @HeaderParam(AUTHORIZATION) String token) {
         return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
@@ -332,12 +332,12 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + AGREEMENT)
     public Response createAgreement(@PathParam("id") String id,
-                                @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, required = true)
+                                @RequestBody(description = DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE, required = true)
                                 JsonObject jsonObject,
                                 @HeaderParam(AUTHORIZATION) String token) {
         try {
             handleMessage(MessageSpec.Builder.newInstance(ContractAgreementMessage.class)
-                    .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .expectedMessageType(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
                     .processId(id)
                     .message(jsonObject)
                     .token(token)
@@ -350,7 +350,7 @@ public class DspNegotiationApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE, exception));
             throw exception;
         }
 
@@ -382,7 +382,7 @@ public class DspNegotiationApiController {
     @NotNull
     private ServiceResult<ContractNegotiation> validateAndProcessRequest(ContractRequestMessage message, ClaimToken claimToken) {
         if (message.getCallbackAddress() == null) {
-            throw new InvalidRequestException(format("ContractRequestMessage must contain a '%s' property", DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS));
+            throw new InvalidRequestException(format("ContractRequestMessage must contain a '%s' property", DSPACE_PROPERTY_CALLBACK_ADDRESS));
         }
         return protocolService.notifyRequested(message, claimToken);
     }

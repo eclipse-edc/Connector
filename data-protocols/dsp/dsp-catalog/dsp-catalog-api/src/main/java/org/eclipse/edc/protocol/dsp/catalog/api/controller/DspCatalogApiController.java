@@ -41,8 +41,8 @@ import static org.eclipse.edc.protocol.dsp.DspErrorDetails.BAD_REQUEST;
 import static org.eclipse.edc.protocol.dsp.DspErrorDetails.UNAUTHORIZED;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
@@ -94,7 +94,7 @@ public class DspCatalogApiController {
         }
 
         var expandedJson = expanded.getContent();
-        if (!isOfExpectedType(expandedJson, DSPACE_CATALOG_REQUEST_TYPE)) {
+        if (!isOfExpectedType(expandedJson, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)) {
             monitor.debug(String.format("%s, %s", BAD_REQUEST, verificationResult.getFailureMessages()));
             return errorResponse(Response.Status.BAD_REQUEST, BAD_REQUEST);
         }

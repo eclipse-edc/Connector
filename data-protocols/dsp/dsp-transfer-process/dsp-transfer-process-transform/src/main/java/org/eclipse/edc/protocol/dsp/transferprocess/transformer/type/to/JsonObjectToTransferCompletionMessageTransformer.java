@@ -21,8 +21,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 
 public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferCompletionMessage> {
 
@@ -34,11 +34,11 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
     public @Nullable TransferCompletionMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferCompletionMessageBuilder = TransferCompletionMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROCESS_ID), transferCompletionMessageBuilder::processId, context)) {
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), transferCompletionMessageBuilder::processId, context)) {
             context.problem()
                     .missingProperty()
-                    .type(DSPACE_TRANSFER_COMPLETION_TYPE)
-                    .property(DSPACE_PROCESS_ID)
+                    .type(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                    .property(DSPACE_PROPERTY_PROCESS_ID)
                     .report();
             return null;
         }

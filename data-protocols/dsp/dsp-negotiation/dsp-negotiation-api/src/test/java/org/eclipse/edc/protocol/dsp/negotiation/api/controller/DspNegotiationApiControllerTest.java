@@ -72,14 +72,14 @@ import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.E
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.VERIFICATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -208,7 +208,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(result).isNotNull();
         assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
-        assertThat(result.get(DSPACE_PROCESS_ID)).isNotNull();
+        assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }
 
@@ -219,7 +219,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var process = contractNegotiation();
         var json = Json.createObjectBuilder().build();
         var map = Map.of("key", "value");
-        var request = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
+        var request = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(message));
@@ -244,7 +244,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var token = token();
         var message = contractRequestMessage();
         var process = contractNegotiation();
-        var request = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
+        var request = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(registry.transform(any(JsonObject.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(message));
@@ -263,7 +263,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(result).isNotNull();
         assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("500");
-        assertThat(result.get(DSPACE_PROCESS_ID)).isNotNull();
+        assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }
 
@@ -285,7 +285,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(result).isNotNull();
         assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
-        assertThat(result.get(DSPACE_PROCESS_ID)).isNotNull();
+        assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }
 
@@ -314,7 +314,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
         if (!path.equals(BASE_PATH + INITIAL_CONTRACT_REQUEST)) {
-            assertThat(result.get(DSPACE_PROCESS_ID)).isNotNull();
+            assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         }
     }
 
@@ -345,7 +345,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
         if (!path.equals(BASE_PATH + INITIAL_CONTRACT_REQUEST)) {
-            assertThat(result.get(DSPACE_PROCESS_ID)).isNotNull();
+            assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         }
     }
 
@@ -458,7 +458,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         assertThat(result).isNotNull();
         assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
-        assertThat(result.get(DSPACE_PROCESS_ID)).isNotNull();
+        assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
         // verify that the message protocol was set to the DSP protocol by the controller
@@ -507,11 +507,11 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     private static class ControllerMethodArgumentsForServiceCall implements ArgumentsProvider {
-        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
-        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
-        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
-        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
-        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
+        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
@@ -533,11 +533,11 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     private static class ControllerMethodArgumentsForServiceError implements ArgumentsProvider {
-        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
-        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
-        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
-        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
-        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
+        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
@@ -561,11 +561,11 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     private static class ControllerMethodArgumentsForIdValidationFails implements ArgumentsProvider {
-        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE).build();
-        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_EVENT_MESSAGE).build();
-        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE).build();
-        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_TERMINATION_MESSAGE).build();
-        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE).build();
+        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {

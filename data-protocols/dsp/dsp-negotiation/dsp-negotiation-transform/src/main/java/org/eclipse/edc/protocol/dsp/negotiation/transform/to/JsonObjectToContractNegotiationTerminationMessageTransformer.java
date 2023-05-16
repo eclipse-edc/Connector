@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 
 /**
  * Creates a {@link ContractNegotiationTerminationMessage} from a {@link JsonObject}.
@@ -41,16 +41,16 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
     public @Nullable ContractNegotiationTerminationMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractNegotiationTerminationMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(object.get(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID), builder::processId, context)) {
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROCESS_ID), builder::processId, context)) {
             return null;
         }
 
-        var code = object.get(DSPACE_NEGOTIATION_PROPERTY_CODE);
+        var code = object.get(DSPACE_PROPERTY_CODE);
         if (code != null) { // optional property
             transformString(code, builder::code, context);
         }
 
-        var reasons = object.get(DSPACE_NEGOTIATION_PROPERTY_REASON);
+        var reasons = object.get(DSPACE_PROPERTY_REASON);
         if (reasons != null) {  // optional property
             if (reasons instanceof JsonArray) {
                 var array = (JsonArray) reasons;
@@ -60,8 +60,8 @@ public class JsonObjectToContractNegotiationTerminationMessageTransformer extend
             } else {
                 context.problem()
                         .unexpectedType()
-                        .type(DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
-                        .property(DSPACE_NEGOTIATION_PROPERTY_REASON)
+                        .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE)
+                        .property(DSPACE_PROPERTY_REASON)
                         .actual(reasons.getValueType().toString())
                         .expected(ARRAY)
                         .report();

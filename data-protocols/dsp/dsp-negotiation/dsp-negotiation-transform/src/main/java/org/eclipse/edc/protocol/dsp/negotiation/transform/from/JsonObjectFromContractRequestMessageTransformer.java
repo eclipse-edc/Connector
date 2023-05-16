@@ -25,12 +25,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_DATASET;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 
 
 /**
@@ -49,16 +49,16 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
     public @Nullable JsonObject transform(@NotNull ContractRequestMessage requestMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
         builder.add(JsonLdKeywords.ID, requestMessage.getId());
-        builder.add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE);
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, requestMessage.getProcessId());
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, requestMessage.getProcessId());
 
         if (requestMessage.getCallbackAddress() != null) {
-            builder.add(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS, requestMessage.getCallbackAddress());
+            builder.add(DSPACE_PROPERTY_CALLBACK_ADDRESS, requestMessage.getCallbackAddress());
         }
 
         if (requestMessage.getContractOffer() != null) {
-            builder.add(DSPACE_NEGOTIATION_PROPERTY_DATASET, requestMessage.getContractOffer().getAssetId());
+            builder.add(DSPACE_PROPERTY_DATA_SET, requestMessage.getContractOffer().getAssetId());
             var policy = context.transform(requestMessage.getContractOffer().getPolicy(), JsonObject.class);
             if (policy == null) {
                 context.problem()
@@ -72,12 +72,12 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
             var enrichedPolicy = Json.createObjectBuilder(policy)
                     .add(ID, requestMessage.getContractOffer().getId())
                     .build();
-            builder.add(DSPACE_NEGOTIATION_PROPERTY_OFFER, enrichedPolicy);
+            builder.add(DSPACE_PROPERTY_OFFER, enrichedPolicy);
 
         } else {
-            builder.add(DSPACE_NEGOTIATION_PROPERTY_OFFER_ID, requestMessage.getContractOfferId());
+            builder.add(DSPACE_PROPERTY_OFFER_ID, requestMessage.getContractOfferId());
             if (requestMessage.getDataSet() != null) {
-                builder.add(DSPACE_NEGOTIATION_PROPERTY_DATASET, requestMessage.getDataSet());
+                builder.add(DSPACE_PROPERTY_DATA_SET, requestMessage.getDataSet());
             }
         }
 

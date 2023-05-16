@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -47,8 +47,8 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
     void jsonObjectToTransferCompletionMessage() {
 
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
-                .add(DSPACE_PROCESS_ID, processId)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
