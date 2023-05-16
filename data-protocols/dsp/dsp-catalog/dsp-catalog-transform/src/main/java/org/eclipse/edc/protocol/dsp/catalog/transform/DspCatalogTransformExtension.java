@@ -51,7 +51,7 @@ public class DspCatalogTransformExtension implements ServiceExtension {
         var jsonFactory = Json.createBuilderFactory(Map.of());
         var mapper = typeManager.getMapper(JSON_LD);
 
-        registry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, mapper));
+        registry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory));
         registry.register(new JsonObjectToCatalogRequestMessageTransformer(mapper));
     }
 }

@@ -51,7 +51,7 @@ class JsonObjectToCatalogRequestMessageTransformerTest {
     void transform_returnCatalogRequestMessage() {
         var querySpecJson = jsonFactory.createObjectBuilder().build();
         var querySpec = QuerySpec.Builder.newInstance().build();
-        when(mapper.convertValue(querySpecJson, QuerySpec.class)).thenReturn(querySpec);
+        when(context.transform(querySpecJson, QuerySpec.class)).thenReturn(querySpec);
 
         var message = jsonFactory.createObjectBuilder()
                 .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)

@@ -14,10 +14,14 @@
 
 package org.eclipse.edc.spi.query;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import java.util.Objects;
 import java.util.function.Function;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * This class can be used to form select expressions e.g. in SQL statements. It is a way to express those statements in
@@ -31,6 +35,11 @@ import static java.lang.String.format;
  * can be translated to {@code [select * where name = someone]}
  */
 public class Criterion {
+
+    public static final String CRITERION_OPERAND_LEFT = EDC_NAMESPACE + "operandLeft";
+    public static final String CRITERION_OPERAND_RIGHT = EDC_NAMESPACE + "operandRight";
+    public static final String CRITERION_OPERATOR = EDC_NAMESPACE + "operator";
+    public static final String CRITERION_TYPE = EDC_NAMESPACE + "Criterion";
     private Object operandLeft;
     private String operator;
     private Object operandRight;
@@ -81,5 +90,40 @@ public class Criterion {
     @Override
     public String toString() {
         return format("%s %s %s", getOperandLeft(), getOperator(), getOperandRight());
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static final class Builder {
+        private final Criterion criterion;
+
+        private Builder() {
+            this.criterion = new Criterion();
+        }
+
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder operandLeft(Object operandLeft) {
+            criterion.operandLeft = operandLeft;
+            return this;
+        }
+
+        public Builder operator(String operator) {
+            criterion.operator = operator;
+            return this;
+        }
+
+        public Builder operandRight(Object operandRight) {
+            criterion.operandRight = operandRight;
+            return this;
+        }
+
+        public Criterion build() {
+            Objects.requireNonNull(this.criterion.operandLeft);
+            Objects.requireNonNull(this.criterion.operator);
+            return criterion;
+        }
     }
 }

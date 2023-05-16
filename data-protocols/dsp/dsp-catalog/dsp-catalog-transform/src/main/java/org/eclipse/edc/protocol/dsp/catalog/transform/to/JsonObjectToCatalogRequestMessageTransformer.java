@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -24,9 +23,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static jakarta.json.JsonValue.ValueType.ARRAY;
-import static jakarta.json.JsonValue.ValueType.OBJECT;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
 
 /**
@@ -59,22 +55,6 @@ public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLd
         if (value == null) {
             return null;
         }
-
-        if (value instanceof JsonObject) {
-            return mapper.convertValue(value, QuerySpec.class);
-        } else if (value instanceof JsonArray) {
-            var array = (JsonArray) value;
-            return transformQuerySpec(array.getJsonObject(0), context);
-        } else {
-            context.problem()
-                    .unexpectedType()
-                    .type(DSPACE_CATALOG_REQUEST_TYPE)
-                    .property(DSPACE_FILTER_PROPERTY)
-                    .actual(value.getValueType())
-                    .expected(OBJECT)
-                    .expected(ARRAY)
-                    .report();
-            return null;
-        }
+        return transformObject(value, QuerySpec.class, context);
     }
 }
