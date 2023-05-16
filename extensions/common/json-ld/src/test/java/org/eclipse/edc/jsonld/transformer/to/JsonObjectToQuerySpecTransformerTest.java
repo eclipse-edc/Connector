@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.transformer.to.TestInput.getExpanded;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_LIMIT;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_OFFSET;
@@ -50,8 +51,9 @@ class JsonObjectToQuerySpecTransformerTest {
     @Test
     void transform() {
         var filterExpressionJson = Json.createArrayBuilder()
-                .add(Json.createArrayBuilder().build())
+                .add(Json.createObjectBuilder().build())
                 .build();
+        
         var criterion = Criterion.Builder.newInstance().operandLeft("test").operator("=").build();
         when(context.transform(any(), eq(Criterion.class))).thenReturn(criterion);
         var json = Json.createObjectBuilder()
@@ -63,7 +65,7 @@ class JsonObjectToQuerySpecTransformerTest {
                 .add(EDC_QUERY_SPEC_SORT_FIELD, "fieldName")
                 .build();
 
-        var result = transformer.transform(json, context);
+        var result = transformer.transform(getExpanded(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getOffset()).isEqualTo(10);

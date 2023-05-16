@@ -23,8 +23,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.util.UUID.randomUUID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromQuerySpecTransformer extends AbstractJsonLdTransformer<QuerySpec, JsonObject> {
@@ -38,7 +36,6 @@ public class JsonObjectFromQuerySpecTransformer extends AbstractJsonLdTransforme
     @Override
     public @Nullable JsonObject transform(@NotNull QuerySpec querySpec, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(ID, randomUUID().toString());
         builder.add(TYPE, QuerySpec.EDC_QUERY_SPEC_TYPE);
         builder.add(QuerySpec.EDC_QUERY_SPEC_LIMIT, querySpec.getLimit());
         builder.add(QuerySpec.EDC_QUERY_SPEC_OFFSET, querySpec.getOffset());

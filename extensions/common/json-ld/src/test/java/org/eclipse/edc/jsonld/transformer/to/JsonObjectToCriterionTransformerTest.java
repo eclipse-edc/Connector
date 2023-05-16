@@ -21,6 +21,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.transformer.to.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
@@ -48,7 +49,7 @@ class JsonObjectToCriterionTransformerTest {
                 .add(CRITERION_OPERATOR, "=")
                 .build();
 
-        var crit = transformer.transform(json, context);
+        var crit = transformer.transform(getExpanded(json), context);
         assertThat(crit).isNotNull();
         assertThat(crit.getOperator()).isEqualTo("=");
         assertThat(crit.getOperandLeft()).isEqualTo("foo");

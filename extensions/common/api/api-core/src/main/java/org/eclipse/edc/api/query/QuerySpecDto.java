@@ -33,7 +33,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = QuerySpecDto.Builder.class)
 public class QuerySpecDto {
 
-    public static final String EDC_QUERY_SPEC_TYPE = EDC_NAMESPACE + "QuerySpec";
+    public static final String EDC_QUERY_SPEC_TYPE = EDC_NAMESPACE + "QuerySpecDto";
     public static final String EDC_QUERY_SPEC_OFFSET = EDC_NAMESPACE + "offset";
     public static final String EDC_QUERY_SPEC_LIMIT = EDC_NAMESPACE + "limit";
     public static final String EDC_QUERY_SPEC_FILTER_EXPRESSION = EDC_NAMESPACE + "filterExpression";

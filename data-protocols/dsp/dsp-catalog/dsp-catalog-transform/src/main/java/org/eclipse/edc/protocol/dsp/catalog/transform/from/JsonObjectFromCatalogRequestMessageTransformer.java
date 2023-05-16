@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
@@ -33,12 +32,10 @@ import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyA
 public class JsonObjectFromCatalogRequestMessageTransformer extends AbstractJsonLdTransformer<CatalogRequestMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
 
-    public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory) {
         super(CatalogRequestMessage.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
     }
 
     @Override
