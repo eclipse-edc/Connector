@@ -46,6 +46,7 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -426,8 +427,15 @@ public class DspNegotiationApiController {
     }
 
     private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
+        var builder = DspError.Builder.newInstance()
+                .type(DSPACE_CONTRACT_NEGOTIATION_ERROR)
+                .code(String.valueOf(code.getStatusCode()))
+                .messages(List.of(message));
+
+        processId.ifPresent(builder::processId);
+
         return Response.status(code).type(MediaType.APPLICATION_JSON)
-                .entity(DspError.create(DSPACE_CONTRACT_NEGOTIATION_ERROR, processId, Integer.toString(code.getStatusCode()), message))
+                .entity(builder.build().toJson())
                 .build();
     }
 

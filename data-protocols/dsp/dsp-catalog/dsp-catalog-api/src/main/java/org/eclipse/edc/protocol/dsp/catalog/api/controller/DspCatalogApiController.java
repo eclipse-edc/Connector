@@ -31,9 +31,8 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
@@ -138,7 +137,11 @@ public class DspCatalogApiController {
 
     private Response errorResponse(Response.Status code, String message) {
         return Response.status(code).type(MediaType.APPLICATION_JSON)
-                .entity(DspError.create(DSPACE_CATALOG_ERROR, Optional.empty(), String.valueOf(code.getStatusCode()), message))
+                .entity(DspError.Builder.newInstance()
+                        .type(DSPACE_CATALOG_ERROR)
+                        .code(String.valueOf(code.getStatusCode()))
+                        .messages(List.of(message))
+                        .build().toJson())
                 .build();
     }
 
