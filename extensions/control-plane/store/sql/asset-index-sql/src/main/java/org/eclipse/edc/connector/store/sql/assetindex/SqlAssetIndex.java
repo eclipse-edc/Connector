@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Microsoft Corporation - added full QuerySpec support
  *       ZF Friedrichshafen AG - added private property support
+ *
  */
 
 package org.eclipse.edc.connector.store.sql.assetindex;
@@ -41,8 +42,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.partitioningBy;
+import static java.util.stream.Collectors.toMap;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
 
@@ -128,7 +129,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                 }
 
                 if (checkDuplicatePropertyKeys(asset)) {
-                    var msg = format(DUPLICATE_PROPERTY_KEYS);
+                    var msg = format(DUPLICATE_PROPERTY_KEYS_TEMPLATE);
                     return StoreResult.duplicateKeys(msg);
                 }
 
@@ -183,7 +184,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (checkDuplicatePropertyKeys(asset)) {
-                    var msg = format(DUPLICATE_PROPERTY_KEYS);
+                    var msg = format(DUPLICATE_PROPERTY_KEYS_TEMPLATE);
                     return StoreResult.duplicateKeys(msg);
                 }
 
@@ -304,8 +305,10 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     private boolean checkDuplicatePropertyKeys(Asset asset) {
-        if (asset.getPrivateProperties() != null && asset.getProperties() != null) {
-            return asset.getPrivateProperties().keySet().stream().distinct().noneMatch(asset.getProperties()::containsKey);
+        var properties = asset.getProperties();
+        var privateProperties = asset.getPrivateProperties();
+        if (privateProperties != null && properties != null) {
+            return privateProperties.keySet().stream().distinct().noneMatch(properties::containsKey);
         }
         return false;
     }

@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       ZF Friedrichshafen AG - added private property support
+ *
  */
 
 package org.eclipse.edc.connector.store.sql.assetindex;
@@ -21,6 +22,7 @@ import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.eclipse.edc.spi.testfixtures.asset.TestObject;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -149,8 +151,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
                 .build();
 
         var result = sqlAssetIndex.create(asset, TestFunctions.createDataAddress("test-type"));
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.reason()).isEqualTo(DUPLICATE_KEYS);
+        assertThat(result).isNotNull().extracting(StoreResult::reason).isEqualTo(DUPLICATE_KEYS);
     }
 
     @Override
