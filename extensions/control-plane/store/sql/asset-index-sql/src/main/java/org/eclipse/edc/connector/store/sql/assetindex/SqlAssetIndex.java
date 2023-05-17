@@ -308,9 +308,9 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         var properties = asset.getProperties();
         var privateProperties = asset.getPrivateProperties();
         if (privateProperties != null && properties != null) {
-            return privateProperties.keySet().stream().distinct().noneMatch(properties::containsKey);
+            return privateProperties.keySet().stream().distinct().anyMatch(properties::containsKey);
         }
-        return false;
+        return true;
     }
 
     private static class SqlPropertyWrapper {
