@@ -30,5 +30,6 @@ dependencies {
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     testImplementation(libs.restAssured)
 }
