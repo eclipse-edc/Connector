@@ -58,3 +58,4 @@
 - [2023-03-31-Version Catalog per Component](2023-03-31-version-catalog-per-component)
 - [2023-04-18-API-controllers-testing](2023-04-18-api-controllers-testing)
 - [2023-05-17-Release-process](2023-05-17-release-process)
+- [2023-05-17-Helm-charts](2023-05-17-delete-helm-charts)
