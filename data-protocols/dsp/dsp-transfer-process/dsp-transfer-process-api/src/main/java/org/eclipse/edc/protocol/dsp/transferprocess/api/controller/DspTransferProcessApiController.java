@@ -133,9 +133,8 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + ": %s", exception.getMessages()));
             return errorResponse(Optional.empty(), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_PROCESS_REQUEST_TYPE, errorCode, exception));
-            return errorResponse(Optional.empty(), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_PROCESS_REQUEST_TYPE, exception));
+            throw exception;
         }
 
         var result = registry.transform(transferProcess, JsonObject.class);
@@ -174,9 +173,8 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_START_TYPE, errorCode, exception));
-            return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_START_TYPE, exception));
+            throw exception;
         }
 
         return Response.status(Response.Status.OK).build();
@@ -208,9 +206,8 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_COMPLETION_TYPE, errorCode, exception));
-            return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_COMPLETION_TYPE, exception));
+            throw exception;
         }
 
         return Response.status(Response.Status.OK).build();
@@ -242,9 +239,8 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            var errorCode = UUID.randomUUID();
-            monitor.warning(String.format("Error processing %s, error id %s: %s", DSPACE_TRANSFER_TERMINATION_TYPE, errorCode, exception));
-            return errorResponse(Optional.of(id), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_TERMINATION_TYPE, exception));
+            throw exception;
         }
 
         return Response.status(Response.Status.OK).build();

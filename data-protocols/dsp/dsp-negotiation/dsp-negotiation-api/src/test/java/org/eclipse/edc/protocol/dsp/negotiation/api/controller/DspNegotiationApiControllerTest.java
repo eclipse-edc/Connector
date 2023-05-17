@@ -419,20 +419,12 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .post(path)
                 .then()
                 .contentType(MediaType.APPLICATION_JSON)
-                .statusCode(500)
-                .extract().as(JsonObject.class);
+                .statusCode(409);
 
         var verify = verify(protocolService, times(1));
         serviceMethod.invoke(verify, message, token);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("500");
-        assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
-
-        if (!path.equals(BASE_PATH + INITIAL_CONTRACT_REQUEST)) {
-            assertThat(result.get(DSPACE_PROCESS_ID)).isNotNull();
-        }
 
         // verify that the message protocol was set to the DSP protocol by the controller
         assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
