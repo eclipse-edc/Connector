@@ -29,9 +29,9 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CORRELATION_ID;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_STATE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CORRELATION_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -73,10 +73,10 @@ class JsonObjectFromTransferProcessTransformerTest {
         var result = transformer.transform(transferProcess, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_PROCESS_TYPE);
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_PROCESS);
         assertThat(result.getJsonString(JsonLdKeywords.ID).getString()).isEqualTo("transferProcessID");
-        assertThat(result.getJsonString(DSPACE_STATE).getString()).isEqualTo("INITIAL");
-        assertThat(result.getJsonString(DSPACE_CORRELATION_ID).getString()).isEqualTo("dataRequestID");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_STATE).getString()).isEqualTo("INITIAL");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CORRELATION_ID).getString()).isEqualTo("dataRequestID");
 
         verify(context, never()).reportProblem(anyString());
     }

@@ -32,13 +32,13 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_DATASET;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -70,11 +70,11 @@ class JsonObjectToContractRequestMessageTransformerTest {
     void verify_usingOffer() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_DATASET, DATASET_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
-                .add(DSPACE_NEGOTIATION_PROPERTY_OFFER, contractOffer())
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_DATA_SET, DATASET_ID)
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
+                .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -100,11 +100,11 @@ class JsonObjectToContractRequestMessageTransformerTest {
     void verify_usingOfferId() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_DATASET, DATASET_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
-                .add(DSPACE_NEGOTIATION_PROPERTY_OFFER_ID, CONTRACT_OFFER_ID)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_DATA_SET, DATASET_ID)
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
+                .add(DSPACE_PROPERTY_OFFER_ID, CONTRACT_OFFER_ID)
                 .build();
 
         var result = transformer.transform(getExpanded(message), context);
@@ -124,9 +124,9 @@ class JsonObjectToContractRequestMessageTransformerTest {
     void verify_noCallbackOrDatasetOk() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_OFFER, contractOffer())
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -145,9 +145,9 @@ class JsonObjectToContractRequestMessageTransformerTest {
 
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_OFFER, offer)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_OFFER, offer)
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
@@ -163,11 +163,11 @@ class JsonObjectToContractRequestMessageTransformerTest {
     void transform_nullPolicyFails() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_DATASET, DATASET_ID)
-                .add(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
-                .add(DSPACE_NEGOTIATION_PROPERTY_OFFER, contractOffer())
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_DATA_SET, DATASET_ID)
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
+                .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(null);

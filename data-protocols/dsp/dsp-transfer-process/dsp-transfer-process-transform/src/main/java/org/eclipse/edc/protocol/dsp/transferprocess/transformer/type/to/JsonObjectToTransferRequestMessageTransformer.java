@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACT_AGREEMENT_ID;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 
 public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
@@ -40,11 +40,11 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
         visitProperties(messageObject, k -> {
             switch (k) {
-                case DSPACE_PROCESS_ID:
+                case DSPACE_PROPERTY_PROCESS_ID:
                     return v -> transferRequestMessageBuilder.processId(transformString(v, context));
-                case DSPACE_CONTRACT_AGREEMENT_ID:
+                case DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID:
                     return v -> transferRequestMessageBuilder.contractId(transformString(v, context));
-                case DSPACE_CALLBACK_ADDRESS:
+                case DSPACE_PROPERTY_CALLBACK_ADDRESS:
                     return v -> transferRequestMessageBuilder.callbackAddress(transformString(v, context));
                 default:
                     return doNothing();
@@ -62,7 +62,7 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
 
         transformString(requestObject.get(DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
 
-        var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_DATA_ADDRESS), context, DSPACE_DATA_ADDRESS, false);
+        var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_PROPERTY_DATA_ADDRESS), context, DSPACE_PROPERTY_DATA_ADDRESS, false);
         if (dataAddressObject != null) {
             dataAddressObject.forEach((key, value) -> transformString(value, v -> dataAddressBuilder.property(key, v), context));
         }

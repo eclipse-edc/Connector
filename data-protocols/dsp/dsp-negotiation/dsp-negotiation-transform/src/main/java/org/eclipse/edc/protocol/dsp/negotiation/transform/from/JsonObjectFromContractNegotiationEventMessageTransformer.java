@@ -25,11 +25,11 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_EVENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_EVENT_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 
 
 /**
@@ -48,11 +48,11 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
     public @Nullable JsonObject transform(@NotNull ContractNegotiationEventMessage eventMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
         builder.add(ID, eventMessage.getId());
-        builder.add(TYPE, DSPACE_NEGOTIATION_EVENT_MESSAGE);
+        builder.add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, eventMessage.getProcessId());
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, eventMessage.getProcessId());
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE, eventType(eventMessage));
+        builder.add(DSPACE_PROPERTY_EVENT_TYPE, eventType(eventMessage));
 
         return builder.build();
     }
@@ -61,9 +61,9 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
     private String eventType(ContractNegotiationEventMessage message) {
         switch (message.getType()) {
             case ACCEPTED:
-                return DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_ACCEPTED;
+                return DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
             case FINALIZED:
-                return DSPACE_NEGOTIATION_PROPERTY_EVENT_TYPE_FINALIZED;
+                return DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
             default:
                 // this cannot happen
                 throw new EdcException("Unknown event type: " + message.getType());

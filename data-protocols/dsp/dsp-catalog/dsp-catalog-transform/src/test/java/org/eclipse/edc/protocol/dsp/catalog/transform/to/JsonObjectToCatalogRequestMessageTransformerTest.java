@@ -26,8 +26,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -54,8 +54,8 @@ class JsonObjectToCatalogRequestMessageTransformerTest {
         when(context.transform(querySpecJson, QuerySpec.class)).thenReturn(querySpec);
 
         var message = jsonFactory.createObjectBuilder()
-                .add(TYPE, DSPACE_CATALOG_REQUEST_TYPE)
-                .add(DSPACE_FILTER_PROPERTY, querySpecJson)
+                .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_FILTER, querySpecJson)
                 .build();
 
         var result = transformer.transform(message, context);

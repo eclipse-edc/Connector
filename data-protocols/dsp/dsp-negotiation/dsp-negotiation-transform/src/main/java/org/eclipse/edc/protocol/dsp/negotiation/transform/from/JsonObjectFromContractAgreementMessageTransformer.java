@@ -26,12 +26,12 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.time.Instant.ofEpochSecond;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 
 
 /**
@@ -50,9 +50,9 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
     public @Nullable JsonObject transform(@NotNull ContractAgreementMessage agreementMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
         builder.add(JsonLdKeywords.ID, agreementMessage.getId());
-        builder.add(JsonLdKeywords.TYPE, DSPACE_NEGOTIATION_AGREEMENT_MESSAGE);
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, agreementMessage.getProcessId());
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, agreementMessage.getProcessId());
 
         var agreement = agreementMessage.getContractAgreement();
 
@@ -71,12 +71,12 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
         var copiedPolicy = Json.createObjectBuilder(policy)
                 .add(ID, agreement.getId())
-                .add(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID, agreement.getConsumerId())
-                .add(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID, agreement.getProviderId())
-                .add(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP, signing)
+                .add(DSPACE_PROPERTY_CONSUMER_ID, agreement.getConsumerId())
+                .add(DSPACE_PROPERTY_PROVIDER_ID, agreement.getProviderId())
+                .add(DSPACE_PROPERTY_TIMESTAMP, signing)
                 .build();
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT, copiedPolicy);
+        builder.add(DSPACE_PROPERTY_AGREEMENT, copiedPolicy);
 
         return builder.build();
     }

@@ -24,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 
 public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonLdTransformer<TransferStartMessage, JsonObject> {
 
@@ -42,10 +42,10 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(ID, transferStartMessage.getId());
-        builder.add(TYPE, DSPACE_TRANSFER_START_TYPE);
-        builder.add(DSPACE_PROCESS_ID, transferStartMessage.getProcessId());
+        builder.add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE);
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, transferStartMessage.getProcessId());
         if (transferStartMessage.getDataAddress() != null) {
-            builder.add(DSPACE_DATA_ADDRESS, context.transform(transferStartMessage.getDataAddress(), JsonObject.class));
+            builder.add(DSPACE_PROPERTY_DATA_ADDRESS, context.transform(transferStartMessage.getDataAddress(), JsonObject.class));
         }
 
         return builder.build();

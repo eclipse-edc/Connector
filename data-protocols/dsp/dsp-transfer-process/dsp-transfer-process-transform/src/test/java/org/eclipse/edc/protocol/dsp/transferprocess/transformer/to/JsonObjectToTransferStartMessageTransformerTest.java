@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATA_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -53,8 +53,8 @@ class JsonObjectToTransferStartMessageTransformerTest {
     @Test
     void jsonObjectToTransferStartMessage() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TRANSFER_START_TYPE)
-                .add(DSPACE_PROCESS_ID, processId)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
@@ -70,9 +70,9 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void jsonObjectToTransferStartMessageWithDataAddress() {
         var dataAddressObject = Json.createObjectBuilder().add(EDC_NAMESPACE + "type", "AWS").build();
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TRANSFER_START_TYPE)
-                .add(DSPACE_PROCESS_ID, processId)
-                .add(DSPACE_DATA_ADDRESS, dataAddressObject)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
+                .add(DSPACE_PROPERTY_DATA_ADDRESS, dataAddressObject)
                 .build();
 
         var dataAddress = DataAddress.Builder.newInstance().type("AWS").build();
@@ -92,9 +92,9 @@ class JsonObjectToTransferStartMessageTransformerTest {
     @Test
     void jsonObjectToTransferStartMessageWithEmptyDataAddress() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TRANSFER_START_TYPE)
-                .add(DSPACE_PROCESS_ID, processId)
-                .add(DSPACE_DATA_ADDRESS, Json.createObjectBuilder().build())
+                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
+                .add(DSPACE_PROPERTY_DATA_ADDRESS, Json.createObjectBuilder().build())
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);

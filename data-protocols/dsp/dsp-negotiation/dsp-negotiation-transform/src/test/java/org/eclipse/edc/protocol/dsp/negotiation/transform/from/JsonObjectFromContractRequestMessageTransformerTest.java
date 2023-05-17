@@ -30,12 +30,12 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_DATASET;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -74,12 +74,12 @@ class JsonObjectFromContractRequestMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_DATASET).getString()).isEqualTo(DATASET_ID);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
-        assertThat(result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER)).isNotNull();
-        assertThat(result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_DATA_SET).getString()).isEqualTo(DATASET_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
+        assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER)).isNotNull();
+        assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -98,11 +98,11 @@ class JsonObjectFromContractRequestMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_DATASET).getString()).isEqualTo(DATASET_ID);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_OFFER_ID)).isNotNull();
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_DATA_SET).getString()).isEqualTo(DATASET_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_OFFER_ID)).isNotNull();
 
         verify(context, never()).reportProblem(anyString());
     }

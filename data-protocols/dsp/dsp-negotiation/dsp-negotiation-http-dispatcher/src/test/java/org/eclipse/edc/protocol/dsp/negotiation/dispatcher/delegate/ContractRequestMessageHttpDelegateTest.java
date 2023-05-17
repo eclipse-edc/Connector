@@ -40,10 +40,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_STATE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_REQUESTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -162,10 +162,10 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
     private JsonObject negotiation() {
         var builder = Json.createObjectBuilder();
         builder.add(JsonLdKeywords.ID, "id1");
-        builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION);
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, PROCESS_ID);
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_STATE, DSPACE_NEGOTIATION_STATE_REQUESTED);
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID);
+        builder.add(DSPACE_PROPERTY_STATE, DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED);
 
         return builder.build();
     }

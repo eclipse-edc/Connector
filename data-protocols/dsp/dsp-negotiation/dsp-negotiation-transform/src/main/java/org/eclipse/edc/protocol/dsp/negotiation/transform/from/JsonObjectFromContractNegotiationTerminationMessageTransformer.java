@@ -24,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 
 /**
  * Creates a {@link JsonObject} from a {@link ContractNegotiationTerminationMessage}.
@@ -45,18 +45,18 @@ public class JsonObjectFromContractNegotiationTerminationMessageTransformer exte
     public @Nullable JsonObject transform(@NotNull ContractNegotiationTerminationMessage terminationMessage, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
         builder.add(ID, terminationMessage.getId());
-        builder.add(TYPE, DSPACE_NEGOTIATION_TERMINATION_MESSAGE);
+        builder.add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, terminationMessage.getProcessId());
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, terminationMessage.getProcessId());
 
         var rejectionReason = terminationMessage.getRejectionReason();
         if (rejectionReason != null) {
-            builder.add(DSPACE_NEGOTIATION_PROPERTY_REASON, rejectionReason);
+            builder.add(DSPACE_PROPERTY_REASON, rejectionReason);
         }
 
         var code = terminationMessage.getCode();
         if (code != null) {
-            builder.add(DSPACE_NEGOTIATION_PROPERTY_CODE, code);
+            builder.add(DSPACE_PROPERTY_CODE, code);
         }
 
         return builder.build();

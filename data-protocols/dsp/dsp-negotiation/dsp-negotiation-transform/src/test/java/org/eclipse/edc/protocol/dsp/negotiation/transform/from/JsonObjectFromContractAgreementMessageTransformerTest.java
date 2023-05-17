@@ -35,12 +35,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_AGREEMENT_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -82,15 +82,15 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
 
-        var jsonAgreement = result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_AGREEMENT);
+        var jsonAgreement = result.getJsonObject(DSPACE_PROPERTY_AGREEMENT);
         assertThat(jsonAgreement).isNotNull();
         assertThat(jsonAgreement.getJsonString(ID).getString()).isEqualTo(AGREEMENT_ID);
-        assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_TIMESTAMP).getString()).isEqualTo(TIMESTAMP);
-        assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CONSUMER_ID).getString()).isEqualTo(CONSUMER_ID);
-        assertThat(jsonAgreement.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROVIDER_ID).getString()).isEqualTo(PROVIDER_ID);
+        assertThat(jsonAgreement.getJsonString(DSPACE_PROPERTY_TIMESTAMP).getString()).isEqualTo(TIMESTAMP);
+        assertThat(jsonAgreement.getJsonString(DSPACE_PROPERTY_CONSUMER_ID).getString()).isEqualTo(CONSUMER_ID);
+        assertThat(jsonAgreement.getJsonString(DSPACE_PROPERTY_PROVIDER_ID).getString()).isEqualTo(PROVIDER_ID);
 
         verify(context, never()).reportProblem(anyString());
     }

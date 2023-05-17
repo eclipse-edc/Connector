@@ -23,7 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
@@ -51,7 +51,7 @@ public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLd
 
     @Nullable
     private QuerySpec transformQuerySpec(JsonObject object, TransformerContext context) {
-        var value = object.get(DSPACE_FILTER_PROPERTY);
+        var value = object.get(DSPACE_PROPERTY_FILTER);
         if (value == null) {
             return null;
         }

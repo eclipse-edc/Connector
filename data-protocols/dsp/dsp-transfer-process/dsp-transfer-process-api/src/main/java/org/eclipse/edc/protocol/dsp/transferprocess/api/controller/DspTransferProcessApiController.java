@@ -47,7 +47,6 @@ import java.util.UUID;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.protocol.dsp.DspErrorDetails.BAD_REQUEST;
 import static org.eclipse.edc.protocol.dsp.DspErrorDetails.NOT_IMPLEMENTED;
@@ -59,10 +58,11 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_START;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_TERMINATION;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_PROCESS_REQUEST_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
@@ -73,8 +73,6 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
 public class DspTransferProcessApiController {
-
-    private static final String DSPACE_TRANSFER_ERROR = DSPACE_SCHEMA + "TransferError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
 
     private final Monitor monitor;
     private final TypeTransformerRegistry registry;
@@ -122,7 +120,7 @@ public class DspTransferProcessApiController {
         TransferProcess transferProcess;
         try {
             transferProcess = handleMessage(MessageSpec.Builder.newInstance(TransferRequestMessage.class)
-                    .expectedMessageType(DSPACE_TRANSFER_PROCESS_REQUEST_TYPE)
+                    .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
                     .message(jsonObject)
                     .token(token)
                     .serviceCall(protocolService::notifyRequested)
@@ -133,7 +131,7 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + ": %s", exception.getMessages()));
             return errorResponse(Optional.empty(), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_PROCESS_REQUEST_TYPE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE, exception));
             throw exception;
         }
 
@@ -161,7 +159,7 @@ public class DspTransferProcessApiController {
         try {
             handleMessage(MessageSpec.Builder.newInstance(TransferStartMessage.class)
                     .processId(id)
-                    .expectedMessageType(DSPACE_TRANSFER_START_TYPE)
+                    .expectedMessageType(DSPACE_TYPE_TRANSFER_START_MESSAGE)
                     .message(jsonObject)
                     .token(token)
                     .serviceCall(protocolService::notifyStarted)
@@ -173,7 +171,7 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_START_TYPE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_TRANSFER_START_MESSAGE, exception));
             throw exception;
         }
 
@@ -194,7 +192,7 @@ public class DspTransferProcessApiController {
         try {
             handleMessage(MessageSpec.Builder.newInstance(TransferCompletionMessage.class)
                     .processId(id)
-                    .expectedMessageType(DSPACE_TRANSFER_COMPLETION_TYPE)
+                    .expectedMessageType(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
                     .message(jsonObject)
                     .token(token)
                     .serviceCall(protocolService::notifyCompleted)
@@ -206,7 +204,7 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_COMPLETION_TYPE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE, exception));
             throw exception;
         }
 
@@ -227,7 +225,7 @@ public class DspTransferProcessApiController {
         try {
             handleMessage(MessageSpec.Builder.newInstance(TransferTerminationMessage.class)
                     .processId(id)
-                    .expectedMessageType(DSPACE_TRANSFER_TERMINATION_TYPE)
+                    .expectedMessageType(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
                     .message(jsonObject)
                     .token(token)
                     .serviceCall(protocolService::notifyTerminated)
@@ -239,7 +237,7 @@ public class DspTransferProcessApiController {
             monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
             return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
         } catch (Exception exception) {
-            monitor.warning(String.format("Error processing %s. %s", DSPACE_TRANSFER_TERMINATION_TYPE, exception));
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE, exception));
             throw exception;
         }
 
@@ -317,7 +315,7 @@ public class DspTransferProcessApiController {
 
     private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
         var builder = DspError.Builder.newInstance()
-                .type(DSPACE_TRANSFER_ERROR)
+                .type(DSPACE_TYPE_TRANSFER_ERROR)
                 .code(Integer.toString(code.getStatusCode()))
                 .messages(List.of(message));
 
