@@ -63,7 +63,6 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
@@ -75,6 +74,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.V
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
@@ -91,8 +91,6 @@ import static org.mockito.Mockito.when;
 
 @ApiTest
 public class DspNegotiationApiControllerTest extends RestControllerTestBase {
-
-    private static final String DSPACE_CONTRACT_NEGOTIATION_ERROR = DSPACE_SCHEMA + "ContractNegotiationError";
 
     private final IdentityService identityService = mock(IdentityService.class);
     private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
@@ -206,7 +204,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
@@ -261,7 +259,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("500");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
@@ -283,7 +281,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
@@ -309,7 +307,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
@@ -340,7 +338,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
@@ -456,7 +454,7 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();

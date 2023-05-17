@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.type;
 
+import org.eclipse.edc.jsonld.spi.Namespaces;
+
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 
 /**
@@ -22,6 +24,8 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 public interface DspCatalogPropertyAndTypeNames {
 
     String DSPACE_TYPE_CATALOG_REQUEST_MESSAGE = DSPACE_SCHEMA + "CatalogRequestMessage";
+
+    String DSPACE_TYPE_CATALOG_ERROR = DSPACE_SCHEMA + "CatalogError";
     String DSPACE_PROPERTY_FILTER = DSPACE_SCHEMA + "filter";
 
 }

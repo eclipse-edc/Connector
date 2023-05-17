@@ -47,7 +47,6 @@ import java.util.UUID;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.protocol.dsp.DspErrorDetails.BAD_REQUEST;
 import static org.eclipse.edc.protocol.dsp.DspErrorDetails.NOT_IMPLEMENTED;
@@ -60,6 +59,7 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessAp
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_SUSPENSION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_TERMINATION;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
@@ -73,8 +73,6 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
 public class DspTransferProcessApiController {
-
-    private static final String DSPACE_TRANSFER_ERROR = DSPACE_SCHEMA + "TransferError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
 
     private final Monitor monitor;
     private final TypeTransformerRegistry registry;
@@ -317,7 +315,7 @@ public class DspTransferProcessApiController {
 
     private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
         var builder = DspError.Builder.newInstance()
-                .type(DSPACE_TRANSFER_ERROR)
+                .type(DSPACE_TYPE_TRANSFER_ERROR)
                 .code(Integer.toString(code.getStatusCode()))
                 .messages(List.of(message));
 

@@ -50,7 +50,6 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
@@ -62,6 +61,7 @@ import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_P
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
@@ -75,8 +75,6 @@ import static org.mockito.Mockito.when;
 
 @ApiTest
 class DspTransferProcessApiControllerTest extends RestControllerTestBase {
-
-    private static final String DSPACE_TRANSFER_ERROR = DSPACE_SCHEMA + "TransferError";
 
     private static final String PROCESS_ID = "testId";
     private final IdentityService identityService = mock(IdentityService.class);
@@ -154,7 +152,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
@@ -217,7 +215,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
@@ -244,7 +242,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
@@ -278,7 +276,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
@@ -314,7 +312,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TRANSFER_ERROR);
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
         assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();

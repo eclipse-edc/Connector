@@ -25,7 +25,6 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.protocol.dsp.DspError;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -42,6 +41,7 @@ import static org.eclipse.edc.protocol.dsp.DspErrorDetails.UNAUTHORIZED;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 
 /**
@@ -51,8 +51,6 @@ import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.D
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(BASE_PATH)
 public class DspCatalogApiController {
-
-    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
 
     private final Monitor monitor;
     private final IdentityService identityService;
@@ -138,7 +136,7 @@ public class DspCatalogApiController {
     private Response errorResponse(Response.Status code, String message) {
         return Response.status(code).type(MediaType.APPLICATION_JSON)
                 .entity(DspError.Builder.newInstance()
-                        .type(DSPACE_CATALOG_ERROR)
+                        .type(DSPACE_TYPE_CATALOG_ERROR)
                         .code(Integer.toString(code.getStatusCode()))
                         .messages(List.of(message))
                         .build().toJson())

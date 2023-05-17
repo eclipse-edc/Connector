@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -44,6 +43,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
@@ -56,8 +56,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DspCatalogApiControllerTest {
-
-    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogError";
 
     private final Monitor monitor = mock(Monitor.class);
     private final IdentityService identityService = mock(IdentityService.class);
@@ -124,7 +122,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CATALOG_ERROR);
         assertThat(errorObject.getJsonString(DSPACE_PROPERTY_CODE).getString()).isEqualTo("400");
         assertThat(errorObject.get(DSPACE_PROPERTY_REASON)).isNotNull();
 
@@ -143,7 +141,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CATALOG_ERROR);
         assertThat(errorObject.getJsonString(DSPACE_PROPERTY_CODE).getString()).isEqualTo("400");
         assertThat(errorObject.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }
@@ -159,7 +157,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CATALOG_ERROR);
         assertThat(errorObject.getJsonString(DSPACE_PROPERTY_CODE).getString()).isEqualTo("401");
         assertThat(errorObject.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }
@@ -178,7 +176,7 @@ class DspCatalogApiControllerTest {
 
         var errorObject = (JsonObject) response.getEntity();
 
-        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(errorObject.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CATALOG_ERROR);
         assertThat(errorObject.getJsonString(DSPACE_PROPERTY_CODE).getString()).isNotNull();
         assertThat(errorObject.get(DSPACE_PROPERTY_REASON)).isNotNull();
 

@@ -26,6 +26,7 @@ public interface DspTransferProcessPropertyAndTypeNames {
     String DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE = DSPACE_SCHEMA + "TransferCompletionMessage";
     String DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE = DSPACE_SCHEMA + "TransferTerminationMessage";
     String DSPACE_TYPE_TRANSFER_PROCESS = DSPACE_SCHEMA + "TransferProcess";
+    String DSPACE_TYPE_TRANSFER_ERROR = DSPACE_SCHEMA + "TransferError";
 
     String DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID = DSPACE_SCHEMA + "agreementId";
     String DSPACE_PROPERTY_DATA_ADDRESS = DSPACE_SCHEMA + "dataAddress";

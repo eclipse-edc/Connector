@@ -23,7 +23,6 @@ import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -47,6 +46,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
@@ -59,8 +59,6 @@ import static org.mockito.Mockito.when;
 @ApiTest
 @ExtendWith(EdcExtension.class)
 class DspCatalogApiControllerIntegrationTest {
-
-    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogError";
 
     private final int dspApiPort = getFreePort();
     private final String dspApiPath = "/api/v1/dsp";
@@ -121,7 +119,7 @@ class DspCatalogApiControllerIntegrationTest {
                 .statusCode(401)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CATALOG_ERROR);
         assertThat(result.get(DSPACE_PROPERTY_CODE)).isEqualTo("401");
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }
@@ -146,7 +144,7 @@ class DspCatalogApiControllerIntegrationTest {
                 .statusCode(400)
                 .extract().as(Map.class);
 
-        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_CATALOG_ERROR);
+        assertThat(result.get(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CATALOG_ERROR);
         assertThat(result.get(DSPACE_PROPERTY_CODE)).isEqualTo("400");
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }

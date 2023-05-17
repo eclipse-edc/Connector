@@ -52,7 +52,6 @@ import java.util.UUID;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.protocol.dsp.DspErrorDetails.BAD_REQUEST;
 import static org.eclipse.edc.protocol.dsp.DspErrorDetails.NOT_IMPLEMENTED;
@@ -68,6 +67,7 @@ import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.V
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
@@ -83,8 +83,6 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces({MediaType.APPLICATION_JSON})
 @Path(BASE_PATH)
 public class DspNegotiationApiController {
-
-    private static final String DSPACE_CONTRACT_NEGOTIATION_ERROR = DSPACE_SCHEMA + "ContractNegotiationError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
 
     private final IdentityService identityService;
     private final TypeTransformerRegistry transformerRegistry;
@@ -422,7 +420,7 @@ public class DspNegotiationApiController {
 
     private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
         var builder = DspError.Builder.newInstance()
-                .type(DSPACE_CONTRACT_NEGOTIATION_ERROR)
+                .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .code(Integer.toString(code.getStatusCode()))
                 .messages(List.of(message));
 
