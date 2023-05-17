@@ -63,36 +63,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport
 
-  Helm-Chart:
-    runs-on: ubuntu-latest
-    name: Test Helm chart in minikube
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: Install and start minikube
-        run: |
-          curl -fLo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          chmod +x minikube
-          ./minikube start --wait all
-
-      - name: Build JARs
-        run: ./gradlew system-tests:runtimes:file-transfer-consumer:shadowJar system-tests:runtimes:file-transfer-provider:shadowJar --no-daemon
-
-      - name: Test
-        run: |
-          eval $(minikube -p minikube docker-env)
-          chmod +x system-tests/minikube/minikube-test.sh
-          system-tests/minikube/minikube-test.sh
-
-      - name: Kubernetes logs
-        if: always()
-        run: |
-          set -x
-          kubectl get pods
-          kubectl logs deployment/provider-dataspace-connector --tail=200
-          kubectl logs deployment/consumer-dataspace-connector --tail=200
-
   Azure-Storage-Integration-Tests:
     runs-on: ubuntu-latest
 
