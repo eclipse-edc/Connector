@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.type;
 
-import org.eclipse.edc.jsonld.spi.Namespaces;
-
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 
 /**
