@@ -50,7 +50,6 @@ public class JsonObjectToNegotiationInitiateRequestDtoTransformer extends Abstra
 
     private void setProperties(String key, JsonValue value, NegotiationInitiateRequestDto.Builder builder, TransformerContext context) {
 
-        var contractOfferDesc = ContractOfferDescription.Builder.newInstance();
         switch (key) {
             case CONNECTOR_ADDRESS:
                 transformString(value, builder::connectorAddress, context);

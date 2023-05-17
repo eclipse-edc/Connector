@@ -40,17 +40,20 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static java.io.File.separator;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
 
 public class Participant {
@@ -80,35 +83,33 @@ public class Participant {
         jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
     }
 
-    public void createAsset(String assetId, Map<String, String> dataAddressProperties) {
-        var asset = Map.of(
-                "asset", Map.of(
-                        "id", assetId,
-                        "properties", Map.of(
-                                EDC_NAMESPACE + "id", assetId,
-                                EDC_NAMESPACE + "description", "description"
-                        )
-                ),
-                "dataAddress", Map.of(
-                        "properties", dataAddressProperties
-                )
-        );
+    public void createAsset(String assetId, Map<String, Object> dataAddressProperties) {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add("asset", createObjectBuilder()
+                        .add(ID, assetId)
+                        .add("properties", createObjectBuilder()
+                                .add("description", "description")))
+                .add("dataAddress", createObjectBuilder()
+                        .add("properties", createObjectBuilder(dataAddressProperties)))
+                .build();
 
         given()
                 .baseUri(controlPlaneManagement.toString())
                 .contentType(JSON)
-                .body(asset)
+                .body(requestBody)
                 .when()
-                .post("/assets")
+                .post("/v2/assets")
                 .then()
                 .statusCode(200)
                 .contentType(JSON);
     }
 
     public String createPolicyDefinition(JsonObject policy) {
-        var requestBody = Json.createObjectBuilder()
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "PolicyDefinitionDto")
-                .add(EDC_NAMESPACE + "policy", policy)
+                .add("policy", policy)
                 .build();
 
         return given()
@@ -124,13 +125,13 @@ public class Participant {
     }
 
     public void createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId) {
-        var requestBody = Json.createObjectBuilder()
+        var requestBody = createObjectBuilder()
                 .add(ID, definitionId)
                 .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
                 .add(EDC_NAMESPACE + "accessPolicyId", accessPolicyId)
                 .add(EDC_NAMESPACE + "contractPolicyId", contractPolicyId)
                 .add(EDC_NAMESPACE + "criteria", Json.createArrayBuilder()
-                        .add(Json.createObjectBuilder()
+                        .add(createObjectBuilder()
                                 .add(TYPE, "CriterionDto")
                                 .add(EDC_NAMESPACE + "operandLeft", EDC_NAMESPACE + "id")
                                 .add(EDC_NAMESPACE + "operator", "=")
@@ -154,17 +155,18 @@ public class Participant {
      * Start contract negotiation, waits for agreement and returns the agreement id
      */
     public String negotiateContract(Participant provider, String offerId, String assetId, JsonObject policy) {
-        var requestBody = Json.createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "NegotiationInitiateRequestDto")
-                .add(EDC_NAMESPACE + "connectorId", provider.participantId)
-                .add(EDC_NAMESPACE + "consumerId", participantId)
-                .add(EDC_NAMESPACE + "providerId", provider.participantId)
-                .add(EDC_NAMESPACE + "connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH)
-                .add(EDC_NAMESPACE + "protocol", "dataspace-protocol-http")
-                .add(EDC_NAMESPACE + "offer", Json.createObjectBuilder()
-                        .add(EDC_NAMESPACE + "offerId", offerId)
-                        .add(EDC_NAMESPACE + "assetId", assetId)
-                        .add(EDC_NAMESPACE + "policy", jsonLd.compact(policy).getContent())
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "NegotiationInitiateRequestDto")
+                .add("connectorId", provider.participantId)
+                .add("consumerId", participantId)
+                .add("providerId", provider.participantId)
+                .add("connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH)
+                .add("protocol", "dataspace-protocol-http")
+                .add("offer", createObjectBuilder()
+                        .add("offerId", offerId)
+                        .add("assetId", assetId)
+                        .add("policy", jsonLd.compact(policy).getContent())
                 )
                 .build();
 
@@ -202,13 +204,14 @@ public class Participant {
     }
 
     public String initiateTransfer(String contractId, String assetId, Participant provider, JsonObject destination) {
-        var requestBody = Json.createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "TransferRequestDto")
-                .add(EDC_NAMESPACE + "dataDestination", destination)
-                .add(EDC_NAMESPACE + "protocol", "dataspace-protocol-http")
-                .add(EDC_NAMESPACE + "assetId", assetId)
-                .add(EDC_NAMESPACE + "contractId", contractId)
-                .add(EDC_NAMESPACE + "connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH)
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "TransferRequestDto")
+                .add("dataDestination", destination)
+                .add("protocol", "dataspace-protocol-http")
+                .add("assetId", assetId)
+                .add("contractId", contractId)
+                .add("connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH)
                 .build();
 
         return given()
@@ -300,11 +303,12 @@ public class Participant {
 
     public JsonArray getCatalogDatasets(Participant provider) {
         var datasetReference = new AtomicReference<JsonArray>();
-        var requestBody = Map.of(
-                "@type", "CatalogRequest",
-                EDC_NAMESPACE + "providerUrl", provider.protocolEndpoint() + PROTOCOL_PATH,
-                EDC_NAMESPACE + "protocol", "dataspace-protocol-http"
-        );
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "CatalogRequest")
+                .add("providerUrl", provider.protocolEndpoint() + PROTOCOL_PATH)
+                .add("protocol", "dataspace-protocol-http")
+                .build();
 
         await().atMost(timeout).untilAsserted(() -> {
             var response = given()

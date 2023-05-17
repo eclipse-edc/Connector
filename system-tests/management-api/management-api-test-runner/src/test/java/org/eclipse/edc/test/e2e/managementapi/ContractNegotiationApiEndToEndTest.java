@@ -34,15 +34,14 @@ import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
@@ -50,20 +49,6 @@ import static org.hamcrest.Matchers.is;
 
 @EndToEndTest
 public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEndTest {
-
-    // these constants must be identical to the ones defined in NegotiationInitiateRequestDto
-    public static final String INITIATE_TYPE = EDC_NAMESPACE + "NegotiationInitiateRequestDto";
-    public static final String CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
-    public static final String PROTOCOL = EDC_NAMESPACE + "protocol";
-    public static final String CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
-    public static final String PROVIDER_ID = EDC_NAMESPACE + "providerId";
-    public static final String CONSUMER_ID = EDC_NAMESPACE + "consumerId";
-    public static final String OFFER = EDC_NAMESPACE + "offer";
-    public static final String CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
-    public static final String OFFER_ID = EDC_NAMESPACE + "offerId";
-    public static final String ASSET_ID = EDC_NAMESPACE + "assetId";
-    public static final String POLICY = EDC_NAMESPACE + "policy";
-
 
     @Test
     void getAll() {
@@ -87,7 +72,6 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
         assertThat(jsonPath.getString("[1].@id")).isIn("cn1", "cn2");
         assertThat(jsonPath.getString("[0]['edc:protocol']")).isEqualTo("dataspace-protocol-http");
         assertThat(jsonPath.getString("[1]['edc:protocol']")).isEqualTo("dataspace-protocol-http");
-
     }
 
     @Test
@@ -144,18 +128,19 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
     @Test
     void initiateNegotiation() {
 
-        var requestJson = Json.createObjectBuilder()
-                .add(TYPE, INITIATE_TYPE)
-                .add(CONNECTOR_ADDRESS, "test-address")
-                .add(PROTOCOL, "test-protocol")
-                .add(CONNECTOR_ID, "test-conn-id")
-                .add(PROVIDER_ID, "test-provider-id")
-                .add(CONSUMER_ID, "test-consumer-id")
-                .add(CALLBACK_ADDRESSES, createCallbackAddress())
-                .add(OFFER, Json.createObjectBuilder()
-                        .add(OFFER_ID, "test-offer-id")
-                        .add(ASSET_ID, "test-asset")
-                        .add(POLICY, createPolicy())
+        var requestJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "NegotiationInitiateRequestDto")
+                .add("connectorAddress", "test-address")
+                .add("protocol", "test-protocol")
+                .add("connectorId", "test-conn-id")
+                .add("providerId", "test-provider-id")
+                .add("consumerId", "test-consumer-id")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("offer", createObjectBuilder()
+                        .add("offerId", "test-offer-id")
+                        .add("assetId", "test-asset")
+                        .add("policy", createPolicy())
                         .build())
                 .build();
 
@@ -169,8 +154,8 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .extract().jsonPath().getString(ID);
 
         var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        assertThat(store.findById(id)).isNotNull();
 
+        assertThat(store.findById(id)).isNotNull();
     }
 
     @Test
@@ -183,7 +168,6 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .post("cn1/cancel")
                 .then()
                 .statusCode(204);
-
     }
 
     @Test
@@ -200,7 +184,8 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + PORT + "/management/v2/contractnegotiations")
+                .port(PORT)
+                .basePath("/management/v2/contractnegotiations")
                 .when();
     }
 
@@ -229,7 +214,6 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .policy(Policy.Builder.newInstance().build());
     }
 
-
     private ContractAgreement createContractAgreement(String negotiationId) {
         return ContractAgreement.Builder.newInstance()
                 .id(negotiationId)
@@ -242,27 +226,23 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
     private JsonArrayBuilder createCallbackAddress() {
         var builder = Json.createArrayBuilder();
-        return builder.add(Json.createObjectBuilder()
+        return builder.add(createObjectBuilder()
                 .add(IS_TRANSACTIONAL, true)
                 .add(URI, "http://test.local/")
                 .add(EVENTS, Json.createArrayBuilder().build()));
     }
 
     private JsonObject createPolicy() {
-        var permissionJson = getJsonObject("permission");
-        var prohibitionJson = getJsonObject("prohibition");
-        var dutyJson = getJsonObject("duty");
-        return Json.createObjectBuilder()
-                .add(TYPE, ODRL_POLICY_TYPE_OFFER)
-                .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
-                .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
-                .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
+        var permissionJson = createObjectBuilder().add(TYPE, "permission").build();
+        var prohibitionJson = createObjectBuilder().add(TYPE, "prohibition").build();
+        var dutyJson = createObjectBuilder().add(TYPE, "duty").build();
+        return createObjectBuilder()
+                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                .add(TYPE, "Offer")
+                .add("permission", permissionJson)
+                .add("prohibition", prohibitionJson)
+                .add("obligation", dutyJson)
                 .build();
     }
 
-    private JsonObject getJsonObject(String type) {
-        return Json.createObjectBuilder()
-                .add(TYPE, type)
-                .build();
-    }
 }

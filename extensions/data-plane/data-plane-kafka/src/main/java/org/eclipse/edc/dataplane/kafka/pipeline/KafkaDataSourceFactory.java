@@ -79,16 +79,16 @@ public class KafkaDataSourceFactory implements DataSourceFactory {
                 .orElseThrow(failure -> new IllegalArgumentException(failure.getFailureDetail()));
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
 
-        var topic = Optional.ofNullable(source.getProperties().get(TOPIC))
+        var topic = Optional.ofNullable(source.getProperty(TOPIC))
                 .orElseThrow(() -> new IllegalArgumentException(format("Missing `%s` config", TOPIC)));
 
         var name = source.getProperties().get(NAME);
 
-        var maxDuration = Optional.ofNullable(source.getProperties().get(MAX_DURATION))
+        var maxDuration = Optional.ofNullable(source.getProperty(MAX_DURATION))
                 .map(Duration::parse)
                 .orElse(null);
 
-        var pollDuration = Optional.ofNullable(source.getProperties().get(POLL_DURATION))
+        var pollDuration = Optional.ofNullable(source.getProperty(POLL_DURATION))
                 .map(Duration::parse)
                 .orElse(DEFAULT_POLL_DURATION);
 
