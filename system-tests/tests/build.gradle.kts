@@ -38,9 +38,6 @@ dependencies {
     testImplementation(libs.opentelemetry.proto)
     testImplementation(libs.awaitility)
     testImplementation(libs.mockserver.netty)
-
-    testCompileOnly(project(":system-tests:runtimes:file-transfer-provider"))
-    testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))
 }
 
 val otelDownloadUrl =
