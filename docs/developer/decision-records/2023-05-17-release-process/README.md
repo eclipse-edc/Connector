@@ -17,8 +17,8 @@ We will drop the `-milestone-#` suffix to the release version, passing to a stan
 The SemVer specification won't be fully followed up for the moment, the approach followed will be:
 - `X` will remain 0 until the end of the "incubation phase"
 - `Y` will change on every release
-- `Z` will remain 0
+- `Z` will remain 0 (could be used for bugfixes, please read below)
 - releases will be created from `main` branch
-- for specific needs coming from downstream projects (that will need to be agreed within the committer group) a bugfix version could be released on a specific version
+- bugfix versions may be released for a specific X.Y version at the discretion of the committers.
 - a new version release will need an agreement in the committer group before being triggered
-- a new version release could bring breaking changes
+- we won't follow backward compatibility: any release could bring in breaking changes
