@@ -21,10 +21,11 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
     api(project(":data-protocols:dsp:dsp-api-configuration"))
+    api(project(":data-protocols:dsp:dsp-core"))
 
     implementation(project(":spi:common:json-ld-spi"))
 
-    // TODO remove this dependency by moving type constants to another module
+    // TODO remove this dependency by moving type constants to another module https://github.com/eclipse-edc/Connector/issues/3014
     implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
 
     implementation(libs.jakarta.rsApi)

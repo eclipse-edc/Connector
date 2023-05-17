@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -25,6 +24,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
@@ -34,8 +34,8 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.protocol.dsp.DspError;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -46,11 +46,17 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.BAD_REQUEST;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.NOT_IMPLEMENTED;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.UNAUTHORIZED;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
@@ -78,12 +84,13 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Path(BASE_PATH)
 public class DspNegotiationApiController {
 
+    private static final String DSPACE_CONTRACT_NEGOTIATION_ERROR = DSPACE_SCHEMA + "ContractNegotiationError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
+
     private final IdentityService identityService;
     private final TypeTransformerRegistry transformerRegistry;
     private final String callbackAddress;
     private final Monitor monitor;
     private final ContractNegotiationProtocolService protocolService;
-    private final ObjectMapper mapper;
     private final JsonLd jsonLdService;
 
     public DspNegotiationApiController(String callbackAddress,
@@ -91,14 +98,12 @@ public class DspNegotiationApiController {
                                        TypeTransformerRegistry transformerRegistry,
                                        ContractNegotiationProtocolService protocolService,
                                        JsonLd jsonLdService,
-                                       ObjectMapper mapper,
                                        Monitor monitor) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.transformerRegistry = transformerRegistry;
-        this.mapper = mapper;
         this.jsonLdService = jsonLdService;
     }
 
@@ -107,12 +112,12 @@ public class DspNegotiationApiController {
      *
      * @param id    of contract negotiation.
      * @param token identity token.
+     * @return the requested contract negotiation or an error.
      */
     @GET
     @Path("{id}")
-    public Map<String, Object> getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        checkAndReturnAuthToken(token);
-        throw new UnsupportedOperationException("Currently not supported.");
+    public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+        return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
     }
 
     /**
@@ -120,27 +125,39 @@ public class DspNegotiationApiController {
      *
      * @param jsonObject dspace:ContractRequestMessage sent by a consumer.
      * @param token      identity token.
+     * @return the created contract negotiation or an error.
      */
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
-    public Map<String, Object> initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
+    public Response initiateNegotiation(@RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
                                                    JsonObject jsonObject,
                                                    @HeaderParam(AUTHORIZATION) String token) {
+        ContractNegotiation negotiation;
+        try {
+            negotiation = handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(this::validateAndProcessRequest)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            return errorResponse(Optional.empty(), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + ": %s", exception.getMessages()));
+            return errorResponse(Optional.empty(), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, exception));
+            throw exception;
+        }
 
-        var negotiation = handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(this::validateAndProcessRequest)
-                .build());
+        var result = transformerRegistry.transform(negotiation, JsonObject.class);
+        if (result.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("Error transforming negotiation, error id %s: %s", errorCode, result.getFailureDetail()));
+            return errorResponse(Optional.of(negotiation.getCorrelationId()), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
 
-        var result = transformerRegistry.transform(negotiation, JsonObject.class)
-                .orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
-
-        var compactResult = jsonLdService.compact(result);
-
-        //noinspection unchecked
-        return compactResult.map(jo -> mapper.convertValue(jo, Map.class)).orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+        return Response.status(Response.Status.OK).type(MediaType.APPLICATION_JSON).entity(result.getContent()).build();
     }
 
     /**
@@ -149,21 +166,34 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractRequestMessage sent by a consumer.
      * @param token      identity token.
+     * @return the created contract negotiation or an error.
      */
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
-    public void consumerOffer(@PathParam("id") String id,
+    public Response consumerOffer(@PathParam("id") String id,
                               @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, required = true)
                               JsonObject jsonObject,
                               @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyRequested)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE, exception));
+            throw exception;
+        }
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyRequested)
-                .build());
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
@@ -172,22 +202,34 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractNegotiationEventMessage sent by consumer or provider.
      * @param token      identity token.
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + EVENT)
-    public void createEvent(@PathParam("id") String id,
+    public Response createEvent(@PathParam("id") String id,
                             @RequestBody(description = DSPACE_NEGOTIATION_EVENT_MESSAGE, required = true)
                             JsonObject jsonObject,
                             @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationEventMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_EVENT_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(this::dispatchEventMessage)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_EVENT_MESSAGE, exception));
+            throw exception;
+        }
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationEventMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_EVENT_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(this::dispatchEventMessage)
-                .build());
-
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
@@ -196,21 +238,34 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractAgreementVerificationMessage sent by a consumer.
      * @param token      identity token.
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + AGREEMENT + VERIFICATION)
-    public void verifyAgreement(@PathParam("id") String id,
+    public Response verifyAgreement(@PathParam("id") String id,
                                 @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, required = true)
                                 JsonObject jsonObject,
                                 @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractAgreementVerificationMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyVerified)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE, exception));
+            throw exception;
+        }
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractAgreementVerificationMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_VERIFICATION_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyVerified)
-                .build());
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
@@ -219,21 +274,34 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractNegotiationTerminationMessage sent by consumer or provider.
      * @param token      identity token.
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + TERMINATION)
-    public void terminateNegotiation(@PathParam("id") String id,
+    public Response terminateNegotiation(@PathParam("id") String id,
                                      @RequestBody(description = DSPACE_NEGOTIATION_TERMINATION_MESSAGE, required = true)
                                      JsonObject jsonObject,
                                      @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationTerminationMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyTerminated)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_TERMINATION_MESSAGE, exception));
+            throw exception;
+        }
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationTerminationMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_TERMINATION_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyTerminated)
-                .build());
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
@@ -242,18 +310,15 @@ public class DspNegotiationApiController {
      * @param id    of contract negotiation.
      * @param body  dspace:ContractOfferMessage sent by a provider.
      * @param token identity token.
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + CONTRACT_OFFER)
-    public void providerOffer(@PathParam("id") String id,
+    public Response providerOffer(@PathParam("id") String id,
                               @RequestBody(description = DSPACE_NEGOTIATION_CONTRACT_OFFER_MESSAGE, required = true)
                               JsonObject body,
                               @HeaderParam(AUTHORIZATION) String token) {
-        monitor.debug(() -> format("DSP: Incoming ContractOfferMessage for process %s", id));
-
-        checkAndReturnAuthToken(token);
-
-        throw new UnsupportedOperationException("Currently not supported.");
+        return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
     }
 
     /**
@@ -262,21 +327,34 @@ public class DspNegotiationApiController {
      * @param id         of contract negotiation.
      * @param jsonObject dspace:ContractAgreementMessage sent by a provider.
      * @param token      identity token.
+     * @return empty response or error.
      */
     @POST
     @Path("{id}" + AGREEMENT)
-    public void createAgreement(@PathParam("id") String id,
+    public Response createAgreement(@PathParam("id") String id,
                                 @RequestBody(description = DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, required = true)
                                 JsonObject jsonObject,
                                 @HeaderParam(AUTHORIZATION) String token) {
+        try {
+            handleMessage(MessageSpec.Builder.newInstance(ContractAgreementMessage.class)
+                    .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
+                    .processId(id)
+                    .message(jsonObject)
+                    .token(token)
+                    .serviceCall(protocolService::notifyAgreed)
+                    .build());
+        } catch (AuthenticationFailedException exception) {
+            monitor.debug(String.format(UNAUTHORIZED + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        } catch (InvalidRequestException exception) {
+            monitor.debug(String.format(BAD_REQUEST + "Requested process id %s: %s", id, exception.getMessages()));
+            return errorResponse(Optional.of(id), Response.Status.BAD_REQUEST, BAD_REQUEST);
+        } catch (Exception exception) {
+            monitor.warning(String.format("Error processing %s. %s", DSPACE_NEGOTIATION_AGREEMENT_MESSAGE, exception));
+            throw exception;
+        }
 
-        handleMessage(MessageSpec.Builder.newInstance(ContractAgreementMessage.class)
-                .expectedMessageType(DSPACE_NEGOTIATION_AGREEMENT_MESSAGE)
-                .processId(id)
-                .message(jsonObject)
-                .token(token)
-                .serviceCall(protocolService::notifyAgreed)
-                .build());
+        return Response.status(Response.Status.OK).build();
     }
 
     private <M extends ContractRemoteMessage> ContractNegotiation handleMessage(MessageSpec<M> messageSpec) {
@@ -340,6 +418,19 @@ public class DspNegotiationApiController {
         if (!expected.equals(actual)) {
             throw new InvalidRequestException(format("Invalid process ID. Expected: %s, actual: %s", expected, actual));
         }
+    }
+
+    private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
+        var builder = DspError.Builder.newInstance()
+                .type(DSPACE_CONTRACT_NEGOTIATION_ERROR)
+                .code(Integer.toString(code.getStatusCode()))
+                .messages(List.of(message));
+
+        processId.ifPresent(builder::processId);
+
+        return Response.status(code).type(MediaType.APPLICATION_JSON)
+                .entity(builder.build().toJson())
+                .build();
     }
 
 }

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.HeaderParam;
@@ -22,28 +21,28 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.catalog.spi.Catalog;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.jsonld.spi.Namespaces;
+import org.eclipse.edc.protocol.dsp.DspError;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
-import java.util.Map;
+import java.util.List;
+import java.util.UUID;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.BAD_REQUEST;
+import static org.eclipse.edc.protocol.dsp.DspErrorDetails.UNAUTHORIZED;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
@@ -53,19 +52,19 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Path(BASE_PATH)
 public class DspCatalogApiController {
 
+    private static final String DSPACE_CATALOG_ERROR = Namespaces.DSPACE_SCHEMA + "CatalogError"; // TODO move to :dsp-core https://github.com/eclipse-edc/Connector/issues/3014
+
     private final Monitor monitor;
-    private final ObjectMapper mapper;
     private final IdentityService identityService;
     private final TypeTransformerRegistry transformerRegistry;
     private final String dspCallbackAddress;
     private final CatalogProtocolService service;
     private final JsonLd jsonLdService;
 
-    public DspCatalogApiController(Monitor monitor, ObjectMapper mapper, IdentityService identityService,
+    public DspCatalogApiController(Monitor monitor, IdentityService identityService,
                                    TypeTransformerRegistry transformerRegistry, String dspCallbackAddress,
                                    CatalogProtocolService service, JsonLd jsonLdService) {
         this.monitor = monitor;
-        this.mapper = mapper;
         this.identityService = identityService;
         this.transformerRegistry = transformerRegistry;
         this.dspCallbackAddress = dspCallbackAddress;
@@ -75,43 +74,75 @@ public class DspCatalogApiController {
 
     @POST
     @Path(CATALOG_REQUEST)
-    public Map<String, Object> getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(() -> "DSP: Incoming catalog request.");
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
 
-        var claimToken = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress)
-                .orElseThrow(failure -> new AuthenticationFailedException());
+        var verificationResult = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress);
+        if (verificationResult.failed()) {
+            monitor.debug(String.format("%s, %s", UNAUTHORIZED, verificationResult.getFailureMessages()));
+            return errorResponse(Response.Status.UNAUTHORIZED, UNAUTHORIZED);
+        }
 
         var expanded = jsonLdService.expand(jsonObject);
         if (expanded.failed()) {
-            throw new InvalidRequestException(expanded.getFailureDetail());
+            monitor.debug(String.format("%s, %s", BAD_REQUEST, verificationResult.getFailureMessages()));
+            return errorResponse(Response.Status.BAD_REQUEST, BAD_REQUEST);
         }
+
         var expandedJson = expanded.getContent();
         if (!isOfExpectedType(expandedJson, DSPACE_CATALOG_REQUEST_TYPE)) {
-            throw new InvalidRequestException(format("Request body was not of expected type: %s", DSPACE_CATALOG_REQUEST_TYPE));
+            monitor.debug(String.format("%s, %s", BAD_REQUEST, verificationResult.getFailureMessages()));
+            return errorResponse(Response.Status.BAD_REQUEST, BAD_REQUEST);
         }
 
-        var message = transformerRegistry.transform(expandedJson, CatalogRequestMessage.class)
-                .orElseThrow(failure -> new InvalidRequestException(format("Request body was malformed: %s", failure.getFailureDetail())));
+        var transformResult = transformerRegistry.transform(expandedJson, CatalogRequestMessage.class);
+        if (transformResult.failed()) {
+            monitor.debug(String.format("%s, %s", BAD_REQUEST, verificationResult.getFailureMessages()));
+            return errorResponse(Response.Status.BAD_REQUEST, BAD_REQUEST);
+        }
 
+        var message = transformResult.getContent();
         // set protocol
         message.setProtocol(DATASPACE_PROTOCOL_HTTP);
 
-        var catalog = service.getCatalog(message, claimToken)
-                .orElseThrow(exceptionMapper(Catalog.class));
+        var claimToken = verificationResult.getContent();
 
-        var catalogJson = transformerRegistry.transform(catalog, JsonObject.class)
-                .orElseThrow(failure -> new EdcException(format("Failed to build response: %s", failure.getFailureDetail())));
-
-        var compacted = jsonLdService.compact(catalogJson);
-        if (compacted.failed()) {
-            throw new InvalidRequestException(compacted.getFailureDetail());
+        var catalog = service.getCatalog(message, claimToken);
+        if (catalog.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("Error returning catalog, error id %s: %s", errorCode, catalog.getFailureMessages()));
+            return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
         }
-        //noinspection unchecked
-        return mapper.convertValue(compacted.getContent(), Map.class);
+
+        var catalogJson = transformerRegistry.transform(catalog.getContent(), JsonObject.class);
+        if (catalogJson.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("Error transforming catalog, error id %s: %s", errorCode, catalogJson.getFailureMessages()));
+            return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
+
+        var compacted = jsonLdService.compact(catalogJson.getContent());
+        if (compacted.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(String.format("Error compacting catalog, error id %s: %s", errorCode, catalogJson.getFailureMessages()));
+            return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+        }
+
+        return Response.status(Response.Status.OK).type(MediaType.APPLICATION_JSON).entity(compacted.getContent()).build();
+    }
+
+    private Response errorResponse(Response.Status code, String message) {
+        return Response.status(code).type(MediaType.APPLICATION_JSON)
+                .entity(DspError.Builder.newInstance()
+                        .type(DSPACE_CATALOG_ERROR)
+                        .code(Integer.toString(code.getStatusCode()))
+                        .messages(List.of(message))
+                        .build().toJson())
+                .build();
     }
 
 }

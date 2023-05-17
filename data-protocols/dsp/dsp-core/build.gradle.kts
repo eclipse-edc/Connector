@@ -17,18 +17,5 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-api-configuration"))
-    api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
-    api(project(":data-protocols:dsp:dsp-core"))
-    api(project(":data-protocols:dsp:dsp-transform"))
-
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
-
-    implementation(libs.jakarta.rsApi)
-
-    testImplementation(project(":core:common:junit"))
-    testImplementation(libs.restAssured)
 }
