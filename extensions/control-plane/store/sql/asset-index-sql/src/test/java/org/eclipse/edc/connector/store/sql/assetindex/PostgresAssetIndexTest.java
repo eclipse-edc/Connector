@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - added private property support
  *
  */
 
@@ -21,6 +22,7 @@ import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.eclipse.edc.spi.testfixtures.asset.TestObject;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -41,6 +43,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.DUPLICATE_KEYS;
 
 @PostgresqlDbIntegrationTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -75,6 +78,16 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     void query_byAssetProperty() {
         List<Asset> allAssets = createAssets(5);
         var query = QuerySpec.Builder.newInstance().filter("test-key = test-value1").build();
+
+        assertThat(sqlAssetIndex.queryAssets(query)).usingRecursiveFieldByFieldElementComparator().containsOnly(allAssets.get(1));
+
+    }
+
+    @Test
+    @DisplayName("Verify an asset query based on an Asset property")
+    void query_byAssetPrivateProperty() {
+        List<Asset> allAssets = createPrivateAssets(5);
+        var query = QuerySpec.Builder.newInstance().filter("test-pKey = test-pValue1").build();
 
         assertThat(sqlAssetIndex.queryAssets(query)).usingRecursiveFieldByFieldElementComparator().containsOnly(allAssets.get(1));
 
@@ -129,6 +142,18 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         assertThatThrownBy(() -> sqlAssetIndex.queryAssets(query)).isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    @DisplayName("Verify that creating an asset that contains duplicate keys in properties and private properties fails")
+    void createAsset_withDuplicatePropertyKeys() {
+        var asset = TestFunctions.createAssetBuilder("id1")
+                .property("testproperty", "testvalue")
+                .privateProperty("testproperty", "testvalue")
+                .build();
+
+        var result = sqlAssetIndex.create(asset, TestFunctions.createDataAddress("test-type"));
+        assertThat(result).isNotNull().extracting(StoreResult::reason).isEqualTo(DUPLICATE_KEYS);
+    }
+
     @Override
     protected SqlAssetIndex getAssetIndex() {
         return sqlAssetIndex;
@@ -142,6 +167,18 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         return IntStream.range(0, amount).mapToObj(i -> {
             var asset = TestFunctions.createAssetBuilder("test-asset" + i)
                     .property("test-key", "test-value" + i)
+                    .build();
+            var dataAddress = TestFunctions.createDataAddress("test-type");
+            sqlAssetIndex.create(asset, dataAddress);
+            return asset;
+        }).collect(Collectors.toList());
+    }
+
+    private List<Asset> createPrivateAssets(int amount) {
+        return IntStream.range(0, amount).mapToObj(i -> {
+            var asset = TestFunctions.createAssetBuilder("test-asset" + i)
+                    .property("test-key", "test-value" + i)
+                    .privateProperty("test-pKey", "test-pValue" + i)
                     .build();
             var dataAddress = TestFunctions.createDataAddress("test-type");
             sqlAssetIndex.create(asset, dataAddress);
