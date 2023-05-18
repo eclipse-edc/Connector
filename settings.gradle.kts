@@ -80,15 +80,6 @@ include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-api")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
 
-include(":data-protocols:ids:ids-api-configuration")
-include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
-include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
-include(":data-protocols:ids:ids-core")
-include(":data-protocols:ids:ids-jsonld-serdes")
-include(":data-protocols:ids:ids-spi")
-include(":data-protocols:ids:ids-token-validation")
-include(":data-protocols:ids:ids-transform-v1")
-
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
 include(":extensions:common:api:api-observability")
@@ -196,7 +187,6 @@ include(":extensions:data-plane-selector:store:cosmos:data-plane-instance-store-
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
 include(":launchers:dpf-selector")
-include(":launchers:ids-connector")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:aggregate-service-spi")

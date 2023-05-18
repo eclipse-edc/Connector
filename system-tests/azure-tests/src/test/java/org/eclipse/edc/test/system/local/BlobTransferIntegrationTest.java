@@ -44,20 +44,19 @@ import static org.eclipse.edc.test.system.local.BlobTransferUtils.createPolicy;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_MANAGEMENT_URL;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PORT;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PARTICIPANT_ID;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.IDS_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PROTOCOL_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PROTOCOL_URL;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROTOCOL_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PORT;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_DATA;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PARTICIPANT_ID;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PROTOCOL_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PROTOCOL_URL;
 
 @AzureStorageIntegrationTest
 public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
@@ -75,10 +74,10 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
         CONSUMER_CONFIG.put("web.http.path", CONSUMER_CONNECTOR_PATH);
         CONSUMER_CONFIG.put("web.http.management.port", String.valueOf(CONSUMER_MANAGEMENT_PORT));
         CONSUMER_CONFIG.put("web.http.management.path", CONSUMER_MANAGEMENT_PATH);
-        CONSUMER_CONFIG.put("web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT));
-        CONSUMER_CONFIG.put("web.http.ids.path", IDS_PATH);
+        CONSUMER_CONFIG.put("web.http.protocol.port", String.valueOf(CONSUMER_PROTOCOL_PORT));
+        CONSUMER_CONFIG.put("web.http.protocol.path", PROTOCOL_PATH);
         CONSUMER_CONFIG.put(PARTICIPANT_ID, CONSUMER_PARTICIPANT_ID);
-        CONSUMER_CONFIG.put("ids.webhook.address", CONSUMER_IDS_API);
+        CONSUMER_CONFIG.put("edc.dsp.callback.address", CONSUMER_PROTOCOL_URL);
 
         PROVIDER_CONFIG.put("edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s");
         PROVIDER_CONFIG.put("edc.test.asset.container.name", PROVIDER_CONTAINER_NAME);
@@ -86,10 +85,10 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
         PROVIDER_CONFIG.put("web.http.path", PROVIDER_CONNECTOR_PATH);
         PROVIDER_CONFIG.put("web.http.management.port", String.valueOf(PROVIDER_MANAGEMENT_PORT));
         PROVIDER_CONFIG.put("web.http.management.path", PROVIDER_MANAGEMENT_PATH);
-        PROVIDER_CONFIG.put("web.http.ids.port", String.valueOf(PROVIDER_IDS_API_PORT));
-        PROVIDER_CONFIG.put("web.http.ids.path", IDS_PATH);
+        PROVIDER_CONFIG.put("web.http.protocol.port", String.valueOf(PROVIDER_PROTOCOL_PORT));
+        PROVIDER_CONFIG.put("web.http.protocol.path", PROTOCOL_PATH);
         PROVIDER_CONFIG.put(PARTICIPANT_ID, PROVIDER_PARTICIPANT_ID);
-        PROVIDER_CONFIG.put("ids.webhook.address", PROVIDER_IDS_API);
+        PROVIDER_CONFIG.put("edc.dsp.callback.address", PROVIDER_PROTOCOL_URL);
     }
 
     @RegisterExtension
@@ -138,7 +137,7 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
 
         var blobServiceClient = TestFunctions.getBlobServiceClient(account2Name, account2Key, TestFunctions.getBlobServiceTestEndpoint(account2Name));
 
-        var runner = new TransferTestRunner(new BlobTransferConfiguration(CONSUMER_CONNECTOR_MANAGEMENT_URL, PROVIDER_IDS_API_DATA, blobServiceClient, 30));
+        var runner = new TransferTestRunner(new BlobTransferConfiguration(CONSUMER_CONNECTOR_MANAGEMENT_URL, PROVIDER_PROTOCOL_URL, blobServiceClient, 30));
 
         runner.executeTransfer();
 

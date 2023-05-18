@@ -51,19 +51,18 @@ import static org.eclipse.edc.test.system.local.BlobTransferUtils.createPolicy;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_MANAGEMENT_URL;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_CONNECTOR_PORT;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_MANAGEMENT_PORT;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.IDS_PATH;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PROTOCOL_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PROTOCOL_URL;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROTOCOL_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_PORT;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_DATA;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_IDS_API_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PATH;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_MANAGEMENT_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PROTOCOL_PORT;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PROTOCOL_URL;
 
 @AzureDataFactoryIntegrationTest
 class AzureDataFactoryTransferIntegrationTest {
@@ -92,9 +91,9 @@ class AzureDataFactoryTransferIntegrationTest {
                     Map.entry("web.http.path", CONSUMER_CONNECTOR_PATH),
                     Map.entry("web.http.management.port", valueOf(CONSUMER_MANAGEMENT_PORT)),
                     Map.entry("web.http.management.path", CONSUMER_MANAGEMENT_PATH),
-                    Map.entry("web.http.ids.port", valueOf(CONSUMER_IDS_API_PORT)),
-                    Map.entry("web.http.ids.path", IDS_PATH),
-                    Map.entry("ids.webhook.address", CONSUMER_IDS_API),
+                    Map.entry("web.http.protocol.port", valueOf(CONSUMER_PROTOCOL_PORT)),
+                    Map.entry("web.http.protocol.path", PROTOCOL_PATH),
+                    Map.entry("edc.dsp.callback.address", CONSUMER_PROTOCOL_URL),
                     Map.entry(EDC_FS_CONFIG, runtimeSettingsPath()),
                     Map.entry(EDC_VAULT_NAME, KEY_VAULT_NAME),
                     Map.entry(EDC_VAULT_CLIENT_ID, AZURE_CLIENT_ID),
@@ -112,9 +111,9 @@ class AzureDataFactoryTransferIntegrationTest {
                     Map.entry("web.http.path", PROVIDER_CONNECTOR_PATH),
                     Map.entry("web.http.management.port", valueOf(PROVIDER_MANAGEMENT_PORT)),
                     Map.entry("web.http.management.path", PROVIDER_MANAGEMENT_PATH),
-                    Map.entry("web.http.ids.port", valueOf(PROVIDER_IDS_API_PORT)),
-                    Map.entry("web.http.ids.path", IDS_PATH),
-                    Map.entry("ids.webhook.address", PROVIDER_IDS_API),
+                    Map.entry("web.http.protocol.port", valueOf(PROVIDER_PROTOCOL_PORT)),
+                    Map.entry("web.http.protocol.path", PROTOCOL_PATH),
+                    Map.entry("edc.dsp.callback.address", PROVIDER_PROTOCOL_URL),
                     Map.entry(EDC_FS_CONFIG, runtimeSettingsPath()),
                     Map.entry(EDC_VAULT_NAME, KEY_VAULT_NAME),
                     Map.entry(EDC_VAULT_CLIENT_ID, AZURE_CLIENT_ID),
@@ -174,7 +173,7 @@ class AzureDataFactoryTransferIntegrationTest {
 
         var blobServiceClient = TestFunctions.getBlobServiceClient(CONSUMER_STORAGE_ACCOUNT_NAME, account2Key, TestFunctions.getBlobServiceTestEndpoint(format("https://%s.blob.core.windows.net", CONSUMER_STORAGE_ACCOUNT_NAME)));
 
-        var runner = new TransferTestRunner(new BlobTransferConfiguration(CONSUMER_CONNECTOR_MANAGEMENT_URL, PROVIDER_IDS_API_DATA, blobServiceClient, 360));
+        var runner = new TransferTestRunner(new BlobTransferConfiguration(CONSUMER_CONNECTOR_MANAGEMENT_URL, PROVIDER_PROTOCOL_URL, blobServiceClient, 360));
 
         runner.executeTransfer();
     }

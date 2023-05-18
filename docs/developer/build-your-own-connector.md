@@ -29,9 +29,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
-    }
 }
 
 // pick-up the latest version from https://github.com/eclipse-edc/Connector/releases
@@ -41,8 +38,8 @@ dependencies {
     // the core control-plane module set
     implementation("org.eclipse.edc:control-plane-core:${edcVersion}")
 
-    // the ids protocol module
-    implementation("org.eclipse.edc:ids:${edcVersion}")
+    // the dsp protocol module
+    implementation("org.eclipse.edc:dsp:${edcVersion}")
 
     // a test implementation of the `IdentityService`
     implementation("org.eclipse.edc:iam-mock:${edcVersion}")

@@ -48,7 +48,7 @@
 </p>
 
 The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will
-implement the International Data Spaces standard (IDS) as well as relevant protocols associated with GAIA-X. The
+implement the International Data Spaces Dataspace Protocol (DSP) as well as relevant protocols associated with GAIA-X. The
 connector is designed in an extensible way in order to support alternative protocols and integrate in various
 ecosystems.
 
@@ -56,6 +56,7 @@ Please also refer to:
 
 - The [Eclipse Project Homepage](https://projects.eclipse.org/projects/technology.edc)
 - [International Data Spaces](https://www.internationaldataspaces.org)
+- [Dataspace Protocol specifications](https://docs.internationaldataspaces.org/dataspace-protocol/overview/readme)
 - The [GAIA-X](https://gaia-x.eu) project
 
 ### Built with
@@ -178,31 +179,6 @@ follow [this guide](styleguide.md).
 
 _Note: the style guide will be checked/enforced in GitHub Actions._
 
-### Run your first connector
-
-Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined
-as gradle build files.
-
-**It is expected that everyone who wants to use the EDC will create their own launcher, customized
-to the implemented use cases.**
-
-There is an `ids-connector` launcher, which launches a simple connector that has no cloud-based extensions.
-However, it needs an IDS certificate and a running DAPS. So make sure to take a look at
-[this guide](./launchers/ids-connector/README.md) first.
-
-Then run
-
-```shell
-./gradlew :launchers:ids-connector:shadowJar
-java -jar launchers/ids-connector/build/libs/dataspace-connector.jar
-```
-
-Once it says `"Dataspace Connector ready"` the connector is up and running.
-
-More information about the extension concept can be found here [TBW].
-
-More information about shadowJar can be found [here](https://github.com/johnrengelman/shadow).
-
 ### Generate the OpenApi specification
 
 Please refer to [this document](docs/developer/openapi.md).
@@ -242,7 +218,7 @@ example take a look at
 
 ### `data-protocols`
 
-Contains implementations for communication protocols a connector might use, such as IDS.
+Contains implementations for communication protocols a connector might use, such as DSP.
 
 ## Releases
 
