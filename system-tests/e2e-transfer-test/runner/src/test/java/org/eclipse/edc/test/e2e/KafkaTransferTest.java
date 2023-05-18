@@ -214,7 +214,7 @@ class KafkaTransferTest {
         return ContractId.parse(id);
     }
 
-    private void createResourcesOnProvider(String assetId, Map<String, String> dataAddressProperties) {
+    private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, dataAddressProperties);
         var noConstraintPolicyDefinition = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyDefinition, noConstraintPolicyDefinition);
@@ -245,7 +245,7 @@ class KafkaTransferTest {
     }
 
     @NotNull
-    private Map<String, String> kafkaSourceProperty() {
+    private Map<String, Object> kafkaSourceProperty() {
         return Map.of(
                 "name", "data",
                 "type", "Kafka",

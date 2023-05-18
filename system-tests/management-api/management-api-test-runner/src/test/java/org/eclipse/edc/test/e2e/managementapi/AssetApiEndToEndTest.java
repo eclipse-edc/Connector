@@ -16,7 +16,6 @@ package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.api.model.CriterionDto;
@@ -31,29 +30,22 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_RIGHT;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_TYPE;
-import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_FILTER_EXPRESSION;
-import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_CONTENT_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_DESCRIPTION;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_NAME;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_VERSION;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 @EndToEndTest
 public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
+
+    private static final String BASE_PATH = "/management/v2/assets";
 
     private static final String TEST_ASSET_ID = "test-asset-id";
     private static final String TEST_ASSET_CONTENTTYPE = "application/json";
@@ -87,21 +79,21 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     @Test
     void createAsset_shouldBeStored() {
 
-        var assetJson = Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_ASSET_TYPE)
+        var assetJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "Asset")
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder().build())
                 .build();
 
-        var dataAddressJson = Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + "type", "test-type").build();
+        var dataAddressJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "DataAddress")
+                .add("type", "test-type").build();
 
-        var assetNewJson = Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_NAMESPACE + "AssetEntryDto")
+        var assetNewJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "AssetEntryDto")
                 .add("asset", assetJson)
                 .add("dataAddress", dataAddressJson)
                 .build();
@@ -122,23 +114,23 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     @Test
     void createAsset_withoutPrefix_shouldAddEdcNamespace() {
-        var assetJson = Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_ASSET_TYPE)
+        var assetJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "Asset")
                 .add(ID, TEST_ASSET_ID)
-                .add(EDC_NAMESPACE + "properties", createPropertiesBuilder()
+                .add("properties", createPropertiesBuilder()
                         .add("unprefixed-key", "test-value").build())
                 .build();
 
-        var dataAddressJson = Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + "type", "test-type")
+        var dataAddressJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "DataAddress")
+                .add("type", "test-type")
                 .add("unprefixed-key", "test-value").build();
 
-        var assetNewJson = Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_NAMESPACE + "AssetEntryDto")
+        var assetNewJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "AssetEntryDto")
                 .add("asset", assetJson)
                 .add("dataAddress", dataAddressJson)
                 .build();
@@ -176,9 +168,11 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").contentType("application/octet-stream").build(),
                         createDataAddress().build()));
 
-        // create the query by content type
-        //TODO: once the queryspec dto is JSON-LD aware, we can just use "contentype", and the JSON-LD expansion takes care of prefixing the namespace
-        var byContentType = CriterionDto.Builder.newInstance().operandLeft(PROPERTY_CONTENT_TYPE).operator("=").operandRight("application/octet-stream").build();
+        var byContentType = CriterionDto.Builder.newInstance()
+                .operandLeft("contentType")
+                .operator("=")
+                .operandRight("application/octet-stream")
+                .build();
         var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byContentType)).build();
 
         baseRequest()
@@ -189,7 +183,6 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .log().ifError()
                 .statusCode(200)
                 .body("size()", is(1));
-
     }
 
     @Test
@@ -203,11 +196,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .build(),
                 createDataAddress().build()));
 
-        var byCustomProp = CriterionDto.Builder.newInstance()
-                .operandLeft("myProp")
-                .operator("=")
-                .operandRight("myVal").build();
-        var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byCustomProp)).build();
+        var query = createSingleFilterQuery("myProp", "=", "myVal");
 
         baseRequest()
                 .contentType(ContentType.JSON)
@@ -274,9 +263,9 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
         assetIndex.create(new AssetEntry(asset.build(), createDataAddress().build()));
 
-        var assetJson = Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_ASSET_TYPE)
+        var assetJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "Asset")
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder()
                         .add("some-new-property", "some-new-value").build())
@@ -323,38 +312,33 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     }
 
     private JsonObjectBuilder createPropertiesBuilder() {
-        return Json.createObjectBuilder()
-                .add(PROPERTY_NAME, TEST_ASSET_NAME)
-                .add(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
-                .add(PROPERTY_VERSION, TEST_ASSET_VERSION)
-                .add(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE);
+        return createObjectBuilder()
+                .add("name", TEST_ASSET_NAME)
+                .add("description", TEST_ASSET_DESCRIPTION)
+                .add("version", TEST_ASSET_VERSION)
+                .add("contentType", TEST_ASSET_CONTENTTYPE);
     }
 
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
-        var criteria = Json.createArrayBuilder()
-                .add(Json.createObjectBuilder()
-                        .add(TYPE, CRITERION_TYPE)
-                        .add(CRITERION_OPERAND_LEFT, leftOperand)
-                        .add(CRITERION_OPERATOR, operator)
-                        .add(CRITERION_OPERAND_RIGHT, rightOperand)
-                        .build()
-                )
-                .build();
+        var criteria = createArrayBuilder()
+                .add(createObjectBuilder()
+                        .add(TYPE, "CriterionDto")
+                        .add("operandLeft", leftOperand)
+                        .add("operator", operator)
+                        .add("operandRight", rightOperand)
+                );
 
-        return Json.createObjectBuilder()
-                .add(TYPE, EDC_QUERY_SPEC_TYPE)
-                .add(EDC_QUERY_SPEC_FILTER_EXPRESSION, criteria)
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "QuerySpecDto")
+                .add("filterExpression", criteria)
                 .build();
-    }
-
-    private JsonObjectBuilder createContextBuilder() {
-        return Json.createObjectBuilder()
-                .add(EDC_PREFIX, EDC_NAMESPACE);
     }
 
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + PORT + "/management/v2/assets")
+                .port(PORT)
+                .basePath(BASE_PATH)
                 .when();
     }
 

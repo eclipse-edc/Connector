@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e;
 
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.policy.model.Operator;
@@ -28,23 +27,17 @@ import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LOGICAL_CONSTRAINT_TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.anyOf;
@@ -227,24 +220,24 @@ public abstract class AbstractEndToEndTransfer {
     }
 
     private JsonObject httpDataAddress(String baseUrl) {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(EDC_NAMESPACE + "type", "HttpData")
-                .add(EDC_NAMESPACE + "properties", Json.createObjectBuilder()
+                .add(EDC_NAMESPACE + "properties", createObjectBuilder()
                         .add(EDC_NAMESPACE + "baseUrl", baseUrl)
                         .build())
                 .build();
     }
 
     private JsonObject syncDataAddress() {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(EDC_NAMESPACE + "type", "HttpProxy")
                 .build();
     }
 
     @NotNull
-    private Map<String, String> httpDataAddressOauth2Properties() {
+    private Map<String, Object> httpDataAddressOauth2Properties() {
         return Map.of(
                 "name", "transfer-test",
                 "baseUrl", PROVIDER.backendService() + "/api/provider/oauth2data",
@@ -257,7 +250,7 @@ public abstract class AbstractEndToEndTransfer {
     }
 
     @NotNull
-    private Map<String, String> httpDataAddressProperties() {
+    private Map<String, Object> httpDataAddressProperties() {
         return Map.of(
                 "name", "transfer-test",
                 "baseUrl", PROVIDER.backendService() + "/api/provider/data",
@@ -271,7 +264,7 @@ public abstract class AbstractEndToEndTransfer {
         CONSUMER.registerDataPlane();
     }
 
-    private void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, String> dataAddressProperties) {
+    private void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, dataAddressProperties);
         var accessPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
@@ -279,24 +272,26 @@ public abstract class AbstractEndToEndTransfer {
     }
 
     private JsonObject noConstraintPolicy() {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
+                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
                 .add(TYPE, "use")
                 .build();
     }
 
     private JsonObject inForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
-        return Json.createObjectBuilder()
-                .add(ODRL_PERMISSION_ATTRIBUTE, Json.createArrayBuilder()
+        return createObjectBuilder()
+                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                .add("permission", createArrayBuilder()
                         .add(permission(operatorStart, startDate, operatorEnd, endDate)))
                 .build();
     }
 
     private JsonObject permission(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
-        return Json.createObjectBuilder()
-                .add(ODRL_ACTION_ATTRIBUTE, "USE")
-                .add(ODRL_CONSTRAINT_ATTRIBUTE, Json.createObjectBuilder()
-                        .add(TYPE, ODRL_LOGICAL_CONSTRAINT_TYPE)
-                        .add(ODRL_AND_CONSTRAINT_ATTRIBUTE, Json.createArrayBuilder()
+        return createObjectBuilder()
+                .add("odrl:action", "USE")
+                .add("odrl:constraint", createObjectBuilder()
+                        .add(TYPE, "LogicalConstraint")
+                        .add("odrl:and", createArrayBuilder()
                                 .add(atomicConstraint(CONTRACT_EXPIRY_EVALUATION_KEY, operatorStart, startDate))
                                 .add(atomicConstraint(CONTRACT_EXPIRY_EVALUATION_KEY, operatorEnd, endDate))
                                 .build())
@@ -305,11 +300,11 @@ public abstract class AbstractEndToEndTransfer {
     }
 
     private JsonObject atomicConstraint(String leftOperand, Operator operator, Object rightOperand) {
-        return Json.createObjectBuilder()
-                .add(TYPE, ODRL_CONSTRAINT_TYPE)
-                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, leftOperand)
-                .add(ODRL_OPERATOR_ATTRIBUTE, operator.toString())
-                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, rightOperand.toString())
+        return createObjectBuilder()
+                .add(TYPE, "Constraint")
+                .add("odrl:leftOperand", leftOperand)
+                .add("odrl:operator", operator.name())
+                .add("odrl:rightOperand", rightOperand.toString())
                 .build();
     }
 }
