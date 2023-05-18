@@ -15,12 +15,13 @@
 package org.eclipse.edc.connector.api.management.asset.model;
 
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.BaseDto;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
-public abstract class AssetRequestDto {
+public abstract class AssetRequestDto extends BaseDto {
 
     @NotNull(message = "properties cannot be null")
     protected Map<String, Object> properties;

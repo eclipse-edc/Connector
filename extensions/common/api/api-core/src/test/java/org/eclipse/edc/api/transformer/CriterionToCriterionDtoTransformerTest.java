@@ -38,7 +38,10 @@ class CriterionToCriterionDtoTransformerTest {
 
         var dto = transformer.transform(criterion, context);
 
-        assertThat(dto).usingRecursiveComparison().isEqualTo(criterion);
+        assertThat(dto).isNotNull();
+        assertThat(dto.getOperandLeft()).isEqualTo(criterion.getOperandLeft());
+        assertThat(dto.getOperator()).isEqualTo(criterion.getOperator());
+        assertThat(dto.getOperandRight()).isEqualTo(criterion.getOperandRight());
     }
 
 }

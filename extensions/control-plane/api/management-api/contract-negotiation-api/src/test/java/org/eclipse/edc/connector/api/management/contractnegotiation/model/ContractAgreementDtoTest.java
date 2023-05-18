@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ContractAgreementDtoTest {
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var om = new ObjectMapper();
+        var om = new TypeManager().getMapper();
         var dto = ContractAgreementDto.Builder.newInstance()
                 .assetId("test-asset-id")
                 .id("test-id")

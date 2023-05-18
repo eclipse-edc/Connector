@@ -24,7 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
@@ -59,6 +59,7 @@ public interface ContractDefinitionNewApi {
     JsonObject getContractDefinition(String id);
 
     @Operation(description = "Creates a new contract definition",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionRequestDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = IdResponseDto.class))),
@@ -67,7 +68,7 @@ public interface ContractDefinitionNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    JsonObject createContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject createObject);
+    JsonObject createContractDefinition(JsonObject createObject);
 
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
@@ -82,6 +83,7 @@ public interface ContractDefinitionNewApi {
     void deleteContractDefinition(String id);
 
     @Operation(description = "Updated a contract definition with the given ID. The supplied JSON structure must be a valid JSON-LD object",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionRequestDto.class))),
             responses = {
                     @ApiResponse(responseCode = "204", description = "Contract definition was updated successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -90,6 +92,6 @@ public interface ContractDefinitionNewApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    void updateContractDefinition(@Schema(implementation = ContractDefinitionRequestDto.class) JsonObject updateObject);
+    void updateContractDefinition(JsonObject updateObject);
 
 }

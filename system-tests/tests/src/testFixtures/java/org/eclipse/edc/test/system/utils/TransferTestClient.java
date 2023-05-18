@@ -15,16 +15,11 @@
 package org.eclipse.edc.test.system.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.http.ContentType;
-import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.apache.http.HttpStatus;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.contract.spi.ContractId;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -38,7 +33,6 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
@@ -51,7 +45,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIB
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PARTICIPANT_ID;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -59,11 +52,6 @@ import static org.hamcrest.Matchers.is;
  */
 public class TransferTestClient {
 
-    public static final String TRANSFERPROCESS_ID_PATH = "/transferprocess/{id}";
-    public static final String TRANSFERPROCESS_PATH = "/transferprocess";
-    public static final String CATALOG_PATH = "/catalog";
-    private static final String CONTRACT_AGREEMENT_PATH = "/contractnegotiations/{contractNegotiationRequestId}";
-    private static final String CONTRACT_NEGOTIATION_PATH = "/contractnegotiations";
     private final String consumerUrl;
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
@@ -174,28 +162,6 @@ public class TransferTestClient {
                 .getString(format("'edc:%s'", fieldName));
     }
 
-    public Map<String, String> initiateTransfer(TransferRequestDto dto) {
-        var transferProcessId =
-                givenConsumerRequest()
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                        .when()
-                        .post(TRANSFERPROCESS_PATH)
-                        .then()
-                        .assertThat().statusCode(HttpStatus.SC_OK)
-                        .extract().body().jsonPath().getString("id");
-
-        assertThat(transferProcessId)
-                .withFailMessage("TransferProcess Id is null").isNotBlank();
-
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchTransferProcess(transferProcessId)
-                        .body("id", equalTo(transferProcessId))
-                        .body("state", equalTo(TransferProcessStates.COMPLETED.name())));
-
-        return fetchTransferProcess(transferProcessId).extract().jsonPath().get("dataDestination.properties");
-    }
-
     public String initiateTransfer(String contractId, String assetId, String providerUrl, JsonObject destination) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
@@ -217,20 +183,6 @@ public class TransferTestClient {
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getString(ID);
-    }
-
-    private ValidatableResponse fetchNegotiatedAgreement(String contractNegotiationRequestId) {
-        return givenConsumerRequest()
-                .get(CONTRACT_AGREEMENT_PATH, contractNegotiationRequestId)
-                .then()
-                .assertThat().statusCode(HttpStatus.SC_OK);
-    }
-
-    private ValidatableResponse fetchTransferProcess(String transferProcessId) {
-        return givenConsumerRequest()
-                .get(TRANSFERPROCESS_ID_PATH, transferProcessId)
-                .then()
-                .assertThat().statusCode(HttpStatus.SC_OK);
     }
 
     private RequestSpecification givenConsumerRequest() {

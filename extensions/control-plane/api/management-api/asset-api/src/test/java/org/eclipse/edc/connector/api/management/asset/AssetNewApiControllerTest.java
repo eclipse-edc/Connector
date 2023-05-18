@@ -15,12 +15,11 @@
 package org.eclipse.edc.connector.api.management.asset;
 
 import io.restassured.specification.RequestSpecification;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -42,6 +41,7 @@ import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_CREATED_AT;
 import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_TYPE;
@@ -79,19 +79,12 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     private final DataAddressResolver dataAddressResolver = mock(DataAddressResolver.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
 
-    private static JsonObject createDataAddressJson() {
-        return Json.createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + "type", "test-type")
-                .build();
-    }
-
     @BeforeEach
     void setup() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DataAddress.class))).thenReturn(Result.success(DataAddress.Builder.newInstance().type("test-type").build()));
         when(transformerRegistry.transform(isA(IdResponseDto.class), eq(JsonObject.class))).thenAnswer(a -> {
             var dto = (IdResponseDto) a.getArgument(0);
-            return Result.success(Json.createObjectBuilder()
+            return Result.success(createObjectBuilder()
                     .add(TYPE, EDC_ID_RESPONSE_DTO_TYPE)
                     .add(ID, dto.getId())
                     .add(EDC_ID_RESPONSE_DTO_CREATED_AT, dto.getCreatedAt())
@@ -301,7 +294,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     @Test
     void createAsset_emptyAttributes() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(AssetEntryNewDto.class))).thenReturn(Result.failure("Cannot be transformed"));
-        var assetEntryDto = createAssetEntryDto(Json.createObjectBuilder().build(), createDataAddressJson());
+        var assetEntryDto = createAssetEntryDto(createObjectBuilder().build(), createDataAddressJson());
 
         baseRequest()
                 .body(assetEntryDto)
@@ -352,7 +345,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
                 .thenReturn(DataAddress.Builder.newInstance().type("any").build());
         var dataAddressDto = DataAddressDto.Builder.newInstance().properties(Map.of("key", "value")).build();
         when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
-                .thenReturn(Result.success(Json.createObjectBuilder().build()));
+                .thenReturn(Result.success(createObjectBuilder().build()));
 
         baseRequest()
                 .get("/assets/id/dataaddress")
@@ -434,9 +427,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
 
     @Test
     void updateDataAddress_shouldReturnNotFound_whenItDoesNotExists() {
-        var dataAddressDto = DataAddressDto.Builder.newInstance()
-                .properties(Map.of("type", "test-type"))
-                .build();
+        var dataAddressDto = createDataAddressJson();
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").property("key1", "value1").build();
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.success(dataAddress));
         when(service.update(any(), any(DataAddress.class))).thenReturn(ServiceResult.notFound("not found"));
@@ -468,25 +459,33 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
         return new AssetNewApiController(service, dataAddressResolver, transformerRegistry, new TitaniumJsonLd(mock(Monitor.class)), monitor);
     }
 
+    private JsonObject createDataAddressJson() {
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "DataAddress")
+                .add("type", "test-type")
+                .build();
+    }
+
     private JsonObject createAssetEntryDto() {
         return createAssetEntryDto(createAssetJson().build(), createDataAddressJson());
     }
 
     private JsonObject createAssetEntryDto(JsonObject asset, JsonObject dataAddress) {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add("asset", asset)
                 .add("dataAddress", dataAddress)
                 .build();
     }
 
     private JsonObject createAssetEntryDto(JsonObject asset) {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add("asset", asset)
                 .build();
     }
 
     private JsonObjectBuilder createAssetJson() {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
@@ -494,7 +493,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     }
 
     private JsonObjectBuilder createPropertiesBuilder() {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add("name", TEST_ASSET_NAME)
                 .add("description", TEST_ASSET_DESCRIPTION)
                 .add("edc:version", TEST_ASSET_VERSION)
@@ -502,7 +501,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
     }
 
     private JsonObjectBuilder createContextBuilder() {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add(VOCAB, EDC_NAMESPACE)
                 .add(EDC_PREFIX, EDC_NAMESPACE);
     }

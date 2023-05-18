@@ -26,7 +26,6 @@ import java.util.Objects;
 @JsonDeserialize(builder = PolicyDefinitionResponseDto.Builder.class)
 public class PolicyDefinitionResponseDto extends BaseResponseDto {
 
-    private String id;
     @NotNull
     private Policy policy;
 
@@ -70,11 +69,6 @@ public class PolicyDefinitionResponseDto extends BaseResponseDto {
             return new Builder();
         }
 
-        public Builder id(String id) {
-            dto.id = id;
-            return this;
-        }
-
         public Builder policy(Policy policy) {
             dto.policy = policy;
             return this;
@@ -85,9 +79,5 @@ public class PolicyDefinitionResponseDto extends BaseResponseDto {
             return this;
         }
 
-        @Override
-        public PolicyDefinitionResponseDto build() {
-            return dto;
-        }
     }
 }

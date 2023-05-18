@@ -14,8 +14,20 @@
 
 package org.eclipse.edc.api.model;
 
-public class BaseResponseDto {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+
+public class BaseResponseDto extends BaseDto {
+
+    @JsonProperty(value = ID)
+    protected String id;
+
     protected long createdAt;
+
+    public String getId() {
+        return id;
+    }
 
     public long getCreatedAt() {
         return createdAt;
@@ -30,6 +42,11 @@ public class BaseResponseDto {
 
         public abstract B self();
 
+        @JsonProperty(value = ID)
+        public B id(String id) {
+            dto.id = id;
+            return self();
+        }
 
         public B createdAt(long createdAt) {
             dto.createdAt = createdAt;

@@ -18,7 +18,7 @@ package org.eclipse.edc.connector.api.management.contractdefinition.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.api.model.CriterionDto;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -27,12 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ContractDefinitionRequestDtoTest {
 
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() {
-        objectMapper = new ObjectMapper();
-    }
+    private final ObjectMapper objectMapper = new TypeManager().getMapper();
 
     @Test
     void verifySerialization() throws JsonProcessingException {

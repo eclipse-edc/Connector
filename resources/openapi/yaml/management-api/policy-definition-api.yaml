@@ -259,25 +259,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/PolicyDefinitionRequestDto'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/PolicyDefinitionRequestDto'
       responses:
         "200":
           content:
@@ -436,25 +418,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
       responses:
         "200":
           description: policy definition was updated successfully. Returns the Policy
@@ -522,6 +486,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         operandLeft:
           type: object
           example: null
@@ -562,17 +532,23 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
           example: null
-        id:
-          type: string
-          example: null
     JsonObject:
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
+        $ref: '#/components/schemas/JsonValue'
       example: null
       properties:
         empty:
@@ -677,7 +653,7 @@ components:
       type: object
       example: null
       properties:
-        id:
+        '@id':
           type: string
           example: null
         policy:
@@ -688,12 +664,18 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
-          example: null
-        id:
-          type: string
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
@@ -731,6 +713,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         filter:
           type: string
           example: null

@@ -18,8 +18,6 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -168,12 +166,14 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").contentType("application/octet-stream").build(),
                         createDataAddress().build()));
 
-        var byContentType = CriterionDto.Builder.newInstance()
-                .operandLeft("contentType")
-                .operator("=")
-                .operandRight("application/octet-stream")
-                .build();
-        var query = QuerySpecDto.Builder.newInstance().filterExpression(List.of(byContentType)).build();
+        var query = createObjectBuilder()
+                        .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                        .add("filterExpression", createArrayBuilder()
+                                .add(createObjectBuilder()
+                                        .add("operandLeft", EDC_NAMESPACE + "contenttype")
+                                        .add("operator", "=")
+                                        .add("operandRight", "application/octet-stream"))
+                        ).build();
 
         baseRequest()
                 .contentType(ContentType.JSON)

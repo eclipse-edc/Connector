@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.catalog.transform;
 
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.spi.query.QuerySpec;

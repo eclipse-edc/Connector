@@ -28,7 +28,7 @@ import java.util.Set;
  * DTO for {@link CallbackAddress}
  */
 @JsonDeserialize(builder = CallbackAddressDto.Builder.class)
-public class CallbackAddressDto {
+public class CallbackAddressDto extends BaseDto {
 
     @NotBlank(message = "uri is mandatory")
     private String uri;

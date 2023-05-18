@@ -15,7 +15,7 @@
 package org.eclipse.edc.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ class DataFlowRequestTest {
     void verifySerializeDeserialize() throws JsonProcessingException, MalformedURLException {
 
         var url = new URL("http://test");
-        ObjectMapper mapper = new ObjectMapper();
+        var mapper = new TypeManager().getMapper();
         var request = DataFlowRequest.Builder.newInstance()
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("foo").build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("bar").build())

@@ -43,7 +43,8 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
-        when(context.transform(isA(Criterion.class), eq(CriterionDto.class))).thenReturn(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build());
+        var criterionDto = CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build();
+        when(context.transform(isA(Criterion.class), eq(CriterionDto.class))).thenReturn(criterionDto);
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
@@ -58,7 +59,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
         assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
         assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
         assertThat(dto.getCreatedAt()).isNotZero();
-        assertThat(dto.getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinition.getSelectorExpression().getCriteria());
+        assertThat(dto.getCriteria()).containsOnly(criterionDto);
         verify(context).transform(isA(Criterion.class), eq(CriterionDto.class));
     }
 
