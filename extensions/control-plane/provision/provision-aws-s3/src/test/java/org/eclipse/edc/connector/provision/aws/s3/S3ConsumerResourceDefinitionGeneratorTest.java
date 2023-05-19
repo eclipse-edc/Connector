@@ -43,6 +43,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
     void generate() {
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
+                .property(S3BucketSchema.KEY_NAME, "test-name")
                 .property(S3BucketSchema.REGION, Region.EU_WEST_2.id())
                 .build();
         var asset = Asset.Builder.newInstance().build();
@@ -54,6 +55,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
         assertThat(definition).isInstanceOf(S3BucketResourceDefinition.class);
         var objectDef = (S3BucketResourceDefinition) definition;
         assertThat(objectDef.getBucketName()).isEqualTo("test-name");
+        assertThat(objectDef.getKeyName()).isEqualTo("test-name");
         assertThat(objectDef.getRegionId()).isEqualTo(Region.EU_WEST_2.id());
         assertThat(objectDef.getId()).satisfies(UUID::fromString);
     }
@@ -68,6 +70,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
     void generate_noRegionSpecified() {
         var destination = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, "test-name")
+                .property(S3BucketSchema.KEY_NAME, "test-name")
                 .build();
         var asset = Asset.Builder.newInstance().build();
         var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).processId("process-id").build();
@@ -78,6 +81,7 @@ public class S3ConsumerResourceDefinitionGeneratorTest {
         assertThat(definition).isInstanceOf(S3BucketResourceDefinition.class);
         var objectDef = (S3BucketResourceDefinition) definition;
         assertThat(objectDef.getBucketName()).isEqualTo("test-name");
+        assertThat(objectDef.getKeyName()).isEqualTo("test-name");
         assertThat(objectDef.getRegionId()).isEqualTo(Region.US_EAST_1.id());
         assertThat(objectDef.getId()).satisfies(UUID::fromString);
     }

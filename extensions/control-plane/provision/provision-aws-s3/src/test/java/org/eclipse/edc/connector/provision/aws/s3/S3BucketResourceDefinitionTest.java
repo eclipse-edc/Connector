@@ -27,6 +27,7 @@ class S3BucketResourceDefinitionTest {
                 .transferProcessId("tp-id")
                 .regionId("region")
                 .bucketName("bucket")
+                .keyName("keyName")
                 .build();
         var builder = definition.toBuilder();
         var rebuiltDefinition = builder.build();
