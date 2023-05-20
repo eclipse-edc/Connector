@@ -15,12 +15,8 @@
 package org.eclipse.edc.test.system.local;
 
 import io.restassured.specification.RequestSpecification;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +25,13 @@ import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_CONNECTOR_MANAGEMENT_URL;
@@ -38,57 +39,50 @@ import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PRO
 
 public class BlobTransferUtils {
 
-    private static final String ASSETS_PATH = "/assets";
-    private static final String POLICIES_PATH = "/policydefinitions";
+    private static final String ASSETS_PATH = "/v2/assets";
+    private static final String POLICIES_PATH = "/v2/policydefinitions";
     private static final String CONTRACT_DEFINITIONS_PATH = "/contractdefinitions";
 
     private BlobTransferUtils() {
     }
 
-    public static void createAsset(String accountName, String containerName) {
-        var asset = Map.of(
-                "asset", Map.of(
-                        "id", PROVIDER_ASSET_ID,
-                        "properties", Map.of(
-                                EDC_NAMESPACE + "name", PROVIDER_ASSET_ID,
-                                EDC_NAMESPACE + "contenttype", "text/plain",
-                                EDC_NAMESPACE + "version", "1.0",
-                                EDC_NAMESPACE + "id", PROVIDER_ASSET_ID,
-                                "type", "AzureStorage"
-                        )
-                ),
-                "dataAddress", Map.of(
-                        "properties", Map.of(
-                                "type", AzureBlobStoreSchema.TYPE,
-                                AzureBlobStoreSchema.ACCOUNT_NAME, accountName,
-                                AzureBlobStoreSchema.CONTAINER_NAME, containerName,
-                                AzureBlobStoreSchema.BLOB_NAME, PROVIDER_ASSET_FILE,
-                                "keyName", format("%s-key1", accountName)
-                        )
-                )
+    public static String createAsset(String accountName, String containerName) {
+        Map<String, Object> dataAddressProperties = Map.of(
+                "type", AzureBlobStoreSchema.TYPE,
+                AzureBlobStoreSchema.ACCOUNT_NAME, accountName,
+                AzureBlobStoreSchema.CONTAINER_NAME, containerName,
+                AzureBlobStoreSchema.BLOB_NAME, PROVIDER_ASSET_FILE,
+                "keyName", format("%s-key1", accountName)
         );
 
-        seedProviderData(ASSETS_PATH, asset);
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add("asset", createObjectBuilder()
+                        .add(ID, PROVIDER_ASSET_ID)
+                        .add("properties", createObjectBuilder()
+                                .add("name", PROVIDER_ASSET_ID)
+                                .add("contenttype", "text/plain")
+                                .add("version", "1.0"))
+                )
+                .add("dataAddress", createObjectBuilder()
+                        .add("properties", createObjectBuilder(dataAddressProperties)))
+                .build();
+
+        return seedProviderData(ASSETS_PATH, requestBody);
     }
 
     @NotNull
     public static String createPolicy() {
-        var policy = PolicyDefinition.Builder.newInstance()
-                .policy(Policy.Builder.newInstance()
-                        .permission(Permission.Builder.newInstance()
-                                .target(PROVIDER_ASSET_ID)
-                                .action(Action.Builder.newInstance().type("USE").build())
-                                .build())
-                        .type(PolicyType.SET)
-                        .build())
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "PolicyDefinitionDto")
+                .add("policy", noConstraintPolicy())
                 .build();
 
-        seedProviderData(POLICIES_PATH, policy);
-
-        return policy.getUid();
+        return seedProviderData(POLICIES_PATH, requestBody);
     }
 
-    public static void createContractDefinition(String policyId) {
+    public static String createContractDefinition(String policyId) {
 
         var criteria = AssetSelectorExpression.Builder.newInstance()
                 .constraint(EDC_NAMESPACE + "id",
@@ -104,22 +98,30 @@ public class BlobTransferUtils {
                 "validity", TimeUnit.HOURS.toSeconds(1)
         );
 
-        seedProviderData(CONTRACT_DEFINITIONS_PATH, contractDefinition);
+        return seedProviderData(CONTRACT_DEFINITIONS_PATH, contractDefinition);
     }
 
-    private static void seedProviderData(String path, Object requestBody) {
-        givenProviderBaseRequest()
+    private static String seedProviderData(String path, Object requestBody) {
+        return givenProviderBaseRequest()
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
                 .post(path)
                 .then()
                 .statusCode(200)
-                .contentType(JSON);
+                .contentType(JSON)
+                .extract().jsonPath().getString(ID);
     }
 
     private static RequestSpecification givenProviderBaseRequest() {
         return given()
                 .baseUri(PROVIDER_CONNECTOR_MANAGEMENT_URL);
+    }
+
+    private static JsonObject noConstraintPolicy() {
+        return createObjectBuilder()
+                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                .add(TYPE, "use")
+                .build();
     }
 }

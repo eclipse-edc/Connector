@@ -23,6 +23,7 @@ dependencies {
     
     testImplementation(project(":extensions:common:azure:azure-blob-core"))
     testFixturesImplementation(project(":extensions:common:azure:azure-blob-core"))
+    testFixturesImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":extensions:common:azure:azure-test")))

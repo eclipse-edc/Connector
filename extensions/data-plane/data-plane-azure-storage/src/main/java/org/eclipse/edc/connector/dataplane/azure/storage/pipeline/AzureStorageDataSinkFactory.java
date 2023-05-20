@@ -24,17 +24,17 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
-import static java.lang.String.format;
+import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.ACCOUNT_NAME;
+import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.CONTAINER_NAME;
 import static org.eclipse.edc.azure.blob.validator.AzureStorageValidator.validateAccountName;
 import static org.eclipse.edc.azure.blob.validator.AzureStorageValidator.validateContainerName;
 import static org.eclipse.edc.azure.blob.validator.AzureStorageValidator.validateKeyName;
+import static org.eclipse.edc.spi.types.domain.DataAddress.KEY_NAME;
 
 /**
  * Instantiates {@link AzureStorageDataSink}s for requests whose source data type is {@link AzureBlobStoreSchema#TYPE}.
@@ -69,16 +69,12 @@ public class AzureStorageDataSinkFactory implements DataSinkFactory {
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var dataAddress = request.getDestinationDataAddress();
-        var properties = new HashMap<>(dataAddress.getProperties());
         try {
-            validateAccountName(properties.remove(AzureBlobStoreSchema.ACCOUNT_NAME));
-            validateContainerName(properties.remove(AzureBlobStoreSchema.CONTAINER_NAME));
-            validateKeyName(properties.remove(DataAddress.KEY_NAME));
-            properties.keySet().stream().filter(k -> !DataAddress.TYPE.equals(k)).findFirst().ifPresent(k -> {
-                throw new IllegalArgumentException(format("Unexpected property %s", k));
-            });
+            validateAccountName(dataAddress.getProperty(ACCOUNT_NAME));
+            validateContainerName(dataAddress.getProperty(CONTAINER_NAME));
+            validateKeyName(dataAddress.getProperty(KEY_NAME));
         } catch (IllegalArgumentException e) {
-            return Result.failure(e.getMessage());
+            return Result.failure("AzureStorage destination address is invalid: " + e.getMessage());
         }
         return VALID.mapTo();
     }
@@ -97,7 +93,7 @@ public class AzureStorageDataSinkFactory implements DataSinkFactory {
         var token = typeManager.readValue(secret, AzureSasToken.class);
 
         return AzureStorageDataSink.Builder.newInstance()
-                .accountName(dataAddress.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME))
+                .accountName(dataAddress.getProperty(ACCOUNT_NAME))
                 .containerName(dataAddress.getProperty(AzureBlobStoreSchema.CONTAINER_NAME))
                 .sharedAccessSignature(token.getSas())
                 .requestId(requestId)

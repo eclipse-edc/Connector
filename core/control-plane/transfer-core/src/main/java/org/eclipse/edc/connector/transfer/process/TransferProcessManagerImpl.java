@@ -58,6 +58,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -91,6 +92,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.types.domain.DataAddress.SECRET;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -149,7 +151,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processTransfersInState(REQUESTING, this::processRequesting))
-                .processor(processTransfersInState(REQUESTED, this::processRequested))
                 .processor(processTransfersInState(STARTING, this::processStarting))
                 .processor(processTransfersInState(STARTED, this::processStarted))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
@@ -316,6 +317,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             }
             // default the content address to the asset address; this may be overridden during provisioning
             process.setContentDataAddress(dataAddress);
+
+            var dataDestination = process.getDataRequest().getDataDestination();
+            var secret = dataDestination.getProperty(SECRET);
+            if (secret != null) {
+                vault.storeSecret(dataDestination.getKeyName(), secret);
+            }
+
             manifest = manifestGenerator.generateProviderResourceManifest(dataRequest, dataAddress, policy);
         }
 
@@ -383,13 +391,21 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataRequest = process.getDataRequest();
 
+        DataAddress dataDestination;
+        var secret = vault.resolveSecret(dataRequest.getDataDestination().getKeyName());
+        if (secret != null) {
+            dataDestination = DataAddress.Builder.newInstance().properties(dataRequest.getDataDestination().getProperties()).property(SECRET, secret).build();
+        } else {
+            dataDestination = dataRequest.getDataDestination();
+        }
+
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId(dataRequest.getId())
                 .protocol(dataRequest.getProtocol())
                 .connectorId(dataRequest.getConnectorId())
                 .counterPartyAddress(dataRequest.getConnectorAddress())
                 .callbackAddress(protocolWebhook.url())
-                .dataDestination(dataRequest.getDataDestination())
+                .dataDestination(dataDestination)
                 .properties(dataRequest.getProperties())
                 .assetId(dataRequest.getAssetId())
                 .contractId(dataRequest.getContractId())
@@ -403,30 +419,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .onFailure((t, throwable) -> transitionToRequesting(t))
                 .onDelay(this::breakLease)
                 .execute(description);
-    }
-
-    /**
-     * Process REQUESTED transfer<p> If is managed or there are provisioned resources set {@link TransferProcess#transitionStarting()},
-     * do nothing otherwise
-     *
-     * @param process the REQUESTED transfer fetched
-     * @return if the transfer has been processed or not
-     * @deprecated this method and the related processor could be removed when Dataspace Protocol takes over
-     */
-    @WithSpan
-    @Deprecated(since = "milestone9")
-    private boolean processRequested(TransferProcess process) {
-        var dataRequest = process.getDataRequest();
-        if (!"ids-multipart".equals(dataRequest.getProtocol())) {
-            return false;
-        }
-        if (!dataRequest.isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-            transitionToStarted(process);
-            return true;
-        } else {
-            monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED);
-            return false;
-        }
     }
 
     /**

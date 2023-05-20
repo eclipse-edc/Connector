@@ -27,9 +27,9 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-
-import static java.lang.String.format;
+import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.ACCOUNT_NAME;
+import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.BLOB_NAME;
+import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.CONTAINER_NAME;
 import static org.eclipse.edc.azure.blob.validator.AzureStorageValidator.validateAccountName;
 import static org.eclipse.edc.azure.blob.validator.AzureStorageValidator.validateBlobName;
 import static org.eclipse.edc.azure.blob.validator.AzureStorageValidator.validateContainerName;
@@ -64,35 +64,29 @@ public class AzureStorageDataSourceFactory implements DataSourceFactory {
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var dataAddress = request.getSourceDataAddress();
-        var properties = new HashMap<>(dataAddress.getProperties());
         try {
-            validateAccountName(properties.remove(AzureBlobStoreSchema.ACCOUNT_NAME));
-            validateContainerName(properties.remove(AzureBlobStoreSchema.CONTAINER_NAME));
-            validateBlobName(properties.remove(AzureBlobStoreSchema.BLOB_NAME));
-            validateKeyName(properties.remove(DataAddress.KEY_NAME));
-            properties.keySet().stream().filter(k -> !DataAddress.TYPE.equals(k)).findFirst().ifPresent(k -> {
-                throw new IllegalArgumentException(format("Unexpected property %s", k));
-            });
+            validateAccountName(dataAddress.getProperty(ACCOUNT_NAME));
+            validateContainerName(dataAddress.getProperty(CONTAINER_NAME));
+            validateBlobName(dataAddress.getProperty(BLOB_NAME));
+            validateKeyName(dataAddress.getProperty(DataAddress.KEY_NAME));
         } catch (IllegalArgumentException e) {
-            return Result.failure(e.getMessage());
+            return Result.failure("AzureStorage source address is invalid: " + e.getMessage());
         }
         return VALID.mapTo();
     }
 
     @Override
     public DataSource createSource(DataFlowRequest request) {
-        Result<Void> validate = validateRequest(request);
-        if (validate.failed()) {
-            throw new EdcException(validate.getFailure().getMessages().toString());
-        }
+        validateRequest(request).orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
         var dataAddress = request.getSourceDataAddress();
 
         return AzureStorageDataSource.Builder.newInstance()
-                .accountName(dataAddress.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME))
-                .containerName(dataAddress.getProperty(AzureBlobStoreSchema.CONTAINER_NAME))
+                .accountName(dataAddress.getProperty(ACCOUNT_NAME))
+                .containerName(dataAddress.getProperty(CONTAINER_NAME))
                 .sharedKey(vault.resolveSecret(dataAddress.getKeyName()))
                 .blobStoreApi(blobStoreApi)
-                .blobName(dataAddress.getProperty(AzureBlobStoreSchema.BLOB_NAME))
+                .blobName(dataAddress.getProperty(BLOB_NAME))
                 .requestId(request.getId())
                 .retryPolicy(retryPolicy)
                 .monitor(monitor)

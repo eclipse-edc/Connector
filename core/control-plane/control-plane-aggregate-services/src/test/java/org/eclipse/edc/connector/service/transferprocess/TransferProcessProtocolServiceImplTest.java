@@ -123,7 +123,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_doNothingIfProcessAlreadyExist() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("processId")
-                .contractId("contractId")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -142,10 +142,28 @@ class TransferProcessProtocolServiceImplTest {
     }
 
     @Test
+    void notifyRequested_invalidContractId_shouldNotInitiateTransfer() {
+        var message = TransferRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .contractId("notvalidcontractid")
+                .callbackAddress("http://any")
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .build();
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+
+        var result = service.notifyRequested(message, claimToken());
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        verify(store, never()).updateOrCreate(any());
+        verifyNoInteractions(listener, store, negotiationStore, validationService);
+    }
+
+    @Test
     void notifyRequested_invalidAgreement_shouldNotInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -164,6 +182,7 @@ class TransferProcessProtocolServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();

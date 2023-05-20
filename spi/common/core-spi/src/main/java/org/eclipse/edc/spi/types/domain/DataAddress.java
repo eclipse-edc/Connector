@@ -43,6 +43,7 @@ public class DataAddress {
     public static final String TYPE = EDC_NAMESPACE + SIMPLE_TYPE;
     public static final String SIMPLE_KEY_NAME = "keyName";
     public static final String KEY_NAME = EDC_NAMESPACE + "keyName";
+    public static final String SECRET = EDC_NAMESPACE + "secret";
     protected final Map<String, String> properties = new HashMap<>();
 
     protected DataAddress() {

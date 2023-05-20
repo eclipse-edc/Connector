@@ -40,7 +40,7 @@ dependencies {
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:control-plane:api:management-api"))
 
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:dsp"))
 
     implementation(libs.jakarta.rsApi)
 }

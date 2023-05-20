@@ -80,6 +80,11 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
+        var contractId = ContractId.parse(message.getContractId());
+        if (!contractId.isValid()) {
+            return ServiceResult.badRequest("ContractId is not valid");
+        }
+
         var validDestination = dataAddressValidator.validate(message.getDataDestination());
         if (validDestination.failed()) {
             return ServiceResult.badRequest(validDestination.getFailureMessages());
@@ -116,12 +121,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message) {
         var contractId = ContractId.parse(message.getContractId());
-        String assetId;
-        if (contractId.isValid()) {
-            assetId = contractId.assetIdPart();
-        } else {
-            assetId = message.getAssetId(); // this is to support IDS protocol, as soon as it gets removed, this can go away
-        }
+        var assetId = contractId.assetIdPart();
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(message.getProcessId())
@@ -150,6 +150,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         observable.invokeForEach(l -> l.preCreated(process));
         update(process);
         observable.invokeForEach(l -> l.initiated(process));
+
         return ServiceResult.success(process);
     }
 
