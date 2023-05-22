@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 class InMemoryAssetIndexTest extends AssetIndexTestBase {
@@ -102,7 +103,7 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
                 .peek(a -> index.create(a, createDataAddress(a)))
                 .collect(Collectors.toList());
 
-        var spec = QuerySpec.Builder.newInstance().equalsAsContains(false).filter(Asset.PROPERTY_ID + " = id1").build();
+        var spec = QuerySpec.Builder.newInstance().filter(criterion(Asset.PROPERTY_ID, "=", "id1")).build();
         assertThat(index.queryAssets(spec)).hasSize(1).containsExactly(assets.get(1));
     }
 

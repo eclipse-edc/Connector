@@ -49,6 +49,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.store.azure.cosmos.policydefinition.TestFunctions.generateDocument;
 import static org.eclipse.edc.connector.store.azure.cosmos.policydefinition.TestFunctions.generatePolicy;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.mockito.Mockito.mock;
 
@@ -222,10 +223,9 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
     @Test
     void findAll_verifyFiltering() {
         var documents = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).collect(Collectors.toList());
-
         var expectedId = documents.get(3).getId();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", expectedId)).build();
 
-        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
         assertThat(store.findAll(query)).extracting(PolicyDefinition::getUid).containsOnly(expectedId);
     }
 
@@ -233,7 +233,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest extends PolicyDefinition
     void findAll_verifyFiltering_unsuccessfulFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
 
-        var query = QuerySpec.Builder.newInstance().filter("something = other").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "=", "other")).build();
 
         assertThat(store.findAll(query)).isEmpty();
     }

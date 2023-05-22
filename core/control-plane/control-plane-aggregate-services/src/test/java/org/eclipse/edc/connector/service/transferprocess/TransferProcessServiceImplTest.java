@@ -26,15 +26,19 @@ import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
@@ -43,6 +47,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,23 +95,15 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "provisionedResourceSet.resources.hastoken=true", //wrong case
-            "resourceManifest.definitions.notexist=foobar", //property not exist
-            "contentDataAddress.properties.someKey=someval", //map types not supported
-    })
-    void query_invalidFilter_raiseException(String invalidFilter) {
+    @ArgumentsSource(InvalidFilters.class)
+    void query_invalidFilter_raiseException(Criterion invalidFilter) {
         var spec = QuerySpec.Builder.newInstance().filter(invalidFilter).build();
         assertThat(service.query(spec).failed()).isTrue();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "deprovisionedResources.provisionedResourceId=19",
-            "type=CONSUMER",
-            "provisionedResourceSet.resources.hasToken=true"
-    })
-    void query_validFilter(String validFilter) {
+    @ArgumentsSource(ValidFilters.class)
+    void query_validFilter(Criterion validFilter) {
         var spec = QuerySpec.Builder.newInstance().filter(validFilter).build();
         service.query(spec);
         verify(store).findAll(spec);
@@ -188,6 +186,28 @@ class TransferProcessServiceImplTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess with id " + id + " not found");
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
+                    arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
+                    arguments(criterion("contentDataAddress.properties.someKey", "=", "someval")) // map types not supported
+            );
+        }
+    }
+
+    private static class ValidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
+                    arguments(criterion("type", "=", "CONSUMER")),
+                    arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
+            );
+        }
     }
 
     private TransferProcess transferProcess() {

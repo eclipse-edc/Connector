@@ -19,11 +19,6 @@ paths:
           format: int32
           example: null
       - in: query
-        name: filter
-        schema:
-          type: string
-          example: null
-      - in: query
         name: sort
         schema:
           type: string
@@ -752,9 +747,6 @@ components:
           type: object
           example: null
         '@type':
-          type: string
-          example: null
-        filter:
           type: string
           example: null
         filterExpression:

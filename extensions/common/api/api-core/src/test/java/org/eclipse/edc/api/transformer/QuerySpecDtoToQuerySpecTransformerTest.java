@@ -21,9 +21,8 @@ import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -43,10 +42,13 @@ class QuerySpecDtoToQuerySpecTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
+        var criterion = Criterion.criterion("field", "=", "value");
+        when(context.transform(isA(CriterionDto.class), eq(Criterion.class))).thenReturn(criterion);
+        var criterionDto = CriterionDto.from("field", "=", "value");
         var querySpecDto = QuerySpecDto.Builder.newInstance()
                 .offset(10)
                 .limit(20)
-                .filter("field=value")
+                .filter(criterionDto)
                 .sortOrder(SortOrder.DESC)
                 .sortField("field")
                 .build();
@@ -55,10 +57,10 @@ class QuerySpecDtoToQuerySpecTransformerTest {
 
         assertThat(spec.getOffset()).isEqualTo(10);
         assertThat(spec.getLimit()).isEqualTo(20);
-        assertThat(spec.getFilterExpression()).hasSize(1)
-                .containsExactly(new Criterion("field", "=", "value"));
+        assertThat(spec.getFilterExpression()).hasSize(1).containsExactly(criterion);
         assertThat(spec.getSortOrder()).isEqualTo(SortOrder.DESC);
         assertThat(spec.getSortField()).isEqualTo("field");
+        verify(context).transform(criterionDto, Criterion.class);
     }
 
     @Test
@@ -76,20 +78,20 @@ class QuerySpecDtoToQuerySpecTransformerTest {
     }
 
     @Test
-    void transform_shouldReturnNull_whenCriterionNotTransforable() {
+    void transform_shouldReturnNull_whenCriterionNotTransformable() {
         var context = mock(TransformerContext.class);
         when(context.transform(isA(CriterionDto.class), eq(Criterion.class)))
                 .thenReturn(null);
+        when(context.hasProblems()).thenReturn(true);
 
         var querySpecDto = QuerySpecDto.Builder.newInstance()
-                .filterExpression(List.of(CriterionDto.from("foo", "=", "bar")))
-                .filter("bar < baz")
+                .filter(CriterionDto.from("foo", "=", "bar"))
                 .build();
 
         var spec = transformer.transform(querySpecDto, context);
-        assertThat(spec).isNull();
 
-        verify(context).reportProblem(eq("Some elements could not be transformed"));
+        assertThat(spec).isNull();
+        verify(context).reportProblem(any());
     }
 
     @Test
@@ -98,12 +100,12 @@ class QuerySpecDtoToQuerySpecTransformerTest {
         var expected = new Criterion("bar", "<", "baz");
         when(context.transform(isA(CriterionDto.class), eq(Criterion.class)))
                 .thenReturn(expected);
-
         var querySpecDto = QuerySpecDto.Builder.newInstance()
-                .filter("bar < baz")
+                .filter(CriterionDto.from("bar", "<", "baz"))
                 .build();
 
         var spec = transformer.transform(querySpecDto, context);
+
         assertThat(spec).isNotNull();
         assertThat(spec.getFilterExpression()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(expected);
     }

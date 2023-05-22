@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 class ReflectionBasedQueryResolverTest {
 
@@ -39,7 +40,7 @@ class ReflectionBasedQueryResolverTest {
     void verifyQuery_noFilters() {
         var stream = IntStream.range(0, 10).mapToObj(FakeItem::new);
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().build();
+        var spec = QuerySpec.Builder.newInstance().build();
         assertThat(queryResolver.query(stream, spec)).hasSize(10);
     }
 
@@ -49,7 +50,7 @@ class ReflectionBasedQueryResolverTest {
                 IntStream.range(0, 5).mapToObj(i -> new FakeItem(i, "Alice")),
                 IntStream.range(5, 10).mapToObj(i -> new FakeItem(i, "Bob")));
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().filter("name=Alice").build();
+        var spec = QuerySpec.Builder.newInstance().filter(criterion("name", "=", "Alice")).build();
         assertThat(queryResolver.query(stream, spec)).hasSize(5).extracting(FakeItem::getName).containsOnly("Alice");
     }
 
@@ -59,7 +60,7 @@ class ReflectionBasedQueryResolverTest {
                 IntStream.range(0, 5).mapToObj(i -> new FakeItem(i, "Alice")),
                 IntStream.range(5, 10).mapToObj(i -> new FakeItem(i, "Bob")));
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("name", "=", "Bob"))).build();
+        var spec = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("name", "=", "Bob"))).build();
         Collection<FakeItem> actual = queryResolver.query(stream, spec).collect(Collectors.toList());
         assertThat(actual).hasSize(5).extracting(FakeItem::getName).containsOnly("Bob");
     }
@@ -68,7 +69,7 @@ class ReflectionBasedQueryResolverTest {
     void verifyQuery_sortDesc() {
         var stream = IntStream.range(0, 10).mapToObj(FakeItem::new);
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
+        var spec = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
         assertThat(queryResolver.query(stream, spec)).hasSize(10).isSortedAccordingTo(Comparator.comparing(FakeItem::getId).reversed());
     }
 
@@ -76,7 +77,7 @@ class ReflectionBasedQueryResolverTest {
     void verifyQuery_sortAsc() {
         var stream = IntStream.range(0, 10).mapToObj(FakeItem::new);
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
+        var spec = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
         assertThat(queryResolver.query(stream, spec)).hasSize(10).isSortedAccordingTo(Comparator.comparing(FakeItem::getId));
     }
 
@@ -84,7 +85,7 @@ class ReflectionBasedQueryResolverTest {
     void verifyQuery_invalidSortField() {
         var stream = IntStream.range(0, 10).mapToObj(FakeItem::new);
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().sortField("xyz").sortOrder(SortOrder.ASC).build();
+        var spec = QuerySpec.Builder.newInstance().sortField("xyz").sortOrder(SortOrder.ASC).build();
         assertThat(queryResolver.query(stream, spec)).isEmpty();
     }
 
@@ -92,7 +93,7 @@ class ReflectionBasedQueryResolverTest {
     void verifyQuery_offsetAndLimit() {
         var stream = IntStream.range(0, 10).mapToObj(FakeItem::new);
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().offset(1).limit(2).build();
+        var spec = QuerySpec.Builder.newInstance().offset(1).limit(2).build();
         assertThat(queryResolver.query(stream, spec)).extracting(FakeItem::getId).containsExactly(1, 2);
     }
 
@@ -100,7 +101,7 @@ class ReflectionBasedQueryResolverTest {
     void verifyQuery_allFilters() {
         var stream = IntStream.range(0, 10).mapToObj(FakeItem::new);
 
-        QuerySpec spec = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).offset(1).limit(2).build();
+        var spec = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).offset(1).limit(2).build();
         assertThat(queryResolver.query(stream, spec)).extracting(FakeItem::getId).containsExactly(8, 7);
     }
 

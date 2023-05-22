@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.service.asset;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.asset.spi.observe.AssetObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
@@ -22,7 +23,9 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -32,7 +35,11 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.UUID;
@@ -40,9 +47,12 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -96,7 +106,7 @@ class AssetServiceImplTest {
     })
     void query_validFilter(String filter) {
         var query = QuerySpec.Builder.newInstance()
-                .filter(filter + "=somevalue")
+                .filter(criterion(filter, "=", "somevalue"))
                 .build();
 
         service.query(query);
@@ -105,19 +115,16 @@ class AssetServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "  asset_prop_id in (foo, bar)", // invalid leading whitespace
-            ".customProp=whatever", // invalid leading dot
-    })
-    void query_invalidFilter(String filter) {
+    @ArgumentsSource(InvalidFilters.class)
+    void query_invalidFilter(Criterion filter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(filter)
                 .build();
 
         var result = service.query(query);
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).hasSize(1);
+        assertThat(result).isFailed()
+                .extracting(Failure::getMessages).asList().hasSize(1);
     }
 
     @Test
@@ -159,7 +166,7 @@ class AssetServiceImplTest {
 
         var result = service.create(asset, dataAddress);
 
-        assertThat(result).satisfies(ServiceResult::failed)
+        Assertions.assertThat(result).satisfies(ServiceResult::failed)
                 .extracting(ServiceResult::reason)
                 .isEqualTo(BAD_REQUEST);
         verifyNoInteractions(index);
@@ -282,6 +289,16 @@ class AssetServiceImplTest {
         verify(index).updateDataAddress(eq(assetId), eq(dataAddress));
         verifyNoMoreInteractions(index);
         verify(observable, never()).invokeForEach(any());
+    }
+
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("  asset_prop_id", "in", "(foo, bar)")), // invalid leading whitespace
+                    arguments(criterion(".customProp", "=", "whatever"))  // invalid leading dot
+            );
+        }
     }
 
     @NotNull

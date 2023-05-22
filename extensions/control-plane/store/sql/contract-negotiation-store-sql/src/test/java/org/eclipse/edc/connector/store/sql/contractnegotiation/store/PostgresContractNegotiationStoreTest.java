@@ -55,6 +55,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * This test aims to verify those parts of the contract negotiation store, that are specific to Postgres, e.g. JSON
@@ -99,7 +100,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         store.save(negotiation1);
         store.save(negotiation2);
 
-        var expression = "contractAgreement.id = agr1";
+        var expression = criterion("contractAgreement.id", "=", "agr1");
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
         var result = store.queryNegotiations(query).collect(Collectors.toList());
 
@@ -132,7 +133,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         store.save(negotiation1);
         store.save(negotiation2);
 
-        var expression = "contractAgreement.policy.assignee = test-assignee";
+        var expression = criterion("contractAgreement.policy.assignee", "=", "test-assignee");
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
         var result = store.queryNegotiations(query).collect(Collectors.toList());
 
@@ -145,7 +146,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation1 = createNegotiation("neg1", agreement1);
         store.save(negotiation1);
 
-        var expression = "contractAgreement.notexist = agr1";
+        var expression = criterion("contractAgreement.notexist", "=", "agr1");
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
         assertThatThrownBy(() -> store.queryNegotiations(query))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -158,7 +159,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var negotiation1 = createNegotiation("neg1", agreement1);
         store.save(negotiation1);
 
-        var expression = "contractAgreement.policy.permissions.notexist = foobar";
+        var expression = criterion("contractAgreement.policy.permissions.notexist", "=", "foobar");
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
         assertThat(store.queryNegotiations(query)).isEmpty();
     }
@@ -173,7 +174,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
             store.save(negotiation);
         });
 
-        var query = QuerySpec.Builder.newInstance().filter("assetId = asset-2").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("assetId", "=", "asset-2")).build();
         var all = store.queryAgreements(query);
 
         assertThat(all).hasSize(1);
@@ -189,7 +190,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
             store.save(negotiation);
         });
 
-        var query = QuerySpec.Builder.newInstance().filter("notexistprop = asset-2").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("notexistprop", "=", "asset-2")).build();
         assertThatThrownBy(() -> store.queryAgreements(query));
     }
 
@@ -217,7 +218,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
             store.save(negotiation);
         });
 
-        var query = QuerySpec.Builder.newInstance().filter("assetId = notexist").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("assetId", "=", "notexist")).build();
         assertThat(store.queryAgreements(query)).isEmpty();
     }
 

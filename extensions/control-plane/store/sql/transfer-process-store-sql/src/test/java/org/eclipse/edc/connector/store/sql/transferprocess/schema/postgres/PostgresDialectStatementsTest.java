@@ -15,10 +15,20 @@
 package org.eclipse.edc.connector.store.sql.transferprocess.schema.postgres;
 
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class PostgresDialectStatementsTest {
 
@@ -26,16 +36,17 @@ class PostgresDialectStatementsTest {
 
     @Test
     void createQuery() {
-        var q = query("id=foobar");
+        var q = query(criterion("id", "=", "foobar"));
 
         assertThat(statements.createQuery(q).getQueryAsString()).doesNotContain("json_array_elements");
     }
 
-    @Test
-    void createQuery_isJsonArray() {
-        assertThat(statements.createQuery(query("deprovisionedResources.inProcess=true")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(query("provisionedResourceSet.resources.id=something")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(query("resourceManifest.definitions.id like %foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+    @ParameterizedTest
+    @ArgumentsSource(JsonArrayCriteria.class)
+    void createQuery_isJsonArray(Criterion criterion) {
+        var query = statements.createQuery(query(criterion));
+
+        assertThat(query.getQueryAsString()).contains("->>", "->", "json_array_elements");
     }
 
     @Test
@@ -43,9 +54,21 @@ class PostgresDialectStatementsTest {
         assertThat(statements.getFormatAsJsonOperator()).isEqualTo("::json");
     }
 
-    private QuerySpec query(String filter) {
+    private static class JsonArrayCriteria implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("deprovisionedResources.inProcess", "=", "true")),
+                    arguments(criterion("provisionedResourceSet.resources.id", "=", "something")),
+                    arguments(criterion("resourceManifest.definitions.id", "like", "%foo"))
+            );
+        }
+    }
+
+    private QuerySpec query(Criterion criterion) {
         return QuerySpec.Builder.newInstance()
-                .filter(filter)
+                .filter(criterion)
                 .build();
     }
 }

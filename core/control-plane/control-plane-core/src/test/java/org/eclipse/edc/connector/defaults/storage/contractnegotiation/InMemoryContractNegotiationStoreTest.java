@@ -50,6 +50,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.eclipse.edc.connector.defaults.storage.contractnegotiation.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -240,13 +241,17 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void findAll_verifyFiltering() {
         range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
-        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(ContractNegotiation::getId).containsOnly("test-neg-3");
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", "test-neg-3")).build();
+
+        assertThat(store.queryNegotiations(querySpec)).extracting(ContractNegotiation::getId).containsOnly("test-neg-3");
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
         range(0, 10).forEach(i -> store.save(TestFunctions.createNegotiation("test-neg-" + i)));
-        assertThatThrownBy(() -> store.queryNegotiations(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("something", "foobar", "other")).build();
+
+        assertThatThrownBy(() -> store.queryNegotiations(querySpec)).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test
@@ -302,7 +307,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
-        var query = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=3:3").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", "3:3")).build();
 
         var result = store.queryAgreements(query);
 

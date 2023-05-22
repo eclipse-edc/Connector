@@ -62,15 +62,6 @@ class QuerySpecDtoValidationTest {
     }
 
     @Test
-    void filterShouldNotBeBlank() {
-        var querySpec = QuerySpecDto.Builder.newInstance().filter("  ").build();
-
-        var result = validator.validate(querySpec);
-
-        assertThat(result).isNotEmpty();
-    }
-
-    @Test
     void sortFieldShouldNotBeBlank() {
         var querySpec = QuerySpecDto.Builder.newInstance().sortField("  ").build();
 

@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -180,7 +181,7 @@ class CosmosAssetIndexTest {
         List<Asset> assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
                         .offset(5)
                         .limit(100)
-                        .filter("someField=randomValue")
+                        .filter(criterion("someField", "=", "randomValue"))
                         .build())
                 .collect(Collectors.toList());
 

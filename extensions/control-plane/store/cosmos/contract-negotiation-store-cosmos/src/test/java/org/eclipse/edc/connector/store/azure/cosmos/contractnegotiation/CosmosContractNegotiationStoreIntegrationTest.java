@@ -67,6 +67,7 @@ import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.T
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.generateDocument;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 @AzureCosmosDbIntegrationTest
 class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationStoreTestBase {
@@ -419,8 +420,8 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .collect(Collectors.toList());
 
         var expectedId = documents.get(3).getId();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", expectedId)).build();
 
-        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
         assertThat(store.queryNegotiations(query)).extracting(ContractNegotiation::getId).containsOnly(expectedId);
     }
 
@@ -428,7 +429,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     void findAll_verifyFiltering_invalidFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
-        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "contains", "other")).build();
 
         assertThatThrownBy(() -> store.queryNegotiations(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
     }
@@ -437,7 +438,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
     void findAll_verifyFiltering_unsuccessfulFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
-        var query = QuerySpec.Builder.newInstance().filter("something = other").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "=", "other")).build();
 
         assertThat(store.queryNegotiations(query)).isEmpty();
     }
@@ -497,7 +498,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
-        var query = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=3:3").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", "3:3")).build();
 
         var result = store.queryAgreements(query);
 

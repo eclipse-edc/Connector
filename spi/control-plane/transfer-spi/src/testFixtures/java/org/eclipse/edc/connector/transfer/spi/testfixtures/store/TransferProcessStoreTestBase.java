@@ -697,7 +697,7 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().updateOrCreate(process2);
 
         var query = QuerySpec.Builder.newInstance()
-                .filter("deprovisionedResources.inProcess=true")
+                .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", "true"))
                 .build();
 
         var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
@@ -774,7 +774,7 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().updateOrCreate(process2);
 
         var query = QuerySpec.Builder.newInstance()
-                .filter("deprovisionedResources.inProcess=false")
+                .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", "false"))
                 .build();
 
         var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
@@ -802,7 +802,7 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().updateOrCreate(process1);
 
         var query = QuerySpec.Builder.newInstance()
-                .filter("deprovisionedResources.foobar=barbaz")
+                .filter(Criterion.criterion("deprovisionedResources.foobar", "=", "barbaz"))
                 .build();
 
         assertThat(getTransferProcessStore().findAll(query)).isEmpty();
@@ -828,7 +828,7 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().updateOrCreate(process1);
 
         var query = QuerySpec.Builder.newInstance()
-                .filter("deprovisionedResources.errorMessage=notexist")
+                .filter(Criterion.criterion("deprovisionedResources.errorMessage", "=", "notexist"))
                 .build();
 
         var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
@@ -958,13 +958,19 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void findAll_verifyFiltering() {
         IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
-        assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(TransferProcess::getId).containsOnly("test-neg-3");
+        var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", "test-neg-3")).build();
+
+        var result = getTransferProcessStore().findAll(querySpec);
+
+        assertThat(result).extracting(TransferProcess::getId).containsOnly("test-neg-3");
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
         IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
-        assertThatThrownBy(() -> getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+        var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("something", "foobar", "other")).build();
+
+        assertThatThrownBy(() -> getTransferProcessStore().findAll(querySpec)).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test

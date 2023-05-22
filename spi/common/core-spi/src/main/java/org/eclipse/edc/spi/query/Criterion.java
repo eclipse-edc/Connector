@@ -48,6 +48,10 @@ public class Criterion {
         //for json serialization
     }
 
+    public static Criterion criterion(Object operandLeft, String operator, Object operandRight) {
+        return new Criterion(operandLeft, operator, operandRight);
+    }
+
     public Criterion(Object left, String op, Object right) {
         operandLeft = Objects.requireNonNull(left);
         operator = Objects.requireNonNull(op);

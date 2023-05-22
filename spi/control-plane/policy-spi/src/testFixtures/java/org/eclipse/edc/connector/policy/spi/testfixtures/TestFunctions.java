@@ -24,14 +24,12 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.policy.model.Prohibition;
-import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.time.Clock;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-;
 
 public class TestFunctions {
     public static PolicyDefinition createPolicy(String id) {
@@ -96,7 +94,4 @@ public class TestFunctions {
                 .build();
     }
 
-    public static QuerySpec createQuery(String filterExpression) {
-        return QuerySpec.Builder.newInstance().filter(filterExpression).build();
-    }
 }

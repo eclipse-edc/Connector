@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinit
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -27,8 +28,11 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -37,6 +41,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -94,11 +100,8 @@ class ContractDefinitionServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "selectorExpression.criteria.leftHand=foo", //invalid path
-            "accessPolicyId'LIKE/**/?/**/LIMIT/**/?/**/OFFSET/**/?;DROP/**/TABLE/**/test/**/--%20=%20ABC--", //some SQL injection
-    })
-    void query_invalidFilter(String invalidFilter) {
+    @ArgumentsSource(InvalidFilters.class)
+    void query_invalidFilter(Criterion invalidFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(invalidFilter)
                 .build();
@@ -106,12 +109,8 @@ class ContractDefinitionServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "selectorExpression.criteria.operandLeft=foo", //invalid path
-            "selectorExpression.criteria.operator=LIKE", //invalid path
-            "selectorExpression.criteria.operandRight=bar" //invalid path
-    })
-    void query_validFilter(String validFilter) {
+    @ArgumentsSource(ValidFilters.class)
+    void query_validFilter(Criterion validFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(validFilter)
                 .build();
@@ -205,6 +204,27 @@ class ContractDefinitionServiceImplTest {
         assertThat(updated.failed()).isTrue();
         assertThat(updated.reason()).isEqualTo(NOT_FOUND);
         verify(listener, never()).updated(any());
+    }
+
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("selectorExpression.criteria.leftHand", "=", "foo")), // invalid path
+                    arguments(criterion("accessPolicyId'LIKE/**/?/**/LIMIT/**/?/**/OFFSET/**/?;DROP/**/TABLE/**/test/**/--%20", "=", "%20ABC--")) //some SQL injection
+            );
+        }
+    }
+
+    private static class ValidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("selectorExpression.criteria.operandLeft", "=", "foo")),
+                    arguments(criterion("selectorExpression.criteria.operator", "=", "LIKE")),
+                    arguments(criterion("selectorExpression.criteria.operandRight", "=", "bar"))
+            );
+        }
     }
 
     @NotNull

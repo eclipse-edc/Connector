@@ -14,18 +14,12 @@
 
 package org.eclipse.edc.api.transformer;
 
-import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QuerySpecDto, QuerySpec> {
 
@@ -47,28 +41,21 @@ public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QueryS
                 .sortField(query.getSortField())
                 .sortOrder(query.getSortOrder());
 
-        // use filter string
-        builder.filter(query.getFilter());
+        query.getFilterExpression()
+                .forEach(criterionDto -> {
+                    var result = context.transform(criterionDto, Criterion.class);
+                    if (result == null) {
+                        context.reportProblem("CriterionDto can not be transformed: " + criterionDto);
+                    } else {
+                        builder.filter(result);
+                    }
+                });
 
-        // overwrite with filter expression, if present
-        if (!query.getFilterExpression().isEmpty()) {
-            var result = transformFilter(query.getFilterExpression(), context);
-            if (result.succeeded()) {
-                builder.filter(result.getContent());
-            } else {
-                context.reportProblem(result.getFailureDetail());
-                return null;
-            }
+        if (context.hasProblems()) {
+            return null;
         }
+
         return builder.build();
     }
 
-    private Result<List<Criterion>> transformFilter(List<CriterionDto> filterExpression, TransformerContext context) {
-        var transformed = filterExpression.stream()
-                .map(dto -> context.transform(dto, Criterion.class))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        return transformed.size() == filterExpression.size() ? Result.success(transformed) : Result.failure("Some elements could not be transformed");
-    }
 }

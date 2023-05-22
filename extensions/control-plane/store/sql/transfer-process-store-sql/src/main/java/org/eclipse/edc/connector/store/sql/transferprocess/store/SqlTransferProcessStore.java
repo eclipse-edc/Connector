@@ -179,8 +179,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
 
     private @Nullable TransferProcess findByIdInternal(Connection conn, String id) {
         return transactionContext.execute(() -> {
-            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
-            return single(executeQuery(conn, q).collect(toList()));
+            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", id)).build();
+            return single(executeQuery(conn, querySpec).collect(toList()));
         });
     }
 

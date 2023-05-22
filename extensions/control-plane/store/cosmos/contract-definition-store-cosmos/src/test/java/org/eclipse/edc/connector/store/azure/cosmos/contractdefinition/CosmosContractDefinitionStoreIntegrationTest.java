@@ -55,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDefinition;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.TestFunctions.generateDocument;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.Mockito.mock;
@@ -296,10 +297,9 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
     @Test
     void findAll_verifyFiltering() {
         var documents = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).collect(Collectors.toList());
-
         var expectedId = documents.get(3).getId();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", expectedId)).build();
 
-        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
         assertThat(store.findAll(query)).extracting(ContractDefinition::getId).containsOnly(expectedId);
     }
 
@@ -307,7 +307,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
     void findAll_verifyFiltering_unsuccessfulFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
 
-        var query = QuerySpec.Builder.newInstance().filter("something = other").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "=", "other")).build();
 
         assertThat(store.findAll(query)).isEmpty();
     }
@@ -352,11 +352,11 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
 
         store.update(modifiedDef);
 
-        // re-read
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("contractPolicyId=test-cp-id-new").build()).collect(Collectors.toList());
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("contractPolicyId", "=", "test-cp-id-new")).build();
+
+        var all = store.findAll(querySpec).collect(Collectors.toList());
 
         assertThat(all).hasSize(1).containsExactly(modifiedDef);
-
     }
 
     @Test
@@ -371,7 +371,7 @@ class CosmosContractDefinitionStoreIntegrationTest extends ContractDefinitionSto
         var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria = " + json)
+                .filter(criterion("selectorExpression.criteria", "=", json))
                 .build();
 
         assertThat(getContractDefinitionStore().findAll(spec)).hasSize(1)
