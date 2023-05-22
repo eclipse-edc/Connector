@@ -18,7 +18,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -30,6 +32,8 @@ public class TransferRequest {
 
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
+    private Map<String, String> privateProperties = new HashMap<>();
+    
     private DataRequest dataRequest;
 
     private TransferRequest() {
@@ -54,6 +58,13 @@ public class TransferRequest {
         return callbackAddresses;
     }
 
+    /**
+     * Custom private properties that are associated with this transfer request.
+     */
+    public Map<String, String> getPrivateProperties() {
+        return privateProperties;
+    }
+
     public static class Builder {
         private final TransferRequest request;
 
@@ -73,6 +84,11 @@ public class TransferRequest {
 
         public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
             request.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
+        public Builder privateProperties(Map<String, String> privateProperties) {
+            request.privateProperties = privateProperties;
             return this;
         }
 

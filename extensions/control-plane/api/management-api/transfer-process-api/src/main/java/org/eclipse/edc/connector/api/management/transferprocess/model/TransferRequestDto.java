@@ -37,6 +37,9 @@ public class TransferRequestDto {
     public static final String EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES = EDC_NAMESPACE + "managedResources";
     public static final String EDC_TRANSFER_REQUEST_DTO_PROPERTIES = EDC_NAMESPACE + "properties";
+
+    public static final String EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
+
     public static final String EDC_TRANSFER_REQUEST_DTO_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String EDC_TRANSFER_REQUEST_DTO_ASSET_ID = EDC_NAMESPACE + "assetId";
@@ -50,6 +53,9 @@ public class TransferRequestDto {
     private DataAddress dataDestination;
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
+
+    private Map<String, String> privateProperties = new HashMap<>();
+
     @NotNull(message = "protocol cannot be null")
     private String protocol = "ids-multipart";
     @NotNull(message = "connectorId cannot be null")
@@ -82,6 +88,10 @@ public class TransferRequestDto {
 
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public Map<String, String> getPrivateProperties() {
+        return privateProperties;
     }
 
     public String getProtocol() {
@@ -140,6 +150,11 @@ public class TransferRequestDto {
 
         public Builder properties(Map<String, String> properties) {
             request.properties = properties;
+            return this;
+        }
+
+        public Builder privateProperties(Map<String, String> privateProperties) {
+            request.privateProperties = privateProperties;
             return this;
         }
 

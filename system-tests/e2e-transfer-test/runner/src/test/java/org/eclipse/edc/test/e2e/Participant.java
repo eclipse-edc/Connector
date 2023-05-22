@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -204,6 +205,17 @@ public class Participant {
     }
 
     public String initiateTransfer(String contractId, String assetId, Participant provider, JsonObject destination) {
+        return initiateTransferWithPrivateProperties(contractId, assetId, provider, Json.createObjectBuilder().build(), destination);
+    }
+
+    public String initiateTransferWithDynamicReceiver(String contractId, String assetId, Participant provider, JsonObject destination) {
+        var privateProperties = Json.createObjectBuilder()
+                .add("receiverHttpEndpoint", backendService + "/api/consumer/dataReference")
+                .build();
+        return initiateTransferWithPrivateProperties(contractId, assetId, provider, privateProperties, destination);
+    }
+
+    public String initiateTransferWithPrivateProperties(String contractId, String assetId, Participant provider, JsonObject privateProperties, JsonObject destination) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "TransferRequestDto")
@@ -212,6 +224,7 @@ public class Participant {
                 .add("assetId", assetId)
                 .add("contractId", contractId)
                 .add("connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH)
+                .add("privateProperties", privateProperties)
                 .build();
 
         return given()
@@ -260,6 +273,28 @@ public class Participant {
                     .extract()
                     .body()
                     .as(EndpointDataReference.class);
+            dataReference.set(result);
+        });
+
+        return dataReference.get();
+    }
+
+    public List<EndpointDataReference> getAllDataReferences(String id) {
+        var dataReference = new AtomicReference<List<EndpointDataReference>>();
+
+        var listType = new TypeRef<List<EndpointDataReference>>() {
+        };
+
+        await().atMost(timeout).untilAsserted(() -> {
+            var result = given()
+                    .baseUri(backendService.toString())
+                    .when()
+                    .get("/api/consumer/dataReference/{id}/all", id)
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .body()
+                    .as(listType);
             dataReference.set(result);
         });
 
@@ -341,11 +376,6 @@ public class Participant {
                 .filter(it -> assetId.equals(getContractId(it).assetIdPart()))
                 .findFirst()
                 .orElseThrow(() -> new EdcException(format("No dataset for asset %s in the catalog", assetId)));
-    }
-
-    private ContractId getContractId(JsonObject dataset) {
-        var id = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractId.parse(id);
     }
 
     public URI protocolEndpoint() {
@@ -473,6 +503,11 @@ public class Participant {
 
     public String getName() {
         return name;
+    }
+
+    private ContractId getContractId(JsonObject dataset) {
+        var id = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
+        return ContractId.parse(id);
     }
 
     private String getContractNegotiationField(String negotiationId, String fieldName) {

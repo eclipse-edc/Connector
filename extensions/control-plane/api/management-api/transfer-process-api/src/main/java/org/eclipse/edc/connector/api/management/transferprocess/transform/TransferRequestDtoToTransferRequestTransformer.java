@@ -63,6 +63,7 @@ public class TransferRequestDtoToTransferRequestTransformer implements DtoTransf
         return TransferRequest.Builder.newInstance()
                 .dataRequest(dataRequest)
                 .callbackAddresses(callbacks)
+                .privateProperties(object.getPrivateProperties())
                 .build();
     }
 }

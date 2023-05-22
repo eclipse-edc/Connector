@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +31,7 @@ import static org.eclipse.edc.connector.api.management.transferprocess.model.Tra
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PROPERTIES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PROTOCOL;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
@@ -38,6 +40,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToTransferRequestDtoTransformerTest {
@@ -54,11 +58,13 @@ class JsonObjectToTransferRequestDtoTransformerTest {
     @Test
     void transform() {
         var dataDestinationJson = Json.createObjectBuilder().build();
-        var propertiesJson = Json.createObjectBuilder().build();
+        var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
+        var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
         var dataDestination = DataAddress.Builder.newInstance().type("type").build();
         var properties = Map.of("foo", "bar");
+        var privateProperties = Map.of("fooPrivate", "bar");
+
         when(context.transform(any(), eq(DataAddress.class))).thenReturn(dataDestination);
-        when(context.transform(any(), eq(Map.class))).thenReturn(properties);
 
         var json = Json.createObjectBuilder()
                 .add(TYPE, EDC_TRANSFER_REQUEST_DTO_TYPE)
@@ -68,6 +74,7 @@ class JsonObjectToTransferRequestDtoTransformerTest {
                 .add(EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION, dataDestinationJson)
                 .add(EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES, false)
                 .add(EDC_TRANSFER_REQUEST_DTO_PROPERTIES, propertiesJson)
+                .add(EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES, privatePropertiesJson)
                 .add(EDC_TRANSFER_REQUEST_DTO_PROTOCOL, "protocol")
                 .add(EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID, "connectorId")
                 .add(EDC_TRANSFER_REQUEST_DTO_ASSET_ID, "assetId")
@@ -81,10 +88,28 @@ class JsonObjectToTransferRequestDtoTransformerTest {
         assertThat(result.getContractId()).isEqualTo("contractId");
         assertThat(result.getDataDestination()).isSameAs(dataDestination);
         assertThat(result.isManagedResources()).isFalse();
-        assertThat(result.getProperties()).isSameAs(properties);
+        assertThat(result.getProperties()).containsAllEntriesOf(properties);
+        assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProtocol()).isEqualTo("protocol");
         assertThat(result.getConnectorId()).isEqualTo("connectorId");
         assertThat(result.getAssetId()).isEqualTo("assetId");
     }
 
+    @Test
+    void transform_error() {
+
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
+
+        var json = Json.createObjectBuilder()
+                .add(TYPE, EDC_TRANSFER_REQUEST_DTO_TYPE)
+                .add(ID, "id")
+                .add(EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES, 1)
+                .build();
+
+        var result = transformer.transform(json, context);
+
+        assertThat(result).isNotNull();
+
+        verify(context, times(1)).problem();
+    }
 }
