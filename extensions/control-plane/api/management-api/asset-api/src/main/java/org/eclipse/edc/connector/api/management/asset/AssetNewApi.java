@@ -26,9 +26,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.List;
 public interface AssetNewApi {
 
     @Operation(description = "Creates a new asset together with a data address",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetEntryNewDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = IdResponseDto.class))),
@@ -47,7 +49,7 @@ public interface AssetNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    JsonObject createAsset(@Schema(implementation = AssetEntryNewDto.class) JsonObject assetEntryDto);
+    JsonObject createAsset(JsonObject assetEntryDto);
 
     @Operation(description = " all assets according to a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
@@ -87,6 +89,7 @@ public interface AssetNewApi {
 
     @Operation(description = "Updates an asset with the given ID if it exists. If the asset is not found, no further action is taken. " +
             "DANGER ZONE: Note that updating assets can have unexpected results, especially for contract offers that have been sent out or are ongoing in contract negotiations.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetUpdateRequestDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was updated successfully"),
                     @ApiResponse(responseCode = "404", description = "Asset could not be updated, because it does not exist."),
@@ -96,6 +99,7 @@ public interface AssetNewApi {
     void updateAsset(JsonObject asset);
 
     @Operation(description = "Updates a DataAddress for an asset with the given ID.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetUpdateRequestDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was updated successfully"),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",

@@ -85,7 +85,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
@@ -106,7 +105,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
-import static org.mockito.AdditionalMatchers.and;
+import static org.eclipse.edc.spi.types.domain.DataAddress.SECRET;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -146,6 +145,7 @@ class TransferProcessManagerImplTest {
     private final CommandQueue<TransferProcessCommand> commandQueue = mock(CommandQueue.class);
     private final CommandRunner<TransferProcessCommand> commandRunner = mock(CommandRunner.class);
     private final ProtocolWebhook protocolWebhook = mock(ProtocolWebhook.class);
+    private final DataAddressResolver addressResolver = mock(DataAddressResolver.class);
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
 
     private TransferProcessManagerImpl manager;
@@ -174,7 +174,7 @@ class TransferProcessManagerImplTest {
                 .transferProcessStore(transferProcessStore)
                 .policyArchive(policyArchive)
                 .vault(vault)
-                .addressResolver(mock(DataAddressResolver.class))
+                .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .protocolWebhook(protocolWebhook)
                 .build();
@@ -203,10 +203,11 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void initial_shouldTransitionToProvisioning() {
+    void initial_consumer_shouldTransitionToProvisioning() {
+        var transferProcess = createTransferProcess(INITIAL);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
-                .thenReturn(List.of(createTransferProcess(INITIAL)))
+                .thenReturn(List.of(transferProcess))
                 .thenReturn(emptyList());
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
@@ -222,10 +223,11 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void initial_manifestEvaluationFailed_shouldTransitionToTerminating() {
+    void initial_consumer_manifestEvaluationFailed_shouldTransitionToTerminating() {
+        var transferProcess = createTransferProcess(INITIAL);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
-                .thenReturn(List.of(createTransferProcess(INITIAL)))
+                .thenReturn(List.of(transferProcess))
                 .thenReturn(emptyList());
         when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
                 .thenReturn(Result.failure("error"));
@@ -240,9 +242,10 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void initial_noPolicyFound_shouldTransitionToTerminating() {
+    void initial_consumer_shouldTransitionToTerminating_whenNoPolicyFound() {
+        var transferProcess = createTransferProcess(INITIAL);
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
-                .thenReturn(List.of(createTransferProcess(INITIAL)))
+                .thenReturn(List.of(transferProcess))
                 .thenReturn(emptyList());
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(null);
 
@@ -252,6 +255,74 @@ class TransferProcessManagerImplTest {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verifyNoInteractions(provisionManager);
             verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == TERMINATING.code()));
+        });
+    }
+
+    @Test
+    void initial_provider_shouldTransitionToProvisioning() {
+        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).build();
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+        var contentDataAddress = DataAddress.Builder.newInstance().type("type").build();
+        when(addressResolver.resolveForAsset(any())).thenReturn(contentDataAddress);
+        var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+        when(manifestGenerator.generateProviderResourceManifest(any(DataRequest.class), any(), any()))
+                .thenReturn(resourceManifest);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore).updateOrCreate(captor.capture());
+            verify(manifestGenerator).generateProviderResourceManifest(any(), any(), any());
+            verifyNoInteractions(provisionManager, vault);
+            var actualTransferProcess = captor.getValue();
+            assertThat(actualTransferProcess.getState()).isEqualTo(PROVISIONING.code());
+            assertThat(actualTransferProcess.getContentDataAddress()).isSameAs(contentDataAddress);
+            assertThat(actualTransferProcess.getResourceManifest()).isSameAs(resourceManifest);
+        });
+    }
+
+    @Test
+    void initial_provider_shouldStoreSecret_whenItIsFoundInTheDataAddress() {
+        var destinationDataAddress = DataAddress.Builder.newInstance()
+                .keyName("keyName")
+                .type("type")
+                .property(SECRET, "secret")
+                .build();
+        var dataRequest = createDataRequestBuilder().dataDestination(destinationDataAddress).build();
+        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).dataRequest(dataRequest).build();
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+        when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
+        var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+        when(manifestGenerator.generateProviderResourceManifest(any(DataRequest.class), any(), any()))
+                .thenReturn(resourceManifest);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(vault).storeSecret("keyName", "secret");
+        });
+    }
+
+    @Test
+    void initial_provider_shouldTransitionToTerminating_whenAssetIsNotResolved() {
+        var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).build();
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+        when(addressResolver.resolveForAsset(any())).thenReturn(null);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore).updateOrCreate(captor.capture());
+            verifyNoInteractions(manifestGenerator, provisionManager);
+            var actualTransferProcess = captor.getValue();
+            assertThat(actualTransferProcess.getState()).isEqualTo(TERMINATING.code());
         });
     }
 
@@ -420,66 +491,40 @@ class TransferProcessManagerImplTest {
         when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+        when(vault.resolveSecret(any())).thenReturn(null);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(eq(Object.class), and(isA(TransferRequestMessage.class), argThat(m -> protocolWebhookUrl.equals(m.getCallbackAddress()))));
+            var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
+            verify(dispatcherRegistry).send(eq(Object.class), captor.capture());
             verify(transferProcessStore, times(1)).updateOrCreate(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
+            var requestMessage = captor.getValue();
+            assertThat(requestMessage.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
+            assertThat(requestMessage.getDataDestination().getProperty(SECRET)).isNull();
         });
     }
 
     @Test
-    @Deprecated(since = "milestone9")
-    void requested_shouldDoNothing_dataspaceProtocol() {
-        var dataRequest = createDataRequestBuilder().protocol("dataspace").build();
-        var process = createTransferProcessBuilder(REQUESTED)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
-                        .resources(List.of(provisionedDataDestinationResource()))
-                        .build())
-                .dataRequest(dataRequest).build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-
-        manager.start();
-
-        await().pollDelay(RETRY_LIMIT, SECONDS).untilAsserted(() -> verify(transferProcessStore, never()).updateOrCreate(any()));
-    }
-
-    @Test
-    @Deprecated(since = "milestone9")
-    void requested_shouldTransitionToStarting_idsMultipartOnly() {
-        var dataRequest = createDataRequestBuilder().protocol("ids-multipart").build();
-        var process = createTransferProcessBuilder(REQUESTED)
-                .type(CONSUMER)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
-                        .resources(List.of(provisionedDataDestinationResource()))
-                        .build())
-                .dataRequest(dataRequest).build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+    void requesting_shouldAddSecretToDataAddress_whenItExists() {
+        var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
+        var process = createTransferProcessBuilder(REQUESTING).dataRequest(createDataRequestBuilder().dataDestination(destination).build()).build();
+        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
+        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+        when(vault.resolveSecret(any())).thenReturn("secret");
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == STARTED.code()));
-        });
-    }
-
-    @Test
-    @Deprecated(since = "milestone9")
-    void requested_shouldNotTransitionIfProvisionedResourcesAreEmpty_idsMultipartOnly() {
-        var dataRequest = createDataRequestBuilder().protocol("ids-multipart").build();
-        var process = createTransferProcessBuilder(REQUESTED)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
-                .dataRequest(dataRequest).build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTED.code()))).thenReturn(List.of(process));
-        doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(transferProcessStore).updateOrCreate(process);
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessStore, never()).updateOrCreate(any());
+            var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
+            verify(dispatcherRegistry).send(eq(Object.class), captor.capture());
+            verify(transferProcessStore, times(1)).updateOrCreate(argThat(p -> p.getState() == REQUESTED.code()));
+            verify(listener).requested(process);
+            verify(vault).resolveSecret("keyName");
+            var requestMessage = captor.getValue();
+            assertThat(requestMessage.getDataDestination().getProperty(SECRET)).isEqualTo("secret");
         });
     }
 
@@ -900,16 +945,16 @@ class TransferProcessManagerImplTest {
                 .build();
     }
 
-    private TransferProcess createTransferProcess(TransferProcessStates inState) {
-        return createTransferProcessBuilder(inState, true).build();
-    }
-
     private DataFlowResponse createDataFlowResponse() {
         return DataFlowResponse.Builder.newInstance()
                 .dataAddress(DataAddress.Builder.newInstance()
                         .type("type")
                         .build())
                 .build();
+    }
+
+    private TransferProcess createTransferProcess(TransferProcessStates inState) {
+        return createTransferProcessBuilder(inState, true).build();
     }
 
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState) {

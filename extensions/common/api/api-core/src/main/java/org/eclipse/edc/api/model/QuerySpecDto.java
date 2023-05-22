@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.api.query;
+package org.eclipse.edc.api.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,7 +22,6 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.ws.rs.QueryParam;
-import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.spi.query.SortOrder;
 
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ import java.util.List;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 @JsonDeserialize(builder = QuerySpecDto.Builder.class)
-public class QuerySpecDto {
+public class QuerySpecDto extends BaseDto {
 
     public static final String EDC_QUERY_SPEC_TYPE = EDC_NAMESPACE + "QuerySpecDto";
     public static final String EDC_QUERY_SPEC_OFFSET = EDC_NAMESPACE + "offset";

@@ -1370,385 +1370,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataPlaneInstance'
-  /negotiations/request:
-    post:
-      operationId: initiateNegotiation
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        description: https://w3id.org/dspace/v0.8/ContractRequestMessage
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: object
-                  example: null
-                example: null
-  /negotiations/{id}:
-    get:
-      operationId: getNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: object
-                  example: null
-                example: null
-  /negotiations/{id}/agreement:
-    post:
-      operationId: createAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        description: https://w3id.org/dspace/v0.8/ContractAgreementMessage
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/{id}/agreement/verification:
-    post:
-      operationId: verifyAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        description: https://w3id.org/dspace/v0.8/ContractAgreementVerificationMessage
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/{id}/events:
-    post:
-      operationId: createEvent
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        description: https://w3id.org/dspace/v0.8/ContractNegotiationEventMessage
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/{id}/offers:
-    post:
-      operationId: providerOffer
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        description: https://w3id.org/dspace/v0.8/ContractOfferMessage
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/{id}/request:
-    post:
-      operationId: consumerOffer
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        description: https://w3id.org/dspace/v0.8/ContractRequestMessage
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/{id}/termination:
-    post:
-      operationId: terminateNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        description: https://w3id.org/dspace/v0.8/ContractNegotiationTerminationMessage
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
   /policydefinitions:
     get:
       tags:
@@ -2517,25 +2138,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
+              $ref: '#/components/schemas/AssetUpdateRequestDto'
       responses:
         "200":
           description: Asset was updated successfully
@@ -2635,25 +2238,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
+              $ref: '#/components/schemas/AssetUpdateRequestDto'
       responses:
         "200":
           description: Asset was updated successfully
@@ -2831,25 +2416,7 @@ paths:
         content:
           '*/*':
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
+              $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
           content:
@@ -2919,25 +2486,7 @@ paths:
         content:
           '*/*':
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/ContractDefinitionRequestDto'
-              example: null
+              $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "204":
           description: Contract definition was updated successfully
@@ -2968,25 +2517,7 @@ paths:
         content:
           '*/*':
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/ContractDefinitionRequestDto'
-              example: null
+              $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "200":
           description: contract definition was created successfully. Returns the Contract
@@ -3134,25 +2665,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/NegotiationInitiateRequestDto'
-              example: null
+              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
       responses:
         "200":
           description: The negotiation was successfully initiated. Returns the contract
@@ -3185,25 +2698,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
+              $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
           content:
@@ -3440,25 +2935,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/PolicyDefinitionRequestDto'
-              example: null
+              $ref: '#/components/schemas/PolicyDefinitionRequestDto'
       responses:
         "200":
           description: policy definition was created successfully. Returns the Policy
@@ -3574,25 +3051,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  example: null
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
-              example: null
+              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
       responses:
         "200":
           description: policy definition was updated successfully. Returns the Policy
@@ -3998,12 +3457,41 @@ components:
           type: string
           example: null
       example: null
+    Asset:
+      type: object
+      properties:
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+        id:
+          type: string
+          example: null
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+      example: null
     AssetCreationRequestDto:
       required:
       - properties
       type: object
       properties:
-        id:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
           type: string
           example: null
         privateProperties:
@@ -4037,40 +3525,25 @@ components:
       type: object
       properties:
         asset:
-          type: object
-          description: A JSON structure in JSON-LD format containing the Asset's properties.
-            Cannot be null.
-          example: null
+          $ref: '#/components/schemas/Asset'
         dataAddress:
-          type: object
-          properties:
-            empty:
-              type: boolean
-              example: null
-            valueType:
-              type: string
-              example: null
-              enum:
-              - ARRAY
-              - OBJECT
-              - STRING
-              - NUMBER
-              - "TRUE"
-              - "FALSE"
-              - "NULL"
-          additionalProperties:
-            $ref: '#/components/schemas/JsonValue'
-          example: null
+          $ref: '#/components/schemas/DataAddress'
       example: null
     AssetResponseDto:
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
-          example: null
-        id:
-          type: string
           example: null
         privateProperties:
           type: object
@@ -4090,6 +3563,12 @@ components:
       - properties
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         privateProperties:
           type: object
           additionalProperties:
@@ -4132,6 +3611,12 @@ components:
       - uri
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         authCodeId:
           type: string
           example: null
@@ -4185,6 +3670,12 @@ components:
       - providerUrl
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         protocol:
           type: string
           example: null
@@ -4207,13 +3698,22 @@ components:
         propertyName: edctype
     ContractAgreementDto:
       required:
+      - '@id'
       - assetId
       - consumerId
-      - id
       - policy
       - providerId
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         assetId:
           type: string
           example: null
@@ -4223,9 +3723,6 @@ components:
         contractSigningDate:
           type: integer
           format: int64
-          example: null
-        id:
-          type: string
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
@@ -4240,6 +3737,15 @@ components:
       - criteria
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         accessPolicyId:
           type: string
           example: null
@@ -4251,13 +3757,19 @@ components:
           example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
-        id:
-          type: string
-          example: null
       example: null
     ContractDefinitionResponseDto:
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         accessPolicyId:
           type: string
           example: null
@@ -4273,13 +3785,19 @@ components:
           example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
-        id:
-          type: string
-          example: null
       example: null
     ContractNegotiationDto:
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         callbackAddresses:
           type: array
           example: null
@@ -4296,9 +3814,6 @@ components:
           format: int64
           example: null
         errorDetail:
-          type: string
-          example: null
-        id:
           type: string
           example: null
         protocol:
@@ -4359,6 +3874,12 @@ components:
       - operator
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         operandLeft:
           type: object
           example: null
@@ -4384,6 +3905,12 @@ components:
       - properties
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         properties:
           type: object
           additionalProperties:
@@ -4604,12 +4131,18 @@ components:
     IdResponseDto:
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
-          example: null
-        id:
-          type: string
           example: null
       example: null
     JsonObject:
@@ -4655,6 +4188,12 @@ components:
       - protocol
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         callbackAddresses:
           type: array
           example: null
@@ -4681,6 +4220,12 @@ components:
     NegotiationState:
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         state:
           type: string
           example: null
@@ -4759,7 +4304,7 @@ components:
       - policy
       type: object
       properties:
-        id:
+        '@id':
           type: string
           example: null
         policy:
@@ -4770,12 +4315,18 @@ components:
       - policy
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
-          example: null
-        id:
-          type: string
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
@@ -4838,6 +4389,12 @@ components:
     QuerySpecDto:
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         filter:
           type: string
           example: null
@@ -4887,6 +4444,15 @@ components:
     TransferProcessDto:
       type: object
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         callbackAddresses:
           type: array
           example: null
@@ -4901,9 +4467,6 @@ components:
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
         errorDetail:
-          type: string
-          example: null
-        id:
           type: string
           example: null
         properties:

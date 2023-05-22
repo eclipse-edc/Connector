@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationRe
 
 import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.ACCOUNT_NAME;
 import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.CONTAINER_NAME;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 @JsonDeserialize(builder = ObjectContainerProvisionedResource.Builder.class)
 @JsonTypeName("dataspaceconnector:objectcontainerprovisionedresource")
@@ -53,12 +54,12 @@ public class ObjectContainerProvisionedResource extends ProvisionedDataDestinati
         }
 
         public Builder accountName(String accountName) {
-            dataAddressBuilder.property(ACCOUNT_NAME, accountName);
+            dataAddressBuilder.property(EDC_NAMESPACE + ACCOUNT_NAME, accountName);
             return this;
         }
 
         public Builder containerName(String containerName) {
-            dataAddressBuilder.property(CONTAINER_NAME, containerName);
+            dataAddressBuilder.property(EDC_NAMESPACE + CONTAINER_NAME, containerName);
             return this;
         }
 

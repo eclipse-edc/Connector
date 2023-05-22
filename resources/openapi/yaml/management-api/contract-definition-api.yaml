@@ -248,25 +248,7 @@ paths:
         content:
           '*/*':
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/ContractDefinitionRequestDto'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "200":
           content:
@@ -304,25 +286,7 @@ paths:
         content:
           '*/*':
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/ContractDefinitionRequestDto'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/ContractDefinitionRequestDto'
       responses:
         "204":
           description: Contract definition was updated successfully
@@ -471,6 +435,15 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         accessPolicyId:
           type: string
           example: null
@@ -482,9 +455,6 @@ components:
           example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
-        id:
-          type: string
-          example: null
       required:
       - accessPolicyId
       - contractPolicyId
@@ -493,6 +463,15 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         accessPolicyId:
           type: string
           example: null
@@ -508,13 +487,16 @@ components:
           example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
-        id:
-          type: string
-          example: null
     CriterionDto:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         operandLeft:
           type: object
           example: null
@@ -531,17 +513,23 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
           example: null
-        id:
-          type: string
-          example: null
     JsonObject:
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/ContractDefinitionRequestDto'
+        $ref: '#/components/schemas/JsonValue'
       example: null
       properties:
         empty:
@@ -577,6 +565,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         filter:
           type: string
           example: null

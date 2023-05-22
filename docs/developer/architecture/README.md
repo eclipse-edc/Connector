@@ -10,7 +10,6 @@
 - [Identity Management](identity-management/)
 - [Terminology](terminology.md)
 - [Dataspace Protocol](ids-dataspace-protocol/)
-- [IDS Standard (deprecated)](ids/)
 
 ## Configuration
 

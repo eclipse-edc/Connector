@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.provision.http.impl;
 
 import okhttp3.Interceptor;
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -70,8 +71,8 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 @ExtendWith(EdcExtension.class)
 public class HttpProvisionerExtensionEndToEndTest {
-    private static final String ASSET_ID = "1";
-    private static final String CONTRACT_ID = "2";
+    private static final String ASSET_ID = "assetId";
+    private static final String CONTRACT_ID = ContractId.createContractId("definitionId", ASSET_ID);
     private static final String POLICY_ID = "3";
     private final int dataPort = getFreePort();
     private final Interceptor delegate = mock(Interceptor.class);
@@ -102,7 +103,7 @@ public class HttpProvisionerExtensionEndToEndTest {
      * Tests the case where an initial request returns a retryable failure and the second request completes.
      */
     @Test
-    void processProviderRequestRetry(TransferProcessProtocolService processManager,
+    void processProviderRequestRetry(TransferProcessProtocolService protocolService,
                                      ContractNegotiationStore negotiationStore,
                                      AssetIndex assetIndex,
                                      TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
@@ -115,7 +116,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .thenAnswer(invocation -> createResponse(503, invocation))
                 .thenAnswer(invocation -> createResponse(200, invocation));
 
-        var result = processManager.notifyRequested(createTransferRequestMessage(), ClaimToken.Builder.newInstance().build());
+        var result = protocolService.notifyRequested(createTransferRequestMessage(), ClaimToken.Builder.newInstance().build());
 
         assertThat(result).isSucceeded();
         await().untilAsserted(() -> {

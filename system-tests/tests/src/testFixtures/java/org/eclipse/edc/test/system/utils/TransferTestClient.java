@@ -14,116 +14,218 @@
 
 package org.eclipse.edc.test.system.utils;
 
-import io.restassured.http.ContentType;
-import io.restassured.response.ValidatableResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.specification.RequestSpecification;
-import org.apache.http.HttpStatus;
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
+import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PARTICIPANT_ID;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Simple client for testing transfer scenario
  */
 public class TransferTestClient {
 
-    public static final String TRANSFERPROCESS_ID_PATH = "/transferprocess/{id}";
-    public static final String TRANSFERPROCESS_PATH = "/transferprocess";
-    public static final String CATALOG_PATH = "/catalog";
-    private static final String CONTRACT_AGREEMENT_PATH = "/contractnegotiations/{contractNegotiationRequestId}";
-    private static final String CONTRACT_NEGOTIATION_PATH = "/contractnegotiations";
     private final String consumerUrl;
+    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final JsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
 
     public TransferTestClient(String consumerUrl) {
         this.consumerUrl = consumerUrl;
     }
 
+    public JsonArray getCatalogDatasets(String providerUrl) {
+        var datasetReference = new AtomicReference<JsonArray>();
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "CatalogRequest")
+                .add("providerUrl", providerUrl)
+                .add("protocol", "dataspace-protocol-http")
+                .build();
 
-    public Catalog getCatalog(String providerUrl) {
-        return givenConsumerRequest()
-                .queryParam("providerUrl", providerUrl)
-                .get(CATALOG_PATH)
+        await().untilAsserted(() -> {
+            var response = givenConsumerRequest()
+                    .contentType(JSON)
+                    .when()
+                    .body(requestBody)
+                    .post("/v2/catalog/request")
+                    .then()
+                    .statusCode(200)
+                    .extract().body().asString();
+
+            var responseBody = objectMapper.readValue(response, JsonObject.class);
+
+            var catalog = jsonLd.expand(responseBody).orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
+            var datasets = catalog.getJsonArray(DCAT_DATASET_ATTRIBUTE);
+            assertThat(datasets).hasSizeGreaterThan(0);
+
+            datasetReference.set(datasets);
+        });
+
+        return datasetReference.get();
+    }
+
+    public JsonObject getDatasetForAsset(String assetId, String providerUrl) {
+        var datasets = getCatalogDatasets(providerUrl);
+        return datasets.stream()
+                .map(JsonValue::asJsonObject)
+                .filter(it -> assetId.equals(getContractId(it).assetIdPart()))
+                .findFirst()
+                .orElseThrow(() -> new EdcException(format("No dataset for asset %s in the catalog", assetId)));
+    }
+
+    public String negotiateContract(String providerId, String providerUrl, String offerId, String assetId, JsonObject policy) {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "NegotiationInitiateRequestDto")
+                .add("connectorId", providerId)
+                .add("consumerId", CONSUMER_PARTICIPANT_ID)
+                .add("providerId", providerId)
+                .add("connectorAddress", providerUrl)
+                .add("protocol", "dataspace-protocol-http")
+                .add("offer", createObjectBuilder()
+                        .add("offerId", offerId)
+                        .add("assetId", assetId)
+                        .add("policy", jsonLd.compact(policy).getContent())
+                )
+                .build();
+
+        var negotiationId = given()
+                .baseUri(consumerUrl)
+                .contentType(JSON)
+                .body(requestBody)
+                .when()
+                .post("/v2/contractnegotiations")
                 .then()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().as(Catalog.class);
+                .statusCode(200)
+                .extract().body().jsonPath().getString(ID);
 
+        await().untilAsserted(() -> {
+            var state = getContractNegotiationState(negotiationId);
+            assertThat(state).isEqualTo(FINALIZED.name());
+        });
+
+        return getContractAgreementId(negotiationId);
     }
 
-    public String negotiateContractAgreement(NegotiationInitiateRequestDto dto) {
-        var contractNegotiationRequestId =
-                givenConsumerRequest()
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                        .when()
-                        .post(CONTRACT_NEGOTIATION_PATH)
-                        .then()
-                        .assertThat().statusCode(HttpStatus.SC_OK)
-                        .extract().body().jsonPath().getString("id");
+    public String getContractAgreementId(String negotiationId) {
+        var contractAgreementId = new AtomicReference<String>();
 
+        await().untilAsserted(() -> {
+            var agreementId = getContractNegotiationField(negotiationId, "contractAgreementId");
+            assertThat(agreementId).isNotNull().isInstanceOf(String.class);
 
-        assertThat(contractNegotiationRequestId)
-                .withFailMessage("Contract negotiation requestId is null").isNotBlank();
+            contractAgreementId.set(agreementId);
+        });
 
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchNegotiatedAgreement(contractNegotiationRequestId)
-                        .body("id", equalTo(contractNegotiationRequestId))
-                        .body("state", equalTo(ContractNegotiationStates.FINALIZED.name()))
-                        .body("contractAgreementId", notNullValue()));
-
-        return fetchNegotiatedAgreement(contractNegotiationRequestId)
-                .extract().jsonPath().getString("contractAgreementId");
-
+        var id = contractAgreementId.get();
+        assertThat(id).isNotEmpty();
+        return id;
     }
 
-    public Map<String, String> initiateTransfer(TransferRequestDto dto) {
-        var transferProcessId =
-                givenConsumerRequest()
-                        .contentType(ContentType.JSON)
-                        .body(dto)
-                        .when()
-                        .post(TRANSFERPROCESS_PATH)
-                        .then()
-                        .assertThat().statusCode(HttpStatus.SC_OK)
-                        .extract().body().jsonPath().getString("id");
-
-        assertThat(transferProcessId)
-                .withFailMessage("TransferProcess Id is null").isNotBlank();
-
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchTransferProcess(transferProcessId)
-                        .body("id", equalTo(transferProcessId))
-                        .body("state", equalTo(TransferProcessStates.COMPLETED.name())));
-
-        return fetchTransferProcess(transferProcessId).extract().jsonPath().get("dataDestination.properties");
-    }
-
-    private ValidatableResponse fetchNegotiatedAgreement(String contractNegotiationRequestId) {
-        return givenConsumerRequest()
-                .get(CONTRACT_AGREEMENT_PATH, contractNegotiationRequestId)
+    private String getContractNegotiationField(String negotiationId, String fieldName) {
+        return given()
+                .baseUri(consumerUrl)
+                .contentType(JSON)
+                .when()
+                .get("/v2/contractnegotiations/{id}", negotiationId)
                 .then()
-                .assertThat().statusCode(HttpStatus.SC_OK);
+                .statusCode(200)
+                .extract().body().jsonPath()
+                .getString(format("'edc:%s'", fieldName));
     }
 
-    private ValidatableResponse fetchTransferProcess(String transferProcessId) {
-        return givenConsumerRequest()
-                .get(TRANSFERPROCESS_ID_PATH, transferProcessId)
+    public String initiateTransfer(String contractId, String assetId, String providerUrl, JsonObject destination) {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "TransferRequestDto")
+                .add("dataDestination", destination)
+                .add("protocol", "dataspace-protocol-http")
+                .add("assetId", assetId)
+                .add("contractId", contractId)
+                .add("connectorAddress", providerUrl)
+                .add("managedResources", true)
+                .build();
+
+        return given()
+                .baseUri(consumerUrl)
+                .contentType(JSON)
+                .body(requestBody)
+                .when()
+                .post("/v2/transferprocesses")
                 .then()
-                .assertThat().statusCode(HttpStatus.SC_OK);
+                .statusCode(200)
+                .extract().body().jsonPath().getString(ID);
     }
 
     private RequestSpecification givenConsumerRequest() {
         return given()
                 .baseUri(consumerUrl);
+    }
+
+    static ContractId getContractId(JsonObject dataset) {
+        var id = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
+        return ContractId.parse(id);
+    }
+
+    public Map<String, String> getTransferProcess(String transferProcessId) {
+        return given()
+                .baseUri(consumerUrl)
+                .contentType(JSON)
+                .when()
+                .get("/v2/transferprocesses/{id}", transferProcessId)
+                .then()
+                .statusCode(200)
+                .body("'edc:state'", is(STARTED.name()))
+                .extract().jsonPath().get("'edc:dataDestination'");
+    }
+
+    public String getTransferProcessState(String transferProcessId) {
+        return given()
+                .baseUri(consumerUrl)
+                .contentType(JSON)
+                .when()
+                .get("/v2/transferprocesses/{id}/state", transferProcessId)
+                .then()
+                .statusCode(200)
+                .extract().body().jsonPath().getString("'edc:state'");
+    }
+
+    public String getContractNegotiationState(String id) {
+        return given()
+                .baseUri(consumerUrl)
+                .contentType(JSON)
+                .when()
+                .get("/v2/contractnegotiations/{id}/state", id)
+                .then()
+                .statusCode(200)
+                .extract().body().jsonPath().getString("'edc:state'");
     }
 }

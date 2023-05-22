@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.types.domain;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ class DataAddressTest {
 
     @Test
     void verifyDeserialization() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        var mapper = new TypeManager().getMapper();
 
         DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .type("test")

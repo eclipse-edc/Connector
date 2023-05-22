@@ -11,7 +11,6 @@ As an example, we create the module `:extensions:policy:ids-policy`.
 1. Add a `build.gradle.kts` file:
 
     ```
-    val infoModelVersion: String by project
     val rsApi: String by project
     
     plugins {
@@ -20,7 +19,6 @@ As an example, we create the module `:extensions:policy:ids-policy`.
     
     dependencies {
         api(project(":spi"))
-        implementation(project(":data-protocols:ids:ids-spi"))
     }
     ```
    

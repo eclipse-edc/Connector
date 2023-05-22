@@ -24,7 +24,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 @JsonDeserialize(builder = DataAddressDto.Builder.class)
-public class DataAddressDto {
+public class DataAddressDto extends BaseDto {
 
     @NotNull(message = "properties cannot be null")
     private Map<String, String> properties;

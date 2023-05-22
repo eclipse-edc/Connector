@@ -16,19 +16,22 @@ package org.eclipse.edc.connector.api.management.contractdefinition.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.api.model.CriterionDto;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-public class ContractDefinitionRequestDto {
+public class ContractDefinitionRequestDto extends BaseDto {
 
     // constants for JSON-LD transformation
     public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + "ContractDefinition";
@@ -47,6 +50,7 @@ public class ContractDefinitionRequestDto {
     protected List<CriterionDto> criteria = new ArrayList<>();
 
     //this cannot be non-null, because that would break backwards compatibility with the old API
+    @JsonProperty(value = ID)
     protected String id;
 
     protected ContractDefinitionRequestDto() {

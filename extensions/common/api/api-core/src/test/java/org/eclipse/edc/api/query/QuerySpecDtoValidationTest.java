@@ -17,6 +17,7 @@ package org.eclipse.edc.api.query;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

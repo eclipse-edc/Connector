@@ -30,8 +30,7 @@ styleguide.md @paullatzelsperger
 /core/common/policy-evaluator/ @jimmarino @juliapampus @ronjaquensel
 /core/common/state-machine/ @ndr-brt
 
-/data-protocols/ids/ @ronjaquensel @juliapampus
-/data-protocols/ids/ids-jsonld-serdes/ @juliapampus
+/data-protocols/dsp/ @ronjaquensel @juliapampus @ndr-brt
 
 /docs/ @juliapampus
 
@@ -55,7 +54,6 @@ styleguide.md @paullatzelsperger
 
 /launchers/data-plane-server/ @bscholtes1A
 /launchers/dpf-selector/ @paullatzelsperger
-/launchers/ids-connector/ @ronjaquensel
 
 /resources/ @paullatzelsperger
 

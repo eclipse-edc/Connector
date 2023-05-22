@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.types.domain.metadata;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ class QueryRequestTest {
 
     @Test
     void verifyDeserialization() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        var mapper = new TypeManager().getMapper();
 
         QueryRequest process = QueryRequest.Builder.newInstance().protocol("foo").connectorId("id").counterPartyAddress("https://localhost:8080").queryLanguage("bar").query("baz").build();
         StringWriter writer = new StringWriter();

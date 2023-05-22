@@ -26,7 +26,6 @@ import java.util.List;
 
 @JsonDeserialize(builder = ContractDefinitionResponseDto.Builder.class)
 public class ContractDefinitionResponseDto extends BaseResponseDto {
-    private String id;
     private String accessPolicyId;
     private String contractPolicyId;
     private List<CriterionDto> criteria = new ArrayList<>();
@@ -44,10 +43,6 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
 
     public List<CriterionDto> getCriteria() {
         return criteria;
-    }
-
-    public String getId() {
-        return id;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -78,11 +73,6 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
 
         @Override
         public Builder self() {
-            return this;
-        }
-
-        public Builder id(String id) {
-            dto.id = id;
             return this;
         }
     }

@@ -24,7 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
@@ -58,6 +58,7 @@ public interface PolicyDefinitionNewApi {
     JsonObject getPolicyDefinition(String id);
 
     @Operation(description = "Creates a new policy definition",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionRequestDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was created successfully. Returns the Policy Definition Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = IdResponseDto.class))),
@@ -66,7 +67,7 @@ public interface PolicyDefinitionNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    JsonObject createPolicyDefinition(@Schema(implementation = PolicyDefinitionRequestDto.class) JsonObject policyDefinition);
+    JsonObject createPolicyDefinition(JsonObject policyDefinition);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
             "by a contract definition, in which case an error is returned. " +
@@ -84,6 +85,7 @@ public interface PolicyDefinitionNewApi {
     void deletePolicyDefinition(String id);
 
     @Operation(description = "Updates an existing Policy, If the Policy is not found, an error is reported",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionUpdateDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was updated successfully. Returns the Policy Definition Id and updated timestamp"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
@@ -92,5 +94,5 @@ public interface PolicyDefinitionNewApi {
                             content = @Content(schema = @Schema(implementation = ApiErrorDetail.class)))
             }
     )
-    void updatePolicyDefinition(String id, @Schema(implementation = PolicyDefinitionUpdateDto.class) JsonObject policyDefinition);
+    void updatePolicyDefinition(String id, JsonObject policyDefinition);
 }

@@ -15,15 +15,19 @@
 package org.eclipse.edc.connector.api.management.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
 
 import java.util.Objects;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+
 @JsonDeserialize(builder = PolicyDefinitionRequestDto.Builder.class)
 public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
 
+    @JsonProperty(value = ID)
     private String id;
 
     private PolicyDefinitionRequestDto() {
@@ -66,6 +70,7 @@ public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
             return new PolicyDefinitionRequestDto.Builder();
         }
 
+        @JsonProperty(value = ID)
         public Builder id(String id) {
             dto.id = id;
             return this;
@@ -76,9 +81,5 @@ public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
             return this;
         }
 
-        @Override
-        public PolicyDefinitionRequestDto build() {
-            return dto;
-        }
     }
 }

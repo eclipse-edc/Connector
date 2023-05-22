@@ -336,25 +336,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/NegotiationInitiateRequestDto'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
       responses:
         "200":
           content:
@@ -387,25 +369,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
           content:
@@ -681,6 +645,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         authCodeId:
           type: string
           example: null
@@ -746,6 +716,15 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         callbackAddresses:
           type: array
           example: null
@@ -762,9 +741,6 @@ components:
           format: int64
           example: null
         errorDetail:
-          type: string
-          example: null
-        id:
           type: string
           example: null
         protocol:
@@ -807,6 +783,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         operandLeft:
           type: object
           example: null
@@ -847,12 +829,18 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
-          example: null
-        id:
-          type: string
           example: null
     JsonObject:
       type: object
@@ -893,6 +881,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         callbackAddresses:
           type: array
           example: null
@@ -924,6 +918,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         state:
           type: string
           example: null
@@ -1020,6 +1020,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         filter:
           type: string
           example: null

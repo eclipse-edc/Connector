@@ -22,7 +22,7 @@ import jakarta.validation.constraints.NotNull;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 @JsonDeserialize(builder = CriterionDto.Builder.class)
-public class CriterionDto {
+public class CriterionDto extends BaseDto {
 
     // constants for JSON-LD transformation
     public static final String CRITERION_OPERAND_LEFT = EDC_NAMESPACE + "operandLeft";
