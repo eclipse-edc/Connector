@@ -65,15 +65,14 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ClaimToken claimToken) {
-        return transactionContext.execute(() ->
-                validateOffer(message, claimToken)
-                        .compose(validatedOffer -> createNegotiation(message, validatedOffer)).onSuccess(negotiation -> {
-                            negotiation.transitionRequested();
-                            monitor.debug(() -> "[Provider] Contract offer received. Will be approved automatically.");
-                            negotiation.transitionAgreeing(); // automatic agree
-                            update(negotiation);
-                            observable.invokeForEach(l -> l.requested(negotiation));
-                        }));
+        return transactionContext.execute(() -> validateOffer(message, claimToken)
+                    .compose(validatedOffer -> createNegotiation(message, validatedOffer))
+                    .onSuccess(negotiation -> {
+                        monitor.debug(() -> "[Provider] Contract offer received.");
+                        negotiation.transitionRequested();
+                        update(negotiation);
+                        observable.invokeForEach(l -> l.requested(negotiation));
+                    }));
     }
 
     @Override
@@ -162,7 +161,9 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
     @NotNull
     private ServiceResult<ValidatedConsumerOffer> validateOffer(ContractRequestMessage message, ClaimToken claimToken) {
-        var result = validationService.validateInitialOffer(claimToken, message.getContractOffer());
+        var result = message.getContractOffer() != null ?
+                validationService.validateInitialOffer(claimToken, message.getContractOffer()) :
+                validationService.validateInitialOffer(claimToken, message.getContractOfferId());
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer rejected as invalid: " + result.getFailureDetail());
             return ServiceResult.badRequest("Contract offer is not valid: " + result.getFailureDetail());

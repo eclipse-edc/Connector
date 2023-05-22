@@ -70,7 +70,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @Nullable TransferProcess findById(String transferProcessId) {
-        return transactionContext.execute(() -> transferProcessStore.find(transferProcessId));
+        return transactionContext.execute(() -> transferProcessStore.findById(transferProcessId));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     @Override
     public @Nullable String getState(String transferProcessId) {
         return transactionContext.execute(() -> {
-            var process = transferProcessStore.find(transferProcessId);
+            var process = transferProcessStore.findById(transferProcessId);
             return Optional.ofNullable(process).map(p -> TransferProcessStates.from(p.getState()).name()).orElse(null);
         });
     }
@@ -107,7 +107,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull ServiceResult<String> initiateTransfer(TransferRequest request) {
+    public @NotNull ServiceResult<TransferProcess> initiateTransfer(TransferRequest request) {
         var validDestination = dataAddressValidator.validate(request.getDataRequest().getDataDestination());
         if (validDestination.failed()) {
             return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
@@ -135,7 +135,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     private ServiceResult<TransferProcess> runAsync(SingleTransferProcessCommand command) {
         return Optional.of(command.getTransferProcessId())
-                .map(transferProcessStore::find)
+                .map(transferProcessStore::findById)
                 .map(transferProcess -> {
                     var validator = asyncCommandValidators.get(command.getClass());
                     var validationResult = validator.apply(command, transferProcess);

@@ -15,7 +15,7 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
-import org.assertj.core.api.Assertions;
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -55,6 +55,7 @@ import java.time.Clock;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
@@ -95,7 +96,8 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyRequested_validAgreement_shouldInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .id("processId")
+                .processId("processId")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -106,9 +108,13 @@ class TransferProcessProtocolServiceImplTest {
 
         var result = service.notifyRequested(message, claimToken());
 
-        assertThat(result).isSucceeded().extracting(TransferProcess::getCorrelationId).isEqualTo("processId");
+        assertThat(result).isSucceeded().satisfies(tp -> {
+            assertThat(tp.getCorrelationId()).isEqualTo("processId");
+            assertThat(tp.getDataRequest().getConnectorAddress()).isEqualTo("http://any");
+            assertThat(tp.getDataRequest().getAssetId()).isEqualTo("assetId");
+        });
         verify(listener).preCreated(any());
-        verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == INITIAL.code()));
         verify(listener).initiated(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -116,7 +122,8 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyRequested_doNothingIfProcessAlreadyExist() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .id("processId")
+                .processId("processId")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -125,13 +132,30 @@ class TransferProcessProtocolServiceImplTest {
         when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         when(store.processIdForDataRequestId("processId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
 
         var result = service.notifyRequested(message, claimToken());
 
         assertThat(result).isSucceeded().extracting(TransferProcess::getId).isEqualTo("processId");
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
+    }
+
+    @Test
+    void notifyRequested_invalidContractId_shouldNotInitiateTransfer() {
+        var message = TransferRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .contractId("notvalidcontractid")
+                .callbackAddress("http://any")
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .build();
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+
+        var result = service.notifyRequested(message, claimToken());
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        verify(store, never()).updateOrCreate(any());
+        verifyNoInteractions(listener, store, negotiationStore, validationService);
     }
 
     @Test
@@ -139,6 +163,7 @@ class TransferProcessProtocolServiceImplTest {
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -148,7 +173,7 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyRequested(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
@@ -157,6 +182,7 @@ class TransferProcessProtocolServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
+                .contractId(ContractId.createContractId("definitionId", "assetId"))
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
@@ -164,17 +190,17 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyRequested(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
     @Test
     void notifyStarted_shouldTransitionToStarted() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(REQUESTED, "processId"));
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .dataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
@@ -185,37 +211,37 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded();
         verify(listener).preStarted(any());
-        verify(store).save(argThat(t -> t.getState() == STARTED.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == STARTED.code()));
         verify(listener).started(any(), captor.capture());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
 
-        Assertions.assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
+        assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
     }
 
     @Test
     void notifyStarted_shouldReturnConflict_whenStatusIsNotValid() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
+        when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build());
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
         var result = service.notifyStarted(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
     @Test
     void notifyCompleted_shouldTransitionToCompleted() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(STARTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
@@ -223,7 +249,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded();
         verify(listener).preCompleted(any());
-        verify(store).save(argThat(t -> t.getState() == COMPLETED.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == COMPLETED.code()));
         verify(listener).completed(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -231,27 +257,27 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyCompleted_shouldReturnConflict_whenStatusIsNotValid() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build());
+        when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build());
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .build();
 
         var result = service.notifyCompleted(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
     @Test
     void notifyTerminated_shouldTransitionToTerminated() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(transferProcess(STARTED, "processId"));
+        when(store.findById("processId")).thenReturn(transferProcess(STARTED, "processId"));
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .code("TestCode")
                 .reason("TestReason")
@@ -261,7 +287,7 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded();
         verify(listener).preTerminated(any());
-        verify(store).save(argThat(t -> t.getState() == TERMINATED.code()));
+        verify(store).updateOrCreate(argThat(t -> t.getState() == TERMINATED.code()));
         verify(listener).terminated(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -269,10 +295,10 @@ class TransferProcessProtocolServiceImplTest {
     @Test
     void notifyTerminated_shouldReturnConflict_whenStatusIsNotValid() {
         when(store.processIdForDataRequestId("dataRequestId")).thenReturn("processId");
-        when(store.find("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build());
+        when(store.findById("processId")).thenReturn(TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build());
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("dataRequestId")
                 .code("TestCode")
                 .reason("TestReason")
@@ -281,7 +307,7 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyTerminated(message, claimToken());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
 
@@ -289,12 +315,12 @@ class TransferProcessProtocolServiceImplTest {
     @ArgumentsSource(NotFoundArguments.class)
     <M extends RemoteMessage> void notify_shouldFail_whenTransferProcessNotFound(MethodCall<M> methodCall, M message) {
         when(store.processIdForDataRequestId(any())).thenReturn(null);
-        when(store.find(any())).thenReturn(null);
+        when(store.findById(any())).thenReturn(null);
 
         var result = methodCall.call(service, message, claimToken());
 
         assertThat(result).matches(ServiceResult::failed);
-        verify(store, never()).save(any());
+        verify(store, never()).updateOrCreate(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -335,11 +361,11 @@ class TransferProcessProtocolServiceImplTest {
             MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
             return Stream.of(
                     Arguments.of(started, TransferStartMessage.Builder.newInstance().protocol("protocol")
-                            .callbackAddress("http://any").processId("dataRequestId").build()),
+                            .counterPartyAddress("http://any").processId("dataRequestId").build()),
                     Arguments.of(completed, TransferCompletionMessage.Builder.newInstance().protocol("protocol")
-                            .callbackAddress("http://any").processId("dataRequestId").build()),
+                            .counterPartyAddress("http://any").processId("dataRequestId").build()),
                     Arguments.of(terminated, TransferTerminationMessage.Builder.newInstance().protocol("protocol")
-                            .callbackAddress("http://any").processId("dataRequestId").code("TestCode")
+                            .counterPartyAddress("http://any").processId("dataRequestId").code("TestCode")
                             .reason("TestReason").build())
             );
         }

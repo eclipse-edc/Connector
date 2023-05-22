@@ -19,11 +19,8 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,13 +38,12 @@ public class TestFunctions {
                 .type(ContractNegotiation.Type.CONSUMER)
                 .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
                         .policy(Policy.Builder.newInstance().build())
-                        .asset(Asset.Builder.newInstance().id("test-asset").build())
-                        .contractStart(ZonedDateTime.now())
-                        .contractEnd(ZonedDateTime.now().plusMonths(1))
+                        .assetId("test-asset")
                         .build()))
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart");
+                .protocol("ids-multipart")
+                .correlationId("correlationId");
     }
 
     public static ContractAgreement createAgreement() {
@@ -62,8 +58,6 @@ public class TestFunctions {
                 .consumerId("consumer")
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .contractStartDate(Instant.now().getEpochSecond())
-                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
     }
 }

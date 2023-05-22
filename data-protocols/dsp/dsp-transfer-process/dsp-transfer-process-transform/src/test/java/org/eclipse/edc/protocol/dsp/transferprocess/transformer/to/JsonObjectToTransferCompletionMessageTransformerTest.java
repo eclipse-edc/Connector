@@ -15,18 +15,16 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.to;
 
 import jakarta.json.Json;
-import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferCompletionMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_COMPLETION_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -49,17 +47,15 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
     void jsonObjectToTransferCompletionMessage() {
 
         var json = Json.createObjectBuilder()
-                .add(CONTEXT, DSPACE_SCHEMA)
-                .add(TYPE, DSPACE_TRANSFER_COMPLETION_TYPE)
-                .add(DSPACE_PROCESSID_TYPE, processId)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, processId)
                 .build();
 
-        var result = transformer.transform(json, context);
+        var result = transformer.transform(getExpanded(json), context);
 
         assertThat(result).isNotNull();
 
         assertThat(result.getProcessId()).isEqualTo(processId);
-        assertThat(result.getProtocol()).isEqualTo(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
 
         verify(context, never()).reportProblem(anyString());
     }

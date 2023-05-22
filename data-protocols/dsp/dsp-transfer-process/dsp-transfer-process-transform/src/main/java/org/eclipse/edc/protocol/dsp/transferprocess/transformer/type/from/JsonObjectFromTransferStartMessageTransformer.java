@@ -22,12 +22,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 
 public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonLdTransformer<TransferStartMessage, JsonObject> {
 
@@ -42,11 +41,12 @@ public class JsonObjectFromTransferStartMessageTransformer extends AbstractJsonL
     public @Nullable JsonObject transform(@NotNull TransferStartMessage transferStartMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(ID, UUID.randomUUID().toString());
-        builder.add(TYPE, DSPACE_TRANSFER_START_TYPE);
-        builder.add(DSPACE_PROCESSID_TYPE, transferStartMessage.getProcessId());
-
-        //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
+        builder.add(ID, transferStartMessage.getId());
+        builder.add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE);
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, transferStartMessage.getProcessId());
+        if (transferStartMessage.getDataAddress() != null) {
+            builder.add(DSPACE_PROPERTY_DATA_ADDRESS, context.transform(transferStartMessage.getDataAddress(), JsonObject.class));
+        }
 
         return builder.build();
     }

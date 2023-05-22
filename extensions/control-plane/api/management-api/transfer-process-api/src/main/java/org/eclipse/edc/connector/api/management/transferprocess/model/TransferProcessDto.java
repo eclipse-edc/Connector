@@ -17,26 +17,39 @@ package org.eclipse.edc.connector.api.management.transferprocess.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.api.model.CallbackAddressDto;
+import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.model.MutableDto;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 @JsonDeserialize(builder = TransferProcessDto.Builder.class)
 public class TransferProcessDto extends MutableDto {
+
+    public static final String EDC_TRANSFER_PROCESS_DTO_TYPE = EDC_NAMESPACE + "TransferProcessDto";
+    public static final String EDC_TRANSFER_PROCESS_DTO_STATE = EDC_NAMESPACE + "state";
+    public static final String EDC_TRANSFER_PROCESS_DTO_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
+    public static final String EDC_TRANSFER_PROCESS_DTO_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String EDC_TRANSFER_PROCESS_DTO_TYPE_TYPE = EDC_NAMESPACE + "type";
+    public static final String EDC_TRANSFER_PROCESS_DTO_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
+    public static final String EDC_TRANSFER_PROCESS_DTO_DATA_REQUEST = EDC_NAMESPACE + "dataRequest";
+    public static final String EDC_TRANSFER_PROCESS_DTO_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
+    public static final String EDC_TRANSFER_PROCESS_DTO_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
+
     private String id;
     private String type;
     private String state;
     private Long stateTimestamp;
     private String errorDetail;
     private DataRequestDto dataRequest;
-    private DataAddressInformationDto dataDestination;
-
+    private DataAddressDto dataDestination;
     private Map<String, String> properties = new HashMap<>();
-    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
+    private List<CallbackAddressDto> callbackAddresses = new ArrayList<>();
 
     private TransferProcessDto() {
     }
@@ -61,15 +74,19 @@ public class TransferProcessDto extends MutableDto {
         return errorDetail;
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
     public DataRequestDto getDataRequest() {
         return dataRequest;
     }
 
-    public List<CallbackAddress> getCallbackAddresses() {
+    public List<CallbackAddressDto> getCallbackAddresses() {
         return callbackAddresses;
     }
 
-    public DataAddressInformationDto getDataDestination() {
+    public DataAddressDto getDataDestination() {
         return dataDestination;
     }
 
@@ -115,7 +132,7 @@ public class TransferProcessDto extends MutableDto {
             return this;
         }
 
-        public Builder dataDestination(DataAddressInformationDto dataDestination) {
+        public Builder dataDestination(DataAddressDto dataDestination) {
             dto.dataDestination = dataDestination;
             return this;
         }
@@ -125,7 +142,7 @@ public class TransferProcessDto extends MutableDto {
             return this;
         }
 
-        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+        public Builder callbackAddresses(List<CallbackAddressDto> callbackAddresses) {
             dto.callbackAddresses = callbackAddresses;
             return this;
         }

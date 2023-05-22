@@ -23,14 +23,12 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
 
 
 public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJsonLdTransformer<TransferRequestMessage, JsonObject> {
@@ -47,16 +45,16 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
     public @Nullable JsonObject transform(@NotNull TransferRequestMessage transferRequestMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(JsonLdKeywords.ID, String.valueOf(UUID.randomUUID()));
-        builder.add(JsonLdKeywords.TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE);
+        builder.add(JsonLdKeywords.ID, transferRequestMessage.getId());
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
 
-        builder.add(DSPACE_CONTRACTAGREEMENT_TYPE, transferRequestMessage.getContractId());
+        builder.add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, transferRequestMessage.getContractId());
         builder.add(DCT_FORMAT_ATTRIBUTE, transferRequestMessage.getDataDestination().getType());
-        builder.add(DSPACE_CALLBACKADDRESS_TYPE, transferRequestMessage.getCallbackAddress());
-        builder.add(DSPACE_PROCESSID_TYPE, transferRequestMessage.getProcessId());
+        builder.add(DSPACE_PROPERTY_CALLBACK_ADDRESS, transferRequestMessage.getCallbackAddress());
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, transferRequestMessage.getProcessId());
 
         if (transferRequestMessage.getDataDestination().getProperties().size() > 1) {
-            builder.add(DSPACE_DATAADDRESS_TYPE, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
+            builder.add(DSPACE_PROPERTY_DATA_ADDRESS, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
         }
         return builder.build();
     }

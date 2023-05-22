@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.asset.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.api.model.DataAddressDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +36,10 @@ public class AssetEntryDtoTest {
     @Test
     void verifySerialization() throws JsonProcessingException {
 
-        var assetDto = AssetCreationRequestDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
+        var assetDto = AssetCreationRequestDto.Builder.newInstance()
+                .properties(Collections.singletonMap("Asset-1", ""))
+                .privateProperties(Collections.singletonMap("pAsset-1", ""))
+                .build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
 
         var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();

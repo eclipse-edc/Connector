@@ -135,7 +135,6 @@ class PolicyDefinitionServiceImplTest {
                 .accessPolicyId(policy.getUid())
                 .contractPolicyId(policy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
-                .validity(100)
                 .build();
 
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
@@ -156,7 +155,6 @@ class PolicyDefinitionServiceImplTest {
                 .accessPolicyId(policy.getUid())
                 .contractPolicyId(policy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
-                .validity(100)
                 .build();
 
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));

@@ -24,12 +24,13 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegoti
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
@@ -45,6 +46,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
@@ -93,7 +95,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .correlationId(id)
                 .protocol(requestData.getProtocol())
                 .counterPartyId(requestData.getConnectorId())
-                .counterPartyAddress(requestData.getCallbackAddress())
+                .counterPartyAddress(requestData.getCounterPartyAddress())
                 .callbackAddresses(request.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
@@ -108,15 +110,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @Override
     public void enqueueCommand(ContractNegotiationCommand command) {
         commandQueue.enqueue(command);
-    }
-
-    private ContractNegotiation findContractNegotiationById(String negotiationId) {
-        var negotiation = negotiationStore.findById(negotiationId);
-        if (negotiation == null) {
-            negotiation = negotiationStore.findForCorrelationId(negotiationId);
-        }
-
-        return negotiation;
     }
 
     /**
@@ -142,7 +135,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var offer = negotiation.getLastContractOffer();
         var request = ContractRequestMessage.Builder.newInstance()
                 .contractOffer(offer)
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
+                .callbackAddress(protocolWebhook.url())
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .processId(negotiation.getId())
@@ -179,20 +173,18 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         var policy = lastOffer.getPolicy();
         var agreement = ContractAgreement.Builder.newInstance()
-                .id(ContractId.createContractId(definitionId))
-                .contractStartDate(lastOffer.getContractStart().toEpochSecond())
-                .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
+                .id(ContractId.createContractId(definitionId, lastOffer.getAssetId()))
                 .contractSigningDate(clock.instant().getEpochSecond())
                 .providerId(negotiation.getCounterPartyId())
                 .consumerId(participantId)
                 .policy(policy)
-                .assetId(lastOffer.getAsset().getId())
+                .assetId(lastOffer.getAssetId())
                 .build();
 
         var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .processId(negotiation.getId())
                 .policy(policy)
@@ -235,7 +227,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processVerifying(ContractNegotiation negotiation) {
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
                 .build();
 
@@ -260,7 +252,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
@@ -275,7 +267,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
-        return new StateProcessorImpl<>(() -> negotiationStore.nextForState(state.code(), batchSize), telemetry.contextPropagationMiddleware(function));
+        Criterion[] filter = { hasState(state.code()), new Criterion("type", "=", CONSUMER.name()) };
+        return new StateProcessorImpl<>(() -> negotiationStore.nextNotLeased(batchSize, filter), telemetry.contextPropagationMiddleware(function));
     }
 
     private StateProcessorImpl<ContractNegotiationCommand> onCommands(Function<ContractNegotiationCommand, Boolean> process) {

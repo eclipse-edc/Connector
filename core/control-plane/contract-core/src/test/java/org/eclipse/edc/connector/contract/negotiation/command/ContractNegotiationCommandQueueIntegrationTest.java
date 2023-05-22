@@ -19,9 +19,9 @@ import org.eclipse.edc.connector.contract.negotiation.ProviderContractNegotiatio
 import org.eclipse.edc.connector.contract.negotiation.command.handlers.SingleContractNegotiationCommandHandler;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.command.SingleContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.command.BoundedCommandQueue;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;

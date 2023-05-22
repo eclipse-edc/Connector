@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.http.pipeline.ChunkedTransferRequestB
 import org.eclipse.edc.connector.dataplane.http.pipeline.NonChunkedTransferRequestBody;
 import org.eclipse.edc.connector.dataplane.http.pipeline.StringRequestBodySupplier;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
@@ -34,6 +35,9 @@ import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
  * Permits to create a {@link Request} from a {@link HttpRequestParams}
  */
 public class HttpRequestFactory {
+
+    private static final String SLASH = "/";
+    private static final String BACKSLASH = "\\";
 
     /**
      * Creates HTTP request from the provided set of parameters.
@@ -53,7 +57,7 @@ public class HttpRequestFactory {
     /**
      * Creates HTTP request from the provided set of parameters and the request body supplier.
      *
-     * @param params the http request parameters
+     * @param params       the http request parameters
      * @param bodySupplier the request body supplier.
      * @return HTTP request.
      */
@@ -90,7 +94,8 @@ public class HttpRequestFactory {
         var builder = parsedBaseUrl.newBuilder();
         var path = params.getPath();
         if (!isNullOrBlank(path)) {
-            builder.addPathSegments(path);
+            var sanitizedPath = startWithSlash(path) ? path.substring(1) : path;
+            builder.addPathSegments(sanitizedPath);
         }
 
         var queryParams = params.getQueryParams();
@@ -98,5 +103,9 @@ public class HttpRequestFactory {
             builder.query(queryParams);
         }
         return builder.build();
+    }
+
+    private static boolean startWithSlash(@NotNull String s) {
+        return s.startsWith(SLASH) || s.startsWith(BACKSLASH);
     }
 }

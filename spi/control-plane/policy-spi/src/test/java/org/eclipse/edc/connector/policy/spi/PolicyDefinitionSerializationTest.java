@@ -23,7 +23,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,17 +50,11 @@ class PolicyDefinitionSerializationTest {
     }
 
     private Policy createPolicy() {
-        var permission = Permission.Builder.newInstance()
-                .uid(UUID.randomUUID().toString())
-                .build();
+        var permission = Permission.Builder.newInstance().build();
 
-        var prohibition = Prohibition.Builder.newInstance()
-                .uid(UUID.randomUUID().toString())
-                .build();
+        var prohibition = Prohibition.Builder.newInstance().build();
 
-        var duty = Duty.Builder.newInstance()
-                .uid(UUID.randomUUID().toString())
-                .build();
+        var duty = Duty.Builder.newInstance().build();
 
         var p = Policy.Builder.newInstance()
                 .permission(permission)

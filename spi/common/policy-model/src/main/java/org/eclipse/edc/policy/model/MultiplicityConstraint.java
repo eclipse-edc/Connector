@@ -35,7 +35,7 @@ public abstract class MultiplicityConstraint extends Constraint {
      */
     public abstract MultiplicityConstraint create(List<Constraint> constraints);
 
-    protected abstract static class Builder<T extends MultiplicityConstraint, B extends Builder<T, B>> {
+    public abstract static class Builder<T extends MultiplicityConstraint, B extends Builder<T, B>> {
         protected T constraint;
 
         public B constraint(Constraint constraint) {
@@ -48,6 +48,7 @@ public abstract class MultiplicityConstraint extends Constraint {
             return (B) this;
         }
 
+        public abstract T build();
     }
 
 }

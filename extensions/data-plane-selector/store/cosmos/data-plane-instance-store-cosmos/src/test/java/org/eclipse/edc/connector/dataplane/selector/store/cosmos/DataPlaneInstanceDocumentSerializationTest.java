@@ -41,8 +41,6 @@ class DataPlaneInstanceDocumentSerializationTest {
 
         String s = typeManager.writeValueAsString(document);
 
-        System.out.println(s);
-
         assertThat(s).isNotNull()
                 .contains("properties\":{\"somekey-2\":\"someval-2\",\"somekey-1\":\"someval-1\"}")
                 .contains("wrappedInstance")

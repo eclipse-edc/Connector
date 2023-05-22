@@ -15,26 +15,16 @@
 package org.eclipse.edc.test.system.local;
 
 import com.azure.storage.blob.BlobServiceClient;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.test.system.utils.TransferConfiguration;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONSUMER_PARTICIPANT_ID;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.CONTRACT_VALIDITY;
+import static org.eclipse.edc.azure.blob.AzureBlobStoreSchema.ACCOUNT_NAME;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_ASSET_FILE;
-import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PARTICIPANT_ID;
 
 public class BlobTransferConfiguration implements TransferConfiguration {
 
@@ -62,56 +52,19 @@ public class BlobTransferConfiguration implements TransferConfiguration {
     }
 
     @Override
-    public NegotiationInitiateRequestDto createNegotiationRequest(ContractOffer offer) {
-        var policy = Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .target(offer.getAsset().getId())
-                        .action(Action.Builder.newInstance().type("USE").build())
-                        .build())
-                .type(PolicyType.SET)
+    public JsonObject createBlobDestination() {
+        return Json.createObjectBuilder()
+                .add("type", AzureBlobStoreSchema.TYPE)
+                .add("properties", Json.createObjectBuilder()
+                        .add(ACCOUNT_NAME, blobServiceClient.getAccountName()))
                 .build();
 
-        var offerDescription = ContractOfferDescription.Builder.newInstance()
-                .offerId(offer.getId())
-                .assetId(offer.getAsset().getId())
-                .policy(policy)
-                .validity(CONTRACT_VALIDITY)
-                .build();
-
-        return NegotiationInitiateRequestDto.Builder.newInstance()
-                .connectorId("consumer")
-                .consumerId(CONSUMER_PARTICIPANT_ID)
-                .providerId(PROVIDER_PARTICIPANT_ID)
-                .connectorAddress(providerIdsUrl)
-                .protocol("ids-multipart")
-                .offer(offerDescription)
-                .build();
-    }
-
-    @Override
-    public TransferRequestDto createTransferRequest(ContractOffer offer, String contractAgreementId) {
-        return TransferRequestDto.Builder.newInstance()
-                .assetId(offer.getAsset().getId())
-                .connectorId("consumer")
-                .protocol("ids-multipart")
-                .managedResources(true)
-                .dataDestination(DataAddress.Builder.newInstance()
-                        .type(AzureBlobStoreSchema.TYPE)
-                        .property(AzureBlobStoreSchema.ACCOUNT_NAME, blobServiceClient.getAccountName())
-                        .build())
-                .transferType(TransferType.Builder.transferType()
-                        .contentType("application/octet-stream")
-                        .isFinite(true)
-                        .build())
-                .connectorAddress(providerIdsUrl)
-                .contractId(contractAgreementId)
-                .build();
     }
 
     @Override
     public boolean isTransferResultValid(Map<String, String> dataDestinationProperties) {
         // Assert
-        var container = dataDestinationProperties.get("container");
+        var container = dataDestinationProperties.get("edc:container");
         var destinationBlob = blobServiceClient.getBlobContainerClient(container)
                 .getBlobClient(PROVIDER_ASSET_FILE);
         assertThat(destinationBlob.exists())

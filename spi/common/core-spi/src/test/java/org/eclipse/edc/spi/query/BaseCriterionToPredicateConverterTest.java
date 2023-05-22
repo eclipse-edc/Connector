@@ -21,6 +21,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.query.BaseCriterionToPredicateConverterTest.TestEnum.ENTRY1;
+import static org.eclipse.edc.spi.query.BaseCriterionToPredicateConverterTest.TestEnum.ENTRY2;
 
 class BaseCriterionToPredicateConverterTest {
 
@@ -52,6 +54,15 @@ class BaseCriterionToPredicateConverterTest {
                 .rejects(new TestObject("third"), new TestObject(""), new TestObject(null));
     }
 
+    @Test
+    void convertEqual_enumShouldCheckEntryName() {
+        var predicate = converter.convert(new Criterion("enumValue", "=", "ENTRY2"));
+
+        assertThat(predicate)
+                .accepts(new TestObject("any", ENTRY2))
+                .rejects(new TestObject("any", ENTRY1), new TestObject("any", null));
+    }
+
     private static class TestCriterionToPredicateConverter extends BaseCriterionToPredicateConverter<TestObject> {
 
         @Override
@@ -62,9 +73,15 @@ class BaseCriterionToPredicateConverterTest {
 
     private static class TestObject {
         private final String value;
+        private final TestEnum enumValue;
 
         private TestObject(String value) {
+            this(value, TestEnum.ENTRY1);
+        }
+
+        private TestObject(String value, TestEnum enumValue) {
             this.value = value;
+            this.enumValue = enumValue;
         }
 
         @Override
@@ -73,5 +90,9 @@ class BaseCriterionToPredicateConverterTest {
                     "value='" + value + '\'' +
                     '}';
         }
+    }
+
+    public enum TestEnum {
+        ENTRY1, ENTRY2;
     }
 }

@@ -17,7 +17,6 @@ package org.eclipse.edc.jsonld.transformer.from;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -41,8 +40,19 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
     public @Nullable JsonObject transform(@NotNull Asset asset, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
         builder.add(ID, asset.getId());
-        builder.add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE);
-        transformProperties(asset.getProperties(), builder, mapper, context);
+        builder.add(TYPE, Asset.EDC_ASSET_TYPE);
+        //transform public properties
+        var propBuilder = jsonFactory.createObjectBuilder();
+        transformProperties(asset.getProperties(), propBuilder, mapper, context);
+        builder.add(Asset.EDC_ASSET_PROPERTIES, propBuilder);
+
+
+        //transform private properties
+        if (asset.getPrivateProperties() != null && !asset.getPrivateProperties().isEmpty()) {
+            var privatePropBuilder = jsonFactory.createObjectBuilder();
+            transformProperties(asset.getPrivateProperties(), privatePropBuilder, mapper, context);
+            builder.add(Asset.EDC_ASSET_PRIVATE_PROPERTIES, privatePropBuilder);
+        }
         return builder.build();
     }
 }

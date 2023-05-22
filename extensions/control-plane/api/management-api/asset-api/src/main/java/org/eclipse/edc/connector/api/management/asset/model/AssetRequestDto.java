@@ -16,12 +16,29 @@ package org.eclipse.edc.connector.api.management.asset.model;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
+
 
 public abstract class AssetRequestDto {
 
     @NotNull(message = "properties cannot be null")
     protected Map<String, Object> properties;
+
+    protected Map<String, Object> privateProperties = new HashMap<>();
+
+    protected boolean checkDistinctKeys() {
+        if (privateProperties != null && properties != null) {
+            return properties.keySet().stream().distinct().noneMatch(privateProperties::containsKey);
+        }
+        return false;
+    }
+
+    protected boolean mapKeysValid() {
+        boolean validPrivate = privateProperties != null && privateProperties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
+        boolean validPublic = properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
+        return validPrivate && validPublic;
+    }
 
     protected abstract static class Builder<A extends AssetRequestDto, B extends Builder<A, B>> {
 
@@ -34,6 +51,11 @@ public abstract class AssetRequestDto {
 
         public B properties(Map<String, Object> properties) {
             dto.properties = properties;
+            return self();
+        }
+
+        public B privateProperties(Map<String, Object> privateProperties) {
+            dto.privateProperties = privateProperties;
             return self();
         }
 

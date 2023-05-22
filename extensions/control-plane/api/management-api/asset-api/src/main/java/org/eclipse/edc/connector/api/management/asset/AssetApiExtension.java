@@ -19,8 +19,7 @@ package org.eclipse.edc.connector.api.management.asset;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetRequestDtoToAssetTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetToAssetResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetUpdateRequestWrapperDtoToAssetTransformer;
-import org.eclipse.edc.connector.api.management.asset.transform.DataAddressDtoToDataAddressTransformer;
-import org.eclipse.edc.connector.api.management.asset.transform.DataAddressToDataAddressDtoTransformer;
+import org.eclipse.edc.connector.api.management.asset.transform.JsonObjectToAssetEntryNewDtoTransformer;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -67,11 +66,10 @@ public class AssetApiExtension implements ServiceExtension {
         transformerRegistry.register(new AssetRequestDtoToAssetTransformer());
         transformerRegistry.register(new AssetUpdateRequestWrapperDtoToAssetTransformer());
         transformerRegistry.register(new AssetToAssetResponseDtoTransformer());
-        transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
-        transformerRegistry.register(new DataAddressToDataAddressDtoTransformer());
-
+        transformerRegistry.register(new JsonObjectToAssetEntryNewDtoTransformer());
+        
         webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, dataAddressResolver, transformerRegistry));
-        webService.registerResource(config.getContextAlias(), new AssetNewApiController(assetService, dataAddressResolver, transformerRegistry, jsonLdService));
+        webService.registerResource(config.getContextAlias(), new AssetNewApiController(assetService, dataAddressResolver, transformerRegistry, jsonLdService, monitor));
     }
 
 }

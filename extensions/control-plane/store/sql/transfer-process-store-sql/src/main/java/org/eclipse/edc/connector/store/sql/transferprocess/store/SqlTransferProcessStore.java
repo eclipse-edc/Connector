@@ -22,8 +22,8 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.SqlQueryExecutor;
@@ -38,8 +38,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Clock;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -64,19 +66,21 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public @NotNull List<TransferProcess> nextForState(int state, int max) {
-        var now = clock.millis();
+    public @NotNull List<TransferProcess> nextNotLeased(int max, Criterion... criteria) {
         return transactionContext.execute(() -> {
-            var stmt = statements.getNextForStateTemplate();
+            var filter = Arrays.stream(criteria).collect(toList());
+            var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
+            var statement = statements.createQuery(querySpec);
+            statement.addWhereClause(statements.getNotLeasedFilter());
+            statement.addParameter(clock.millis());
 
             try (
                     var connection = getConnection();
-                    var stream = SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, stmt, state, now, max)
+                    var stream = SqlQueryExecutor.executeQuery(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters())
             ) {
-                var transferProcesses = stream.collect(toList());
-                transferProcesses.forEach(t -> leaseContext.by(leaseHolderName).withConnection(connection).acquireLease(t.getId()));
+                var transferProcesses = stream.collect(Collectors.toList());
+                transferProcesses.forEach(transferProcess -> leaseContext.withConnection(connection).acquireLease(transferProcess.getId()));
                 return transferProcesses;
-
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -84,10 +88,10 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public @Nullable TransferProcess find(String id) {
+    public @Nullable TransferProcess findById(String id) {
         return transactionContext.execute(() -> {
-            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
-            return single(findAll(q).collect(toList()));
+            var querySpec = QuerySpec.Builder.newInstance().filter(new Criterion("id", "=", id)).build();
+            return single(findAll(querySpec).collect(toList()));
         });
     }
 
@@ -104,7 +108,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public void save(TransferProcess process) {
+    public void updateOrCreate(TransferProcess process) {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         if (process.getDataRequest() == null) {
             throw new IllegalArgumentException("Cannot store TransferProcess without a DataRequest");
@@ -128,7 +132,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     public void delete(String processId) {
 
         transactionContext.execute(() -> {
-            var existing = find(processId);
+            var existing = findById(processId);
             if (existing != null) {
                 try (var conn = getConnection()) {
                     // attempt to acquire lease - should fail if someone else holds the lease
@@ -168,7 +172,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
                 .managedResources(resultSet.getBoolean(statements.getManagedResourcesColumn()))
-                .transferType(fromJson(resultSet.getString(statements.getTransferTypeColumn()), TransferType.class))
                 .processId(resultSet.getString(statements.getProcessIdColumn()))
                 .properties(fromJson(resultSet.getString(statements.getDataRequestPropertiesColumn()), getTypeRef()))
                 .build();
@@ -219,7 +222,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(dataRequest.getDataDestination()),
                 dataRequest.isManagedResources(),
                 toJson(dataRequest.getProperties()),
-                toJson(dataRequest.getTransferType()),
                 existingDataRequestId);
     }
 
@@ -276,7 +278,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 dr.getContractId(),
                 toJson(dr.getDataDestination()),
                 toJson(dr.getProperties()),
-                toJson(dr.getTransferType()),
                 processId,
                 dr.getProtocol(),
                 dr.isManagedResources());

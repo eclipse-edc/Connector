@@ -24,23 +24,27 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegoti
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
+import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 
 import java.util.function.Function;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
@@ -54,6 +58,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     public void start() {
         stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(OFFERING, this::processOffering))
+                .processor(processNegotiationsInState(REQUESTED, this::processRequested))
                 .processor(processNegotiationsInState(AGREEING, this::processAgreeing))
                 .processor(processNegotiationsInState(VERIFIED, this::processVerified))
                 .processor(processNegotiationsInState(FINALIZING, this::processFinalizing))
@@ -76,7 +81,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
-        return new StateProcessorImpl<>(() -> negotiationStore.nextForState(state.code(), batchSize), telemetry.contextPropagationMiddleware(function));
+        Criterion[] filter = { hasState(state.code()), new Criterion("type", "=", PROVIDER.name()) };
+        return new StateProcessorImpl<>(() -> negotiationStore.nextNotLeased(batchSize, filter), telemetry.contextPropagationMiddleware(function));
     }
 
     private StateProcessorImpl<ContractNegotiationCommand> onCommands(Function<ContractNegotiationCommand, Boolean> process) {
@@ -101,7 +107,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var contractOfferRequest = ContractRequestMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractOffer(currentOffer)
                 .processId(negotiation.getCorrelationId())
                 .build();
@@ -127,7 +133,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getCorrelationId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
@@ -139,6 +145,17 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .onFailure((n, throwable) -> transitionToTerminating(n))
                 .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send rejection");
+    }
+
+    /**
+     * Processes {@link ContractNegotiation} in state REQUESTED. It transitions to AGREEING, because the automatic agreement.
+     *
+     * @return true if processed, false otherwise
+     */
+    @WithSpan
+    private boolean processRequested(ContractNegotiation negotiation) {
+        transitionToAgreeing(negotiation);
+        return true;
     }
 
     /**
@@ -167,14 +184,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             policy = lastOffer.getPolicy();
 
             agreement = ContractAgreement.Builder.newInstance()
-                    .id(ContractId.createContractId(definitionId))
-                    .contractStartDate(lastOffer.getContractStart().toEpochSecond())
-                    .contractEndDate(lastOffer.getContractEnd().toEpochSecond())
+                    .id(ContractId.createContractId(definitionId, lastOffer.getAssetId()))
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())
                     .policy(policy)
-                    .assetId(lastOffer.getAsset().getId())
+                    .assetId(lastOffer.getAssetId())
                     .build();
         } else {
             agreement = retrievedAgreement;
@@ -184,7 +199,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .processId(negotiation.getCorrelationId())
                 .policy(policy)
@@ -223,7 +238,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol(negotiation.getProtocol())
-                .callbackAddress(negotiation.getCounterPartyAddress())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getCorrelationId())
                 .build();
 
@@ -236,11 +251,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .execute("[Provider] send finalization");
     }
 
-    /**
-     * Builder for ProviderContractNegotiationManagerImpl.
-     */
     public static class Builder extends AbstractContractNegotiationManager.Builder<ProviderContractNegotiationManagerImpl> {
-
 
         private Builder() {
             super(new ProviderContractNegotiationManagerImpl());

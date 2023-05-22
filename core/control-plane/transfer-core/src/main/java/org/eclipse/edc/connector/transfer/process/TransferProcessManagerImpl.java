@@ -48,6 +48,7 @@ import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
@@ -57,6 +58,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -72,7 +74,6 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
-import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
@@ -90,6 +91,8 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.types.domain.DataAddress.SECRET;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -136,6 +139,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private EntityRetryProcessFactory entityRetryProcessFactory;
     private Clock clock;
     private EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
+    private ProtocolWebhook protocolWebhook;
 
     private TransferProcessManagerImpl() {
     }
@@ -147,7 +151,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processTransfersInState(REQUESTING, this::processRequesting))
-                .processor(processTransfersInState(REQUESTED, this::processRequested))
                 .processor(processTransfersInState(STARTING, this::processStarting))
                 .processor(processTransfersInState(STARTED, this::processStarted))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
@@ -169,8 +172,29 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     @Override
-    public StatusResult<String> initiateConsumerRequest(TransferRequest transferRequest) {
-        return initiateRequest(CONSUMER, transferRequest);
+    public StatusResult<TransferProcess> initiateConsumerRequest(TransferRequest transferRequest) {
+        // make the request idempotent: if the process exists, return
+        var dataRequest = transferRequest.getDataRequest();
+        var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
+        if (processId != null) {
+            return StatusResult.success(transferProcessStore.findById(processId));
+        }
+        var process = TransferProcess.Builder.newInstance()
+                .id(dataRequest.getId())
+                .dataRequest(dataRequest)
+                .type(CONSUMER)
+                .clock(clock)
+                .properties(dataRequest.getProperties())
+                .callbackAddresses(transferRequest.getCallbackAddresses())
+                .traceContext(telemetry.getCurrentTraceContext())
+                .build();
+
+        observable.invokeForEach(l -> l.preCreated(process));
+        update(process);
+        observable.invokeForEach(l -> l.initiated(process));
+        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+
+        return StatusResult.success(process);
     }
 
     @Override
@@ -185,7 +209,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @Override
     public void handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
             return;
@@ -196,7 +220,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @Override
     public void handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
-        var transferProcess = transferProcessStore.find(processId);
+        var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
             return;
@@ -256,32 +280,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         handleDeprovisionResponses(transferProcess, deprovisionResponses);
     }
 
-    private StatusResult<String> initiateRequest(TransferProcess.Type type, TransferRequest transferRequest) {
-        // make the request idempotent: if the process exists, return
-        var dataRequest = transferRequest.getDataRequest();
-        var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
-        if (processId != null) {
-            return StatusResult.success(processId);
-        }
-        var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance()
-                .id(id)
-                .dataRequest(dataRequest)
-                .type(type)
-                .clock(clock)
-                .properties(dataRequest.getProperties())
-                .callbackAddresses(transferRequest.getCallbackAddresses())
-                .traceContext(telemetry.getCurrentTraceContext())
-                .build();
-
-        observable.invokeForEach(l -> l.preCreated(process));
-        update(process);
-        observable.invokeForEach(l -> l.initiated(process));
-        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-
-        return StatusResult.success(process.getId());
-    }
-
     /**
      * Process INITIAL transfer<p> set it to PROVISIONING
      *
@@ -319,6 +317,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             }
             // default the content address to the asset address; this may be overridden during provisioning
             process.setContentDataAddress(dataAddress);
+
+            var dataDestination = process.getDataRequest().getDataDestination();
+            var secret = dataDestination.getProperty(SECRET);
+            if (secret != null) {
+                vault.storeSecret(dataDestination.getKeyName(), secret);
+            }
+
             manifest = manifestGenerator.generateProviderResourceManifest(dataRequest, dataAddress, policy);
         }
 
@@ -348,7 +353,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var resources = process.getResourcesToProvision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
-                .entityRetrieve(transferProcessStore::find)
+                .entityRetrieve(transferProcessStore::findById)
                 .onSuccess(this::handleProvisionResult)
                 .onFailure((t, throwable) -> transitionToProvisioning(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
@@ -386,49 +391,34 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataRequest = process.getDataRequest();
 
+        DataAddress dataDestination;
+        var secret = vault.resolveSecret(dataRequest.getDataDestination().getKeyName());
+        if (secret != null) {
+            dataDestination = DataAddress.Builder.newInstance().properties(dataRequest.getDataDestination().getProperties()).property(SECRET, secret).build();
+        } else {
+            dataDestination = dataRequest.getDataDestination();
+        }
+
         var message = TransferRequestMessage.Builder.newInstance()
-                .id(dataRequest.getId())
+                .processId(dataRequest.getId())
                 .protocol(dataRequest.getProtocol())
                 .connectorId(dataRequest.getConnectorId())
-                .callbackAddress(dataRequest.getConnectorAddress())
-                .dataDestination(dataRequest.getDataDestination())
+                .counterPartyAddress(dataRequest.getConnectorAddress())
+                .callbackAddress(protocolWebhook.url())
+                .dataDestination(dataDestination)
                 .properties(dataRequest.getProperties())
                 .assetId(dataRequest.getAssetId())
                 .contractId(dataRequest.getContractId())
                 .build();
 
-        var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCallbackAddress());
+        var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCounterPartyAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToRequested(t))
-                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
                 .onDelay(this::breakLease)
                 .execute(description);
-    }
-
-    /**
-     * Process REQUESTED transfer<p> If is managed or there are provisioned resources set {@link TransferProcess#transitionStarting()},
-     * do nothing otherwise
-     *
-     * @param process the REQUESTED transfer fetched
-     * @return if the transfer has been processed or not
-     * @deprecated this method and the related processor could be removed when Dataspace Protocol takes over
-     */
-    @WithSpan
-    @Deprecated(since = "milestone9")
-    private boolean processRequested(TransferProcess process) {
-        var dataRequest = process.getDataRequest();
-        if (!"ids-multipart".equals(dataRequest.getProtocol())) {
-            return false;
-        }
-        if (!dataRequest.isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-            transitionToStarted(process);
-            return true;
-        } else {
-            monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED);
-            return false;
-        }
     }
 
     /**
@@ -466,14 +456,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
                 .dataAddress(dataFlowResponse.getDataAddress())
-                .callbackAddress(dataRequest.getConnectorAddress()) // TODO: is this correct? it shouldn't be for provider.
+                .counterPartyAddress(dataRequest.getConnectorAddress())
                 .processId(dataRequest.getId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
 
         entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToStarted(t))
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -535,13 +525,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var dataRequest = process.getDataRequest();
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol(dataRequest.getProtocol())
-                .callbackAddress(dataRequest.getConnectorAddress())
+                .counterPartyAddress(dataRequest.getConnectorAddress())
                 .processId(dataRequest.getId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -565,14 +555,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataRequest = process.getDataRequest();
         var message = TransferTerminationMessage.Builder.newInstance()
-                .callbackAddress(dataRequest.getConnectorAddress())
+                .counterPartyAddress(dataRequest.getConnectorAddress())
                 .protocol(dataRequest.getProtocol())
                 .processId(dataRequest.getId())
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.find(id))
+                .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onRetryExhausted(this::transitionToTerminated)
@@ -598,12 +588,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
-                .entityRetrieve(transferProcessStore::find)
-                .onDelay(this::breakLease)
-                .onSuccess(this::handleDeprovisionResult)
-                .onFailure((t, throwable) -> transitionToDeprovisioning(t))
-                .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
-                .execute("deprovisioning");
+                        .entityRetrieve(transferProcessStore::findById)
+                        .onDelay(this::breakLease)
+                        .onSuccess(this::handleDeprovisionResult)
+                        .onFailure((t, throwable) -> transitionToDeprovisioning(t))
+                        .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
+                        .execute("deprovisioning");
     }
 
     private void handleProvisionResponses(TransferProcess transferProcess, List<ProvisionResponse> responses) {
@@ -714,7 +704,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private StateProcessorImpl<TransferProcess> processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
         var functionWithTraceContext = telemetry.contextPropagationMiddleware(function);
-        return new StateProcessorImpl<>(() -> transferProcessStore.nextForState(state.code(), batchSize), functionWithTraceContext);
+        return new StateProcessorImpl<>(() -> transferProcessStore.nextNotLeased(batchSize, hasState(state.code())), functionWithTraceContext);
     }
 
     private StateProcessorImpl<TransferProcessCommand> onCommands(Function<TransferProcessCommand, Boolean> process) {
@@ -796,12 +786,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void update(TransferProcess transferProcess) {
-        transferProcessStore.save(transferProcess);
+        transferProcessStore.updateOrCreate(transferProcess);
         monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 
     private void breakLease(TransferProcess process) {
-        transferProcessStore.save(process);
+        transferProcessStore.updateOrCreate(process);
     }
 
     @NotNull
@@ -929,6 +919,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
             manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
+            return this;
+        }
+
+        public Builder protocolWebhook(ProtocolWebhook protocolWebhook) {
+            manager.protocolWebhook = protocolWebhook;
             return this;
         }
 

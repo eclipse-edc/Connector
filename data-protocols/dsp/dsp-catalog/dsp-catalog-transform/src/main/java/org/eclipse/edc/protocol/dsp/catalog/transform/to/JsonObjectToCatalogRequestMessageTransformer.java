@@ -15,9 +15,7 @@
 package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -25,43 +23,38 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
  */
 public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequestMessage> {
-    
+
     private final ObjectMapper mapper;
-    
+
     public JsonObjectToCatalogRequestMessageTransformer(ObjectMapper mapper) {
         super(JsonObject.class, CatalogRequestMessage.class);
         this.mapper = mapper;
     }
-    
+
     @Override
     public @Nullable CatalogRequestMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = CatalogRequestMessage.Builder.newInstance();
-        builder.protocol(DATASPACE_PROTOCOL_HTTP);
-        
-        if (object.get(DSPACE_FILTER_PROPERTY) != null) {
-            builder.querySpec(transformQuerySpec(object.get(DSPACE_FILTER_PROPERTY), context));
+
+        var querySpec = transformQuerySpec(object, context);
+        if (querySpec != null) {
+            builder.querySpec(querySpec);
         }
-        
+
         return builder.build();
     }
-    
-    private QuerySpec transformQuerySpec(JsonValue value, TransformerContext context) {
-        if (value instanceof JsonObject) {
-            return mapper.convertValue(value, QuerySpec.class);
-        } else if (value instanceof JsonArray) {
-            var array = (JsonArray) value;
-            return transformQuerySpec(array.getJsonObject(0), context);
-        } else {
-            context.reportProblem(format("Expected filter to be JsonObject or JsonArray, but was %s", value.getClass().getSimpleName()));
+
+    @Nullable
+    private QuerySpec transformQuerySpec(JsonObject object, TransformerContext context) {
+        var value = object.get(DSPACE_PROPERTY_FILTER);
+        if (value == null) {
             return null;
         }
+        return transformObject(value, QuerySpec.class, context);
     }
 }

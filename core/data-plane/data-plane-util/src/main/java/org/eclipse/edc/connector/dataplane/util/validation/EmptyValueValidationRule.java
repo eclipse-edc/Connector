@@ -19,6 +19,8 @@ import org.eclipse.edc.util.string.StringUtils;
 
 import java.util.Map;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 public class EmptyValueValidationRule implements ValidationRule<Map<String, String>> {
 
     private final String keyName;
@@ -29,7 +31,8 @@ public class EmptyValueValidationRule implements ValidationRule<Map<String, Stri
 
     @Override
     public Result<Void> apply(Map<String, String> map) {
-        return StringUtils.isNullOrBlank(map.get(keyName))
+        // TODO applied quick fix to handle json-ld edc namespace. to be fixed with https://github.com/eclipse-edc/Connector/issues/3005
+        return StringUtils.isNullOrBlank(map.getOrDefault(keyName, map.get(EDC_NAMESPACE + keyName)))
                 ? Result.failure("Missing or invalid value for key " + keyName)
                 : Result.success();
     }

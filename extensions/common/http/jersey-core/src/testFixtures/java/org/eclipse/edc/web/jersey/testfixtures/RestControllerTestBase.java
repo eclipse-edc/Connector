@@ -36,7 +36,7 @@ import static org.mockito.Mockito.mock;
 public abstract class RestControllerTestBase {
 
     protected final int port = getFreePort();
-    protected Monitor monitor = mock(Monitor.class);
+    protected final Monitor monitor = mock(Monitor.class);
     private JettyService jetty;
 
     @BeforeEach

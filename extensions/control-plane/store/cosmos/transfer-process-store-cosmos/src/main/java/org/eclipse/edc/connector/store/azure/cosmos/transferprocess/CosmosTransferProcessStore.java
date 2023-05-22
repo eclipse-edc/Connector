@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.store.azure.cosmos.transferprocess.model.Transf
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -98,7 +100,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public TransferProcess find(String id) {
+    public TransferProcess findById(String id) {
         // we need to read the TransferProcessDocument as Object, because no custom JSON deserialization can be registered
         // with the CosmosDB SDK, so it would not know about subtypes, etc.
         Object obj = findByIdInternal(id);
@@ -118,7 +120,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void save(TransferProcess process) {
+    public void updateOrCreate(TransferProcess process) {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         try {
             leaseContext.acquireLease(process.getId());
@@ -172,7 +174,12 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public @NotNull List<TransferProcess> nextForState(int state, int max) {
+    public @NotNull List<TransferProcess> nextNotLeased(int max, Criterion... criteria) {
+        // TODO: https://github.com/eclipse-edc/Connector/issues/2924
+        var state = Arrays.stream(criteria).filter(it -> "state".equals(it.getOperandLeft()))
+                .findFirst().map(Criterion::getOperandRight)
+                .orElseThrow(() -> new EdcException("Missing mandatory 'state' criterion"));
+
         tracingOptions.setMaxBufferedItemCount(max);
 
         var rawJson = with(Fallback.of((String) null), rateLimitRetry, generalRetry)
@@ -191,7 +198,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
                 .map(this::convertToDocument)
                 .map(CosmosDocument::getWrappedInstance)
                 .collect(Collectors.toList());
-
     }
 
     private Object findByIdInternal(String processId) {

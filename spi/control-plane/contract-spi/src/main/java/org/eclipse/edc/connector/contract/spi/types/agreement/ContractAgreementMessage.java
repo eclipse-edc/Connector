@@ -16,18 +16,28 @@ package org.eclipse.edc.connector.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+import static java.util.UUID.randomUUID;
+
 public class ContractAgreementMessage implements ContractRemoteMessage {
-    private String protocol;
+    private String id;
+    private String protocol = "unknown";
     @Deprecated(forRemoval = true)
     private String connectorId;
-    private String callbackAddress;
+    private String counterPartyAddress;
     private String processId;
     private ContractAgreement contractAgreement;
     @Deprecated(forRemoval = true)
     private Policy policy;
+
+    @Override
+    @NotNull
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -35,8 +45,14 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
+    }
+
+    @Override
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @Deprecated
@@ -45,7 +61,7 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
     }
 
     @Override
-    public String getProcessId() {
+    public @NotNull String getProcessId() {
         return processId;
     }
 
@@ -69,6 +85,11 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             return new Builder();
         }
 
+        public Builder id(String id) {
+            this.contractAgreementMessage.id = id;
+            return this;
+        }
+
         public Builder protocol(String protocol) {
             this.contractAgreementMessage.protocol = protocol;
             return this;
@@ -80,8 +101,8 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
             return this;
         }
 
-        public Builder callbackAddress(String callbackAddress) {
-            this.contractAgreementMessage.callbackAddress = callbackAddress;
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            this.contractAgreementMessage.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
@@ -102,7 +123,9 @@ public class ContractAgreementMessage implements ContractRemoteMessage {
         }
 
         public ContractAgreementMessage build() {
-            Objects.requireNonNull(contractAgreementMessage.protocol, "protocol");
+            if (contractAgreementMessage.id == null) {
+                contractAgreementMessage.id = randomUUID().toString();
+            }
             Objects.requireNonNull(contractAgreementMessage.contractAgreement, "contractAgreement");
             Objects.requireNonNull(contractAgreementMessage.processId, "processId");
             return contractAgreementMessage;

@@ -19,16 +19,15 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
+import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +36,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatcher;
 
-import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -95,7 +93,7 @@ class ContractNegotiationServiceImplTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "contractAgreement.contractStartDate.begin=123455", //invalid path
-            "contractOffers.policy.uid=some-id", //invalid path
+            "contractOffers.policy.unexistent=some-id", //invalid path
             "contractOffers.policy.assetid=some-id", //wrong case
             "contractOffers.policy.=some-id", //incomplete path
     })
@@ -109,7 +107,6 @@ class ContractNegotiationServiceImplTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "contractAgreement.contractStartDate=123455",
             "contractAgreement.assetId=test-asset",
             "contractAgreement.policy.assignee=123455",
     })
@@ -193,7 +190,7 @@ class ContractNegotiationServiceImplTest {
         when(consumerManager.initiate(isA(ContractRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
         var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId("connectorId")
-                .callbackAddress("address")
+                .counterPartyAddress("address")
                 .protocol("protocol")
                 .contractOffer(createContractOffer())
                 .build();
@@ -283,9 +280,7 @@ class ContractNegotiationServiceImplTest {
         return ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id("test-asset").build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
+                .assetId("test-asset")
                 .build();
     }
 }

@@ -37,7 +37,7 @@ dependencies {
     implementation(project(":extensions:control-plane:api:management-api"))
     implementation(project(":extensions:control-plane:provision:provision-blob"))
     implementation(project(":extensions:common:vault:vault-azure"))
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:dsp"))
 
     implementation(libs.jakarta.rsApi)
     implementation(libs.azure.identity)

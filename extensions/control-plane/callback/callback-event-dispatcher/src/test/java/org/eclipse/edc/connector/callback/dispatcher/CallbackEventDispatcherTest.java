@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.callback.dispatcher;
 
 import org.eclipse.edc.connector.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolverRegistry;
+import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
@@ -46,11 +47,14 @@ public class CallbackEventDispatcherTest {
     RemoteMessageDispatcherRegistry registry = mock(RemoteMessageDispatcherRegistry.class);
 
     CallbackProtocolResolverRegistry resolverRegistry = mock(CallbackProtocolResolverRegistry.class);
+
+    CallbackRegistry callbackRegistry = mock(CallbackRegistry.class);
+
     Monitor monitor = mock(Monitor.class);
 
     @Test
     void verifyShouldNotDispatch() {
-        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, true, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, true, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
 
@@ -62,8 +66,36 @@ public class CallbackEventDispatcherTest {
     }
 
     @Test
+    void verifyShouldDispatch_WhenCallbacksMatchedOnRegistry() {
+
+        dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, true, monitor);
+        when(resolverRegistry.resolve("local")).thenReturn("local");
+        var event = TransferProcessCompleted.Builder.newInstance().transferProcessId("id").build();
+        var callbacks = List.of(CallbackAddress.Builder.newInstance()
+                .uri("local://test")
+                .events(Set.of("transfer.process.completed"))
+                .transactional(true)
+                .build());
+
+        when(callbackRegistry.resolve(event.name())).thenReturn(callbacks);
+        when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+
+        dispatcher.on(envelope(event));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
+
+        verify(registry).send(any(), captor.capture());
+
+        assertThat(captor.getValue().getEventEnvelope().getPayload())
+                .usingRecursiveComparison()
+                .isEqualTo(event);
+
+    }
+
+    @Test
     void verifyDispatchShouldThrowException() {
-        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, true, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, true, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
         when(registry.send(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Test")));
@@ -85,7 +117,7 @@ public class CallbackEventDispatcherTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = { true, false })
+    @ValueSource(booleans = {true, false})
     void verifyShouldDispatchWithSameTransactionalConfiguration(boolean transactional) {
 
         when(resolverRegistry.resolve("local")).thenReturn("local");
@@ -94,7 +126,7 @@ public class CallbackEventDispatcherTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
 
-        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, transactional, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, transactional, monitor);
 
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("local://test")
@@ -119,10 +151,10 @@ public class CallbackEventDispatcherTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = { true, false })
+    @ValueSource(booleans = {true, false})
     void verifyShouldNotDispatchWithDifferentTransactionalConfiguration(boolean transactional) {
 
-        dispatcher = new CallbackEventDispatcher(registry, resolverRegistry, transactional, monitor);
+        dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, transactional, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
 

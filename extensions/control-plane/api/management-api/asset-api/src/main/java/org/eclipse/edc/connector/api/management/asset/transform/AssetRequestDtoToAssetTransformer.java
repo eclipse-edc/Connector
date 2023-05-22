@@ -21,6 +21,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+
 public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetCreationRequestDto, Asset> {
 
     @Override
@@ -35,9 +37,17 @@ public class AssetRequestDtoToAssetTransformer implements DtoTransformer<AssetCr
 
     @Override
     public @Nullable Asset transform(@NotNull AssetCreationRequestDto object, @NotNull TransformerContext context) {
+        if (object.getPrivateProperties() == null) {
+            return Asset.Builder.newInstance()
+                    .id(object.getId())
+                    .properties(object.getProperties())
+                    .privateProperties(new HashMap<>())
+                    .build();
+        }
         return Asset.Builder.newInstance()
                 .id(object.getId())
                 .properties(object.getProperties())
+                .privateProperties(object.getPrivateProperties())
                 .build();
     }
 }

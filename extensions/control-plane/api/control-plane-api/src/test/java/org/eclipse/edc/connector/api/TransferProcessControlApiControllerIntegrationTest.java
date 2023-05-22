@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -25,6 +24,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,12 +62,12 @@ class TransferProcessControlApiControllerIntegrationTest {
         var registry = mock(RemoteMessageDispatcherRegistry.class);
         when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
     }
 
     @Test
     void callTransferProcessHookWithComplete(TransferProcessStore store) {
-        store.save(createTransferProcess());
+        store.updateOrCreate(createTransferProcess());
 
         baseRequest()
                 .contentType("application/json")
@@ -78,7 +78,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull()
                     .extracting(StatefulEntity::getState).isEqualTo(COMPLETED.code());
         });
@@ -86,7 +86,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callTransferProcessHookWithError(TransferProcessStore store) {
-        store.save(createTransferProcess());
+        store.updateOrCreate(createTransferProcess());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
                 .errorMessage("error")
@@ -102,7 +102,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies((process) -> {
                 assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
@@ -155,7 +155,7 @@ class TransferProcessControlApiControllerIntegrationTest {
 
     @Test
     void callCompleteTransferProcessHook_invalidState(TransferProcessStore store) {
-        store.save(createTransferProcessBuilder().state(INITIAL.code()).build());
+        store.updateOrCreate(createTransferProcessBuilder().state(INITIAL.code()).build());
 
         var rq = TransferProcessFailStateDto.Builder.newInstance()
                 .errorMessage("error")

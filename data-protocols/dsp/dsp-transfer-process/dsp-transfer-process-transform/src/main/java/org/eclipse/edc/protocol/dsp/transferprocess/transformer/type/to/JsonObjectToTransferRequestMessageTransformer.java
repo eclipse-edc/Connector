@@ -17,16 +17,16 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 
 public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequestMessage> {
 
@@ -35,29 +35,36 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
     }
 
     @Override
-    public @Nullable TransferRequestMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+    public @Nullable TransferRequestMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferRequestMessageBuilder = TransferRequestMessage.Builder.newInstance();
 
-        transferRequestMessageBuilder.id(nodeId(jsonObject))
-                .protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        visitProperties(messageObject, k -> {
+            switch (k) {
+                case DSPACE_PROPERTY_PROCESS_ID:
+                    return v -> transferRequestMessageBuilder.processId(transformString(v, context));
+                case DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID:
+                    return v -> transferRequestMessageBuilder.contractId(transformString(v, context));
+                case DSPACE_PROPERTY_CALLBACK_ADDRESS:
+                    return v -> transferRequestMessageBuilder.callbackAddress(transformString(v, context));
+                default:
+                    return doNothing();
+            }
+        });
 
-        transformString(jsonObject.get(DSPACE_CONTRACTAGREEMENT_TYPE), transferRequestMessageBuilder::contractId, context);
-        transformString(jsonObject.get(DSPACE_CALLBACKADDRESS_TYPE), transferRequestMessageBuilder::callbackAddress, context);
-
-        transferRequestMessageBuilder.dataDestination(createDataAddress(jsonObject, context));
+        transferRequestMessageBuilder.dataDestination(createDataAddress(messageObject, context));
 
         return transferRequestMessageBuilder.build();
     }
 
-    private DataAddress createDataAddress(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+    // TODO replace with JsonObjectToDataAddressTransformer
+    private DataAddress createDataAddress(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
         var dataAddressBuilder = DataAddress.Builder.newInstance();
 
-        transformString(jsonObject.get(DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
+        transformString(requestObject.get(DCT_FORMAT_ATTRIBUTE), dataAddressBuilder::type, context);
 
-        if (jsonObject.containsKey(DSPACE_DATAADDRESS_TYPE)) {
-            var dataAddressJsonObject = jsonObject.getJsonObject(DSPACE_DATAADDRESS_TYPE);
-
-            dataAddressJsonObject.entrySet().forEach((k) -> dataAddressBuilder.property(k.getKey(), dataAddressJsonObject.getString(k.getKey())));
+        var dataAddressObject = returnJsonObject(requestObject.get(DSPACE_PROPERTY_DATA_ADDRESS), context, DSPACE_PROPERTY_DATA_ADDRESS, false);
+        if (dataAddressObject != null) {
+            dataAddressObject.forEach((key, value) -> transformString(value, v -> dataAddressBuilder.property(key, v), context));
         }
 
         return dataAddressBuilder.build();

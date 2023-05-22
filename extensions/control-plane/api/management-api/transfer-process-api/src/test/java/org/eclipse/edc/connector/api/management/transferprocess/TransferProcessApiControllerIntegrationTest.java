@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.transferprocess;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -25,6 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
@@ -73,7 +73,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void getAllTransferProcesses(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID));
 
         baseRequest()
                 .get("/transferprocess")
@@ -94,7 +94,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void queryAllTransferProcesses(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID));
 
         baseRequest()
                 .contentType(JSON)
@@ -108,7 +108,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void queryAllTransferProcesses_withPaging(TransferProcessStore store) {
         IntStream.range(0, 10)
-                .forEach(i -> store.save(createTransferProcess(PROCESS_ID + i)));
+                .forEach(i -> store.updateOrCreate(createTransferProcess(PROCESS_ID + i)));
 
         baseRequest()
                 .contentType(JSON)
@@ -123,7 +123,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void queryAllTransferProcesses_withFilter(TransferProcessStore store) {
         IntStream.range(0, 10)
-                .forEach(i -> store.save(createTransferProcess(PROCESS_ID + i)));
+                .forEach(i -> store.updateOrCreate(createTransferProcess(PROCESS_ID + i)));
 
         baseRequest()
                 .contentType(JSON)
@@ -138,7 +138,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void getSingleTransferProcess(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID));
         baseRequest()
                 .get("/transferprocess/" + PROCESS_ID)
                 .then()
@@ -159,7 +159,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void getSingleTransferProcessState(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, PROVISIONING.code()));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID, PROVISIONING.code()));
 
         var state = baseRequest()
                 .get("/transferprocess/" + PROCESS_ID + "/state")
@@ -181,7 +181,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void cancel(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, STARTED.code()));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID, STARTED.code()));
 
         baseRequest()
                 .contentType(JSON)
@@ -201,7 +201,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void cancel_conflict(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, COMPLETED.code()));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID, COMPLETED.code()));
         baseRequest()
                 .contentType(JSON)
                 .post("/transferprocess/" + PROCESS_ID + "/cancel")
@@ -212,7 +212,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void terminate(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, STARTED.code()));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID, STARTED.code()));
 
         baseRequest()
                 .contentType(JSON)
@@ -222,7 +222,7 @@ class TransferProcessApiControllerIntegrationTest {
                 .statusCode(204);
 
         await().untilAsserted(() -> {
-            assertThat(store.find(PROCESS_ID)).isNotNull().extracting(StatefulEntity::getErrorDetail).isEqualTo("any reason");
+            assertThat(store.findById(PROCESS_ID)).isNotNull().extracting(StatefulEntity::getErrorDetail).isEqualTo("any reason");
         });
     }
 
@@ -248,7 +248,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void terminate_conflict(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, COMPLETED.code()));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID, COMPLETED.code()));
         baseRequest()
                 .contentType(JSON)
                 .body(Map.of("reason", "any reason"))
@@ -260,7 +260,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void deprovision(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, COMPLETED.code()));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID, COMPLETED.code()));
 
         baseRequest()
                 .contentType(JSON)
@@ -280,7 +280,7 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void deprovision_conflict(TransferProcessStore store) {
-        store.save(createTransferProcess(PROCESS_ID, INITIAL.code()));
+        store.updateOrCreate(createTransferProcess(PROCESS_ID, INITIAL.code()));
 
         baseRequest()
                 .contentType(JSON)

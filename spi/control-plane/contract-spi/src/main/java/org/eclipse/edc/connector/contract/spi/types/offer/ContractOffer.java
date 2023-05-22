@@ -18,11 +18,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
@@ -41,33 +39,11 @@ public class ContractOffer {
     /**
      * The offered asset
      */
-    private Asset asset;
+    private String assetId;
     /**
      * The participant who provides the offered data
      */
     private String providerId;
-    /**
-     * Timestamp defining the start time when the offer becomes effective
-     */
-    private ZonedDateTime offerStart;
-    /**
-     * Timestamp defining the end date when the offer becomes ineffective
-     */
-    private ZonedDateTime offerEnd;
-    /**
-     * Timestamp defining the start date when the contract becomes effective
-     *
-     * @deprecated replaced with policy implementation
-     */
-    @Deprecated(forRemoval = true)
-    private ZonedDateTime contractStart;
-    /**
-     * Timestamp defining the end date when the contract becomes terminated
-     *
-     * @deprecated replaced with policy implementation
-     */
-    @Deprecated(forRemoval = true)
-    private ZonedDateTime contractEnd;
 
     @NotNull
     public String getId() {
@@ -79,31 +55,10 @@ public class ContractOffer {
         return providerId;
     }
 
-    @Nullable
-    public ZonedDateTime getOfferStart() {
-        return offerStart;
-    }
-
-    @Nullable
-    public ZonedDateTime getOfferEnd() {
-        return offerEnd;
-    }
-
-    @Deprecated
-    @NotNull
-    public ZonedDateTime getContractStart() {
-        return contractStart;
-    }
-
-    @Deprecated
-    @NotNull
-    public ZonedDateTime getContractEnd() {
-        return contractEnd;
-    }
 
     @NotNull
-    public Asset getAsset() {
-        return asset;
+    public String getAssetId() {
+        return assetId;
     }
 
     @NotNull
@@ -113,7 +68,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, asset, providerId, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, assetId, providerId);
     }
 
     @Override
@@ -125,9 +80,7 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(providerId, that.providerId) &&
-                Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
-                Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -154,30 +107,8 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder asset(Asset asset) {
-            contractOffer.asset = asset;
-            return this;
-        }
-
-        public Builder offerStart(ZonedDateTime date) {
-            contractOffer.offerStart = date;
-            return this;
-        }
-
-        public Builder offerEnd(ZonedDateTime date) {
-            contractOffer.offerEnd = date;
-            return this;
-        }
-
-        @Deprecated
-        public Builder contractStart(ZonedDateTime date) {
-            contractOffer.contractStart = date;
-            return this;
-        }
-
-        @Deprecated
-        public Builder contractEnd(ZonedDateTime date) {
-            contractOffer.contractEnd = date;
+        public Builder assetId(String assetId) {
+            contractOffer.assetId = assetId;
             return this;
         }
 
@@ -188,7 +119,7 @@ public class ContractOffer {
 
         public ContractOffer build() {
             Objects.requireNonNull(contractOffer.id);
-            Objects.requireNonNull(contractOffer.asset, "Asset must not be null");
+            Objects.requireNonNull(contractOffer.assetId, "Asset id must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
             return contractOffer;
         }

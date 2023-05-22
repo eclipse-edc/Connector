@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - added private property support
  *
  */
 
@@ -45,12 +46,13 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getInsertPropertyTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?)",
                 getAssetPropertyTable(),
                 getPropertyAssetIdFkColumn(),
-                getAssetPropertyColumnName(),
-                getAssetPropertyColumnValue(),
-                getAssetPropertyColumnType());
+                getAssetPropertyNameColumn(),
+                getAssetPropertyValueColumn(),
+                getAssetPropertyTypeColumn(),
+                getAssetPropertyIsPrivateColumn());
     }
 
     @Override
@@ -105,8 +107,12 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getQuerySubSelectTemplate() {
-        return format("EXISTS (SELECT 1 FROM %s WHERE %s = a.%s AND %s = ? AND %s", getAssetPropertyTable(), getPropertyAssetIdFkColumn(), getAssetIdColumn(), getAssetPropertyColumnName(),
-                getAssetPropertyColumnValue());
+        return format("EXISTS (SELECT 1 FROM %s WHERE %s = a.%s AND %s = ? AND %s",
+                getAssetPropertyTable(),
+                getPropertyAssetIdFkColumn(),
+                getAssetIdColumn(),
+                getAssetPropertyNameColumn(),
+                getAssetPropertyValueColumn());
     }
 
     @Override
@@ -135,6 +141,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
         stmt.addParameter(querySpec.getLimit());
         stmt.addParameter(querySpec.getOffset());
+
         return stmt;
     }
 

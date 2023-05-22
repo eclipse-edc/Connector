@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.transfer.provision.ResourceManifestGeneratorImp
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
+import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
@@ -53,6 +54,7 @@ import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -126,6 +128,9 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private Telemetry telemetry;
 
+    @Inject
+    private ProtocolWebhook protocolWebhook;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -160,6 +165,8 @@ public class TransferCoreExtension implements ServiceExtension {
         // Register a default EndpointDataReferenceTransformer that can be overridden in extensions.
         var endpointDataReferenceTransformerRegistry = new EndpointDataReferenceTransformerRegistryImpl();
         context.registerService(EndpointDataReferenceTransformerRegistry.class, endpointDataReferenceTransformerRegistry);
+        // Integration with the new DSP protocol
+        eventRouter.register(TransferProcessStarted.class, endpointDataReferenceReceiverRegistry);
 
         var commandQueue = new BoundedCommandQueue<TransferProcessCommand>(10);
         var observable = new TransferProcessObservableImpl();
@@ -192,6 +199,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
+                .protocolWebhook(protocolWebhook)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);

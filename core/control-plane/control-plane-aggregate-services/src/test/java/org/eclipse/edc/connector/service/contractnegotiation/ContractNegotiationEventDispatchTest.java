@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.service.contractnegotiation;
 
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
@@ -37,6 +36,7 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +76,7 @@ class ContractNegotiationEventDispatchTest {
                 "edc.negotiation.provider.send.retry.limit", "0"
         ));
         extension.registerServiceMock(NegotiationWaitStrategy.class, () -> 1);
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
     }
 
@@ -97,13 +96,12 @@ class ContractNegotiationEventDispatchTest {
                 .contractPolicyId("policyId")
                 .accessPolicyId("policyId")
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(CONTRACT_VALIDITY)
                 .build();
         contractDefinitionStore.save(contractDefinition);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.create(Asset.Builder.newInstance().id("assetId").build(), DataAddress.Builder.newInstance().type("any").build());
 
-        service.notifyRequested(createContractOfferRequest(policy), token);
+        service.notifyRequested(createContractOfferRequest(policy, "assetId"), token);
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
@@ -111,20 +109,18 @@ class ContractNegotiationEventDispatchTest {
         });
     }
 
-    private ContractRequestMessage createContractOfferRequest(Policy policy) {
-        var now = ZonedDateTime.now();
+    private ContractRequestMessage createContractOfferRequest(Policy policy, String assetId) {
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id("contractDefinitionId:" + UUID.randomUUID())
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .id("contractDefinitionId:" + assetId + ":" + UUID.randomUUID())
+                .assetId("assetId")
                 .policy(policy)
                 .providerId(PROVIDER)
-                .contractStart(now)
-                .contractEnd(now.plusSeconds(CONTRACT_VALIDITY))
                 .build();
 
         return ContractRequestMessage.Builder.newInstance()
                 .protocol("test")
                 .connectorId("connectorId")
+                .counterPartyAddress("counterPartyAddress")
                 .callbackAddress("callbackAddress")
                 .contractOffer(contractOffer)
                 .processId("processId")

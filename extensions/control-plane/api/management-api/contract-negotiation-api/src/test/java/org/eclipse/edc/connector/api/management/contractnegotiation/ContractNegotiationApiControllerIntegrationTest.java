@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
@@ -30,6 +29,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -69,7 +69,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         when(dispatcher.protocol()).thenReturn("protocol");
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),

@@ -21,6 +21,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+
 public class AssetUpdateRequestWrapperDtoToAssetTransformer implements DtoTransformer<AssetUpdateRequestWrapperDto, Asset> {
     @Override
     public Class<AssetUpdateRequestWrapperDto> getInputType() {
@@ -34,8 +36,16 @@ public class AssetUpdateRequestWrapperDtoToAssetTransformer implements DtoTransf
 
     @Override
     public @Nullable Asset transform(@NotNull AssetUpdateRequestWrapperDto object, @NotNull TransformerContext context) {
+        if (object.getRequestDto().getPrivateProperties() == null) {
+            return Asset.Builder.newInstance()
+                    .properties(object.getRequestDto().getProperties())
+                    .privateProperties(new HashMap<>())
+                    .id(object.getAssetId())
+                    .build();
+        }
         return Asset.Builder.newInstance()
                 .properties(object.getRequestDto().getProperties())
+                .privateProperties(object.getRequestDto().getPrivateProperties())
                 .id(object.getAssetId())
                 .build();
     }

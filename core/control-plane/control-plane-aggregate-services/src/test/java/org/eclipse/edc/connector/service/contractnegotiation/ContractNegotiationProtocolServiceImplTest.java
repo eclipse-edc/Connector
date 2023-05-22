@@ -36,7 +36,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -50,14 +49,12 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
@@ -114,7 +111,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var calls = ArgumentCaptor.forClass(ContractNegotiation.class);
         verify(store).save(calls.capture());
         assertThat(calls.getAllValues()).anySatisfy(n -> {
-            assertThat(n.getState()).isEqualTo(AGREEING.code());
+            assertThat(n.getState()).isEqualTo(REQUESTED.code());
             assertThat(n.getCounterPartyId()).isEqualTo(message.getConnectorId());
             assertThat(n.getCounterPartyAddress()).isEqualTo(message.getCallbackAddress());
             assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
@@ -135,7 +132,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         var message = ContractRequestMessage.Builder.newInstance()
                 .connectorId(CONSUMER_ID)
-                .callbackAddress("callbackAddress")
+                .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
                 .processId("processId")
@@ -157,7 +154,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("processId")
                 .contractAgreement(contractAgreement)
                 .policy(createPolicy())
@@ -185,7 +182,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("processId")
                 .contractAgreement(contractAgreement)
                 .policy(createPolicy())
@@ -206,7 +203,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("processId")
                 .build();
 
@@ -226,7 +223,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("processId")
                 .build();
 
@@ -245,7 +242,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("processId")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -267,7 +264,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .processId("processId")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -287,7 +284,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .rejectionReason("any")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -309,7 +306,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .rejectionReason("any")
                 .build();
         var token = ClaimToken.Builder.newInstance().build();
@@ -330,49 +327,6 @@ class ContractNegotiationProtocolServiceImplTest {
 
         assertThat(result).matches(ServiceResult::failed);
         verify(store, never()).save(any());
-    }
-
-    private static class NotFoundArguments implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            MethodCall<ContractAgreementMessage> agreed = ContractNegotiationProtocolService::notifyAgreed;
-            MethodCall<ContractAgreementVerificationMessage> verified = ContractNegotiationProtocolService::notifyVerified;
-            MethodCall<ContractNegotiationEventMessage> finalized = ContractNegotiationProtocolService::notifyFinalized;
-            MethodCall<ContractNegotiationTerminationMessage> terminated = ContractNegotiationProtocolService::notifyTerminated;
-            return Stream.of(
-                    Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
-                            .protocol("protocol")
-                            .connectorId("connectorId")
-                            .callbackAddress("http://any")
-                            .processId("processId")
-                            .contractAgreement(mock(ContractAgreement.class))
-                            .policy(Policy.Builder.newInstance().build())
-                            .build()),
-                    Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
-                            .protocol("protocol")
-                            .callbackAddress("http://any")
-                            .processId("processId")
-                            .build()),
-                    Arguments.of(finalized, ContractNegotiationEventMessage.Builder.newInstance()
-                            .type(ContractNegotiationEventMessage.Type.FINALIZED)
-                            .protocol("protocol")
-                            .callbackAddress("http://any")
-                            .processId("processId")
-                            .build()),
-                    Arguments.of(terminated, ContractNegotiationTerminationMessage.Builder.newInstance()
-                            .protocol("protocol")
-                            .processId("processId")
-                            .callbackAddress("http://any")
-                            .rejectionReason("any")
-                            .build())
-            );
-        }
-    }
-
-    @FunctionalInterface
-    private interface MethodCall<M extends RemoteMessage> {
-        ServiceResult<?> call(ContractNegotiationProtocolService service, M message, ClaimToken token);
     }
 
     private ClaimToken claimToken() {
@@ -406,12 +360,53 @@ class ContractNegotiationProtocolServiceImplTest {
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId("1"))
+                .id(ContractId.createContractId("1", "test-asset-id"))
                 .policy(createPolicy())
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .assetId("assetId")
                 .providerId(PROVIDER_ID)
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
                 .build();
+    }
+
+    @FunctionalInterface
+    private interface MethodCall<M extends RemoteMessage> {
+        ServiceResult<?> call(ContractNegotiationProtocolService service, M message, ClaimToken token);
+    }
+
+    private static class NotFoundArguments implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            MethodCall<ContractAgreementMessage> agreed = ContractNegotiationProtocolService::notifyAgreed;
+            MethodCall<ContractAgreementVerificationMessage> verified = ContractNegotiationProtocolService::notifyVerified;
+            MethodCall<ContractNegotiationEventMessage> finalized = ContractNegotiationProtocolService::notifyFinalized;
+            MethodCall<ContractNegotiationTerminationMessage> terminated = ContractNegotiationProtocolService::notifyTerminated;
+            return Stream.of(
+                    Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
+                            .protocol("protocol")
+                            .connectorId("connectorId")
+                            .counterPartyAddress("http://any")
+                            .processId("processId")
+                            .contractAgreement(mock(ContractAgreement.class))
+                            .policy(Policy.Builder.newInstance().build())
+                            .build()),
+                    Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
+                            .protocol("protocol")
+                            .counterPartyAddress("http://any")
+                            .processId("processId")
+                            .build()),
+                    Arguments.of(finalized, ContractNegotiationEventMessage.Builder.newInstance()
+                            .type(ContractNegotiationEventMessage.Type.FINALIZED)
+                            .protocol("protocol")
+                            .counterPartyAddress("http://any")
+                            .processId("processId")
+                            .build()),
+                    Arguments.of(terminated, ContractNegotiationTerminationMessage.Builder.newInstance()
+                            .protocol("protocol")
+                            .processId("processId")
+                            .counterPartyAddress("http://any")
+                            .rejectionReason("any")
+                            .build())
+            );
+        }
     }
 }

@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import org.assertj.core.api.Assertions;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
@@ -45,6 +44,7 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,9 +52,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.UUID.randomUUID;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.awaitility.Awaitility.await;
@@ -85,7 +85,7 @@ public class TransferProcessEventDispatchTest {
         extension.setConfiguration(configuration);
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()));
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, () -> "http://dummy");
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(PolicyArchive.class, mock(PolicyArchive.class));
     }
@@ -107,7 +107,6 @@ public class TransferProcessEventDispatchTest {
 
         statusCheckerRegistry.register("any", statusCheck);
         when(statusCheck.isComplete(any(), any())).thenReturn(false);
-
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id("dataRequestId")
@@ -138,7 +137,7 @@ public class TransferProcessEventDispatchTest {
         var startMessage = TransferStartMessage.Builder.newInstance()
                 .processId("dataRequestId")
                 .protocol("any")
-                .callbackAddress("http://any")
+                .counterPartyAddress("http://any")
                 .dataAddress(dataAddress)
                 .build();
 
@@ -152,13 +151,14 @@ public class TransferProcessEventDispatchTest {
                     .usingRecursiveComparison().isEqualTo(dataAddress);
         });
 
-        service.complete(initiateResult.getContent());
+        var transferProcess = initiateResult.getContent();
+        service.complete(transferProcess.getId());
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessCompleted.class)));
         });
 
-        service.deprovision(initiateResult.getContent());
+        service.deprovision(transferProcess.getId());
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessDeprovisioned.class)));
@@ -204,7 +204,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(randomUUID().toString())
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
@@ -218,7 +218,7 @@ public class TransferProcessEventDispatchTest {
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
-        service.terminate(initiateResult.getContent(), "any reason");
+        service.terminate(initiateResult.getContent().getId(), "any reason");
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }
@@ -232,7 +232,7 @@ public class TransferProcessEventDispatchTest {
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
+                .id(String.valueOf(randomUUID()))
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")

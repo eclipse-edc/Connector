@@ -70,7 +70,7 @@ public abstract class DspHttpDispatcherDelegateTestBase<M extends RemoteMessage>
 
         var httpRequest = delegate().buildRequest(message);
 
-        assertThat(httpRequest.url().url()).hasToString(message.getCallbackAddress() + path);
+        assertThat(httpRequest.url().url()).hasToString(message.getCounterPartyAddress() + path);
         assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
 
         verify(serializer, times(1)).serialize(eq(message));

@@ -62,7 +62,7 @@ class ContractAgreementVerificationMessageHttpDelegateTest extends DspHttpDispat
         return ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(value)
                 .processId(value)
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .build();
     }
     

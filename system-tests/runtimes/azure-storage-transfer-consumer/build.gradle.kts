@@ -30,7 +30,7 @@ dependencies {
 
     implementation(project(":extensions:control-plane:api:management-api"))
 
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:dsp"))
 
     implementation(project(":extensions:control-plane:provision:provision-blob"))
 

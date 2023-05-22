@@ -73,8 +73,16 @@ public class EdcHttpClientImpl implements EdcHttpClient {
 
     @Override
     public <T> CompletableFuture<T> executeAsync(Request request, Function<Response, T> mappingFunction) {
+        return executeAsync(request, emptyList(), mappingFunction);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> executeAsync(Request request, List<FallbackFactory> fallbacks, Function<Response, T> mappingFunction) {
         var call = okHttpClient.newCall(request);
-        return with(retryPolicy).compose(call)
+        var builder = with(retryPolicy);
+        fallbacks.stream().map(it -> it.create(request)).forEach(builder::compose);
+
+        return builder.compose(call)
                 .executeAsync()
                 .thenApply(response -> {
                     try (response) {

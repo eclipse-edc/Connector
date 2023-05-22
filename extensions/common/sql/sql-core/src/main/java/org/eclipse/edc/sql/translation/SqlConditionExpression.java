@@ -81,16 +81,16 @@ public class SqlConditionExpression {
      * <p>
      * Note: {@link Stream} is used to allow a convenient use in a {@code flatMap} call
      */
-    public Stream<String> toStatementParameter() {
-        List<String> result = new ArrayList<>();
+    public Stream<Object> toStatementParameter() {
+        var result = new ArrayList<>();
         result.add(criterion.getOperandLeft().toString());
 
         var operandRight = criterion.getOperandRight();
         if (operandRight instanceof Iterable) {
-            var iterable = (Iterable) operandRight;
-            iterable.forEach(o -> result.add(o.toString()));
+            var iterable = (Iterable<?>) operandRight;
+            iterable.forEach(result::add);
         } else {
-            result.add(operandRight.toString());
+            result.add(operandRight);
         }
         return result.stream();
     }

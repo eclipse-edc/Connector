@@ -14,15 +14,19 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static jakarta.json.JsonValue.ValueType.ARRAY;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 
 public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferTerminationMessage> {
 
@@ -31,13 +35,34 @@ public class JsonObjectToTransferTerminationMessageTransformer extends AbstractJ
     }
 
     @Override
-    public @Nullable TransferTerminationMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+    public @Nullable TransferTerminationMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferTerminationMessageBuilder = TransferTerminationMessage.Builder.newInstance();
 
-        transferTerminationMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), transferTerminationMessageBuilder::processId, context)) {
+            return null;
+        }
 
-        transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferTerminationMessageBuilder::processId, context);
-        //TODO ADD missing fields (code, reason) from spec issue https://github.com/eclipse-edc/Connector/issues/2764
+        if (messageObject.containsKey(DSPACE_PROPERTY_CODE)) {
+            transformString(messageObject.get(DSPACE_PROPERTY_CODE), transferTerminationMessageBuilder::code, context);
+        }
+
+        var reasons = messageObject.get(DSPACE_PROPERTY_REASON);
+        if (reasons != null) {  // optional property
+            if (!(reasons instanceof JsonArray)) {
+                context.problem()
+                        .unexpectedType()
+                        .type(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                        .property(DSPACE_PROPERTY_REASON)
+                        .actual(reasons.getValueType())
+                        .expected(ARRAY)
+                        .report();
+            } else {
+                var array = (JsonArray) reasons;
+                if (array.size() > 0) {
+                    transferTerminationMessageBuilder.reason(array.toString());
+                }
+            }
+        }
 
         return transferTerminationMessageBuilder.build();
 

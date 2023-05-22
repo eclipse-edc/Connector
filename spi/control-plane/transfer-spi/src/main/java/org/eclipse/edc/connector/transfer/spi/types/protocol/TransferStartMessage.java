@@ -17,19 +17,29 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * The {@link TransferStartMessage} is sent by the provider to indicate the asset transfer has been initiated.
  */
 public class TransferStartMessage implements TransferRemoteMessage {
 
-    private String callbackAddress;
-    private String protocol;
+    private String id;
+    private String counterPartyAddress;
+    private String protocol = "unknown";
     private String processId;
 
     private DataAddress dataAddress;
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -37,11 +47,18 @@ public class TransferStartMessage implements TransferRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
+    }
+
+    @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -63,8 +80,13 @@ public class TransferStartMessage implements TransferRemoteMessage {
             return new Builder();
         }
 
-        public Builder callbackAddress(String callbackAddress) {
-            message.callbackAddress = callbackAddress;
+        public Builder id(String id) {
+            this.message.id = id;
+            return this;
+        }
+
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            message.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
@@ -84,7 +106,10 @@ public class TransferStartMessage implements TransferRemoteMessage {
         }
 
         public TransferStartMessage build() {
-            Objects.requireNonNull(message.protocol, "The protocol must be specified");
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
+
             Objects.requireNonNull(message.processId, "The processId must be specified");
             return message;
         }

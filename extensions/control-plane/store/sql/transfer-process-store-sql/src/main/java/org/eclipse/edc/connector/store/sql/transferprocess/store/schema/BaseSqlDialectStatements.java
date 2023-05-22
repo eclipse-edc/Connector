@@ -77,16 +77,6 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
     }
 
     @Override
-    public String getNextForStateTemplate() {
-        return format("SELECT *, dr.%s as edc_data_request_id FROM %s LEFT OUTER JOIN %s dr ON %s.%s = dr.transfer_process_id " +
-                        "WHERE %s=? " +
-                        "AND (%s IS NULL OR %s IN (SELECT %s FROM %s WHERE (? > (%s + %s)))) " +
-                        "ORDER BY %s ASC LIMIT ? ;",
-                getDataRequestIdColumn(), getTransferProcessTableName(), getDataRequestTable(), getTransferProcessTableName(), getIdColumn(), getStateColumn(), getLeaseIdColumn(), getLeaseIdColumn(), getLeaseIdColumn(),
-                getLeaseTableName(), getLeasedAtColumn(), getLeaseDurationColumn(), getStateTimestampColumn());
-    }
-
-    @Override
     public String getUpdateTransferProcessTemplate() {
         return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=? WHERE %s=?",
                 getTransferProcessTableName(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
@@ -98,13 +88,12 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getInsertDataRequestTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?%s, ?%s, ?%s, ?, ?, ?);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?%s, ?%s, ?, ?, ?);",
                 getDataRequestTable(), getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getConnectorIdColumn(),
                 getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(),
-                getDataRequestPropertiesColumn(),
-                getTransferTypeColumn(), getTransferProcessIdFkColumn(), getProtocolColumn(), getManagedResourcesColumn(),
-                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
+                getDataRequestPropertiesColumn(), getTransferProcessIdFkColumn(), getProtocolColumn(), getManagedResourcesColumn(),
+                getFormatAsJsonOperator(), getFormatAsJsonOperator());
     }
 
     @Override
@@ -115,10 +104,10 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getUpdateDataRequestTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s WHERE %s=?",
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s WHERE %s=?",
                 getDataRequestTable(),
                 getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getProtocolColumn(), getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(),
-                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestPropertiesColumn(), getFormatAsJsonOperator(), getTransferTypeColumn(), getFormatAsJsonOperator(),
+                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestPropertiesColumn(), getFormatAsJsonOperator(),
                 getDataRequestIdColumn());
     }
 

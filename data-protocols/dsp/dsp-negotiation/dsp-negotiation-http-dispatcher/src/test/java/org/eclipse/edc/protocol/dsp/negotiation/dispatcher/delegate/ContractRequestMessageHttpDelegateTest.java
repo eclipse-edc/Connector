@@ -30,29 +30,29 @@ import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.UUID;
 
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_CONTRACT_NEGOTIATION;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CHECKSUM;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_STATE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_STATE_REQUESTED;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractRequestMessage> {
+    private static final String PROCESS_ID = "processId";
+    private static final String DATASET_ID = "datasetId";
+    private static final String DSP = "DSP";
 
     private ContractRequestMessageHttpDelegate delegate;
     private TitaniumJsonLd jsonLdService;
@@ -118,12 +118,11 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
     }
 
     private ContractRequestMessage message() {
-        var value = "example";
         return ContractRequestMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .callbackAddress("http://connector")
-                .dataSet(value)
+                .protocol(DSP)
+                .processId(PROCESS_ID)
+                .counterPartyAddress("http://connector")
+                .dataSet(DATASET_ID)
                 .contractOffer(contractOffer())
                 .type(ContractRequestMessage.Type.COUNTER_OFFER)
                 .build();
@@ -134,7 +133,7 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
         return ContractRequestMessage.Builder.newInstance()
                 .protocol(value)
                 .processId(value)
-                .callbackAddress("http://connector")
+                .counterPartyAddress("http://connector")
                 .dataSet(value)
                 .contractOffer(contractOffer())
                 .type(ContractRequestMessage.Type.INITIAL)
@@ -143,10 +142,8 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
-                .asset(Asset.Builder.newInstance().id("assetId").build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
+                .id(randomUUID().toString())
+                .assetId("assetId")
                 .policy(policy()).build();
     }
 
@@ -163,14 +160,12 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
     }
 
     private JsonObject negotiation() {
-        var value = "example";
         var builder = Json.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, value);
-        builder.add(JsonLdKeywords.TYPE, DSPACE_CONTRACT_NEGOTIATION);
+        builder.add(JsonLdKeywords.ID, "id1");
+        builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION);
 
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID, value);
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_STATE, DSPACE_NEGOTIATION_STATE_REQUESTED);
-        builder.add(DSPACE_NEGOTIATION_PROPERTY_CHECKSUM, value);
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID);
+        builder.add(DSPACE_PROPERTY_STATE, DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED);
 
         return builder.build();
     }

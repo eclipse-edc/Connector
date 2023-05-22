@@ -63,27 +63,22 @@ include(":core:data-plane-selector:data-plane-selector-core")
 
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:dsp:dsp-api-configuration")
+include(":data-protocols:dsp:dsp-catalog")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-api")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
+include(":data-protocols:dsp:dsp-spi")
+include(":data-protocols:dsp:dsp-negotiation")
 include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-api")
 include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-dispatcher")
 include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform")
 include(":data-protocols:dsp:dsp-http-core")
 include(":data-protocols:dsp:dsp-http-spi")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
 include(":data-protocols:dsp:dsp-transform")
+include(":data-protocols:dsp:dsp-transfer-process")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-api")
-
-include(":data-protocols:ids:ids-api-configuration")
-include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
-include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
-include(":data-protocols:ids:ids-core")
-include(":data-protocols:ids:ids-jsonld-serdes")
-include(":data-protocols:ids:ids-spi")
-include(":data-protocols:ids:ids-token-validation")
-include(":data-protocols:ids:ids-transform-v1")
+include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
+include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
@@ -166,6 +161,7 @@ include(":extensions:control-plane:store:sql:policy-definition-store-sql")
 include(":extensions:control-plane:store:sql:transfer-process-store-sql")
 include(":extensions:control-plane:callback:callback-event-dispatcher")
 include(":extensions:control-plane:callback:callback-http-dispatcher")
+include(":extensions:control-plane:callback:callback-static-endpoint")
 
 
 include(":extensions:data-plane:data-plane-api")
@@ -180,7 +176,7 @@ include(":extensions:data-plane:data-plane-google-storage")
 include(":extensions:data-plane:data-plane-integration-tests")
 include(":extensions:data-plane:store:sql:data-plane-store-sql")
 include(":extensions:data-plane:store:cosmos:data-plane-store-cosmos")
-
+include(":extensions:data-plane:data-plane-kafka")
 
 include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
@@ -191,7 +187,6 @@ include(":extensions:data-plane-selector:store:cosmos:data-plane-instance-store-
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
 include(":launchers:dpf-selector")
-include(":launchers:ids-connector")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:aggregate-service-spi")
@@ -238,8 +233,8 @@ include(":system-tests:runtimes:azure-data-factory-transfer-consumer")
 include(":system-tests:runtimes:azure-data-factory-transfer-provider")
 include(":system-tests:runtimes:azure-storage-transfer-consumer")
 include(":system-tests:runtimes:azure-storage-transfer-provider")
-include(":system-tests:runtimes:file-transfer-consumer")
-include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:tests")
+include(":system-tests:telemetry:telemetry-test-runner")
+include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")

@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,6 +41,7 @@ class HttpRequestFactoryTest {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = { "\\", "/" })
     void verifyPathIgnoredWhenNullOrBlank(String p) {
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)

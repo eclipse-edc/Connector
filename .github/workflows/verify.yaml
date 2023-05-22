@@ -63,36 +63,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport
 
-  Helm-Chart:
-    runs-on: ubuntu-latest
-    name: Test Helm chart in minikube
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: Install and start minikube
-        run: |
-          curl -fLo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          chmod +x minikube
-          ./minikube start --wait all
-
-      - name: Build JARs
-        run: ./gradlew system-tests:runtimes:file-transfer-consumer:shadowJar system-tests:runtimes:file-transfer-provider:shadowJar --no-daemon
-
-      - name: Test
-        run: |
-          eval $(minikube -p minikube docker-env)
-          chmod +x system-tests/minikube/minikube-test.sh
-          system-tests/minikube/minikube-test.sh
-
-      - name: Kubernetes logs
-        if: always()
-        run: |
-          set -x
-          kubectl get pods
-          kubectl logs deployment/provider-dataspace-connector --tail=200
-          kubectl logs deployment/consumer-dataspace-connector --tail=200
-
   Azure-Storage-Integration-Tests:
     runs-on: ubuntu-latest
 
@@ -263,20 +233,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport -DincludeTags="ApiTest"
 
-
-  OpenTelemetry-Integration-Tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: OpenTelemetry Integration Tests
-        uses: ./.github/actions/run-tests
-        with:
-          command: |
-            ./gradlew -p extensions/common/metrics/micrometer-core/ test -DincludeTags="OpenTelemetryIntegrationTest"
-            ./gradlew -p system-tests/tests test -DincludeTags="OpenTelemetryIntegrationTest"
-
   Check-Cloud-Environments:
     environment: Azure-dev
     runs-on: ubuntu-latest
@@ -295,6 +251,24 @@ jobs:
         run: echo "::set-output name=defined::true"
     outputs:
       has-azure: ${{ steps.has-azure.outputs.defined }}
+
+  Kafka-Integration-Tests:
+    runs-on: ubuntu-latest
+
+    services:
+      kraft:
+        image: bashj79/kafka-kraft:latest
+        ports:
+          - 9092:9092
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-build
+
+      - name: 'Kafka Integration Tests'
+        uses: ./.github/actions/run-tests
+        with:
+          command: ./gradlew -p system-tests/e2e-transfer-test/runner test -DincludeTags="KafkaIntegrationTest"
 
   #  TODO: this test has been commented out because it was flaky. Further investigation needed. ref: https://github.com/eclipse-edc/Connector/issues/2403
   #  Azure-Cloud-Integration-Test:
@@ -347,8 +321,8 @@ jobs:
       - Daps-Integration-Tests
       - End-To-End-Tests
       - Hashicorp-Vault-Integration-Tests
-      - OpenTelemetry-Integration-Tests
       - Postgresql-Integration-Tests
+      - Kafka-Integration-Tests
       - Unit-Tests
 
     permissions:

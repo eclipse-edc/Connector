@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.client.transferprocess;
 
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
@@ -30,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -72,7 +72,7 @@ public class TransferProcessHttpClientIntegrationTest {
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         var registry = mock(RemoteMessageDispatcherRegistry.class);
         when(registry.send(any(), any())).thenReturn(completedFuture("any"));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
@@ -82,13 +82,13 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
         var id = "tp-id";
-        store.save(createTransferProcess(id));
+        store.updateOrCreate(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
         manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull()
                     .extracting(StatefulEntity::getState).isEqualTo(COMPLETED.code());
         });
@@ -98,13 +98,13 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(completedFuture(StreamResult.error("error")));
         var id = "tp-id";
-        store.save(createTransferProcess(id));
+        store.updateOrCreate(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
         manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
                 assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
@@ -116,13 +116,13 @@ public class TransferProcessHttpClientIntegrationTest {
     void shouldCallTransferProcessApiWithException(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(failedFuture(new EdcException("error")));
         var id = "tp-id";
-        store.save(createTransferProcess(id));
+        store.updateOrCreate(createTransferProcess(id));
         var dataFlowRequest = createDataFlowRequest(id, callbackUrl.get());
 
         manager.initiateTransfer(dataFlowRequest);
 
         await().untilAsserted(() -> {
-            var transferProcess = store.find("tp-id");
+            var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
                 assertThat(process.getState()).isEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");

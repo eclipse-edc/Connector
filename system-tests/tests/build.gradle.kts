@@ -24,9 +24,9 @@ dependencies {
     testFixturesApi(project(":spi:control-plane:control-plane-spi"))
     testFixturesApi(project(":spi:control-plane:contract-spi"))
     testFixturesApi(project(":core:common:util"))
+    testFixturesApi(project(":extensions:common:json-ld"))
     testFixturesApi(project(":extensions:control-plane:api:management-api:contract-negotiation-api"))
     testFixturesApi(project(":extensions:control-plane:api:management-api:transfer-process-api"))
-
 
     testFixturesApi(libs.junit.jupiter.api)
 
@@ -38,9 +38,6 @@ dependencies {
     testImplementation(libs.opentelemetry.proto)
     testImplementation(libs.awaitility)
     testImplementation(libs.mockserver.netty)
-
-    testCompileOnly(project(":system-tests:runtimes:file-transfer-provider"))
-    testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))
 }
 
 val otelDownloadUrl =

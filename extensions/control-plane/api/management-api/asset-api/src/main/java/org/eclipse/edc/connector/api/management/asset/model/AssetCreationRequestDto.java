@@ -32,9 +32,15 @@ public class AssetCreationRequestDto extends AssetRequestDto {
     }
 
     @JsonIgnore
-    @AssertTrue(message = "no empty property keys")
+    @AssertTrue(message = "no empty property keys and no duplicate keys")
     public boolean isValid() {
-        return properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
+        return mapKeysValid();
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "no duplicate keys in properties and private properties")
+    public boolean isDistinctKeysValid() {
+        return checkDistinctKeys();
     }
 
     @JsonIgnore
@@ -48,6 +54,10 @@ public class AssetCreationRequestDto extends AssetRequestDto {
 
     public Map<String, Object> getProperties() {
         return properties;
+    }
+
+    public Map<String, Object> getPrivateProperties() {
+        return privateProperties;
     }
 
     public String getId() {

@@ -40,7 +40,6 @@ public class Prohibition extends Rule {
      */
     public Prohibition withTarget(String target) {
         return Builder.newInstance()
-                .uid(this.uid)
                 .assigner(this.assigner)
                 .assignee(this.assignee)
                 .action(this.action)
@@ -57,11 +56,6 @@ public class Prohibition extends Rule {
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder uid(String uid) {
-            rule.uid = uid;
-            return this;
         }
 
         public Prohibition build() {

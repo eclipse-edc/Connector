@@ -46,7 +46,6 @@ public class ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer i
                 .accessPolicyId(object.getContractDefinition().getAccessPolicyId())
                 .contractPolicyId(object.getContractDefinition().getContractPolicyId())
                 .selectorExpression(selectorExpression)
-                .validity(object.getContractDefinition().getValidity())
                 .build();
     }
 }

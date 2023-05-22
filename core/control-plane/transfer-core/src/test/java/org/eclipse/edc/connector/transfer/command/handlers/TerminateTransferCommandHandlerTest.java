@@ -64,15 +64,15 @@ class TerminateTransferCommandHandlerTest {
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
 
-        when(store.find(anyString())).thenReturn(tp);
+        when(store.findById(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TERMINATING.code());
         assertThat(tp.getErrorDetail()).isEqualTo("a reason");
         assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
-        verify(store).find(anyString());
-        verify(store).save(tp);
+        verify(store).findById(anyString());
+        verify(store).updateOrCreate(tp);
         verifyNoMoreInteractions(store);
     }
 
@@ -84,12 +84,12 @@ class TerminateTransferCommandHandlerTest {
         var originalDate = tp.getUpdatedAt();
         var cmd = new TerminateTransferCommand("test-id", "a reason");
 
-        when(store.find(anyString())).thenReturn(tp);
+        when(store.findById(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
         assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
 
-        verify(store).find(anyString());
+        verify(store).findById(anyString());
         verifyNoMoreInteractions(store);
         verifyNoInteractions(listener);
     }
@@ -98,7 +98,7 @@ class TerminateTransferCommandHandlerTest {
     void handle_notFound() {
         var cmd = new TerminateTransferCommand("test-id", "a reason");
 
-        when(store.find(anyString())).thenReturn(null);
+        when(store.findById(anyString())).thenReturn(null);
         assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(EdcException.class).hasMessageStartingWith("Could not find TransferProcess with ID [test-id]");
         verifyNoInteractions(listener);
     }

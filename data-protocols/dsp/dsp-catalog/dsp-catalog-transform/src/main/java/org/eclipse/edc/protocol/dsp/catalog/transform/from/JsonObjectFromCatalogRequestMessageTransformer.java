@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
@@ -24,32 +23,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 
 /**
  * Transforms a {@link CatalogRequestMessage} to a {@link JsonObject} in JSON-LD expanded form.
  */
 public class JsonObjectFromCatalogRequestMessageTransformer extends AbstractJsonLdTransformer<CatalogRequestMessage, JsonObject> {
-    
+
     private final JsonBuilderFactory jsonFactory;
-    private final ObjectMapper mapper;
-    
-    public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+
+    public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory) {
         super(CatalogRequestMessage.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapper = mapper;
     }
-    
+
     @Override
     public @Nullable JsonObject transform(@NotNull CatalogRequestMessage message, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder();
-        builder.add(TYPE, DSPACE_CATALOG_REQUEST_TYPE);
-        
+        builder.add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE);
+
         if (message.getQuerySpec() != null) {
-            builder.add(DSPACE_FILTER_PROPERTY, mapper.convertValue(message.getQuerySpec(), JsonObject.class));
+            builder.add(DSPACE_PROPERTY_FILTER, context.transform(message.getQuerySpec(), JsonObject.class));
         }
-        
+
         return builder.build();
     }
 }

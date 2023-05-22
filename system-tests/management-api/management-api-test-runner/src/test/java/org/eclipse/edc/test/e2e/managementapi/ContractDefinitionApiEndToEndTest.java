@@ -16,7 +16,6 @@ package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.specification.RequestSpecification;
-import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
@@ -29,14 +28,17 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 
@@ -45,12 +47,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
     public static final String TEST_ID = "test-id";
     public static final String TEST_AP_ID = "ap1";
     public static final String TEST_CP_ID = "cp1";
-    // These constants should be equal to the ones found ContractDefinitionRequestDto!
-    public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + "ContractDefinition";
-    public static final String CONTRACT_DEFINITION_ACCESSPOLICY_ID = EDC_NAMESPACE + "accessPolicyId";
-    public static final String CONTRACT_DEFINITION_CONTRACTPOLICY_ID = EDC_NAMESPACE + "contractPolicyId";
-    public static final String CONTRACT_DEFINITION_VALIDITY = EDC_NAMESPACE + "validity";
-    public static final String CONTRACT_DEFINITION_CRITERIA = EDC_NAMESPACE + "criteria";
     private static final TypeRef<List<JsonObject>> LIST_TYPE = new TypeRef<>() {
     };
 
@@ -76,7 +72,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
     @Test
     void createContractDef() {
         var defStore = controlPlane.getContext().getService(ContractDefinitionStore.class);
-        var requestJson = createJsonBuilder()
+        var requestJson = createDefinitionBuilder()
                 .build();
 
         baseRequest()
@@ -85,7 +81,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .post()
                 .then()
                 .statusCode(200)
-                .body("id", equalTo(TEST_ID));
+                .body("@id", equalTo(TEST_ID));
 
         assertThat(defStore.findAll(QuerySpec.none())).hasSize(1)
                 .allMatch(cd -> cd.getId().equals(TEST_ID));
@@ -111,7 +107,10 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         var entity = createContractDefinition().build();
         store.save(entity);
 
-        var updated = createJsonBuilder().add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "new-policy").build();
+        var updated = createDefinitionBuilder()
+                .add("accessPolicyId", "new-policy")
+                .build();
+
         baseRequest()
                 .contentType(JSON)
                 .body(updated)
@@ -129,7 +128,10 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         var store = controlPlane.getContext().getService(ContractDefinitionStore.class);
         // nothing is saved in the store, so the update will fail
 
-        var updated = createJsonBuilder().add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "new-policy").build();
+        var updated = createDefinitionBuilder()
+                .add("accessPolicyId", "new-policy")
+                .build();
+
         baseRequest()
                 .contentType(JSON)
                 .body(updated)
@@ -141,35 +143,36 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         assertThat(all).isEmpty();
     }
 
-    private JsonObjectBuilder createJsonBuilder() {
-        return Json.createObjectBuilder()
-                .add(TYPE, CONTRACT_DEFINITION_TYPE)
-                .add(ID, TEST_ID)
-                .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, TEST_AP_ID)
-                .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, TEST_CP_ID)
-                .add(CONTRACT_DEFINITION_VALIDITY, 3600)
-                .add(CONTRACT_DEFINITION_CRITERIA, createCriterionBuilder().build());
-    }
-
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + PORT + "/management/v2/contractdefinitions")
+                .port(PORT)
+                .basePath("/management/v2/contractdefinitions")
                 .when();
     }
 
+    private JsonObjectBuilder createDefinitionBuilder() {
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
+                .add(ID, TEST_ID)
+                .add("accessPolicyId", TEST_AP_ID)
+                .add("contractPolicyId", TEST_CP_ID)
+                .add("criteria", createCriterionBuilder().build());
+    }
+
     private JsonArrayBuilder createCriterionBuilder() {
-        return Json.createArrayBuilder()
-                .add(Json.createObjectBuilder()
-                        .add(TYPE, EDC_NAMESPACE + "CriterionDto")
-                        .add(EDC_NAMESPACE + "operandLeft", "foo")
-                        .add(EDC_NAMESPACE + "operator", "=")
-                        .add(EDC_NAMESPACE + "operandRight", "bar")
+        return createArrayBuilder()
+                .add(createObjectBuilder()
+                        .add(TYPE, "CriterionDto")
+                        .add("operandLeft", "foo")
+                        .add("operator", "=")
+                        .add("operandRight", "bar")
                 )
-                .add(Json.createObjectBuilder()
-                        .add(TYPE, EDC_NAMESPACE + "CriterionDto")
-                        .add(EDC_NAMESPACE + "operandLeft", "bar")
-                        .add(EDC_NAMESPACE + "operator", "=")
-                        .add(EDC_NAMESPACE + "operandRight", "baz")
+                .add(createObjectBuilder()
+                        .add(TYPE, "CriterionDto")
+                        .add("operandLeft", "bar")
+                        .add("operator", "=")
+                        .add("operandRight", "baz")
                 );
     }
 
@@ -180,7 +183,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .contractPolicyId(TEST_CP_ID)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance()
                         .criteria(List.of(new Criterion("foo", "=", "bar"),
-                                new Criterion("bar", "=", "baz"))).build())
-                .validity(TimeUnit.MINUTES.toSeconds(10));
+                                new Criterion("bar", "=", "baz"))).build());
     }
 }

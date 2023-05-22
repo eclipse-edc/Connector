@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.generateDocument;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -152,12 +153,12 @@ class CosmosContractNegotiationStoreTest {
     }
 
     @Test
-    void nextForState() {
+    void nextNotLeased() {
         var state = ContractNegotiationStates.AGREED;
         when(cosmosDbApi.invokeStoredProcedure("nextForState", PARTITION_KEY, state.code(), 100, "test-connector"))
                 .thenReturn("[]");
 
-        var result = store.nextForState(state.code(), 100);
+        var result = store.nextNotLeased(100, hasState(state.code()));
 
         assertThat(result).isEmpty();
         verify(cosmosDbApi).invokeStoredProcedure("nextForState", PARTITION_KEY, state.code(), 100, "test-connector");

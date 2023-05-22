@@ -46,6 +46,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractagreements")
+@Deprecated(since = "milestone9")
 public class ContractAgreementApiController implements ContractAgreementApi {
     private final Monitor monitor;
     private final ContractAgreementService service;
@@ -59,7 +60,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
     @GET
     @Override
-    @Deprecated
+    @Deprecated(since = "milestone9")
     public List<ContractAgreementDto> getAllAgreements(@Valid @BeanParam QuerySpecDto querySpecDto) {
         return queryContractAgreements(querySpecDto);
     }
@@ -67,6 +68,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
     @POST
     @Path("/request")
     @Override
+    @Deprecated(since = "milestone9")
     public List<ContractAgreementDto> queryAllAgreements(@Valid QuerySpecDto querySpecDto) {
         return queryContractAgreements(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
     }
@@ -74,6 +76,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
     @GET
     @Path("{id}")
     @Override
+    @Deprecated(since = "milestone9")
     public ContractAgreementDto getContractAgreement(@PathParam("id") String id) {
         monitor.debug(format("get contract agreement with ID %s", id));
 

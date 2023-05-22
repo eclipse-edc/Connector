@@ -21,23 +21,29 @@ import java.util.UUID;
 /**
  * Handles contract ID generation for contract offers and agreements originating in an EDC runtime.
  * Ids are architected to allow the contract definition which generated the contract to be de-referenced.
- * The id format follows the following scheme: <code>[definition-id]:UUID</code>
+ * The id format follows the following scheme: <code>[definition-id]:[asset-id]:UUID</code>
  */
 public final class ContractId {
 
     private static final int DEFINITION_PART = 0;
+    private static final int ASSET_ID_PART = 1;
     private static final String DELIMITER = ":";
     private final String value;
+
+    private ContractId(String value) {
+        this.value = value;
+    }
 
     /**
      * Returns a new id given the definition part
      *
      * @param definitionPart the part that will be used as prefix of the id
+     * @param assetId        The ID of the asset that is contained in the offer
      * @return a {@link String} that represent the contract id
      */
     @NotNull
-    public static String createContractId(String definitionPart) {
-        return definitionPart + DELIMITER + UUID.randomUUID();
+    public static String createContractId(String definitionPart, String assetId) {
+        return definitionPart + DELIMITER + assetId + DELIMITER + UUID.randomUUID();
     }
 
     /**
@@ -51,10 +57,6 @@ public final class ContractId {
         return new ContractId(id);
     }
 
-    private ContractId(String value) {
-        this.value = value;
-    }
-
     /**
      * The id is valid if it follows the following scheme: [definition-id]:UUID
      *
@@ -62,7 +64,7 @@ public final class ContractId {
      */
     public boolean isValid() {
         var parts = parseContractId(value);
-        return parts.length == 2;
+        return parts.length == 3;
     }
 
     /**
@@ -75,7 +77,22 @@ public final class ContractId {
         return parts[DEFINITION_PART];
     }
 
+    /**
+     * The asset-id part of the id
+     *
+     * @return The definition part of the id
+     */
+    public String assetIdPart() {
+        var parts = parseContractId(value);
+        return parts[ASSET_ID_PART];
+    }
+
     private String[] parseContractId(@NotNull String id) {
         return id.split(DELIMITER);
+    }
+
+    @Override
+    public String toString() {
+        return value;
     }
 }

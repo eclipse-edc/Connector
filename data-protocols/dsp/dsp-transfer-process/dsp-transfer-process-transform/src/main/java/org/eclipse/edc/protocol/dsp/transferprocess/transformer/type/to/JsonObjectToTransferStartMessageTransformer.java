@@ -17,12 +17,14 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 
 public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferStartMessage> {
 
@@ -31,13 +33,22 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
     }
 
     @Override
-    public @Nullable TransferStartMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+    public @Nullable TransferStartMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var transferStartMessageBuilder = TransferStartMessage.Builder.newInstance();
 
-        transferStartMessageBuilder.protocol(HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP);
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), transferStartMessageBuilder::processId, context)) {
+            context.problem()
+                    .missingProperty()
+                    .type(DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                    .property(DSPACE_PROPERTY_PROCESS_ID)
+                    .report();
+            return null;
+        }
 
-        transformString(jsonObject.get(DSPACE_PROCESSID_TYPE), transferStartMessageBuilder::processId, context);
-        //TODO ADD missing fields dataAddress from spec issue https://github.com/eclipse-edc/Connector/issues/2727
+        var dataAddressObject = returnJsonObject(messageObject.get(DSPACE_PROPERTY_DATA_ADDRESS), context, DSPACE_PROPERTY_DATA_ADDRESS, false);
+        if (dataAddressObject != null) {
+            transferStartMessageBuilder.dataAddress(context.transform(dataAddressObject, DataAddress.class));
+        }
 
         return transferStartMessageBuilder.build();
     }

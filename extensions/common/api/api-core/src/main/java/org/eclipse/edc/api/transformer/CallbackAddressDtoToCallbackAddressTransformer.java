@@ -38,6 +38,8 @@ public class CallbackAddressDtoToCallbackAddressTransformer implements DtoTransf
                 .uri(object.getUri())
                 .events(object.getEvents())
                 .transactional(object.isTransactional())
+                .authCodeId(object.getAuthCodeId())
+                .authKey(object.getAuthKey())
                 .build();
     }
 }

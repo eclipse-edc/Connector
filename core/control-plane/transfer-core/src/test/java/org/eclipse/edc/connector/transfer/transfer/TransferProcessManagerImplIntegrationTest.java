@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -123,7 +122,7 @@ class TransferProcessManagerImplIntegrationTest {
         var processes = IntStream.range(0, numProcesses)
                 .mapToObj(i -> provisionedResourceSet())
                 .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).callbackAddresses(List.of(callback)).provisionedResourceSet(resourceSet).build())
-                .peek(store::save)
+                .peek(store::updateOrCreate)
                 .collect(Collectors.toList());
 
         transferProcessManager.start();
@@ -132,7 +131,7 @@ class TransferProcessManagerImplIntegrationTest {
             assertThat(processes).describedAs("All transfer processes state should be greater than INITIAL")
                     .allSatisfy(process -> {
                         var id = process.getId();
-                        var storedProcess = store.find(id);
+                        var storedProcess = store.findById(id);
 
                         assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore")
                                 .isNotNull().extracting(StatefulEntity::getState).asInstanceOf(comparable(Integer.class))
@@ -155,7 +154,6 @@ class TransferProcessManagerImplIntegrationTest {
         String processId = UUID.randomUUID().toString();
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(processId)
-                .transferType(new TransferType())
                 .managedResources(true)
                 .destinationType("test-type")
                 .contractId(UUID.randomUUID().toString())

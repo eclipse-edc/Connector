@@ -24,7 +24,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EndpointDataAddressConstantsTest {
-    
+
     @Test
     void from_shouldConvertEdrToDataAddress() {
 
@@ -33,11 +33,11 @@ public class EndpointDataAddressConstantsTest {
 
 
         assertThat(dataAddress.getProperties()).containsAllEntriesOf(inputEdr.getProperties());
-        assertThat(dataAddress.getType()).isEqualTo(EndpointDataAddressConstants.TYPE);
-        assertThat(dataAddress.getProperty(EndpointDataAddressConstants.ID)).isEqualTo(inputEdr.getId());
-        assertThat(dataAddress.getProperty(EndpointDataAddressConstants.AUTH_KEY)).isEqualTo(inputEdr.getAuthKey());
-        assertThat(dataAddress.getProperty(EndpointDataAddressConstants.AUTH_CODE)).isEqualTo(inputEdr.getAuthCode());
-        assertThat(dataAddress.getProperty(EndpointDataAddressConstants.ENDPOINT)).isEqualTo(inputEdr.getEndpoint());
+        assertThat(dataAddress.getType()).isEqualTo(EndpointDataReference.EDR_SIMPLE_TYPE);
+        assertThat(dataAddress.getProperty(EndpointDataReference.ID)).isEqualTo(inputEdr.getId());
+        assertThat(dataAddress.getProperty(EndpointDataReference.AUTH_KEY)).isEqualTo(inputEdr.getAuthKey());
+        assertThat(dataAddress.getProperty(EndpointDataReference.AUTH_CODE)).isEqualTo(inputEdr.getAuthCode());
+        assertThat(dataAddress.getProperty(EndpointDataReference.ENDPOINT)).isEqualTo(inputEdr.getEndpoint());
 
     }
 

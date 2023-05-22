@@ -25,6 +25,7 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
@@ -37,18 +38,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createContract;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createContractBuilder;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
+import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiationBuilder;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 /**
  * This test aims to verify those parts of the contract negotiation store, that are specific to Postgres, e.g. JSON
@@ -58,14 +64,14 @@ import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.st
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
 
+    private static final String TEST_ASSET_ID = "test-asset-id";
     private SqlContractNegotiationStore store;
     private LeaseUtil leaseUtil;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws SQLException, IOException {
-
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
         var statements = new PostgresDialectStatements();
-        TypeManager manager = new TypeManager();
+        var manager = new TypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
         store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), manager.getMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
@@ -76,7 +82,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws Exception {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         var dialect = new PostgresDialectStatements();
         extension.runQuery("DROP TABLE " + dialect.getContractNegotiationTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + dialect.getContractAgreementTable() + " CASCADE");
@@ -160,7 +166,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -176,7 +182,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_invalidOperand() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -190,7 +196,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_noFilter() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -204,7 +210,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_invalidValue() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString()))
+            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -234,6 +240,23 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         // cancel the agreement
         updatedNegotiation.transitionTerminating("Cancelled");
         store.save(updatedNegotiation);
+    }
+
+    @Test
+    void nextNotLeased_typeFilter() {
+        range(0, 5).mapToObj(it -> createNegotiationBuilder("1" + it)
+                .state(REQUESTED.code())
+                .type(PROVIDER)
+                .build()).forEach(store::save);
+        range(5, 10).mapToObj(it -> createNegotiationBuilder("1" + it)
+                .state(REQUESTED.code())
+                .type(CONSUMER)
+                .build()).forEach(store::save);
+        Criterion[] criteria = { hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER") };
+
+        var result = store.nextNotLeased(10, criteria);
+
+        assertThat(result).hasSize(5).allMatch(it -> it.getType() == CONSUMER);
     }
 
     @Override

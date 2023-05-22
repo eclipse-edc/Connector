@@ -22,6 +22,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransformer<DataAddress, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
@@ -34,6 +37,8 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
     @Override
     public @Nullable JsonObject transform(@NotNull DataAddress dataAddress, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
+
+        builder.add(TYPE, EDC_NAMESPACE + "DataAddress");
 
         dataAddress.getProperties().forEach(builder::add);
 

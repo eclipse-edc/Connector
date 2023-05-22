@@ -17,26 +17,37 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * The {@link TransferRequestMessage} is sent by a consumer to initiate a transfer process.
  */
 public class TransferRequestMessage implements TransferRemoteMessage {
 
-    private String callbackAddress;
-    private String protocol;
     private String id;
+    private String counterPartyAddress;
+    private String protocol = "unknown";
+    private String processId;
     private String contractId;
     @Deprecated(forRemoval = true)
     private String assetId;
     private DataAddress dataDestination;
     @Deprecated(forRemoval = true)
     private String connectorId;
+    private String callbackAddress;
     private Map<String, String> properties = new HashMap<>();
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -44,13 +55,20 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
+    }
+
+    @Override
+    @NotNull
     public String getProcessId() {
-        return id;
+        return processId;
     }
 
     @Deprecated
@@ -60,10 +78,6 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     public String getContractId() {
         return contractId;
-    }
-
-    public String getId() {
-        return id;
     }
 
     @Deprecated
@@ -77,6 +91,10 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     public DataAddress getDataDestination() {
         return dataDestination;
+    }
+
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -93,7 +111,17 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         }
 
         public Builder id(String id) {
-            message.id = id;
+            this.message.id = id;
+            return this;
+        }
+
+        public Builder processId(String processId) {
+            message.processId = processId;
+            return this;
+        }
+
+        public Builder counterPartyAddress(String callbackAddress) {
+            message.counterPartyAddress = callbackAddress;
             return this;
         }
 
@@ -135,7 +163,10 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         }
 
         public TransferRequestMessage build() {
-            Objects.requireNonNull(message.protocol, "The protocol must be specified");
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
+
             Objects.requireNonNull(message.callbackAddress, "The callbackAddress must be specified");
             return message;
         }

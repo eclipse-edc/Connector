@@ -14,9 +14,7 @@
 
 package org.eclipse.edc.test.system.utils;
 
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import jakarta.json.JsonObject;
 
 import java.util.Map;
 
@@ -31,9 +29,7 @@ public interface TransferConfiguration {
 
     String getProviderIdsUrl();
 
-    NegotiationInitiateRequestDto createNegotiationRequest(ContractOffer offer);
-
-    TransferRequestDto createTransferRequest(ContractOffer offer, String contractAgreementId);
+    JsonObject createBlobDestination();
 
     default boolean isTransferResultValid(Map<String, String> dataDestinationProperties) {
         return true;

@@ -203,8 +203,7 @@ class ContractOfferResolverImplIntegrationTest {
                 .id(id)
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(100);
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
     }
 
     private Asset.Builder createAsset(String id) {

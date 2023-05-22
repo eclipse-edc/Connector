@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     counterparty_id      VARCHAR                                            NOT NULL,
     counterparty_address VARCHAR                                            NOT NULL,
     protocol             VARCHAR DEFAULT 'ids-multipart'::CHARACTER VARYING NOT NULL,
-    type                 INTEGER DEFAULT 0                                  NOT NULL,
+    type                 VARCHAR                                            NOT NULL,
     state                INTEGER DEFAULT 0                                  NOT NULL,
     state_count          INTEGER DEFAULT 0,
     state_timestamp      BIGINT,

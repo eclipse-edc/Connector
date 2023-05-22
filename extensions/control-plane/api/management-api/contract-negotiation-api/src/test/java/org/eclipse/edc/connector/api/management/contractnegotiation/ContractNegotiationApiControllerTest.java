@@ -33,7 +33,6 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
@@ -46,7 +45,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -312,13 +310,11 @@ class ContractNegotiationApiControllerTest {
         var requestData = ContractRequestData.Builder.newInstance()
                 .protocol("protocol")
                 .connectorId("connectorId")
-                .callbackAddress("callbackAddress")
+                .counterPartyAddress("callbackAddress")
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
-                        .asset(Asset.Builder.newInstance().id("test-asset").build())
-                        .contractStart(ZonedDateTime.now())
-                        .contractEnd(ZonedDateTime.now().plusMonths(1))
+                        .assetId("test-asset")
                         .build())
                 .build();
         return ContractRequest.Builder.newInstance()

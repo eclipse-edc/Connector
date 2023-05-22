@@ -36,12 +36,13 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Clock;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
 
@@ -49,7 +50,6 @@ import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
  * SQL-based implementation of the {@link ContractNegotiationStore}
  */
 public class SqlContractNegotiationStore extends AbstractSqlStore implements ContractNegotiationStore {
-
 
     private final ContractNegotiationStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
@@ -79,7 +79,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
             // utilize the generic query api
             var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("correlationId", "=", correlationId))).build();
             try (var stream = queryNegotiations(query)) {
-                return single(stream.collect(Collectors.toList()));
+                return single(stream.collect(toList()));
             }
         });
     }
@@ -168,14 +168,19 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
+    public @NotNull List<ContractNegotiation> nextNotLeased(int max, Criterion... criteria) {
         return transactionContext.execute(() -> {
-            var stmt = statements.getNextForStateTemplate();
+            var filter = Arrays.stream(criteria).collect(toList());
+            var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
+            var statement = statements.createNegotiationsQuery(querySpec);
+            statement.addWhereClause(statements.getNotLeasedFilter());
+            statement.addParameter(clock.millis());
+
             try (
                     var connection = getConnection();
-                    var stream = executeQuery(connection, true, contractNegotiationWithAgreementMapper(connection), stmt, state, clock.millis(), max)
+                    var stream = executeQuery(getConnection(), true, contractNegotiationWithAgreementMapper(connection), statement.getQueryAsString(), statement.getParameters())
             ) {
-                var negotiations = stream.collect(Collectors.toList());
+                var negotiations = stream.collect(toList());
                 negotiations.forEach(cn -> leaseContext.withConnection(connection).acquireLease(cn.getId()));
                 return negotiations;
             } catch (SQLException e) {
@@ -228,7 +233,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 negotiation.getCorrelationId(),
                 negotiation.getCounterPartyId(),
                 negotiation.getCounterPartyAddress(),
-                negotiation.getType().ordinal(),
+                negotiation.getType().name(),
                 negotiation.getProtocol(),
                 negotiation.getState(),
                 negotiation.getStateCount(),
@@ -256,8 +261,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                             contractAgreement.getProviderId(),
                             contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
-                            contractAgreement.getContractStartDate(),
-                            contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
                             toJson(contractAgreement.getPolicy())
                     );
@@ -267,8 +270,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                     executeQuery(connection, query, contractAgreement.getProviderId(),
                             contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
-                            contractAgreement.getContractStartDate(),
-                            contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
                             toJson(contractAgreement.getPolicy()),
                             agrId);
@@ -296,11 +297,9 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .providerId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
+                .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
                 }))
-                .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
-                .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
-                .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 //todo
                 .build();
     }
@@ -343,7 +342,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), new TypeReference<>() {
                 }))
                 // will throw an exception if the value is outside the Type.values() range
-                .type(ContractNegotiation.Type.values()[resultSet.getInt(statements.getTypeColumn())])
+                .type(ContractNegotiation.Type.valueOf(resultSet.getString(statements.getTypeColumn())))
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))
                 .build();

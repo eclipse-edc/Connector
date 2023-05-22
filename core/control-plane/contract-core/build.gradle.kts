@@ -28,6 +28,7 @@ dependencies {
     testImplementation(project(":core:control-plane:control-plane-aggregate-services"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
+    testImplementation(project(":core:common:policy-engine"))
 }
 
 

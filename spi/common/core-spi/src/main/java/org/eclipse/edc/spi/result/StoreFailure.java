@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       ZF Friedrichshafen AG - added private property support
  *
  */
 
@@ -29,6 +30,6 @@ public class StoreFailure extends Failure {
     }
 
     public enum Reason {
-        NOT_FOUND, ALREADY_EXISTS
+        NOT_FOUND, ALREADY_EXISTS, DUPLICATE_KEYS
     }
 }

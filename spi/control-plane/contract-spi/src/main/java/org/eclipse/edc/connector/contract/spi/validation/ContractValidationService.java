@@ -51,6 +51,16 @@ public interface ContractValidationService {
     Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ContractOffer offer);
 
     /**
+     * Validates the contract offer for the consumer represented by the given claims.
+     *
+     * @param token The {@link ClaimToken} of the consumer
+     * @param offerId The initial {@link ContractOffer} id to validate
+     * @return The referenced {@link ContractOffer}.
+     */
+    @NotNull
+    Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, String offerId);
+
+    /**
      * Validates the contract agreement that the consumer referenced in its transfer request.
      * The {@code ClaimToken} must represent the counter-party that is referenced in the contract agreement.
      *

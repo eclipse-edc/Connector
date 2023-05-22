@@ -17,15 +17,16 @@ package org.eclipse.edc.connector.contract.negotiation;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.command.CommandProcessor;
 import org.eclipse.edc.spi.command.CommandQueue;
 import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -59,6 +60,7 @@ public abstract class AbstractContractNegotiationManager {
     protected PolicyDefinitionStore policyStore;
     protected EntityRetryProcessFactory entityRetryProcessFactory;
     protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
+    protected ProtocolWebhook protocolWebhook;
 
     protected void transitionToInitial(ContractNegotiation negotiation) {
         negotiation.transitionInitial();
@@ -238,6 +240,11 @@ public abstract class AbstractContractNegotiationManager {
 
         public Builder<T> entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
             manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
+            return this;
+        }
+
+        public Builder<T> protocolWebhook(ProtocolWebhook protocolWebhook) {
+            manager.protocolWebhook = protocolWebhook;
             return this;
         }
 

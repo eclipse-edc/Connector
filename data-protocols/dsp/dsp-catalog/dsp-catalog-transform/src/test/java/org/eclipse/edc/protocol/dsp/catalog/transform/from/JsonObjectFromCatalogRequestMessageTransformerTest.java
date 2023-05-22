@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
@@ -28,8 +27,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.DspCatalogPropertyAndTypeNames.DSPACE_FILTER_PROPERTY;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
+import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -39,21 +38,20 @@ import static org.mockito.Mockito.when;
 class JsonObjectFromCatalogRequestMessageTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final TransformerContext context = mock(TransformerContext.class);
 
     private JsonObjectFromCatalogRequestMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, mapper);
+        transformer = new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory);
     }
 
     @Test
     void transform_returnJsonObject() {
         var querySpec = QuerySpec.Builder.newInstance().build();
         var querySpecJson = jsonFactory.createObjectBuilder().build();
-        when(mapper.convertValue(querySpec, JsonObject.class)).thenReturn(querySpecJson);
+        when(context.transform(querySpec, JsonObject.class)).thenReturn(querySpecJson);
 
         var message = CatalogRequestMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -63,8 +61,8 @@ class JsonObjectFromCatalogRequestMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_CATALOG_REQUEST_TYPE);
-        assertThat(result.get(DSPACE_FILTER_PROPERTY)).isEqualTo(querySpecJson);
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE);
+        assertThat(result.get(DSPACE_PROPERTY_FILTER)).isEqualTo(querySpecJson);
         verify(context, never()).reportProblem(anyString());
     }
 }

@@ -18,19 +18,19 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferRequestMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CALLBACKADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CONTRACTAGREEMENT_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_DATAADDRESS_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_REQUEST_TYPE;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -38,15 +38,11 @@ import static org.mockito.Mockito.verify;
 
 class JsonObjectToTransferRequestMessageTransformerTest {
 
-    private final String processId = "TestProcessId";
-
     private final String callbackAddress = "https://callback.de";
-
     private final String contractId = "TestContreactID";
-
     private final String destinationType = "dspace:s3+push";
 
-    private TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock(TransformerContext.class);
 
     private JsonObjectToTransferRequestMessageTransformer transformer;
 
@@ -58,21 +54,21 @@ class JsonObjectToTransferRequestMessageTransformerTest {
     @Test
     void jsonObjectToTransferRequestWithoutDataAddress() {
         var json = Json.createObjectBuilder()
-                .add(CONTEXT, DSPACE_SCHEMA)
-                .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
-                .add(DSPACE_CONTRACTAGREEMENT_TYPE, contractId)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, contractId)
                 .add(DCT_FORMAT_ATTRIBUTE, destinationType)
-                .add(DSPACE_DATAADDRESS_TYPE, Json.createObjectBuilder().build())
-                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
+                .add(DSPACE_PROPERTY_DATA_ADDRESS, Json.createObjectBuilder().build())
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
                 .build();
 
-        var result = transformer.transform(json, context);
+        var result = transformer.transform(getExpanded(json), context);
 
-        Assertions.assertNotNull(result);
-
+        assertThat(result).isNotNull();
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
+        assertThat(result.getProcessId()).isEqualTo("processId");
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -80,22 +76,20 @@ class JsonObjectToTransferRequestMessageTransformerTest {
     @Test
     void jsonObjectToTransferRequestWithDataAddress() {
         var json = Json.createObjectBuilder()
-                .add(CONTEXT, DSPACE_SCHEMA)
-                .add(TYPE, DSPACE_TRANSFERPROCESS_REQUEST_TYPE)
-                .add(DSPACE_CONTRACTAGREEMENT_TYPE, contractId)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, contractId)
                 .add(DCT_FORMAT_ATTRIBUTE, destinationType)
-                .add(DSPACE_DATAADDRESS_TYPE, createDataAddress())
-                .add(DSPACE_CALLBACKADDRESS_TYPE, callbackAddress)
+                .add(DSPACE_PROPERTY_DATA_ADDRESS, createDataAddress())
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
                 .build();
 
-        var result = transformer.transform(json, context);
+        var result = transformer.transform(getExpanded(json), context);
 
         assertThat(result).isNotNull();
-
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
-
         assertThat(result.getDataDestination().getProperty("accessKeyId")).isEqualTo("TESTID");
         assertThat(result.getDataDestination().getProperty("region")).isEqualTo("eu-central-1");
 
@@ -104,8 +98,8 @@ class JsonObjectToTransferRequestMessageTransformerTest {
 
     private JsonObject createDataAddress() {
         return Json.createObjectBuilder()
-                .add("accessKeyId", "TESTID")
-                .add("region", "eu-central-1")
+                .add(EDC_NAMESPACE + "accessKeyId", "TESTID")
+                .add(EDC_NAMESPACE + "region", "eu-central-1")
                 .build();
     }
 }

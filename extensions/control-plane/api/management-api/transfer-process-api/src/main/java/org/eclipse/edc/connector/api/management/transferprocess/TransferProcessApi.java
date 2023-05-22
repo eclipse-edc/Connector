@@ -36,6 +36,7 @@ import java.util.List;
 
 @OpenAPIDefinition
 @Tag(name = "Transfer Process")
+@Deprecated(since = "milestone9")
 public interface TransferProcessApi {
     @Operation(description = "Returns all transfer process according to a query",
             responses = {

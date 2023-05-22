@@ -49,7 +49,7 @@ class DeprovisionCommandHandlerTest {
                 .build();
         var originalDate = tp.getUpdatedAt();
 
-        when(storeMock.find(anyString())).thenReturn(tp);
+        when(storeMock.findById(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.DEPROVISIONING.code());
@@ -61,7 +61,7 @@ class DeprovisionCommandHandlerTest {
     void handle_notFound() {
         var cmd = new DeprovisionRequest("test-id");
 
-        when(storeMock.find(anyString())).thenReturn(null);
+        when(storeMock.findById(anyString())).thenReturn(null);
         assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(EdcException.class).hasMessage("Could not find TransferProcess with ID [test-id]");
     }
 
@@ -72,7 +72,7 @@ class DeprovisionCommandHandlerTest {
                 .type(TransferProcess.Type.CONSUMER).build();
         var originalDate = tp.getUpdatedAt();
 
-        when(storeMock.find(anyString())).thenReturn(tp);
+        when(storeMock.findById(anyString())).thenReturn(tp);
         assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(IllegalStateException.class).hasMessage("Cannot transition from state STARTED to DEPROVISIONING");
         assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
     }

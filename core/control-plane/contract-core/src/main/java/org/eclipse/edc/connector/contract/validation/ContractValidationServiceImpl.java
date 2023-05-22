@@ -21,22 +21,28 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Clock;
-import java.time.temporal.ChronoUnit;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.contract.spi.ContractId.createContractId;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -52,7 +58,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final PolicyDefinitionStore policyStore;
     private final PolicyEngine policyEngine;
     private final PolicyEquality policyEquality;
-    private final Clock clock;
 
     public ContractValidationServiceImpl(String participantId,
                                          ParticipantAgentService agentService,
@@ -60,8 +65,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                                          AssetIndex assetIndex,
                                          PolicyDefinitionStore policyStore,
                                          PolicyEngine policyEngine,
-                                         PolicyEquality policyEquality,
-                                         Clock clock) {
+                                         PolicyEquality policyEquality) {
         this.participantId = participantId;
         this.agentService = agentService;
         this.contractDefinitionResolver = contractDefinitionResolver;
@@ -69,16 +73,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         this.policyStore = policyStore;
         this.policyEngine = policyEngine;
         this.policyEquality = policyEquality;
-        this.clock = clock;
     }
 
     @Override
     @NotNull
     public Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, ContractOffer offer) {
-        if (isMandatoryAttributeMissing(offer)) {
-            return failure("Mandatory attributes are missing.");
-        }
-
         var contractId = ContractId.parse(offer.getId());
         if (!contractId.isValid()) {
             return failure("Invalid id: " + offer.getId());
@@ -86,59 +85,35 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         var agent = agentService.createFor(token);
 
-        var consumerIdentity = agent.getIdentity();
-        if (consumerIdentity == null) {
-            return failure("Invalid consumer identity");
+        var result = validateInitialOffer(contractId, agent);
+
+        return result.map(r ->
+                new ValidatedConsumerOffer(agent.getIdentity(),
+                        ContractOffer.Builder.newInstance()
+                                .id(offer.getId())
+                                .assetId(contractId.assetIdPart())
+                                .providerId(participantId)
+                                .policy(r.getPolicy())
+                                .build())
+        );
+    }
+
+    @Override
+    public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, String offerId) {
+        var contractId = ContractId.parse(offerId);
+        if (!contractId.isValid()) {
+            return failure("Invalid id: " + offerId);
         }
 
-        var contractDefinition = contractDefinitionResolver.definitionFor(agent, contractId.definitionPart());
-        if (contractDefinition == null) {
-            return failure(
-                    "The ContractDefinition with id %s either does not exist or the access to it is not granted.");
-        }
+        var agent = agentService.createFor(token);
 
-        var targetAsset = assetIndex.findById(offer.getAsset().getId());
-        if (targetAsset == null) {
-            return failure("Invalid target: " + offer.getAsset().getId());
-        }
+        var result = validateInitialOffer(contractId, agent);
 
-        // if policy target is null, default to the asset, otherwise validate it
-        var policyTarget = offer.getPolicy().getTarget() != null ? offer.getPolicy().getTarget() : targetAsset.getId();
-        if (!targetAsset.getId().equals(policyTarget)) {
-            return failure(format("Contract offer asset '%s' does not match policy target: %s", offer.getAsset().getId(), policyTarget));
-        }
+        return result.map(r -> {
+            var offer = createContractOffer(result.getContent().getDefinition(), result.getContent().getPolicy(), contractId.assetIdPart());
+            return new ValidatedConsumerOffer(agent.getIdentity(), offer);
+        });
 
-        var contractPolicyDef = policyStore.findById(contractDefinition.getContractPolicyId());
-        if (contractPolicyDef == null) {
-            return failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
-        }
-
-        var offerValidity = ChronoUnit.SECONDS.between(offer.getContractStart(), offer.getContractEnd());
-        if (offerValidity != contractDefinition.getValidity()) {
-            return failure(format("Offer validity %ss does not match contract definition validity %ss", offerValidity, contractDefinition.getValidity()));
-        }
-
-        var sanitizedPolicy = contractPolicyDef.getPolicy().withTarget(targetAsset.getId());
-
-        if (!policyEquality.test(sanitizedPolicy, offer.getPolicy())) {
-            return failure("Policy in the contract offer is not equal to the one in the contract definition");
-        }
-
-        var contractPolicyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, sanitizedPolicy, agent);
-        if (contractPolicyResult.failed()) {
-            return failure(format("Policy %s not fulfilled", contractPolicyDef.getUid()));
-        }
-
-        var validatedOffer = ContractOffer.Builder.newInstance()
-                .id(offer.getId())
-                .asset(targetAsset)
-                .providerId(participantId)
-                .policy(sanitizedPolicy)
-                .contractStart(offer.getContractStart())
-                .contractEnd(offer.getContractEnd())
-                .build();
-
-        return success(new ValidatedConsumerOffer(consumerIdentity, validatedOffer));
     }
 
     @Override
@@ -147,10 +122,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var contractId = ContractId.parse(agreement.getId());
         if (!contractId.isValid()) {
             return failure(format("The contract id %s does not follow the expected scheme", agreement.getId()));
-        }
-
-        if (!isStarted(agreement) || isExpired(agreement)) {
-            return failure("The agreement has not started yet or it has expired");
         }
 
         var agent = agentService.createFor(token);
@@ -162,6 +133,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         // Create additional context information for policy engine to make agreement available in context
         var contextInformation = new HashMap<Class<?>, Object>();
         contextInformation.put(ContractAgreement.class, agreement);
+        contextInformation.put(Instant.class, Instant.now());
 
         var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), agent, contextInformation);
         if (!policyResult.succeeded()) {
@@ -196,22 +168,82 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Invalid provider credentials");
         }
 
-        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAsset().getId()), latestOffer.getPolicy())) {
+        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAssetId()), latestOffer.getPolicy())) {
             return failure("Policy in the contract agreement is not equal to the one in the contract offer");
         }
 
         return success();
     }
 
-    private boolean isExpired(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractEndDate() * 1000L < clock.millis();
+    /**
+     * Validates an initial contract offer, ensuring that the referenced asset exists, is selected by the corresponding policy definition and the agent fulfills the contract policy.
+     * A sanitized policy definition is returned to avoid clients injecting manipulated policies.
+     */
+    private Result<SanitizedResult> validateInitialOffer(ContractId contractId, ParticipantAgent agent) {
+        var consumerIdentity = agent.getIdentity();
+        if (consumerIdentity == null) {
+            return failure("Invalid consumer identity");
+        }
+
+        var contractDefinition = contractDefinitionResolver.definitionFor(agent, contractId.definitionPart());
+        if (contractDefinition == null) {
+            return failure("The ContractDefinition with id %s either does not exist or the access to it is not granted.");
+        }
+
+        // verify the target asset exists
+        var targetAsset = assetIndex.findById(contractId.assetIdPart());
+        if (targetAsset == null) {
+            return failure("Invalid target: " + contractId.assetIdPart());
+        }
+
+        // verify that the asset in the offer is actually in the contract definition
+        var testCriteria = new ArrayList<>(contractDefinition.getSelectorExpression().getCriteria());
+        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", contractId.assetIdPart()));
+        if (assetIndex.countAssets(testCriteria) <= 0) {
+            return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");
+        }
+
+        var policyDefinition = policyStore.findById(contractDefinition.getContractPolicyId());
+        if (policyDefinition == null) {
+            return failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
+        }
+
+        var policy = policyDefinition.getPolicy().withTarget(contractId.assetIdPart());
+
+        var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent);
+        if (policyResult.failed()) {
+            return failure(format("Policy %s not fulfilled", policyDefinition.getUid()));
+        }
+        return Result.success(new SanitizedResult(contractDefinition, policy));
     }
 
-    private boolean isStarted(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
+    @NotNull
+    private ContractOffer createContractOffer(ContractDefinition definition, Policy policy, String assetId) {
+        return ContractOffer.Builder.newInstance()
+                .id(createContractId(definition.getId(), assetId))
+                .providerId(participantId)
+                .policy(policy)
+                .assetId(assetId)
+                .build();
     }
 
-    private boolean isMandatoryAttributeMissing(ContractOffer offer) {
-        return offer.getProviderId() == null;
+    private static class SanitizedResult {
+        private final ContractDefinition definition;
+        private final Policy policy;
+
+        SanitizedResult(ContractDefinition definition, Policy policy) {
+            this.definition = definition;
+            this.policy = policy;
+        }
+
+        ContractDefinition getDefinition() {
+            return definition;
+        }
+
+        Policy getPolicy() {
+            return policy;
+        }
     }
+
+
 }

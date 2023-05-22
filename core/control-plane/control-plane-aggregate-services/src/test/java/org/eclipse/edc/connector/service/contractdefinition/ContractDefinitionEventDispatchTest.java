@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.service.contractdefinition;
 
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionEvent;
@@ -25,6 +24,7 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +46,7 @@ public class ContractDefinitionEventDispatchTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
@@ -62,7 +62,6 @@ public class ContractDefinitionEventDispatchTest {
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .validity(100)
                 .build();
 
         service.create(contractDefinition);

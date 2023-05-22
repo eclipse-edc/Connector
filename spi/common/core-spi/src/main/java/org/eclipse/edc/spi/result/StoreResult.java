@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       ZF Friedrichshafen AG - added private property support
  *
  */
 
@@ -17,6 +18,7 @@ package org.eclipse.edc.spi.result;
 import java.util.List;
 
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.DUPLICATE_KEYS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
@@ -42,6 +44,9 @@ public class StoreResult<T> extends AbstractResult<T, StoreFailure, StoreResult<
         return new StoreResult<>(null, new StoreFailure(List.of(message), NOT_FOUND));
     }
 
+    public static <T> StoreResult<T> duplicateKeys(String message) {
+        return new StoreResult<>(null, new StoreFailure(List.of(message), DUPLICATE_KEYS));
+    }
 
     public static <T> StoreResult<T> success() {
         return StoreResult.success(null);

@@ -19,27 +19,23 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.Duty;
-import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.Prohibition;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_DATASET;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,79 +47,93 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromContractRequestMessageTransformerTest {
 
+    private static final String CALLBACK_ADDRESS = "https://test.com";
+    private static final String PROCESS_ID = "processId";
+    private static final String PROTOCOL = "DSP";
+    private static final String DATASET_ID = "datasetId";
+    private static final String CONTRACT_OFFER_ID = "contractOffer1";
+
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
-    private JsonObjectFromContractRequestTransformer transformer;
+    private JsonObjectFromContractRequestMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromContractRequestTransformer(jsonFactory);
+        transformer = new JsonObjectFromContractRequestMessageTransformer(jsonFactory);
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
     }
 
     @Test
-    void transform() {
-        var value = "example";
-        var message = ContractRequestMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .callbackAddress(value)
-                .dataSet(value)
-                .contractOffer(contractOffer())
-                .build();
-
+    void verify_contractOffer() {
+        var message = requestMessage();
         var obj = jsonFactory.createObjectBuilder().build();
-
         when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(obj);
 
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(ID).getString()).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_CONTRACT_REQUEST_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(value);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_DATASET).getString()).isEqualTo("assetId");
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(value);
-        assertThat(result.getJsonObject(DSPACE_NEGOTIATION_PROPERTY_OFFER)).isNotNull();
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_DATA_SET).getString()).isEqualTo(DATASET_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
+        assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER)).isNotNull();
+        assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
 
         verify(context, never()).reportProblem(anyString());
     }
 
     @Test
-    void transform_nullPolicy() {
-        var value = "example";
+    void verify_contractOfferId() {
         var message = ContractRequestMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .callbackAddress(value)
-                .dataSet(value)
-                .contractOffer(contractOffer())
+                .protocol(PROTOCOL)
+                .processId(PROCESS_ID)
+                .callbackAddress(CALLBACK_ADDRESS)
+                .dataSet(DATASET_ID)
+                .contractOfferId(CONTRACT_OFFER_ID)
                 .build();
 
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getJsonString(ID).getString()).isNotEmpty();
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_DATA_SET).getString()).isEqualTo(DATASET_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_OFFER_ID)).isNotNull();
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void verify_nullPolicyFails() {
+        var message = requestMessage();
         when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(null);
 
-        assertThat(transformer.transform(message, context)).isNull();
+        var result = transformer.transform(message, context);
 
+        assertThat(result).isNull();
         verify(context, times(1)).reportProblem(anyString());
+    }
+
+    private ContractRequestMessage requestMessage() {
+        return ContractRequestMessage.Builder.newInstance()
+                .protocol(PROTOCOL)
+                .processId(PROCESS_ID)
+                .callbackAddress(CALLBACK_ADDRESS)
+                .dataSet(DATASET_ID)
+                .contractOffer(contractOffer())
+                .build();
     }
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(String.valueOf(UUID.randomUUID()))
-                .asset(Asset.Builder.newInstance().id("assetId").build())
-                .policy(policy()).build();
-    }
-
-    private Policy policy() {
-        var action = Action.Builder.newInstance().type("USE").build();
-        var permission = Permission.Builder.newInstance().action(action).build();
-        var prohibition = Prohibition.Builder.newInstance().action(action).build();
-        var duty = Duty.Builder.newInstance().action(action).build();
-        return Policy.Builder.newInstance()
-                .permission(permission)
-                .prohibition(prohibition)
-                .duty(duty)
+                .id(CONTRACT_OFFER_ID)
+                .assetId(DATASET_ID)
+                .policy(Policy.Builder.newInstance().build())
                 .build();
     }
+
 }

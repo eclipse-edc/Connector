@@ -127,10 +127,10 @@ public interface TransferProcessService {
      * Initiate transfer request for type consumer.
      *
      * @param request for the transfer.
-     * @return a result that is successful if the transfer process was initiated with id of created transferProcess.
+     * @return a result that is successful if the transfer process was initiated with the created TransferProcess.
      */
     @NotNull
-    ServiceResult<String> initiateTransfer(TransferRequest request);
+    ServiceResult<TransferProcess> initiateTransfer(TransferRequest request);
 
     /**
      * Asynchronously informs the system that the {@link DeprovisionedResource} has been provisioned

@@ -28,11 +28,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -44,9 +43,9 @@ import static org.mockito.Mockito.when;
 
 class DspHttpRemoteMessageDispatcherImplTest {
 
-    private EdcHttpClient httpClient = mock(EdcHttpClient.class);
-    private IdentityService identityService = mock(IdentityService.class);
-    private DspHttpDispatcherDelegate<TestMessage, String> delegate = mock(DspHttpDispatcherDelegate.class);
+    private final EdcHttpClient httpClient = mock(EdcHttpClient.class);
+    private final IdentityService identityService = mock(IdentityService.class);
+    private final DspHttpDispatcherDelegate<TestMessage, String> delegate = mock(DspHttpDispatcherDelegate.class);
 
     private DspHttpRemoteMessageDispatcher dispatcher;
 
@@ -63,14 +62,14 @@ class DspHttpRemoteMessageDispatcherImplTest {
     }
 
     @Test
-    void send_sendRequestViaHttpClient() throws ExecutionException, InterruptedException {
+    void send_sendRequestViaHttpClient() {
         var responseBody = "response";
         Function<Response, String> responseFunction = response -> responseBody;
         var authToken = "token";
 
         when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(delegate.parseResponse()).thenReturn(responseFunction);
-        when(httpClient.executeAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(responseBody));
+        when(httpClient.executeAsync(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(responseBody));
         when(identityService.obtainClientCredentials(any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
@@ -79,36 +78,41 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var message = new TestMessage();
         var result = dispatcher.send(String.class, message);
 
-        assertThat(result.get()).isEqualTo(responseBody);
+        assertThat(result).succeedsWithin(5, TimeUnit.SECONDS).isEqualTo(responseBody);
 
         verify(delegate).buildRequest(message);
-        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCallbackAddress())));
-        verify(httpClient).executeAsync(argThat(r -> r.headers().get("Authorization").equals(authToken)), eq(responseFunction));
+        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCounterPartyAddress())));
+        verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
     }
 
     @Test
     void send_noDelegateFound_throwException() {
-        assertThatThrownBy(() -> dispatcher.send(String.class, new TestMessage())).isInstanceOf(EdcException.class);
+        assertThat(dispatcher.send(String.class, new TestMessage())).failsWithin(5, TimeUnit.SECONDS)
+                .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("found");
+
         verifyNoInteractions(httpClient);
     }
 
     @Test
     void send_failedToObtainToken_throwException() {
+        dispatcher.registerDelegate(delegate);
         when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
 
-        assertThatThrownBy(() -> dispatcher.send(String.class, new TestMessage())).isInstanceOf(EdcException.class);
+        assertThat(dispatcher.send(String.class, new TestMessage())).failsWithin(5, TimeUnit.SECONDS)
+                .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("credentials");
+
         verifyNoInteractions(httpClient);
     }
 
-    class TestMessage implements RemoteMessage {
+    static class TestMessage implements RemoteMessage {
         @Override
         public String getProtocol() {
             return null;
         }
 
         @Override
-        public String getCallbackAddress() {
+        public String getCounterPartyAddress() {
             return "http://connector";
         }
     }

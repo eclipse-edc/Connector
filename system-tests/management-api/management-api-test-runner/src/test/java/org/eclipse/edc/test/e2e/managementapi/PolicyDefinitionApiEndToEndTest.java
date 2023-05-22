@@ -15,8 +15,8 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.specification.RequestSpecification;
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -26,10 +26,12 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.hasEntry;
@@ -38,16 +40,24 @@ import static org.hamcrest.Matchers.is;
 @EndToEndTest
 public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
+    private static final String BASE_PATH = "/management/v2/policydefinitions";
+
     @Test
-    void shouldStorePolicyDefinition()  {
-        var json = getResourceFileContentAsString("policy-definition.json");
+    void shouldStorePolicyDefinition() {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add("edc", EDC_NAMESPACE)
+                        .build())
+                .add(TYPE, "PolicyDefinition")
+                .add("policy", sampleOdrlPolicy())
+                .build();
+
         var id = baseRequest()
-                .body(json)
+                .body(requestBody)
                 .contentType(JSON)
                 .post()
                 .then()
-                .statusCode(200)
-                .extract().jsonPath().getString("id");
+                .extract().jsonPath().getString(ID);
 
         assertThat(store().findById(id)).isNotNull()
                 .extracting(PolicyDefinition::getPolicy).isNotNull()
@@ -64,17 +74,24 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
     @Test
     void shouldUpdate() {
-        var json = getResourceFileContentAsString("policy-definition.json");
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add("edc", EDC_NAMESPACE)
+                        .build())
+                .add(TYPE, "PolicyDefinition")
+                .add("policy", sampleOdrlPolicy())
+                .build();
+
         var id = baseRequest()
-                .body(json)
+                .body(requestBody)
                 .contentType(JSON)
                 .post()
                 .then()
                 .statusCode(200)
-                .extract().jsonPath().getString("id");
+                .extract().jsonPath().getString(ID);
 
         var createdAt = baseRequest()
-                .body(Json.createObjectBuilder().build())
+                .body(createObjectBuilder().build())
                 .contentType(JSON)
                 .post("/request")
                 .then()
@@ -85,7 +102,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
         baseRequest()
                 .contentType(JSON)
-                .body(json)
+                .body(requestBody)
                 .put("/" + id)
                 .then()
                 .statusCode(204);
@@ -97,18 +114,24 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
     @Test
     void shouldDelete() {
-        var json = getResourceFileContentAsString("policy-definition.json");
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add("edc", EDC_NAMESPACE)
+                        .build())
+                .add(TYPE, "PolicyDefinition")
+                .add("policy", sampleOdrlPolicy())
+                .build();
+
+
         var id = baseRequest()
-                .body(json)
+                .body(requestBody)
                 .contentType(JSON)
                 .post()
                 .then()
                 .statusCode(200)
-                .extract().jsonPath().getString("id");
+                .extract().jsonPath().getString(ID);
 
         baseRequest()
-                .contentType(JSON)
-                .body(json)
                 .delete("/" + id)
                 .then()
                 .statusCode(204);
@@ -119,14 +142,27 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .statusCode(404);
     }
 
-    private PolicyDefinitionStore store() {
-        return controlPlane.getContext().getService(PolicyDefinitionStore.class);
-    }
-
-    private static RequestSpecification baseRequest() {
+    private RequestSpecification baseRequest() {
         return given()
                 .port(PORT)
-                .basePath("/management/v2/policydefinitions");
+                .basePath(BASE_PATH);
+    }
+
+    private JsonObject sampleOdrlPolicy() {
+        return createObjectBuilder()
+                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                .add(TYPE, "Set")
+                .add("permission", createArrayBuilder()
+                        .add(createObjectBuilder()
+                                .add("target", "http://example.com/asset:9898.movie")
+                                .add("action", "use")
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private PolicyDefinitionStore store() {
+        return controlPlane.getContext().getService(PolicyDefinitionStore.class);
     }
 
 }

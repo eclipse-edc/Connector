@@ -16,8 +16,11 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 /**
  * The {@link TransferTerminationMessage} is sent by the provider or consumer at any point except a terminal state to
@@ -26,13 +29,20 @@ import java.util.Objects;
  */
 public class TransferTerminationMessage implements TransferRemoteMessage {
 
-    private String callbackAddress;
-    private String protocol;
+    private String id;
+    private String counterPartyAddress;
+    private String protocol = "unknown";
     private String processId;
 
     private String code;
 
     private String reason; //TODO change to List  https://github.com/eclipse-edc/Connector/issues/2729
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -40,11 +50,18 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
     }
 
     @Override
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
+    }
+
+    @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -70,8 +87,13 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
             return new Builder();
         }
 
-        public Builder callbackAddress(String address) {
-            message.callbackAddress = address;
+        public Builder id(String id) {
+            this.message.id = id;
+            return this;
+        }
+
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            message.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
@@ -96,8 +118,12 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
         }
 
         public TransferTerminationMessage build() {
-            Objects.requireNonNull(message.protocol, "The protocol must be specified");
+            if (message.id == null) {
+                message.id = randomUUID().toString();
+            }
+
             Objects.requireNonNull(message.processId, "The processId must be specified");
+            //TODO add Nullcheck for message.code Issue https://github.com/eclipse-edc/Connector/issues/2810
             return message;
         }
     }

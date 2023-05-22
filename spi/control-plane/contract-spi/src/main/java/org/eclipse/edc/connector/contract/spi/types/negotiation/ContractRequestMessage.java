@@ -16,23 +16,36 @@ package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.UUID.randomUUID;
+
 /**
- * Object that wraps the contract offer and provides additional information about e.g. protocol
- * and recipient.
+ * Object that wraps the contract offer and provides additional information about e.g. protocol and recipient.
  */
 public class ContractRequestMessage implements ContractRemoteMessage {
 
+    private String id;
     private Type type = Type.COUNTER_OFFER;
-    private String protocol;
+    private String protocol = "unknown";
     @Deprecated(forRemoval = true)
     private String connectorId;
+    private String counterPartyAddress;
     private String callbackAddress;
     private String processId;
     private ContractOffer contractOffer;
+    private String contractOfferId;
     private String dataSet;
+
+    @NotNull
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getProtocol() {
@@ -40,8 +53,14 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     }
 
     @Override
-    public String getCallbackAddress() {
-        return callbackAddress;
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
+    }
+
+    @Override
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     @Deprecated
@@ -50,6 +69,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     }
 
     @Override
+    @NotNull
     public String getProcessId() {
         return processId;
     }
@@ -58,12 +78,22 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         return type;
     }
 
+    @Nullable
     public ContractOffer getContractOffer() {
         return contractOffer;
     }
 
+    @Nullable
+    public String getContractOfferId() {
+        return contractOfferId;
+    }
+
     public String getDataSet() {
         return dataSet;
+    }
+
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     public enum Type {
@@ -82,6 +112,11 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             return new Builder();
         }
 
+        public Builder id(String id) {
+            this.contractRequestMessage.id = id;
+            return this;
+        }
+
         public Builder protocol(String protocol) {
             contractRequestMessage.protocol = protocol;
             return this;
@@ -98,6 +133,11 @@ public class ContractRequestMessage implements ContractRemoteMessage {
             return this;
         }
 
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            contractRequestMessage.counterPartyAddress = counterPartyAddress;
+            return this;
+        }
+
         public Builder processId(String processId) {
             contractRequestMessage.processId = processId;
             return this;
@@ -105,6 +145,11 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
         public Builder contractOffer(ContractOffer contractOffer) {
             contractRequestMessage.contractOffer = contractOffer;
+            return this;
+        }
+
+        public Builder contractOfferId(String id) {
+            contractRequestMessage.contractOfferId = id;
             return this;
         }
 
@@ -119,10 +164,15 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         }
 
         public ContractRequestMessage build() {
-            Objects.requireNonNull(contractRequestMessage.protocol, "protocol");
-            Objects.requireNonNull(contractRequestMessage.callbackAddress, "callbackAddress");
-            Objects.requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
-            // TODO make dataSet mandatory with introduction of ContractOfferMessage
+            if (contractRequestMessage.id == null) {
+                contractRequestMessage.id = randomUUID().toString();
+            }
+            requireNonNull(contractRequestMessage.processId, "processId");
+            if (contractRequestMessage.contractOfferId == null) {
+                requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
+            } else {
+                requireNonNull(contractRequestMessage.contractOfferId, "contractOfferId");
+            }
             return contractRequestMessage;
         }
     }

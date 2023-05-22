@@ -36,9 +36,15 @@ public class CallbackAddress {
     public static final String URI = EDC_NAMESPACE + "uri";
     public static final String EVENTS = EDC_NAMESPACE + "events";
 
+    public static final String AUTH_KEY = EDC_NAMESPACE + "authKey";
+    public static final String AUTH_CODE_ID = EDC_NAMESPACE + "authCodeId";
+    
     private String uri;
     private Set<String> events = new HashSet<>();
     private boolean transactional;
+
+    private String authKey;
+    private String authCodeId;
 
 
     public Set<String> getEvents() {
@@ -51,6 +57,14 @@ public class CallbackAddress {
 
     public boolean isTransactional() {
         return transactional;
+    }
+
+    public String getAuthCodeId() {
+        return authCodeId;
+    }
+
+    public String getAuthKey() {
+        return authKey;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -80,6 +94,16 @@ public class CallbackAddress {
 
         public Builder transactional(boolean transactional) {
             callbackAddress.transactional = transactional;
+            return this;
+        }
+
+        public Builder authKey(String authKey) {
+            callbackAddress.authKey = authKey;
+            return this;
+        }
+
+        public Builder authCodeId(String authCodeId) {
+            callbackAddress.authCodeId = authCodeId;
             return this;
         }
 

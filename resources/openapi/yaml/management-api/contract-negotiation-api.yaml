@@ -387,7 +387,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/JsonValue'
+              example: null
+              properties:
+                empty:
+                  type: boolean
+                  example: null
+                valueType:
+                  type: string
+                  enum:
+                  - ARRAY
+                  - OBJECT
+                  - STRING
+                  - NUMBER
+                  - "TRUE"
+                  - "FALSE"
+                  - "NULL"
+                  example: null
       responses:
         "200":
           content:
@@ -640,6 +658,12 @@ components:
       type: object
       example: null
       properties:
+        authCodeId:
+          type: string
+          example: null
+        authKey:
+          type: string
+          example: null
         events:
           type: array
           example: null
@@ -657,6 +681,12 @@ components:
       type: object
       example: null
       properties:
+        authCodeId:
+          type: string
+          example: null
+        authKey:
+          type: string
+          example: null
         events:
           type: array
           example: null
@@ -691,18 +721,10 @@ components:
         assetId:
           type: string
           example: null
-        consumerAgentId:
+        consumerId:
           type: string
           example: null
-        contractEndDate:
-          type: integer
-          format: int64
-          example: null
         contractSigningDate:
-          type: integer
-          format: int64
-          example: null
-        contractStartDate:
           type: integer
           format: int64
           example: null
@@ -711,15 +733,15 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-        providerAgentId:
+        providerId:
           type: string
           example: null
       required:
       - assetId
-      - consumerAgentId
+      - consumerId
       - id
       - policy
-      - providerAgentId
+      - providerId
     ContractNegotiationDto:
       type: object
       example: null
@@ -819,9 +841,6 @@ components:
         parentPermission:
           $ref: '#/components/schemas/Permission'
         target:
-          type: string
-          example: null
-        uid:
           type: string
           example: null
     IdResponseDto:
@@ -933,9 +952,6 @@ components:
         target:
           type: string
           example: null
-        uid:
-          type: string
-          example: null
     Policy:
       type: object
       example: null
@@ -998,9 +1014,6 @@ components:
           items:
             $ref: '#/components/schemas/Constraint'
         target:
-          type: string
-          example: null
-        uid:
           type: string
           example: null
     QuerySpecDto:

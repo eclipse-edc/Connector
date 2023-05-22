@@ -26,16 +26,20 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_PROPERTY_REASON;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.DspNegotiationPropertyAndTypeNames.DSPACE_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
+    private static final String PROCESS_ID = "processId";
+    private static final String REJECTION_REASON = "rejection";
+    private static final String REJECTION_CODE = "1";
+    private static final String DSP = "DSP";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -49,24 +53,40 @@ class JsonObjectFromContractNegotiationTerminationMessageTransformerTest {
 
     @Test
     void transform() {
-        var value = "example";
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .callbackAddress(value)
-                .rejectionReason(value)
-                .code(value)
+                .protocol(DSP)
+                .processId(PROCESS_ID)
+                .counterPartyAddress("https://test.com")
+                .rejectionReason(REJECTION_REASON)
+                .code(REJECTION_CODE)
                 .build();
 
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(ID).getString()).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_NEGOTIATION_TERMINATION_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_PROCESS_ID).getString()).isEqualTo(value);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_CODE).getString()).isEqualTo(value);
-        assertThat(result.getJsonString(DSPACE_NEGOTIATION_PROPERTY_REASON).getString()).isEqualTo(value);
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CODE).getString()).isEqualTo(REJECTION_CODE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_REASON).getString()).isEqualTo(REJECTION_REASON);
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void verify_noReasonNoCode() {
+        var message = ContractNegotiationTerminationMessage.Builder.newInstance()
+                .protocol(DSP)
+                .processId(PROCESS_ID)
+                .counterPartyAddress("https://test.com")
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getJsonString(ID).getString()).isNotEmpty();
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
 
         verify(context, never()).reportProblem(anyString());
     }

@@ -16,9 +16,11 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferStartMessageTransformer;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,13 +28,15 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_START_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
+import static org.mockito.Mockito.when;
 
 class JsonObjectFromTransferStartMessageTransformerTest {
 
@@ -50,22 +54,26 @@ class JsonObjectFromTransferStartMessageTransformerTest {
         transformer = new JsonObjectFromTransferStartMessageTransformer(jsonFactory);
     }
 
-
-
     @Test
     void transformTransferStartMessage() {
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
         var message = TransferStartMessage.Builder.newInstance()
                 .processId(processId)
                 .protocol(protocol)
+                .dataAddress(dataAddress)
                 .build();
+
+        var dataAddressJson = jsonFactory.createObjectBuilder().build();
+        when(context.transform(dataAddress, JsonObject.class)).thenReturn(dataAddressJson);
 
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TRANSFER_START_TYPE);
-        assertThat(result.getJsonString(DSPACE_PROCESSID_TYPE).getString()).isEqualTo(processId);
-        //TODO Add missing fields (dataAddress) from Spec Issue https://github.com/eclipse-edc/Connector/issues/2727
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_START_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(processId);
+        assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS)).isEqualTo(dataAddressJson);
 
+        verify(context, times(1)).transform(dataAddress, JsonObject.class);
         verify(context, never()).reportProblem(anyString());
     }
 }

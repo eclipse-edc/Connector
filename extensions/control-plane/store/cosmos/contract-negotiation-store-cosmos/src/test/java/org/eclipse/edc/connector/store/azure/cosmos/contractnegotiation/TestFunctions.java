@@ -24,7 +24,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,7 +62,7 @@ public class TestFunctions {
     }
 
     public static ContractAgreement.Builder createContractBuilder() {
-        return createContractBuilder("1:2");
+        return createContractBuilder("1:2:3");
     }
 
     public static ContractAgreement.Builder createContractBuilder(String id) {
@@ -72,8 +71,6 @@ public class TestFunctions {
                 .consumerId("consumer")
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .contractStartDate(Instant.now().getEpochSecond())
-                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())
                 .id(id);
     }

@@ -57,6 +57,12 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
             if (property == null) {
                 return false; //property does not exist on t
             }
+
+            if (property.getClass().isEnum() && criterion.getOperandRight() instanceof String) {
+                var enumProperty = (Enum<?>) property;
+                return Objects.equals(enumProperty.name(), criterion.getOperandRight());
+            }
+
             return Objects.equals(property, criterion.getOperandRight());
         };
     }

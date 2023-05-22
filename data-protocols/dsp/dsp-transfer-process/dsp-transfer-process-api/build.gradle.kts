@@ -21,10 +21,10 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
     api(project(":data-protocols:dsp:dsp-api-configuration"))
+    api(project(":data-protocols:dsp:dsp-spi"))
+    api(project(":data-protocols:dsp:dsp-http-spi"))
 
-    implementation(project(":extensions:common:json-ld"))
-    implementation(project(":data-protocols:dsp:dsp-transform"))
-    implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
+    implementation(project(":spi:common:json-ld-spi"))
 
     implementation(libs.jakarta.rsApi)
 

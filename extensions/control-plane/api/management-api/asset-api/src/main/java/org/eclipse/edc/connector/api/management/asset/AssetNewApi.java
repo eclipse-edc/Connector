@@ -20,16 +20,15 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.json.JsonObject;
+import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetResponseNewDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
-import org.eclipse.edc.connector.api.management.asset.model.DataAddressDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
@@ -48,16 +47,17 @@ public interface AssetNewApi {
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createAsset(@Valid AssetEntryNewDto assetEntryDto);
+    JsonObject createAsset(@Schema(implementation = AssetEntryNewDto.class) JsonObject assetEntryDto);
 
     @Operation(description = " all assets according to a particular query",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
-    List<AssetResponseNewDto> requestAssets(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> requestAssets(JsonObject querySpecDto);
 
     @Operation(description = "Gets an asset with the given ID",
             responses = {
@@ -69,7 +69,7 @@ public interface AssetNewApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    AssetResponseNewDto getAsset(String id);
+    JsonObject getAsset(String id);
 
     @Operation(description = "Removes an asset with the given ID if possible. Deleting an asset is only possible if that asset is not yet referenced " +
             "by a contract agreement, in which case an error is returned. " +
@@ -93,7 +93,7 @@ public interface AssetNewApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
-    void updateAsset(String assetId, @Valid AssetUpdateRequestDto asset);
+    void updateAsset(JsonObject asset);
 
     @Operation(description = "Updates a DataAddress for an asset with the given ID.",
             responses = {
@@ -103,7 +103,7 @@ public interface AssetNewApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
-    void updateDataAddress(String assetId, @Valid DataAddressDto dataAddress);
+    void updateDataAddress(String assetId, JsonObject dataAddress);
 
 
     @Operation(description = "Gets a data address of an asset with the given ID",
@@ -115,5 +115,5 @@ public interface AssetNewApi {
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
-    DataAddressDto getAssetDataAddress(String id);
+    JsonObject getAssetDataAddress(String id);
 }

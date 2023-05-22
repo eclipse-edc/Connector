@@ -49,7 +49,7 @@ public class EndpointDataReferenceMessage implements RemoteMessage {
 
     @NotNull
     @Override
-    public String getCallbackAddress() {
+    public String getCounterPartyAddress() {
         return callbackAddress;
     }
 

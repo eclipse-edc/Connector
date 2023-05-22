@@ -18,12 +18,12 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.api.query.QuerySpecDto;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
@@ -53,7 +52,7 @@ public class PolicyDefinitionApiControllerIntegrationTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
@@ -263,7 +262,6 @@ public class PolicyDefinitionApiControllerIntegrationTest {
                 .contractPolicyId("contract")
                 .accessPolicyId(accessPolicyId)
                 .selectorExpression(createSelectorExpression())
-                .validity(TimeUnit.HOURS.toSeconds(1))
                 .build();
     }
 

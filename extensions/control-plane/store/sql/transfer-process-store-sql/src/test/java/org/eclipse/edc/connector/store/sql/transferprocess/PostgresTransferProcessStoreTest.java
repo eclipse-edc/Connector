@@ -59,7 +59,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     private SqlTransferProcessStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
@@ -85,8 +85,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var tp = createTransferProcessBuilder("testprocess1")
                 .dataRequest(da)
                 .build();
-        store.save(tp);
-        store.save(createTransferProcess("testprocess2"));
+        store.updateOrCreate(tp);
+        store.updateOrCreate(createTransferProcess("testprocess2"));
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("dataRequest.notexist", "=", "somevalue")))
@@ -104,8 +104,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var tp = createTransferProcessBuilder("testprocess1")
                 .resourceManifest(rm)
                 .build();
-        store.save(tp);
-        store.save(createTransferProcess("testprocess2"));
+        store.updateOrCreate(tp);
+        store.updateOrCreate(createTransferProcess("testprocess2"));
 
         // throws exception when an explicit mapping exists
         var query = QuerySpec.Builder.newInstance()
@@ -137,8 +137,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var tp = createTransferProcessBuilder("testprocess1")
                 .provisionedResourceSet(prs)
                 .build();
-        store.save(tp);
-        store.save(createTransferProcess("testprocess2"));
+        store.updateOrCreate(tp);
+        store.updateOrCreate(createTransferProcess("testprocess2"));
 
         // throws exception when an explicit mapping exists
         var query = QuerySpec.Builder.newInstance()
@@ -158,7 +158,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
     @Test
     void find_queryByLease() {
-        store.save(createTransferProcess("testprocess1"));
+        store.updateOrCreate(createTransferProcess("testprocess1"));
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("lease.leasedBy", "=", "foobar")))
@@ -174,13 +174,13 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var t1 = TestFunctions.createTransferProcessBuilder("id1")
                 .dataRequest(null)
                 .build();
-        assertThatIllegalArgumentException().isThrownBy(() -> getTransferProcessStore().save(t1));
+        assertThatIllegalArgumentException().isThrownBy(() -> getTransferProcessStore().updateOrCreate(t1));
     }
 
     @Override
     @Test
     protected void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
+        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 

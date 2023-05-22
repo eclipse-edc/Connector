@@ -34,10 +34,6 @@ public interface ContractDefinitionStatements {
         return "access_policy_id";
     }
 
-    default String getValidity() {
-        return "validity";
-    }
-
     default String getContractDefinitionTable() {
         return "edc_contract_definitions";
     }

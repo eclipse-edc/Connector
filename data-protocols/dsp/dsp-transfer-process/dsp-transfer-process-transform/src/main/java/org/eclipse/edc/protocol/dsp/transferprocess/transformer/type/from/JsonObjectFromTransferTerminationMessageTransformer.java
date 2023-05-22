@@ -22,12 +22,12 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_PROCESSID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFER_TERMINATION_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 
 public class JsonObjectFromTransferTerminationMessageTransformer extends AbstractJsonLdTransformer<TransferTerminationMessage, JsonObject> {
 
@@ -42,11 +42,15 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
     public @Nullable JsonObject transform(@NotNull TransferTerminationMessage transferTerminationMessage, @NotNull TransformerContext context) {
         var builder = jsonBuilderFactory.createObjectBuilder();
 
-        builder.add(ID, String.valueOf(UUID.randomUUID()));
-        builder.add(TYPE, DSPACE_TRANSFER_TERMINATION_TYPE);
-        builder.add(DSPACE_PROCESSID_TYPE, transferTerminationMessage.getProcessId());
-
-        //TODO Add field when Message is evolved (code, reason) issue https://github.com/eclipse-edc/Connector/issues/2764
+        builder.add(ID, transferTerminationMessage.getId());
+        builder.add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE);
+        builder.add(DSPACE_PROPERTY_PROCESS_ID, transferTerminationMessage.getProcessId());
+        if (transferTerminationMessage.getCode() != null) {
+            builder.add(DSPACE_PROPERTY_CODE, transferTerminationMessage.getCode());
+        }
+        if (transferTerminationMessage.getReason() != null) {
+            builder.add(DSPACE_PROPERTY_REASON, transferTerminationMessage.getReason());
+        }
 
         return builder.build();
 

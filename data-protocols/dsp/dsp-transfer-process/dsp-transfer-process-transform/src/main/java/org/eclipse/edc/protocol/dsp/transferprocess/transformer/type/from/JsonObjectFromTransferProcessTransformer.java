@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_CORRELATIONID_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_STATE_TYPE;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.DspTransferProcessPropertyAndTypeNames.DSPACE_TRANSFERPROCESS_TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CORRELATION_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS;
 
 public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTransformer<TransferProcess, JsonObject> {
 
@@ -43,9 +43,9 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
         var builder = jsonBuilderFactory.createObjectBuilder();
 
         builder.add(ID, transferProcess.getId());
-        builder.add(TYPE, DSPACE_TRANSFERPROCESS_TYPE);
-        builder.add(DSPACE_CORRELATIONID_TYPE, transferProcess.getCorrelationId());
-        builder.add(DSPACE_STATE_TYPE, TransferProcessStates.from(transferProcess.getState()).name());
+        builder.add(TYPE, DSPACE_TYPE_TRANSFER_PROCESS);
+        builder.add(DSPACE_PROPERTY_CORRELATION_ID, transferProcess.getCorrelationId());
+        builder.add(DSPACE_PROPERTY_STATE, TransferProcessStates.from(transferProcess.getState()).name());
 
         return builder.build();
     }

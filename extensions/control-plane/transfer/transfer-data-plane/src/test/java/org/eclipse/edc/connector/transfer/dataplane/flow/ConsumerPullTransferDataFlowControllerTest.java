@@ -22,7 +22,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataAddressConstants;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +62,7 @@ class ConsumerPullTransferDataFlowControllerTest {
     private static DataRequest createDataRequest() {
         return DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .protocol("test-protocol")
+                .protocol("ids-multipart")
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .connectorAddress("test.connector.address")
@@ -111,18 +110,18 @@ class ConsumerPullTransferDataFlowControllerTest {
 
         var dataFlowResponse = result.getContent();
         assertThat(dataFlowResponse.getDataAddress()).isNotNull().satisfies(address -> {
-            assertThat(address.getType()).isEqualTo(EndpointDataAddressConstants.TYPE);
-            assertThat(address.getProperty(EndpointDataAddressConstants.ENDPOINT)).isEqualTo(edr.getEndpoint());
-            assertThat(address.getProperty(EndpointDataAddressConstants.AUTH_KEY)).isEqualTo(edr.getAuthKey());
-            assertThat(address.getProperty(EndpointDataAddressConstants.ID)).isEqualTo(edr.getId());
-            assertThat(address.getProperty(EndpointDataAddressConstants.AUTH_CODE)).isEqualTo(edr.getAuthCode());
+            assertThat(address.getType()).isEqualTo(EndpointDataReference.EDR_SIMPLE_TYPE);
+            assertThat(address.getProperty(EndpointDataReference.ENDPOINT)).isEqualTo(edr.getEndpoint());
+            assertThat(address.getProperty(EndpointDataReference.AUTH_KEY)).isEqualTo(edr.getAuthKey());
+            assertThat(address.getProperty(EndpointDataReference.ID)).isEqualTo(edr.getId());
+            assertThat(address.getProperty(EndpointDataReference.AUTH_CODE)).isEqualTo(edr.getAuthCode());
             assertThat(address.getProperties()).containsAllEntriesOf(edr.getProperties());
         });
 
         var edrRequest = edrRequestCaptor.getValue();
         assertThat(edrRequest.getConnectorId()).isEqualTo(connectorId);
         assertThat(edrRequest.getProtocol()).isEqualTo(request.getProtocol());
-        assertThat(edrRequest.getCallbackAddress()).isEqualTo(request.getConnectorAddress());
+        assertThat(edrRequest.getCounterPartyAddress()).isEqualTo(request.getConnectorAddress());
         assertThat(edrRequest.getEndpointDataReference()).isEqualTo(edr);
 
         var proxyCreationRequest = proxyCreationRequestCaptor.getValue();

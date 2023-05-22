@@ -21,14 +21,16 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
+import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBeSuccessful;
 
 /**
  * Dispatches remote messages using the dataspace protocol. Uses {@link DspHttpDispatcherDelegate}s
@@ -36,9 +38,9 @@ import static java.lang.String.format;
  */
 public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageDispatcher {
 
-    private Map<Class<? extends RemoteMessage>, DspHttpDispatcherDelegate> delegates;
-    private EdcHttpClient httpClient;
-    private IdentityService identityService;
+    private final Map<Class<? extends RemoteMessage>, DspHttpDispatcherDelegate<?, ?>> delegates;
+    private final EdcHttpClient httpClient;
+    private final IdentityService identityService;
 
     public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient, IdentityService identityService) {
         this.httpClient = httpClient;
@@ -70,28 +72,25 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message) {
         var delegate = (DspHttpDispatcherDelegate<M, T>) delegates.get(message.getClass());
         if (delegate == null) {
-            throw new EdcException(format("No DSP message dispatcher found for message type %s", message.getClass()));
+            return failedFuture(new EdcException(format("No DSP message dispatcher found for message type %s", message.getClass())));
         }
 
         var request = delegate.buildRequest(message);
 
-        var token = obtainToken(message);
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .audience(message.getCounterPartyAddress())
+                .build();
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
+        if (tokenResult.failed()) {
+            return failedFuture(new EdcException(format("Unable to obtain credentials: %s", String.join(", ", tokenResult.getFailureMessages()))));
+        }
+
+        var token = tokenResult.getContent();
         var requestWithAuth = request.newBuilder()
                 .header("Authorization", token.getToken())
                 .build();
 
-        return httpClient.executeAsync(requestWithAuth, delegate.parseResponse());
+        return httpClient.executeAsync(requestWithAuth, List.of(statusMustBeSuccessful()), delegate.parseResponse());
     }
 
-    private TokenRepresentation obtainToken(RemoteMessage message) {
-        var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience(message.getCallbackAddress())
-                .build();
-        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
-        if (tokenResult.failed()) {
-            throw new EdcException(format("Unable to obtain credentials: %s", String.join(", ", tokenResult.getFailureMessages())));
-        }
-
-        return tokenResult.getContent();
-    }
 }

@@ -24,12 +24,21 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Specifies various query parameters for collection-like queries. Typical uses include API endpoints, where the query
  * is tunnelled through to the database level.
  */
 public class QuerySpec {
 
+    public static final String EDC_QUERY_SPEC_TYPE = EDC_NAMESPACE + "QuerySpec";
+    public static final String EDC_QUERY_SPEC_OFFSET = EDC_NAMESPACE + "offset";
+    public static final String EDC_QUERY_SPEC_LIMIT = EDC_NAMESPACE + "limit";
+    public static final String EDC_QUERY_SPEC_FILTER_EXPRESSION = EDC_NAMESPACE + "filterExpression";
+    public static final String EDC_QUERY_SPEC_SORT_ORDER = EDC_NAMESPACE + "sortOrder";
+    public static final String EDC_QUERY_SPEC_SORT_FIELD = EDC_NAMESPACE + "sortField";
+    
     public static final String QUERY_SPEC = "querySpec";
 
     private int offset = 0;

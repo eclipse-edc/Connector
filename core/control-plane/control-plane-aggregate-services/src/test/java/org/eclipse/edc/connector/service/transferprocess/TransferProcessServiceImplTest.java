@@ -70,7 +70,7 @@ class TransferProcessServiceImplTest {
 
     @Test
     void findById_whenFound() {
-        when(store.find(id)).thenReturn(process1);
+        when(store.findById(id)).thenReturn(process1);
         assertThat(service.findById(id)).isSameAs(process1);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -114,7 +114,7 @@ class TransferProcessServiceImplTest {
 
     @Test
     void getState_whenFound() {
-        when(store.find(id)).thenReturn(process1);
+        when(store.findById(id)).thenReturn(process1);
         assertThat(service.getState(id)).isEqualTo(TransferProcessStates.from(process1.getState()).name());
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -128,14 +128,14 @@ class TransferProcessServiceImplTest {
     @Test
     void initiateTransfer() {
         var transferRequest = transferRequest();
-        String processId = "processId";
+        var transferProcess = transferProcess();
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-        when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(processId));
+        when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
 
         var result = service.initiateTransfer(transferRequest);
 
         assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).isEqualTo(processId);
+        assertThat(result.getContent()).isEqualTo(transferProcess);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -155,7 +155,7 @@ class TransferProcessServiceImplTest {
     @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "TERMINATED" })
     void deprovision(TransferProcessStates state) {
         var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
+        when(store.findById(id)).thenReturn(process);
 
         var result = service.deprovision(id);
 
@@ -171,7 +171,7 @@ class TransferProcessServiceImplTest {
     @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "TERMINATED" })
     void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
         var process = transferProcess(state, id);
-        when(store.find(id)).thenReturn(process);
+        when(store.findById(id)).thenReturn(process);
 
         var result = service.deprovision(id);
 

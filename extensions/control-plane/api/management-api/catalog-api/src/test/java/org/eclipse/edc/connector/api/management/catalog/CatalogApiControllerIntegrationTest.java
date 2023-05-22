@@ -18,7 +18,6 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.query.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -30,16 +29,15 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -70,9 +68,7 @@ class CatalogApiControllerIntegrationTest {
         return ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .assetId(UUID.randomUUID().toString())
                 .build();
     }
 
@@ -80,7 +76,7 @@ class CatalogApiControllerIntegrationTest {
     void setUp(EdcExtension extension) {
         when(dispatcher.protocol()).thenReturn("ids-multipart");
 
-        extension.registerServiceMock(DataService.class, mock(DataService.class));
+        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerSystemExtension(ServiceExtension.class, new TestExtension());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),

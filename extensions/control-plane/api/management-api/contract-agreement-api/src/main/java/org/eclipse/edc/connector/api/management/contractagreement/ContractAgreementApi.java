@@ -29,7 +29,8 @@ import org.eclipse.edc.web.spi.ApiErrorDetail;
 import java.util.List;
 
 @OpenAPIDefinition
-@Tag(name = "Contract Agreement")
+@Tag(name = "Contract Agreement - Deprecated")
+@Deprecated(since = "milestone9")
 public interface ContractAgreementApi {
 
     @Operation(description = "Gets all contract agreements according to a particular query",
@@ -40,7 +41,7 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }, deprecated = true
     )
-    @Deprecated
+    @Deprecated(since = "milestone9")
     List<ContractAgreementDto> getAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets all contract agreements according to a particular query",
@@ -49,8 +50,9 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }
+            }, deprecated = true
     )
+    @Deprecated(since = "milestone9")
     List<ContractAgreementDto> queryAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract agreement with the given ID",
@@ -61,8 +63,9 @@ public interface ContractAgreementApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
-            }
+            }, deprecated = true
     )
+    @Deprecated(since = "milestone9")
     ContractAgreementDto getContractAgreement(String id);
 
 }

@@ -23,12 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSETID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_AGENTID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_END_DATE;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_POLICY;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_AGENTID;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_SIGNING_DATE;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_START_DATE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -48,11 +46,9 @@ public class JsonObjectFromContractAgreementDtoTransformer extends AbstractJsonL
                 .add(ID, dto.getId())
                 .add(CONTRACT_AGREEMENT_ASSETID, dto.getAssetId())
                 .add(CONTRACT_AGREEMENT_POLICY, context.transform(dto.getPolicy(), JsonObject.class))
-                .add(CONTRACT_AGREEMENT_START_DATE, dto.getContractStartDate())
                 .add(CONTRACT_AGREEMENT_SIGNING_DATE, dto.getContractSigningDate())
-                .add(CONTRACT_AGREEMENT_END_DATE, dto.getContractEndDate())
-                .add(CONTRACT_AGREEMENT_CONSUMER_AGENTID, dto.getConsumerAgentId())
-                .add(CONTRACT_AGREEMENT_PROVIDER_AGENTID, dto.getProviderAgentId());
+                .add(CONTRACT_AGREEMENT_CONSUMER_ID, dto.getConsumerId())
+                .add(CONTRACT_AGREEMENT_PROVIDER_ID, dto.getProviderId());
         return bldr.build();
     }
 }

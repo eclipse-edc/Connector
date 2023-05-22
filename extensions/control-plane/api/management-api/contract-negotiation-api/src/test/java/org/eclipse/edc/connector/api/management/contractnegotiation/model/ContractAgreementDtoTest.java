@@ -28,11 +28,9 @@ class ContractAgreementDtoTest {
         var dto = ContractAgreementDto.Builder.newInstance()
                 .assetId("test-asset-id")
                 .id("test-id")
-                .contractEndDate(1234L)
-                .contractStartDate(1234L)
                 .contractSigningDate(5432L)
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+                .providerId("provider")
+                .consumerId("consumer")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
 

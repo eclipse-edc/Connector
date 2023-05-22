@@ -21,10 +21,8 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,9 +47,7 @@ class CatalogServiceImplTest {
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now())
+                .assetId(UUID.randomUUID().toString())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         when(dispatcher.send(any(), any())).thenReturn(completedFuture(catalog))

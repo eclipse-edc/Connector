@@ -25,12 +25,17 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:azure:azure-cosmos-core")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(libs.jakartaJson)
 
     testImplementation(libs.postgres)
     testImplementation(libs.restAssured)
     testImplementation(libs.assertj)
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.mockserver.client)
+    testImplementation(libs.kafkaClients)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:backend-service"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))

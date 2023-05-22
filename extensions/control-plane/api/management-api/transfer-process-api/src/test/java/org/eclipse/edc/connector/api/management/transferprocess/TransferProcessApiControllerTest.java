@@ -268,9 +268,10 @@ class TransferProcessApiControllerTest {
         var processId = "processId";
         var tr = transferRequest(transferReqDto);
         var dr = tr.getDataRequest();
+        var transferProcess = TransferProcess.Builder.newInstance().id(processId).build();
 
         when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(TransferRequest.class))).thenReturn(Result.success(tr));
-        when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(processId));
+        when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(transferProcess));
 
         var result = controller.initiateTransfer(transferReqDto);
 
@@ -286,7 +287,6 @@ class TransferProcessApiControllerTest {
         assertThat(dataRequest.getContractId()).isEqualTo(dr.getContractId());
         assertThat(dataRequest.getProtocol()).isEqualTo(dr.getProtocol());
         assertThat(dataRequest.getProperties()).isEqualTo(dr.getProperties());
-        assertThat(dataRequest.getTransferType()).isEqualTo(dr.getTransferType());
         assertThat(dataRequest.isManagedResources()).isEqualTo(dr.isManagedResources());
 
         assertThat(result.getId()).isEqualTo(processId);
@@ -375,7 +375,6 @@ class TransferProcessApiControllerTest {
                 .dataDestination(dto.getDataDestination())
                 .connectorAddress(dto.getConnectorAddress())
                 .contractId(dto.getContractId())
-                .transferType(dto.getTransferType())
                 .destinationType(dto.getDataDestination().getType())
                 .properties(dto.getProperties())
                 .managedResources(dto.isManagedResources())

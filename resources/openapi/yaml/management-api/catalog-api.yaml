@@ -100,23 +100,6 @@ components:
         type:
           type: string
           example: null
-    Asset:
-      type: object
-      example: null
-      properties:
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-        id:
-          type: string
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
     Catalog:
       type: object
       example: null
@@ -174,26 +157,11 @@ components:
       type: object
       example: null
       properties:
-        asset:
-          $ref: '#/components/schemas/Asset'
-        contractEnd:
+        assetId:
           type: string
-          format: date-time
-          example: null
-        contractStart:
-          type: string
-          format: date-time
           example: null
         id:
           type: string
-          example: null
-        offerEnd:
-          type: string
-          format: date-time
-          example: null
-        offerStart:
-          type: string
-          format: date-time
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
@@ -285,9 +253,6 @@ components:
         target:
           type: string
           example: null
-        uid:
-          type: string
-          example: null
     JsonObject:
       type: object
       additionalProperties:
@@ -346,9 +311,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
         target:
-          type: string
-          example: null
-        uid:
           type: string
           example: null
     Policy:
@@ -413,9 +375,6 @@ components:
           items:
             $ref: '#/components/schemas/Constraint'
         target:
-          type: string
-          example: null
-        uid:
           type: string
           example: null
     QuerySpecDto:

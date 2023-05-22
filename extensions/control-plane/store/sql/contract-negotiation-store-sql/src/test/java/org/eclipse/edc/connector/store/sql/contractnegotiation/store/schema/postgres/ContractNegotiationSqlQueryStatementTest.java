@@ -65,7 +65,7 @@ class ContractNegotiationSqlQueryStatementTest {
 
     @Test
     void nestedFieldAccess_inOperator() {
-        var criterion = new Criterion("contractAgreement.providerAgentId", "in", List.of("id1", "id2", "id3"));
+        var criterion = new Criterion("contractAgreement.providerId", "in", List.of("id1", "id2", "id3"));
         var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements));
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE provider_agent_id IN (?,?,?) LIMIT ? OFFSET ?;");

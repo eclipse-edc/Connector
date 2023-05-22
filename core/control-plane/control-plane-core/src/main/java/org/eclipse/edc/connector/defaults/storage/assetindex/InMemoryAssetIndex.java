@@ -63,6 +63,13 @@ public class InMemoryAssetIndex implements AssetIndex {
                 result = result.sorted((asset1, asset2) -> {
                     var f1 = asComparable(asset1.getProperty(sortField));
                     var f2 = asComparable(asset2.getProperty(sortField));
+
+                    // try for private properties next
+                    if (f1 == null && f2 == null) {
+                        f1 = asComparable(asset1.getPrivateProperty(sortField));
+                        f2 = asComparable(asset2.getPrivateProperty(sortField));
+                    }
+
                     if (f1 == null || f2 == null) {
                         throw new IllegalArgumentException(format("Cannot sort by field %s, it does not exist on one or more Assets", sortField));
                     }

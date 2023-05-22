@@ -65,7 +65,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                                     .map(predicateConverter::convert)
                                     .reduce(x -> true, Predicate::and)
                                     .test(asset))
-                            .map(this::createOffer)
+                            .map(contractDefinition -> createOffer(contractDefinition, asset.getId()))
                             .filter(Objects::nonNull)
                             .collect(toList());
                     return new ProtoDataset(asset, offers);
@@ -81,18 +81,18 @@ public class DatasetResolverImpl implements DatasetResolver {
                             .distributions(distributions)
                             .properties(asset.getProperties());
 
-                    offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy));
+                    offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy.withTarget(asset.getId())));
 
                     return datasetBuilder.build();
                 });
     }
 
-    private Offer createOffer(ContractDefinition definition) {
+    private Offer createOffer(ContractDefinition definition, String assetId) {
         var policyDefinition = policyDefinitionStore.findById(definition.getContractPolicyId());
         if (policyDefinition == null) {
             return null;
         }
-        var contractId = ContractId.createContractId(definition.getId());
+        var contractId = ContractId.createContractId(definition.getId(), assetId);
         return new Offer(contractId, policyDefinition.getPolicy());
     }
 

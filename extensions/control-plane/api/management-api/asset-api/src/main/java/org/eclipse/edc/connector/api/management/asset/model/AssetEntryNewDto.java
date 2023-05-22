@@ -17,26 +17,33 @@ package org.eclipse.edc.connector.api.management.asset.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
+
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 @JsonDeserialize(builder = AssetEntryNewDto.Builder.class)
 public class AssetEntryNewDto {
+
+    public static final String EDC_ASSET_ENTRY_DTO_TYPE = EDC_NAMESPACE + "AssetEntryDto";
+    public static final String EDC_ASSET_ENTRY_DTO_ASSET = EDC_NAMESPACE + "asset";
+    public static final String EDC_ASSET_ENTRY_DTO_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
+
     @NotNull(message = "asset cannot be null")
-    private JsonObject asset;
+    private Asset asset;
 
     @NotNull(message = "dataAddress cannot be null")
     @Valid
-    private DataAddressDto dataAddress;
+    private DataAddress dataAddress;
 
-    public DataAddressDto getDataAddress() {
+    @NotNull(message = "dataAddress cannot be null")
+    public DataAddress getDataAddress() {
         return dataAddress;
     }
 
-    @Schema(implementation = Object.class, description = "A JSON structure in JSON-LD format containing the Asset's properties. Cannot be null.")
-    public JsonObject getAsset() {
+    public Asset getAsset() {
         return asset;
     }
 
@@ -55,12 +62,12 @@ public class AssetEntryNewDto {
             return new AssetEntryNewDto.Builder();
         }
 
-        public AssetEntryNewDto.Builder asset(JsonObject asset) {
+        public AssetEntryNewDto.Builder asset(Asset asset) {
             assetEntryDto.asset = asset;
             return this;
         }
 
-        public AssetEntryNewDto.Builder dataAddress(DataAddressDto dataAddress) {
+        public AssetEntryNewDto.Builder dataAddress(@NotNull DataAddress dataAddress) {
             assetEntryDto.dataAddress = dataAddress;
             return this;
         }

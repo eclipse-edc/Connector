@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Maps a {@link QuerySpec} to a single SQL {@code SELECT ... FROM ... WHERE ...} statement. The {@code SELECT ...} part
@@ -33,16 +34,17 @@ public class SqlQueryStatement {
 
     private static final String LIMIT = "LIMIT ? ";
     private static final String OFFSET = "OFFSET ?";
-    private static final String WHERE_TOKEN = "WHERE";
-    private static final String AND_TOKEN = "AND";
 
     private static final String ORDER_BY_TOKEN = "ORDER BY %s %s";
 
     private final String selectStatement;
     private final List<String> whereClauses = new ArrayList<>();
     private final List<Object> parameters = new ArrayList<>();
+    private boolean fromQuerySpec = false;
 
     private String orderByClause = "";
+    private int limit;
+    private int offset;
 
     /**
      * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
@@ -54,6 +56,7 @@ public class SqlQueryStatement {
      */
     public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel) {
         this(selectStatement);
+        fromQuerySpec = true;
         initialize(query, rootModel);
     }
 
@@ -72,8 +75,10 @@ public class SqlQueryStatement {
      * @return the query as SQL statement
      */
     public String getQueryAsString() {
+        var whereClause = whereClauses.isEmpty() ? "" : whereClauses.stream().collect(joining(" AND ", "WHERE ", " "));
+
         return selectStatement + " " +
-                String.join(" ", whereClauses) + " " +
+                whereClause +
                 orderByClause +
                 LIMIT +
                 OFFSET +
@@ -86,23 +91,41 @@ public class SqlQueryStatement {
      * @return an array of parameters that can be used for prepared statements
      */
     public Object[] getParameters() {
-        return parameters.toArray(Object[]::new);
+        var params = new ArrayList<>();
+        params.addAll(parameters);
+        if (fromQuerySpec) {
+            params.add(limit);
+            params.add(offset);
+        }
+        return params.toArray(Object[]::new);
     }
 
-    public void addParameter(Object param) {
-        parameters.add(param);
+    /**
+     * Add where clause. If it contains multiple clauses better wrap it with parenthesis
+     *
+     * @param clause the SQL where clause.
+     */
+    public void addWhereClause(String clause) {
+        whereClauses.add(clause);
     }
 
+    /**
+     * Add parameter.
+     *
+     * @param parameter the parameter.
+     */
+    public void addParameter(Object parameter) {
+        parameters.add(parameter);
+    }
 
     private void initialize(QuerySpec query, TranslationMapping rootModel) {
         whereClauses.clear();
         parameters.clear();
 
-        var expr = query.getFilterExpression();
-        expr.forEach(e -> parseExpression(e, rootModel));
+        query.getFilterExpression().forEach(e -> parseExpression(e, rootModel));
 
-        parameters.add(query.getLimit());
-        parameters.add(query.getOffset());
+        limit = query.getLimit();
+        offset = query.getOffset();
 
         orderByClause = parseSortField(query, rootModel);
     }
@@ -132,7 +155,6 @@ public class SqlQueryStatement {
         }
         var newCriterion = new Criterion(columnName, criterion.getOperator(), criterion.getOperandRight());
 
-        var prefix = whereClauses.isEmpty() ? WHERE_TOKEN : AND_TOKEN;
         var conditionExpr = new SqlConditionExpression(newCriterion);
 
         var validExpression = conditionExpr.isValidExpression();
@@ -140,9 +162,10 @@ public class SqlQueryStatement {
             throw new IllegalArgumentException("This expression is not valid: " + String.join(", ", validExpression.getFailureMessages()));
         }
 
-        var clause = format("%s %s %s %s", prefix, columnName, newCriterion.getOperator(), conditionExpr.toValuePlaceholder());
+        var clause = format("%s %s %s", columnName, newCriterion.getOperator(), conditionExpr.toValuePlaceholder());
         whereClauses.add(clause);
         var params = conditionExpr.toStatementParameter().skip(1).collect(Collectors.toList());
         parameters.addAll(params);
     }
+
 }

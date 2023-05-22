@@ -31,9 +31,6 @@ public interface PropertyAndTypeNames {
 
     String EDC_CREATED_AT = EDC_NAMESPACE + "createdAt";
 
-    String EDC_ASSET_TYPE = EDC_NAMESPACE + "Asset";
-    String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
-
     String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + "PolicyDefinition";
     String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
 
@@ -51,6 +48,10 @@ public interface PropertyAndTypeNames {
     String ODRL_POLICY_TYPE_OFFER = ODRL_SCHEMA + "Offer";
     String ODRL_POLICY_TYPE_AGREEMENT = ODRL_SCHEMA + "Agreement";
 
+    String ODRL_CONSTRAINT_TYPE = ODRL_SCHEMA + "Constraint";
+    String ODRL_LOGICAL_CONSTRAINT_TYPE = ODRL_SCHEMA + "LogicalConstraint";
+
+    String ODRL_TARGET_ATTRIBUTE = ODRL_SCHEMA + "target";
     String ODRL_PERMISSION_ATTRIBUTE = ODRL_SCHEMA + "permission";
     String ODRL_PROHIBITION_ATTRIBUTE = ODRL_SCHEMA + "prohibition";
     String ODRL_OBLIGATION_ATTRIBUTE = ODRL_SCHEMA + "obligation";
@@ -64,5 +65,8 @@ public interface PropertyAndTypeNames {
     String ODRL_OPERATOR_ATTRIBUTE = ODRL_SCHEMA + "operator";
     String ODRL_RIGHT_OPERAND_ATTRIBUTE = ODRL_SCHEMA + "rightOperand";
     String ODRL_DUTY_ATTRIBUTE = ODRL_SCHEMA + "duty";
+    String ODRL_AND_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "and";
+    String ODRL_OR_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "or";
+    String ODRL_XONE_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "xone";
 
 }

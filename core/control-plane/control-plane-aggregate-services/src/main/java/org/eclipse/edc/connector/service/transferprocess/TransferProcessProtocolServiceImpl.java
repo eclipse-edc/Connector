@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
@@ -79,6 +80,11 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
+        var contractId = ContractId.parse(message.getContractId());
+        if (!contractId.isValid()) {
+            return ServiceResult.badRequest("ContractId is not valid");
+        }
+
         var validDestination = dataAddressValidator.validate(message.getDataDestination());
         if (validDestination.failed()) {
             return ServiceResult.badRequest(validDestination.getFailureMessages());
@@ -114,20 +120,23 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message) {
+        var contractId = ContractId.parse(message.getContractId());
+        var assetId = contractId.assetIdPart();
+
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(message.getId())
+                .id(message.getProcessId())
                 .protocol(message.getProtocol())
                 .connectorId(message.getConnectorId())
                 .connectorAddress(message.getCallbackAddress())
                 .dataDestination(message.getDataDestination())
                 .properties(message.getProperties())
-                .assetId(message.getAssetId())
+                .assetId(assetId)
                 .contractId(message.getContractId())
                 .build();
 
         var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
         if (processId != null) {
-            return ServiceResult.success(transferProcessStore.find(processId));
+            return ServiceResult.success(transferProcessStore.findById(processId));
         }
         var process = TransferProcess.Builder.newInstance()
                 .id(randomUUID().toString())
@@ -141,6 +150,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         observable.invokeForEach(l -> l.preCreated(process));
         update(process);
         observable.invokeForEach(l -> l.initiated(process));
+
         return ServiceResult.success(process);
     }
 
@@ -189,13 +199,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, Function<TransferProcess, ServiceResult<TransferProcess>> action) {
         return transactionContext.execute(() -> Optional.of(message.getProcessId())
                 .map(transferProcessStore::processIdForDataRequestId)
-                .map(transferProcessStore::find)
+                .map(transferProcessStore::findById)
                 .map(action)
                 .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", message.getProcessId()))));
     }
 
     private void update(TransferProcess transferProcess) {
-        transferProcessStore.save(transferProcess);
+        transferProcessStore.updateOrCreate(transferProcess);
         monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 

@@ -138,7 +138,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         var dataRequest = transformResult.getContent();
         var result = service.initiateTransfer(dataRequest).orElseThrow(exceptionMapper(TransferProcess.class, transferRequest.getId()));
         return IdResponseDto.Builder.newInstance()
-                .id(result)
+                .id(result.getId())
                 //To be accurate createdAt should come from the transfer object
                 .createdAt(Clock.systemUTC().millis())
                 .build();

@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -35,6 +34,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -44,6 +44,7 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -69,10 +70,17 @@ public class ContractNegotiationNewApiController implements ContractNegotiationN
     @POST
     @Path("/request")
     @Override
-    public List<JsonObject> queryNegotiations(@Valid QuerySpecDto querySpecDto) {
-        querySpecDto = ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build());
+    public List<JsonObject> queryNegotiations(JsonObject querySpecDto) {
 
-        var spec = transformerRegistry.transform(querySpecDto, QuerySpec.class)
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
+
+        var spec = ofNullable(querySpecDto)
+                .map(jsonLdService::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
                 .orElseThrow(InvalidRequestException::new);
 
         try (var stream = service.query(spec).orElseThrow(exceptionMapper(ContractNegotiation.class, null))) {
@@ -104,11 +112,13 @@ public class ContractNegotiationNewApiController implements ContractNegotiationN
     @GET
     @Path("/{id}/state")
     @Override
-    public NegotiationState getNegotiationState(@PathParam("id") String id) {
+    public JsonObject getNegotiationState(@PathParam("id") String id) {
         return Optional.of(id)
                 .map(service::getState)
                 .map(NegotiationState::new)
-                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id));
+                .map(state -> transformerRegistry.transform(state, JsonObject.class).compose(jsonLdService::compact))
+                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id))
+                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
     }
 
     @GET
@@ -120,23 +130,29 @@ public class ContractNegotiationNewApiController implements ContractNegotiationN
                 .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
                         .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
                         .compose(jsonLdService::compact)
-                        .orElseThrow(InvalidRequestException::new))
+                        .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, negotiationId));
     }
 
     @POST
     @Override
-    public IdResponseDto initiateContractNegotiation(JsonObject requestObject) {
-        var contractRequest = transformerRegistry.transform(requestObject, NegotiationInitiateRequestDto.class)
+    public JsonObject initiateContractNegotiation(JsonObject requestObject) {
+        var contractRequest = jsonLdService.expand(requestObject)
+                .compose(expanded -> transformerRegistry.transform(expanded, NegotiationInitiateRequestDto.class))
                 .compose(dto -> transformerRegistry.transform(dto, ContractRequest.class))
                 .orElseThrow(InvalidRequestException::new);
 
 
         var contractNegotiation = service.initiateNegotiation(contractRequest);
-        return IdResponseDto.Builder.newInstance()
+
+        var responseDto = IdResponseDto.Builder.newInstance()
                 .id(contractNegotiation.getId())
                 .createdAt(contractNegotiation.getCreatedAt())
                 .build();
+
+        return transformerRegistry.transform(responseDto, JsonObject.class)
+                .compose(jsonLdService::compact)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
     @POST

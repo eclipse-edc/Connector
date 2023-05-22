@@ -22,7 +22,6 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.jsonld.transformer.Payload;
 import org.eclipse.edc.jsonld.transformer.PayloadTransformer;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
@@ -39,9 +38,17 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.transformer.to.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_CONTENT_TYPE;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_DESCRIPTION;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_ID;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_NAME;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_VERSION;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectToAssetTransformerTest {
@@ -74,9 +81,32 @@ class JsonObjectToAssetTransformerTest {
     void transform_onlyKnownProperties() {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE)
+                .add(TYPE, EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder().build())
+                .build();
+        jsonObj = expand(jsonObj);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
+
+        AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
+        assertThat(asset.getContent().getProperties())
+                .hasSize(5)
+                .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
+                .containsEntry(PROPERTY_ID, asset.getContent().getId())
+                .containsEntry(PROPERTY_NAME, TEST_ASSET_NAME)
+                .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
+                .containsEntry(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
+                .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
+    }
+
+    @Test
+    void transform_withPrivateProperties() {
+        var jsonObj = jsonFactory.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, EDC_ASSET_TYPE)
+                .add(ID, TEST_ASSET_ID)
+                .add("properties", createPropertiesBuilder().build())
+                .add(EDC_ASSET_PRIVATE_PROPERTIES, jsonFactory.createObjectBuilder().add("test-prop", "test-val").build())
                 .build();
         jsonObj = expand(jsonObj);
         var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
@@ -84,26 +114,29 @@ class JsonObjectToAssetTransformerTest {
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
                 .hasSize(5)
-                .containsEntry(Asset.PROPERTY_ID, TEST_ASSET_ID)
-                .containsEntry(Asset.PROPERTY_ID, asset.getContent().getId())
-                .containsEntry(Asset.PROPERTY_NAME, TEST_ASSET_NAME)
-                .containsEntry(Asset.PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
-                .containsEntry(Asset.PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
-                .containsEntry(Asset.PROPERTY_VERSION, TEST_ASSET_VERSION);
+                .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
+                .containsEntry(PROPERTY_ID, asset.getContent().getId())
+                .containsEntry(PROPERTY_NAME, TEST_ASSET_NAME)
+                .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
+                .containsEntry(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
+                .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
+        assertThat(asset.getContent().getPrivateProperties())
+                .hasSize(1)
+                .containsEntry(EDC_NAMESPACE + "test-prop", "test-val");
     }
 
     @Test
     void transform_withCustomProperty() {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE)
+                .add(TYPE, EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder()
                         .add("payload", createPayloadBuilder().build())
                         .build())
                 .build();
         jsonObj = expand(jsonObj);
-        var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
                 .hasSize(6)
@@ -116,34 +149,32 @@ class JsonObjectToAssetTransformerTest {
     void transform_noVocab_shouldFilterUnprefixedValues() {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().addNull(VOCAB).build())
-                .add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE)
+                .add(TYPE, EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
                 // will only work if properties is prefixed with "edc:"
                 .add("edc:properties", createPropertiesBuilder().build())
                 .build();
         jsonObj = expand(jsonObj);
 
-        var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
 
         assertThat(asset.getContent().getProperties()).hasSize(2)
-                .containsEntry(Asset.PROPERTY_ID, TEST_ASSET_ID)
-                .containsEntry(Asset.PROPERTY_VERSION, TEST_ASSET_VERSION);
+                .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
+                .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
 
-        assertThat(asset.getContent().getProperties().get(Asset.PROPERTY_ID)).isEqualTo(asset.getContent().getId());
+        assertThat(asset.getContent().getProperties().get(PROPERTY_ID)).isEqualTo(asset.getContent().getId());
     }
 
     @Test
     void transform_noEdcContextDecl_shouldUseRawPrefix() {
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().addNull(EDC_PREFIX).build())
-                .add(TYPE, PropertyAndTypeNames.EDC_ASSET_TYPE)
+                .add(TYPE, EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
-                .add("properties", createPropertiesBuilder()
-                        .add("payload", createPayloadBuilder().build())
-                        .build())
+                .add("properties", createPropertiesBuilder().add("payload", createPayloadBuilder().build()).build())
                 .build();
         jsonObj = expand(jsonObj);
-        var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
+        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
 
         AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getVersion()).isNull();

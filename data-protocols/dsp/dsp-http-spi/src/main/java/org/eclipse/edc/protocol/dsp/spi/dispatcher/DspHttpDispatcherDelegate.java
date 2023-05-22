@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.spi.dispatcher;
 
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -66,8 +67,10 @@ public abstract class DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
         var body = serializer.serialize(message);
         var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
 
+        var url = HttpUrl.get(message.getCounterPartyAddress() + path);
+
         return new Request.Builder()
-                .url(message.getCallbackAddress() + path)
+                .url(url)
                 .header("Content-Type", APPLICATION_JSON)
                 .post(requestBody)
                 .build();

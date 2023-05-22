@@ -132,6 +132,17 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     }
 
     @Test
+    void findAll_withPrivateSorting() {
+        var assets = IntStream.range(0, 10)
+                .mapToObj(i -> createAssetBuilder("" + i).privateProperty("pKey", "pValue").build())
+                .peek(a -> index.create(a, createDataAddress(a)))
+                .collect(Collectors.toList());
+
+        var spec = QuerySpec.Builder.newInstance().sortField("pKey").sortOrder(SortOrder.ASC).build();
+        assertThat(index.queryAssets(spec)).containsAll(assets);
+    }
+
+    @Test
     void deleteById_whenMissing_returnsNull() {
         assertThat(index.deleteById("not-exists")).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
     }
