@@ -24,6 +24,7 @@ import java.util.List;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 
 public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceResult<T>> {
 
@@ -81,6 +82,10 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
             default:
                 return badRequest(storeResult.getFailureDetail());
         }
+    }
+
+    public static <T> ServiceResult<T> unauthorized(List<String> failureMessages) {
+        return new ServiceResult<>(null, new ServiceFailure(failureMessages, UNAUTHORIZED));
     }
 
     public ServiceFailure.Reason reason() {
