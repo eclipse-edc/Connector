@@ -87,7 +87,7 @@ class S3BucketProvisionerTest {
         var createBucketResponse = CreateBucketResponse.builder().build();
         when(s3Client.createBucket(isA(CreateBucketRequest.class))).thenReturn(completedFuture(createBucketResponse));
 
-        S3BucketResourceDefinition definition = S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").keyName("test").transferProcessId("test").build();
+        S3BucketResourceDefinition definition = S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build();
         var policy = Policy.Builder.newInstance().build();
 
         var response = provisioner.provision(definition, policy).join().getContent();
@@ -104,7 +104,7 @@ class S3BucketProvisionerTest {
     @Test
     void should_return_failed_future_on_error() {
         when(s3Client.createBucket(isA(CreateBucketRequest.class))).thenReturn(failedFuture(new RuntimeException("any")));
-        S3BucketResourceDefinition definition = S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").keyName("test").transferProcessId("test").build();
+        S3BucketResourceDefinition definition = S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build();
 
         var policy = Policy.Builder.newInstance().build();
 

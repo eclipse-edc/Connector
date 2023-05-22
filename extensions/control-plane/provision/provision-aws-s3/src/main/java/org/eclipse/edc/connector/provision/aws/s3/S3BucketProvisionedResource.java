@@ -43,7 +43,7 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
 
     @Override
     public String getResourceName() {
-        return super.getResourceName();
+        return dataAddress.getProperty(BUCKET_NAME);
     }
 
     public String getRole() {

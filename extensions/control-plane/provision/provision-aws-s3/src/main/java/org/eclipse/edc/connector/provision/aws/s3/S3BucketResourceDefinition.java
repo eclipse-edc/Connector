@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 public class S3BucketResourceDefinition extends ResourceDefinition {
     private String regionId;
     private String bucketName;
-    private String keyName;
     private Supplier<Boolean> checker;
 
     private S3BucketResourceDefinition() {
@@ -40,16 +39,11 @@ public class S3BucketResourceDefinition extends ResourceDefinition {
         return bucketName;
     }
 
-    public String getKeyName() {
-        return keyName;
-    }
-    
     @Override
     public Builder toBuilder() {
         return initializeBuilder(new Builder())
                 .regionId(regionId)
-                .bucketName(bucketName)
-                .keyName(keyName);
+                .bucketName(bucketName);
     }
 
     public static class Builder extends ResourceDefinition.Builder<S3BucketResourceDefinition, Builder> {
@@ -72,17 +66,11 @@ public class S3BucketResourceDefinition extends ResourceDefinition {
             return this;
         }
 
-        public Builder keyName(String keyName) {
-            resourceDefinition.keyName = keyName;
-            return this;
-        }
-
         @Override
         protected void verify() {
             super.verify();
             Objects.requireNonNull(resourceDefinition.regionId, "regionId");
             Objects.requireNonNull(resourceDefinition.bucketName, "bucketName");
-            Objects.requireNonNull(resourceDefinition.keyName, "keyName");
         }
     }
 

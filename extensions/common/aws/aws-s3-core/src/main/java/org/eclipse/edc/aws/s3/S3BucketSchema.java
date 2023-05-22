@@ -18,7 +18,6 @@ public interface S3BucketSchema {
     String TYPE = "AmazonS3";
     String REGION = "region";
     String BUCKET_NAME = "bucketName";
-    String KEY_NAME = "keyName";
     String ACCESS_KEY_ID = "accessKeyId";
     String SECRET_ACCESS_KEY = "secretAccessKey";
 }

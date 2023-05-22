@@ -34,15 +34,12 @@ public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDe
     public ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
         if (dataRequest.getDataDestination().getProperty(S3BucketSchema.REGION) == null) {
             // FIXME generate region from policy engine
-            return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(dataRequest.getDataDestination().getProperty(S3BucketSchema.BUCKET_NAME))
-                    .keyName(dataRequest.getDataDestination().getProperty(S3BucketSchema.KEY_NAME))
-                    .regionId(Region.US_EAST_1.id()).build();
+            return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(dataRequest.getDataDestination().getProperty(S3BucketSchema.BUCKET_NAME)).regionId(Region.US_EAST_1.id()).build();
         }
         var destination = dataRequest.getDataDestination();
         var id = randomUUID().toString();
 
-        return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(S3BucketSchema.BUCKET_NAME))
-                .keyName(destination.getProperty(S3BucketSchema.KEY_NAME)).regionId(destination.getProperty(S3BucketSchema.REGION)).build();
+        return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(S3BucketSchema.BUCKET_NAME)).regionId(destination.getProperty(S3BucketSchema.REGION)).build();
     }
 
     @Override
