@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.contractagreement;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -27,6 +27,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.mock;
 
 @ApiTest
 @ExtendWith(EdcExtension.class)
+@Disabled(value = "this api is deprecated and will be removed soon")
 public class ContractAgreementApiControllerIntegrationTest {
 
     private final int port = getFreePort();

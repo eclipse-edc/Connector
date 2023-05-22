@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.asset.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.AssertTrue;
@@ -23,9 +24,12 @@ import jakarta.validation.constraints.AssertTrue;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+
 @JsonDeserialize(builder = AssetCreationRequestDto.Builder.class)
 public class AssetCreationRequestDto extends AssetRequestDto {
 
+    @JsonProperty(value = ID)
     private String id;
 
     private AssetCreationRequestDto() {

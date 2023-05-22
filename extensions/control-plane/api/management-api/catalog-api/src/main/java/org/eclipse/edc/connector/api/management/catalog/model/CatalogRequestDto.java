@@ -18,12 +18,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.BaseDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 
 import static java.util.Objects.requireNonNull;
 
 @JsonDeserialize(builder = CatalogRequestDto.Builder.class)
-public class CatalogRequestDto {
+public class CatalogRequestDto extends BaseDto {
 
     private QuerySpecDto querySpec;
     @NotNull

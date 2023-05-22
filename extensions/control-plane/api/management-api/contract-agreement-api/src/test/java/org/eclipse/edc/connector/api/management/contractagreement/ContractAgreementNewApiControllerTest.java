@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.contractagreement;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;

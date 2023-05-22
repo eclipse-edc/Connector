@@ -41,7 +41,6 @@ public class TransferProcessDto extends MutableDto {
     public static final String EDC_TRANSFER_PROCESS_DTO_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String EDC_TRANSFER_PROCESS_DTO_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 
-    private String id;
     private String type;
     private String state;
     private Long stateTimestamp;
@@ -52,10 +51,6 @@ public class TransferProcessDto extends MutableDto {
     private List<CallbackAddressDto> callbackAddresses = new ArrayList<>();
 
     private TransferProcessDto() {
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getType() {
@@ -100,11 +95,6 @@ public class TransferProcessDto extends MutableDto {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder id(String id) {
-            dto.id = id;
-            return this;
         }
 
         public Builder type(String type) {

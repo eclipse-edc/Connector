@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ class ContractNegotiationDtoTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
+        objectMapper = new TypeManager().getMapper();
     }
 
     @Test

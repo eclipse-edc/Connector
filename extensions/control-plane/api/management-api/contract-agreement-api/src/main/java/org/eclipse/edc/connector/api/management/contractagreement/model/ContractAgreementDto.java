@@ -14,13 +14,16 @@
 
 package org.eclipse.edc.connector.api.management.contractagreement.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.policy.model.Policy;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-public class ContractAgreementDto {
+public class ContractAgreementDto extends BaseDto {
 
     public static final String TYPE = EDC_NAMESPACE + "ContractAgreementDto";
     public static final String CONTRACT_AGREEMENT_ASSETID = EDC_NAMESPACE + "assetId";
@@ -29,7 +32,7 @@ public class ContractAgreementDto {
     public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
     public static final String CONTRACT_AGREEMENT_POLICY = EDC_NAMESPACE + "policy";
 
-
+    @JsonProperty(value = ID)
     @NotNull(message = "id cannot be null")
     private String id;
     @NotNull(message = "providerId cannot be null")

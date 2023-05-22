@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.api.management.catalog.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;

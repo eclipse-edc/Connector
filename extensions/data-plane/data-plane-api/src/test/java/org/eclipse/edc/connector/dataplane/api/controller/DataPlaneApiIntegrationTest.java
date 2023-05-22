@@ -29,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.hamcrest.CoreMatchers;
@@ -70,7 +71,7 @@ import static org.mockserver.stop.Stop.stopQuietly;
 @ExtendWith(EdcExtension.class)
 class DataPlaneApiIntegrationTest {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new TypeManager().getMapper();
 
     private static final int PUBLIC_API_PORT = getFreePort();
     private static final int CONTROL_API_PORT = getFreePort();

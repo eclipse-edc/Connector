@@ -41,7 +41,7 @@ public class ContractNegotiationDto extends MutableDto {
     private String contractAgreementId; // is null until state == CONFIRMED
     private String counterPartyAddress;
     private String errorDetail;
-    private String id;
+
     private String protocol = "ids-multipart";
     private String state;
     private Type type = Type.CONSUMER;
@@ -50,10 +50,6 @@ public class ContractNegotiationDto extends MutableDto {
 
 
     private ContractNegotiationDto() {
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getCounterPartyAddress() {
@@ -94,11 +90,6 @@ public class ContractNegotiationDto extends MutableDto {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder id(String id) {
-            dto.id = id;
-            return this;
         }
 
         public Builder counterPartyAddress(String counterPartyAddress) {

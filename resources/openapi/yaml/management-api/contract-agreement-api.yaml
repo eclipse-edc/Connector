@@ -133,25 +133,7 @@ paths:
         content:
           '*/*':
             schema:
-              type: object
-              additionalProperties:
-                $ref: '#/components/schemas/JsonValue'
-              example: null
-              properties:
-                empty:
-                  type: boolean
-                  example: null
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-                  example: null
+              $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
           content:
@@ -255,6 +237,15 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         assetId:
           type: string
           example: null
@@ -265,24 +256,27 @@ components:
           type: integer
           format: int64
           example: null
-        id:
-          type: string
-          example: null
         policy:
           $ref: '#/components/schemas/Policy'
         providerId:
           type: string
           example: null
       required:
+      - '@id'
       - assetId
       - consumerId
-      - id
       - policy
       - providerId
     CriterionDto:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         operandLeft:
           type: object
           example: null
@@ -447,6 +441,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         filter:
           type: string
           example: null

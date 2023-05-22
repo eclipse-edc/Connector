@@ -598,6 +598,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         authCodeId:
           type: string
           example: null
@@ -624,6 +630,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         operandLeft:
           type: object
           example: null
@@ -650,6 +662,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         properties:
           type: object
           additionalProperties:
@@ -678,12 +696,18 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         createdAt:
           type: integer
           format: int64
-          example: null
-        id:
-          type: string
           example: null
     JsonObject:
       type: object
@@ -724,6 +748,12 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@type':
+          type: string
+          example: null
         filter:
           type: string
           example: null
@@ -762,6 +792,15 @@ components:
       type: object
       example: null
       properties:
+        '@context':
+          type: object
+          example: null
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: null
         callbackAddresses:
           type: array
           example: null
@@ -776,9 +815,6 @@ components:
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
         errorDetail:
-          type: string
-          example: null
-        id:
           type: string
           example: null
         properties:

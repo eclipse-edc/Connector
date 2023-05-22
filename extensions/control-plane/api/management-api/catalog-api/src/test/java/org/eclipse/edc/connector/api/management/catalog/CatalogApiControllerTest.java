@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.catalog;
 
 import jakarta.ws.rs.container.AsyncResponse;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;

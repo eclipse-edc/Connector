@@ -26,13 +26,7 @@ public class IdResponseDto extends BaseResponseDto {
     public static final String EDC_ID_RESPONSE_DTO_TYPE = EDC_NAMESPACE + "IdResponseDto";
     public static final String EDC_ID_RESPONSE_DTO_CREATED_AT = EDC_NAMESPACE + "createdAt";
 
-    private String id;
-
     public IdResponseDto() {
-    }
-
-    public String getId() {
-        return id;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -48,11 +42,6 @@ public class IdResponseDto extends BaseResponseDto {
 
         @Override
         public Builder self() {
-            return this;
-        }
-
-        public Builder id(String id) {
-            dto.id = id;
             return this;
         }
     }

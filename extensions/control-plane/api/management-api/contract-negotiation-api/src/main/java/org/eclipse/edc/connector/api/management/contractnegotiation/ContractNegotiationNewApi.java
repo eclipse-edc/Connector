@@ -21,10 +21,12 @@ import io.swagger.v3.oas.annotations.links.LinkParameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
@@ -38,6 +40,7 @@ import java.util.List;
 public interface ContractNegotiationNewApi {
 
     @Operation(description = "Returns all contract negotiations according to a query",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationDto.class)))),
@@ -85,6 +88,7 @@ public interface ContractNegotiationNewApi {
 
     @Operation(description = "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint " +
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = NegotiationInitiateRequestDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = IdResponseDto.class)),
@@ -95,7 +99,7 @@ public interface ContractNegotiationNewApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
-    JsonObject initiateContractNegotiation(@Schema(implementation = NegotiationInitiateRequestDto.class) JsonObject requestDto);
+    JsonObject initiateContractNegotiation(JsonObject requestDto);
 
     @Operation(description = "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
             "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",

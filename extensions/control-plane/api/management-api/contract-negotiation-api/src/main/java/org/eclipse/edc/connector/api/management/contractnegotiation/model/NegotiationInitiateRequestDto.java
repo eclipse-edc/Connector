@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.api.model.CallbackAddressDto;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ import java.util.List;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-public class NegotiationInitiateRequestDto {
+public class NegotiationInitiateRequestDto extends BaseDto {
     public static final String TYPE = EDC_NAMESPACE + "NegotiationInitiateRequestDto";
     public static final String CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
     public static final String PROTOCOL = EDC_NAMESPACE + "protocol";

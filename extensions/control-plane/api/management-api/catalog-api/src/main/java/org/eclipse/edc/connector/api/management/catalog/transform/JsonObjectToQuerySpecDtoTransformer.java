@@ -16,18 +16,18 @@ package org.eclipse.edc.connector.api.management.catalog.transform;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_FILTER_EXPRESSION;
-import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_LIMIT;
-import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_OFFSET;
-import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_SORT_FIELD;
-import static org.eclipse.edc.api.query.QuerySpecDto.EDC_QUERY_SPEC_SORT_ORDER;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_FILTER_EXPRESSION;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_LIMIT;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_OFFSET;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_SORT_FIELD;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_SORT_ORDER;
 
 public class JsonObjectToQuerySpecDtoTransformer extends AbstractJsonLdTransformer<JsonObject, QuerySpecDto> {
 

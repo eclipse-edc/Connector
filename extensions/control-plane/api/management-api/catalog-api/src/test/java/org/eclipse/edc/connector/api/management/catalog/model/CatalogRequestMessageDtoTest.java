@@ -16,8 +16,9 @@ package org.eclipse.edc.connector.api.management.catalog.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -27,7 +28,7 @@ import static org.eclipse.edc.connector.api.management.catalog.TestFunctions.cre
 
 class CatalogRequestMessageDtoTest {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new TypeManager().getMapper();
 
     @Test
     void verifySerdes() throws JsonProcessingException {

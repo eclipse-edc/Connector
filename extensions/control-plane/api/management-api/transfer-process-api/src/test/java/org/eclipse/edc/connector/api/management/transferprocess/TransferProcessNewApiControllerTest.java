@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.transferprocess;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;

@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.policy;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;

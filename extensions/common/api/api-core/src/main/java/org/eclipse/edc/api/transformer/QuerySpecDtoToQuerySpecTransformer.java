@@ -15,7 +15,7 @@
 package org.eclipse.edc.api.transformer;
 
 import org.eclipse.edc.api.model.CriterionDto;
-import org.eclipse.edc.api.query.QuerySpecDto;
+import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;

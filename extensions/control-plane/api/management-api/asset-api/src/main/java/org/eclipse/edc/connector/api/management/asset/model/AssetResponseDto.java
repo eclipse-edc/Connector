@@ -28,8 +28,6 @@ public class AssetResponseDto extends BaseResponseDto {
 
     private Map<String, Object> privateProperties;
 
-    private String id;
-
     private AssetResponseDto() {
     }
 
@@ -39,10 +37,6 @@ public class AssetResponseDto extends BaseResponseDto {
 
     public Map<String, Object> getPrivateProperties() {
         return privateProperties;
-    }
-
-    public String getId() {
-        return id;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -72,9 +66,5 @@ public class AssetResponseDto extends BaseResponseDto {
             return this;
         }
 
-        public Builder id(String id) {
-            dto.id = id;
-            return this;
-        }
     }
 }

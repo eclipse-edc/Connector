@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.api.controller;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -71,7 +70,6 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 
@@ -127,8 +125,7 @@ public class DspNegotiationApiController {
      */
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
-    public Response initiateNegotiation(@RequestBody(description = DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, required = true)
-                                        JsonObject jsonObject,
+    public Response initiateNegotiation(JsonObject jsonObject,
                                         @HeaderParam(AUTHORIZATION) String token) {
         var negotiationResult = handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
                 .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
@@ -163,7 +160,6 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + CONTRACT_REQUEST)
     public Response consumerOffer(@PathParam("id") String id,
-                                  @RequestBody(description = DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, required = true)
                                   JsonObject jsonObject,
                                   @HeaderParam(AUTHORIZATION) String token) {
         return handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
@@ -175,7 +171,6 @@ public class DspNegotiationApiController {
                 .build())
                 .map(cn -> Response.ok().build())
                 .orElse(createErrorResponse(id));
-
     }
 
     /**
@@ -189,7 +184,6 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + EVENT)
     public Response createEvent(@PathParam("id") String id,
-                                @RequestBody(description = DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE, required = true)
                                 JsonObject jsonObject,
                                 @HeaderParam(AUTHORIZATION) String token) {
         return handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationEventMessage.class)
@@ -214,7 +208,6 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + AGREEMENT + VERIFICATION)
     public Response verifyAgreement(@PathParam("id") String id,
-                                    @RequestBody(description = DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE, required = true)
                                     JsonObject jsonObject,
                                     @HeaderParam(AUTHORIZATION) String token) {
         return handleMessage(MessageSpec.Builder.newInstance(ContractAgreementVerificationMessage.class)
@@ -239,7 +232,6 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + TERMINATION)
     public Response terminateNegotiation(@PathParam("id") String id,
-                                         @RequestBody(description = DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, required = true)
                                          JsonObject jsonObject,
                                          @HeaderParam(AUTHORIZATION) String token) {
         return handleMessage(MessageSpec.Builder.newInstance(ContractNegotiationTerminationMessage.class)
@@ -264,7 +256,6 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + CONTRACT_OFFER)
     public Response providerOffer(@PathParam("id") String id,
-                                  @RequestBody(description = DSPACE_TYPE_CONTRACT_OFFER_MESSAGE, required = true)
                                   JsonObject body,
                                   @HeaderParam(AUTHORIZATION) String token) {
         return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
@@ -281,7 +272,6 @@ public class DspNegotiationApiController {
     @POST
     @Path("{id}" + AGREEMENT)
     public Response createAgreement(@PathParam("id") String id,
-                                    @RequestBody(description = DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE, required = true)
                                     JsonObject jsonObject,
                                     @HeaderParam(AUTHORIZATION) String token) {
         return handleMessage(MessageSpec.Builder.newInstance(ContractAgreementMessage.class)

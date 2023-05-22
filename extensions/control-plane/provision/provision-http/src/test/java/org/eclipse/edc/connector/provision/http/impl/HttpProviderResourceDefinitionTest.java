@@ -16,7 +16,7 @@
 package org.eclipse.edc.connector.provision.http.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class HttpProviderResourceDefinitionTest {
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
-        var mapper = new ObjectMapper();
+        var mapper = new TypeManager().getMapper();
 
         var request = HttpProviderResourceDefinition.Builder.newInstance().assetId("123").transferProcessId("1").id("2").dataAddressType("test").build();
 
