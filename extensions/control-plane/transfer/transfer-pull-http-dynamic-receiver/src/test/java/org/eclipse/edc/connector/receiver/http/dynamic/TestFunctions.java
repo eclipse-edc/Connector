@@ -37,7 +37,7 @@ public class TestFunctions {
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("HttpProxy")
                         .build())
-                .properties(properties)
+                .privateProperties(properties)
                 .build();
     }
 

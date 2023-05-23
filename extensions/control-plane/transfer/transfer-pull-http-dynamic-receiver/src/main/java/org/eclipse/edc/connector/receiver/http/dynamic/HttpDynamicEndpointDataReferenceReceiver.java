@@ -74,7 +74,7 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
             return CompletableFuture.completedFuture(Result.failure(format("Failed to found transfer process for id %s", processId)));
         }
 
-        var endpoint = transferProcess.getProperties().get(HTTP_RECEIVER_ENDPOINT);
+        var endpoint = transferProcess.getPrivateProperties().get(HTTP_RECEIVER_ENDPOINT);
 
         if (endpoint == null) {
             endpoint = fallbackEndpoint;

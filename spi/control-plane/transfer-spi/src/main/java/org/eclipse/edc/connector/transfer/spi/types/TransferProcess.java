@@ -109,7 +109,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
-    private Map<String, String> properties = new HashMap<>();
+    private Map<String, String> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     private TransferProcess() {
@@ -209,8 +209,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return provisionedResourceSet.getResources().stream().filter(r -> !deprovisionedResources.contains(r.getId())).collect(toList());
     }
 
-    public Map<String, String> getProperties() {
-        return Collections.unmodifiableMap(properties);
+    public Map<String, String> getPrivateProperties() {
+        return Collections.unmodifiableMap(privateProperties);
     }
 
     public List<CallbackAddress> getCallbackAddresses() {
@@ -332,7 +332,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .provisionedResourceSet(provisionedResourceSet)
                 .contentDataAddress(contentDataAddress)
                 .deprovisionedResources(deprovisionedResources)
-                .properties(properties)
+                .privateProperties(privateProperties)
                 .callbackAddresses(callbackAddresses)
                 .type(type);
         return copy(builder);
@@ -432,8 +432,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
-        public Builder properties(Map<String, String> properties) {
-            entity.properties = properties;
+        public Builder privateProperties(Map<String, String> privateProperties) {
+            entity.privateProperties = privateProperties;
             return this;
         }
 
