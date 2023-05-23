@@ -21,8 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.aws.s3.S3BucketSchema;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
 
-import static org.eclipse.edc.aws.s3.S3BucketSchema.BUCKET_NAME;
-import static org.eclipse.edc.aws.s3.S3BucketSchema.REGION;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 
 /**
@@ -31,6 +30,10 @@ import static org.eclipse.edc.aws.s3.S3BucketSchema.REGION;
 @JsonDeserialize(builder = S3BucketProvisionedResource.Builder.class)
 @JsonTypeName("dataspaceconnector:s3bucketprovisionedresource")
 public class S3BucketProvisionedResource extends ProvisionedDataDestinationResource {
+
+    public static final String BUCKET_NAME = EDC_NAMESPACE + "bucketName";
+
+    public static final String REGION = EDC_NAMESPACE + "region";
     private String role;
 
     public String getRegion() {

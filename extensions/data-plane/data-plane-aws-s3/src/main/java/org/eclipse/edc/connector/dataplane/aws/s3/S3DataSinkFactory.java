@@ -100,7 +100,7 @@ public class S3DataSinkFactory implements DataSinkFactory {
 
         return S3DataSink.Builder.newInstance()
                 .bucketName(destination.getProperty(BUCKET_NAME))
-                .keyName(destination.getKeyName())
+                .keyName(request.getSourceDataAddress().getKeyName())
                 .requestId(request.getId())
                 .executorService(executorService)
                 .monitor(monitor)
