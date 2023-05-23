@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinition;
@@ -212,7 +211,7 @@ public abstract class ContractDefinitionStoreTestBase {
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter("accessPolicyId = policy4")
+                .filter(Criterion.criterion("accessPolicyId", "=", "policy4"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -341,14 +340,21 @@ public abstract class ContractDefinitionStoreTestBase {
     @Test
     void findAll_verifyFiltering() {
         IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
-        assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=id3").build())).extracting(ContractDefinition::getId)
-                .containsOnly("id3");
+        var criterion = Criterion.criterion("id", "=", "id3");
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion).build();
+
+        var result = getContractDefinitionStore().findAll(querySpec);
+
+        assertThat(result).extracting(ContractDefinition::getId).containsOnly("id3");
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
-        assertThatThrownBy(() -> getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+        var criterion = Criterion.criterion("something", "foobar", "other");
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion).build();
+
+        assertThatThrownBy(() -> getContractDefinitionStore().findAll(querySpec)).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test
@@ -370,7 +376,7 @@ public abstract class ContractDefinitionStoreTestBase {
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(format("selectorExpression.criteria.operandLeft = %s", Asset.PROPERTY_ID))
+                .filter(Criterion.criterion("selectorExpression.criteria.operandLeft", "=", Asset.PROPERTY_ID))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -389,7 +395,7 @@ public abstract class ContractDefinitionStoreTestBase {
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria.operandRight = foobar-asset")
+                .filter(Criterion.criterion("selectorExpression.criteria.operandRight", "=", "foobar-asset"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -464,7 +470,7 @@ public abstract class ContractDefinitionStoreTestBase {
         var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria = " + json)
+                .filter(Criterion.criterion("selectorExpression.criteria", "=", json))
                 .build();
 
         assertThat(getContractDefinitionStore().findAll(spec)).hasSize(1)
@@ -481,7 +487,7 @@ public abstract class ContractDefinitionStoreTestBase {
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria[0].operandRight = foobar-asset")
+                .filter(Criterion.criterion("selectorExpression.criteria[0].operandRight", "=", "foobar-asset"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -500,7 +506,7 @@ public abstract class ContractDefinitionStoreTestBase {
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria[1].operandRight = foobar-asset")
+                .filter(Criterion.criterion("selectorExpression.criteria[1].operandRight", "=", "foobar-asset"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);

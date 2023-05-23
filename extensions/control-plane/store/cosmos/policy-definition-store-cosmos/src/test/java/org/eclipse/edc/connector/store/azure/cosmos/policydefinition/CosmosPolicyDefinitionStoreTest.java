@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.store.azure.cosmos.policydefinition.TestFunctions.generateDocument;
 import static org.eclipse.edc.connector.store.azure.cosmos.policydefinition.TestFunctions.generatePolicy;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
@@ -167,8 +168,10 @@ class CosmosPolicyDefinitionStoreTest {
         var doc = generateDocument(TEST_PART_KEY);
         when(cosmosDbApiMock.queryItems(any(SqlQuerySpec.class))).thenReturn(Stream.of(doc));
         store.reload();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", doc.getId())).build();
 
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("id=" + doc.getId()).build());
+        var all = store.findAll(query);
+
         assertThat(all).hasSize(1).extracting(PolicyDefinition::getUid).containsOnly(doc.getId());
         verify(cosmosDbApiMock).queryItems(any(SqlQuerySpec.class));
         verifyNoMoreInteractions(cosmosDbApiMock);
@@ -176,7 +179,9 @@ class CosmosPolicyDefinitionStoreTest {
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        assertThatThrownBy(() -> store.findAll(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("something", "foobar", "other")).build();
+
+        assertThatThrownBy(() -> store.findAll(querySpec)).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test

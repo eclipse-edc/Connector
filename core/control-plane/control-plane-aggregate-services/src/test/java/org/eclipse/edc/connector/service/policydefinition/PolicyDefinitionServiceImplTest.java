@@ -21,21 +21,28 @@ import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservable;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -73,17 +80,15 @@ class PolicyDefinitionServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "policy.permissions.action.constraint.noexist=someval", //wrong property
-            "permissions.action.constraint.leftExpression=someval", //missing root
-            "policy.permissions.action.leftExpression=null" //skips path element
-    })
-    void query_invalidExpression_raiseException(String invalidFilter) {
+    @ArgumentsSource(InvalidFilters.class)
+    void query_invalidExpression_raiseException(Criterion invalidFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(invalidFilter)
                 .build();
 
-        assertThat(policyServiceImpl.query(query).failed()).isTrue();
+        var result = policyServiceImpl.query(query);
+
+        assertThat(result).isFailed();
     }
 
     @Test
@@ -224,6 +229,17 @@ class PolicyDefinitionServiceImplTest {
         verify(policyStore).update(policy);
         verifyNoMoreInteractions(policyStore);
         verify(observable, never()).invokeForEach(any());
+    }
+
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("policy.permissions.action.constraint.noexist", "=", "123455")), // wrong property
+                    arguments(criterion("permissions.action.constraint.leftExpression", "=", "123455")), // missing root
+                    arguments(criterion("policy.permissions.action.leftExpression", "=", "123455")) // skips path element
+            );
+        }
     }
 
     @NotNull

@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createPolicy;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -84,7 +85,7 @@ class InMemoryPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     void findAll_verifyFiltering_invalidFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> createPolicy("test-id")).forEach(d -> getPolicyDefinitionStore().create(d));
 
-        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "contains", "other")).build();
 
         assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(query)).isInstanceOfAny(EdcPersistenceException.class);
     }

@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createPolicy;
 import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createPolicyBuilder;
-import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createQuery;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * This test aims to verify those parts of the policy definition store, that are specific to Postgres, e.g. JSON query
@@ -80,7 +80,8 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
         getPolicyDefinitionStore().create(policyDef1);
 
         // query by prohibition assignee
-        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(createQuery("notexist=foobar")))
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("notexist", "=", "foobar")).build();
+        assertThatThrownBy(() -> getPolicyDefinitionStore().findAll(querySpec))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
     }

@@ -15,10 +15,20 @@
 package org.eclipse.edc.connector.store.sql.policydefinition.schema.postgres;
 
 import org.eclipse.edc.connector.store.sql.policydefinition.store.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.eclipse.edc.connector.policy.spi.testfixtures.TestFunctions.createQuery;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class PostgresDialectStatementsTest {
 
@@ -29,17 +39,37 @@ class PostgresDialectStatementsTest {
         assertThat(statements.getFormatAsJsonOperator()).isEqualTo("::json");
     }
 
-    @Test
-    void createQuery_jsonArrayProperty() {
-        assertThat(statements.createQuery(createQuery("policy.permissions.duties.target=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(createQuery("policy.prohibitions.action.type=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(createQuery("policy.obligations.assignee=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
-        assertThat(statements.createQuery(createQuery("policy.extensibleProperties.something=foo")).getQueryAsString()).contains("->>", "->", "json_array_elements");
+    @ParameterizedTest
+    @ArgumentsSource(JsonArrayCriteria.class)
+    void createQuery_jsonArrayProperty(Criterion criterion) {
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion).build();
+
+        var query = statements.createQuery(querySpec);
+
+        assertThat(query.getQueryAsString()).contains("->>", "->", "json_array_elements");
     }
 
     @Test
     void createQuery_normalProperty() {
-        var q = createQuery("policy.assigner=foobar");
-        assertThat(statements.createQuery(q).getQueryAsString()).doesNotContain("->>", "->", "json_array_elements");
+        var criterion = criterion("policy.assigner", "=", "foobar");
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion).build();
+
+        var query = statements.createQuery(querySpec);
+
+        assertThat(query.getQueryAsString()).doesNotContain("->>", "->", "json_array_elements");
     }
+
+    private static class JsonArrayCriteria implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("policy.permissions.duties.target", "=", "true")),
+                    arguments(criterion("policy.prohibitions.action.type", "=", "true")),
+                    arguments(criterion("policy.obligations.assignee", "=", "true")),
+                    arguments(criterion("policy.extensibleProperties.something", "=", "true"))
+            );
+        }
+    }
+
 }

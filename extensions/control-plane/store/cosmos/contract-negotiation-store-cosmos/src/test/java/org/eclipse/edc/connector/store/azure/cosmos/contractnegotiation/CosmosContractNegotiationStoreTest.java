@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.connector.store.azure.cosmos.contractnegotiation.TestFunctions.generateDocument;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -202,15 +203,17 @@ class CosmosContractNegotiationStoreTest {
         when(cosmosDbApi.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().startsWith("SELECT * FROM ContractNegotiationDocument WHERE ContractNegotiationDocument.wrappedInstance.id = @id")))))
                 .thenReturn(Stream.of(doc));
 
-
-        var all = store.queryNegotiations(QuerySpec.Builder.newInstance().filter("id=foobar").build());
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", "foobar")).build();
+        var all = store.queryNegotiations(querySpec);
         assertThat(all).hasSize(1).extracting(ContractNegotiation::getId).containsOnly(doc.getId());
         verify(cosmosDbApi).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().startsWith("SELECT * FROM ContractNegotiationDocument WHERE ContractNegotiationDocument.wrappedInstance.id = @id"))));
     }
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        assertThatThrownBy(() -> store.queryNegotiations(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("something", "foobar", "other")).build();
+
+        assertThatThrownBy(() -> store.queryNegotiations(querySpec)).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test

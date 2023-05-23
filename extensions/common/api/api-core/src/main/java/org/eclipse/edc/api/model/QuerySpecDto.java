@@ -47,11 +47,7 @@ public class QuerySpecDto extends BaseDto {
     @Positive(message = "limit must be greater than 0")
     private Integer limit = 50;
 
-    @QueryParam("filter")
-    @Deprecated
-    private String filter;
-
-    private List<CriterionDto> filterExpression = new ArrayList<>();
+    private final List<CriterionDto> filterExpression = new ArrayList<>();
 
     @QueryParam("sort")
     private SortOrder sortOrder = SortOrder.ASC;
@@ -67,11 +63,6 @@ public class QuerySpecDto extends BaseDto {
         return limit;
     }
 
-    @Deprecated
-    public String getFilter() {
-        return filter;
-    }
-
     public SortOrder getSortOrder() {
         return sortOrder;
     }
@@ -83,10 +74,6 @@ public class QuerySpecDto extends BaseDto {
     @JsonIgnore
     @AssertTrue
     public boolean isValid() {
-        if (filter != null && filter.isBlank()) {
-            return false;
-        }
-
         return sortField == null || !sortField.isBlank();
     }
 
@@ -127,14 +114,13 @@ public class QuerySpecDto extends BaseDto {
             return this;
         }
 
-        @Deprecated
-        public Builder filter(String filter) {
-            querySpec.filter = filter;
+        public Builder filter(CriterionDto criterion) {
+            querySpec.filterExpression.add(criterion);
             return this;
         }
 
         public Builder filterExpression(List<CriterionDto> filterExpression) {
-            querySpec.filterExpression = filterExpression;
+            querySpec.filterExpression.addAll(filterExpression);
             return this;
         }
 

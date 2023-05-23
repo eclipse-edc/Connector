@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
@@ -75,11 +76,10 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
     @Override
     public @NotNull ServiceResult<PolicyDefinition> deleteById(String policyId) {
-
-        var contractFilter = format("contractPolicyId = %s ", policyId);
-        var accessFilter = format("accessPolicyId = %s ", policyId);
-
         return transactionContext.execute(() -> {
+
+            var contractFilter = criterion("contractPolicyId", "=", policyId);
+            var accessFilter = criterion("accessPolicyId", "=", policyId);
 
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
             try (var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter)) {
@@ -87,7 +87,6 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
                     return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));
                 }
             }
-
 
             var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).build();
             try (var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter)) {

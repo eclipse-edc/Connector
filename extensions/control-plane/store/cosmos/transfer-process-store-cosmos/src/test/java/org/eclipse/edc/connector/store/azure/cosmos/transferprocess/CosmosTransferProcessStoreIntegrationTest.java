@@ -64,6 +64,7 @@ import static org.eclipse.edc.connector.store.azure.cosmos.transferprocess.TestH
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 @AzureCosmosDbIntegrationTest
 class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTestBase {
@@ -548,7 +549,8 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
 
         var expectedId = documents.get(3).getId();
 
-        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", expectedId)).build();
+
         assertThat(store.findAll(query)).extracting(TransferProcess::getId).containsOnly(expectedId);
     }
 
@@ -556,7 +558,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     void findAll_verifyFiltering_invalidFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
 
-        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "contains", "other")).build();
 
         assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
     }
@@ -565,7 +567,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     void findAll_verifyFiltering_unsuccessfulFilterExpression() {
         IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
 
-        var query = QuerySpec.Builder.newInstance().filter("something = other").build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "=", "other")).build();
 
         assertThat(store.findAll(query)).isEmpty();
     }

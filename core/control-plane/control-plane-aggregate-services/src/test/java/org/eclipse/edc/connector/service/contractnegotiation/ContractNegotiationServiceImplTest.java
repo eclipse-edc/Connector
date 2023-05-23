@@ -26,14 +26,18 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentMatcher;
 
 import java.util.UUID;
@@ -41,7 +45,10 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -91,30 +98,27 @@ class ContractNegotiationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "contractAgreement.contractStartDate.begin=123455", //invalid path
-            "contractOffers.policy.unexistent=some-id", //invalid path
-            "contractOffers.policy.assetid=some-id", //wrong case
-            "contractOffers.policy.=some-id", //incomplete path
-    })
-    void query_invalidFilter(String invalidFilter) {
+    @ArgumentsSource(InvalidFilters.class)
+    void query_invalidFilter(Criterion invalidFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(invalidFilter)
                 .build();
 
-        assertThat(service.query(query).failed()).isTrue();
+        var result = service.query(query);
+
+        assertThat(result).isFailed();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "contractAgreement.assetId=test-asset",
-            "contractAgreement.policy.assignee=123455",
-    })
-    void query_validFilter(String validFilter) {
+    @ArgumentsSource(ValidFilters.class)
+    void query_validFilter(Criterion validFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(validFilter)
                 .build();
-        service.query(query);
+
+        var result = service.query(query);
+
+        assertThat(result).isSucceeded();
         verify(store).queryNegotiations(query);
     }
 
@@ -246,6 +250,28 @@ class ContractNegotiationServiceImplTest {
         assertThat(result.succeeded()).isFalse();
         assertThat(result.reason()).isEqualTo(NOT_FOUND);
         verifyNoInteractions(consumerManager);
+    }
+
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("contractAgreement.contractStartDate.begin", "=", "123455")), // invalid path
+                    arguments(criterion("contractOffers.policy.unexistent", "=", "123455")), // invalid path
+                    arguments(criterion("contractOffers.policy.assetid", "=", "123455")), // wrong case
+                    arguments(criterion("contractOffers.policy.=some-id", "=", "123455")) // incomplete path
+            );
+        }
+    }
+
+    private static class ValidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("contractAgreement.assetId", "=", "test-asset")),
+                    arguments(criterion("contractAgreement.policy.assignee", "=", "123455"))
+            );
+        }
     }
 
     @NotNull

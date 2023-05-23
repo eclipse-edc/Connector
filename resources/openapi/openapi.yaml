@@ -47,14 +47,6 @@ paths:
           type: integer
           format: int32
           example: null
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
       - name: sort
         in: query
         required: false
@@ -453,14 +445,6 @@ paths:
           type: integer
           format: int32
           example: null
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
       - name: sort
         in: query
         required: false
@@ -596,14 +580,6 @@ paths:
           type: integer
           format: int32
           example: null
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
       - name: sort
         in: query
         required: false
@@ -737,14 +713,6 @@ paths:
         schema:
           type: integer
           format: int32
-          example: null
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
           example: null
       - name: sort
         in: query
@@ -998,14 +966,6 @@ paths:
         schema:
           type: integer
           format: int32
-          example: null
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
           example: null
       - name: sort
         in: query
@@ -1395,14 +1355,6 @@ paths:
           type: integer
           format: int32
           example: null
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
       - name: sort
         in: query
         required: false
@@ -1725,14 +1677,6 @@ paths:
         schema:
           type: integer
           format: int32
-          example: null
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
           example: null
       - name: sort
         in: query
@@ -4393,9 +4337,6 @@ components:
           type: object
           example: null
         '@type':
-          type: string
-          example: null
-        filter:
           type: string
           example: null
         filterExpression:

@@ -14,16 +14,23 @@
 
 package org.eclipse.edc.connector.service.query;
 
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class QueryValidatorTest {
 
@@ -36,7 +43,7 @@ class QueryValidatorTest {
     @Test
     void validate_isValid() {
         queryValidator = new QueryValidator(TestObject.class);
-        var query = of("someString=foobar");
+        var query = with(criterion("someString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
 
@@ -44,13 +51,10 @@ class QueryValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "someString.=foobar",
-            ".someString=foobar"
-    })
-    void validate_keyHasLeadingOrTrailingDot(String filter) {
+    @ArgumentsSource(InvalidFilters.class)
+    void validate_keyHasLeadingOrTrailingDot(Criterion filter) {
         queryValidator = new QueryValidator(TestObject.class);
-        var query = of(filter);
+        var query = with(filter);
 
         var result = queryValidator.validate(query);
 
@@ -58,11 +62,10 @@ class QueryValidatorTest {
         assertThat(result.getFailureDetail()).startsWith("Invalid path expression");
     }
 
-
     @Test
     void validate_interface_withSubtypeMap() {
         queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
-        var query = of("nestedObject.nestedString=foobar");
+        var query = with(criterion("nestedObject.nestedString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
         assertThat(result.succeeded()).isTrue();
@@ -71,7 +74,7 @@ class QueryValidatorTest {
     @Test
     void validate_interface_withoutSubtypeMap() {
         queryValidator = new QueryValidator(TestObject.class);
-        var query = of("nestedObject.nestedString=foobar");
+        var query = with(criterion("nestedObject.nestedString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
         assertThat(result.succeeded()).isFalse();
@@ -81,7 +84,7 @@ class QueryValidatorTest {
     @Test
     void validate_isMapType() {
         queryValidator = new QueryValidator(TestObject.class);
-        var query = of("someMap.foo=bar");
+        var query = with(criterion("someMap.foo", "=", "bar"));
 
         var result = queryValidator.validate(query);
 
@@ -92,7 +95,7 @@ class QueryValidatorTest {
     @Test
     void validate_fieldNotExist() {
         queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
-        var query = of("nestedObject.notexist like (foobar, barbaz)");
+        var query = with(criterion("nestedObject.notexist", "like", "(foobar, barbaz)"));
 
         var result = queryValidator.validate(query);
         assertThat(result.succeeded()).isFalse();
@@ -102,14 +105,24 @@ class QueryValidatorTest {
     @Test
     void validate_withListType() {
         queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
-        var query = of("nestedObject.someList=foobar");
+        var query = with(criterion("nestedObject.someList", "=", "foobar"));
 
         var result = queryValidator.validate(query);
         assertThat(result.succeeded()).isTrue();
     }
 
-    private QuerySpec of(String filter) {
-        return QuerySpec.Builder.newInstance().filter(filter).build();
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("someString.", "=", "foobar")), // trailing dot
+                    arguments(criterion(".someString", "=", "foobar")) // leading root
+            );
+        }
+    }
+
+    private QuerySpec with(Criterion criterion) {
+        return QuerySpec.Builder.newInstance().filter(criterion).build();
     }
 
     private interface TestInterface {

@@ -108,7 +108,7 @@ class ContractAgreementApiControllerTest {
         when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().filter("invalid=foobar").build();
+        var querySpec = QuerySpecDto.Builder.newInstance().filter(CriterionDto.from("invalid", "=", "foobar")).build();
 
         assertThatThrownBy(() -> controller.getAllAgreements(querySpec)).isInstanceOf(InvalidRequestException.class);
 
