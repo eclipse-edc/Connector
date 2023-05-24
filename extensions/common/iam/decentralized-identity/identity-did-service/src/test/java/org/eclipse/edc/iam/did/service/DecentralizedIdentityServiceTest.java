@@ -38,8 +38,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -50,6 +49,8 @@ import static org.mockito.Mockito.when;
  */
 
 abstract class DecentralizedIdentityServiceTest {
+
+    private static final String DID_URL = "random.did.url";
     private static final String DID_DOCUMENT = getResourceFileContentAsString("dids.json");
 
     private JWK keyPair;
@@ -57,17 +58,29 @@ abstract class DecentralizedIdentityServiceTest {
     private DidResolverRegistry didResolverRegistryMock;
     private DecentralizedIdentityService identityService;
 
+    @BeforeEach
+    void setUp() {
+        keyPair = getKeyPair();
+        var privateKey = new EcPrivateKeyWrapper(keyPair.toECKey());
+        didResolverRegistryMock = mock(DidResolverRegistry.class);
+        credentialsVerifierMock = mock(CredentialsVerifier.class);
+        identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), privateKey, DID_URL, Clock.systemUTC());
+    }
+
     @Test
     void generateAndVerifyJwtToken_valid() {
         when(credentialsVerifierMock.getVerifiedCredentials(any())).thenReturn(Result.success(Map.of("region", "eu")));
         when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument((ECKey) keyPair.toPublicJWK())));
 
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
-        assertTrue(result.succeeded());
+        assertThat(result.succeeded()).isTrue();
 
         var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
-        assertTrue(verificationResult.succeeded());
-        assertEquals("eu", verificationResult.getContent().getStringClaim("region"));
+        assertThat(verificationResult.succeeded()).isTrue();
+
+        var claimToken = verificationResult.getContent();
+        assertThat(claimToken.getStringClaim("region")).isEqualTo("eu");
+        assertThat(claimToken.getStringClaim(DEFAULT_IDENTITY_CLAIM_KEY)).isEqualTo(DID_URL);
     }
 
     @Test
@@ -77,10 +90,10 @@ abstract class DecentralizedIdentityServiceTest {
         when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument((ECKey) otherKeyPair.toPublicJWK())));
 
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
-        assertTrue(result.succeeded());
+        assertThat(result.succeeded()).isTrue();
 
         var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
-        assertTrue(verificationResult.failed());
+        assertThat(verificationResult.failed()).isTrue();
         assertThat(verificationResult.getFailureMessages()).contains("Token could not be verified!");
     }
 
@@ -91,7 +104,7 @@ abstract class DecentralizedIdentityServiceTest {
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
 
         var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar2");
-        assertTrue(verificationResult.failed());
+        assertThat(verificationResult.failed()).isTrue();
     }
 
     @Test
@@ -101,10 +114,10 @@ abstract class DecentralizedIdentityServiceTest {
         when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument((ECKey) keyPair.toPublicJWK())));
 
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
-        assertTrue(result.succeeded());
+        assertThat(result.succeeded()).isTrue();
 
         var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
-        assertTrue(verificationResult.failed());
+        assertThat(verificationResult.failed()).isTrue();
         assertThat(verificationResult.getFailureDetail()).contains(errorMsg);
     }
 
@@ -127,16 +140,6 @@ abstract class DecentralizedIdentityServiceTest {
         } catch (JsonProcessingException e) {
             throw new AssertionError(e);
         }
-    }
-
-    @BeforeEach
-    void setUp() {
-        keyPair = getKeyPair();
-        var privateKey = new EcPrivateKeyWrapper(keyPair.toECKey());
-        didResolverRegistryMock = mock(DidResolverRegistry.class);
-        credentialsVerifierMock = mock(CredentialsVerifier.class);
-        var didUrl = "random.did.url";
-        identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), privateKey, didUrl, Clock.systemUTC());
     }
 
     @NotNull
