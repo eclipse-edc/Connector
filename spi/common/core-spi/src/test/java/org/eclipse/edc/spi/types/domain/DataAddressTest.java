@@ -21,7 +21,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 class DataAddressTest {
 
@@ -29,14 +31,14 @@ class DataAddressTest {
     void verifyDeserialization() throws IOException {
         var mapper = new TypeManager().getMapper();
 
-        DataAddress dataAddress = DataAddress.Builder.newInstance()
+        var dataAddress = DataAddress.Builder.newInstance()
                 .type("test")
                 .keyName("somekey")
                 .property("foo", "bar").build();
-        StringWriter writer = new StringWriter();
+        var writer = new StringWriter();
         mapper.writeValue(writer, dataAddress);
 
-        DataAddress deserialized = mapper.readValue(writer.toString(), DataAddress.class);
+        var deserialized = mapper.readValue(writer.toString(), DataAddress.class);
 
         assertThat(deserialized).isNotNull();
 
@@ -46,9 +48,11 @@ class DataAddressTest {
 
     @Test
     void verifyNoTypeThrowsException() {
-        assertThatThrownBy(() -> DataAddress.Builder.newInstance().keyName("somekey").property("foo", "bar").build())
-                .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("DataAddress builder missing Type property.");
+        assertThatNullPointerException().isThrownBy(() -> DataAddress.Builder.newInstance()
+                        .keyName("somekey")
+                        .property("foo", "bar")
+                        .build())
+                .withMessageContaining("DataAddress builder missing Type property.");
     }
 
     @Test
@@ -56,6 +60,14 @@ class DataAddressTest {
         assertThatThrownBy(() -> DataAddress.Builder.newInstance().type("sometype").keyName("somekey").property(null, "bar").build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Property key null.");
+
+
+        assertThatNullPointerException().isThrownBy(() -> DataAddress.Builder.newInstance()
+                        .type("sometype")
+                        .keyName("somekey")
+                        .property(null, "bar")
+                        .build())
+                .withMessageContaining("Property key null.");
     }
 
     @Test
@@ -66,7 +78,26 @@ class DataAddressTest {
 
     @Test
     void verifyGetExistingPropertyValue() {
-        assertThat(DataAddress.Builder.newInstance().type("sometype").property("existing", "existingValue").build().getProperty("existing", "defaultValue"))
-                .isEqualTo("existingValue");
+        var address = DataAddress.Builder.newInstance()
+                .type("sometype")
+                .property("existing", "aValue")
+                .property(EDC_NAMESPACE + "anotherExisting", "anotherValue")
+                .build();
+
+        assertThat(address.getProperty("existing", "defaultValue")).isEqualTo("aValue");
+        assertThat(address.getProperty("anotherExisting", "defaultValue")).isEqualTo("anotherValue");
+    }
+
+    @Test
+    void verifyHasProperty() {
+        var address = DataAddress.Builder.newInstance()
+                .type("sometype")
+                .property("existing", "aValue")
+                .property(EDC_NAMESPACE + "anotherExisting", "anotherValue")
+                .build();
+
+        assertThat(address.hasProperty("existing")).isTrue();
+        assertThat(address.hasProperty("anotherExisting")).isTrue();
+        assertThat(address.hasProperty("unknown")).isFalse();
     }
 }
