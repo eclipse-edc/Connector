@@ -28,7 +28,7 @@ import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 
-import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.EDC_CONTRACT_ID;
 
 public class ConsumerPullTransferEndpointDataReferenceServiceImpl implements ConsumerPullTransferEndpointDataReferenceService {
 
@@ -60,7 +60,7 @@ public class ConsumerPullTransferEndpointDataReferenceServiceImpl implements Con
         }
 
         var props = new HashMap<>(request.getProperties());
-        props.put(CONTRACT_ID, request.getContractId());
+        props.put(EDC_CONTRACT_ID, request.getContractId());
 
         var builder = EndpointDataReference.Builder.newInstance()
                 .id(request.getId())

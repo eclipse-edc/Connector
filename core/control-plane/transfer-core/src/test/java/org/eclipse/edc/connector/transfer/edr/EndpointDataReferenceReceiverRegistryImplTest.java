@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 class EndpointDataReferenceReceiverRegistryImplTest {
 
 
+    private final EndpointDataReferenceTransformerRegistryImpl transformerRegistry = new EndpointDataReferenceTransformerRegistryImpl();
     private EndpointDataReferenceReceiver receiver1;
     private EndpointDataReferenceReceiver receiver2;
     private EndpointDataReferenceReceiverRegistryImpl registry;
@@ -49,7 +50,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
     public void setUp() {
         receiver1 = mock(EndpointDataReferenceReceiver.class);
         receiver2 = mock(EndpointDataReferenceReceiver.class);
-        registry = new EndpointDataReferenceReceiverRegistryImpl();
+        registry = new EndpointDataReferenceReceiverRegistryImpl(transformerRegistry);
 
     }
 
@@ -175,7 +176,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
         verify(receiver1, times(1)).send(any());
         verify(receiver2, times(1)).send(any());
-        
+
     }
 
     private TransferProcessStarted startedEvent(EndpointDataReference edr) {

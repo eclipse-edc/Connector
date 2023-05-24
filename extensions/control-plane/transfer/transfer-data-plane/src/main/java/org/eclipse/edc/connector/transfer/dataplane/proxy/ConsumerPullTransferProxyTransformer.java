@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.EDC_CONTRACT_ID;
 
 /**
  * Transforms {@link EndpointDataReference} returned by the provider Control Plane so that
@@ -42,6 +42,18 @@ public class ConsumerPullTransferProxyTransformer implements EndpointDataReferen
         this.proxyReferenceCreator = proxyCreator;
     }
 
+    private static DataAddress toHttpDataAddress(EndpointDataReference edr) {
+        return HttpDataAddress.Builder.newInstance()
+                .baseUrl(edr.getEndpoint())
+                .authKey(edr.getAuthKey())
+                .authCode(edr.getAuthCode())
+                .proxyBody(Boolean.TRUE.toString())
+                .proxyPath(Boolean.TRUE.toString())
+                .proxyMethod(Boolean.TRUE.toString())
+                .proxyQueryParams(Boolean.TRUE.toString())
+                .build();
+    }
+
     @Override
     public boolean canHandle(@NotNull EndpointDataReference edr) {
         return true;
@@ -56,7 +68,7 @@ public class ConsumerPullTransferProxyTransformer implements EndpointDataReferen
     @Override
     public Result<EndpointDataReference> transform(@NotNull EndpointDataReference edr) {
         var address = toHttpDataAddress(edr);
-        var contractId = edr.getProperties().get(CONTRACT_ID);
+        var contractId = edr.getProperties().get(EDC_CONTRACT_ID);
         if (contractId == null) {
             return Result.failure(format("Cannot transform endpoint data reference with id %s as contract id is missing", edr.getId()));
         }
@@ -73,17 +85,5 @@ public class ConsumerPullTransferProxyTransformer implements EndpointDataReferen
                 .contractId(contractId);
         edr.getProperties().forEach(builder::property);
         return proxyReferenceCreator.createProxyReference(builder.build());
-    }
-
-    private static DataAddress toHttpDataAddress(EndpointDataReference edr) {
-        return HttpDataAddress.Builder.newInstance()
-                .baseUrl(edr.getEndpoint())
-                .authKey(edr.getAuthKey())
-                .authCode(edr.getAuthCode())
-                .proxyBody(Boolean.TRUE.toString())
-                .proxyPath(Boolean.TRUE.toString())
-                .proxyMethod(Boolean.TRUE.toString())
-                .proxyQueryParams(Boolean.TRUE.toString())
-                .build();
     }
 }
