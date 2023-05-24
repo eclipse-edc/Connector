@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - bugfix (pass correct lease id for deletion)
  *
  */
 
