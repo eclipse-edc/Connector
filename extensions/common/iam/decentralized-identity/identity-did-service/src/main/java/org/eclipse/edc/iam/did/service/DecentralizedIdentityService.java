@@ -37,7 +37,10 @@ import java.text.ParseException;
 import java.time.Clock;
 import java.util.Optional;
 
+import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
+
 public class DecentralizedIdentityService implements IdentityService {
+
     private final DidResolverRegistry resolverRegistry;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
@@ -99,8 +102,10 @@ public class DecentralizedIdentityService implements IdentityService {
             }
 
             monitor.debug("Building ClaimToken");
-            var tokenBuilder = ClaimToken.Builder.newInstance();
-            var claimToken = tokenBuilder.claims(credentialsResult.getContent()).build();
+            var claimToken = ClaimToken.Builder.newInstance()
+                    .claims(credentialsResult.getContent())
+                    .claim(DEFAULT_IDENTITY_CLAIM_KEY, jwt.getJWTClaimsSet().getIssuer())
+                    .build();
 
             return Result.success(claimToken);
         } catch (ParseException e) {
