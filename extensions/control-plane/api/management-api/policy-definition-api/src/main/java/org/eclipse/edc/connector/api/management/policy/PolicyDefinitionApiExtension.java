@@ -70,7 +70,6 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromPolicyDefinitionResponseDtoTransformer(jsonBuilderFactory));
 
         var monitor = context.getMonitor();
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, service, transformerRegistry));
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionNewApiController(monitor, transformerRegistry, service, jsonLd));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, transformerRegistry, service, jsonLd));
     }
 }

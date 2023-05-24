@@ -28,7 +28,7 @@ import java.util.List;
 public class ContractDefinitionResponseDto extends BaseResponseDto {
     private String accessPolicyId;
     private String contractPolicyId;
-    private List<CriterionDto> criteria = new ArrayList<>();
+    private List<CriterionDto> selectorExpression = new ArrayList<>();
 
     private ContractDefinitionResponseDto() {
     }
@@ -41,8 +41,8 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
         return contractPolicyId;
     }
 
-    public List<CriterionDto> getCriteria() {
-        return criteria;
+    public List<CriterionDto> getSelectorExpression() {
+        return selectorExpression;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -66,8 +66,8 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
             return this;
         }
 
-        public Builder criteria(List<CriterionDto> criteria) {
-            dto.criteria = criteria;
+        public Builder selectorExpression(List<CriterionDto> criteria) {
+            dto.selectorExpression = criteria;
             return this;
         }
 

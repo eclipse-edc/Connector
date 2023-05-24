@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.Builder;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CRITERIA;
+import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_SELECTOR_EXPRESSION;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -219,7 +219,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .add(TYPE, CONTRACT_DEFINITION_TYPE)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
-                .add(CONTRACT_DEFINITION_CRITERIA, createCriterionBuilder().build())
+                .add(CONTRACT_DEFINITION_SELECTOR_EXPRESSION, createCriterionBuilder().build())
                 .build();
 
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
@@ -357,7 +357,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .add(ID, "test-id")
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
-                .add(CONTRACT_DEFINITION_CRITERIA, createCriterionBuilder().build())
+                .add(CONTRACT_DEFINITION_SELECTOR_EXPRESSION, createCriterionBuilder().build())
                 .build();
     }
 
@@ -380,6 +380,6 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .id("1")
                 .accessPolicyId("ap-id")
                 .contractPolicyId("cp-id")
-                .criteria(List.of());
+                .selectorExpression(List.of());
     }
 }

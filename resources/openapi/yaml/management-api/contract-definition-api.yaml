@@ -210,7 +210,7 @@ components:
         contractPolicyId:
           type: string
           example: null
-        criteria:
+        selectorExpression:
           type: array
           example: null
           items:
@@ -218,7 +218,7 @@ components:
       required:
       - accessPolicyId
       - contractPolicyId
-      - criteria
+      - selectorExpression
     ContractDefinitionResponseDto:
       type: object
       example: null
@@ -242,7 +242,7 @@ components:
           type: integer
           format: int64
           example: null
-        criteria:
+        selectorExpression:
           type: array
           example: null
           items:
