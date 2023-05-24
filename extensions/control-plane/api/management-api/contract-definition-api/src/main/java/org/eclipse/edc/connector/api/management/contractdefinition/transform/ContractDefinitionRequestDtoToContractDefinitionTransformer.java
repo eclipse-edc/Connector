@@ -39,7 +39,7 @@ public class ContractDefinitionRequestDtoToContractDefinitionTransformer impleme
 
     @Override
     public @Nullable ContractDefinition transform(@NotNull ContractDefinitionRequestDto object, @NotNull TransformerContext context) {
-        var criteria = object.getCriteria().stream().map(it -> context.transform(it, Criterion.class)).collect(Collectors.toList());
+        var criteria = object.getSelectorExpression().stream().map(it -> context.transform(it, Criterion.class)).collect(Collectors.toList());
         var selectorExpression = AssetSelectorExpression.Builder.newInstance().criteria(criteria).build();
         return ContractDefinition.Builder.newInstance()
                 .id(object.getId())

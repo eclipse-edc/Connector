@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -19,9 +19,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
@@ -32,26 +33,17 @@ import org.eclipse.edc.web.spi.ApiErrorDetail;
 import java.util.List;
 
 @OpenAPIDefinition
-@Tag(name = "Policy")
+@Tag(name = "Policy Definition")
 public interface PolicyDefinitionApi {
 
     @Operation(description = "Returns all policy definitions according to a query",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<PolicyDefinitionResponseDto> queryAllPolicies(@Valid QuerySpecDto querySpecDto);
-
-    @Operation(description = "Returns all policy definitions according to a query",
-            responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) },
-            deprecated = true
-    )
-    @Deprecated
-    List<PolicyDefinitionResponseDto> getAllPolicies(@Valid QuerySpecDto querySpecDto);
+    List<JsonObject> queryPolicyDefinitions(JsonObject querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {
@@ -63,9 +55,10 @@ public interface PolicyDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    PolicyDefinitionResponseDto getPolicy(String id);
+    JsonObject getPolicyDefinition(String id);
 
     @Operation(description = "Creates a new policy definition",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionRequestDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was created successfully. Returns the Policy Definition Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = IdResponseDto.class))),
@@ -74,7 +67,7 @@ public interface PolicyDefinitionApi {
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    IdResponseDto createPolicy(@Valid PolicyDefinitionRequestDto policy);
+    JsonObject createPolicyDefinition(JsonObject policyDefinition);
 
     @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
             "by a contract definition, in which case an error is returned. " +
@@ -89,9 +82,10 @@ public interface PolicyDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    void deletePolicy(String id);
+    void deletePolicyDefinition(String id);
 
     @Operation(description = "Updates an existing Policy, If the Policy is not found, an error is reported",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionUpdateDto.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was updated successfully. Returns the Policy Definition Id and updated timestamp"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
@@ -100,5 +94,5 @@ public interface PolicyDefinitionApi {
                             content = @Content(schema = @Schema(implementation = ApiErrorDetail.class)))
             }
     )
-    void updatePolicy(String policyId, @Valid PolicyDefinitionUpdateDto policy);
+    void updatePolicyDefinition(String id, JsonObject policyDefinition);
 }

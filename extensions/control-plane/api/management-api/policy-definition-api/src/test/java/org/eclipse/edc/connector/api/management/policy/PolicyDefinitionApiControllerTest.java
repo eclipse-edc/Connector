@@ -52,7 +52,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
+class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
 
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final PolicyDefinitionService service = mock(PolicyDefinitionService.class);
@@ -409,7 +409,7 @@ class PolicyDefinitionNewApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new PolicyDefinitionNewApiController(monitor, transformerRegistry, service, jsonLd);
+        return new PolicyDefinitionApiController(monitor, transformerRegistry, service, jsonLd);
     }
 
     @NotNull

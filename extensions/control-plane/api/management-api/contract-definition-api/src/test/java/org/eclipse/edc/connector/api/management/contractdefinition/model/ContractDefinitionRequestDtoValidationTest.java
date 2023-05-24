@@ -49,7 +49,7 @@ class ContractDefinitionRequestDtoValidationTest {
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
-                .criteria(criteria)
+                .selectorExpression(criteria)
                 .build();
 
         var result = validator.validate(dto);
@@ -64,7 +64,7 @@ class ContractDefinitionRequestDtoValidationTest {
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
-                .criteria(criteria)
+                .selectorExpression(criteria)
                 .build();
 
         var result = validator.validate(dto);

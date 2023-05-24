@@ -87,7 +87,7 @@ public class BlobTransferUtils {
                 .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
                 .add("accessPolicyId", policyId)
                 .add("contractPolicyId", policyId)
-                .add("criteria", Json.createArrayBuilder()
+                .add("selectorExpression", Json.createArrayBuilder()
                         .add(createObjectBuilder()
                                 .add(TYPE, "CriterionDto")
                                 .add("operandLeft", EDC_NAMESPACE + "id")

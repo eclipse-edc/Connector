@@ -36,7 +36,7 @@ class ContractDefinitionRequestDtoTest {
                 .contractPolicyId("test-contract-policyid")
                 .accessPolicyId("test-access-policyid")
                 .id("test-id")
-                .criteria(List.of(criterion))
+                .selectorExpression(List.of(criterion))
                 .build();
 
         var str = objectMapper.writeValueAsString(dto);

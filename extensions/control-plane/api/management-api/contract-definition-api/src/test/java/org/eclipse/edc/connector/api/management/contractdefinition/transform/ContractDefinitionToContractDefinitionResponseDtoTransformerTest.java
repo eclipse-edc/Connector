@@ -59,7 +59,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
         assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
         assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
         assertThat(dto.getCreatedAt()).isNotZero();
-        assertThat(dto.getCriteria()).containsOnly(criterionDto);
+        assertThat(dto.getSelectorExpression()).containsOnly(criterionDto);
         verify(context).transform(isA(Criterion.class), eq(CriterionDto.class));
     }
 

@@ -65,7 +65,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .body("size()", greaterThan(0))
                 .extract().body().as(LIST_TYPE);
 
-        var criteria = body.get(0).getJsonArray("edc:criteria");
+        var criteria = body.get(0).getJsonArray("edc:selectorExpression");
         assertThat(criteria).hasSize(2);
     }
 
@@ -157,7 +157,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .add(ID, TEST_ID)
                 .add("accessPolicyId", TEST_AP_ID)
                 .add("contractPolicyId", TEST_CP_ID)
-                .add("criteria", createCriterionBuilder().build());
+                .add("selectorExpression", createCriterionBuilder().build());
     }
 
     private JsonArrayBuilder createCriterionBuilder() {

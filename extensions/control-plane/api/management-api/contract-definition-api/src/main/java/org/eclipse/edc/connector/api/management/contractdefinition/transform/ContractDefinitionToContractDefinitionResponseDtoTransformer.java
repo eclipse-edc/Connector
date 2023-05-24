@@ -44,7 +44,7 @@ public class ContractDefinitionToContractDefinitionResponseDtoTransformer implem
                 .accessPolicyId(object.getAccessPolicyId())
                 .createdAt(object.getCreatedAt())
                 .contractPolicyId(object.getContractPolicyId())
-                .criteria(criteria)
+                .selectorExpression(criteria)
                 .build();
     }
 }
