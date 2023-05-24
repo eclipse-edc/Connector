@@ -79,6 +79,7 @@
     - [API](data-plane/data-plane-api/)
     - [Azure Storage](data-plane/data-plane-azure-storage/)
     - [Data Factory](data-plane/data-plane-azure-data-factory/)
+    - [Google Cloud Storage](data-plane/data-plane-google-storage/)
     - [HTTP](data-plane/data-plane-http/)
     - [S3](data-plane/data-plane-aws-s3/)
     - [Tests](data-plane/data-plane-integration-tests/)
