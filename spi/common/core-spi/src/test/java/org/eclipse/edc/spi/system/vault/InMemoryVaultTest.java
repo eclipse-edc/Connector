@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.spi.system.vault;
 
+import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

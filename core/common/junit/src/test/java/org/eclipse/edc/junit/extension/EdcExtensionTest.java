@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.junit.extension;
 
+import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.MonitorExtension;
-import org.eclipse.edc.spi.system.vault.InMemoryVault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
