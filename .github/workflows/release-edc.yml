@@ -43,7 +43,7 @@ jobs:
 
   Github-Release:
     # cannot use the workflow-level env yet as it does not yet exist, must take output from previous job
-    if:  ${{ !endsWith( needs.Prepare-Release.outputs.edc-version, '-SNAPSHOT') }}
+    if: ${{ !endsWith( needs.Prepare-Release.outputs.edc-version, '-SNAPSHOT') }}
     needs:
       - Prepare-Release
     runs-on: ubuntu-latest
@@ -60,3 +60,16 @@ jobs:
           tag: "v${{ env.EDC_VERSION }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           removeArtifacts: true
+
+  Bump-Version:
+    name: 'Update release version'
+    # cannot use the workflow-level env yet as it does not yet exist, must take output from previous job
+    if: ${{ !endsWith( needs.Prepare-Release.outputs.edc-version, '-SNAPSHOT') }}
+    needs:
+      - Prepare-Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/bump-version
+        with:
+          target_branch: "main"
