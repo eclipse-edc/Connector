@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.transfer.edr;
 
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
+import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
@@ -40,8 +41,7 @@ import static org.mockito.Mockito.when;
 
 class EndpointDataReferenceReceiverRegistryImplTest {
 
-
-    private final EndpointDataReferenceTransformerRegistryImpl transformerRegistry = new EndpointDataReferenceTransformerRegistryImpl();
+    private final EndpointDataReferenceTransformerRegistry transformerRegistry = mock(EndpointDataReferenceTransformerRegistry.class);
     private EndpointDataReferenceReceiver receiver1;
     private EndpointDataReferenceReceiver receiver2;
     private EndpointDataReferenceReceiverRegistryImpl registry;
@@ -135,6 +135,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
         when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
+        when(transformerRegistry.transform(any())).thenReturn(Result.success(edr));
 
         var envelope = EventEnvelope.Builder.newInstance()
                 .at(10)
@@ -169,6 +170,8 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
         when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.failure(errorMsg)));
+        when(transformerRegistry.transform(any())).thenReturn(Result.success(edr));
+
 
         var envelope = envelope(startedEvent(edr));
 
@@ -176,6 +179,25 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
         verify(receiver1, times(1)).send(any());
         verify(receiver2, times(1)).send(any());
+
+    }
+
+    @Test
+    void onEvent_shouldFail_WhenTransformFails() {
+        registry.registerReceiver(receiver1);
+        registry.registerReceiver(receiver2);
+
+        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var errorMsg = "TestFails";
+
+        when(transformerRegistry.transform(any())).thenReturn(Result.failure(errorMsg));
+
+        var envelope = envelope(startedEvent(edr));
+
+        assertThatThrownBy(() -> registry.on(envelope)).isInstanceOf(EdcException.class).hasMessageContaining(errorMsg);
+
+        verify(receiver1, times(0)).send(any());
+        verify(receiver2, times(0)).send(any());
 
     }
 
