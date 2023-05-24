@@ -48,7 +48,6 @@ import org.eclipse.edc.web.spi.WebService;
 
 import java.time.Clock;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.DEFAULT_TOKEN_VALIDITY_SECONDS;
 import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VALIDITY_SECONDS;
 
@@ -56,15 +55,6 @@ import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConf
 public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Data Plane Core";
-
-    /**
-     * This deprecation is used to permit a softer transition from the deprecated `web.http.validation` config group to
-     * the current `web.http.control`
-     *
-     * @deprecated "web.http.control" config should be used instead of "web.http.validation"
-     */
-    @Deprecated(since = "milestone8")
-    private static final String DEPRECATED_API_CONTEXT_ALIAS = "validation";
 
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
@@ -113,7 +103,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var tokenValidationService = createTokenValidationService();
-        webService.registerResource(getApiContext(context), new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager));
+        webService.registerResource(controlApiConfiguration.getContextAlias(), new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager));
 
         var proxyReferenceService = createDataProxyReferenceService(context.getConfig(), typeManager);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(context.getConnectorId(), proxyResolver, proxyReferenceService, dispatcherRegistry));
@@ -121,20 +111,6 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
         var consumerProxyTransformer = new ConsumerPullTransferProxyTransformer(proxyResolver, proxyReferenceService);
         transformerRegistry.registerTransformer(consumerProxyTransformer);
-    }
-
-    /**
-     * Determines on which context the token validation API controller should be registered. The `validation` context
-     * is still maintained for backward compatibility purpose but standard context should come from the {@link ControlApiConfiguration}.
-     */
-    private String getApiContext(ServiceExtensionContext context) {
-        if (context.getConfig().hasPath("web.http." + DEPRECATED_API_CONTEXT_ALIAS)) {
-            context.getMonitor().warning(
-                    format("Deprecated settings group %s is being used for Control API configuration, please switch to the new group %s",
-                            "web.http." + DEPRECATED_API_CONTEXT_ALIAS, "web.http.control"));
-            return DEPRECATED_API_CONTEXT_ALIAS;
-        }
-        return controlApiConfiguration.getContextAlias();
     }
 
     /**

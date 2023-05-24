@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,16 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       ZF Friedrichshafen AG - Initial API and Implementation
- *       Microsoft Corporation - Added initiate-transfer endpoint
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
 package org.eclipse.edc.connector.api.management.asset;
 
-import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -26,15 +23,12 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetEntryDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
-import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestWrapperDto;
+import org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -46,147 +40,135 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.function.Function;
 
-import static java.lang.String.format;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
-@Path("/assets")
+@Consumes(APPLICATION_JSON)
+@Produces(APPLICATION_JSON)
+@Path("/v2/assets")
 public class AssetApiController implements AssetApi {
-
-    private final Monitor monitor;
-    private final AssetService service;
     private final TypeTransformerRegistry transformerRegistry;
-
+    private final AssetService service;
     private final DataAddressResolver dataAddressResolver;
+    private final JsonLd jsonLdService;
+    private final Monitor monitor;
 
-    public AssetApiController(Monitor monitor, AssetService service, DataAddressResolver dataAddressResolver, TypeTransformerRegistry transformerRegistry) {
-        this.monitor = monitor;
+    public AssetApiController(AssetService service, DataAddressResolver dataAddressResolver, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService, Monitor monitor) {
+        this.transformerRegistry = transformerRegistry;
         this.service = service;
         this.dataAddressResolver = dataAddressResolver;
-        this.transformerRegistry = transformerRegistry;
+        this.jsonLdService = jsonLdService;
+        this.monitor = monitor;
     }
 
     @POST
     @Override
-    public IdResponseDto createAsset(@Valid AssetEntryDto assetEntryDto) {
-        var assetResult = transformerRegistry.transform(assetEntryDto.getAsset(), Asset.class);
-        var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
+    public JsonObject createAsset(JsonObject assetEntryDto) {
 
-        if (assetResult.failed() || dataAddressResult.failed()) {
-            var errorMessages = Stream.concat(assetResult.getFailureMessages().stream(), dataAddressResult.getFailureMessages().stream());
-            throw new InvalidRequestException(errorMessages.collect(toList()));
-        }
+        var assetEntry = jsonLdService.expand(assetEntryDto)
+                .compose(expanded -> transformerRegistry.transform(expanded, AssetEntryNewDto.class))
+                .orElseThrow(InvalidRequestException::new);
 
-        var dataAddress = dataAddressResult.getContent();
-        var asset = assetResult.getContent();
+        var dto = service.create(assetEntry.getAsset(), assetEntry.getDataAddress())
+                .map(a -> IdResponseDto.Builder.newInstance()
+                        .id(a.getId())
+                        .createdAt(a.getCreatedAt())
+                        .build())
+                .orElseThrow(exceptionMapper(Asset.class, assetEntry.getAsset().getId()));
 
-        var resultContent = service.create(asset, dataAddress).orElseThrow(exceptionMapper(Asset.class, asset.getId()));
-
-        monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
-        return IdResponseDto.Builder.newInstance()
-                .id(resultContent.getId())
-                .createdAt(resultContent.getCreatedAt())
-                .build();
-    }
-
-    @GET
-    @Override
-    @Deprecated
-    public List<AssetResponseDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryAssets(querySpecDto);
+        return transformerRegistry.transform(dto, JsonObject.class)
+                .compose(jsonLdService::compact)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
     @POST
-    @Override
     @Path("/request")
-    public List<AssetResponseDto> requestAssets(@Valid QuerySpecDto querySpecDto) {
-        return queryAssets(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
+    @Override
+    public List<JsonObject> requestAssets(JsonObject querySpecDto) {
+
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
+
+        var querySpec = ofNullable(querySpecDto)
+                .map(jsonLdService::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
+                .orElseThrow(InvalidRequestException::new);
+
+        return queryAssets(querySpec);
     }
 
     @GET
     @Path("{id}")
     @Override
-    public AssetResponseDto getAsset(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to return Asset with id %s", id));
-        return Optional.of(id)
+    public JsonObject getAsset(@PathParam("id") String id) {
+        var asset = of(id)
                 .map(it -> service.findById(id))
-                .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
+
+
+        return transformerRegistry.transform(asset, JsonObject.class)
+                .compose(jsonLdService::compact)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
     }
 
     @DELETE
     @Path("{id}")
     @Override
     public void removeAsset(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to delete Asset with id %s", id));
         service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
-        monitor.debug(format("Asset deleted %s", id));
     }
 
     @PUT
-    @Path("{assetId}")
     @Override
-    public void updateAsset(@PathParam("assetId") String assetId, @Valid AssetUpdateRequestDto asset) {
-        var wrapper = AssetUpdateRequestWrapperDto.Builder.newInstance().updateRequest(asset).assetId(assetId).build();
-        var assetResult = transformerRegistry.transform(wrapper, Asset.class);
-        if (assetResult.failed()) {
-            throw new InvalidRequestException(assetResult.getFailureMessages());
-        }
-        service.update(assetResult.getContent())
-                .orElseThrow(exceptionMapper(Asset.class, assetId));
+    public void updateAsset(JsonObject assetJsonObject) {
+        var assetResult = jsonLdService.expand(assetJsonObject).compose(jo -> transformerRegistry.transform(jo, Asset.class))
+                .orElseThrow(InvalidRequestException::new);
+        service.update(assetResult)
+                .orElseThrow(exceptionMapper(Asset.class, assetResult.getId()));
     }
 
     @PUT
     @Path("{assetId}/dataaddress")
     @Override
-    public void updateDataAddress(@PathParam("assetId") String assetId, DataAddressDto dataAddress) {
-        var dataAddressResult = transformerRegistry.transform(dataAddress, DataAddress.class);
-        if (dataAddressResult.failed()) {
-            throw new InvalidRequestException(dataAddressResult.getFailureMessages());
-        }
-        service.update(assetId, dataAddressResult.getContent())
+    public void updateDataAddress(@PathParam("assetId") String assetId, JsonObject dataAddressJson) {
+        var dataAddressResult = jsonLdService.expand(dataAddressJson).compose(jo -> transformerRegistry.transform(jo, DataAddress.class))
+                .orElseThrow(InvalidRequestException::new);
+
+        service.update(assetId, dataAddressResult)
                 .orElseThrow(exceptionMapper(DataAddress.class, assetId));
     }
 
-
     @GET
-    @Path("{id}/address")
+    @Path("{id}/dataaddress")
     @Override
-    public DataAddressDto getAssetDataAddress(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to return DataAddress of an Asset with id %s", id));
-        return Optional.of(id)
+    public JsonObject getAssetDataAddress(@PathParam("id") String id) {
+        return of(id)
                 .map(it -> dataAddressResolver.resolveForAsset(id))
-                .map(it -> transformerRegistry.transform(it, DataAddressDto.class))
+                .map(it -> transformerRegistry.transform(it, JsonObject.class)
+                        .compose(jsonLdService::compact))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
     }
 
-    private List<AssetResponseDto> queryAssets(QuerySpecDto querySpecDto) {
-        var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (transformationResult.failed()) {
-            throw new InvalidRequestException(transformationResult.getFailureMessages());
-        }
-
-        var spec = transformationResult.getContent();
-
-        monitor.debug(format("get all Assets from %s", spec));
-
+    private List<JsonObject> queryAssets(QuerySpec spec) {
         try (var assets = service.query(spec).orElseThrow(exceptionMapper(QuerySpec.class, null))) {
             return assets
-                    .map(it -> transformerRegistry.transform(it, AssetResponseDto.class))
+                    .map(it -> transformerRegistry.transform(it, JsonObject.class)
+                            .compose(jsonLdService::compact))
+                    .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
                     .collect(toList());
         }
     }
-
 }

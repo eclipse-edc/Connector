@@ -25,39 +25,13 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static java.lang.String.format;
-
 @Provides(HttpProvisionerWebhookUrl.class)
 public class HttpWebhookExtension implements ServiceExtension {
-
-    private static final String DEPRECATED_PROVISIONER_WEBHOOK_CONFIG = "web.http.provisioner";
-
-    /**
-     * This deprecation is used to permit a softer transition from the deprecated `web.http.provisioner` config group to
-     * the current `web.http.management`
-     *
-     * @deprecated "web.http.management" config should be used instead of "web.http.provisioner"
-     */
-    @Deprecated(since = "milestone8")
-    public static final WebServiceSettings DEPRECATED_SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(DEPRECATED_PROVISIONER_WEBHOOK_CONFIG)
-            .contextAlias("provisioner")
-            .defaultPath("/api/v1/provisioner")
-            .defaultPort(8383)
-            .name("Provisioner API")
-            .build();
-
-    @Inject
-    private WebServer webServer;
 
     @Inject
     private WebService webService;
@@ -69,9 +43,6 @@ public class HttpWebhookExtension implements ServiceExtension {
     private TransferProcessService transferProcessService;
 
     @Inject
-    private WebServiceConfigurer configurator;
-
-    @Inject
     private Hostname hostname;
 
     @Inject
@@ -79,23 +50,10 @@ public class HttpWebhookExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        registerCallbackUrl(context, managementApiConfiguration.getPath(), managementApiConfiguration.getPort());
 
-        WebServiceConfiguration webServiceConfiguration;
-        if (context.getConfig().hasPath(DEPRECATED_PROVISIONER_WEBHOOK_CONFIG)) {
-            webServiceConfiguration = configurator.configure(context, webServer, DEPRECATED_SETTINGS);
-            context.getMonitor().warning(
-                    format("Deprecated settings group %s is being used for Management API configuration, please switch to the new group %s",
-                            DEPRECATED_SETTINGS.apiConfigKey(), "web.http.management"));
-
-        } else {
-            webServiceConfiguration = managementApiConfiguration;
-        }
-
-        registerCallbackUrl(context, webServiceConfiguration.getPath(), webServiceConfiguration.getPort());
-
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new HttpProvisionerWebhookApiController(transferProcessService));
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new AuthenticationRequestFilter(authService));
-
+        webService.registerResource(managementApiConfiguration.getContextAlias(), new HttpProvisionerWebhookApiController(transferProcessService));
+        webService.registerResource(managementApiConfiguration.getContextAlias(), new AuthenticationRequestFilter(authService));
     }
 
     private void registerCallbackUrl(ServiceExtensionContext context, String path, int port) {

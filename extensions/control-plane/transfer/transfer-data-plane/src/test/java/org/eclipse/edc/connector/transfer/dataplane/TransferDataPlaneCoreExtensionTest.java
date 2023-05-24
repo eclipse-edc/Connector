@@ -43,7 +43,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.security.KeyPair;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -111,16 +110,6 @@ class TransferDataPlaneCoreExtensionTest {
         extension.initialize(context);
 
         verify(webServiceMock).registerResource(eq(CONTROL_PLANE_API_CONTEXT), any(ConsumerPullTransferTokenValidationApiController.class));
-    }
-
-    @Test
-    void verifyControllerRegisteredOnDeprecatedValidationContext() {
-        var config = ConfigFactory.fromMap(Map.of("web.http.validation.port", "8182"));
-        when(context.getConfig()).thenReturn(config);
-
-        extension.initialize(context);
-
-        verify(webServiceMock).registerResource(eq("validation"), any(ConsumerPullTransferTokenValidationApiController.class));
     }
 
     private static KeyPair generateRandomKeyPair() throws JOSEException {

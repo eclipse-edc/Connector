@@ -25,20 +25,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 
-import static java.lang.String.format;
-
 @Extension(value = "DataPlane selector API")
 public class DataPlaneSelectorApiExtension implements ServiceExtension {
-
-    /**
-     * This deprecation is used to permit a softer transition from the deprecated `web.http.dataplane` config group to
-     * the current `web.http.management`
-     *
-     * @deprecated "web.http.management" config should be used instead of "web.http.dataplane"
-     */
-    @Deprecated(since = "milestone8")
-    private static final String DEPRECATED_CONTEXT = "dataplane";
-    private static final String DEPRECATED_SETTINGS_GROUP = "web.http." + DEPRECATED_CONTEXT;
 
     @Inject
     private WebService webservice;
@@ -61,13 +49,6 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
         var controller = new DataplaneSelectorApiController(selectionService);
 
-        if (context.getConfig().hasPath(DEPRECATED_SETTINGS_GROUP)) {
-            webservice.registerResource(DEPRECATED_CONTEXT, controller);
-            context.getMonitor().warning(
-                    format("Deprecated settings group %s. These API are now meant to be configured under the management context",
-                            DEPRECATED_SETTINGS_GROUP));
-        } else {
-            webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);
-        }
+        webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);
     }
 }

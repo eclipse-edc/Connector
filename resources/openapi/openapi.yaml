@@ -22,349 +22,6 @@ tags:
     \ path parameters and request body are supported (in the limits fixed by the HTTP\
     \ server) and can also conveyed to the actual data source."
 paths:
-  /assets:
-    get:
-      tags:
-      - Asset
-      description: Gets all assets according to a particular query
-      operationId: getAllAssets
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/AssetResponseDto'
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    post:
-      tags:
-      - Asset
-      description: Creates a new asset together with a data address
-      operationId: createAsset
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssetEntryDto'
-      responses:
-        "200":
-          description: Asset was created successfully. Returns the asset Id and created
-            timestamp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "409":
-          description: "Could not create asset, because an asset with that ID already\
-            \ exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /assets/request:
-    post:
-      tags:
-      - Asset
-      description: ' all assets according to a particular query'
-      operationId: requestAssets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/AssetResponseDto'
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /assets/{assetId}:
-    put:
-      tags:
-      - Asset
-      description: "Updates an asset with the given ID if it exists. If the asset\
-        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
-        \ assets can have unexpected results, especially for contract offers that\
-        \ have been sent out or are ongoing in contract negotiations."
-      operationId: updateAsset
-      parameters:
-      - name: assetId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssetUpdateRequestDto'
-      responses:
-        "200":
-          description: Asset was updated successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: "Asset could not be updated, because it does not exist."
-      deprecated: true
-  /assets/{assetId}/dataaddress:
-    put:
-      tags:
-      - Asset
-      description: Updates a DataAddress for an asset with the given ID.
-      operationId: updateDataAddress
-      parameters:
-      - name: assetId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataAddressDto'
-      responses:
-        "200":
-          description: Asset was updated successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An asset with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /assets/{id}:
-    get:
-      tags:
-      - Asset
-      description: Gets an asset with the given ID
-      operationId: getAsset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: The asset
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssetResponseDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An asset with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    delete:
-      tags:
-      - Asset
-      description: "Removes an asset with the given ID if possible. Deleting an asset\
-        \ is only possible if that asset is not yet referenced by a contract agreement,\
-        \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
-        \ can have unexpected results, especially for contract offers that have been\
-        \ sent out or ongoing or contract negotiations."
-      operationId: removeAsset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: Asset was deleted successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An asset with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "409":
-          description: "The asset cannot be deleted, because it is referenced by a\
-            \ contract agreement"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /assets/{id}/address:
-    get:
-      tags:
-      - Asset
-      description: Gets a data address of an asset with the given ID
-      operationId: getAssetDataAddress
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: The data address
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataAddressDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An asset with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
   /callback/{processId}/deprovision:
     post:
       tags:
@@ -413,84 +70,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /catalog:
-    get:
-      tags:
-      - Catalog (deprecated)
-      operationId: getCatalog
-      parameters:
-      - name: providerUrl
-        in: query
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-      responses:
-        default:
-          description: Gets contract offers (=catalog) of a single connector
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Catalog'
-      deprecated: true
-  /catalog/request:
-    post:
-      tags:
-      - Catalog (deprecated)
-      operationId: requestCatalog
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/CatalogRequestDto'
-        required: true
-      responses:
-        default:
-          description: Gets contract offers (=catalog) of a single connector
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Catalog'
-      deprecated: true
   /check/health:
     get:
       tags:
@@ -555,393 +134,6 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
-  /contractagreements:
-    get:
-      tags:
-      - Contract Agreement - Deprecated
-      description: Gets all contract agreements according to a particular query
-      operationId: getAllAgreements
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractAgreementDto'
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractagreements/request:
-    post:
-      tags:
-      - Contract Agreement - Deprecated
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAllAgreements
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractAgreementDto'
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractagreements/{id}:
-    get:
-      tags:
-      - Contract Agreement - Deprecated
-      description: Gets an contract agreement with the given ID
-      operationId: getContractAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: The contract agreement
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract agreement with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractdefinitions:
-    get:
-      tags:
-      - Contract Definition
-      description: Returns all contract definitions according to a query
-      operationId: getAllContractDefinitions
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionResponseDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    post:
-      tags:
-      - Contract Definition
-      description: Creates a new contract definition
-      operationId: createContractDefinition
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionRequestDto'
-      responses:
-        "200":
-          description: contract definition was created successfully. Returns the Contract
-            Definition Id and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "409":
-          description: "Could not create contract definition, because a contract definition\
-            \ with that ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractdefinitions/request:
-    post:
-      tags:
-      - Contract Definition
-      description: Returns all contract definitions according to a query
-      operationId: queryAllContractDefinitions
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionResponseDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractdefinitions/{contractDefinitionId}:
-    put:
-      tags:
-      - Contract Definition
-      description: Updated a contract definition with the given ID
-      operationId: updateContractDefinition
-      parameters:
-      - name: contractDefinitionId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionRequestDto'
-      responses:
-        "204":
-          description: Contract definition was updated successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractdefinitions/{id}:
-    get:
-      tags:
-      - Contract Definition
-      description: Gets an contract definition with the given ID
-      operationId: getContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: The contract definition
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractDefinitionResponseDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract agreement with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    delete:
-      tags:
-      - Contract Definition
-      description: "Removes a contract definition with the given ID if possible. DANGER\
-        \ ZONE: Note that deleting contract definitions can have unexpected results,\
-        \ especially for contract offers that have been sent out or ongoing or contract\
-        \ negotiations."
-      operationId: deleteContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: Contract definition was deleted successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract definition with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
   /contractnegotiations:
     get:
       tags:
@@ -1653,362 +845,6 @@ paths:
       responses:
         "200":
           description: Missing access token
-  /transferprocess:
-    get:
-      tags:
-      - Transfer Process
-      description: Returns all transfer process according to a query
-      operationId: getAllTransferProcesses
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/TransferProcessDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    post:
-      tags:
-      - Transfer Process
-      description: "Initiates a data transfer with the given parameters. Please note\
-        \ that successfully invoking this endpoint only means that the transfer was\
-        \ initiated. Clients must poll the /{id}/state endpoint to track the state"
-      operationId: initiateTransfer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TransferRequestDto'
-      responses:
-        "200":
-          description: The transfer was successfully initiated. Returns the transfer
-            process ID and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /transferprocess/request:
-    post:
-      tags:
-      - Transfer Process
-      description: Returns all transfer process according to a query
-      operationId: queryAllTransferProcesses
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/TransferProcessDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /transferprocess/{id}:
-    get:
-      tags:
-      - Transfer Process
-      description: Gets an transfer process with the given ID
-      operationId: getTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: The transfer process
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferProcessDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /transferprocess/{id}/cancel:
-    post:
-      tags:
-      - Transfer Process
-      description: "Requests aborting the transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. Clients must poll the /{id}/state endpoint to\
-        \ track the state."
-      operationId: cancelTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: Request to cancel the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /transferprocess/{id}/deprovision:
-    post:
-      tags:
-      - Transfer Process
-      description: "Requests the deprovisioning of resources associated with a transfer\
-        \ process. Due to the asynchronous nature of transfers, a successful response\
-        \ only indicates that the request was successfully received. This may take\
-        \ a long time, so clients must poll the /{id}/state endpoint to track the\
-        \ state."
-      operationId: deprovisionTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: Request to deprovision the transfer process was successfully
-            received
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /transferprocess/{id}/state:
-    get:
-      tags:
-      - Transfer Process
-      description: Gets the state of a transfer process with the given ID
-      operationId: getTransferProcessState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: The  transfer process's state
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferState'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An  transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /transferprocess/{id}/terminate:
-    post:
-      tags:
-      - Transfer Process
-      description: "Requests the termination of a transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. Clients must poll the /{id}/state endpoint to\
-        \ track the state."
-      operationId: terminateTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TerminateTransferDto'
-      responses:
-        "200":
-          description: Request to cancel the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: getTransferProcessState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "409":
-          description: "Could not terminate transfer process, because it is already\
-            \ completed or terminated."
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
   /transferprocess/{processId}/complete:
     post:
       tags:
@@ -2077,7 +913,7 @@ paths:
         \ is not found, no further action is taken. DANGER ZONE: Note that updating\
         \ assets can have unexpected results, especially for contract offers that\
         \ have been sent out or are ongoing in contract negotiations."
-      operationId: updateAsset_1
+      operationId: updateAsset
       requestBody:
         content:
           application/json:
@@ -2101,7 +937,7 @@ paths:
       tags:
       - Asset
       description: Creates a new asset together with a data address
-      operationId: createAsset_1
+      operationId: createAsset
       requestBody:
         content:
           application/json:
@@ -2139,7 +975,7 @@ paths:
       tags:
       - Asset
       description: ' all assets according to a particular query'
-      operationId: requestAssets_1
+      operationId: requestAssets
       requestBody:
         content:
           application/json:
@@ -2168,7 +1004,7 @@ paths:
       tags:
       - Asset
       description: Updates a DataAddress for an asset with the given ID.
-      operationId: updateDataAddress_1
+      operationId: updateDataAddress
       parameters:
       - name: assetId
         in: path
@@ -2209,7 +1045,7 @@ paths:
       tags:
       - Asset
       description: Gets an asset with the given ID
-      operationId: getAsset_1
+      operationId: getAsset
       parameters:
       - name: id
         in: path
@@ -2252,7 +1088,7 @@ paths:
         \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
         \ can have unexpected results, especially for contract offers that have been\
         \ sent out or ongoing or contract negotiations."
-      operationId: removeAsset_1
+      operationId: removeAsset
       parameters:
       - name: id
         in: path
@@ -2298,7 +1134,7 @@ paths:
       tags:
       - Asset
       description: Gets a data address of an asset with the given ID
-      operationId: getAssetDataAddress_1
+      operationId: getAssetDataAddress
       parameters:
       - name: id
         in: path
@@ -2337,7 +1173,7 @@ paths:
     post:
       tags:
       - Catalog
-      operationId: requestCatalog_1
+      operationId: requestCatalog
       requestBody:
         content:
           application/json:
@@ -2355,7 +1191,7 @@ paths:
       tags:
       - Contract Agreement
       description: Gets all contract agreements according to a particular query
-      operationId: queryAllAgreements_1
+      operationId: queryAllAgreements
       requestBody:
         content:
           '*/*':
@@ -2425,7 +1261,7 @@ paths:
       - Contract Definition
       description: Updated a contract definition with the given ID. The supplied JSON
         structure must be a valid JSON-LD object
-      operationId: updateContractDefinition_1
+      operationId: updateContractDefinition
       requestBody:
         content:
           '*/*':
@@ -2456,7 +1292,7 @@ paths:
       tags:
       - Contract Definition
       description: Creates a new contract definition
-      operationId: createContractDefinition_1
+      operationId: createContractDefinition
       requestBody:
         content:
           '*/*':
@@ -2494,7 +1330,7 @@ paths:
       tags:
       - Contract Definition
       description: Returns all contract definitions according to a query
-      operationId: queryAllContractDefinitions_1
+      operationId: queryAllContractDefinitions
       requestBody:
         content:
           '*/*':
@@ -2523,7 +1359,7 @@ paths:
       tags:
       - Contract Definition
       description: Gets an contract definition with the given ID
-      operationId: getContractDefinition_1
+      operationId: getContractDefinition
       parameters:
       - name: id
         in: path
@@ -2565,7 +1401,7 @@ paths:
         \ ZONE: Note that deleting contract definitions can have unexpected results,\
         \ especially for contract offers that have been sent out or ongoing or contract\
         \ negotiations."
-      operationId: deleteContractDefinition_1
+      operationId: deleteContractDefinition
       parameters:
       - name: id
         in: path
@@ -3134,7 +1970,7 @@ paths:
       tags:
       - Transfer Process
       description: Gets an transfer process with the given ID
-      operationId: getTransferProcess_1
+      operationId: getTransferProcess
       parameters:
       - name: id
         in: path
@@ -3178,7 +2014,7 @@ paths:
         \ only indicates that the request was successfully received. This may take\
         \ a long time, so clients must poll the /{id}/state endpoint to track the\
         \ state."
-      operationId: deprovisionTransferProcess_1
+      operationId: deprovisionTransferProcess
       parameters:
       - name: id
         in: path
@@ -3218,7 +2054,7 @@ paths:
       tags:
       - Transfer Process
       description: Gets the state of a transfer process with the given ID
-      operationId: getTransferProcessState_1
+      operationId: getTransferProcessState
       parameters:
       - name: id
         in: path
@@ -3261,7 +2097,7 @@ paths:
         \ nature of transfers, a successful response only indicates that the request\
         \ was successfully received. Clients must poll the /{id}/state endpoint to\
         \ track the state."
-      operationId: terminateTransferProcess_1
+      operationId: terminateTransferProcess
       parameters:
       - name: id
         in: path
@@ -3423,44 +2259,6 @@ components:
             type: object
             example: null
           example: null
-      example: null
-    AssetCreationRequestDto:
-      required:
-      - properties
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: null
-        privateProperties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-      example: null
-    AssetEntryDto:
-      required:
-      - asset
-      - dataAddress
-      type: object
-      properties:
-        asset:
-          $ref: '#/components/schemas/AssetCreationRequestDto'
-        dataAddress:
-          $ref: '#/components/schemas/DataAddressDto'
       example: null
     AssetEntryNewDto:
       required:

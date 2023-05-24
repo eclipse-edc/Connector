@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,205 +8,207 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
 package org.eclipse.edc.connector.api.management.contractagreement;
 
-import org.eclipse.edc.api.model.CriterionDto;
+import io.restassured.specification.RequestSpecification;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class ContractAgreementApiControllerTest {
+@ApiTest
+class ContractAgreementApiControllerTest extends RestControllerTestBase {
 
-    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final ContractAgreementService service = mock(ContractAgreementService.class);
+    private final JsonLd jsonLdService = new TitaniumJsonLd(monitor);
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
 
-    private ContractAgreementApiController controller;
+    @Test
+    void queryAllAgreements_whenExists() {
+        var expanded = Json.createObjectBuilder().build();
 
-    @BeforeEach
-    void setup() {
-        var monitor = mock(Monitor.class);
-        controller = new ContractAgreementApiController(monitor, service, transformerRegistry);
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
+        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto(UUID.randomUUID().toString())));
+        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.success(expanded));
+
+        baseRequest()
+                .contentType(JSON)
+                .body("{}")
+                .post("/request")
+                .then()
+                .statusCode(200)
+                .body("size()", equalTo(2));
+
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
+        verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(service).query(any(QuerySpec.class));
+        verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
+        verify(transformerRegistry, times(2)).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verifyNoMoreInteractions(service, transformerRegistry);
     }
 
     @Test
-    void getAll() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
-        var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().build();
+    void queryAllAgreements_whenNoneExists() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
+        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of()));
 
-        var allContractAgreements = controller.getAllAgreements(querySpec);
+        baseRequest()
+                .contentType(JSON)
+                .body("{}")
+                .post("/request")
+                .then()
+                .statusCode(200)
+                .body("size()", equalTo(0));
 
-        assertThat(allContractAgreements).hasSize(1).first().matches(d -> d.getId().equals(contractAgreement.getId()));
-        verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
-        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
+        verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(service).query(any(QuerySpec.class));
+        verify(transformerRegistry, never()).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
+        verify(transformerRegistry, never()).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verifyNoMoreInteractions(service, transformerRegistry);
     }
 
     @Test
-    void getAll_filtersOutFailedTransforms() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class)))
-                .thenReturn(Result.failure("failure"));
+    void queryAllAgreements_whenTransformationFails() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
+        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto(UUID.randomUUID().toString())));
+        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
 
-        var allContractAgreements = controller.getAllAgreements(QuerySpecDto.Builder.newInstance().build());
+        baseRequest()
+                .contentType(JSON)
+                .body("{}")
+                .post("/request")
+                .then()
+                .statusCode(200)
+                .body("size()", equalTo(0));
 
-        assertThat(allContractAgreements).hasSize(0);
-        verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
+        verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(service).query(any(QuerySpec.class));
+        verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
+        verify(transformerRegistry, times(2)).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verify(monitor, times(2)).warning(eq("test-failure"));
+        verifyNoMoreInteractions(service, transformerRegistry);
     }
 
     @Test
-    void getAll_throwsExceptionIfQuerySpecTransformFails() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.failure("Cannot transform"));
-        var querySpecDto = QuerySpecDto.Builder.newInstance().build();
+    void getContractAgreement() {
+        when(service.findById(eq("id1"))).thenReturn(createContractAgreement("id1"));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto("id1")));
+        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
 
-        assertThatThrownBy(() -> controller.getAllAgreements(querySpecDto)).isInstanceOf(InvalidRequestException.class);
+        baseRequest()
+                .contentType(JSON)
+                .get("/id1")
+                .then()
+                .statusCode(200)
+                .body(notNullValue());
+
+        verify(service).findById(eq("id1"));
+        verify(transformerRegistry).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
+        verify(transformerRegistry).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verifyNoMoreInteractions(service, transformerRegistry);
     }
 
     @Test
-    void getAll_withInvalidQuery_shouldThrowException() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("test error message"));
+    void getContractAgreement_notFound() {
+        when(service.findById(eq("id1"))).thenReturn(null);
 
-        var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().filter(CriterionDto.from("invalid", "=", "foobar")).build();
+        baseRequest()
+                .contentType(JSON)
+                .get("/id1")
+                .then()
+                .statusCode(404)
+                .body(notNullValue());
 
-        assertThatThrownBy(() -> controller.getAllAgreements(querySpec)).isInstanceOf(InvalidRequestException.class);
-
+        verify(service).findById(eq("id1"));
+        verifyNoMoreInteractions(service, transformerRegistry);
     }
 
     @Test
-    void queryAll() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
-        var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().build();
+    void getContractAgreement_transformationFails() {
+        when(service.findById(eq("id1"))).thenReturn(createContractAgreement("id1"));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto("id1")));
+        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
 
-        var allContractAgreements = controller.queryAllAgreements(querySpec);
+        baseRequest()
+                .contentType(JSON)
+                .get("/id1")
+                .then()
+                .statusCode(500);
 
-        assertThat(allContractAgreements).hasSize(1).first().matches(d -> d.getId().equals(contractAgreement.getId()));
-        verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
-        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(service).findById(eq("id1"));
+        verify(transformerRegistry).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
+        verify(transformerRegistry).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verifyNoMoreInteractions(service, transformerRegistry);
     }
 
-    @Test
-    void queryAll_filtersOutFailedTransforms() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(contractAgreement)));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class)))
-                .thenReturn(Result.failure("failure"));
-
-        var allContractAgreements = controller.queryAllAgreements(QuerySpecDto.Builder.newInstance().build());
-
-        assertThat(allContractAgreements).hasSize(0);
-        verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
+    @Override
+    protected Object controller() {
+        return new ContractAgreementApiController(service, jsonLdService, transformerRegistry, monitor);
     }
 
-    @Test
-    void queryAll_throwsExceptionIfQuerySpecTransformFails() {
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.failure("Cannot transform"));
-        var querySpecDto = QuerySpecDto.Builder.newInstance().build();
-
-        assertThatThrownBy(() -> controller.queryAllAgreements(querySpecDto)).isInstanceOf(InvalidRequestException.class);
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port + "/v2/contractagreements")
+                .when();
     }
 
-    @Test
-    void queryAll_withInvalidQuery_shouldThrowException() {
-        var contractAgreement = createContractAgreement();
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("test error message"));
 
-        var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
-        when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
-                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
-        var querySpec = QuerySpecDto.Builder.newInstance().filterExpression(List.of(CriterionDto.from("invalid", "=", "foo"))).build();
-
-        assertThatThrownBy(() -> controller.queryAllAgreements(querySpec)).isInstanceOf(InvalidRequestException.class);
-
-    }
-
-    @Test
-    void getContractDef_found() {
-        var contractAgreement = createContractAgreement();
-        when(service.findById("agreementId")).thenReturn(contractAgreement);
-        var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
-        when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
-
-        var retrieved = controller.getContractAgreement("agreementId");
-
-        assertThat(retrieved).isNotNull();
-    }
-
-    @Test
-    void getContractDef_notFound() {
-        when(service.findById("agreementId")).thenReturn(null);
-
-        assertThatThrownBy(() -> controller.getContractAgreement("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
-        verifyNoInteractions(transformerRegistry);
-    }
-
-    @Test
-    void getContractDef_notFoundIfTransformationFails() {
-        var contractAgreement = createContractAgreement();
-        when(service.findById("agreementId")).thenReturn(contractAgreement);
-        when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.failure("failure"));
-
-        assertThatThrownBy(() -> controller.getContractAgreement("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
-    }
-
-    private ContractAgreement createContractAgreement() {
+    private ContractAgreement createContractAgreement(String negotiationId) {
         return ContractAgreement.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .consumerId(UUID.randomUUID().toString())
-                .providerId(UUID.randomUUID().toString())
+                .id(negotiationId)
+                .consumerId("test-consumer")
+                .providerId("test-provider")
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }
 
+    private ContractAgreementDto createContractAgreementDto(String negotiationId) {
+        return ContractAgreementDto.Builder.newInstance()
+                .id(negotiationId)
+                .consumerId("test-consumer")
+                .providerId("test-provider")
+                .assetId(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
 }

@@ -14,14 +14,12 @@
 
 package org.eclipse.edc.test.system.local;
 
-import io.restassured.specification.RequestSpecification;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.azure.blob.AzureBlobStoreSchema;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -41,7 +39,7 @@ public class BlobTransferUtils {
 
     private static final String ASSETS_PATH = "/v2/assets";
     private static final String POLICIES_PATH = "/v2/policydefinitions";
-    private static final String CONTRACT_DEFINITIONS_PATH = "/contractdefinitions";
+    private static final String CONTRACT_DEFINITIONS_PATH = "/v2/contractdefinitions";
 
     private BlobTransferUtils() {
     }
@@ -83,26 +81,29 @@ public class BlobTransferUtils {
     }
 
     public static String createContractDefinition(String policyId) {
-
-        var criteria = AssetSelectorExpression.Builder.newInstance()
-                .constraint(EDC_NAMESPACE + "id",
-                        "=",
-                        PROVIDER_ASSET_ID)
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(ID, "1")
+                .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
+                .add("accessPolicyId", policyId)
+                .add("contractPolicyId", policyId)
+                .add("criteria", Json.createArrayBuilder()
+                        .add(createObjectBuilder()
+                                .add(TYPE, "CriterionDto")
+                                .add("operandLeft", EDC_NAMESPACE + "id")
+                                .add("operator", "=")
+                                .add("operandRight", PROVIDER_ASSET_ID)
+                                .build())
+                        .build())
                 .build();
 
-        var contractDefinition = Map.of(
-                "id", "1",
-                "accessPolicyId", policyId,
-                "contractPolicyId", policyId,
-                "criteria", criteria.getCriteria(),
-                "validity", TimeUnit.HOURS.toSeconds(1)
-        );
 
-        return seedProviderData(CONTRACT_DEFINITIONS_PATH, contractDefinition);
+        return seedProviderData(CONTRACT_DEFINITIONS_PATH, requestBody);
     }
 
     private static String seedProviderData(String path, Object requestBody) {
-        return givenProviderBaseRequest()
+        return given()
+                .baseUri(PROVIDER_CONNECTOR_MANAGEMENT_URL)
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
@@ -111,11 +112,6 @@ public class BlobTransferUtils {
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
-    }
-
-    private static RequestSpecification givenProviderBaseRequest() {
-        return given()
-                .baseUri(PROVIDER_CONNECTOR_MANAGEMENT_URL);
     }
 
     private static JsonObject noConstraintPolicy() {
