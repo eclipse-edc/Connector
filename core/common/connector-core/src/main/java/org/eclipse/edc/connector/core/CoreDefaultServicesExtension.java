@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.connector.core.base.OkHttpClientFactory;
 import org.eclipse.edc.connector.core.base.RetryPolicyFactory;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
+import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -28,12 +29,11 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.VaultCertificateResolver;
+import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.vault.NoopCertificateResolver;
-import org.eclipse.edc.spi.system.vault.NoopPrivateKeyResolver;
-import org.eclipse.edc.spi.system.vault.NoopVault;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.datasource.spi.DefaultDataSourceRegistry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -48,12 +48,14 @@ import java.util.concurrent.Executors;
 public class CoreDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Core Default Services";
-
+    public static final String SECRET_SEPARATOR = ";";
+    public static final String SECRET_KEY_VAULE_SEPARATOR = ":";
     /**
      * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
      */
     @Inject(required = false)
     private EventListener okHttpEventListener;
+    private InMemoryVault inMemoryVault;
 
     @Override
     public String name() {
@@ -84,18 +86,18 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public Vault vault() {
-        return new NoopVault();
+    public Vault vault(ServiceExtensionContext context) {
+        return getVault(context);
     }
 
     @Provider(isDefault = true)
-    public PrivateKeyResolver privateKeyResolver() {
-        return new NoopPrivateKeyResolver();
+    public PrivateKeyResolver privateKeyResolver(ServiceExtensionContext context) {
+        return new VaultPrivateKeyResolver(getVault(context));
     }
 
     @Provider(isDefault = true)
-    public CertificateResolver certificateResolver() {
-        return new NoopCertificateResolver();
+    public CertificateResolver certificateResolver(ServiceExtensionContext context) {
+        return new VaultCertificateResolver(getVault(context));
     }
 
     @Provider
@@ -115,6 +117,16 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     @Provider
     public <T> RetryPolicy<T> retryPolicy(ServiceExtensionContext context) {
         return RetryPolicyFactory.create(context);
+    }
+
+    /**
+     * lazily instantiates the default vault impl, which is an im-memory one.
+     */
+    private Vault getVault(ServiceExtensionContext context) {
+        if (inMemoryVault == null) {
+            inMemoryVault = new InMemoryVault(context.getMonitor());
+        }
+        return inMemoryVault;
     }
 
 }

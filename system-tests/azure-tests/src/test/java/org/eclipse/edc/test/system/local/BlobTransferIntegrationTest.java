@@ -20,18 +20,19 @@ import com.azure.core.util.BinaryData;
 import org.eclipse.edc.azure.testfixtures.AbstractAzureBlobTest;
 import org.eclipse.edc.azure.testfixtures.TestFunctions;
 import org.eclipse.edc.azure.testfixtures.annotations.AzureStorageIntegrationTest;
+import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.junit.testfixtures.MockVault;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.system.vault.NoopCertificateResolver;
-import org.eclipse.edc.spi.system.vault.NoopPrivateKeyResolver;
 import org.eclipse.edc.test.system.utils.TransferTestRunner;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -57,51 +58,51 @@ import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PRO
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PARTICIPANT_ID;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PROTOCOL_PORT;
 import static org.eclipse.edc.test.system.local.TransferRuntimeConfiguration.PROVIDER_PROTOCOL_URL;
+import static org.mockito.Mockito.mock;
 
 @AzureStorageIntegrationTest
 public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
     public static final String PROVIDER_ASSET_FILE = "text-document.txt";
-    private static final Vault CONSUMER_VAULT = new MockVault();
-    private static final Vault PROVIDER_VAULT = new MockVault();
+    private static final Monitor MONITOR_MOCK = mock(Monitor.class);
+    private static final Vault CONSUMER_VAULT = new InMemoryVault(MONITOR_MOCK);
+    private static final Vault PROVIDER_VAULT = new InMemoryVault(MONITOR_MOCK);
     private static final String PROVIDER_CONTAINER_NAME = UUID.randomUUID().toString();
-
-    private static final Map<String, String> CONSUMER_CONFIG = new HashMap<>();
-    private static final Map<String, String> PROVIDER_CONFIG = new HashMap<>();
-
-    static {
-        CONSUMER_CONFIG.put("edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s");
-        CONSUMER_CONFIG.put("web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT));
-        CONSUMER_CONFIG.put("web.http.path", CONSUMER_CONNECTOR_PATH);
-        CONSUMER_CONFIG.put("web.http.management.port", String.valueOf(CONSUMER_MANAGEMENT_PORT));
-        CONSUMER_CONFIG.put("web.http.management.path", CONSUMER_MANAGEMENT_PATH);
-        CONSUMER_CONFIG.put("web.http.protocol.port", String.valueOf(CONSUMER_PROTOCOL_PORT));
-        CONSUMER_CONFIG.put("web.http.protocol.path", PROTOCOL_PATH);
-        CONSUMER_CONFIG.put(PARTICIPANT_ID, CONSUMER_PARTICIPANT_ID);
-        CONSUMER_CONFIG.put("edc.dsp.callback.address", CONSUMER_PROTOCOL_URL);
-
-        PROVIDER_CONFIG.put("edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s");
-        PROVIDER_CONFIG.put("edc.test.asset.container.name", PROVIDER_CONTAINER_NAME);
-        PROVIDER_CONFIG.put("web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT));
-        PROVIDER_CONFIG.put("web.http.path", PROVIDER_CONNECTOR_PATH);
-        PROVIDER_CONFIG.put("web.http.management.port", String.valueOf(PROVIDER_MANAGEMENT_PORT));
-        PROVIDER_CONFIG.put("web.http.management.path", PROVIDER_MANAGEMENT_PATH);
-        PROVIDER_CONFIG.put("web.http.protocol.port", String.valueOf(PROVIDER_PROTOCOL_PORT));
-        PROVIDER_CONFIG.put("web.http.protocol.path", PROTOCOL_PATH);
-        PROVIDER_CONFIG.put(PARTICIPANT_ID, PROVIDER_PARTICIPANT_ID);
-        PROVIDER_CONFIG.put("edc.dsp.callback.address", PROVIDER_PROTOCOL_URL);
-    }
-
+    private static final Map<String, String> PROVIDER_CONFIG = new HashMap<>() {
+        {
+            put("edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s");
+            put("edc.test.asset.container.name", PROVIDER_CONTAINER_NAME);
+            put("web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT));
+            put("web.http.path", PROVIDER_CONNECTOR_PATH);
+            put("web.http.management.port", String.valueOf(PROVIDER_MANAGEMENT_PORT));
+            put("web.http.management.path", PROVIDER_MANAGEMENT_PATH);
+            put("web.http.protocol.port", String.valueOf(PROVIDER_PROTOCOL_PORT));
+            put("web.http.protocol.path", PROTOCOL_PATH);
+            put(PARTICIPANT_ID, PROVIDER_PARTICIPANT_ID);
+            put("edc.dsp.callback.address", PROVIDER_PROTOCOL_URL);
+        }
+    };
+    @RegisterExtension
+    protected static EdcRuntimeExtension provider = new EdcRuntimeExtension(
+            ":system-tests:runtimes:azure-storage-transfer-provider",
+            "provider", PROVIDER_CONFIG);
+    private static final Map<String, String> CONSUMER_CONFIG = new HashMap<>() {
+        {
+            put("edc.blobstore.endpoint.template", "http://127.0.0.1:10000/%s");
+            put("web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT));
+            put("web.http.path", CONSUMER_CONNECTOR_PATH);
+            put("web.http.management.port", String.valueOf(CONSUMER_MANAGEMENT_PORT));
+            put("web.http.management.path", CONSUMER_MANAGEMENT_PATH);
+            put("web.http.protocol.port", String.valueOf(CONSUMER_PROTOCOL_PORT));
+            put("web.http.protocol.path", PROTOCOL_PATH);
+            put(PARTICIPANT_ID, CONSUMER_PARTICIPANT_ID);
+            put("edc.dsp.callback.address", CONSUMER_PROTOCOL_URL);
+        }
+    };
     @RegisterExtension
     protected static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":system-tests:runtimes:azure-storage-transfer-consumer",
             "consumer",
             CONSUMER_CONFIG);
-
-    @RegisterExtension
-    protected static EdcRuntimeExtension provider = new EdcRuntimeExtension(
-            ":system-tests:runtimes:azure-storage-transfer-provider",
-            "provider", PROVIDER_CONFIG);
-
 
     @BeforeAll
     static void beforeAll() {
@@ -111,8 +112,18 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
 
     private static void setUpMockVault(EdcRuntimeExtension consumer, Vault vault) {
         consumer.registerServiceMock(Vault.class, vault);
-        consumer.registerServiceMock(PrivateKeyResolver.class, new NoopPrivateKeyResolver());
-        consumer.registerServiceMock(CertificateResolver.class, new NoopCertificateResolver());
+        consumer.registerServiceMock(PrivateKeyResolver.class, new PrivateKeyResolver() {
+            @Override
+            public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
+                return null;
+            }
+        });
+        consumer.registerServiceMock(CertificateResolver.class, new CertificateResolver() {
+            @Override
+            public @Nullable X509Certificate resolveCertificate(String id) {
+                return null;
+            }
+        });
     }
 
     @Test
@@ -142,5 +153,6 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
         runner.executeTransfer();
 
     }
+
 
 }

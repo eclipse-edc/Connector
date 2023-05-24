@@ -14,10 +14,11 @@
 
 package org.eclipse.edc.junit.extension;
 
+import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.junit.testfixtures.MockVault;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.MonitorExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +55,7 @@ class EdcExtensionTest {
 
     @Test
     void registerServiceMock_serviceContextReadOnlyMode(EdcExtension extension) {
-        assertThatThrownBy(() -> extension.getContext().registerService(Vault.class, new MockVault()))
+        assertThatThrownBy(() -> extension.getContext().registerService(Vault.class, new InMemoryVault(mock(Monitor.class))))
                 .isInstanceOf(EdcException.class)
                 .hasMessageStartingWith("Cannot register service");
     }
