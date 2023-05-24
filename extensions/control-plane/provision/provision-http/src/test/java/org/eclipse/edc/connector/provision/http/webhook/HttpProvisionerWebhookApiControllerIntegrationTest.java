@@ -59,8 +59,8 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
-                "web.http.provisioner.port", String.valueOf(port),
-                "web.http.provisioner.path", PROVISIONER_BASE_PATH,
+                "web.http.management.port", String.valueOf(port),
+                "web.http.management.path", PROVISIONER_BASE_PATH,
                 "edc.api.auth.key", authKey
         ));
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));

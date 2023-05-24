@@ -1,244 +1,9 @@
 openapi: 3.0.1
 paths:
-  /contractdefinitions:
-    get:
-      deprecated: true
-      description: Returns all contract definitions according to a query
-      operationId: getAllContractDefinitions
-      parameters:
-      - in: query
-        name: offset
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - in: query
-        name: limit
-        schema:
-          type: integer
-          format: int32
-          example: null
-      - in: query
-        name: sort
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-          example: null
-      - in: query
-        name: sortField
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionResponseDto'
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: Request was malformed
-      tags:
-      - Contract Definition
-    post:
-      deprecated: true
-      description: Creates a new contract definition
-      operationId: createContractDefinition
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionRequestDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-          description: contract definition was created successfully. Returns the Contract
-            Definition Id and created timestamp
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: Request body was malformed
-        "409":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: "Could not create contract definition, because a contract definition\
-            \ with that ID already exists"
-      tags:
-      - Contract Definition
-  /contractdefinitions/request:
-    post:
-      deprecated: true
-      description: Returns all contract definitions according to a query
-      operationId: queryAllContractDefinitions
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionResponseDto'
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: Request was malformed
-      tags:
-      - Contract Definition
-  /contractdefinitions/{contractDefinitionId}:
-    put:
-      deprecated: true
-      description: Updated a contract definition with the given ID
-      operationId: updateContractDefinition
-      parameters:
-      - in: path
-        name: contractDefinitionId
-        required: true
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionRequestDto'
-      responses:
-        "204":
-          description: Contract definition was updated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: "Request was malformed, e.g. id was null"
-        "404":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: A contract definition with the given ID does not exist
-      tags:
-      - Contract Definition
-  /contractdefinitions/{id}:
-    delete:
-      deprecated: true
-      description: "Removes a contract definition with the given ID if possible. DANGER\
-        \ ZONE: Note that deleting contract definitions can have unexpected results,\
-        \ especially for contract offers that have been sent out or ongoing or contract\
-        \ negotiations."
-      operationId: deleteContractDefinition
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          description: Contract definition was deleted successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: "Request was malformed, e.g. id was null"
-        "404":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: A contract definition with the given ID does not exist
-      tags:
-      - Contract Definition
-    get:
-      deprecated: true
-      description: Gets an contract definition with the given ID
-      operationId: getContractDefinition
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-          example: null
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractDefinitionResponseDto'
-          description: The contract definition
-        "400":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: "Request was malformed, e.g. id was null"
-        "404":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-          description: An contract agreement with the given ID does not exist
-      tags:
-      - Contract Definition
   /v2/contractdefinitions:
     post:
       description: Creates a new contract definition
-      operationId: createContractDefinition_1
+      operationId: createContractDefinition
       requestBody:
         content:
           '*/*':
@@ -276,7 +41,7 @@ paths:
     put:
       description: Updated a contract definition with the given ID. The supplied JSON
         structure must be a valid JSON-LD object
-      operationId: updateContractDefinition_1
+      operationId: updateContractDefinition
       requestBody:
         content:
           '*/*':
@@ -308,7 +73,7 @@ paths:
   /v2/contractdefinitions/request:
     post:
       description: Returns all contract definitions according to a query
-      operationId: queryAllContractDefinitions_1
+      operationId: queryAllContractDefinitions
       requestBody:
         content:
           '*/*':
@@ -340,7 +105,7 @@ paths:
         \ ZONE: Note that deleting contract definitions can have unexpected results,\
         \ especially for contract offers that have been sent out or ongoing or contract\
         \ negotiations."
-      operationId: deleteContractDefinition_1
+      operationId: deleteContractDefinition
       parameters:
       - in: path
         name: id
@@ -373,7 +138,7 @@ paths:
       - Contract Definition
     get:
       description: Gets an contract definition with the given ID
-      operationId: getContractDefinition_1
+      operationId: getContractDefinition
       parameters:
       - in: path
         name: id

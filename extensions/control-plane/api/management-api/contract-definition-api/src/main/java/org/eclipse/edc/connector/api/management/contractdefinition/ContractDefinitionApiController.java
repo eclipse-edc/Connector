@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,15 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
 package org.eclipse.edc.connector.api.management.contractdefinition;
 
-import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -29,135 +27,117 @@ import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDtoWrapper;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
-import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
+
 @Produces({ MediaType.APPLICATION_JSON })
-@Path("/contractdefinitions")
+@Path("/v2/contractdefinitions")
 public class ContractDefinitionApiController implements ContractDefinitionApi {
-    private final Monitor monitor;
-    private final ContractDefinitionService service;
+    private final JsonLd jsonLdService;
     private final TypeTransformerRegistry transformerRegistry;
+    private final ContractDefinitionService service;
+    private final Monitor monitor;
 
-    public ContractDefinitionApiController(Monitor monitor, ContractDefinitionService service, TypeTransformerRegistry transformerRegistry) {
-        this.monitor = monitor;
-        this.service = service;
+    public ContractDefinitionApiController(JsonLd jsonLdService, TypeTransformerRegistry transformerRegistry, ContractDefinitionService service, Monitor monitor) {
+        this.jsonLdService = jsonLdService;
         this.transformerRegistry = transformerRegistry;
-    }
-
-    @GET
-    @Override
-    @Deprecated
-    public List<ContractDefinitionResponseDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryContractDefinitions(querySpecDto);
+        this.service = service;
+        this.monitor = monitor;
     }
 
     @POST
     @Path("/request")
     @Override
-    public List<ContractDefinitionResponseDto> queryAllContractDefinitions(QuerySpecDto querySpecDto) {
-        return queryContractDefinitions(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
+    public List<JsonObject> queryAllContractDefinitions(JsonObject querySpecDto) {
+
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
+
+        var querySpec = ofNullable(querySpecDto)
+                .map(jsonLdService::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
+                .orElseThrow(InvalidRequestException::new);
+
+        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class))) {
+            return stream
+                    .map(contractDefinition -> transformerRegistry.transform(contractDefinition, ContractDefinitionResponseDto.class)
+                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class).compose(jsonLdService::compact)))
+                    .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
+                    .filter(Result::succeeded)
+                    .map(Result::getContent)
+                    .collect(toList());
+        }
     }
 
     @GET
     @Path("{id}")
     @Override
-    public ContractDefinitionResponseDto getContractDefinition(@PathParam("id") String id) {
-        monitor.debug(format("get contract definition with ID %s", id));
-
-        return Optional.of(id)
+    public JsonObject getContractDefinition(@PathParam("id") String id) {
+        return Optional.ofNullable(id)
                 .map(service::findById)
-                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
-                .filter(Result::succeeded)
+                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class)
+                        .compose(dto -> transformerRegistry.transform(dto, JsonObject.class).compose(jsonLdService::compact)))
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
+
     }
 
     @POST
     @Override
-    public IdResponseDto createContractDefinition(@Valid ContractDefinitionRequestDto dto) {
-        monitor.debug("Create new contract definition");
-        var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
-        if (transformResult.failed()) {
-            throw new InvalidRequestException(transformResult.getFailureMessages());
-        }
+    public JsonObject createContractDefinition(JsonObject createObject) {
 
-        var contractDefinition = transformResult.getContent();
+        var transform = jsonLdService.expand(createObject)
+                .compose(expandedJson -> transformerRegistry.transform(expandedJson, ContractDefinitionRequestDto.class))
+                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
+                .orElseThrow(InvalidRequestException::new);
 
-        var resultContent = service.create(contractDefinition).orElseThrow(exceptionMapper(ContractDefinition.class, dto.getId()));
+        var responseDto = service.create(transform)
+                .map(contractDefinition -> IdResponseDto.Builder.newInstance()
+                        .id(contractDefinition.getId())
+                        .createdAt(contractDefinition.getCreatedAt())
+                        .build())
+                .orElseThrow(exceptionMapper(ContractDefinition.class));
 
-        monitor.debug(format("Contract definition created %s", resultContent.getId()));
-        return IdResponseDto.Builder.newInstance()
-                .id(resultContent.getId())
-                .createdAt(resultContent.getCreatedAt())
-                .build();
-
+        return transformerRegistry.transform(responseDto, JsonObject.class)
+                .compose(jsonLdService::compact)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
     @DELETE
     @Path("{id}")
     @Override
     public void deleteContractDefinition(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to delete contract definition with id %s", id));
-        var result = service.delete(id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
-        monitor.debug(format("Contract definition deleted %s", result.getId()));
+        service.delete(id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
     }
 
     @PUT
-    @Path("{contractDefinitionId}")
     @Override
-    public void updateContractDefinition(@PathParam("contractDefinitionId") String contractDefinitionId, @Valid ContractDefinitionRequestDto contractDefinition) {
-        var contractDefinitionWrapper = ContractDefinitionUpdateDtoWrapper.Builder
-                .newInstance()
-                .id(contractDefinitionId)
-                .contractDefinition(contractDefinition)
-                .build();
+    public void updateContractDefinition(JsonObject updateObject) {
+        var rqDto = jsonLdService.expand(updateObject)
+                .compose(expanded -> transformerRegistry.transform(expanded, ContractDefinitionRequestDto.class))
+                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
+                .orElseThrow(InvalidRequestException::new);
 
-        var contractDefinitionResult = transformerRegistry.transform(contractDefinitionWrapper,
-                ContractDefinition.class);
-        if (contractDefinitionResult.failed()) {
-            throw new InvalidRequestException(contractDefinitionResult.getFailureMessages());
-        }
-        service.update(contractDefinitionResult.getContent())
-                .orElseThrow(exceptionMapper(ContractDefinition.class, contractDefinitionId));
+        service.update(rqDto).orElseThrow(exceptionMapper(ContractDefinition.class));
     }
-
-    @NotNull
-    private List<ContractDefinitionResponseDto> queryContractDefinitions(QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
-
-        var spec = result.getContent();
-
-        monitor.debug(format("get all contract definitions %s", spec));
-
-        try (var stream = service.query(spec).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
-            return stream
-                    .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(Collectors.toList());
-        }
-
-
-    }
-
 }

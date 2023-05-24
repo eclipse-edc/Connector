@@ -68,7 +68,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class AssetNewApiControllerTest extends RestControllerTestBase {
+class AssetApiControllerTest extends RestControllerTestBase {
 
     private static final String TEST_ASSET_ID = "test-asset-id";
     private static final String TEST_ASSET_CONTENTTYPE = "application/json";
@@ -456,7 +456,7 @@ class AssetNewApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new AssetNewApiController(service, dataAddressResolver, transformerRegistry, new TitaniumJsonLd(mock(Monitor.class)), monitor);
+        return new AssetApiController(service, dataAddressResolver, transformerRegistry, new TitaniumJsonLd(mock(Monitor.class)), monitor);
     }
 
     private JsonObject createDataAddressJson() {

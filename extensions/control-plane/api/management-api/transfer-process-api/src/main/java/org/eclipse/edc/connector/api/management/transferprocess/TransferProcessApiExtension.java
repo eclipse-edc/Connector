@@ -79,10 +79,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToTerminateTransferDtoTransformer());
         transformerRegistry.register(new JsonObjectToTransferRequestDtoTransformer());
 
-        var controller = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry);
-        webService.registerResource(configuration.getContextAlias(), controller);
-
-        var newController = new TransferProcessNewApiController(context.getMonitor(), service, transformerRegistry, jsonLd);
+        var newController = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry, jsonLd);
         webService.registerResource(configuration.getContextAlias(), newController);
     }
 }

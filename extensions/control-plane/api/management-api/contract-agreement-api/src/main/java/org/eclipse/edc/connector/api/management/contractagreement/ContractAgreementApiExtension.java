@@ -60,7 +60,6 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromContractAgreementDtoTransformer(Json.createBuilderFactory(Map.of())));
         var monitor = context.getMonitor();
 
-        webService.registerResource(config.getContextAlias(), new ContractAgreementApiController(monitor, service, transformerRegistry));
-        webService.registerResource(config.getContextAlias(), new ContractAgreementNewApiController(service, jsonLd, transformerRegistry, monitor));
+        webService.registerResource(config.getContextAlias(), new ContractAgreementApiController(service, jsonLd, transformerRegistry, monitor));
     }
 }

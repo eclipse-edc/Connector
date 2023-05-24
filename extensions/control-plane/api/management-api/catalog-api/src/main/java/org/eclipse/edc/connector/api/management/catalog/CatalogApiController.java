@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,78 +14,49 @@
 
 package org.eclipse.edc.connector.api.management.catalog;
 
-import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.GET;
+import jakarta.json.JsonObject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
-import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.api.model.QuerySpecDto;
+import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
-import org.jetbrains.annotations.NotNull;
 
-import static java.util.Optional.ofNullable;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
-@Path("/catalog")
-@Produces({ MediaType.APPLICATION_JSON })
-@Deprecated(since = "milestone9")
+@Path("/v2/catalog")
+@Consumes(APPLICATION_JSON)
+@Produces(APPLICATION_JSON)
 public class CatalogApiController implements CatalogApi {
 
     private final CatalogService service;
     private final TypeTransformerRegistry transformerRegistry;
-    private final Monitor monitor;
+    private final JsonLd jsonLd;
 
-    public CatalogApiController(CatalogService service, TypeTransformerRegistry transformerRegistry, Monitor monitor) {
+    public CatalogApiController(CatalogService service, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
-        this.monitor = monitor;
-    }
-
-    @Override
-    @GET
-    @Deprecated
-    public void getCatalog(@jakarta.validation.constraints.NotNull(message = PROVIDER_URL_NOT_NULL_MESSAGE) @QueryParam("providerUrl") String providerUrl, @Valid @BeanParam QuerySpecDto querySpecDto, @Suspended AsyncResponse response) {
-
-        @NotNull QuerySpec spec;
-        if (querySpecDto != null) {
-            var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-            if (result.failed()) {
-                throw new InvalidRequestException(result.getFailureMessages());
-            }
-            spec = result.getContent();
-        } else {
-            spec = QuerySpec.max();
-            monitor.debug("No paging parameters were supplied, using 0...Integer.MAX_VALUE");
-        }
-
-        performQuery(providerUrl, spec, response);
+        this.jsonLd = jsonLd;
     }
 
     @Override
     @POST
     @Path("/request")
-    public void requestCatalog(@Valid @jakarta.validation.constraints.NotNull CatalogRequestDto requestDto, @Suspended AsyncResponse response) {
+    public void requestCatalog(JsonObject requestBody, @Suspended AsyncResponse response) {
+        var request = jsonLd.expand(requestBody)
+                .compose(expanded -> transformerRegistry.transform(expanded, CatalogRequestDto.class))
+                .compose(dto -> transformerRegistry.transform(dto, CatalogRequest.class))
+                .orElseThrow(InvalidRequestException::new);
 
-        var result = transformerRegistry.transform(ofNullable(requestDto.getQuerySpec()).orElse(QuerySpecDto.Builder.newInstance().build()), QuerySpec.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
-        performQuery(requestDto.getProviderUrl(), result.getContent(), response);
-    }
-
-    private void performQuery(String providerUrl, QuerySpec spec, AsyncResponse response) {
-        service.getByProviderUrl(providerUrl, spec)
+        service.request(request.getProviderUrl(), request.getProtocol(), request.getQuerySpec())
                 .whenComplete((content, throwable) -> {
                     if (throwable == null) {
                         response.resume(content);
@@ -98,4 +69,5 @@ public class CatalogApiController implements CatalogApi {
                     }
                 });
     }
+
 }

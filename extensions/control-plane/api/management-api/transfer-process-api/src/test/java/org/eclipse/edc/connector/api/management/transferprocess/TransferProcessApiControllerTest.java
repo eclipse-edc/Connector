@@ -52,7 +52,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class TransferProcessNewApiControllerTest extends RestControllerTestBase {
+class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final JsonLd jsonLd = mock(JsonLd.class);
@@ -60,7 +60,7 @@ class TransferProcessNewApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new TransferProcessNewApiController(monitor, service, transformerRegistry, jsonLd);
+        return new TransferProcessApiController(monitor, service, transformerRegistry, jsonLd);
     }
 
     @Test

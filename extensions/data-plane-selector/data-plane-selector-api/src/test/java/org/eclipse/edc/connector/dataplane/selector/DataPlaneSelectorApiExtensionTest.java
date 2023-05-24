@@ -37,7 +37,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -65,22 +64,13 @@ class DataPlaneSelectorApiExtensionTest {
     }
 
     @Test
-    void shouldRegisterManagementContext_whenNoDataplaneConfigurationExists() {
+    void shouldRegisterManagementContext() {
         var config = ConfigFactory.fromMap(Collections.emptyMap());
         when(managementApiConfiguration.getContextAlias()).thenReturn("management");
 
         extension.initialize(contextWithConfig(config));
 
         verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiController.class));
-    }
-
-    @Test
-    void shouldRegisterDataplaneContext_whenDataplaneConfigurationExists() {
-        var config = ConfigFactory.fromMap(Map.of("web.http.dataplane.port", "11111"));
-
-        extension.initialize(contextWithConfig(config));
-
-        verify(webService).registerResource(eq("dataplane"), isA(DataplaneSelectorApiController.class));
     }
 
     @NotNull

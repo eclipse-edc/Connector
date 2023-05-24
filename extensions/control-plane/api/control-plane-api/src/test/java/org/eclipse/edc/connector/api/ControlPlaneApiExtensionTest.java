@@ -25,35 +25,25 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class ControlPlaneApiExtensionTest {
 
     private ServiceExtensionContext context;
-    private final WebServer webServer = mock(WebServer.class);
     private final WebService webService = mock(WebService.class);
     private final Monitor monitor = mock(Monitor.class);
-    private final WebServiceConfigurer webServiceConfigurer = mock(WebServiceConfigurer.class);
 
     private ControlPlaneApiExtension extension;
 
@@ -64,12 +54,10 @@ class ControlPlaneApiExtensionTest {
                 .path("/control")
                 .port(8888)
                 .build();
-        context.registerService(WebServer.class, webServer);
         context.registerService(WebService.class, webService);
         context.registerService(Hostname.class, () -> "localhost");
         context.registerService(TransferProcessService.class, mock(TransferProcessService.class));
         context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
-        context.registerService(WebServiceConfigurer.class, webServiceConfigurer);
         context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(webServiceConfiguration));
         context.registerService(TypeManager.class, mock(TypeManager.class));
 
@@ -86,21 +74,6 @@ class ControlPlaneApiExtensionTest {
         extension.initialize(context);
 
         verify(webService).registerResource(eq("control"), isA(TransferProcessControlApiController.class));
-        verifyNoInteractions(webServiceConfigurer);
-        verifyNoMoreInteractions(webServer, webService);
     }
 
-    @Test
-    void initialize_shouldUseDeprecatedSettings_whenProvisionerSettingsGroupExists() {
-        var config = ConfigFactory.fromMap(Map.of("web.http.controlplane.path", "/api/v1/someotherpath/webhook"));
-        when(context.getConfig()).thenReturn(config);
-        when(context.getConfig("web.http.controlplane")).thenReturn(config.getConfig("web.http.controlplane"));
-        var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance().contextAlias("controlplane").port(9999).path("/any").build();
-        when(webServiceConfigurer.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
-
-        extension.initialize(context);
-
-        verify(webService).registerResource(eq("controlplane"), isA(TransferProcessControlApiController.class));
-        verify(monitor).warning(anyString());
-    }
 }

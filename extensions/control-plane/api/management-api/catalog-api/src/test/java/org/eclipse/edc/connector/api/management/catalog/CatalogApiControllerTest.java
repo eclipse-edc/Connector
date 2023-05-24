@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Bayerische Motoren Werke Aktiengesellschaft
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,108 +8,153 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
 package org.eclipse.edc.connector.api.management.catalog;
 
-import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.json.Json;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.List;
 
-import static java.util.UUID.randomUUID;
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class CatalogApiControllerTest {
+@ApiTest
+class CatalogApiControllerTest extends RestControllerTestBase {
 
     private final CatalogService service = mock(CatalogService.class);
-    private final Monitor monitor = mock(Monitor.class);
-    private TypeTransformerRegistry transformerRegistry;
+    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
+    private final JsonLd jsonLd = mock(JsonLd.class);
 
-    private static ContractOffer createContractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .assetId(randomUUID().toString())
-                .build();
-    }
-
-    @BeforeEach
-    void setup() {
-        transformerRegistry = mock(TypeTransformerRegistry.class);
-        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(new QuerySpec()));
+    @Override
+    protected Object controller() {
+        return new CatalogApiController(service, transformerRegistry, jsonLd);
     }
 
     @Test
-    void shouldGetTheCatalog() {
-        var controller = new CatalogApiController(service, transformerRegistry, monitor);
-        var response = mock(AsyncResponse.class);
-        var offer = createContractOffer();
-        var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
-        var url = "test.url";
-        when(service.getByProviderUrl(eq(url), any())).thenReturn(completedFuture(catalog));
+    void requestCatalog() {
+        var expanded = Json.createObjectBuilder().build();
+        var dto = CatalogRequestDto.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
+        when(transformerRegistry.transform(any(), eq(CatalogRequestDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
+        when(service.request(any(), any(), any())).thenReturn(completedFuture("{}".getBytes()));
 
-        controller.getCatalog(url, new QuerySpecDto(), response);
-
-        verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
-    }
-
-    @Test
-    void shouldResumeWithExceptionIfGetCatalogFails() {
-        var controller = new CatalogApiController(service, transformerRegistry, monitor);
-        var response = mock(AsyncResponse.class);
-        var url = "test.url";
-        when(service.getByProviderUrl(eq(url), any())).thenReturn(failedFuture(new EdcException("error")));
-
-        controller.getCatalog(url, new QuerySpecDto(), response);
-
-        verify(response).resume(isA(EdcException.class));
-    }
-
-    @Test
-    void shouldPostCatalogRequest() {
-        var controller = new CatalogApiController(service, transformerRegistry, monitor);
-        var response = mock(AsyncResponse.class);
-        var offer = createContractOffer();
-        var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
-        var url = "test.url";
-
-        when(service.getByProviderUrl(eq(url), any())).thenReturn(completedFuture(catalog));
-
-        var request = CatalogRequestDto.Builder.newInstance()
-                .providerUrl(url)
+        var requestDto = CatalogRequestDto.Builder.newInstance()
+                .protocol("protocol")
                 .querySpec(QuerySpecDto.Builder.newInstance()
-                        .sortField("test-field")
-                        .sortOrder(SortOrder.DESC)
-                        .filterExpression(List.of(TestFunctions.createCriterionDto("foo", "=", "bar")))
-                        .build())
+                        .limit(29)
+                        .offset(13)
+                        .filterExpression(List.of(TestFunctions.createCriterionDto("fooProp", "", "bar"), TestFunctions.createCriterionDto("bazProp", "in", List.of("blip", "blup", "blop"))))
+                        .sortField("someField")
+                        .sortOrder(SortOrder.DESC).build())
+                .providerUrl("some.provider.url")
+
                 .build();
 
-        controller.requestCatalog(request, response);
-
-        verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestDto)
+                .post("/v2/catalog/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
+        verify(jsonLd).expand(any());
+        verify(transformerRegistry).transform(expanded, CatalogRequestDto.class);
+        verify(transformerRegistry).transform(dto, CatalogRequest.class);
     }
+
+    @Test
+    void catalogRequest_shouldReturnBadRequest_whenTransformFails() {
+        var expanded = Json.createObjectBuilder().build();
+        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
+        when(transformerRegistry.transform(any(), eq(CatalogRequestDto.class))).thenReturn(Result.failure("error"));
+
+        var requestDto = CatalogRequestDto.Builder.newInstance()
+                .protocol("protocol")
+                .querySpec(QuerySpecDto.Builder.newInstance()
+                        .limit(29)
+                        .offset(13)
+                        .filterExpression(List.of(TestFunctions.createCriterionDto("fooProp", "", "bar"), TestFunctions.createCriterionDto("bazProp", "in", List.of("blip", "blup", "blop"))))
+                        .sortField("someField")
+                        .sortOrder(SortOrder.DESC).build())
+                .providerUrl("some.provider.url")
+
+                .build();
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestDto)
+                .post("/v2/catalog/request")
+                .then()
+                .statusCode(400);
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void requestCatalog_shouldReturnBadRequest_whenNoBody() {
+        given()
+                .port(port)
+                .contentType(JSON)
+                .post("/v2/catalog/request")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void requestCatalog_shouldReturnBadGateway_whenServiceFails() {
+        var expanded = Json.createObjectBuilder().build();
+        var dto = CatalogRequestDto.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
+        when(transformerRegistry.transform(any(), eq(CatalogRequestDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
+        when(service.request(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+
+        var requestDto = CatalogRequestDto.Builder.newInstance()
+                .protocol("protocol")
+                .querySpec(QuerySpecDto.Builder.newInstance()
+                        .limit(29)
+                        .offset(13)
+                        .filterExpression(List.of(TestFunctions.createCriterionDto("fooProp", "", "bar"), TestFunctions.createCriterionDto("bazProp", "in", List.of("blip", "blup", "blop"))))
+                        .sortField("someField")
+                        .sortOrder(SortOrder.DESC).build())
+                .providerUrl("some.provider.url")
+
+                .build();
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestDto)
+                .post("/v2/catalog/request")
+                .then()
+                .statusCode(502);
+    }
+
 }

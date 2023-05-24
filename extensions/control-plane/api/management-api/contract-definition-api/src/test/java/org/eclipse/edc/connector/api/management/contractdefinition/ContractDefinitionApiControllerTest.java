@@ -64,7 +64,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
+class ContractDefinitionApiControllerTest extends RestControllerTestBase {
 
     private final JsonLd jsonLd = new TitaniumJsonLd(monitor);
     private final ContractDefinitionService service = mock(ContractDefinitionService.class);
@@ -338,7 +338,7 @@ class ContractDefinitionNewApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new ContractDefinitionNewApiController(jsonLd, transformerRegistry, service, monitor);
+        return new ContractDefinitionApiController(jsonLd, transformerRegistry, service, monitor);
     }
 
     private JsonArrayBuilder createCriterionBuilder() {

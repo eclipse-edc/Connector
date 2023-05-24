@@ -18,30 +18,29 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
-import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 
 @OpenAPIDefinition
-@Tag(name = "Catalog (deprecated)")
+@Tag(name = "Catalog")
 public interface CatalogApi {
 
-    String PROVIDER_URL_NOT_NULL_MESSAGE = "providerUrl must not be null";
-
-    @Operation(responses = {
-            @ApiResponse(content = @Content(mediaType = "application/json", schema = @Schema(implementation = Catalog.class)), description = "Gets contract offers (=catalog) of a single connector")
-    }, deprecated = true)
-    @Deprecated
-    void getCatalog(@NotNull(message = PROVIDER_URL_NOT_NULL_MESSAGE) String providerUrl, @Valid QuerySpecDto querySpec, AsyncResponse response);
-
-    @Operation(responses = {
-            @ApiResponse(content = @Content(mediaType = "application/json", schema = @Schema(implementation = Catalog.class)), description = "Gets contract offers (=catalog) of a single connector")
-    })
-    void requestCatalog(@Valid @NotNull CatalogRequestDto requestDto, @Suspended AsyncResponse response);
+    @Operation(
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = CatalogRequestDto.class))),
+            responses = { @ApiResponse(
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Catalog.class)
+                    ),
+                    description = "Gets contract offers (=catalog) of a single connector") }
+    )
+    void requestCatalog(@Valid @NotNull JsonObject requestDto, @Suspended AsyncResponse response);
 }

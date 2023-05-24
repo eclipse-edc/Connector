@@ -56,7 +56,6 @@ public class CatalogApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToCatalogRequestDtoTransformer());
         transformerRegistry.register(new JsonObjectToQuerySpecDtoTransformer());
 
-        webService.registerResource(config.getContextAlias(), new CatalogNewApiController(service, transformerRegistry, jsonLd));
-        webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, context.getMonitor()));
+        webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, jsonLd));
     }
 }
