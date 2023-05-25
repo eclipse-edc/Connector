@@ -17,13 +17,10 @@ package org.eclipse.edc.connector.api.management.contractdefinition.transform;
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionUpdateDtoWrapper;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.stream.Collectors;
 
 public class ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer implements DtoTransformer<ContractDefinitionUpdateDtoWrapper, ContractDefinition> {
 
@@ -39,13 +36,12 @@ public class ContractDefinitionUpdateDtoWrapperToContractDefinitionTransformer i
 
     @Override
     public @Nullable ContractDefinition transform(@NotNull ContractDefinitionUpdateDtoWrapper object, @NotNull TransformerContext context) {
-        var criteria = object.getContractDefinition().getSelectorExpression().stream().map(it -> context.transform(it, Criterion.class)).collect(Collectors.toList());
-        var selectorExpression = AssetSelectorExpression.Builder.newInstance().criteria(criteria).build();
+        var assetsSelector = object.getContractDefinition().getAssetsSelector().stream().map(it -> context.transform(it, Criterion.class)).toList();
         return ContractDefinition.Builder.newInstance()
                 .id(object.getId())
                 .accessPolicyId(object.getContractDefinition().getAccessPolicyId())
                 .contractPolicyId(object.getContractDefinition().getContractPolicyId())
-                .selectorExpression(selectorExpression)
+                .assetsSelector(assetsSelector)
                 .build();
     }
 }

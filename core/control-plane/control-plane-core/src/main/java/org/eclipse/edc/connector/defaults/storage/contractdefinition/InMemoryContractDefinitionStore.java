@@ -41,7 +41,6 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return queryResolver.query(cache.values().stream(), spec);
-
     }
 
     @Override
@@ -56,7 +55,6 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
         return Optional.ofNullable(prev)
                 .map(a -> StoreResult.<Void>alreadyExists(format(CONTRACT_DEFINITION_EXISTS, definition.getId())))
                 .orElse(StoreResult.success());
-
     }
 
     @Override
@@ -65,7 +63,6 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
         return Optional.ofNullable(prev)
                 .map(a -> StoreResult.<Void>success())
                 .orElse(StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, definition.getId())));
-
     }
 
     @Override
@@ -76,8 +73,4 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
                 .orElse(StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, id)));
     }
 
-    @Override
-    public void reload() {
-        // no-op
-    }
 }

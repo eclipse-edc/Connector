@@ -38,13 +38,13 @@ public class ContractDefinitionToContractDefinitionResponseDtoTransformer implem
 
     @Override
     public @Nullable ContractDefinitionResponseDto transform(@NotNull ContractDefinition object, @NotNull TransformerContext context) {
-        var criteria = object.getSelectorExpression().getCriteria().stream().map(it -> context.transform(it, CriterionDto.class)).collect(toList());
+        var criteria = object.getAssetsSelector().stream().map(it -> context.transform(it, CriterionDto.class)).collect(toList());
         return ContractDefinitionResponseDto.Builder.newInstance()
                 .id(object.getId())
                 .accessPolicyId(object.getAccessPolicyId())
                 .createdAt(object.getCreatedAt())
                 .contractPolicyId(object.getContractPolicyId())
-                .selectorExpression(criteria)
+                .assetsSelector(criteria)
                 .build();
     }
 }

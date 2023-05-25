@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinit
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -210,7 +209,7 @@ class ContractDefinitionServiceImplTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    arguments(criterion("selectorExpression.criteria.leftHand", "=", "foo")), // invalid path
+                    arguments(criterion("assetsSelector.leftHand", "=", "foo")), // invalid path
                     arguments(criterion("accessPolicyId'LIKE/**/?/**/LIMIT/**/?/**/OFFSET/**/?;DROP/**/TABLE/**/test/**/--%20", "=", "%20ABC--")) //some SQL injection
             );
         }
@@ -220,9 +219,9 @@ class ContractDefinitionServiceImplTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    arguments(criterion("selectorExpression.criteria.operandLeft", "=", "foo")),
-                    arguments(criterion("selectorExpression.criteria.operator", "=", "LIKE")),
-                    arguments(criterion("selectorExpression.criteria.operandRight", "=", "bar"))
+                    arguments(criterion("assetsSelector.operandLeft", "=", "foo")),
+                    arguments(criterion("assetsSelector.operator", "=", "LIKE")),
+                    arguments(criterion("assetsSelector.operandRight", "=", "bar"))
             );
         }
     }
@@ -237,7 +236,6 @@ class ContractDefinitionServiceImplTest {
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
     }
 }

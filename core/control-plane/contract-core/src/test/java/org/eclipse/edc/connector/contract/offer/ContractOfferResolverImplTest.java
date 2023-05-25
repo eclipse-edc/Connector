@@ -26,7 +26,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -245,7 +244,7 @@ class ContractOfferResolverImplTest {
                 .id("1")
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "1").build())
+                .assetsSelector(List.of(Criterion.criterion(Asset.PROPERTY_NAME, "=", "1")))
                 .build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
@@ -268,7 +267,7 @@ class ContractOfferResolverImplTest {
         verify(contractDefinitionResolver).definitionsFor(isA(ParticipantAgent.class));
         verify(policyStore).findById("contract");
         var expectedQuerySpec = QuerySpec.Builder.newInstance()
-                .filter(concat(contractDefinition.getSelectorExpression().getCriteria().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()))
+                .filter(concat(contractDefinition.getAssetsSelector().stream(), query.getAssetsCriteria().stream()).collect(Collectors.toList()))
                 .range(DEFAULT_RANGE)
                 .build();
         verify(assetIndex).queryAssets(expectedQuerySpec);
@@ -306,8 +305,7 @@ class ContractOfferResolverImplTest {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
                 .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
+                .contractPolicyId("contract");
     }
 
     private Asset.Builder createAsset(String id) {

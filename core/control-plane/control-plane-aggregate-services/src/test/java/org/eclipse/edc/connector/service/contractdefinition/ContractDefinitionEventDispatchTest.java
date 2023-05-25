@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -61,7 +60,6 @@ public class ContractDefinitionEventDispatchTest {
                 .id(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
         service.create(contractDefinition);

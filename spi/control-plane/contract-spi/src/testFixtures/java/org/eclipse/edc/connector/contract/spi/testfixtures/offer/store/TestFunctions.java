@@ -15,34 +15,26 @@
 package org.eclipse.edc.connector.contract.spi.testfixtures.offer.store;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 public class TestFunctions {
 
     private TestFunctions() {
     }
 
-    public static ContractDefinition createContractDefinition(String id, String accessPolicyId, String contractPolicyId, AssetSelectorExpression selectorExpression) {
+    public static ContractDefinition createContractDefinition(String id) {
+        return createContractDefinition(id, "access", "contract");
+    }
+
+    public static ContractDefinition createContractDefinition(String id, String accessPolicyId, String contractPolicyId) {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
-                .selectorExpression(selectorExpression)
                 .build();
-    }
-
-    public static ContractDefinition createContractDefinition(String id, String accessPolicyId, String contractPolicyId) {
-        return createContractDefinition(id, accessPolicyId, contractPolicyId, AssetSelectorExpression.Builder.newInstance().build());
-    }
-
-    public static ContractDefinition createContractDefinition(String id) {
-        return createContractDefinition(id, "access", "contract", SELECT_ALL);
     }
 
     public static List<ContractDefinition> createContractDefinitions(int count) {

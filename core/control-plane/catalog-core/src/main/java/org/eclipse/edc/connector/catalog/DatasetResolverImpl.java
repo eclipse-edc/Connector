@@ -61,7 +61,7 @@ public class DatasetResolverImpl implements DatasetResolver {
         return assetIndex.queryAssets(assetsQuery)
                 .map(asset -> {
                     var offers = contractDefinitions.stream()
-                            .filter(definition -> definition.getSelectorExpression().getCriteria().stream()
+                            .filter(definition -> definition.getAssetsSelector().stream()
                                     .map(predicateConverter::convert)
                                     .reduce(x -> true, Predicate::and)
                                     .test(asset))

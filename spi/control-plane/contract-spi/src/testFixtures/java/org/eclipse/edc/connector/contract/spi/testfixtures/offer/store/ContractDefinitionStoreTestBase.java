@@ -19,8 +19,6 @@
 
 package org.eclipse.edc.connector.contract.spi.testfixtures.offer.store;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.Criterion;
@@ -49,9 +47,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
     protected ContractDefinitionStoreTestBase() {
         System.setProperty("contractdefinitionstore.supports.collectionQuery", String.valueOf(supportsCollectionQuery()));
-        System.setProperty("contractdefinitionstore.supports.sortorder", String.valueOf(supportsSortOrder()));
         System.setProperty("contractdefinitionstore.supports.collectionIndexQuery", String.valueOf(supportsCollectionIndexQuery()));
-
     }
 
     @Test
@@ -65,7 +61,6 @@ public abstract class ContractDefinitionStoreTestBase {
 
         assertThat(definitions).hasSize(1);
         assertThat(definitions.get(0)).usingRecursiveComparison().isEqualTo(definition);
-
     }
 
     @Test
@@ -358,7 +353,6 @@ public abstract class ContractDefinitionStoreTestBase {
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
     void findAll_verifySorting() {
         IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
 
@@ -367,16 +361,25 @@ public abstract class ContractDefinitionStoreTestBase {
     }
 
     @Test
+    void findAll_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        // must actually collect, otherwise the stream is not materialized
+        assertThat(getContractDefinitionStore().findAll(query).collect(Collectors.toList())).isEmpty();
+    }
+
+    @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryBySelectorExpression_left() {
+    void find_queryByAssetsSelector_left() {
         var definitionsExpected = createContractDefinitions(20);
         // add a selector expression to the last 5 elements
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("selectorExpression.criteria.operandLeft", "=", Asset.PROPERTY_ID))
+                .filter(Criterion.criterion("assetsSelector.operandLeft", "=", Asset.PROPERTY_ID))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -388,14 +391,14 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryBySelectorExpression_right() {
+    void find_queryByAssetsSelector_right() {
         var definitionsExpected = createContractDefinitions(20);
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("selectorExpression.criteria.operandRight", "=", "foobar-asset"))
+                .filter(Criterion.criterion("assetsSelector.operandRight", "=", "foobar-asset"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -407,16 +410,16 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryBySelectorExpression_rightAndLeft() {
+    void find_queryByAssetsSelector_rightAndLeft() {
         var definitionsExpected = createContractDefinitions(20);
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .filter(List.of(
-                        new Criterion("selectorExpression.criteria.operandLeft", "=", Asset.PROPERTY_ID),
-                        new Criterion("selectorExpression.criteria.operandRight", "=", "foobar-asset")))
+                        new Criterion("assetsSelector.operandLeft", "=", Asset.PROPERTY_ID),
+                        new Criterion("assetsSelector.operandRight", "=", "foobar-asset")))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -430,12 +433,13 @@ public abstract class ContractDefinitionStoreTestBase {
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
     void find_queryMultiple() {
         var definitionsExpected = createContractDefinitions(20);
-        definitionsExpected.forEach(d -> d.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));
+        definitionsExpected.forEach(d -> d.getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));
+        definitionsExpected.forEach(d -> d.getAssetsSelector().add(new Criterion(Asset.PROPERTY_DESCRIPTION, "=", "other")));
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("selectorExpression.criteria.operandRight", "=", "test-asset"),
-                        new Criterion("contractPolicyId", "=", "contract4")))
+                .filter(new Criterion("assetsSelector.operandRight", "=", "test-asset"))
+                .filter(new Criterion("contractPolicyId", "=", "contract4"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -451,7 +455,7 @@ public abstract class ContractDefinitionStoreTestBase {
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("selectorExpression.criteria.operandRigh", "=", "test-asset"),
+                .filter(List.of(new Criterion("assetsSelector.operandRigh", "=", "test-asset"),
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 
@@ -459,35 +463,15 @@ public abstract class ContractDefinitionStoreTestBase {
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryBySelectorExpression_entireCriterion() throws JsonProcessingException {
-        var definitionsExpected = createContractDefinitions(20);
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        var def5 = definitionsExpected.get(5);
-        def5.getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-        saveContractDefinitions(definitionsExpected);
-
-        var json = new ObjectMapper().writeValueAsString(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
-
-        var spec = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("selectorExpression.criteria", "=", json))
-                .build();
-
-        assertThat(getContractDefinitionStore().findAll(spec)).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsOnly(def5);
-    }
-
-    @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionIndexQuery", matches = "true", disabledReason = "This test only runs if collections with index is supported")
-    void find_queryBySelectorExpression_withIndex_right() {
+    void find_queryByAssetsSelector_withIndex_right() {
         var definitionsExpected = createContractDefinitions(20);
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("selectorExpression.criteria[0].operandRight", "=", "foobar-asset"))
+                .filter(Criterion.criterion("assetsSelector[0].operandRight", "=", "foobar-asset"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -499,14 +483,14 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Test
     @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.collectionIndexQuery", matches = "true", disabledReason = "This test only runs if collections with index is supported")
-    void find_queryBySelectorExpression_withIndex_right_notFound() {
+    void find_queryByAssetsSelector_withIndex_right_notFound() {
         var definitionsExpected = createContractDefinitions(20);
-        definitionsExpected.get(0).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-        definitionsExpected.get(5).getSelectorExpression().getCriteria().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+        definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
+        definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
         saveContractDefinitions(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("selectorExpression.criteria[1].operandRight", "=", "foobar-asset"))
+                .filter(Criterion.criterion("assetsSelector[1].operandRight", "=", "foobar-asset"))
                 .build();
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -514,24 +498,11 @@ public abstract class ContractDefinitionStoreTestBase {
         assertThat(definitionsRetrieved).isEmpty();
     }
 
-    @Test
-    @EnabledIfSystemProperty(named = "contractdefinitionstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
-    void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
-        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-
-        // must actually collect, otherwise the stream is not materialized
-        assertThat(getContractDefinitionStore().findAll(query).collect(Collectors.toList())).isEmpty();
-    }
-
     protected abstract ContractDefinitionStore getContractDefinitionStore();
 
     protected abstract boolean supportsCollectionQuery();
 
     protected abstract boolean supportsCollectionIndexQuery();
-
-    protected abstract boolean supportsSortOrder();
-
 
     protected void saveContractDefinitions(List<ContractDefinition> definitions) {
         for (var cd : definitions) {

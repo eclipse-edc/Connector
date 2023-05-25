@@ -18,14 +18,13 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.ContractDefinitionStoreTestBase;
 
 class InMemoryContractDefinitionStoreTest extends ContractDefinitionStoreTestBase {
-    private final InMemoryContractDefinitionStore store = new InMemoryContractDefinitionStore();
 
+    private final InMemoryContractDefinitionStore store = new InMemoryContractDefinitionStore();
 
     @Override
     protected ContractDefinitionStore getContractDefinitionStore() {
         return store;
     }
-
 
     @Override
     protected boolean supportsCollectionQuery() {
@@ -37,8 +36,4 @@ class InMemoryContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
         return true;
     }
 
-    @Override
-    protected boolean supportsSortOrder() {
-        return true;
-    }
 }

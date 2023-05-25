@@ -50,7 +50,7 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
-                .selectorExpression(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
+                .assetsSelector(List.of(CriterionDto.Builder.newInstance().operandLeft("left").operator("=").operandRight("right").build()))
                 .build();
 
         var contractDefinition = transformer.transform(contractDefinitionDto, context);
@@ -59,7 +59,7 @@ class ContractDefinitionRequestDtoToContractDefinitionTransformerTest {
         assertThat(contractDefinition.getId()).isEqualTo(contractDefinitionDto.getId());
         assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
-        assertThat(contractDefinition.getSelectorExpression().getCriteria()).usingRecursiveComparison().isEqualTo(contractDefinitionDto.getSelectorExpression());
+        assertThat(contractDefinition.getAssetsSelector()).usingRecursiveComparison().isEqualTo(contractDefinitionDto.getAssetsSelector());
         assertThat(contractDefinition.getCreatedAt()).isNotZero(); //should be set automatically
         verify(context, times(1)).transform(isA(CriterionDto.class), eq(Criterion.class));
     }

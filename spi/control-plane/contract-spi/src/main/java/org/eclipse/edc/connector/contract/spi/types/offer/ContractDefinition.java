@@ -16,17 +16,19 @@ package org.eclipse.edc.connector.contract.spi.types.offer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.entity.Entity;
+import org.eclipse.edc.spi.query.Criterion;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Defines the parameters of a contract.
  * <p>
- * The {@link AssetSelectorExpression} defines which assets this contract applies to. Access policy defines the non-public requirements for accessing a set of assets
+ * The {@link #assetsSelector} defines which assets this contract applies to. Access policy defines the non-public requirements for accessing a set of assets
  * governed by the contract. These requirements are therefore not advertised to the agent. For example, access control policy may require an agent to be in a business partner tier.
  * Contract policy defines the requirements governing use an agent must follow when accessing the data. This policy is advertised to agents as part of a contract.
  * <p>
@@ -39,7 +41,7 @@ public class ContractDefinition extends Entity {
 
     private String accessPolicyId;
     private String contractPolicyId;
-    private AssetSelectorExpression selectorExpression;
+    private final List<Criterion> assetsSelector = new ArrayList<>();
 
     private ContractDefinition() {
     }
@@ -55,13 +57,13 @@ public class ContractDefinition extends Entity {
     }
 
     @NotNull
-    public AssetSelectorExpression getSelectorExpression() {
-        return selectorExpression;
+    public List<Criterion> getAssetsSelector() {
+        return assetsSelector;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, accessPolicyId, contractPolicyId, selectorExpression);
+        return Objects.hash(id, accessPolicyId, contractPolicyId, assetsSelector);
     }
 
     @Override
@@ -75,7 +77,16 @@ public class ContractDefinition extends Entity {
         ContractDefinition that = (ContractDefinition) o;
         return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) &&
                 Objects.equals(contractPolicyId, that.contractPolicyId) &&
-                Objects.equals(selectorExpression, that.selectorExpression);
+                Objects.equals(assetsSelector, that.assetsSelector);
+    }
+
+    @Override
+    public String toString() {
+        return "ContractDefinition{" +
+                "accessPolicyId='" + accessPolicyId + '\'' +
+                ", contractPolicyId='" + contractPolicyId + '\'' +
+                ", assetsSelector=" + assetsSelector +
+                '}';
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -99,17 +110,6 @@ public class ContractDefinition extends Entity {
             return this;
         }
 
-        @Override
-        public ContractDefinition build() {
-            if (entity.getId() == null) {
-                id(UUID.randomUUID().toString());
-            }
-            Objects.requireNonNull(entity.accessPolicyId);
-            Objects.requireNonNull(entity.contractPolicyId);
-            Objects.requireNonNull(entity.selectorExpression);
-            return super.build();
-        }
-
         public Builder accessPolicyId(String policyId) {
             entity.accessPolicyId = policyId;
             return this;
@@ -120,9 +120,24 @@ public class ContractDefinition extends Entity {
             return this;
         }
 
-        public Builder selectorExpression(AssetSelectorExpression expression) {
-            entity.selectorExpression = expression;
+        public Builder assetsSelectorCriterion(Criterion criterion) {
+            entity.assetsSelector.add(criterion);
             return this;
+        }
+
+        public Builder assetsSelector(List<Criterion> criteria) {
+            entity.assetsSelector.addAll(criteria);
+            return this;
+        }
+
+        @Override
+        public ContractDefinition build() {
+            if (entity.getId() == null) {
+                id(UUID.randomUUID().toString());
+            }
+            Objects.requireNonNull(entity.accessPolicyId);
+            Objects.requireNonNull(entity.contractPolicyId);
+            return super.build();
         }
     }
 }

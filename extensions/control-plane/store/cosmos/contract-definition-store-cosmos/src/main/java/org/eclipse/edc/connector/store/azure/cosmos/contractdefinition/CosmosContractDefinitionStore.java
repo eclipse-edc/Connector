@@ -108,10 +108,6 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
         }
     }
 
-    @Override
-    public void reload() {
-    }
-
     @NotNull
     private ContractDefinitionDocument convertToDocument(ContractDefinition def) {
         return new ContractDefinitionDocument(def, partitionKey);

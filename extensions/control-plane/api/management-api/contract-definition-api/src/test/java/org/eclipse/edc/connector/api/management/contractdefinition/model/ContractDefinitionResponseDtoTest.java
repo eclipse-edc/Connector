@@ -41,7 +41,7 @@ class ContractDefinitionResponseDtoTest {
                 .contractPolicyId("test-contract-policyid")
                 .accessPolicyId("test-access-policyid")
                 .id("test-id")
-                .selectorExpression(List.of(CriterionDto.Builder.newInstance().operandLeft("name").operator("beginsWith").operandRight("test").build()))
+                .assetsSelector(List.of(CriterionDto.Builder.newInstance().operandLeft("name").operator("beginsWith").operandRight("test").build()))
                 .build();
 
         var str = objectMapper.writeValueAsString(dto);

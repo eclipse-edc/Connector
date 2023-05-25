@@ -2211,8 +2211,8 @@ components:
     ContractDefinitionRequestDto:
       required:
       - accessPolicyId
+      - assetsSelector
       - contractPolicyId
-      - selectorExpression
       type: object
       properties:
         '@context':
@@ -2227,14 +2227,14 @@ components:
         accessPolicyId:
           type: string
           example: null
-        contractPolicyId:
-          type: string
-          example: null
-        selectorExpression:
+        assetsSelector:
           type: array
           example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
+        contractPolicyId:
+          type: string
+          example: null
       example: null
     ContractDefinitionResponseDto:
       type: object
@@ -2251,6 +2251,11 @@ components:
         accessPolicyId:
           type: string
           example: null
+        assetsSelector:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CriterionDto'
         contractPolicyId:
           type: string
           example: null
@@ -2258,11 +2263,6 @@ components:
           type: integer
           format: int64
           example: null
-        selectorExpression:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/CriterionDto'
       example: null
     ContractNegotiationDto:
       type: object
@@ -3008,6 +3008,12 @@ components:
           example: null
         managedResources:
           type: boolean
+          example: null
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
           example: null
         properties:
           type: object

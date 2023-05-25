@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.catalog;
 
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
@@ -25,7 +24,6 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -48,6 +46,7 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,9 +81,9 @@ class DatasetResolverImplIntegrationTest {
         store(assets2);
         store(assets3);
 
-        var def1 = getContractDefBuilder("def1").selectorExpression(selectorFrom(assets1)).build();
-        var def2 = getContractDefBuilder("def2").selectorExpression(selectorFrom(assets2)).build();
-        var def3 = getContractDefBuilder("def3").selectorExpression(selectorFrom(assets3)).build();
+        var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
+        var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
+        var def3 = getContractDefBuilder("def3").assetsSelector(selectorFrom(assets3)).build();
 
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2, def3));
 
@@ -109,9 +108,9 @@ class DatasetResolverImplIntegrationTest {
         store(assets2);
 
         var contractDefinition1 = getContractDefBuilder("contract-definition-")
-                .selectorExpression(selectorFrom(assets1)).build();
+                .assetsSelector(selectorFrom(assets1)).build();
         var contractDefinition2 = getContractDefBuilder("contract-definition-")
-                .selectorExpression(selectorFrom(assets2)).build();
+                .assetsSelector(selectorFrom(assets2)).build();
 
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(contractDefinition1, contractDefinition2));
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
@@ -129,8 +128,8 @@ class DatasetResolverImplIntegrationTest {
         store(assets1);
         store(assets2);
 
-        var def1 = getContractDefBuilder("def1").selectorExpression(selectorFrom(assets1)).build();
-        var def2 = getContractDefBuilder("def2").selectorExpression(selectorFrom(assets2)).build();
+        var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
+        var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
 
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2));
 
@@ -163,19 +162,14 @@ class DatasetResolverImplIntegrationTest {
         return new ParticipantAgent(emptyMap(), emptyMap());
     }
 
-    private DataService createDataService() {
-        return DataService.Builder.newInstance().build();
-    }
-
     private void store(Collection<Asset> assets) {
         assets.stream().map(a -> new AssetEntry(a, DataAddress.Builder.newInstance().type("test-type").build()))
                 .forEach(assetIndex::create);
     }
 
-    private AssetSelectorExpression selectorFrom(Collection<Asset> assets1) {
-        var builder = AssetSelectorExpression.Builder.newInstance();
+    private List<Criterion> selectorFrom(Collection<Asset> assets1) {
         var ids = assets1.stream().map(Asset::getId).collect(Collectors.toList());
-        return builder.criteria(List.of(new Criterion(Asset.PROPERTY_ID, "in", ids))).build();
+        return List.of(new Criterion(Asset.PROPERTY_ID, "in", ids));
     }
 
     private ContractDefinition.Builder getContractDefBuilder(String id) {
@@ -183,7 +177,7 @@ class DatasetResolverImplIntegrationTest {
                 .id(id)
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
+                .assetsSelector(emptyList());
     }
 
     private Asset.Builder createAsset(String id) {

@@ -37,7 +37,7 @@ public class ContractDefinitionRequestDto extends BaseDto {
     public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + "ContractDefinition";
     public static final String CONTRACT_DEFINITION_ACCESSPOLICY_ID = EDC_NAMESPACE + "accessPolicyId";
     public static final String CONTRACT_DEFINITION_CONTRACTPOLICY_ID = EDC_NAMESPACE + "contractPolicyId";
-    public static final String CONTRACT_DEFINITION_SELECTOR_EXPRESSION = EDC_NAMESPACE + "selectorExpression";
+    public static final String CONTRACT_DEFINITION_ASSETS_SELECTOR = EDC_NAMESPACE + "assetsSelector";
     /**
      * Default validity is set to one year.
      */
@@ -46,8 +46,8 @@ public class ContractDefinitionRequestDto extends BaseDto {
     @NotNull(message = "contractPolicyId cannot be null")
     protected String contractPolicyId;
     @Valid
-    @NotNull(message = "selectorExpression cannot be null")
-    protected List<CriterionDto> selectorExpression = new ArrayList<>();
+    @NotNull(message = "assetsSelector cannot be null")
+    protected List<CriterionDto> assetsSelector = new ArrayList<>();
 
     //this cannot be non-null, because that would break backwards compatibility with the old API
     @JsonProperty(value = ID)
@@ -64,8 +64,8 @@ public class ContractDefinitionRequestDto extends BaseDto {
         return contractPolicyId;
     }
 
-    public List<CriterionDto> getSelectorExpression() {
-        return selectorExpression;
+    public List<CriterionDto> getAssetsSelector() {
+        return assetsSelector;
     }
 
     @AssertTrue(message = "id must be either be null or not blank, and it cannot contain the ':' character")
@@ -105,8 +105,8 @@ public class ContractDefinitionRequestDto extends BaseDto {
             return self();
         }
 
-        public Builder selectorExpression(List<CriterionDto> criteria) {
-            dto.selectorExpression = criteria;
+        public Builder assetsSelector(List<CriterionDto> criteria) {
+            dto.assetsSelector = criteria;
             return self();
         }
 

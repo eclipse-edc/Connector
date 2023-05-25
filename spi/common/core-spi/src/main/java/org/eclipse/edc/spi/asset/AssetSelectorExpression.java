@@ -29,7 +29,10 @@ import java.util.Objects;
  * <p>
  * If an AssetSelectorExpression does not contain any criteria, no assets are selected. If all Assets are to be selected, the {@link AssetSelectorExpression#SELECT_ALL} constant
  * must be used.
+
+ * @deprecated as there's no need for it.
  */
+@Deprecated(since = "0.1.0")
 @JsonDeserialize(builder = AssetSelectorExpression.Builder.class)
 public final class AssetSelectorExpression {
 

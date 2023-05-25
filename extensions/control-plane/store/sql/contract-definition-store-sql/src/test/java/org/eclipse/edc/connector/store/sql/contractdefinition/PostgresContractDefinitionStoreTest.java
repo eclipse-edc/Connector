@@ -36,25 +36,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 
 @PostgresqlDbIntegrationTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBase {
-
 
     private final BaseSqlDialectStatements statements = new PostgresDialectStatements();
 
     private SqlContractDefinitionStore sqlContractDefinitionStore;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
+    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
@@ -65,18 +61,8 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getContractDefinitionTable() + " CASCADE");
-    }
-
-    @Test
-    @DisplayName("Context Loads, tables exist")
-    void contextLoads(PostgresqlStoreSetupExtension extension) {
-        var query = String.format("SELECT 1 FROM %s", statements.getContractDefinitionTable());
-
-        var result = executeQuery(extension.getConnection(), query);
-
-        assertThat(result).isNotNull();
     }
 
     @Test
@@ -99,7 +85,7 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
     // Override in PG since it does not have the field mapping
     @Test
     void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).mapToObj(i -> TestFunctions.createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+        range(0, 10).mapToObj(i -> TestFunctions.createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         assertThatThrownBy(() -> getContractDefinitionStore().findAll(query)).isInstanceOf(IllegalArgumentException.class);
@@ -118,11 +104,6 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
     @Override
     protected boolean supportsCollectionIndexQuery() {
         return false;
-    }
-
-    @Override
-    protected boolean supportsSortOrder() {
-        return true;
     }
 
 }

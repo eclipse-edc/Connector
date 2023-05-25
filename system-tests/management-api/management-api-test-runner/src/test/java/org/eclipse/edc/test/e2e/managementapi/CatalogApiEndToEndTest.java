@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
@@ -81,7 +80,6 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .id(UUID.randomUUID().toString())
                 .contractPolicyId(policyId)
                 .accessPolicyId(policyId)
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
         var policy = Policy.Builder.newInstance()
