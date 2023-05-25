@@ -58,11 +58,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     private final JsonLd jsonLd = mock(JsonLd.class);
     private final TransferProcessService service = mock(TransferProcessService.class);
 
-    @Override
-    protected Object controller() {
-        return new TransferProcessApiController(monitor, service, transformerRegistry, jsonLd);
-    }
-
     @Test
     void get_shouldReturnTransferProcess() {
         var transferProcess = createTransferProcess().id("id").build();
@@ -181,6 +176,23 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(transferProcess, TransferProcessDto.class);
         verify(transformerRegistry).transform(dto, JsonObject.class);
         verify(jsonLd).compact(responseBody);
+    }
+
+    @Test
+    void query_shouldNotReturnError_whenEmptyBody() {
+        var querySpec = QuerySpec.none();
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.empty()));
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .post("/v2/transferprocesses/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(0));
+
+        verify(service).query(querySpec);
     }
 
     @Test
@@ -402,6 +414,11 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .post("/v2/transferprocesses/id/terminate")
                 .then()
                 .statusCode(409);
+    }
+
+    @Override
+    protected Object controller() {
+        return new TransferProcessApiController(monitor, service, transformerRegistry, jsonLd);
     }
 
     @NotNull
