@@ -46,7 +46,7 @@ class CatalogProtocolServiceImplTest {
     private final ParticipantAgentService participantAgentService = mock(ParticipantAgentService.class);
     private final DataServiceRegistry dataServiceRegistry = mock(DataServiceRegistry.class);
 
-    private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry);
+    private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, "participantId");
 
     @Test
     void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
