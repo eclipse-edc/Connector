@@ -16,14 +16,13 @@ package org.eclipse.edc.spi.iam;
 
 /**
  * Implementors of this interface receive the {@link org.eclipse.edc.spi.iam.TokenParameters} instance that is composed
- * when the {@code DspHttpRemoteMessageDispatcher} sends out DSP protocol requests.
+ * when the request travels through the egress.
  */
 @FunctionalInterface
 public interface TokenDecorator {
     /**
-     * Callback that allows additions to the {@link TokenParameters} instance that the {@code DspHttpRemoteMessageDispatcher}
-     * sends out.
-     * Be aware that the {@link org.eclipse.edc.spi.message.RemoteMessageDispatcher} will overwrite protocol-relevant fields such as the audience.
+     * Callback that allows additions to the {@link TokenParameters} instance that request egress sends out.
+     * Be aware that message senders may overwrite protocol-relevant fields such as the audience.
      *
      * @param tokenParametersBuilder A {@link TokenParameters.Builder} with which the desired modifications can be made.
      */
