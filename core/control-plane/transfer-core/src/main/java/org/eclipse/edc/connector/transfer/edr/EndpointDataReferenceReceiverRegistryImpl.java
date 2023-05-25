@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.transfer.edr;
 
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
+import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
@@ -40,6 +41,12 @@ public class EndpointDataReferenceReceiverRegistryImpl implements EndpointDataRe
 
     private final List<EndpointDataReferenceReceiver> receivers = new ArrayList<>();
 
+    private final EndpointDataReferenceTransformerRegistry transformerRegistry;
+
+    public EndpointDataReferenceReceiverRegistryImpl(EndpointDataReferenceTransformerRegistry transformerRegistry) {
+        this.transformerRegistry = transformerRegistry;
+    }
+
     @Override
     public void registerReceiver(@NotNull EndpointDataReferenceReceiver receiver) {
         receivers.add(receiver);
@@ -56,8 +63,10 @@ public class EndpointDataReferenceReceiverRegistryImpl implements EndpointDataRe
             var msg = (TransferProcessStarted) event.getPayload();
             if (msg.getDataAddress() != null) {
                 var edr = EndpointDataAddressConstants.to(msg.getDataAddress())
-                        .orElseThrow(failure -> new EdcException(format("Failed to send EDR for transfer process :%s with error %s", msg.getTransferProcessId(), failure.getFailureDetail())));
-                
+                        .compose(transformerRegistry::transform)
+                        .orElseThrow(failure -> new EdcException(format("Failed to send EDR for transfer process %s with error %s", msg.getTransferProcessId(), failure.getFailureDetail())));
+
+
                 sendEdr(edr).join().orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
             }
         }

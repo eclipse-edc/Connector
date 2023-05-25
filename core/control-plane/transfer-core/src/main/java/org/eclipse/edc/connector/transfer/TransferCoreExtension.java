@@ -159,12 +159,14 @@ public class TransferCoreExtension implements ServiceExtension {
         var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
-        var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
-        context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
-
         // Register a default EndpointDataReferenceTransformer that can be overridden in extensions.
         var endpointDataReferenceTransformerRegistry = new EndpointDataReferenceTransformerRegistryImpl();
         context.registerService(EndpointDataReferenceTransformerRegistry.class, endpointDataReferenceTransformerRegistry);
+
+        var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl(endpointDataReferenceTransformerRegistry);
+        context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
+
+
         // Integration with the new DSP protocol
         eventRouter.register(TransferProcessStarted.class, endpointDataReferenceReceiverRegistry);
 

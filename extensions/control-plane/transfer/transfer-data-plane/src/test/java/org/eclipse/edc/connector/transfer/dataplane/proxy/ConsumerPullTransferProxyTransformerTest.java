@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.EDC_CONTRACT_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -50,7 +50,7 @@ class ConsumerPullTransferProxyTransformerTest {
                 .id(UUID.randomUUID().toString())
                 .properties(Map.of(
                         "key1", "value1",
-                        CONTRACT_ID, UUID.randomUUID().toString())
+                        EDC_CONTRACT_ID, UUID.randomUUID().toString())
                 )
                 .build();
     }
@@ -84,7 +84,7 @@ class ConsumerPullTransferProxyTransformerTest {
 
         var proxyCreationRequest = proxyCreationRequestCapture.getValue();
         assertThat(proxyCreationRequest.getId()).isEqualTo(inputEdr.getId());
-        assertThat(proxyCreationRequest.getContractId()).isEqualTo(inputEdr.getProperties().get(CONTRACT_ID));
+        assertThat(proxyCreationRequest.getContractId()).isEqualTo(inputEdr.getProperties().get(EDC_CONTRACT_ID));
         assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyUrl);
         assertThat(proxyCreationRequest.getProperties()).containsExactlyInAnyOrderEntriesOf(inputEdr.getProperties());
         assertThat(proxyCreationRequest.getContentAddress()).satisfies(address -> {

@@ -38,6 +38,7 @@ import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
+import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.EDC_CONTRACT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -110,7 +111,7 @@ class ConsumerPullTransferEndpointDataReferenceServiceImplTest {
         assertThat(edr.getAuthKey()).isEqualTo(HttpHeaders.AUTHORIZATION);
         assertThat(edr.getAuthCode()).isEqualTo(generatedToken.getToken());
         var expectedProperties = new HashMap<>(proxyCreationRequest.getProperties());
-        expectedProperties.put(CONTRACT_ID, contractId);
+        expectedProperties.put(EDC_CONTRACT_ID, contractId);
         assertThat(edr.getProperties()).containsExactlyInAnyOrderEntriesOf(expectedProperties);
     }
 
