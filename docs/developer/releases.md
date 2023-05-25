@@ -93,7 +93,7 @@ execute the standard *dependencies* task:
 - First, the dependencies of this module are calculated with gradle and passed to the Dash tool:
 
 ```
-gradle dependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s]+" | sort | uniq | java -jar /path/org.eclipse.dash.licenses-0.0.1-SNAPSHOT.jar - -summary NOTICES
+gradle dependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s]+" | sort | uniq | java -jar /path/org.eclipse.dash.licenses-<VERSION>.jar - -summary NOTICES
 ```
 
 - Second, the resulting report is used as input for the shell script:
