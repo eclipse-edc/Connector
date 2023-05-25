@@ -27,16 +27,18 @@ import java.util.Optional;
 public class DapsValidationRule implements TokenValidationRule {
 
     private final boolean validateReferring;
+    private final boolean validateIssuer;
 
-    public DapsValidationRule(boolean validateReferring) {
+    public DapsValidationRule(boolean validateReferring, boolean validateIssuer) {
         this.validateReferring = validateReferring;
+        this.validateIssuer = validateIssuer;
     }
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         if (additional != null) {
             var issuerConnector = getString(additional, "issuerConnector");
-            if (issuerConnector == null) {
+            if (validateIssuer && issuerConnector == null) {
                 return Result.failure("Required issuerConnector is missing in message");
             }
 
@@ -45,7 +47,7 @@ public class DapsValidationRule implements TokenValidationRule {
             return verifyTokenIds(toVerify, issuerConnector, securityProfile);
 
         } else {
-            throw new EdcException("Missing required additional information for IDS token validation");
+            throw new EdcException("Missing required additional information for DAPS token validation");
         }
     }
 
@@ -54,7 +56,7 @@ public class DapsValidationRule implements TokenValidationRule {
         var referringConnector = jwt.getClaim("referringConnector");
 
         if (validateReferring && !issuerConnector.equals(referringConnector)) {
-            return Result.failure("refferingConnector in token does not match issuerConnector in message");
+            return Result.failure("referringConnector in token does not match issuerConnector in message");
         }
 
         //securityProfile (DAT, mandatory) vs securityProfile (Message-Payload, optional)

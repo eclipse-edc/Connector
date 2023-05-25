@@ -55,11 +55,11 @@ class DapsIntegrationTest {
                 .build();
         var tokenResult = identityService.obtainClientCredentials(tokenParameters);
 
-        assertThat(tokenResult.succeeded()).isTrue();
+        assertThat(tokenResult.succeeded()).withFailMessage(tokenResult::getFailureDetail).isTrue();
 
         var verificationResult = identityService.verifyJwtToken(tokenResult.getContent(), "audience");
 
-        assertThat(verificationResult.succeeded()).isTrue();
+        assertThat(verificationResult.succeeded()).withFailMessage(verificationResult::getFailureDetail).isTrue();
     }
 
     @BeforeEach
