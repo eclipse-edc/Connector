@@ -31,12 +31,12 @@ runs:
         newVersion="$RELEASE_VERSION_MAJOR.$RELEASE_VERSION_MINOR.$((RELEASE_VERSION_PATCH+1))"-SNAPSHOT
 
         # replace every occurrence of =$oldVersion with =$newVersion
-        sed -i "s/=${oldVersion}/=${newVersion}/g" gradle.properties
+        grep -rlz "$oldVersion" . --exclude=\*.{sh,bin} | xargs sed -i 's/$oldVersion/$newVersion/g'
 
         echo "Bumped the version from $oldVersion to $newVersion"
 
         # Commit and push to the desired branch, defaults to 'main'
-        git add gradle.properties
+        git add .
         git commit --message "Bump version from $oldVersion to $newVersion [skip ci]"
 
         git push origin ${{ inputs.target_branch }}
