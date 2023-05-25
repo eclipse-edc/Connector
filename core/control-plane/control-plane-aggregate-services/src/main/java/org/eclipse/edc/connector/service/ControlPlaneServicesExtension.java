@@ -62,6 +62,7 @@ import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -149,8 +150,8 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public CatalogProtocolService catalogProtocolService() {
-        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry);
+    public CatalogProtocolService catalogProtocolService(ServiceExtensionContext context) {
+        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, context.getParticipantId());
     }
 
     @Provider

@@ -25,19 +25,24 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class CatalogProtocolServiceImpl implements CatalogProtocolService {
+
+    private static final String PARTICIPANT_ID_PROPERTY_KEY = "participantId";
 
     private final DatasetResolver datasetResolver;
     private final ParticipantAgentService participantAgentService;
     private final DataServiceRegistry dataServiceRegistry;
+    private final String participantId;
 
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       ParticipantAgentService participantAgentService,
-                                      DataServiceRegistry dataServiceRegistry) {
+                                      DataServiceRegistry dataServiceRegistry, String participantId) {
         this.datasetResolver = datasetResolver;
         this.participantAgentService = participantAgentService;
         this.dataServiceRegistry = dataServiceRegistry;
+        this.participantId = participantId;
     }
 
     @Override
@@ -51,6 +56,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
             var catalog = Catalog.Builder.newInstance()
                     .dataServices(dataServices)
                     .datasets(datasets.collect(toList()))
+                    .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
                     .build();
 
             return ServiceResult.success(catalog);
