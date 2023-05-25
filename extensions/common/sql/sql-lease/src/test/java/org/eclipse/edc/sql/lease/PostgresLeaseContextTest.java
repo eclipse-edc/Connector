@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       SAP SE - refactoring
+ *       SAP SE - bugfix (pass correct lease id for deletion)
  *
  */
 
@@ -23,21 +23,29 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.sql.DataSource;
 
 import static java.time.ZoneOffset.UTC;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
@@ -74,6 +82,39 @@ class PostgresLeaseContextTest extends LeaseContextTest {
         });
         doCallRealMethod().when(connection).close();
         connection.close();
+    }
+
+    @Test
+    void acquireLease_whenExpiredLeasePresent_shouldDeleteOldLeaseAndAcquireNewLease() throws SQLException {
+        var preparedStatementReference = new AtomicReference<PreparedStatement>();
+        when(connection.prepareStatement(dialect.getDeleteLeaseTemplate(), PreparedStatement.RETURN_GENERATED_KEYS)).thenAnswer((mocks) -> {
+            PreparedStatement preparedStatement = (PreparedStatement) mocks.callRealMethod();
+            PreparedStatement spy = spy(preparedStatement);
+            preparedStatementReference.set(spy);
+            return spy;
+        });
+
+        var entityId = "test-entity";
+        insertTestEntity(entityId);
+        var leaseContext = createLeaseContext("someone-else");
+
+        // no lease present, acquire one
+        leaseContext.acquireLease(entityId);
+        var lease = leaseContext.getLease(entityId);
+        assertThat(lease).isNotNull();
+        var leaseId = lease.getLeaseId();
+
+        // should acquire lease by deleting old one after lease expiry
+        var twoMinutesAheadClock = Clock.offset(Clock.fixed(now, UTC), Duration.of(2, ChronoUnit.MINUTES));
+        var twoMinutesAheadBuilder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, twoMinutesAheadClock);
+        var twoMinutesAheadContext = twoMinutesAheadBuilder.by("someone-else").withConnection(connection);
+        twoMinutesAheadContext.acquireLease(entityId);
+
+        var newLease = twoMinutesAheadContext.getLease(entityId);
+        assertThat(newLease).isNotNull();
+        assertThat(newLease.getLeaseId()).isNotEqualTo(leaseId);
+        verify(connection, times(2)).prepareStatement(dialect.getDeleteLeaseTemplate(), PreparedStatement.RETURN_GENERATED_KEYS);
+        verify(preparedStatementReference.get(), times(1)).setString(1, leaseId);
     }
 
     @Override
@@ -115,6 +156,33 @@ class PostgresLeaseContextTest extends LeaseContextTest {
 
     private ResultSetMapper<TestEntity> map() {
         return (rs) -> new TestEntity(rs.getString("id"), rs.getString("lease_id"));
+    }
+
+    private static class TestEntityLeaseStatements implements LeaseStatements {
+
+        @Override
+        public String getDeleteLeaseTemplate() {
+            return "DELETE FROM edc_lease WHERE lease_id=?;";
+        }
+
+        @Override
+        public String getInsertLeaseTemplate() {
+            return "INSERT INTO edc_lease (lease_id, leased_by, leased_at, lease_duration) VALUES (?, ?, ?, ?);";
+        }
+
+        @Override
+        public String getUpdateLeaseTemplate() {
+            return "UPDATE " + getEntityTableName() + " SET lease_id=? WHERE id = ?;";
+        }
+
+        @Override
+        public String getFindLeaseByEntityTemplate() {
+            return "SELECT * FROM edc_lease WHERE lease_id = (SELECT lease_id FROM " + getEntityTableName() + " WHERE id=?)";
+        }
+
+        public String getEntityTableName() {
+            return "edc_test_entity";
+        }
     }
 
 }
