@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     provisioned_resource_set   JSON,
     content_data_address       JSON,
     deprovisioned_resources    JSON,
-    transferprocess_properties JSON,
+    private_properties JSON,
     callback_addresses         JSON,
     lease_id                   VARCHAR
         CONSTRAINT transfer_process_lease_lease_id_fk
