@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.observe.PolicyDefinitionObservable;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -139,7 +138,7 @@ class PolicyDefinitionServiceImplTest {
                 .id("A found Contract Definition")
                 .accessPolicyId(policy.getUid())
                 .contractPolicyId(policy.getUid())
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
+                .assetsSelectorCriterion(criterion("left", "op", "right"))
                 .build();
 
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
@@ -159,7 +158,7 @@ class PolicyDefinitionServiceImplTest {
                 .id("A found Contract Definition")
                 .accessPolicyId(policy.getUid())
                 .contractPolicyId(policy.getUid())
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
+                .assetsSelectorCriterion(criterion("left", "op", "right"))
                 .build();
 
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));

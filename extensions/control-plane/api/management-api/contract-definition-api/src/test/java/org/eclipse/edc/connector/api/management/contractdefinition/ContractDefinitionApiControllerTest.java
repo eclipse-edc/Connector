@@ -29,7 +29,6 @@ import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -48,8 +47,8 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.Builder;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
+import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ASSETS_SELECTOR;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_SELECTOR_EXPRESSION;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -219,7 +218,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .add(TYPE, CONTRACT_DEFINITION_TYPE)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
-                .add(CONTRACT_DEFINITION_SELECTOR_EXPRESSION, createCriterionBuilder().build())
+                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createCriterionBuilder().build())
                 .build();
 
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
@@ -357,7 +356,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .add(ID, "test-id")
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
-                .add(CONTRACT_DEFINITION_SELECTOR_EXPRESSION, createCriterionBuilder().build())
+                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createCriterionBuilder().build())
                 .build();
     }
 
@@ -371,8 +370,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
         return ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicyId("ap-id")
-                .contractPolicyId("cp-id")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
+                .contractPolicyId("cp-id");
     }
 
     private ContractDefinitionResponseDto.Builder createContractDefinitionDto() {
@@ -380,6 +378,6 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .id("1")
                 .accessPolicyId("ap-id")
                 .contractPolicyId("cp-id")
-                .selectorExpression(List.of());
+                .assetsSelector(List.of());
     }
 }

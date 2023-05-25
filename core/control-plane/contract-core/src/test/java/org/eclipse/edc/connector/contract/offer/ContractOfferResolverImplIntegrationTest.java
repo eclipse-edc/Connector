@@ -26,7 +26,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -95,9 +94,9 @@ class ContractOfferResolverImplIntegrationTest {
         store(assets2);
         store(assets3);
 
-        var def1 = getContractDefBuilder("def1").selectorExpression(selectorFrom(assets1)).build();
-        var def2 = getContractDefBuilder("def2").selectorExpression(selectorFrom(assets2)).build();
-        var def3 = getContractDefBuilder("def3").selectorExpression(selectorFrom(assets3)).build();
+        var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
+        var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
+        var def3 = getContractDefBuilder("def3").assetsSelector(selectorFrom(assets3)).build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2, def3));
@@ -128,9 +127,9 @@ class ContractOfferResolverImplIntegrationTest {
         store(assets2);
 
         var contractDefinition1 = getContractDefBuilder("contract-definition-")
-                .selectorExpression(selectorFrom(assets1)).build();
+                .assetsSelector(selectorFrom(assets1)).build();
         var contractDefinition2 = getContractDefBuilder("contract-definition-")
-                .selectorExpression(selectorFrom(assets2)).build();
+                .assetsSelector(selectorFrom(assets2)).build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(contractDefinition1, contractDefinition2));
@@ -148,8 +147,8 @@ class ContractOfferResolverImplIntegrationTest {
         store(assets1);
         store(assets2);
 
-        var def1 = getContractDefBuilder("def1").selectorExpression(selectorFrom(assets1)).build();
-        var def2 = getContractDefBuilder("def2").selectorExpression(selectorFrom(assets2)).build();
+        var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
+        var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(contractDefinitionResolver.definitionsFor(isA(ParticipantAgent.class))).thenAnswer(i -> Stream.of(def1, def2));
@@ -192,18 +191,16 @@ class ContractOfferResolverImplIntegrationTest {
                 .forEach(assetIndex::create);
     }
 
-    private AssetSelectorExpression selectorFrom(Collection<Asset> assets1) {
-        var builder = AssetSelectorExpression.Builder.newInstance();
-        var ids = assets1.stream().map(Asset::getId).collect(Collectors.toList());
-        return builder.criteria(List.of(new Criterion(Asset.PROPERTY_ID, "in", ids))).build();
+    private List<Criterion> selectorFrom(Collection<Asset> assets1) {
+        var ids = assets1.stream().map(Asset::getId).toList();
+        return List.of(new Criterion(Asset.PROPERTY_ID, "in", ids));
     }
 
     private ContractDefinition.Builder getContractDefBuilder(String id) {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
                 .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
+                .contractPolicyId("contract");
     }
 
     private Asset.Builder createAsset(String id) {

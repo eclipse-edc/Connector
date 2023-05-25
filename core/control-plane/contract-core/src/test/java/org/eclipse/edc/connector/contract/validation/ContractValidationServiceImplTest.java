@@ -32,7 +32,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -45,6 +44,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,6 +56,7 @@ import static org.eclipse.edc.connector.contract.spi.validation.ContractValidati
 import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -86,8 +87,7 @@ class ContractValidationServiceImplTest {
         return ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
+                .contractPolicyId("contract");
     }
 
     @BeforeEach
@@ -401,8 +401,8 @@ class ContractValidationServiceImplTest {
         var offer = createContractOffer();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var expr = AssetSelectorExpression.Builder.newInstance().constraint(Asset.PROPERTY_ID, "like", "%someAssetId%").build();
-        var contractDef = createContractDefinitionBuilder().selectorExpression(expr).build();
+        var expr = List.of(criterion(Asset.PROPERTY_ID, "like", "%someAssetId%"));
+        var contractDef = createContractDefinitionBuilder().assetsSelector(expr).build();
 
         //prepare mocks
         when(agentService.createFor(eq(claimToken))).thenReturn(participantAgent);

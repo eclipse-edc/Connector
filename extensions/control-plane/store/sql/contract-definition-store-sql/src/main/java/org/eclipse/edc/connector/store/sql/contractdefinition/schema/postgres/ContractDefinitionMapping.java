@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.store.sql.contractdefinition.schema.postgres;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.store.sql.contractdefinition.schema.ContractDefinitionStatements;
+import org.eclipse.edc.sql.translation.JsonFieldMapping;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
@@ -29,6 +30,6 @@ public class ContractDefinitionMapping extends TranslationMapping {
         add("accessPolicy", statements.getAccessPolicyIdColumn());
         add("contractPolicyId", statements.getContractPolicyIdColumn());
         add("contractPolicy", statements.getContractPolicyIdColumn());
-        add("selectorExpression", new SelectorExpressionMapping());
+        add("assetsSelector", new JsonFieldMapping(statements.getAssetsSelectorAlias()));
     }
 }

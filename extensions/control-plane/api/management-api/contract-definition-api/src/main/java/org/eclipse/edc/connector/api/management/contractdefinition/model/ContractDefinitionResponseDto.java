@@ -28,7 +28,7 @@ import java.util.List;
 public class ContractDefinitionResponseDto extends BaseResponseDto {
     private String accessPolicyId;
     private String contractPolicyId;
-    private List<CriterionDto> selectorExpression = new ArrayList<>();
+    private List<CriterionDto> assetsSelector = new ArrayList<>();
 
     private ContractDefinitionResponseDto() {
     }
@@ -41,8 +41,8 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
         return contractPolicyId;
     }
 
-    public List<CriterionDto> getSelectorExpression() {
-        return selectorExpression;
+    public List<CriterionDto> getAssetsSelector() {
+        return assetsSelector;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -66,8 +66,8 @@ public class ContractDefinitionResponseDto extends BaseResponseDto {
             return this;
         }
 
-        public Builder selectorExpression(List<CriterionDto> criteria) {
-            dto.selectorExpression = criteria;
+        public Builder assetsSelector(List<CriterionDto> criteria) {
+            dto.assetsSelector = criteria;
             return this;
         }
 

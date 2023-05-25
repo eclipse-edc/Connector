@@ -197,7 +197,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         // verify that the asset in the offer is actually in the contract definition
-        var testCriteria = new ArrayList<>(contractDefinition.getSelectorExpression().getCriteria());
+        var testCriteria = new ArrayList<>(contractDefinition.getAssetsSelector());
         testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", contractId.assetIdPart()));
         if (assetIndex.countAssets(testCriteria) <= 0) {
             return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");

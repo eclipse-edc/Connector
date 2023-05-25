@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.contractdefinition.transform;
 
 import org.eclipse.edc.api.model.CriterionDto;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -49,7 +48,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "=", "right").build())
+                .assetsSelectorCriterion(Criterion.criterion("left", "=", "right"))
                 .build();
 
         var dto = transformer.transform(contractDefinition, context);
@@ -59,7 +58,7 @@ class ContractDefinitionToContractDefinitionResponseDtoTransformerTest {
         assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
         assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
         assertThat(dto.getCreatedAt()).isNotZero();
-        assertThat(dto.getSelectorExpression()).containsOnly(criterionDto);
+        assertThat(dto.getAssetsSelector()).containsOnly(criterionDto);
         verify(context).transform(isA(Criterion.class), eq(CriterionDto.class));
     }
 

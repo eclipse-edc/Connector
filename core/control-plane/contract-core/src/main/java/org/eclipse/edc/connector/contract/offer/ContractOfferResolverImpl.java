@@ -85,7 +85,7 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
         return definitionService.definitionsFor(agent)
                 .takeWhile(d -> numFetchedAssets.get() < limit)
                 .flatMap(definition -> {
-                    var criteria = definition.getSelectorExpression().getCriteria();
+                    var criteria = definition.getAssetsSelector();
                     var querySpecBuilder = QuerySpec.Builder.newInstance()
                             .filter(concat(criteria.stream(), query.getAssetsCriteria().stream()).collect(toList()));
                     var querySpec = querySpecBuilder.build();

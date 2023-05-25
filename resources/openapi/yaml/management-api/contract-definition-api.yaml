@@ -207,18 +207,18 @@ components:
         accessPolicyId:
           type: string
           example: null
-        contractPolicyId:
-          type: string
-          example: null
-        selectorExpression:
+        assetsSelector:
           type: array
           example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
+        contractPolicyId:
+          type: string
+          example: null
       required:
       - accessPolicyId
+      - assetsSelector
       - contractPolicyId
-      - selectorExpression
     ContractDefinitionResponseDto:
       type: object
       example: null
@@ -235,6 +235,11 @@ components:
         accessPolicyId:
           type: string
           example: null
+        assetsSelector:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CriterionDto'
         contractPolicyId:
           type: string
           example: null
@@ -242,11 +247,6 @@ components:
           type: integer
           format: int64
           example: null
-        selectorExpression:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/CriterionDto'
     CriterionDto:
       type: object
       example: null

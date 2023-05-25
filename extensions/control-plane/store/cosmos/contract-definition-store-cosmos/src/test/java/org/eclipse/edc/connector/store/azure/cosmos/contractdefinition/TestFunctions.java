@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.store.azure.cosmos.contractdefinition;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.store.azure.cosmos.contractdefinition.model.ContractDefinitionDocument;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.query.Criterion;
 
 import java.util.UUID;
 
@@ -30,7 +30,7 @@ public class TestFunctions {
                 .id(UUID.randomUUID().toString())
                 .contractPolicyId(CONTRACT_POLICY_ID)
                 .accessPolicyId(ACCESS_POLICY_ID)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
+                .assetsSelectorCriterion(Criterion.criterion("somekey", "=", "someval"))
                 .build();
     }
 

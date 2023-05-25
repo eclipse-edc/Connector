@@ -29,7 +29,6 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -142,7 +141,7 @@ class DatasetResolverImplTest {
     void query_shouldFilterAssetsByPassedCriteria() {
         var definitionCriterion = new Criterion(EDC_NAMESPACE + "id", "=", "id");
         var contractDefinition = contractDefinitionBuilder("definitionId")
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().criteria(List.of(definitionCriterion)).build())
+                .assetsSelector(List.of(definitionCriterion))
                 .contractPolicyId("contractPolicyId")
                 .build();
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(contractDefinition));
@@ -228,8 +227,7 @@ class DatasetResolverImplTest {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
                 .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL);
+                .contractPolicyId("contract");
     }
 
     private Asset.Builder createAsset(String id) {

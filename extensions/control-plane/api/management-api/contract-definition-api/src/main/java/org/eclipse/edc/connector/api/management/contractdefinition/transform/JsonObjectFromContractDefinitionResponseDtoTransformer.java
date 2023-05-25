@@ -24,8 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
+import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ASSETS_SELECTOR;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_SELECTOR_EXPRESSION;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -47,12 +47,12 @@ public class JsonObjectFromContractDefinitionResponseDtoTransformer extends Abst
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, dto.getContractPolicyId());
 
         // todo: does the criterionDto need to be json-ld-ified?
-        var criteria = dto.getSelectorExpression().stream()
+        var criteria = dto.getAssetsSelector().stream()
                 .map(criterion -> context.transform(criterion, JsonObject.class))
                 .collect(jsonFactory::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                 .build();
 
-        builder.add(CONTRACT_DEFINITION_SELECTOR_EXPRESSION, criteria);
+        builder.add(CONTRACT_DEFINITION_ASSETS_SELECTOR, criteria);
         return builder.build();
     }
 }

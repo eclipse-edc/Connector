@@ -131,7 +131,7 @@ public class Participant {
                 .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
                 .add(EDC_NAMESPACE + "accessPolicyId", accessPolicyId)
                 .add(EDC_NAMESPACE + "contractPolicyId", contractPolicyId)
-                .add(EDC_NAMESPACE + "selectorExpression", Json.createArrayBuilder()
+                .add(EDC_NAMESPACE + "assetsSelector", Json.createArrayBuilder()
                         .add(createObjectBuilder()
                                 .add(TYPE, "CriterionDto")
                                 .add(EDC_NAMESPACE + "operandLeft", EDC_NAMESPACE + "id")

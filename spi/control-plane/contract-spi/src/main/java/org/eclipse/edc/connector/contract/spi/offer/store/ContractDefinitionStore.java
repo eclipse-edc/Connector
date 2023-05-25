@@ -78,11 +78,4 @@ public interface ContractDefinitionStore {
      */
     StoreResult<ContractDefinition> deleteById(String id);
 
-    /**
-     * Signals the store should reload its internal cache if updates were made. If the implementation does not implement
-     * caching, this method will do nothing.
-     */
-    default void reload() {
-    }
-
 }

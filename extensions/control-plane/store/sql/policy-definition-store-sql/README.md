@@ -20,7 +20,7 @@ entity edc_policydefinitions {
   --
   * access_policy: string <<json>>
   * contract_policy: string <<json>>
-  * selector_expression: string <<json>>
+  * assets_selector: string <<json>>
   * permissions: string <<json>>
   * prohibitions: string <<json>>
   * duties: string <<json>>

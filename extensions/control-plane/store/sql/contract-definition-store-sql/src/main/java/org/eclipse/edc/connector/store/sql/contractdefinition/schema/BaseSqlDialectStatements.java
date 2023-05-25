@@ -40,7 +40,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
-                getSelectorExpressionColumn(),
+                getAssetsSelectorColumn(),
                 getCreatedAtColumn(),
                 getFormatAsJsonOperator()
         );
@@ -62,7 +62,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
-                getSelectorExpressionColumn(),
+                getAssetsSelectorColumn(),
                 getFormatAsJsonOperator(),
                 getCreatedAtColumn(),
                 getIdColumn());

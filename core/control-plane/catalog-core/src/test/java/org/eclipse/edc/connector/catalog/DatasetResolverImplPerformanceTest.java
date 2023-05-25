@@ -25,7 +25,6 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -44,7 +43,7 @@ import static java.time.Duration.ofSeconds;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.asset.AssetSelectorExpression.SELECT_ALL;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(EdcExtension.class)
@@ -66,7 +65,11 @@ class DatasetResolverImplPerformanceTest {
     @Test
     void oneAssetPerDefinition(DatasetResolver datasetResolver, ContractDefinitionStore contractDefinitionStore, AssetIndex assetIndex, PolicyDefinitionStore policyDefinitionStore) {
         policyDefinitionStore.create(createPolicyDefinition("policy").build());
-        range(0, 10000).mapToObj(i -> createContractDefinition(String.valueOf(i)).accessPolicyId("policy").contractPolicyId("policy").selectorExpression(selectAsset(String.valueOf(i))).build()).forEach(contractDefinitionStore::save);
+        range(0, 10000).mapToObj(i -> createContractDefinition(String.valueOf(i))
+                .accessPolicyId("policy")
+                .contractPolicyId("policy")
+                .assetsSelectorCriterion(criterion(Asset.PROPERTY_ID, "=", String.valueOf(i))).build()
+                ).forEach(contractDefinitionStore::save);
         range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::create);
 
         var firstPageQuery = QuerySpec.Builder.newInstance().offset(0).limit(100).build();
@@ -83,7 +86,7 @@ class DatasetResolverImplPerformanceTest {
     @Test
     void fewDefinitionsSelectAllAssets(DatasetResolver datasetResolver, ContractDefinitionStore contractDefinitionStore, AssetIndex assetIndex, PolicyDefinitionStore policyDefinitionStore) {
         policyDefinitionStore.create(createPolicyDefinition("policy").build());
-        range(0, 10).mapToObj(i -> createContractDefinition(String.valueOf(i)).accessPolicyId("policy").contractPolicyId("policy").selectorExpression(SELECT_ALL).build()).forEach(contractDefinitionStore::save);
+        range(0, 10).mapToObj(i -> createContractDefinition(String.valueOf(i)).accessPolicyId("policy").contractPolicyId("policy").build()).forEach(contractDefinitionStore::save);
         range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::create);
 
         var firstPageQuery = QuerySpec.Builder.newInstance().offset(0).limit(100).build();
@@ -106,16 +109,11 @@ class DatasetResolverImplPerformanceTest {
         return datasets;
     }
 
-    private AssetSelectorExpression selectAsset(String assetId) {
-        return AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, assetId).build();
-    }
-
     private ContractDefinition.Builder createContractDefinition(String id) {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
                 .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(SELECT_ALL);
+                .contractPolicyId("contract");
     }
 
     @NotNull

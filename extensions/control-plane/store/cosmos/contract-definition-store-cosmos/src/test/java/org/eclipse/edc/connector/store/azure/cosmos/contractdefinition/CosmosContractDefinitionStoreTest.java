@@ -71,7 +71,6 @@ class CosmosContractDefinitionStoreTest {
         var doc2 = generateDocument(TEST_PART_KEY);
         when(cosmosDbApiMock.queryItems(any(SqlQuerySpec.class))).thenReturn(Stream.of(doc1, doc2));
 
-        store.reload();
         var all = store.findAll(QuerySpec.max());
 
         assertThat(all).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());

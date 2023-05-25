@@ -26,8 +26,12 @@ public interface ContractDefinitionStatements {
         return "contract_policy_id";
     }
 
-    default String getSelectorExpressionColumn() {
-        return "selector_expression";
+    default String getAssetsSelectorColumn() {
+        return "assets_selector";
+    }
+
+    default String getAssetsSelectorAlias() {
+        return getAssetsSelectorColumn() + "_alias";
     }
 
     default String getAccessPolicyIdColumn() {
