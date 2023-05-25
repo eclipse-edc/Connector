@@ -4,7 +4,7 @@ format.version = "1.1"
 [versions]
 apacheCommonsPool2 = "2.11.1"
 assertj = "3.24.2"
-atomikos = "5.0.9"
+atomikos = "6.0.0"
 awaitility = "4.2.0"
 aws = "2.20.72"
 azure-rm = "2.26.0"
@@ -17,7 +17,8 @@ googleCloudIamCredentials = "2.17.0"
 googleCloudStorage = "2.22.2"
 h2 = "2.1.214"
 httpMockServer = "5.15.0"
-jackarta-json = "2.0.1"
+jakarta-json = "2.0.1"
+jakarta-transaction = "2.0.1"
 jackson = "2.15.1"
 jakartaValidation = "3.0.2"
 jersey = "3.1.2"
@@ -59,8 +60,9 @@ jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-da
 jackson-datatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jacksonJsonP = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp", version.ref = "jackson" }
 jakarta-rsApi = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "rsApi" }
+jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakartaValidation" }
-jakartaJson = { module = "org.glassfish:jakarta.json", version.ref = "jackarta-json" }
+jakartaJson = { module = "org.glassfish:jakarta.json", version.ref = "jakarta-json" }
 jersey-beanvalidation = { module = "org.glassfish.jersey.ext:jersey-bean-validation", version.ref = "jersey" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
 jersey-inject = { module = "org.glassfish.jersey.inject:jersey-hk2", version.ref = "jersey" }
@@ -75,7 +77,6 @@ jetty-websocket = { module = "org.eclipse.jetty.websocket:websocket-jakarta-serv
 json-unit = { module = "net.javacrumbs.json-unit:json-unit", version.ref = "json-unit" }
 json-unit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version.ref = "json-unit" }
 json-unit-json-path = { module = "net.javacrumbs.json-unit:json-unit-json-path", version.ref = "json-unit" }
-jta = { module = "javax.transaction:javax.transaction-api", version.ref = "jta" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jupiter" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jupiter" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jupiter" }

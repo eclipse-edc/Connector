@@ -22,8 +22,8 @@ dependencies {
     api(project(":spi:common:transaction-datasource-spi"))
 
     implementation(project(":core:common:util"))
-    implementation(libs.jta)
-    implementation(libs.atomikos.jta)
+    implementation(libs.jakarta.transaction.api)
+    implementation(libs.atomikos.jta) { artifact { classifier = "jakarta" } }
     implementation(libs.atomikos.jdbc)
 
     testImplementation(libs.h2)

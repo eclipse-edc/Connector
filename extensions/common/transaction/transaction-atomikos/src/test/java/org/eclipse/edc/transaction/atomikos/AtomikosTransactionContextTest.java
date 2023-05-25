@@ -14,19 +14,18 @@
 
 package org.eclipse.edc.transaction.atomikos;
 
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.TransactionManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -105,7 +104,7 @@ class AtomikosTransactionContextTest {
         transactionContext.execute(() -> {
         });
 
-        verify(transaction, times(1)).registerSynchronization(Mockito.isA(Synchronization.class));
+        verify(transaction, times(1)).registerSynchronization(isA(Synchronization.class));
     }
 
     @BeforeEach

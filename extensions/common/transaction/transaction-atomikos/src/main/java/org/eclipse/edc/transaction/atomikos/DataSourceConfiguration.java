@@ -41,7 +41,6 @@ public class DataSourceConfiguration {
     private int maintenanceInterval = -1;
     private int maxIdle = -1;
     private int poolSize = -1;
-    private int reap = -1;
     private String query;
 
     private Properties properties = new Properties();
@@ -106,10 +105,6 @@ public class DataSourceConfiguration {
 
     public int getPoolSize() {
         return poolSize;
-    }
-
-    public int getReap() {
-        return reap;
     }
 
     public String getQuery() {
@@ -190,11 +185,6 @@ public class DataSourceConfiguration {
 
         public Builder poolSize(int poolSize) {
             configuration.poolSize = poolSize;
-            return this;
-        }
-
-        public Builder reap(int reap) {
-            configuration.reap = reap;
             return this;
         }
 

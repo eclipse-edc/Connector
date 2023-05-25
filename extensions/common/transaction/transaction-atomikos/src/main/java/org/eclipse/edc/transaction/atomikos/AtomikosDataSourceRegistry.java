@@ -30,7 +30,7 @@ import javax.sql.DataSource;
  * A DataSource registry backed by Atomikos data source beans. On creation, data source beans will automatically register as resources with the transaction manager domain.
  */
 public class AtomikosDataSourceRegistry implements DataSourceRegistry {
-    private Map<String, DataSource> dataSources = new HashMap<>();
+    private final Map<String, DataSource> dataSources = new HashMap<>();
 
     @Override
     public DataSource resolve(String name) {
@@ -99,11 +99,7 @@ public class AtomikosDataSourceRegistry implements DataSourceRegistry {
         if (poolSize != -1) {
             bean.setPoolSize(poolSize);
         }
-        int reapTimeout = configuration.getReap();
-        if (reapTimeout != -1) {
-            bean.setReapTimeout(reapTimeout);
-        }
-        String query = configuration.getQuery();
+        var query = configuration.getQuery();
         if (query != null) {
             bean.setTestQuery(query);
         }

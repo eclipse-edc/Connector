@@ -34,7 +34,6 @@ import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.M
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.PASSWORD;
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.POOL_SIZE;
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.QUERY;
-import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.REAP;
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.URL;
 import static org.eclipse.edc.transaction.atomikos.DataSourceConfigurationKeys.USERNAME;
 
@@ -55,7 +54,6 @@ class DataSourceConfigurationParserTest {
         properties.put("default." + LOGIN_TIMEOUT, "1");
         properties.put("default." + MAINTENANCE_INTERVAL, "1");
         properties.put("default." + MAX_IDLE, "1");
-        properties.put("default." + REAP, "1");
         properties.put("default." + QUERY, "SELECT");
         properties.put("default." + DRIVER_PROPERTIES + ".custom", "customvalue");
         properties.put("minimal." + DRIVER_CLASS, "com.Driver");
@@ -80,7 +78,6 @@ class DataSourceConfigurationParserTest {
         assertThat(defaultConfiguration.getLoginTimeout()).isEqualTo(1);
         assertThat(defaultConfiguration.getMaintenanceInterval()).isEqualTo(1);
         assertThat(defaultConfiguration.getMaxIdle()).isEqualTo(1);
-        assertThat(defaultConfiguration.getReap()).isEqualTo(1);
         assertThat(defaultConfiguration.getQuery()).isEqualTo("SELECT");
         assertThat(defaultConfiguration.getProperties()).containsEntry(DRIVER_PROPERTIES + ".custom", "customvalue");
 
