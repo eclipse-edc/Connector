@@ -116,8 +116,8 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "process_id";
     }
 
-    default String getPropertiesColumn() {
-        return "transferprocess_properties";
+    default String getPrivatePropertiesColumn() {
+        return "private_properties";
     }
 
     default String getDataRequestPropertiesColumn() {
@@ -151,7 +151,7 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
     default String getCallbackAddressesColumn() {
         return "callback_addresses";
     }
-    
+
     default String getFormatAsJsonOperator() {
         return BaseSqlDialect.getJsonCastOperator();
     }

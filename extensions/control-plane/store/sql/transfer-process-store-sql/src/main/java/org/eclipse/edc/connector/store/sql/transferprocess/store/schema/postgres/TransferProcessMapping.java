@@ -39,7 +39,7 @@ public class TransferProcessMapping extends TranslationMapping {
     private static final String FIELD_PROVISIONED_RESOURCE_SET = "provisionedResourceSet";
     private static final String FIELD_DEPROVISIONED_RESOURCES = "deprovisionedResources";
 
-    private static final String FIELD_PROPERTIES = "properties";
+    private static final String FIELD_PRIVATE_PROPERTIES = "privateProperties";
 
 
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
@@ -53,7 +53,7 @@ public class TransferProcessMapping extends TranslationMapping {
         add(FIELD_DATAADDRESS, new JsonFieldMapping(statements.getContentDataAddressColumn()));
         add(FIELD_CONTENTDATAADDRESS, new JsonFieldMapping(statements.getContentDataAddressColumn()));
         add(FIELD_RESOURCE_MANIFEST, new ResourceManifestMapping());
-        add(FIELD_PROPERTIES, new JsonFieldMapping(statements.getPropertiesColumn()));
+        add(FIELD_PRIVATE_PROPERTIES, new JsonFieldMapping(statements.getPrivatePropertiesColumn()));
         add(FIELD_PROVISIONED_RESOURCE_SET, new ProvisionedResourceSetMapping());
         // using the alias instead of the actual column name to avoid name clashes.
         add(FIELD_DEPROVISIONED_RESOURCES, new JsonFieldMapping(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));

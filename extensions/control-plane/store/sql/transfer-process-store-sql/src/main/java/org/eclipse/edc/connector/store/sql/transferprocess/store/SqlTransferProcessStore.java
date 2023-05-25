@@ -302,7 +302,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 }))
                 .callbackAddresses(fromJson(resultSet.getString(statements.getCallbackAddressesColumn()), new TypeReference<>() {
                 }))
-                .privateProperties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
+                .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), getTypeRef()))
                 .build();
     }
 

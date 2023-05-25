@@ -57,7 +57,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 getCreatedAtColumn(), getUpdatedAtColumn(),
                 getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(),
                 getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(),
-                getPropertiesColumn(), getCallbackAddressesColumn(),
+                getPrivatePropertiesColumn(), getCallbackAddressesColumn(),
                 // values
                 getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(),
                 getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
