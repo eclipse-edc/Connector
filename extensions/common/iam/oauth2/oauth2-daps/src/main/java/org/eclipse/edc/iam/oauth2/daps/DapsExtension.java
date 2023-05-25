@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.oauth2.daps;
 
 import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
+import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -34,8 +35,16 @@ public class DapsExtension implements ServiceExtension {
     @Setting(value = "The value of the scope claim that is passed to DAPS to obtain a DAT", defaultValue = DEFAULT_DAPS_TOKEN)
     public static final String DAPS_TOKEN_PROPERTY = "edc.iam.daps.token.name";
 
+    public static final String DEFAULT_DAPS_REFERRING_CONNECTOR = "false";
+
+    @Setting(value = "Boolean value that indicates whether or not the referringConnector claim is to be verified", type = "boolean", defaultValue = DEFAULT_DAPS_REFERRING_CONNECTOR)
+    public static final String DAPS_REFERRING_CONNECTOR_PROPERTY = "edc.daps.validation.referringconnector";
+
     @Inject
     private Oauth2JwtDecoratorRegistry jwtDecoratorRegistry;
+
+    @Inject
+    private TokenValidationRulesRegistry validationRulesRegistry;
 
     @Override
     public String name() {
@@ -45,6 +54,8 @@ public class DapsExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         jwtDecoratorRegistry.register(new DapsJwtDecorator());
+        var validateReferringStr = context.getSetting(DAPS_REFERRING_CONNECTOR_PROPERTY, DEFAULT_DAPS_REFERRING_CONNECTOR);
+        validationRulesRegistry.addRule(new DapsValidationRule(Boolean.parseBoolean(validateReferringStr)));
     }
 
     @Provider
