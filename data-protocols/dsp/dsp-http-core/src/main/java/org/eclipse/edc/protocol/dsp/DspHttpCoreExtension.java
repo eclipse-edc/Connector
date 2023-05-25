@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -53,6 +54,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private JsonLd jsonLdService;
+    @Inject(required = false)
+    private TokenDecorator decorator;
 
     @Override
     public String name() {
@@ -61,7 +64,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspHttpRemoteMessageDispatcher dspHttpRemoteMessageDispatcher() {
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService);
+        TokenDecorator td = decorator != null ? decorator : bldr -> bldr; // either a decorator, or noop
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td);
         dispatcherRegistry.register(dispatcher);
         return dispatcher;
     }
