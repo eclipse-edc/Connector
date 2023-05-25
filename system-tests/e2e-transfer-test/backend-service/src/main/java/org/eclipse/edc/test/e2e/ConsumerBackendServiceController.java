@@ -24,6 +24,8 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -35,7 +37,7 @@ public class ConsumerBackendServiceController {
 
     private final Monitor monitor;
     private final AtomicReference<String> data = new AtomicReference<>();
-    private final Map<String, EndpointDataReference> dataReference = new ConcurrentHashMap<>();
+    private final Map<String, List<EndpointDataReference>> dataReference = new ConcurrentHashMap<>();
 
     public ConsumerBackendServiceController(Monitor monitor) {
         this.monitor = monitor;
@@ -46,14 +48,33 @@ public class ConsumerBackendServiceController {
     @Consumes({ MediaType.APPLICATION_JSON })
     public void pushDataReference(EndpointDataReference edr) {
         monitor.debug("Received new endpoint data reference with url " + edr.getEndpoint());
-        dataReference.put(edr.getId(), edr);
+        dataReference.compute(edr.getId(), (k, edrs) -> {
+            if (edrs == null) {
+                var list = new ArrayList<EndpointDataReference>();
+                list.add(edr);
+                return list;
+            } else {
+                edrs.add(edr);
+                return edrs;
+            }
+        });
     }
 
     @Path("/dataReference/{id}")
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public EndpointDataReference getDataReference(@PathParam("id") String id) {
-        return Optional.ofNullable(dataReference.get(id)).orElseThrow(NoSuchElementException::new);
+        return Optional.ofNullable(dataReference.get(id))
+                .flatMap(edrs -> edrs.stream().findFirst())
+                .orElseThrow(NoSuchElementException::new);
+    }
+
+    @Path("/dataReference/{id}/all")
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public List<EndpointDataReference> getAllDataReferences(@PathParam("id") String id) {
+        return Optional.ofNullable(dataReference.get(id))
+                .orElseThrow(NoSuchElementException::new);
     }
 
     @Path("/store")

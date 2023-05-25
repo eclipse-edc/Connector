@@ -7,18 +7,22 @@ and will be used by the consumer connector to dispatch the EDR
 
 ```json
 {
-  "edctype": "dataspaceconnector:datarequest",
-  "protocol": "ids-multipart",
+  "@context": {
+    "edc": "https://w3id.org/edc/v0.0.1/ns/"
+  },
+  "@type": "TransferRequestDto",
+  "protocol": "dataspace-protocol-http",
   "assetId": "test-document",
   "contractId": "1:8147d6d6-9734-4821-b93d-2832ea7892e4",
   "dataDestination": {
+    "@type": "DataAddress",
     "type": "HttpProxy"
   },
   "managedResources": false,
   "connectorAddress": "http://localhost:8282/api/v1/ids/data",
   "connectorId": "consumer",
-  "properties": {
-    "receiver.http.endpoint" : "http://localhost:9999"
+  "privateProperties": {
+    "receiverHttpEndpoint" : "http://localhost:9999"
   }
 }
 ```

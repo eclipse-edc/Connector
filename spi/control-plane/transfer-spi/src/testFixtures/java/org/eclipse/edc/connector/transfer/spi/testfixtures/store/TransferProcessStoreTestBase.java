@@ -69,7 +69,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void create() {
-        var t = TestFunctions.createTransferProcessBuilder("test-id").properties(Map.of("key", "value")).build();
+        var t = TestFunctions.createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).build();
         getTransferProcessStore().updateOrCreate(t);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
@@ -83,7 +83,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
 
-        var t = TestFunctions.createTransferProcessBuilder("test-id").properties(Map.of("key", "value")).callbackAddresses(callbacks).build();
+        var t = TestFunctions.createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).callbackAddresses(callbacks).build();
         getTransferProcessStore().updateOrCreate(t);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());

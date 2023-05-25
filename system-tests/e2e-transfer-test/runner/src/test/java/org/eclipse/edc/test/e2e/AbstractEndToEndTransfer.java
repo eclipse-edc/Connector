@@ -62,7 +62,7 @@ public abstract class AbstractEndToEndTransfer {
         var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
 
         var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
-        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, syncDataAddress());
+        var transferProcessId = CONSUMER.initiateTransferWithDynamicReceiver(contractAgreementId, assetId, PROVIDER, syncDataAddress());
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
@@ -78,6 +78,11 @@ public abstract class AbstractEndToEndTransfer {
         // pull the data with additional query parameter
         var msg = UUID.randomUUID().toString();
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
+
+        var edrList = CONSUMER.getAllDataReferences(transferProcessId);
+
+        assertThat(edrList).hasSize(2);
+
     }
 
     @Test

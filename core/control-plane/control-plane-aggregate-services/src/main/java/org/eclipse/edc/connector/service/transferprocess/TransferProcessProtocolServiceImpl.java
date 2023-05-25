@@ -143,7 +143,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .dataRequest(dataRequest)
                 .type(PROVIDER)
                 .clock(clock)
-                .properties(dataRequest.getProperties())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 

@@ -66,7 +66,7 @@ class TransferProcessTest {
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .stateCount(1)
                 .stateTimestamp(1)
-                .properties(Map.of("k", "v"))
+                .privateProperties(Map.of("k", "v"))
                 .build();
 
         var copy = process.copy();
@@ -76,7 +76,7 @@ class TransferProcessTest {
         assertEquals(process.getCreatedAt(), copy.getCreatedAt());
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
-        assertEquals(process.getProperties(), copy.getProperties());
+        assertEquals(process.getPrivateProperties(), copy.getPrivateProperties());
         assertNotNull(process.getContentDataAddress());
 
         assertThat(process).usingRecursiveComparison().isEqualTo(copy);

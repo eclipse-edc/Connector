@@ -32,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
 
 /**
@@ -41,7 +42,7 @@ import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
 public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataReferenceReceiver {
 
 
-    public static final String HTTP_RECEIVER_ENDPOINT = "receiver.http.endpoint";
+    public static final String HTTP_RECEIVER_ENDPOINT = EDC_NAMESPACE + "receiverHttpEndpoint";
 
     private static final MediaType JSON = MediaType.get("application/json");
 
@@ -73,7 +74,7 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
             return CompletableFuture.completedFuture(Result.failure(format("Failed to found transfer process for id %s", processId)));
         }
 
-        var endpoint = transferProcess.getProperties().get(HTTP_RECEIVER_ENDPOINT);
+        var endpoint = transferProcess.getPrivateProperties().get(HTTP_RECEIVER_ENDPOINT);
 
         if (endpoint == null) {
             endpoint = fallbackEndpoint;

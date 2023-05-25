@@ -524,6 +524,12 @@ components:
         managedResources:
           type: boolean
           example: null
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: string
+            example: null
+          example: null
         properties:
           type: object
           additionalProperties:

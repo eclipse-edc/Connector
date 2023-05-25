@@ -184,7 +184,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .dataRequest(dataRequest)
                 .type(CONSUMER)
                 .clock(clock)
-                .properties(dataRequest.getProperties())
+                .privateProperties(transferRequest.getPrivateProperties())
                 .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
@@ -588,12 +588,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
-                        .entityRetrieve(transferProcessStore::findById)
-                        .onDelay(this::breakLease)
-                        .onSuccess(this::handleDeprovisionResult)
-                        .onFailure((t, throwable) -> transitionToDeprovisioning(t))
-                        .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
-                        .execute("deprovisioning");
+                .entityRetrieve(transferProcessStore::findById)
+                .onDelay(this::breakLease)
+                .onSuccess(this::handleDeprovisionResult)
+                .onFailure((t, throwable) -> transitionToDeprovisioning(t))
+                .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
+                .execute("deprovisioning");
     }
 
     private void handleProvisionResponses(TransferProcess transferProcess, List<ProvisionResponse> responses) {

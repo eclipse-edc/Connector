@@ -74,6 +74,8 @@ class TransferRequestDtoToTransferRequestTransformerTest {
         assertThat(dataRequest.isManagedResources()).isEqualTo(transferReq.isManagedResources());
 
         assertThat(transferRequest.getCallbackAddresses()).hasSize(transferReq.getCallbackAddresses().size());
+        assertThat(transferRequest.getPrivateProperties()).isEqualTo(transferReq.getPrivateProperties());
+
     }
 
     @NotNull
@@ -86,7 +88,8 @@ class TransferRequestDtoToTransferRequestTransformerTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .connectorId(UUID.randomUUID().toString())
                 .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance().uri("local://test").build()))
-                .properties(Map.of("key1", "value1"));
+                .properties(Map.of("key1", "value1"))
+                .privateProperties(Map.of("privateKey", "privateValue"));
     }
 
 }

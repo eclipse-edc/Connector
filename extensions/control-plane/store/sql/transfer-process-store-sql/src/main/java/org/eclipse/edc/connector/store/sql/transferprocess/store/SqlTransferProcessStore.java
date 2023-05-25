@@ -257,7 +257,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getContentDataAddress()),
                 process.getType().toString(),
                 toJson(process.getDeprovisionedResources()),
-                toJson(process.getProperties()),
+                toJson(process.getPrivateProperties()),
                 toJson(process.getCallbackAddresses()));
 
         //insert DataRequest
@@ -302,7 +302,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 }))
                 .callbackAddresses(fromJson(resultSet.getString(statements.getCallbackAddressesColumn()), new TypeReference<>() {
                 }))
-                .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
+                .privateProperties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
                 .build();
     }
 
