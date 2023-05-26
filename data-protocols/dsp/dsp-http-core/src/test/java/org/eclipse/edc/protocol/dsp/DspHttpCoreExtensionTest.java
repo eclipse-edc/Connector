@@ -59,7 +59,7 @@ class DspHttpCoreExtensionTest {
 
 
         extension = factory.constructInstance(DspHttpCoreExtension.class);
-        var dispatcher = extension.dspHttpRemoteMessageDispatcher();
+        var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
         dispatcher.registerDelegate(new TestMessageDelegate());
         dispatcher.send(String.class, new TestMessage());
 
@@ -76,7 +76,7 @@ class DspHttpCoreExtensionTest {
 
 
         extension = factory.constructInstance(DspHttpCoreExtension.class);
-        var dispatcher = extension.dspHttpRemoteMessageDispatcher();
+        var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
         dispatcher.registerDelegate(new TestMessageDelegate());
         dispatcher.send(String.class, new TestMessage());
 
