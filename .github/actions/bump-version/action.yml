@@ -31,7 +31,7 @@ runs:
         newVersion="$RELEASE_VERSION_MAJOR.$RELEASE_VERSION_MINOR.$((RELEASE_VERSION_PATCH+1))"-SNAPSHOT
 
         # replace every occurrence of =$oldVersion with =$newVersion
-        grep -rlz "$oldVersion" . --exclude=\*.{sh,bin} | xargs sed -i 's/$oldVersion/$newVersion/g'
+        grep -rlz "$oldVersion" . --exclude=\*.{sh,bin} | xargs sed -i "s/$oldVersion/$newVersion/g"
 
         echo "Bumped the version from $oldVersion to $newVersion"
 
