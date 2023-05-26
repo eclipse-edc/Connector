@@ -81,7 +81,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         var querySpec = ofNullable(querySpecDto)
                 .map(jsonLd::expand)
                 .map(expandedMapper)
-                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
+                .orElse(Result.success(QuerySpec.none()))
                 .orElseThrow(InvalidRequestException::new);
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
