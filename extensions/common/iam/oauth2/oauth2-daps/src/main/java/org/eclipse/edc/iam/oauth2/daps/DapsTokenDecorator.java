@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 
 /**
  * Token decorator that sets the {@code scope} claim on the token that is used on DSP request egress
+ *
+ * @deprecated In future releases this will be replaced by a config value "edc.iam.token.scope"
  */
 @Deprecated(since = "0.1.0")
 public class DapsTokenDecorator implements TokenDecorator {

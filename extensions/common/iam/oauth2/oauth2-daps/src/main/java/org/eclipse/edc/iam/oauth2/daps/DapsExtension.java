@@ -27,6 +27,8 @@ import static java.lang.String.format;
 
 /**
  * Provides specialization of Oauth2 extension to interact with DAPS instance
+ *
+ * @deprecated This DAPS specific extension will be deleted and be replaced by configuration values
  */
 @Extension(value = DapsExtension.NAME)
 @Deprecated(since = "0.1.0")
