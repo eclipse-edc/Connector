@@ -8,17 +8,17 @@ Two new repositories will be created within the EDC GitHub organization:
 
 ## Rationale
 
-Currently, generally valid documents like the `pr_etiquette.md` or `CONTRIBUTING.md`
-are located at the Connector repository, although they apply to all repositories in the scope of the
+Currently, general documents like the `pr_etiquette.md` or `CONTRIBUTING.md`
+are located in the Connector repository, although they apply to all repositories in the scope of the
 EDC project. In addition, resources like style files or issue/pr templates are duplicated across
 repositories and, with this, are not up-to-date, as most of the changes to those documents are made
-in the Connector repo and are not transferred accordingly.
+in the Connector repo and are not replicated across the other component repos.
 
 The reasoning for moving these documents out to separate repositories is as follows:
 - simplify maintenance of files
-- facilitate the entrance for new community members
+- facilitate the onboarding for new community members
 - improve automation of GitHub processes
-- solidify creation process of new EDC repositories
+- harmonize creation process of new EDC repositories
 
 ## Approach
 
