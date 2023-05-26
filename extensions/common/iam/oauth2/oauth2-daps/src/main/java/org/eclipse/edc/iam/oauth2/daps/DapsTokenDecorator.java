@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 /**
  * Token decorator that sets the {@code scope} claim on the token that is used on DSP request egress
  */
+@Deprecated(since = "0.1.0")
 public class DapsTokenDecorator implements TokenDecorator {
     private final String scope;
 
