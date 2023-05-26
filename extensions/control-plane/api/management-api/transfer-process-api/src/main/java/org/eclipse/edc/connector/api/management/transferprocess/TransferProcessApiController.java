@@ -42,9 +42,11 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
@@ -70,16 +72,23 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Path("request")
     @Override
     public List<JsonObject> queryTransferProcesses(JsonObject querySpecDto) {
-        var querySpec = jsonLd.expand(querySpecDto)
-                .compose(expanded -> transformerRegistry.transform(expanded, QuerySpecDto.class))
-                .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
+
+        var querySpec = ofNullable(querySpecDto)
+                .map(jsonLd::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.none()))
                 .orElseThrow(InvalidRequestException::new);
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
             return stream
                     .map(policyDefinition -> transformerRegistry.transform(policyDefinition, TransferProcessDto.class)
                             .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)
-                            .compose(jsonLd::compact))
+                                    .compose(jsonLd::compact))
                             .onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
