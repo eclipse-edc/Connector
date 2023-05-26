@@ -965,7 +965,7 @@ class TransferProcessManagerImplTest {
         var processId = UUID.randomUUID().toString();
         var dataRequest = createDataRequestBuilder()
                 .processId(processId)
-                .protocol("ids-protocol")
+                .protocol("protocol")
                 .connectorAddress("http://an/address")
                 .managedResources(managed)
                 .build();

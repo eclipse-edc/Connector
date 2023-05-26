@@ -369,7 +369,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                 .state(ContractNegotiationStates.REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+                .protocol("protocol")
                 .build();
 
         store.save(negotiation);

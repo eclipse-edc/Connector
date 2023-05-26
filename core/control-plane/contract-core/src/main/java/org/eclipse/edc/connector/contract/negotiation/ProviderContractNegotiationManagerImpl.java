@@ -215,8 +215,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state AGREED. For the deprecated ids-protocol, it's transitioned
-     * to FINALIZED, otherwise to VERIFYING to make the verification process start.
+     * Processes {@link ContractNegotiation} in state VERIFIED. It transitions to FINALIZING to make the finalization process start.
      *
      * @return true if processed, false otherwise
      */

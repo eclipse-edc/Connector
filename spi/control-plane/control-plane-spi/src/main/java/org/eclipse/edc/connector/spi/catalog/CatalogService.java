@@ -14,21 +14,11 @@
 
 package org.eclipse.edc.connector.spi.catalog;
 
-import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.util.concurrent.CompletableFuture;
 
 public interface CatalogService {
-    /**
-     * Return the catalog of the passed provider url
-     *
-     * @param providerUrl the url of the provider
-     * @return the provider's catalog
-     * @deprecated please use {@link #request(String, String, QuerySpec)}
-     */
-    @Deprecated(since = "milestone9")
-    CompletableFuture<Catalog> getByProviderUrl(String providerUrl, QuerySpec spec);
 
     /**
      * Return the catalog of the passed provider url.

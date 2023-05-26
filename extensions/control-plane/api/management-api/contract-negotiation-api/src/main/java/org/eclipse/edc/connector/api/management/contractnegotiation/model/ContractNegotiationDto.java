@@ -42,7 +42,7 @@ public class ContractNegotiationDto extends MutableDto {
     private String counterPartyAddress;
     private String errorDetail;
 
-    private String protocol = "ids-multipart";
+    private String protocol;
     private String state;
     private Type type = Type.CONSUMER;
 

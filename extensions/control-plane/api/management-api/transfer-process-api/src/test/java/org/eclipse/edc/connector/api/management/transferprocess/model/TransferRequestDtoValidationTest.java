@@ -63,12 +63,12 @@ class TransferRequestDtoValidationTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of("id", null, "contractId", destination(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", null, destination(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", null, "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", null, "contractId", destination(), "protocol", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", null, destination(), "protocol", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", null, "protocol", "connectorId", "assetId"),
                     Arguments.of("id", "connectorAddress", "contractId", destination(), null, "connectorId", "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", destination(), "ids-multipart", null, "assetId"),
-                    Arguments.of("id", "connectorAddress", "contractId", destination(), "ids-multipart", "connectorId", null)
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), "protocol", null, "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), "protocol", "connectorId", null)
             );
         }
     }

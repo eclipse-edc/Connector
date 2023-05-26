@@ -38,7 +38,6 @@ import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -58,9 +57,6 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
-
-    @Inject
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     @Inject
     private WebService webService;
@@ -106,7 +102,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         webService.registerResource(controlApiConfiguration.getContextAlias(), new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager));
 
         var proxyReferenceService = createDataProxyReferenceService(context.getConfig(), typeManager);
-        dataFlowManager.register(new ConsumerPullTransferDataFlowController(context.getConnectorId(), proxyResolver, proxyReferenceService, dispatcherRegistry));
+        dataFlowManager.register(new ConsumerPullTransferDataFlowController(proxyResolver, proxyReferenceService));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, dataPlaneClient));
 
         var consumerProxyTransformer = new ConsumerPullTransferProxyTransformer(proxyResolver, proxyReferenceService);

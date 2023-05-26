@@ -40,7 +40,7 @@ public class NegotiationInitiateRequestDto extends BaseDto {
     @NotBlank(message = "connectorAddress is mandatory")
     private String connectorAddress; // TODO change to callbackAddress
     @NotBlank(message = "protocol is mandatory")
-    private String protocol = "ids-multipart";
+    private String protocol;
     @NotBlank(message = "connectorId is mandatory")
     private String connectorId;
     @NotNull(message = "offer cannot be null")

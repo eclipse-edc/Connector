@@ -42,7 +42,7 @@ public class TestFunctions {
                         .build()))
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+                .protocol("protocol")
                 .correlationId("correlationId");
     }
 

@@ -75,7 +75,7 @@ public class TestFunctions {
                         .uri("local://test")
                         .events(Set.of("contract.negotiation.initiated"))
                         .build()))
-                .protocol("ids-multipart");
+                .protocol("protocol");
     }
 
     public static Policy createPolicy() {

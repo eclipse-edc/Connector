@@ -200,18 +200,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state AGREED. For the deprecated ids-protocol, it's transitioned
-     * to FINALIZED, otherwise to VERIFYING to make the verification process start.
+     * Processes {@link ContractNegotiation} in state AGREED. It transitions to VERIFYING to make the verification process start.
      *
      * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processAgreed(ContractNegotiation negotiation) {
-        if ("ids-multipart".equals(negotiation.getProtocol())) {
-            transitionToFinalized(negotiation);
-            return true;
-        }
-
         transitionToVerifying(negotiation);
         return true;
     }
