@@ -95,13 +95,6 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
     }
 
     /**
-     * Alias for {@link AbstractResult#onFailure(Consumer)} to make code a bit more easily readable.
-     */
-    public R orElse(Consumer<F> failureAction) {
-        return onFailure(failureAction);
-    }
-
-    /**
      * Execute an action if this {@link Result} is not successful.
      *
      * @param failureAction The function that maps a {@link Failure} into the content.

@@ -560,7 +560,7 @@ class CosmosContractNegotiationStoreIntegrationTest extends ContractNegotiationS
                 .state(REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+                .protocol("protocol")
                 .build();
 
         store.save(negotiation);

@@ -17,10 +17,6 @@ package org.eclipse.edc.spi.system;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
-
-import java.time.Clock;
 
 /**
  * Context provided to extensions when they are initialized.
@@ -58,36 +54,6 @@ public interface ServiceExtensionContext extends SettingResolver {
      */
     default Monitor getMonitor() {
         return getService(Monitor.class);
-    }
-
-    /**
-     * Returns the system telemetry object.
-     *
-     * @deprecated please, @Inject the Telemetry service instead of using this method, that will be removed in the next releases.
-     */
-    @Deprecated(since = "milestone8")
-    default Telemetry getTelemetry() {
-        return getService(Telemetry.class);
-    }
-
-    /**
-     * Returns the type manager.
-     *
-     * @deprecated please, @Inject the TypeManager service instead of using this method, that will be removed in the next releases.
-     */
-    @Deprecated(since = "milestone8")
-    default TypeManager getTypeManager() {
-        return getService(TypeManager.class);
-    }
-
-    /**
-     * Returns the {@link Clock} to retrieve the current time, which can be mocked in unit tests.
-     *
-     * @deprecated please, @Inject the Clock service instead of using this method, that will be removed in the next releases.
-     */
-    @Deprecated(since = "milestone8")
-    default Clock getClock() {
-        return getService(Clock.class);
     }
 
     /**

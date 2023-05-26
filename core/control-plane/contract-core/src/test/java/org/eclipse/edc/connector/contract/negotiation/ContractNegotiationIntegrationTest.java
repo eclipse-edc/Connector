@@ -19,8 +19,11 @@ import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableI
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
@@ -64,7 +67,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -142,17 +144,20 @@ class ContractNegotiationIntegrationTest {
     void testNegotiation_initialOfferAccepted() {
         when(providerDispatcherRegistry.send(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
         when(consumerDispatcherRegistry.send(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
+        when(consumerDispatcherRegistry.send(any(), isA(ContractAgreementVerificationMessage.class))).then(onConsumerSentAgreementVerification());
+        when(providerDispatcherRegistry.send(any(), isA(ContractNegotiationEventMessage.class))).then(onProviderSentNegotiationEventMessage());
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
+        when(validationService.validateRequest(eq(token), any())).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
         providerManager.start();
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId(PROVIDER_ID).counterPartyAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId(PROVIDER_ID).counterPartyAddress("callbackAddress").contractOffer(offer).protocol("protocol").build();
 
         var request = ContractRequest.Builder.newInstance().callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).requestData(requestData).build();
 
@@ -173,7 +178,7 @@ class ContractNegotiationIntegrationTest {
             assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
             assertThat(providerNegotiation.getContractOffers()).hasSize(1);
             assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(offer);
-            assertThat(consumerNegotiation.getState()).isEqualTo(FINALIZED.code());
+            assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.FINALIZED.code());
             assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
             assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
@@ -196,7 +201,7 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("protocol").build();
 
         var request = ContractRequest.Builder.newInstance().requestData(requestData).build();
 
@@ -221,7 +226,7 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("ids-multipart").build();
+        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("protocol").build();
 
         var request = ContractRequest.Builder.newInstance().requestData(requestData).callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).build();
         consumerManager.initiate(request);
@@ -274,6 +279,24 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractAgreementMessage request = i.getArgument(1);
             var result = consumerService.notifyAgreed(request, token);
+            return toFuture(result);
+        };
+    }
+
+    @NotNull
+    private Answer<Object> onProviderSentNegotiationEventMessage() {
+        return i -> {
+            ContractNegotiationEventMessage request = i.getArgument(1);
+            var result = consumerService.notifyFinalized(request, token);
+            return toFuture(result);
+        };
+    }
+
+    @NotNull
+    private Answer<Object> onConsumerSentAgreementVerification() {
+        return i -> {
+            ContractAgreementVerificationMessage request = i.getArgument(1);
+            var result = providerService.notifyVerified(request, token);
             return toFuture(result);
         };
     }

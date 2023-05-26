@@ -21,32 +21,25 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataAddressConstants;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 public class ConsumerPullTransferDataFlowController implements DataFlowController {
 
-    private final String connectorId;
     private final ConsumerPullTransferProxyResolver proxyResolver;
     private final ConsumerPullTransferEndpointDataReferenceService proxyReferenceService;
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry;
 
-    public ConsumerPullTransferDataFlowController(String connectorId, ConsumerPullTransferProxyResolver proxyResolver, ConsumerPullTransferEndpointDataReferenceService proxyReferenceService, RemoteMessageDispatcherRegistry dispatcherRegistry) {
-        this.connectorId = connectorId;
+    public ConsumerPullTransferDataFlowController(ConsumerPullTransferProxyResolver proxyResolver, ConsumerPullTransferEndpointDataReferenceService proxyReferenceService) {
         this.proxyResolver = proxyResolver;
         this.proxyReferenceService = proxyReferenceService;
-        this.dispatcherRegistry = dispatcherRegistry;
     }
-
 
     @Override
     public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
@@ -57,7 +50,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     public @NotNull StatusResult<DataFlowResponse> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var proxyUrl = proxyResolver.resolveProxyUrl(contentAddress);
         if (proxyUrl.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, format("Failed to resolve proxy url for data request %s%n %s", dataRequest.getId(), proxyUrl.getFailureDetail()));
+            return StatusResult.failure(FATAL_ERROR, format("Failed to resolve proxy url for data request %s%n %s", dataRequest.getId(), proxyUrl.getFailureDetail()));
         }
 
         var proxyCreationRequest = ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder.newInstance()
@@ -67,31 +60,10 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
                 .contractId(dataRequest.getContractId())
                 .build();
 
-        var proxyCreationResult = proxyReferenceService.createProxyReference(proxyCreationRequest);
-        if (proxyCreationResult.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to generate proxy: " + proxyCreationResult.getFailureDetail());
-        }
-        return dispatch(proxyCreationResult.getContent(), dataRequest);
-    }
-
-    private StatusResult<DataFlowResponse> dispatch(@NotNull EndpointDataReference edr, @NotNull DataRequest dataRequest) {
-        var request = EndpointDataReferenceMessage.Builder.newInstance()
-                .connectorId(connectorId)
-                .callbackAddress(dataRequest.getConnectorAddress())
-                .protocol(dataRequest.getProtocol())
-                .endpointDataReference(edr)
-                .build();
-
-
-        var response = createResponse(edr);
-        if ("ids-multipart".equals(dataRequest.getProtocol())) {
-            return dispatcherRegistry.send(Object.class, request)
-                    .thenApply(o -> StatusResult.success(response))
-                    .exceptionally(throwable -> StatusResult.failure(ResponseStatus.ERROR_RETRY, "Transfer failed: " + throwable.getMessage()))
-                    .join();
-        } else {
-            return StatusResult.success(response);
-        }
+        return proxyReferenceService.createProxyReference(proxyCreationRequest)
+                .map(this::createResponse)
+                .map(StatusResult::success)
+                .orElse(failure -> StatusResult.failure(FATAL_ERROR, "Failed to generate proxy: " + failure.getFailureDetail()));
     }
 
     private DataFlowResponse createResponse(EndpointDataReference edr) {

@@ -57,7 +57,7 @@ public class TransferRequestDto {
     private Map<String, String> privateProperties = new HashMap<>();
 
     @NotNull(message = "protocol cannot be null")
-    private String protocol = "ids-multipart";
+    private String protocol;
     @NotNull(message = "connectorId cannot be null")
     private String connectorId;
     @NotNull(message = "assetId cannot be null")

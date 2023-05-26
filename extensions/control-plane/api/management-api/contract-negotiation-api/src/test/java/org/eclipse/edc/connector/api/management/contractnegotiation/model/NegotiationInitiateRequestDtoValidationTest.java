@@ -81,10 +81,10 @@ class NegotiationInitiateRequestDtoValidationTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of("", "ids-multipart", "connector-id", validOffer()),
+                    Arguments.of("", "protocol", "connector-id", validOffer()),
                     Arguments.of("https://connector.com", "", "connector-id", validOffer()),
-                    Arguments.of("https://connector.com", "ids-multipart", "connector-id", null),
-                    Arguments.of("https://connector.com", "ids-multipart", "", validOffer())
+                    Arguments.of("https://connector.com", "protocol", "connector-id", null),
+                    Arguments.of("https://connector.com", "protocol", "", validOffer())
             );
         }
     }

@@ -51,7 +51,7 @@ public class TestFunctions {
                         .keyName("Test Key Name")
                         .build())
                 .connectorAddress("http://some-connector.com")
-                .protocol("ids-multipart")
+                .protocol("protocol")
                 .connectorId("some-connector")
                 .contractId("some-contract")
                 .managedResources(false)

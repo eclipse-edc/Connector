@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     correlation_id       VARCHAR,
     counterparty_id      VARCHAR                                            NOT NULL,
     counterparty_address VARCHAR                                            NOT NULL,
-    protocol             VARCHAR DEFAULT 'ids-multipart'::CHARACTER VARYING NOT NULL,
+    protocol             VARCHAR                                            NOT NULL,
     type                 VARCHAR                                            NOT NULL,
     state                INTEGER DEFAULT 0                                  NOT NULL,
     state_count          INTEGER DEFAULT 0,

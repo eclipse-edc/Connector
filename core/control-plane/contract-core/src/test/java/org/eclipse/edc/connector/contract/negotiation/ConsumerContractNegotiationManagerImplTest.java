@@ -61,7 +61,6 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
@@ -209,21 +208,6 @@ class ConsumerContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == VERIFYING.code()));
-            verifyNoInteractions(dispatcherRegistry);
-        });
-    }
-
-    @Deprecated(since = "milestone9")
-    @Test
-    void agreed_shouldTransitionToFinalized_whenProtocolIsIdsMultipart() {
-        var negotiation = contractNegotiationBuilder().state(AGREED.code()).protocol("ids-multipart").build();
-        when(store.nextNotLeased(anyInt(), stateIs(AGREED.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(store.findById(negotiation.getId())).thenReturn(negotiation);
-
-        negotiationManager.start();
-
-        await().untilAsserted(() -> {
-            verify(store).save(argThat(p -> p.getState() == FINALIZED.code()));
             verifyNoInteractions(dispatcherRegistry);
         });
     }

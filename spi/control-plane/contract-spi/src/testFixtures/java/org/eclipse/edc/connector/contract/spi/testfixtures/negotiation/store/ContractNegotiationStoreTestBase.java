@@ -183,7 +183,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .correlationId("corr-test-id1")
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+                .protocol("protocol")
                 .build();
 
         getContractNegotiationStore().save(newNegotiation);
@@ -237,7 +237,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .correlationId("corr-test-id1")
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+                .protocol("protocol")
                 .build();
 
         // update should break lease
