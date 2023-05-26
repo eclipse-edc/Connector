@@ -20,6 +20,7 @@ import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
@@ -41,21 +42,18 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     private final Map<Class<? extends RemoteMessage>, DspHttpDispatcherDelegate<?, ?>> delegates;
     private final EdcHttpClient httpClient;
     private final IdentityService identityService;
+    private final TokenDecorator tokenDecorator;
 
-    public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient, IdentityService identityService) {
+    public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient, IdentityService identityService, TokenDecorator decorator) {
         this.httpClient = httpClient;
         this.identityService = identityService;
         this.delegates = new HashMap<>();
+        this.tokenDecorator = decorator;
     }
 
     @Override
     public String protocol() {
         return HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-    }
-
-    @Override
-    public <M extends RemoteMessage, R> void registerDelegate(DspHttpDispatcherDelegate<M, R> delegate) {
-        delegates.put(delegate.getMessageType(), delegate);
     }
 
     /**
@@ -65,7 +63,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
      * the delegate.
      *
      * @param responseType the expected response type
-     * @param message the message
+     * @param message      the message
      * @return a completable future for the response body
      */
     @Override
@@ -77,9 +75,10 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
         var request = delegate.buildRequest(message);
 
-        var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience(message.getCounterPartyAddress())
+        var tokenParameters = tokenDecorator.decorate(TokenParameters.Builder.newInstance())
+                .audience(message.getCounterPartyAddress()) // enforce the audience, ignore anything a decorator might have set
                 .build();
+
         var tokenResult = identityService.obtainClientCredentials(tokenParameters);
         if (tokenResult.failed()) {
             return failedFuture(new EdcException(format("Unable to obtain credentials: %s", String.join(", ", tokenResult.getFailureMessages()))));
@@ -91,6 +90,11 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
                 .build();
 
         return httpClient.executeAsync(requestWithAuth, List.of(statusMustBeSuccessful()), delegate.parseResponse());
+    }
+
+    @Override
+    public <M extends RemoteMessage, R> void registerDelegate(DspHttpDispatcherDelegate<M, R> delegate) {
+        delegates.put(delegate.getMessageType(), delegate);
     }
 
 }

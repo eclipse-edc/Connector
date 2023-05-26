@@ -24,8 +24,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -53,6 +55,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private JsonLd jsonLdService;
+    @Inject(required = false)
+    private TokenDecorator decorator;
 
     @Override
     public String name() {
@@ -60,8 +64,15 @@ public class DspHttpCoreExtension implements ServiceExtension {
     }
 
     @Provider
-    public DspHttpRemoteMessageDispatcher dspHttpRemoteMessageDispatcher() {
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService);
+    public DspHttpRemoteMessageDispatcher dspHttpRemoteMessageDispatcher(ServiceExtensionContext context) {
+        TokenDecorator td; // either a decorator, or noop
+        if (decorator != null) {
+            td = decorator;
+        } else {
+            context.getMonitor().warning("No TokenDecorator was registered. The 'scope' field of outgoing protocol messages will be empty");
+            td = bldr -> bldr;
+        }
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td);
         dispatcherRegistry.register(dispatcher);
         return dispatcher;
     }

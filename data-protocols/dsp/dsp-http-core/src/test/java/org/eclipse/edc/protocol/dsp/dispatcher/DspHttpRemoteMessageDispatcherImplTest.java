@@ -21,6 +21,8 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatche
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenDecorator;
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -48,11 +50,13 @@ class DspHttpRemoteMessageDispatcherImplTest {
     private final DspHttpDispatcherDelegate<TestMessage, String> delegate = mock(DspHttpDispatcherDelegate.class);
 
     private DspHttpRemoteMessageDispatcher dispatcher;
+    private TokenDecorator tokenDecoratorMock;
 
     @BeforeEach
     void setUp() {
-        dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService);
-
+        tokenDecoratorMock = mock(TokenDecorator.class);
+        when(tokenDecoratorMock.decorate(any())).thenAnswer(a -> a.getArgument(0));
+        dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecoratorMock);
         when(delegate.getMessageType()).thenReturn(TestMessage.class);
     }
 
@@ -83,6 +87,32 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(delegate).buildRequest(message);
         verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCounterPartyAddress())));
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
+    }
+
+    @Test
+    void send_ensureTokenDecoratorScope() {
+        var responseBody = "response";
+        Function<Response, String> responseFunction = response -> responseBody;
+        var authToken = "token";
+
+        when(tokenDecoratorMock.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).scope("test-scope"));
+        when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
+        when(delegate.parseResponse()).thenReturn(responseFunction);
+        when(httpClient.executeAsync(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(responseBody));
+        when(identityService.obtainClientCredentials(any()))
+                .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
+
+        dispatcher.registerDelegate(delegate);
+
+        var message = new TestMessage();
+        var result = dispatcher.send(String.class, message);
+
+        assertThat(result).succeedsWithin(5, TimeUnit.SECONDS).isEqualTo(responseBody);
+
+        verify(delegate).buildRequest(message);
+        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCounterPartyAddress())));
+        verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
+        verify(identityService).obtainClientCredentials(argThat(tp -> tp.getScope().equals("test-scope")));
     }
 
     @Test
