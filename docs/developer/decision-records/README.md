@@ -57,6 +57,7 @@
 - [2023-03-15-Repository_Split](2023-03-15_repository_split/)
 - [2023-03-31-Version Catalog per Component](2023-03-31-version-catalog-per-component)
 - [2023-04-18-API-controllers-testing](2023-04-18-api-controllers-testing)
+- [2023-05-17-Release-process](2023-05-17-release-process)
 - [2023-05-17-Helm-charts](2023-05-17-delete-helm-charts)
 - [2023-05-23-Java-17-baseline](2023-05-23-java-17-baseline)
 - [2023-05-25-template-repository](2023-05-25-template-repository)
