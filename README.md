@@ -48,8 +48,8 @@
 </p>
 
 The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will
-implement the International Data Spaces Dataspace Protocol (DSP) as well as relevant protocols associated with GAIA-X. The
-connector is designed in an extensible way in order to support alternative protocols and integrate in various
+implement the International Data Spaces Dataspace Protocol (DSP) as well as relevant protocols associated with GAIA-X.
+The connector is designed in an extensible way in order to support alternative protocols and integrate in various
 ecosystems.
 
 Please also refer to:
@@ -138,7 +138,7 @@ Then you can add snapshot dependencies by simply using the `-SNAPSHOT` version s
 
 ```kotlin
 dependencies {
-    implementation("org.eclipse.edc:spi:core-spi:0.0.1-SNAPSHOT")
+    implementation("org.eclipse.edc:spi:core-spi:0.1.0-SNAPSHOT")
     // any other dependencies
 }
 ```
