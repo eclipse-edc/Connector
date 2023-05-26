@@ -49,7 +49,7 @@
 
 The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will
 implement the International Data Spaces Dataspace Protocol (DSP) as well as relevant protocols associated with GAIA-X.
-connector is designed in an extensible way in order to support alternative protocols and integrate in various
+The connector is designed in an extensible way in order to support alternative protocols and integrate in various
 ecosystems.
 
 Please also refer to:
