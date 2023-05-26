@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - bugfix (pass correct lease id for deletion)
  *
  */
 
@@ -83,8 +84,10 @@ public class SqlLeaseContext implements LeaseContext {
             }
 
             //clean out old lease if present
-            var deleteStmt = statements.getDeleteLeaseTemplate();
-            executeQuery(connection, deleteStmt, entityId);
+            if (lease != null) {
+                var deleteStmt = statements.getDeleteLeaseTemplate();
+                executeQuery(connection, deleteStmt, lease.getLeaseId());
+            }
 
             // create new lease in DB
             var id = UUID.randomUUID().toString();
