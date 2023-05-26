@@ -68,6 +68,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -391,13 +392,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataRequest = process.getDataRequest();
 
-        DataAddress dataDestination;
-        var secret = vault.resolveSecret(dataRequest.getDataDestination().getKeyName());
-        if (secret != null) {
-            dataDestination = DataAddress.Builder.newInstance().properties(dataRequest.getDataDestination().getProperties()).property(SECRET, secret).build();
-        } else {
-            dataDestination = dataRequest.getDataDestination();
-        }
+        var dataDestination = Optional.ofNullable(dataRequest.getDataDestination().getKeyName())
+                .flatMap(key -> Optional.ofNullable(vault.resolveSecret(key)))
+                .map(secret -> DataAddress.Builder.newInstance().properties(dataRequest.getDataDestination().getProperties()).property(SECRET, secret).build())
+                .orElse(dataRequest.getDataDestination());
 
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId(dataRequest.getId())
