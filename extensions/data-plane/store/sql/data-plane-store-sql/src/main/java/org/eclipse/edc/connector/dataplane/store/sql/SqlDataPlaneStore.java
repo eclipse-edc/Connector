@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -25,9 +26,6 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.time.Clock;
-
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
 
 /**
  * SQL implementation of {@link DataPlaneStore}
@@ -39,8 +37,9 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
 
     private final Clock clock;
 
-    public SqlDataPlaneStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, DataPlaneStatements statements, ObjectMapper objectMapper, Clock clock) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
+    public SqlDataPlaneStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
+                             DataPlaneStatements statements, ObjectMapper objectMapper, Clock clock, QueryExecutor queryExecutor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
         this.clock = clock;
     }
@@ -95,18 +94,18 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
 
     private State stateById(Connection connection, String processId) {
         var sql = statements.getFindByIdTemplate();
-        return executeQuerySingle(connection, false, this::mapToState, sql, processId);
+        return queryExecutor.single(connection, false, this::mapToState, sql, processId);
     }
 
     private void insert(Connection connection, String processId, State state) {
         var sql = statements.getInsertTemplate();
         var createdAt = clock.millis();
-        executeQuery(connection, sql, processId, state.getCode(), createdAt, createdAt);
+        queryExecutor.execute(connection, sql, processId, state.getCode(), createdAt, createdAt);
     }
 
     private void update(Connection connection, String processId, State state) {
         var sql = statements.getUpdateTemplate();
         var updatedAt = clock.millis();
-        executeQuery(connection, sql, state.getCode(), updatedAt, processId);
+        queryExecutor.execute(connection, sql, state.getCode(), updatedAt, processId);
     }
 }

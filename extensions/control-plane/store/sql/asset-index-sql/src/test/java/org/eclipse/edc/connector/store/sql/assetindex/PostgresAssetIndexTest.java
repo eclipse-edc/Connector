@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.eclipse.edc.spi.testfixtures.asset.TestObject;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,13 +54,13 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
 
     private SqlAssetIndex sqlAssetIndex;
 
-
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension setupExtension) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) throws IOException {
         var typeManager = new TypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        sqlAssetIndex = new SqlAssetIndex(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(), setupExtension.getTransactionContext(), new ObjectMapper(), sqlStatements);
+        sqlAssetIndex = new SqlAssetIndex(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),
+                setupExtension.getTransactionContext(), new ObjectMapper(), sqlStatements, queryExecutor);
 
         var schema = Files.readString(Paths.get("docs/schema.sql"));
         setupExtension.runQuery(schema);

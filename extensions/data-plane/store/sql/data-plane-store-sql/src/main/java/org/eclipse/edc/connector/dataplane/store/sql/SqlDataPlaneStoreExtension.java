@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -56,6 +57,9 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private QueryExecutor queryExecutor;
+
     @Override
     public String name() {
         return NAME;
@@ -63,7 +67,8 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneStore dataPlaneStore(ServiceExtensionContext context) {
-        return new SqlDataPlaneStore(dataSourceRegistry, getDataSourceName(context), transactionContext, getStatementImpl(), typeManager.getMapper(), clock);
+        return new SqlDataPlaneStore(dataSourceRegistry, getDataSourceName(context), transactionContext, getStatementImpl(),
+                typeManager.getMapper(), clock, queryExecutor);
     }
 
     /**

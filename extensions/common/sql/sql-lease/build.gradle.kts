@@ -30,6 +30,8 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
     testImplementation(libs.postgres)
     testImplementation(libs.assertj)
+
+    testFixturesImplementation(project(":extensions:common:sql:sql-core"))
 }
 
 
