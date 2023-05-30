@@ -15,6 +15,8 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.specification.RequestSpecification;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -37,6 +39,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
+import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.Matchers.is;
 
@@ -101,6 +106,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                                 .build())
                         .build()
                 )
+                .add("callbackAddresses", createCallbackAddress())
                 .add("protocol", "dataspace-protocol-http")
                 .add("assetId", "assetId")
                 .build();
@@ -161,6 +167,14 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                         .protocol("dataspace-protocol-http")
                         .processId(id)
                         .build());
+    }
+
+    private JsonArrayBuilder createCallbackAddress() {
+        var builder = Json.createArrayBuilder();
+        return builder.add(createObjectBuilder()
+                .add(IS_TRANSACTIONAL, false)
+                .add(URI, "http://test.local/")
+                .add(EVENTS, Json.createArrayBuilder().build()));
     }
 
     private RequestSpecification baseRequest() {

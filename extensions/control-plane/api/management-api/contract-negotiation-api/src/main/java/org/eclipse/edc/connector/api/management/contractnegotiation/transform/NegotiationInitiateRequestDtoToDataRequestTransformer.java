@@ -19,13 +19,11 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Negoti
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
-import java.util.stream.Collectors;
 
 public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractRequest> {
 
@@ -62,8 +60,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .providerId(getId(object.getProviderId(), object.getConnectorAddress()))
                 .policy(object.getOffer().getPolicy())
                 .build();
-
-
+        
         var requestData = ContractRequestData.Builder.newInstance()
                 .connectorId(object.getConnectorId())
                 .counterPartyAddress(object.getConnectorAddress())
@@ -71,11 +68,9 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .contractOffer(contractOffer)
                 .build();
 
-        var callbacks = object.getCallbackAddresses().stream().map(c -> context.transform(c, CallbackAddress.class)).collect(Collectors.toList());
-
         return ContractRequest.Builder.newInstance()
                 .requestData(requestData)
-                .callbackAddresses(callbacks)
+                .callbackAddresses(object.getCallbackAddresses())
                 .build();
     }
 

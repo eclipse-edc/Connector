@@ -278,38 +278,6 @@ components:
         uri:
           type: string
           example: null
-    CallbackAddressDto:
-      type: object
-      example: null
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
-        authCodeId:
-          type: string
-          example: null
-        authKey:
-          type: string
-          example: null
-        events:
-          type: array
-          example: null
-          items:
-            type: string
-            example: null
-          uniqueItems: true
-        transactional:
-          type: boolean
-          example: null
-        uri:
-          type: string
-          example: null
-      required:
-      - events
-      - uri
     CriterionDto:
       type: object
       example: null
@@ -529,7 +497,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddressDto'
+            $ref: '#/components/schemas/CallbackAddress'
         connectorAddress:
           type: string
           example: null

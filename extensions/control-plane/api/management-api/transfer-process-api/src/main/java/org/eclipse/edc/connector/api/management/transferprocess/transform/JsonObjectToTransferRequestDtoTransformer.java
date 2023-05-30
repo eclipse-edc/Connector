@@ -20,10 +20,12 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -31,6 +33,7 @@ import java.util.function.Consumer;
 import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static jakarta.json.JsonValue.ValueType.OBJECT;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_ASSET_ID;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID;
@@ -63,6 +66,12 @@ public class JsonObjectToTransferRequestDtoTransformer extends AbstractJsonLdTra
                     return (v) -> builder.managedResources(transformBoolean(v, context));
                 case EDC_TRANSFER_REQUEST_DTO_PROPERTIES:
                     return (v) -> transformProperties(v, builder::properties, context);
+                case EDC_TRANSFER_REQUEST_DTO_CALLBACK_ADDRESSES:
+                    return (v) -> {
+                        var addresses = new ArrayList<CallbackAddress>();
+                        transformArrayOrObject(v, CallbackAddress.class, addresses::add, context);
+                        builder.callbackAddresses(addresses);
+                    };
                 case EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES:
                     return (v) -> transformProperties(v, builder::privateProperties, context);
                 case EDC_TRANSFER_REQUEST_DTO_PROTOCOL:
