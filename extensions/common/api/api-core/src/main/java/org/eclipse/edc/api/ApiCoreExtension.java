@@ -15,7 +15,6 @@
 package org.eclipse.edc.api;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.transformer.CallbackAddressDtoToCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.CriterionDtoToCriterionTransformer;
 import org.eclipse.edc.api.transformer.CriterionToCriterionDtoTransformer;
 import org.eclipse.edc.api.transformer.DataAddressDtoToDataAddressTransformer;
@@ -24,7 +23,7 @@ import org.eclipse.edc.api.transformer.JsonObjectFromCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectFromCriterionDtoTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectFromDataAddressDtoTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseDtoTransformer;
-import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressDtoTransformer;
+import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCriterionDtoTransformer;
 import org.eclipse.edc.api.transformer.QuerySpecDtoToQuerySpecTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -59,7 +58,6 @@ public class ApiCoreExtension implements ServiceExtension {
         transformerRegistry.register(new QuerySpecDtoToQuerySpecTransformer());
         transformerRegistry.register(new CriterionToCriterionDtoTransformer());
         transformerRegistry.register(new CriterionDtoToCriterionTransformer());
-        transformerRegistry.register(new CallbackAddressDtoToCallbackAddressTransformer());
         transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
         transformerRegistry.register(new DataAddressToDataAddressDtoTransformer());
 
@@ -71,7 +69,7 @@ public class ApiCoreExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromDataAddressDtoTransformer(jsonFactory));
         transformerRegistry.register(new JsonObjectFromIdResponseDtoTransformer(jsonFactory));
 
-        transformerRegistry.register(new JsonObjectToCallbackAddressDtoTransformer());
+        transformerRegistry.register(new JsonObjectToCallbackAddressTransformer());
         transformerRegistry.register(new JsonObjectToCriterionDtoTransformer());
     }
 }

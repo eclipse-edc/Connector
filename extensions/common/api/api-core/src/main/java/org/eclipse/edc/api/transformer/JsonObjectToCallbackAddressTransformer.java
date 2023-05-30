@@ -16,8 +16,8 @@ package org.eclipse.edc.api.transformer;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,22 +30,22 @@ import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
 
-public class JsonObjectToCallbackAddressDtoTransformer extends AbstractJsonLdTransformer<JsonObject, CallbackAddressDto> {
+public class JsonObjectToCallbackAddressTransformer extends AbstractJsonLdTransformer<JsonObject, CallbackAddress> {
 
-    public JsonObjectToCallbackAddressDtoTransformer() {
-        super(JsonObject.class, CallbackAddressDto.class);
+    public JsonObjectToCallbackAddressTransformer() {
+        super(JsonObject.class, CallbackAddress.class);
     }
 
     @Override
-    public @Nullable CallbackAddressDto transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var builder = CallbackAddressDto.Builder.newInstance();
+    public @Nullable CallbackAddress transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+        var builder = CallbackAddress.Builder.newInstance();
 
         visitProperties(jsonObject, (key, value) -> setProperties(key, value, builder, context));
 
         return builder.build();
     }
 
-    private void setProperties(String key, JsonValue value, CallbackAddressDto.Builder builder, TransformerContext context) {
+    private void setProperties(String key, JsonValue value, CallbackAddress.Builder builder, TransformerContext context) {
         switch (key) {
             case IS_TRANSACTIONAL:
                 builder.transactional(transformBoolean(value, context));

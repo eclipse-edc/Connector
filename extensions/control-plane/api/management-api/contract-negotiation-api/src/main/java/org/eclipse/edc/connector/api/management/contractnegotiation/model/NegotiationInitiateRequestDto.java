@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.api.model.BaseDto;
-import org.eclipse.edc.api.model.CallbackAddressDto;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class NegotiationInitiateRequestDto extends BaseDto {
     private String providerId;
     private String consumerId;
 
-    private List<CallbackAddressDto> callbackAddresses = new ArrayList<>();
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     private NegotiationInitiateRequestDto() {
 
@@ -79,7 +79,7 @@ public class NegotiationInitiateRequestDto extends BaseDto {
         return providerId;
     }
 
-    public List<CallbackAddressDto> getCallbackAddresses() {
+    public List<CallbackAddress> getCallbackAddresses() {
         return callbackAddresses;
     }
 
@@ -124,7 +124,7 @@ public class NegotiationInitiateRequestDto extends BaseDto {
             return this;
         }
 
-        public Builder callbackAddresses(List<CallbackAddressDto> callbackAddresses) {
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
             dto.callbackAddresses = callbackAddresses;
             return this;
         }

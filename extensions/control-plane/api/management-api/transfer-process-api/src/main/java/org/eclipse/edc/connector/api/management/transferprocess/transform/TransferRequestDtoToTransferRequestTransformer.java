@@ -18,14 +18,12 @@ import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class TransferRequestDtoToTransferRequestTransformer implements DtoTransformer<TransferRequestDto, TransferRequest> {
 
@@ -58,11 +56,9 @@ public class TransferRequestDtoToTransferRequestTransformer implements DtoTransf
                 .dataDestination(object.getDataDestination())
                 .build();
 
-        var callbacks = object.getCallbackAddresses().stream().map(c -> context.transform(c, CallbackAddress.class)).collect(Collectors.toList());
-
         return TransferRequest.Builder.newInstance()
                 .dataRequest(dataRequest)
-                .callbackAddresses(callbacks)
+                .callbackAddresses(object.getCallbackAddresses())
                 .privateProperties(object.getPrivateProperties())
                 .build();
     }

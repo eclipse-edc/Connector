@@ -227,7 +227,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
     private JsonArrayBuilder createCallbackAddress() {
         var builder = Json.createArrayBuilder();
         return builder.add(createObjectBuilder()
-                .add(IS_TRANSACTIONAL, true)
+                .add(IS_TRANSACTIONAL, false)
                 .add(URI, "http://test.local/")
                 .add(EVENTS, Json.createArrayBuilder().build()));
     }

@@ -16,10 +16,10 @@ package org.eclipse.edc.connector.api.management.transferprocess.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.DataRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -63,7 +63,7 @@ class JsonObjectFromTransferProcessDtoTransformerTest {
         var callbackAddresJson = Json.createObjectBuilder().build();
         when(context.transform(isA(DataAddressDto.class), any())).thenReturn(dataDestinationJson);
         when(context.transform(isA(DataRequestDto.class), any())).thenReturn(dataRequestJson);
-        when(context.transform(isA(CallbackAddressDto.class), any())).thenReturn(callbackAddresJson);
+        when(context.transform(isA(CallbackAddress.class), any())).thenReturn(callbackAddresJson);
         var input = TransferProcessDto.Builder.newInstance()
                 .id("transferProcessId")
                 .state("STATE")
@@ -72,7 +72,7 @@ class JsonObjectFromTransferProcessDtoTransformerTest {
                 .type("CONSUMER")
                 .dataDestination(DataAddressDto.Builder.newInstance().properties(Map.of("bar", "foo")).build())
                 .dataRequest(DataRequestDto.Builder.newInstance().build())
-                .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance().uri("http://any").events(emptySet()).build()))
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                 .errorDetail("an error")
                 .build();
 

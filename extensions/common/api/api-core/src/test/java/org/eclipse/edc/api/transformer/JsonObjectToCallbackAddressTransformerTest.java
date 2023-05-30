@@ -35,14 +35,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class JsonObjectToCallbackAddressDtoTransformerTest {
+class JsonObjectToCallbackAddressTransformerTest {
 
     private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
-    private JsonObjectToCallbackAddressDtoTransformer transformer;
+    private JsonObjectToCallbackAddressTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToCallbackAddressDtoTransformer();
+        transformer = new JsonObjectToCallbackAddressTransformer();
     }
 
     @Test

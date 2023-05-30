@@ -18,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +43,8 @@ public class TransferRequestDto {
     public static final String EDC_TRANSFER_REQUEST_DTO_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String EDC_TRANSFER_REQUEST_DTO_ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String EDC_TRANSFER_REQUEST_DTO_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
+
 
     private String id;
     @NotNull(message = "connectorAddress cannot be null")
@@ -63,7 +65,7 @@ public class TransferRequestDto {
     @NotNull(message = "assetId cannot be null")
     private String assetId;
 
-    private List<CallbackAddressDto> callbackAddresses = new ArrayList<>();
+    private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
 
     public String getConnectorAddress() {
@@ -106,7 +108,7 @@ public class TransferRequestDto {
         return assetId;
     }
 
-    public List<CallbackAddressDto> getCallbackAddresses() {
+    public List<CallbackAddress> getCallbackAddresses() {
         return callbackAddresses;
     }
 
@@ -173,7 +175,7 @@ public class TransferRequestDto {
             return this;
         }
 
-        public Builder callbackAddresses(List<CallbackAddressDto> callbackAddresses) {
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
             request.callbackAddresses = callbackAddresses;
             return this;
         }

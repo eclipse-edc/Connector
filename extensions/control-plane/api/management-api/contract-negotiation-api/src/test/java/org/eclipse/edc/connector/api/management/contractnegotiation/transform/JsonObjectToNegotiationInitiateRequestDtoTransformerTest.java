@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -90,11 +89,7 @@ class JsonObjectToNegotiationInitiateRequestDtoTransformerTest {
                 .events(Set.of("foo", "bar"))
                 .transactional(true)
                 .build());
-        when(context.transform(any(CallbackAddress.class), eq(CallbackAddressDto.class))).thenReturn(CallbackAddressDto.Builder.newInstance()
-                .uri("http://test.local")
-                .events(Set.of("foo", "bar"))
-                .transactional(true)
-                .build());
+        
         var dto = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
         assertThat(dto).isNotNull();

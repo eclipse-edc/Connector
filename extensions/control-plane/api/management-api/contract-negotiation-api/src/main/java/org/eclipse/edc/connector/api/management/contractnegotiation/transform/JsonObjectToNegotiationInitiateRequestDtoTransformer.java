@@ -16,10 +16,10 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,8 +67,8 @@ public class JsonObjectToNegotiationInitiateRequestDtoTransformer extends Abstra
                 transformString(value, builder::consumerId, context);
                 break;
             case CALLBACK_ADDRESSES:
-                var addresses = new ArrayList<CallbackAddressDto>();
-                transformArrayOrObject(value, CallbackAddressDto.class, addresses::add, context);
+                var addresses = new ArrayList<CallbackAddress>();
+                transformArrayOrObject(value, CallbackAddress.class, addresses::add, context);
                 builder.callbackAddresses(addresses);
                 break;
             case OFFER:

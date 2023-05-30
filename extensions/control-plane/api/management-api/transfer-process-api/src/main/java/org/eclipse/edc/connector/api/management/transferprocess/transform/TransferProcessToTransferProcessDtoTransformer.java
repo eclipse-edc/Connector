@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.transferprocess.transform;
 
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.transformer.DtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.DataRequestDto;
@@ -29,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Optional;
-
-import static java.util.stream.Collectors.toList;
 
 public class TransferProcessToTransferProcessDtoTransformer implements DtoTransformer<TransferProcess, TransferProcessDto> {
 
@@ -58,7 +55,7 @@ public class TransferProcessToTransferProcessDtoTransformer implements DtoTransf
                 .updatedAt(object.getUpdatedAt())
                 .dataRequest(context.transform(dataRequest, DataRequestDto.class))
                 .properties(object.getPrivateProperties())
-                .callbackAddresses(object.getCallbackAddresses().stream().map(it -> context.transform(it, CallbackAddressDto.class)).collect(toList()))
+                .callbackAddresses(object.getCallbackAddresses())
                 .dataDestination(
                         DataAddressDto.Builder.newInstance()
                                 .properties(dataRequestProperties)

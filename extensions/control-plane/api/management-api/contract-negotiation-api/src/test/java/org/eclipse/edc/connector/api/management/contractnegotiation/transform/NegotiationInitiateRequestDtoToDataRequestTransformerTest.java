@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +46,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
     @Test
     void verify_transform() {
-        var callback = CallbackAddressDto.Builder.newInstance()
+        var callback = CallbackAddress.Builder.newInstance()
                 .uri("local://test")
                 .build();
         var dto = NegotiationInitiateRequestDto.Builder.newInstance()
