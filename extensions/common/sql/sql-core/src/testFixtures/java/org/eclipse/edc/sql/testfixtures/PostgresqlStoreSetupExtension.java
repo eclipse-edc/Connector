@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.sql.testfixtures;
 
+import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -26,10 +28,10 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import java.sql.Connection;
+import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
 
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -42,21 +44,21 @@ import static org.mockito.Mockito.when;
  */
 public class PostgresqlStoreSetupExtension implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, ParameterResolver {
 
-
     private final String datasourceName;
     private DataSourceRegistry dataSourceRegistry = null;
     private DataSource dataSource = null;
     private Connection connection = null;
     private TransactionContext transactionContext = null;
+    private final QueryExecutor queryExecutor = new SqlQueryExecutor();
 
-    public PostgresqlStoreSetupExtension(String datasourceName) {
-        this.datasourceName = datasourceName;
-    }
-
+    @SuppressWarnings("unused")
     public PostgresqlStoreSetupExtension() {
         this(UUID.randomUUID().toString());
     }
 
+    public PostgresqlStoreSetupExtension(String datasourceName) {
+        this.datasourceName = datasourceName;
+    }
 
     public DataSource getDataSource() {
         return dataSource;
@@ -71,9 +73,8 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, AfterE
     }
 
     public int runQuery(String query) {
-        return transactionContext.execute(() -> executeQuery(connection, query));
+        return transactionContext.execute(() -> queryExecutor.execute(connection, query));
     }
-
 
     public TransactionContext getTransactionContext() {
         return transactionContext;
@@ -102,14 +103,14 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, AfterE
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) throws Exception {
+    public void beforeAll(ExtensionContext context) {
         PostgresqlLocalInstance.createTestDatabase();
     }
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
-        return type.equals(PostgresqlStoreSetupExtension.class);
+        return List.of(PostgresqlStoreSetupExtension.class, Connection.class, QueryExecutor.class).contains(type);
     }
 
     @Override
@@ -118,6 +119,10 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, AfterE
         var type = parameterContext.getParameter().getParameterizedType();
         if (type.equals(PostgresqlStoreSetupExtension.class)) {
             return this;
+        } else if (type.equals(Connection.class)) {
+            return connection;
+        } else if (type.equals(QueryExecutor.class)) {
+            return queryExecutor;
         }
         return null;
     }

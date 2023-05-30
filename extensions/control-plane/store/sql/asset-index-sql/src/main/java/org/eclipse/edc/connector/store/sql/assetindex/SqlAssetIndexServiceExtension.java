@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -44,11 +45,14 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private QueryExecutor queryExecutor;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
 
-        var sqlAssetLoader = new SqlAssetIndex(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), getDialect());
+        var sqlAssetLoader = new SqlAssetIndex(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), getDialect(), queryExecutor);
 
         context.registerService(AssetIndex.class, sqlAssetLoader);
         context.registerService(DataAddressResolver.class, sqlAssetLoader);

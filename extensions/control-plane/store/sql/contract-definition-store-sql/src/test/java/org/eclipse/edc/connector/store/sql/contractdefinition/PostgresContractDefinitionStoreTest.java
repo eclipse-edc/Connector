@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,12 +51,13 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
     private SqlContractDefinitionStore sqlContractDefinitionStore;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        sqlContractDefinitionStore = new SqlContractDefinitionStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), statements, typeManager.getMapper());
+        sqlContractDefinitionStore = new SqlContractDefinitionStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
+                extension.getTransactionContext(), statements, typeManager.getMapper(), queryExecutor);
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         extension.runQuery(schema);
     }

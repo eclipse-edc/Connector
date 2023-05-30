@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":spi:common:transaction-datasource-spi"))
 
 
-    testImplementation(libs.h2)
+    testImplementation(project(":core:common:junit"))
     testFixturesImplementation(libs.postgres)
     testFixturesImplementation(libs.junit.jupiter.api)
     testFixturesImplementation(project(":spi:common:transaction-datasource-spi"))

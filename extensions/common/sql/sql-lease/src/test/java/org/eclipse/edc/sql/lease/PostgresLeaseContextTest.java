@@ -17,13 +17,16 @@ package org.eclipse.edc.sql.lease;
 
 import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.sql.ResultSetMapper;
+import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
+import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,29 +36,30 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.sql.DataSource;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-class PostgresLeaseContextTest extends LeaseContextTest {
+@ExtendWith(PostgresqlStoreSetupExtension.class)
+class PostgresLeaseContextTest {
+
+    protected static final String LEASE_HOLDER = "test-leaser";
+    protected final Instant now = Clock.systemUTC().instant();
+
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final TestEntityLeaseStatements dialect = new TestEntityLeaseStatements();
-    private final DataSource dataSource = mock(DataSource.class);
-    private final Connection connection = spy(PostgresqlLocalInstance.getTestConnection());
     private SqlLeaseContextBuilder builder;
     private SqlLeaseContext leaseContext;
+    private final SqlQueryExecutor queryExecutor = new SqlQueryExecutor();
 
     @BeforeAll
     static void prepare() {
@@ -63,29 +67,100 @@ class PostgresLeaseContextTest extends LeaseContextTest {
     }
 
     @BeforeEach
-    void setup() throws SQLException, IOException {
-        when(dataSource.getConnection()).thenReturn(connection);
-        doNothing().when(connection).close();
-
+    void setup(PostgresqlStoreSetupExtension setupExtension, Connection connection) throws IOException {
         var schema = Files.readString(Paths.get("./src/test/resources/schema.sql"));
-        transactionContext.execute(() -> executeQuery(connection, schema));
+        setupExtension.runQuery(schema);
 
-        builder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, Clock.fixed(now, UTC));
-        leaseContext = createLeaseContext(LEASE_HOLDER);
+        builder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, Clock.fixed(now, UTC), queryExecutor);
+        leaseContext = builder.by(LEASE_HOLDER).withConnection(connection);
     }
 
     @AfterEach
-    void teardown() throws SQLException {
-        transactionContext.execute(() -> {
-            executeQuery(connection, "DROP TABLE " + dialect.getLeaseTableName() + " CASCADE");
-            executeQuery(connection, "DROP TABLE " + dialect.getEntityTableName() + " CASCADE");
-        });
-        doCallRealMethod().when(connection).close();
-        connection.close();
+    void teardown(PostgresqlStoreSetupExtension setupExtension) {
+        setupExtension.runQuery("DROP TABLE " + dialect.getLeaseTableName() + " CASCADE");
+        setupExtension.runQuery("DROP TABLE " + dialect.getEntityTableName() + " CASCADE");
     }
 
     @Test
-    void acquireLease_whenExpiredLeasePresent_shouldDeleteOldLeaseAndAcquireNewLease() throws SQLException {
+    void breakLease(Connection connection) {
+        insertTestEntity("id1", connection);
+        leaseContext.acquireLease("id1");
+        assertThat(isLeased("id1", connection)).isTrue();
+
+        leaseContext.breakLease("entityId");
+        assertThat(isLeased("id1", connection)).isTrue();
+    }
+
+    @Test
+    void breakLease_whenNotExist() {
+        leaseContext.breakLease("not-exist");
+        //should not throw an exception
+    }
+
+    @Test
+    void breakLease_whenLeaseByOther(Connection connection) {
+        var id = "test-id";
+        insertTestEntity(id, connection);
+        leaseContext.acquireLease(id);
+
+        //break lease as someone else
+        var leaseContext = builder.by("someone-else").withConnection(connection);
+        assertThatThrownBy(() -> leaseContext.breakLease(id)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void acquireLease(Connection connection) {
+        var id = "test-id";
+        insertTestEntity(id, connection);
+
+        leaseContext.acquireLease(id);
+
+        assertThat(isLeased(id, connection)).isTrue();
+        var leaseAssert = assertThat(leaseContext.getLease(id));
+        leaseAssert.extracting(SqlLease::getLeaseId).isNotNull();
+        leaseAssert.extracting(SqlLease::getLeasedBy).isEqualTo(LEASE_HOLDER);
+        leaseAssert.extracting(SqlLease::getLeasedAt).matches(l -> l <= now.toEpochMilli());
+        leaseAssert.extracting(SqlLease::getLeaseDuration).isEqualTo(60_000L);
+    }
+
+    @Test
+    void acquireLease_leasedBySelf_throwsException(Connection connection) {
+
+        var id = "test-id";
+        insertTestEntity(id, connection);
+
+        leaseContext.acquireLease(id);
+        assertThatThrownBy(() -> leaseContext.acquireLease(id)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void acquireLease_leasedByOther_throwsException(Connection connection) {
+
+        var id = "test-id";
+        insertTestEntity(id, connection);
+
+        leaseContext.acquireLease(id);
+
+        var leaseContext = builder.by("someone-else").withConnection(connection);
+        assertThatThrownBy(() -> leaseContext.acquireLease(id)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void getLease(Connection connection) {
+        var id = "test-id";
+        insertTestEntity(id, connection);
+
+        leaseContext.acquireLease(id);
+        assertThat(leaseContext.getLease(id)).isNotNull();
+    }
+
+    @Test
+    void getLease_notExist() {
+        assertThat(leaseContext.getLease("not-exist")).isNull();
+    }
+
+    @Test
+    void acquireLease_whenExpiredLeasePresent_shouldDeleteOldLeaseAndAcquireNewLease(Connection connection) throws SQLException {
         var preparedStatementReference = new AtomicReference<PreparedStatement>();
         when(connection.prepareStatement(dialect.getDeleteLeaseTemplate(), PreparedStatement.RETURN_GENERATED_KEYS)).thenAnswer((mocks) -> {
             PreparedStatement preparedStatement = (PreparedStatement) mocks.callRealMethod();
@@ -95,8 +170,8 @@ class PostgresLeaseContextTest extends LeaseContextTest {
         });
 
         var entityId = "test-entity";
-        insertTestEntity(entityId);
-        var leaseContext = createLeaseContext("someone-else");
+        insertTestEntity(entityId, connection);
+        var leaseContext = builder.by("someone-else").withConnection(connection);
 
         // no lease present, acquire one
         leaseContext.acquireLease(entityId);
@@ -106,7 +181,7 @@ class PostgresLeaseContextTest extends LeaseContextTest {
 
         // should acquire lease by deleting old one after lease expiry
         var twoMinutesAheadClock = Clock.offset(Clock.fixed(now, UTC), Duration.of(2, ChronoUnit.MINUTES));
-        var twoMinutesAheadBuilder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, twoMinutesAheadClock);
+        var twoMinutesAheadBuilder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, twoMinutesAheadClock, queryExecutor);
         var twoMinutesAheadContext = twoMinutesAheadBuilder.by("someone-else").withConnection(connection);
         twoMinutesAheadContext.acquireLease(entityId);
 
@@ -117,38 +192,25 @@ class PostgresLeaseContextTest extends LeaseContextTest {
         verify(preparedStatementReference.get(), times(1)).setString(1, leaseId);
     }
 
-    @Override
-    protected SqlLeaseContext createLeaseContext(String holder) {
-        return builder.by(holder).withConnection(connection);
-    }
-
-    @Override
-    protected SqlLeaseContext getLeaseContext() {
-        return leaseContext;
-    }
-
-    @Override
-    protected boolean isLeased(String entityId) {
+    protected boolean isLeased(String entityId, Connection connection) {
         return transactionContext.execute(() -> {
-            var entity = getTestEntity(entityId);
+            var entity = getTestEntity(entityId, connection);
             return entity.getLeaseId() != null;
         });
     }
 
-    @Override
-    protected void insertTestEntity(String id) {
+    protected void insertTestEntity(String id, Connection connection) {
         transactionContext.execute(() -> {
             var stmt = "INSERT INTO " + dialect.getEntityTableName() + " (id) VALUES (?);";
-            executeQuery(connection, stmt, id);
+            queryExecutor.execute(connection, stmt, id);
         });
     }
 
-    @Override
-    protected TestEntity getTestEntity(String id) {
+    protected TestEntity getTestEntity(String id, Connection connection) {
         return transactionContext.execute(() -> {
             var stmt = "SELECT * FROM " + dialect.getEntityTableName() + " WHERE id=?";
 
-            try (var stream = executeQuery(connection, false, map(), stmt, id)) {
+            try (var stream = queryExecutor.query(connection, false, map(), stmt, id)) {
                 return stream.findFirst().orElse(null);
             }
         });
@@ -182,6 +244,24 @@ class PostgresLeaseContextTest extends LeaseContextTest {
 
         public String getEntityTableName() {
             return "edc_test_entity";
+        }
+    }
+
+    protected static class TestEntity {
+        private final String id;
+        private final String leaseId;
+
+        TestEntity(String id, String leaseId) {
+            this.id = id;
+            this.leaseId = leaseId;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getLeaseId() {
+            return leaseId;
         }
     }
 

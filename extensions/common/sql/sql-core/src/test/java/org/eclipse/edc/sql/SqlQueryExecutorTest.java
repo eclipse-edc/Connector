@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 class SqlQueryExecutorTest {
     private static final String DUMMY_SQL = "<not intended to be actually evaluated>";
+    private final SqlQueryExecutor executor = new SqlQueryExecutor();
 
     @ParameterizedTest
     @ArgumentsSource(TestExecuteParametrizedArgumentProvider.class)
@@ -45,7 +46,7 @@ class SqlQueryExecutorTest {
         when(connection.prepareStatement(DUMMY_SQL, Statement.RETURN_GENERATED_KEYS)).thenReturn(preparedStatement);
         when(preparedStatement.execute()).thenReturn(true);
 
-        SqlQueryExecutor.executeQuery(connection, DUMMY_SQL, argument);
+        executor.execute(connection, DUMMY_SQL, argument);
 
         verification.verify(preparedStatement);
     }

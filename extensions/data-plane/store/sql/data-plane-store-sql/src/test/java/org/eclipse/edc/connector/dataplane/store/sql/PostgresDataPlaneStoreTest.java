@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataPlaneStatements;
 import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.time.Clock;
 
 
@@ -40,21 +40,21 @@ public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
     private SqlDataPlaneStore store;
 
-
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException, SQLException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
 
         var typeManager = new TypeManager();
 
         var clock = Clock.systemUTC();
 
-        store = new SqlDataPlaneStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), statements, typeManager.getMapper(), clock);
+        store = new SqlDataPlaneStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
+                statements, typeManager.getMapper(), clock, queryExecutor);
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         extension.runQuery(schema);
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getDataPlaneTable() + " CASCADE");
     }
 

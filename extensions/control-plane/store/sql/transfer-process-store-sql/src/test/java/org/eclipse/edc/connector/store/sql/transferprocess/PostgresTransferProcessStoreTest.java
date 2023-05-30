@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -36,12 +37,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
-import java.util.stream.IntStream;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,21 +59,23 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     private SqlTransferProcessStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
 
         var typeManager = new TypeManager();
         typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
-        store = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), typeManager.getMapper(), statements, "test-connector", clock);
+        store = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
+                extension.getTransactionContext(), typeManager.getMapper(), statements, "test-connector",
+                clock, queryExecutor);
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         extension.runQuery(schema);
     }
 
     @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws SQLException {
+    void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getTransferProcessTableName() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getDataRequestTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getLeaseTableName() + " CASCADE");
@@ -180,13 +182,23 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     @Override
     @Test
     protected void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         assertThatThrownBy(() -> getTransferProcessStore().findAll(query))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Translation failed for Model");
+    }
+
+    @Test
+    void query_6000_items() {
+        range(0, 6000).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+        var query = QuerySpec.Builder.newInstance().limit(6000).build();
+
+        var result = getTransferProcessStore().findAll(query);
+
+        assertThat(result).hasSize(6000);
     }
 
     @Override

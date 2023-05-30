@@ -26,6 +26,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -51,11 +52,15 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private QueryExecutor queryExecutor;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME);
 
-        var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext, getStatementImpl(), typeManager.getMapper());
+        var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext,
+                getStatementImpl(), typeManager.getMapper(), queryExecutor);
 
         context.registerService(ContractDefinitionStore.class, sqlContractDefinitionStore);
     }

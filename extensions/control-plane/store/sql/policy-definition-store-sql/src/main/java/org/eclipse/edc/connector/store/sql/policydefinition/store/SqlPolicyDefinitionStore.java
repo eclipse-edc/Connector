@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -41,8 +42,6 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuery;
-import static org.eclipse.edc.sql.SqlQueryExecutor.executeQuerySingle;
 
 public class SqlPolicyDefinitionStore extends AbstractSqlStore implements PolicyDefinitionStore {
 
@@ -59,8 +58,8 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     };
 
     public SqlPolicyDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                    ObjectMapper objectMapper, SqlPolicyStoreStatements sqlPolicyStoreStatements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper);
+                                    ObjectMapper objectMapper, SqlPolicyStoreStatements sqlPolicyStoreStatements, QueryExecutor queryExecutor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         statements = Objects.requireNonNull(sqlPolicyStoreStatements);
     }
 
@@ -70,7 +69,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
             var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("id", "=", id))).build();
             try {
                 var queryStatement = statements.createQuery(query);
-                return executeQuerySingle(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+                return queryExecutor.single(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -84,7 +83,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         return transactionContext.execute(() -> {
             try {
                 var queryStatement = statements.createQuery(querySpec);
-                return executeQuery(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+                return queryExecutor.query(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -124,7 +123,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
             try (var connection = getConnection()) {
                 var entity = findById(policyId);
                 if (entity != null) {
-                    executeQuery(connection, statements.getDeleteTemplate(), policyId);
+                    queryExecutor.execute(connection, statements.getDeleteTemplate(), policyId);
                     return StoreResult.success(entity);
                 }
                 return StoreResult.notFound(format(POLICY_NOT_FOUND, policyId));
@@ -139,7 +138,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
             try (var connection = getConnection()) {
                 var policy = def.getPolicy();
                 var id = def.getUid();
-                executeQuery(connection, statements.getInsertTemplate(),
+                queryExecutor.execute(connection, statements.getInsertTemplate(),
                         id,
                         toJson(policy.getPermissions(), permissionListType),
                         toJson(policy.getProhibitions(), prohibitionListType),
@@ -162,7 +161,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
             try (var connection = getConnection()) {
                 var policy = def.getPolicy();
                 var id = def.getUid();
-                executeQuery(connection, statements.getUpdateTemplate(),
+                queryExecutor.execute(connection, statements.getUpdateTemplate(),
                         toJson(policy.getPermissions(), permissionListType),
                         toJson(policy.getProhibitions(), prohibitionListType),
                         toJson(policy.getObligations(), dutyListType),

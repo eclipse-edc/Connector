@@ -28,6 +28,7 @@ import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -68,18 +69,20 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     private static final String TEST_ASSET_ID = "test-asset-id";
     private SqlContractNegotiationStore store;
     private LeaseUtil leaseUtil;
+    private final Clock clock = Clock.systemUTC();
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
         var statements = new PostgresDialectStatements();
         var manager = new TypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(), manager.getMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
+        store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
+                extension.getTransactionContext(), manager.getMapper(), statements, CONNECTOR_NAME, clock, queryExecutor);
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         extension.runQuery(schema);
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, Clock.systemUTC());
+        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
     }
 
     @AfterEach

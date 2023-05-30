@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.sql.lease.testfixtures;
 
+import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.lease.LeaseStatements;
 import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -35,15 +36,7 @@ public class LeaseUtil {
 
     public LeaseUtil(TransactionContext context, Supplier<Connection> connectionSupplier, LeaseStatements statements, Clock clock) {
         this.connectionSupplier = connectionSupplier;
-        leaseContextBuilder = SqlLeaseContextBuilder.with(context, "test", statements, clock);
-    }
-
-    public void leaseEntity(String tpId, String leaseHolder) {
-        try (var conn = connectionSupplier.get()) {
-            leaseContextBuilder.by(leaseHolder).withConnection(conn).acquireLease(tpId);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        leaseContextBuilder = SqlLeaseContextBuilder.with(context, "test", statements, clock, new SqlQueryExecutor());
     }
 
     public void leaseEntity(String tpId, String leaseHolder, Duration leaseDuration) {
