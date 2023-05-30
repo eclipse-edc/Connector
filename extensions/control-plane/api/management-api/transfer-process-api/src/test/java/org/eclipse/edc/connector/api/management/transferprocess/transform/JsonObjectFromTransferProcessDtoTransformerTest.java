@@ -20,6 +20,7 @@ import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.DataRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -72,7 +73,7 @@ class JsonObjectFromTransferProcessDtoTransformerTest {
                 .type("CONSUMER")
                 .dataDestination(DataAddressDto.Builder.newInstance().properties(Map.of("bar", "foo")).build())
                 .dataRequest(DataRequestDto.Builder.newInstance().build())
-                .callbackAddresses(List.of(CallbackAddressDto.Builder.newInstance().uri("http://any").events(emptySet()).build()))
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                 .errorDetail("an error")
                 .build();
 

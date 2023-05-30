@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.transferprocess.transform;
 
-import org.eclipse.edc.api.model.CallbackAddressDto;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.DataRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
@@ -22,6 +21,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
     @Test
     void transform() {
         when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
-        when(context.transform(any(), eq(CallbackAddressDto.class))).thenReturn(data.callbackAddressDto);
+        when(context.transform(any(), eq(CallbackAddress.class))).thenReturn(data.callbackAddressDto);
 
         var result = transformer.transform(data.entity.build(), context);
 
@@ -72,7 +72,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
     @Test
     void transform_whenInvalidState() {
         when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
-        when(context.transform(any(), eq(CallbackAddressDto.class))).thenReturn(data.callbackAddressDto);
+        when(context.transform(any(), eq(CallbackAddress.class))).thenReturn(data.callbackAddressDto);
         when(context.problem()).thenReturn(new ProblemBuilder(context));
 
         data.entity.state(invalidStateCode());
@@ -90,7 +90,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
     @Test
     void transform_whenMinimalData() {
         when(context.transform(any(), eq(DataRequestDto.class))).thenReturn(data.dataRequestDto);
-        when(context.transform(any(), eq(CallbackAddressDto.class))).thenReturn(data.callbackAddressDto);
+        when(context.transform(any(), eq(CallbackAddress.class))).thenReturn(data.callbackAddressDto);
         data.dto.state(INITIAL.name());
 
         data.dataDestination = DataAddress.Builder.newInstance().type(data.dataDestinationType);
