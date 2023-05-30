@@ -70,7 +70,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
+class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     private final ContractNegotiationService service = mock(ContractNegotiationService.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     private final JsonLd jsonLd = new TitaniumJsonLd(monitor);
@@ -481,7 +481,7 @@ class ContractNegotiationNewApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new ContractNegotiationNewApiController(service, transformerRegistry, jsonLd, monitor);
+        return new ContractNegotiationApiController(service, transformerRegistry, jsonLd, monitor);
     }
 
     private RequestSpecification baseRequest() {
