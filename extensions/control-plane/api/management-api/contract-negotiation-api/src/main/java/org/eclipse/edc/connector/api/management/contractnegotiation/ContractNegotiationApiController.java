@@ -16,8 +16,7 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
-import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -34,6 +33,8 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Negoti
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -43,132 +44,133 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 
-@Path("/contractnegotiations")
+@Path("/v2/contractnegotiations")
 public class ContractNegotiationApiController implements ContractNegotiationApi {
-    private final Monitor monitor;
     private final ContractNegotiationService service;
     private final TypeTransformerRegistry transformerRegistry;
+    private final JsonLd jsonLdService;
+    private final Monitor monitor;
 
-    public ContractNegotiationApiController(Monitor monitor, ContractNegotiationService service, TypeTransformerRegistry transformerRegistry) {
-        this.monitor = monitor;
+    public ContractNegotiationApiController(ContractNegotiationService service, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService, Monitor monitor) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
-    }
-
-    @GET
-    @Override
-    @Deprecated
-    public List<ContractNegotiationDto> getNegotiations(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        return queryContractNegotiations(querySpecDto);
+        this.jsonLdService = jsonLdService;
+        this.monitor = monitor;
     }
 
     @POST
     @Path("/request")
     @Override
-    public List<ContractNegotiationDto> queryNegotiations(@Valid QuerySpecDto querySpecDto) {
-        return queryContractNegotiations(ofNullable(querySpecDto).orElse(QuerySpecDto.Builder.newInstance().build()));
-    }
+    public List<JsonObject> queryNegotiations(JsonObject querySpecDto) {
 
-    @GET
-    @Path("/{id}")
-    @Override
-    public ContractNegotiationDto getNegotiation(@PathParam("id") String id) {
-        monitor.debug(format("Get contract negotiation with id %s", id));
+        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
+                expandedResult -> expandedResult
+                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
 
-        return Optional.of(id)
-                .map(service::findbyId)
-                .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id));
-    }
-
-    @GET
-    @Path("/{id}/state")
-    @Override
-    public NegotiationState getNegotiationState(@PathParam("id") String id) {
-        monitor.debug(format("Get contract negotiation state with id %s", id));
-        return Optional.of(id)
-                .map(service::getState)
-                .map(NegotiationState::new)
-                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id));
-    }
-
-    @GET
-    @Path("/{id}/agreement")
-    @Override
-    public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
-        monitor.debug(format("Get contract agreement of negotiation with id %s", negotiationId));
-
-        return Optional.of(negotiationId)
-                .map(service::getForNegotiation)
-                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
-                .filter(Result::succeeded)
-                .map(Result::getContent)
-                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, negotiationId));
-    }
-
-    @POST
-    @Override
-    public IdResponseDto initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
-        var transformResult = transformerRegistry.transform(initiateDto, ContractRequest.class);
-        if (transformResult.failed()) {
-            throw new InvalidRequestException(transformResult.getFailureMessages());
-        }
-
-        var request = transformResult.getContent();
-
-        var contractNegotiation = service.initiateNegotiation(request);
-        return IdResponseDto.Builder.newInstance()
-                .id(contractNegotiation.getId())
-                .createdAt(contractNegotiation.getCreatedAt())
-                .build();
-    }
-
-    @POST
-    @Path("/{id}/cancel")
-    @Override
-    public void cancelNegotiation(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to cancel contract negotiation with id %s", id));
-        var result = service.cancel(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
-        monitor.debug(format("Contract negotiation canceled %s", result.getId()));
-    }
-
-    @POST
-    @Path("/{id}/decline")
-    @Override
-    public void declineNegotiation(@PathParam("id") String id) {
-        monitor.debug(format("Attempting to decline contract negotiation with id %s", id));
-        var result = service.decline(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
-        monitor.debug(format("Contract negotiation declined %s", result.getId()));
-    }
-
-    private List<ContractNegotiationDto> queryContractNegotiations(QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            throw new InvalidRequestException(result.getFailureMessages());
-        }
-
-        var spec = result.getContent();
-
-        monitor.debug(format("Get all contract negotiations %s", spec));
+        var spec = ofNullable(querySpecDto)
+                .map(jsonLdService::expand)
+                .map(expandedMapper)
+                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
+                .orElseThrow(InvalidRequestException::new);
 
         try (var stream = service.query(spec).orElseThrow(exceptionMapper(ContractNegotiation.class, null))) {
             return stream
-                    .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
+                    .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class)
+                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+                            .compose(jsonLdService::compact))
+                    .peek(this::logIfError)
                     .filter(Result::succeeded)
                     .map(Result::getContent)
                     .collect(Collectors.toList());
         }
     }
 
+    @GET
+    @Path("/{id}")
+    @Override
+    public JsonObject getNegotiation(@PathParam("id") String id) {
+
+        return Optional.of(id)
+                .map(service::findbyId)
+                .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class)
+                        .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+                        .compose(jsonLdService::compact)
+                        .orElseThrow(InvalidRequestException::new))
+                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id));
+    }
+
+    @GET
+    @Path("/{id}/state")
+    @Override
+    public JsonObject getNegotiationState(@PathParam("id") String id) {
+        return Optional.of(id)
+                .map(service::getState)
+                .map(NegotiationState::new)
+                .map(state -> transformerRegistry.transform(state, JsonObject.class).compose(jsonLdService::compact))
+                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id))
+                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
+    }
+
+    @GET
+    @Path("/{id}/agreement")
+    @Override
+    public JsonObject getAgreementForNegotiation(@PathParam("id") String negotiationId) {
+        return Optional.of(negotiationId)
+                .map(service::getForNegotiation)
+                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
+                        .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+                        .compose(jsonLdService::compact)
+                        .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
+                .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, negotiationId));
+    }
+
+    @POST
+    @Override
+    public JsonObject initiateContractNegotiation(JsonObject requestObject) {
+        var contractRequest = jsonLdService.expand(requestObject)
+                .compose(expanded -> transformerRegistry.transform(expanded, NegotiationInitiateRequestDto.class))
+                .compose(dto -> transformerRegistry.transform(dto, ContractRequest.class))
+                .orElseThrow(InvalidRequestException::new);
+
+
+        var contractNegotiation = service.initiateNegotiation(contractRequest);
+
+        var responseDto = IdResponseDto.Builder.newInstance()
+                .id(contractNegotiation.getId())
+                .createdAt(contractNegotiation.getCreatedAt())
+                .build();
+
+        return transformerRegistry.transform(responseDto, JsonObject.class)
+                .compose(jsonLdService::compact)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
+
+    @POST
+    @Path("/{id}/cancel")
+    @Override
+    public void cancelNegotiation(@PathParam("id") String id) {
+        service.cancel(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
+    @POST
+    @Path("/{id}/decline")
+    @Override
+    public void declineNegotiation(@PathParam("id") String id) {
+        service.decline(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
+
+    private void logIfError(Result<?> result) {
+        result.onFailure(f -> monitor.warning(f.getFailureDetail()));
+    }
 }

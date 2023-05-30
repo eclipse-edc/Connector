@@ -4,14 +4,14 @@ info:
   description: EDC REST APIs - merged by OpenApiMerger
   version: 0.1.0-SNAPSHOT
 servers:
-  - url: /
+- url: /
 tags:
-  - name: Data Plane control API
-    description: 'Api targeted by the Control Plane to delegate a data transfer (Provider
+- name: Data Plane control API
+  description: 'Api targeted by the Control Plane to delegate a data transfer (Provider
     Push or Streaming) to the Data Plane after the contract has been successfully
     negotiated and agreed between the two participants. '
-  - name: Data Plane public API
-    description: "The public API of the Data Plane is a data proxy enabling a data consumer\
+- name: Data Plane public API
+  description: "The public API of the Data Plane is a data proxy enabling a data consumer\
     \ to actively querydata from the provider data source (e.g. backend Rest API,\
     \ internal database...) through its Data Planeinstance. Thus the Data Plane is\
     \ the only entry/output door for the data, which avoids the provider to exposedirectly\
@@ -25,17 +25,17 @@ paths:
   /callback/{processId}/deprovision:
     post:
       tags:
-        - HTTP Provisioner Webhook
+      - HTTP Provisioner Webhook
       operationId: callDeprovisionWebhook
       parameters:
-        - name: processId
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -45,21 +45,21 @@ paths:
         default:
           description: default response
           content:
-            application/json: { }
+            application/json: {}
   /callback/{processId}/provision:
     post:
       tags:
-        - HTTP Provisioner Webhook
+      - HTTP Provisioner Webhook
       operationId: callProvisionWebhook
       parameters:
-        - name: processId
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -69,11 +69,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: { }
+            application/json: {}
   /check/health:
     get:
       tags:
-        - Application Observability
+      - Application Observability
       description: Performs a liveness probe to determine whether the runtime is working
         properly.
       operationId: checkHealth
@@ -89,7 +89,7 @@ paths:
   /check/liveness:
     get:
       tags:
-        - Application Observability
+      - Application Observability
       description: Performs a liveness probe to determine whether the runtime is working
         properly.
       operationId: getLiveness
@@ -105,7 +105,7 @@ paths:
   /check/readiness:
     get:
       tags:
-        - Application Observability
+      - Application Observability
       description: Performs a readiness probe to determine whether the runtime is
         able to accept requests.
       operationId: getReadiness
@@ -121,7 +121,7 @@ paths:
   /check/startup:
     get:
       tags:
-        - Application Observability
+      - Application Observability
       description: Performs a startup probe to determine whether the runtime has completed
         startup.
       operationId: getStartup
@@ -134,352 +134,10 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
-  /contractnegotiations:
-    get:
-      tags:
-        - Contract Negotiation
-      description: Returns all contract negotiations according to a query
-      operationId: getNegotiations
-      parameters:
-        - name: offset
-          in: query
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: integer
-            format: int32
-            example: null
-        - name: limit
-          in: query
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: integer
-            format: int32
-            example: null
-        - name: sort
-          in: query
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: string
-            example: null
-            enum:
-              - ASC
-              - DESC
-        - name: sortField
-          in: query
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: string
-            example: null
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractNegotiationDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-    post:
-      tags:
-        - Contract Negotiation
-      description: "Initiates a contract negotiation for a given offer and with the\
-        \ given counter part. Please note that successfully invoking this endpoint\
-        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
-        \ endpoint to track the state"
-      operationId: initiateContractNegotiation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
-      responses:
-        "200":
-          description: The negotiation was successfully initiated. Returns the contract
-            negotiation ID and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdResponseDto'
-          links:
-            poll-state:
-              operationId: getNegotiationState
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractnegotiations/request:
-    post:
-      tags:
-        - Contract Negotiation
-      description: Returns all contract negotiations according to a query
-      operationId: queryNegotiations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QuerySpecDto'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ContractNegotiationDto'
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractnegotiations/{id}:
-    get:
-      tags:
-        - Contract Negotiation
-      description: Gets an contract negotiation with the given ID
-      operationId: getNegotiation
-      parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
-      responses:
-        "200":
-          description: The contract negotiation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractNegotiationDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractnegotiations/{id}/agreement:
-    get:
-      tags:
-        - Contract Negotiation
-      description: Gets a contract agreement for a contract negotiation with the given
-        ID
-      operationId: getAgreementForNegotiation
-      parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
-      responses:
-        "200":
-          description: "The contract agreement that is attached to the negotiation,\
-            \ or null"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractnegotiations/{id}/cancel:
-    post:
-      tags:
-        - Contract Negotiation
-      description: "Requests aborting the contract negotiation. Due to the asynchronous\
-        \ nature of contract negotiations, a successful response only indicates that\
-        \ the request was successfully received. Clients must poll the /{id}/state\
-        \ endpoint to track the state."
-      operationId: cancelNegotiation
-      parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
-      responses:
-        "200":
-          description: Request to cancel the Contract negotiation was successfully
-            received
-          links:
-            poll-state:
-              operationId: getNegotiationState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractnegotiations/{id}/decline:
-    post:
-      tags:
-        - Contract Negotiation
-      description: "Requests cancelling the contract negotiation. Due to the asynchronous\
-        \ nature of contract negotiations, a successful response only indicates that\
-        \ the request was successfully received. Clients must poll the /{id}/state\
-        \ endpoint to track the state."
-      operationId: declineNegotiation
-      parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
-      responses:
-        "200":
-          description: Request to decline the Contract negotiation was successfully
-            received
-          links:
-            poll-state:
-              operationId: getNegotiationState
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
-  /contractnegotiations/{id}/state:
-    get:
-      tags:
-        - Contract Negotiation
-      description: Gets the state of a contract negotiation with the given ID
-      operationId: getNegotiationState
-      parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
-      responses:
-        "200":
-          description: The contract negotiation's state
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NegotiationState'
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ApiErrorDetail'
-      deprecated: true
   /instances:
     get:
       tags:
-        - Dataplane Selector
+      - Dataplane Selector
       operationId: getAll
       responses:
         default:
@@ -493,7 +151,7 @@ paths:
                   $ref: '#/components/schemas/DataPlaneInstance'
     post:
       tags:
-        - Dataplane Selector
+      - Dataplane Selector
       operationId: addEntry
       requestBody:
         content:
@@ -504,11 +162,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: { }
+            application/json: {}
   /instances/select:
     post:
       tags:
-        - Dataplane Selector
+      - Dataplane Selector
       operationId: find
       requestBody:
         content:
@@ -525,20 +183,20 @@ paths:
   /token:
     get:
       tags:
-        - Consumer Pull Token Validation
+      - Consumer Pull Token Validation
       description: "Checks that the provided token has been signed by the present\
         \ entity and asserts its validity. If token is valid, then the data address\
         \ contained in its claims is decrypted and returned back to the caller."
       operationId: validate
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: Authorization
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Token is valid
@@ -549,7 +207,7 @@ paths:
   /transfer:
     post:
       tags:
-        - Data Plane control API
+      - Data Plane control API
       description: Initiates a data transfer for the given request. The transfer will
         be performed asynchronously.
       operationId: initiateTransfer
@@ -566,38 +224,38 @@ paths:
   /transfer/{processId}:
     get:
       tags:
-        - Data Plane control API
+      - Data Plane control API
       description: Get the current state of a data transfer.
       operationId: getTransferState
       parameters:
-        - name: processId
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Missing access token
   /transferprocess/{processId}/complete:
     post:
       tags:
-        - Transfer Process Control Api
+      - Transfer Process Control Api
       description: "Requests completion of the transfer process. Due to the asynchronous\
         \ nature of transfers, a successful response only indicates that the request\
         \ was successfully received"
       operationId: complete
       parameters:
-        - name: processId
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "400":
           description: "Request was malformed, e.g. id was null"
@@ -611,20 +269,20 @@ paths:
   /transferprocess/{processId}/fail:
     post:
       tags:
-        - Transfer Process Control Api
+      - Transfer Process Control Api
       description: "Requests completion of the transfer process. Due to the asynchronous\
         \ nature of transfers, a successful response only indicates that the request\
         \ was successfully received"
       operationId: fail
       parameters:
-        - name: processId
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -644,7 +302,7 @@ paths:
   /v2/assets:
     put:
       tags:
-        - Asset
+      - Asset
       description: "Updates an asset with the given ID if it exists. If the asset\
         \ is not found, no further action is taken. DANGER ZONE: Note that updating\
         \ assets can have unexpected results, especially for contract offers that\
@@ -671,7 +329,7 @@ paths:
           description: "Asset could not be updated, because it does not exist."
     post:
       tags:
-        - Asset
+      - Asset
       description: Creates a new asset together with a data address
       operationId: createAsset
       requestBody:
@@ -709,7 +367,7 @@ paths:
   /v2/assets/request:
     post:
       tags:
-        - Asset
+      - Asset
       description: ' all assets according to a particular query'
       operationId: requestAssets
       requestBody:
@@ -738,18 +396,18 @@ paths:
   /v2/assets/{assetId}/dataaddress:
     put:
       tags:
-        - Asset
+      - Asset
       description: Updates a DataAddress for an asset with the given ID.
       operationId: updateDataAddress
       parameters:
-        - name: assetId
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: assetId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -779,18 +437,18 @@ paths:
   /v2/assets/{id}:
     get:
       tags:
-        - Asset
+      - Asset
       description: Gets an asset with the given ID
       operationId: getAsset
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The asset
@@ -818,7 +476,7 @@ paths:
                   $ref: '#/components/schemas/ApiErrorDetail'
     delete:
       tags:
-        - Asset
+      - Asset
       description: "Removes an asset with the given ID if possible. Deleting an asset\
         \ is only possible if that asset is not yet referenced by a contract agreement,\
         \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
@@ -826,14 +484,14 @@ paths:
         \ sent out or ongoing or contract negotiations."
       operationId: removeAsset
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Asset was deleted successfully
@@ -868,18 +526,18 @@ paths:
   /v2/assets/{id}/dataaddress:
     get:
       tags:
-        - Asset
+      - Asset
       description: Gets a data address of an asset with the given ID
       operationId: getAssetDataAddress
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The data address
@@ -908,7 +566,7 @@ paths:
   /v2/catalog/request:
     post:
       tags:
-        - Catalog
+      - Catalog
       operationId: requestCatalog
       requestBody:
         content:
@@ -925,7 +583,7 @@ paths:
   /v2/contractagreements/request:
     post:
       tags:
-        - Contract Agreement
+      - Contract Agreement
       description: Gets all contract agreements according to a particular query
       operationId: queryAllAgreements
       requestBody:
@@ -954,18 +612,18 @@ paths:
   /v2/contractagreements/{id}:
     get:
       tags:
-        - Contract Agreement
+      - Contract Agreement
       description: Gets an contract agreement with the given ID
       operationId: getAgreementById
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The contract agreement
@@ -994,7 +652,7 @@ paths:
   /v2/contractdefinitions:
     put:
       tags:
-        - Contract Definition
+      - Contract Definition
       description: Updated a contract definition with the given ID. The supplied JSON
         structure must be a valid JSON-LD object
       operationId: updateContractDefinition
@@ -1026,7 +684,7 @@ paths:
                   $ref: '#/components/schemas/ApiErrorDetail'
     post:
       tags:
-        - Contract Definition
+      - Contract Definition
       description: Creates a new contract definition
       operationId: createContractDefinition
       requestBody:
@@ -1064,7 +722,7 @@ paths:
   /v2/contractdefinitions/request:
     post:
       tags:
-        - Contract Definition
+      - Contract Definition
       description: Returns all contract definitions according to a query
       operationId: queryAllContractDefinitions
       requestBody:
@@ -1093,18 +751,18 @@ paths:
   /v2/contractdefinitions/{id}:
     get:
       tags:
-        - Contract Definition
+      - Contract Definition
       description: Gets an contract definition with the given ID
       operationId: getContractDefinition
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The contract definition
@@ -1132,21 +790,21 @@ paths:
                   $ref: '#/components/schemas/ApiErrorDetail'
     delete:
       tags:
-        - Contract Definition
+      - Contract Definition
       description: "Removes a contract definition with the given ID if possible. DANGER\
         \ ZONE: Note that deleting contract definitions can have unexpected results,\
         \ especially for contract offers that have been sent out or ongoing or contract\
         \ negotiations."
       operationId: deleteContractDefinition
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Contract definition was deleted successfully
@@ -1171,12 +829,12 @@ paths:
   /v2/contractnegotiations:
     post:
       tags:
-        - Contract Negotiation
+      - Contract Negotiation
       description: "Initiates a contract negotiation for a given offer and with the\
         \ given counter part. Please note that successfully invoking this endpoint\
         \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
         \ endpoint to track the state"
-      operationId: initiateContractNegotiation_1
+      operationId: initiateContractNegotiation
       requestBody:
         content:
           application/json:
@@ -1207,9 +865,9 @@ paths:
   /v2/contractnegotiations/request:
     post:
       tags:
-        - Contract Negotiation
+      - Contract Negotiation
       description: Returns all contract negotiations according to a query
-      operationId: queryNegotiations_1
+      operationId: queryNegotiations
       requestBody:
         content:
           application/json:
@@ -1236,18 +894,18 @@ paths:
   /v2/contractnegotiations/{id}:
     get:
       tags:
-        - Contract Negotiation
+      - Contract Negotiation
       description: Gets a contract negotiation with the given ID
-      operationId: getNegotiation_1
+      operationId: getNegotiation
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The contract negotiation
@@ -1276,19 +934,19 @@ paths:
   /v2/contractnegotiations/{id}/agreement:
     get:
       tags:
-        - Contract Negotiation
+      - Contract Negotiation
       description: Gets a contract agreement for a contract negotiation with the given
         ID
-      operationId: getAgreementForNegotiation_1
+      operationId: getAgreementForNegotiation
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: "The contract agreement that is attached to the negotiation,\
@@ -1318,21 +976,21 @@ paths:
   /v2/contractnegotiations/{id}/cancel:
     post:
       tags:
-        - Contract Negotiation
+      - Contract Negotiation
       description: "Requests aborting the contract negotiation. Due to the asynchronous\
         \ nature of contract negotiations, a successful response only indicates that\
         \ the request was successfully received. Clients must poll the /{id}/state\
         \ endpoint to track the state."
-      operationId: cancelNegotiation_1
+      operationId: cancelNegotiation
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Request to cancel the Contract negotiation was successfully
@@ -1361,21 +1019,21 @@ paths:
   /v2/contractnegotiations/{id}/decline:
     post:
       tags:
-        - Contract Negotiation
+      - Contract Negotiation
       description: "Requests cancelling the contract negotiation. Due to the asynchronous\
         \ nature of contract negotiations, a successful response only indicates that\
         \ the request was successfully received. Clients must poll the /{id}/state\
         \ endpoint to track the state."
-      operationId: declineNegotiation_1
+      operationId: declineNegotiation
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Request to decline the Contract negotiation was successfully
@@ -1404,18 +1062,18 @@ paths:
   /v2/contractnegotiations/{id}/state:
     get:
       tags:
-        - Contract Negotiation
+      - Contract Negotiation
       description: Gets the state of a contract negotiation with the given ID
-      operationId: getNegotiationState_1
+      operationId: getNegotiationState
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The contract negotiation's state
@@ -1444,7 +1102,7 @@ paths:
   /v2/policydefinitions:
     post:
       tags:
-        - Policy Definition
+      - Policy Definition
       description: Creates a new policy definition
       operationId: createPolicyDefinition
       requestBody:
@@ -1482,7 +1140,7 @@ paths:
   /v2/policydefinitions/request:
     post:
       tags:
-        - Policy Definition
+      - Policy Definition
       description: Returns all policy definitions according to a query
       operationId: queryPolicyDefinitions
       requestBody:
@@ -1511,18 +1169,18 @@ paths:
   /v2/policydefinitions/{id}:
     get:
       tags:
-        - Policy Definition
+      - Policy Definition
       description: Gets a policy definition with the given ID
       operationId: getPolicyDefinition
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The  policy definition
@@ -1550,19 +1208,19 @@ paths:
                   $ref: '#/components/schemas/ApiErrorDetail'
     put:
       tags:
-        - Policy Definition
+      - Policy Definition
       description: "Updates an existing Policy, If the Policy is not found, an error\
         \ is reported"
       operationId: updatePolicyDefinition
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -1590,7 +1248,7 @@ paths:
                 $ref: '#/components/schemas/ApiErrorDetail'
     delete:
       tags:
-        - Policy Definition
+      - Policy Definition
       description: "Removes a policy definition with the given ID if possible. Deleting\
         \ a policy definition is only possible if that policy definition is not yet\
         \ referenced by a contract definition, in which case an error is returned.\
@@ -1598,14 +1256,14 @@ paths:
         \ do this at your own risk!"
       operationId: deletePolicyDefinition
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Policy definition was deleted successfully
@@ -1640,7 +1298,7 @@ paths:
   /v2/transferprocesses:
     post:
       tags:
-        - Transfer Process
+      - Transfer Process
       description: "Initiates a data transfer with the given parameters. Please note\
         \ that successfully invoking this endpoint only means that the transfer was\
         \ initiated. Clients must poll the /{id}/state endpoint to track the state"
@@ -1675,7 +1333,7 @@ paths:
   /v2/transferprocesses/request:
     post:
       tags:
-        - Transfer Process
+      - Transfer Process
       description: Returns all transfer process according to a query
       operationId: queryTransferProcesses
       requestBody:
@@ -1704,18 +1362,18 @@ paths:
   /v2/transferprocesses/{id}:
     get:
       tags:
-        - Transfer Process
+      - Transfer Process
       description: Gets an transfer process with the given ID
       operationId: getTransferProcess
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The transfer process
@@ -1744,7 +1402,7 @@ paths:
   /v2/transferprocesses/{id}/deprovision:
     post:
       tags:
-        - Transfer Process
+      - Transfer Process
       description: "Requests the deprovisioning of resources associated with a transfer\
         \ process. Due to the asynchronous nature of transfers, a successful response\
         \ only indicates that the request was successfully received. This may take\
@@ -1752,14 +1410,14 @@ paths:
         \ state."
       operationId: deprovisionTransferProcess
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: Request to deprovision the transfer process was successfully
@@ -1788,18 +1446,18 @@ paths:
   /v2/transferprocesses/{id}/state:
     get:
       tags:
-        - Transfer Process
+      - Transfer Process
       description: Gets the state of a transfer process with the given ID
       operationId: getTransferProcessState
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       responses:
         "200":
           description: The  transfer process's state
@@ -1828,21 +1486,21 @@ paths:
   /v2/transferprocesses/{id}/terminate:
     post:
       tags:
-        - Transfer Process
+      - Transfer Process
       description: "Requests the termination of a transfer process. Due to the asynchronous\
         \ nature of transfers, a successful response only indicates that the request\
         \ was successfully received. Clients must poll the /{id}/state endpoint to\
         \ track the state."
       operationId: terminateTransferProcess
       parameters:
-        - name: id
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-            example: null
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: null
       requestBody:
         content:
           application/json:
@@ -1885,7 +1543,7 @@ paths:
   /{any}:
     get:
       tags:
-        - Data Plane public API
+      - Data Plane public API
       description: Send `GET` data query to the Data Plane.
       operationId: get
       responses:
@@ -1897,7 +1555,7 @@ paths:
           description: Failed to transfer data
     put:
       tags:
-        - Data Plane public API
+      - Data Plane public API
       description: Send `PUT` data query to the Data Plane.
       operationId: put
       responses:
@@ -1909,7 +1567,7 @@ paths:
           description: Failed to transfer data
     post:
       tags:
-        - Data Plane public API
+      - Data Plane public API
       description: Send `POST` data query to the Data Plane.
       operationId: post
       responses:
@@ -1921,7 +1579,7 @@ paths:
           description: Failed to transfer data
     delete:
       tags:
-        - Data Plane public API
+      - Data Plane public API
       description: Send `DELETE` data query to the Data Plane.
       operationId: delete
       responses:
@@ -1933,7 +1591,7 @@ paths:
           description: Failed to transfer data
     patch:
       tags:
-        - Data Plane public API
+      - Data Plane public API
       description: Send `PATCH` data query to the Data Plane.
       operationId: patch
       responses:
@@ -1998,8 +1656,8 @@ components:
       example: null
     AssetEntryNewDto:
       required:
-        - asset
-        - dataAddress
+      - asset
+      - dataAddress
       type: object
       properties:
         asset:
@@ -2038,7 +1696,7 @@ components:
       example: null
     AssetUpdateRequestDto:
       required:
-        - properties
+      - properties
       type: object
       properties:
         '@context':
@@ -2085,8 +1743,8 @@ components:
       example: null
     CallbackAddressDto:
       required:
-        - events
-        - uri
+      - events
+      - uri
       type: object
       properties:
         '@context':
@@ -2145,7 +1803,7 @@ components:
       example: null
     CatalogRequestDto:
       required:
-        - providerUrl
+      - providerUrl
       type: object
       properties:
         '@context':
@@ -2165,7 +1823,7 @@ components:
       example: null
     Constraint:
       required:
-        - edctype
+      - edctype
       type: object
       properties:
         edctype:
@@ -2176,11 +1834,11 @@ components:
         propertyName: edctype
     ContractAgreementDto:
       required:
-        - '@id'
-        - assetId
-        - consumerId
-        - policy
-        - providerId
+      - '@id'
+      - assetId
+      - consumerId
+      - policy
+      - providerId
       type: object
       properties:
         '@context':
@@ -2304,8 +1962,8 @@ components:
           type: string
           example: null
           enum:
-            - CONSUMER
-            - PROVIDER
+          - CONSUMER
+          - PROVIDER
         updatedAt:
           type: integer
           format: int64
@@ -2328,9 +1986,9 @@ components:
       example: null
     ContractOfferDescription:
       required:
-        - assetId
-        - offerId
-        - policy
+      - assetId
+      - offerId
+      - policy
       type: object
       properties:
         assetId:
@@ -2348,8 +2006,8 @@ components:
       example: null
     CriterionDto:
       required:
-        - operandLeft
-        - operator
+      - operandLeft
+      - operator
       type: object
       properties:
         '@context':
@@ -2380,7 +2038,7 @@ components:
       example: null
     DataAddressDto:
       required:
-        - properties
+      - properties
       type: object
       properties:
         '@context':
@@ -2633,13 +2291,13 @@ components:
           type: string
           example: null
           enum:
-            - ARRAY
-            - OBJECT
-            - STRING
-            - NUMBER
-            - "TRUE"
-            - "FALSE"
-            - "NULL"
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
       additionalProperties:
         $ref: '#/components/schemas/JsonValue'
       example: null
@@ -2650,20 +2308,20 @@ components:
           type: string
           example: null
           enum:
-            - ARRAY
-            - OBJECT
-            - STRING
-            - NUMBER
-            - "TRUE"
-            - "FALSE"
-            - "NULL"
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
       example: null
     NegotiationInitiateRequestDto:
       required:
-        - connectorAddress
-        - connectorId
-        - offer
-        - protocol
+      - connectorAddress
+      - connectorId
+      - offer
+      - protocol
       type: object
       properties:
         '@context':
@@ -2740,9 +2398,9 @@ components:
           type: string
           example: null
           enum:
-            - SET
-            - OFFER
-            - CONTRACT
+          - SET
+          - OFFER
+          - CONTRACT
         assignee:
           type: string
           example: null
@@ -2779,7 +2437,7 @@ components:
       example: null
     PolicyDefinitionRequestDto:
       required:
-        - policy
+      - policy
       type: object
       properties:
         '@id':
@@ -2790,7 +2448,7 @@ components:
       example: null
     PolicyDefinitionResponseDto:
       required:
-        - policy
+      - policy
       type: object
       properties:
         '@context':
@@ -2811,7 +2469,7 @@ components:
       example: null
     PolicyDefinitionUpdateDto:
       required:
-        - policy
+      - policy
       type: object
       properties:
         policy:
@@ -2839,11 +2497,11 @@ components:
       example: null
     ProvisionerWebhookRequest:
       required:
-        - apiKeyJwt
-        - assetId
-        - contentDataAddress
-        - resourceDefinitionId
-        - resourceName
+      - apiKeyJwt
+      - assetId
+      - contentDataAddress
+      - resourceDefinitionId
+      - resourceName
       type: object
       properties:
         apiKeyJwt:
@@ -2893,8 +2551,8 @@ components:
           type: string
           example: null
           enum:
-            - ASC
-            - DESC
+          - ASC
+          - DESC
       example: null
     SelectionRequest:
       type: object
@@ -2909,7 +2567,7 @@ components:
       example: null
     TerminateTransferDto:
       required:
-        - reason
+      - reason
       type: object
       properties:
         reason:
@@ -2967,7 +2625,7 @@ components:
       example: null
     TransferProcessFailStateDto:
       required:
-        - errorMessage
+      - errorMessage
       type: object
       properties:
         errorMessage:
@@ -2976,12 +2634,12 @@ components:
       example: null
     TransferRequestDto:
       required:
-        - assetId
-        - connectorAddress
-        - connectorId
-        - contractId
-        - dataDestination
-        - protocol
+      - assetId
+      - connectorAddress
+      - connectorId
+      - contractId
+      - dataDestination
+      - protocol
       type: object
       properties:
         assetId:
