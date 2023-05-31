@@ -16,55 +16,29 @@ package org.eclipse.edc.connector.store.azure.cosmos.transferprocess;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
-import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
-import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
-import com.azure.cosmos.util.CosmosPagedIterable;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.edc.azure.testfixtures.CosmosTestClient;
 import org.eclipse.edc.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
 import org.eclipse.edc.connector.store.azure.cosmos.transferprocess.model.TransferProcessDocument;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions;
 import org.eclipse.edc.connector.transfer.spi.testfixtures.store.TransferProcessStoreTestBase;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.store.azure.cosmos.transferprocess.TestHelper.createTransferProcess;
-import static org.eclipse.edc.connector.store.azure.cosmos.transferprocess.TestHelper.createTransferProcessDocument;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
-import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 @AzureCosmosDbIntegrationTest
 class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTestBase {
@@ -76,7 +50,6 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
     private static CosmosDatabase database;
     private final Clock clock = Clock.systemUTC();
     private final String partitionKey = "testpartition";
-    private final String connectorId = "test-connector";
     private CosmosTransferProcessStore store;
     private TypeManager typeManager;
 
@@ -111,6 +84,7 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
         cosmosDbApi.uploadStoredProcedure("nextForState");
         cosmosDbApi.uploadStoredProcedure("lease");
+        String connectorId = "test-connector";
         store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy, clock);
     }
 
@@ -119,481 +93,6 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
         container.delete();
     }
 
-    @Test
-    void create() {
-        String id = UUID.randomUUID().toString();
-        TransferProcess transferProcess = createTransferProcess(id);
-        store.updateOrCreate(transferProcess);
-
-        CosmosPagedIterable<Object> documents = container.readAllItems(new PartitionKey(partitionKey), Object.class);
-        assertThat(documents).hasSize(1);
-        assertThat(documents).allSatisfy(obj -> {
-            var doc = convert(obj);
-            assertThat(doc.getWrappedInstance()).isNotNull();
-            assertThat(doc.getWrappedInstance().getId()).isEqualTo(id);
-            assertThat(doc.getPartitionKey()).isEqualTo(partitionKey);
-            assertThat(doc.getLease()).isNull();
-        });
-    }
-
-    @Test
-    void create_processWithSameIdExists_shouldReplace() {
-        String id = UUID.randomUUID().toString();
-        TransferProcess transferProcess = createTransferProcess(id);
-        store.updateOrCreate(transferProcess);
-
-        var secondProcess = createTransferProcess(id);
-
-        store.updateOrCreate(secondProcess); //should not throw
-        assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).hasSize(1);
-    }
-
-    @Test
-    void nextNotLeased_fetchMaxNewest() throws InterruptedException {
-
-        String id1 = UUID.randomUUID().toString();
-        var tp = createTransferProcess(id1, INITIAL);
-
-        String id2 = UUID.randomUUID().toString();
-        var tp2 = createTransferProcess(id2, INITIAL);
-
-        Thread.sleep(500); //make sure the third process is the youngest - should not get fetched
-        String id3 = UUID.randomUUID().toString();
-        var tp3 = createTransferProcess(id3, INITIAL);
-
-        store.updateOrCreate(tp);
-        store.updateOrCreate(tp2);
-        store.updateOrCreate(tp3);
-
-
-        List<TransferProcess> processes = store.nextNotLeased(2, hasState(INITIAL.code()));
-
-        assertThat(processes).hasSize(2)
-                .allMatch(p -> Arrays.asList(id1, id2).contains(p.getId()))
-                .noneMatch(p -> p.getId().equals(id3));
-    }
-
-    @Test
-    void nextNotLeased_leaseByAnotherHolderExpired() {
-        String id1 = UUID.randomUUID().toString();
-        var tp = createTransferProcess(id1, INITIAL);
-        TransferProcessDocument item = new TransferProcessDocument(tp, partitionKey);
-        Duration leaseDuration = Duration.ofSeconds(10);
-        item.acquireLease("another-connector", clock, leaseDuration);
-        container.upsertItem(item);
-
-        List<TransferProcess> processesBeforeLeaseBreak = store.nextNotLeased(10, hasState(INITIAL.code()));
-        assertThat(processesBeforeLeaseBreak).isEmpty();
-
-        await()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(500))
-                .pollDelay(leaseDuration) //give the lease time to expire
-                .untilAsserted(() -> {
-                    List<TransferProcess> processesAfterLeaseBreak = store.nextNotLeased(10, hasState(INITIAL.code()));
-                    assertThat(processesAfterLeaseBreak).hasSize(1).allSatisfy(transferProcess -> assertThat(transferProcess).usingRecursiveComparison().isEqualTo(tp));
-                });
-    }
-
-    @Test
-    void nextNotLeased_shouldOnlyReturnFreeItems() {
-        String id1 = "process1";
-        var tp = createTransferProcess(id1, INITIAL);
-
-        String id2 = "process2";
-        var tp2 = createTransferProcess(id2, INITIAL);
-
-        store.updateOrCreate(tp);
-        store.updateOrCreate(tp2);
-        TransferProcessDocument item = readDocument(id2);
-        item.acquireLease("test-leaser", clock);
-        container.upsertItem(item);
-
-        //act - one should be ignored
-        List<TransferProcess> processes = store.nextNotLeased(5, hasState(INITIAL.code()));
-        assertThat(processes).hasSize(1)
-                .allMatch(p -> p.getId().equals(id1));
-    }
-
-    @Test
-    void nextNotLeased_selfCannotLeaseAgain() {
-        var tp1 = createTransferProcess("process1", INITIAL);
-        var doc = new TransferProcessDocument(tp1, partitionKey);
-        doc.acquireLease(connectorId, clock);
-        var originalTimestamp = doc.getLease().getLeasedAt();
-        container.upsertItem(doc);
-
-        var result = store.nextNotLeased(5, hasState(INITIAL.code()));
-        assertThat(result).isEmpty();
-
-        var updatedDoc = readDocument(tp1.getId());
-        assertThat(updatedDoc.getLease().getLeasedAt()).isEqualTo(originalTimestamp);
-        assertThat(doc.getLease().getLeasedBy()).isEqualTo(connectorId);
-        assertThat(doc.getLease().getLeaseDuration()).isEqualTo(60000L);
-
-    }
-
-    @Test
-    void nextNotLeased_noFreeItem_shouldReturnEmpty() {
-        String id1 = "process1";
-        var tp = createTransferProcess(id1, INITIAL);
-
-        String id2 = "process2";
-        var tp2 = createTransferProcess(id2, INITIAL);
-
-        var d1 = new TransferProcessDocument(tp, partitionKey);
-        d1.acquireLease("another-connector", clock);
-        var d2 = new TransferProcessDocument(tp2, partitionKey);
-        d2.acquireLease("a-third-connector", clock);
-
-        container.upsertItem(d1);
-        container.upsertItem(d2);
-
-        assertThat(store.nextNotLeased(5, hasState(INITIAL.code()))).isEmpty();
-    }
-
-    @Test
-    void nextNotLeased_noneInDesiredState() {
-
-        String id1 = UUID.randomUUID().toString();
-        var tp = createTransferProcess(id1, INITIAL);
-
-        String id2 = UUID.randomUUID().toString();
-        var tp2 = createTransferProcess(id2, INITIAL);
-
-        String id3 = UUID.randomUUID().toString();
-        var tp3 = createTransferProcess(id3, INITIAL);
-
-        store.updateOrCreate(tp);
-        store.updateOrCreate(tp2);
-        store.updateOrCreate(tp3);
-
-        List<TransferProcess> processes = store.nextNotLeased(5, hasState(STARTED.code()));
-
-        assertThat(processes).isEmpty();
-    }
-
-    @Test
-    void nextNotLeased_batchSizeLimits() {
-        for (var i = 0; i < 5; i++) {
-            var tp = createTransferProcess("process_" + i, INITIAL);
-            store.updateOrCreate(tp);
-        }
-
-        var processes = store.nextNotLeased(3, hasState(INITIAL.code()));
-        assertThat(processes).hasSize(3);
-    }
-
-    @Test
-    @DisplayName("Verifies that calling nextNotLeased locks the TP for any subsequent calls")
-    void nextNotLeased_locksEntity() {
-        var tp = createTransferProcess("test-id", STARTED);
-        var doc = new TransferProcessDocument(tp, partitionKey);
-
-        container.upsertItem(doc);
-        var result = store.nextNotLeased(5, hasState(STARTED.code()));
-        assertThat(result).hasSize(1).containsExactly(tp);
-
-        //make sure the lease is acquired
-        var leasedDoc = readDocument(tp.getId());
-        assertThat(leasedDoc.getLease()).isNotNull();
-
-        assertThat(leasedDoc.getLease().getLeasedBy()).isEqualTo(connectorId);
-        assertThat(leasedDoc.getLease().getLeaseDuration()).isEqualTo(60_000L);
-        assertThat(leasedDoc.getLease().getLeasedAt()).isGreaterThan(0);
-
-        //make sure a subsequent call does not return the TP
-        assertThat(store.nextNotLeased(5, hasState(STARTED.code()))).isEmpty();
-
-        //make sure that findById still returns the entity
-        assertThat(store.findById(tp.getId())).isEqualTo(tp);
-    }
-
-    @Test
-    @DisplayName("Verify that the lease on a TP is cleared by an update")
-    void nextNotLeased_verifyUpdateClearsLease() {
-        var tp = createTransferProcess("test-id", STARTED);
-        var doc = new TransferProcessDocument(tp, partitionKey);
-
-        var initialTimestamp = tp.getStateTimestamp();
-
-        container.upsertItem(doc);
-        var result = store.nextNotLeased(5, hasState(STARTED.code()));
-        assertThat(result).hasSize(1);
-
-        //make sure the lease is acquired
-        var leasedDoc = readDocument(tp.getId());
-        assertThat(leasedDoc.getLease()).isNotNull();
-
-        // make sure the next state update clears the lease
-        tp.transitionCompleted();
-        tp.updateStateTimestamp();
-        store.updateOrCreate(tp);
-
-        var updatedDocument = readDocument(tp.getId());
-        assertThat(updatedDocument.getLease()).isNull();
-        assertThat(updatedDocument.getWrappedInstance().getStateTimestamp()).isNotEqualTo(initialTimestamp);
-        assertThat(updatedDocument.getWrappedInstance().getState()).isEqualTo(TransferProcessStates.COMPLETED.code());
-    }
-
-    @Test
-    @DisplayName("Verify that a leased entity can not be deleted")
-    void nextNotLeased_verifyDelete() {
-        var tp = createTransferProcess("test-id", STARTED);
-        var doc = new TransferProcessDocument(tp, partitionKey);
-
-        container.upsertItem(doc);
-        var result = store.nextNotLeased(5, hasState(STARTED.code()));
-        assertThat(result).hasSize(1);
-
-        //make sure the lease is acquired
-        var leasedDoc = readDocument(tp.getId());
-        assertThat(leasedDoc.getLease()).isNotNull();
-
-        assertThatThrownBy(() -> store.delete(tp.getId())).isInstanceOf(IllegalStateException.class);
-
-    }
-
-    @Test
-    void find() {
-        var tp = createTransferProcess("tp-id");
-        store.updateOrCreate(tp);
-
-        TransferProcess dbProcess = store.findById("tp-id");
-        assertThat(dbProcess).isNotNull().isEqualTo(tp).usingRecursiveComparison();
-    }
-
-    @Test
-    void find_notExist() {
-        assertThat(store.findById("not-exist")).isNull();
-    }
-
-    @Test
-    void processIdForTransferId() {
-        var tp = createTransferProcess("process-id");
-        var transferId = tp.getDataRequest().getId();
-        assertThat(transferId).isNotNull();
-
-        store.updateOrCreate(tp);
-
-        String processId = store.processIdForDataRequestId(transferId);
-        assertThat(processId).isEqualTo("process-id");
-    }
-
-    @Test
-    void processIdForTransferId_notExist() {
-        assertThat(store.processIdForDataRequestId("not-exist")).isNull();
-    }
-
-    @Test
-    void update_exists_shouldUpdate() {
-        var tp = createTransferProcess("process-id");
-
-        store.updateOrCreate(tp);
-
-        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        store.updateOrCreate(tp);
-
-        CosmosItemResponse<Object> response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
-
-        TransferProcessDocument stored = convert(response.getItem());
-        assertThat(stored.getWrappedInstance()).isEqualTo(tp);
-        assertThat(stored.getWrappedInstance().getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
-        assertThat(stored.getLease()).isNull();
-    }
-
-    @Test
-    void update_notExist_shouldCreate() {
-        var tp = createTransferProcess("process-id");
-
-        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        store.updateOrCreate(tp);
-
-        var response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
-
-        var stored = convert(response.getItem());
-        assertThat(stored.getWrappedInstance()).isEqualTo(tp);
-        assertThat(stored.getWrappedInstance().getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
-        assertThat(stored.getLease()).isNull();
-    }
-
-    @Test
-    void update_leasedBySelf() {
-        var tp = createTransferProcess("proc1", INITIAL);
-
-        var doc = new TransferProcessDocument(tp, partitionKey);
-        container.upsertItem(doc).getItem();
-        doc.acquireLease(connectorId, clock);
-        container.upsertItem(doc);
-
-        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        store.updateOrCreate(tp);
-
-        assertThat(tp.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
-    }
-
-    @Test
-    void update_leasedByOther_shouldThrowException() {
-        var tp = createTransferProcess("proc1", INITIAL);
-
-        //simulate another connector
-        var doc = new TransferProcessDocument(tp, partitionKey);
-        container.upsertItem(doc).getItem();
-
-        doc.acquireLease("another-connector", clock);
-        container.upsertItem(doc);
-
-        //act
-        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        assertThatThrownBy(() -> store.updateOrCreate(tp)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
-    }
-
-    @Test
-    void delete() {
-
-        final String processId = "test-process-id";
-        var tp = createTransferProcess(processId);
-
-        store.updateOrCreate(tp);
-
-        store.delete(processId);
-
-        CosmosPagedIterable<Object> objects = container.readAllItems(new PartitionKey(processId), Object.class);
-        assertThat(objects).isEmpty();
-    }
-
-    @Test
-    void delete_isLeased_shouldThrowException() {
-        final String processId = "test-process-id";
-        var tp = createTransferProcess(processId);
-        var doc = new TransferProcessDocument(tp, partitionKey);
-        doc.acquireLease("some-other-connector", clock);
-        container.upsertItem(doc);
-
-        assertThatThrownBy(() -> store.delete(processId)).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void delete_notExist() {
-        store.delete("not-exist");
-        //no exception should be raised
-    }
-
-    @Test
-    void invokeStoredProcedure() {
-        //create one item
-        var tp = createTransferProcess("proc1");
-        store.updateOrCreate(tp);
-
-        List<Object> procedureParams = Arrays.asList(100, 5, connectorId);
-        CosmosStoredProcedureRequestOptions options = new CosmosStoredProcedureRequestOptions();
-        options.setPartitionKey(PartitionKey.NONE);
-        CosmosStoredProcedureResponse sprocResponse = container.getScripts().getStoredProcedure("nextForState").execute(procedureParams, options);
-
-        var result = sprocResponse.getResponseAsString();
-
-        var l = typeManager.readValue(result, List.class);
-        List<TransferProcessDocument> documents = (List<TransferProcessDocument>) l.stream().map(o -> typeManager.writeValueAsString(o))
-                .map(json -> typeManager.readValue(json.toString(), TransferProcessDocument.class))
-                .collect(Collectors.toList());
-        assertThat(documents).allSatisfy(document -> {
-            assertThat(document.getLease()).isNotNull().hasFieldOrPropertyWithValue("leasedBy", connectorId)
-                    .hasFieldOrProperty("leasedAt");
-        });
-
-    }
-
-    @Test
-    void findAll_noQuerySpec() {
-        var doc1 = createTransferProcessDocument("tp1", partitionKey);
-        var doc2 = createTransferProcessDocument("tp2", partitionKey);
-
-        container.createItem(doc1);
-        container.createItem(doc2);
-
-        assertThat(store.findAll(QuerySpec.none())).hasSize(2).extracting(TransferProcess::getId).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
-    }
-
-    @Test
-    void findAll_verifyPaging() {
-
-        var all = IntStream.range(0, 10)
-                .mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey))
-                .peek(d -> container.createItem(d))
-                .map(TransferProcessDocument::getId)
-                .collect(Collectors.toList());
-
-        // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(TransferProcess::getId).isSubsetOf(all);
-
-    }
-
-    @Test
-    void findAll_verifyPaging_pageSizeLargerThanCollection() {
-
-        var all = IntStream.range(0, 10)
-                .mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey))
-                .peek(d -> container.createItem(d)).map(TransferProcessDocument::getId)
-                .collect(Collectors.toList());
-
-        // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(TransferProcess::getId).isSubsetOf(all);
-    }
-
-    @Test
-    void findAll_verifyFiltering() {
-        var documents = IntStream.range(0, 10)
-                .mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey))
-                .peek(d -> container.createItem(d))
-                .collect(Collectors.toList());
-
-        var expectedId = documents.get(3).getId();
-
-        var query = QuerySpec.Builder.newInstance().filter(criterion("id", "=", expectedId)).build();
-
-        assertThat(store.findAll(query)).extracting(TransferProcess::getId).containsOnly(expectedId);
-    }
-
-    @Test
-    void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
-
-        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "contains", "other")).build();
-
-        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
-    }
-
-    @Test
-    void findAll_verifyFiltering_unsuccessfulFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
-
-        var query = QuerySpec.Builder.newInstance().filter(criterion("something", "=", "other")).build();
-
-        assertThat(store.findAll(query)).isEmpty();
-    }
-
-    @Test
-    void findAll_verifySorting() {
-
-        IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
-
-        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
-        assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
-        var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
-        assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
-    }
-
-    @Override
-    @Test
-    protected void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(TestFunctions.createTransferProcess("test-neg-" + i)));
-
-        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-
-        assertThat(getTransferProcessStore().findAll(query).collect(Collectors.toList())).hasSize(10);
-    }
-
-
     @Override
     protected boolean supportsCollectionQuery() {
         return false;
@@ -601,16 +100,6 @@ class CosmosTransferProcessStoreIntegrationTest extends TransferProcessStoreTest
 
     @Override
     protected boolean supportsLikeOperator() {
-        return true;
-    }
-
-    @Override
-    protected boolean supportsInOperator() {
-        return true;
-    }
-
-    @Override
-    protected boolean supportsSortOrder() {
         return true;
     }
 

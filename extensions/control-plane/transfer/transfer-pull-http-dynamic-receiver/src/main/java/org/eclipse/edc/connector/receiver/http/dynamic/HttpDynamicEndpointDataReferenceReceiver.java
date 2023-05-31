@@ -32,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
 
@@ -41,16 +42,13 @@ import static org.eclipse.edc.util.string.StringUtils.isNullOrBlank;
  */
 public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataReferenceReceiver {
 
-
     public static final String HTTP_RECEIVER_ENDPOINT = EDC_NAMESPACE + "receiverHttpEndpoint";
-
     private static final MediaType JSON = MediaType.get("application/json");
 
     private Monitor monitor;
     private OkHttpClient httpClient;
     private TypeManager typeManager;
     private RetryPolicy<Object> retryPolicy;
-
     private TransferProcessStore transferProcessStore;
 
     private String authKey;
@@ -62,49 +60,37 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
 
     @Override
     public CompletableFuture<Result<Void>> send(@NotNull EndpointDataReference edr) {
-
-        var processId = transferProcessStore.processIdForDataRequestId(edr.getId());
-
-        if (processId == null) {
-            return CompletableFuture.completedFuture(Result.failure(format("Failed to found processId for DataRequestId %s", edr.getId())));
-        }
-        var transferProcess = transferProcessStore.findById(processId);
+        var transferProcess = transferProcessStore.findForCorrelationId(edr.getId());
 
         if (transferProcess == null) {
-            return CompletableFuture.completedFuture(Result.failure(format("Failed to found transfer process for id %s", processId)));
+            return completedFuture(Result.failure(format("Failed to found transfer process for correlation id %s", edr.getId())));
         }
 
-        var endpoint = transferProcess.getPrivateProperties().get(HTTP_RECEIVER_ENDPOINT);
-
-        if (endpoint == null) {
-            endpoint = fallbackEndpoint;
-        }
+        var endpoint = transferProcess.getPrivateProperties().getOrDefault(HTTP_RECEIVER_ENDPOINT, fallbackEndpoint);
 
         if (endpoint != null) {
             monitor.debug(format("Sending EDR to %s", endpoint));
-            return sendEdr(edr, endpoint);
+            return completedFuture(sendEdr(edr, endpoint));
         } else {
             monitor.debug(format("Missing %s property in the transfer process properties or fallback endpoint in configuration", HTTP_RECEIVER_ENDPOINT));
-            return CompletableFuture.completedFuture(Result.success());
+            return completedFuture(Result.success());
         }
-
 
     }
 
     @NotNull
-    private CompletableFuture<Result<Void>> sendEdr(@NotNull EndpointDataReference edr, String endpoint) {
-
-
+    private Result<Void> sendEdr(@NotNull EndpointDataReference edr, String endpoint) {
         var requestBody = RequestBody.create(typeManager.writeValueAsString(edr), JSON);
         var requestBuilder = new Request.Builder().url(endpoint).post(requestBody);
         if (!isNullOrBlank(authKey) && !isNullOrBlank(authToken)) {
             requestBuilder.header(authKey, authToken);
         }
+
         try (var response = with(retryPolicy).get(() -> httpClient.newCall(requestBuilder.build()).execute())) {
             if (response.isSuccessful()) {
-                return CompletableFuture.completedFuture(Result.success());
+                return Result.success();
             } else {
-                return CompletableFuture.completedFuture(Result.failure(format("Received error code %s when transferring endpoint data reference at uri: %s", response.code(), endpoint)));
+                return Result.failure(format("Received error code %s when transferring endpoint data reference at uri: %s", response.code(), endpoint));
             }
         }
     }

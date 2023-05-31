@@ -45,16 +45,6 @@ class InMemoryTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @Override
-    protected boolean supportsInOperator() {
-        return true;
-    }
-
-    @Override
-    protected boolean supportsSortOrder() {
-        return true;
-    }
-
-    @Override
     protected TransferProcessStore getTransferProcessStore() {
         return store;
     }
