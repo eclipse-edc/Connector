@@ -7,7 +7,7 @@ assertj = "3.24.2"
 atomikos = "6.0.0"
 awaitility = "4.2.0"
 aws = "2.20.75"
-azure-rm = "2.27.0"
+
 bouncyCastle-jdk18on = "1.73"
 cloudEvents = "2.5.0"
 edc = "0.1.1-SNAPSHOT"
@@ -95,18 +95,7 @@ restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssu
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 titaniumJsonLd = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium" }
 
-# Azure dependencies
-azure-cosmos = { group = "com.azure", name = "azure-cosmos", version = "4.45.1" }
-azure-eventgrid = { group = "com.azure", name = "azure-messaging-eventgrid", version = "4.16.0" }
-azure-identity = { group = "com.azure", name = "azure-identity", version = "1.9.0" }
-azure-keyvault = { group = "com.azure", name = "azure-security-keyvault-secrets", version = "4.6.2" }
-azure-mgmt-resources = { module = "com.microsoft.azure:azure-mgmt-resources", version = "1.41.4" }
-azure-resourcemanager = { group = "com.azure.resourcemanager", name = "azure-resourcemanager", version.ref = "azure-rm" }
-azure-resourcemanager-authorization = { group = "com.azure.resourcemanager", name = "azure-resourcemanager-authorization", version.ref = "azure-rm" }
-azure-resourcemanager-datafactory = { group = "com.azure.resourcemanager", name = "azure-resourcemanager-datafactory", version = "1.0.0-beta.22" }
-azure-resourcemanager-keyvault = { group = "com.azure.resourcemanager", name = "azure-resourcemanager-keyvault", version.ref = "azure-rm" }
-azure-resourcemanager-storage = { group = "com.azure.resourcemanager", name = "azure-resourcemanager-storage", version.ref = "azure-rm" }
-azure-storageblob = { group = "com.azure", name = "azure-storage-blob", version = "12.22.2" }
+
 
 # AWS dependencies
 aws-sts = { module = "software.amazon.awssdk:sts", version.ref = "aws" }

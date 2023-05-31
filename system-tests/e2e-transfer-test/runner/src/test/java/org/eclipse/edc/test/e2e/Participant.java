@@ -450,35 +450,6 @@ public class Participant {
         return baseConfiguration;
     }
 
-    public Map<String, String> controlPlaneCosmosDbConfiguration(String uniqueTestName) {
-        var baseConfiguration = controlPlaneConfiguration();
-        var cosmosDbConfiguration = new HashMap<String, String>() {
-            {
-                put("edc.assetindex.cosmos.account-name", "test");
-                put("edc.assetindex.cosmos.database-name", uniqueTestName);
-                put("edc.assetindex.cosmos.container-name", name + "-assetindex");
-                put("edc.contractdefinitionstore.cosmos.account-name", "test");
-                put("edc.contractdefinitionstore.cosmos.database-name", uniqueTestName);
-                put("edc.contractdefinitionstore.cosmos.container-name", name + "-contractdefinitionstore");
-                put("edc.contractnegotiationstore.cosmos.account-name", "test");
-                put("edc.contractnegotiationstore.cosmos.database-name", uniqueTestName);
-                put("edc.contractnegotiationstore.cosmos.container-name", name + "-contractnegotiationstore");
-                put("edc.node.directory.cosmos.account.name", "test");
-                put("edc.node.directory.cosmos.database.name", uniqueTestName);
-                put("edc.node.directory.cosmos.container.name", name + "-nodedirectory");
-                put("edc.policystore.cosmos.account-name", "test");
-                put("edc.policystore.cosmos.database-name", uniqueTestName);
-                put("edc.policystore.cosmos.container-name", name + "-policystore");
-                put("edc.transfer-process-store.cosmos.account.name", "test");
-                put("edc.transfer-process-store.database.name", uniqueTestName);
-                put("edc.transfer-process-store.cosmos.container-name", name + "-transfer-process-store");
-            }
-        };
-        baseConfiguration.putAll(cosmosDbConfiguration);
-
-        return baseConfiguration;
-    }
-
     @NotNull
     public String jdbcUrl() {
         return PostgresqlLocalInstance.JDBC_URL_PREFIX + name;

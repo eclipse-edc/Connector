@@ -38,7 +38,6 @@ distributions/**/github.properties
 
 # ignore all certificates
 
-distributions/azure/azure.properties
 .terraform*
 
 .DS_Store
