@@ -49,9 +49,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static dev.failsafe.Failsafe.with;
+import static java.lang.String.format;
 
 public class CosmosTransferProcessStore implements TransferProcessStore {
-
 
     private static final String NEXT_FOR_STATE_S_PROC_NAME = "nextForState";
     private final CosmosDbApi cosmosDbApi;
@@ -108,13 +108,12 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public @Nullable
-    String processIdForDataRequestId(String transferId) {
-        var query = "SELECT * FROM t WHERE t.wrappedInstance.dataRequest.id = '" + transferId + "'";
+    public @Nullable TransferProcess findForCorrelationId(String correlationId) {
+        var query = format("SELECT * FROM t WHERE t.wrappedInstance.dataRequest.id = '%s'", correlationId);
         var response = failsafeExecutor.get(() -> cosmosDbApi.queryItems(query));
         return response
                 .map(this::convertToDocument)
-                .map(pd -> pd.getWrappedInstance().getId())
+                .map(CosmosDocument::getWrappedInstance)
                 .findFirst()
                 .orElse(null);
     }
@@ -148,7 +147,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
             var lease = document.getLease();
             if (lease != null && !lease.isExpired(clock.millis())) {
-                throw new IllegalStateException(String.format("The TransferProcess [%s] cannot be deleted: it is currently leased", processId));
+                throw new IllegalStateException(format("The TransferProcess [%s] cannot be deleted: it is currently leased", processId));
             }
             leaseContext.acquireLease(processId);
             failsafeExecutor.run(() -> cosmosDbApi.deleteItem(processId));

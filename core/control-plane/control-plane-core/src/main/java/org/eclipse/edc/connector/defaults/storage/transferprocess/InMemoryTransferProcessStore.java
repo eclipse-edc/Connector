@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+
 /**
  * An in-memory, threadsafe process store. This implementation is intended for testing purposes only.
  */
@@ -52,13 +54,10 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    @Nullable
-    public String processIdForDataRequestId(String id) {
-        return store.findAll()
-                .filter(p -> id.equals(p.getDataRequest().getId()))
-                .findFirst()
-                .map(TransferProcess::getId)
-                .orElse(null);
+    public @Nullable TransferProcess findForCorrelationId(String correlationId) {
+        var querySpec = QuerySpec.Builder.newInstance().filter(criterion("dataRequest.id", "=", correlationId)).build();
+
+        return store.findAll(querySpec).findFirst().orElse(null);
     }
 
     @Override
@@ -79,10 +78,6 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public @NotNull List<TransferProcess> nextNotLeased(int max, Criterion... criteria) {
         return store.leaseAndGet(max, criteria);
-    }
-
-    public Stream<TransferProcess> findAll() {
-        return store.findAll();
     }
 
 }

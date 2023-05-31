@@ -191,16 +191,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
                 .hasMessageStartingWith("Translation failed for Model");
     }
 
-    @Test
-    void query_6000_items() {
-        range(0, 6000).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
-        var query = QuerySpec.Builder.newInstance().limit(6000).build();
-
-        var result = getTransferProcessStore().findAll(query);
-
-        assertThat(result).hasSize(6000);
-    }
-
     @Override
     protected boolean supportsCollectionQuery() {
         return true;
@@ -208,16 +198,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
     @Override
     protected boolean supportsLikeOperator() {
-        return true;
-    }
-
-    @Override
-    protected boolean supportsInOperator() {
-        return true;
-    }
-
-    @Override
-    protected boolean supportsSortOrder() {
         return true;
     }
 

@@ -46,6 +46,7 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * Implementation of the {@link TransferProcessStore} based on SQL.
@@ -98,13 +99,12 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public @Nullable String processIdForDataRequestId(String transferId) {
+    public @Nullable TransferProcess findForCorrelationId(String correlationId) {
         return transactionContext.execute(() -> {
-            var stmt = statements.getProcessIdForTransferIdTemplate();
-            try {
-                return queryExecutor.single(getConnection(), true, (rs) -> rs.getString(statements.getIdColumn()), stmt, transferId);
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
+            var criterion = criterion("dataRequest.id", "=", correlationId);
+            var query = QuerySpec.Builder.newInstance().filter(criterion).build();
+            try (var stream = findAll(query)) {
+                return single(stream.collect(toList()));
             }
         });
     }
@@ -181,7 +181,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
 
     private @Nullable TransferProcess findByIdInternal(Connection conn, String id) {
         return transactionContext.execute(() -> {
-            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", id)).build();
+            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", id)).build();
             return single(executeQuery(conn, querySpec).collect(toList()));
         });
     }

@@ -89,7 +89,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
                     .filter(e -> !isLeased(e.getId()))
                     .sorted(comparingLong(StatefulEntity::getStateTimestamp)) //order by state timestamp, oldest first
                     .limit(max)
-                    .collect(toList());
+                    .toList();
             entities.forEach(i -> acquireLease(i.getId(), lockId));
             return entities.stream().map(StatefulEntity::copy).collect(toList());
         });

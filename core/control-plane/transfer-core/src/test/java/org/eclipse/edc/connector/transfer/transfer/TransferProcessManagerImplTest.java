@@ -182,7 +182,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void initiateConsumerRequest() {
-        when(transferProcessStore.processIdForDataRequestId("1")).thenReturn(null, "2");
+        when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
         var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 

@@ -176,9 +176,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     public StatusResult<TransferProcess> initiateConsumerRequest(TransferRequest transferRequest) {
         // make the request idempotent: if the process exists, return
         var dataRequest = transferRequest.getDataRequest();
-        var processId = transferProcessStore.processIdForDataRequestId(dataRequest.getId());
-        if (processId != null) {
-            return StatusResult.success(transferProcessStore.findById(processId));
+        var existentTransferProcess = transferProcessStore.findForCorrelationId(dataRequest.getId());
+        if (existentTransferProcess != null) {
+            return StatusResult.success(existentTransferProcess);
         }
         var process = TransferProcess.Builder.newInstance()
                 .id(dataRequest.getId())

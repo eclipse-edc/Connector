@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -36,8 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createDataAddressBuilder;
@@ -51,6 +50,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -61,15 +61,12 @@ public abstract class TransferProcessStoreTestBase {
 
     public TransferProcessStoreTestBase() {
         System.setProperty("transferprocessstore.supports.operator.like", String.valueOf(supportsLikeOperator()));
-        System.setProperty("transferprocessstore.supports.operator.in", String.valueOf(supportsInOperator()));
         System.setProperty("transferprocessstore.supports.collectionQuery", String.valueOf(supportsCollectionQuery()));
-        System.setProperty("transferprocessstore.supports.sortorder", String.valueOf(supportsSortOrder()));
-
     }
 
     @Test
     void create() {
-        var t = TestFunctions.createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).build();
+        var t = createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).build();
         getTransferProcessStore().updateOrCreate(t);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
@@ -83,7 +80,7 @@ public abstract class TransferProcessStoreTestBase {
 
         var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
 
-        var t = TestFunctions.createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).callbackAddresses(callbacks).build();
+        var t = createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).callbackAddresses(callbacks).build();
         getTransferProcessStore().updateOrCreate(t);
 
         var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
@@ -94,10 +91,10 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void create_withSameIdExists_shouldReplace() {
-        var t = TestFunctions.createTransferProcess("id1", INITIAL);
+        var t = createTransferProcess("id1", INITIAL);
         getTransferProcessStore().updateOrCreate(t);
 
-        var t2 = TestFunctions.createTransferProcess("id1", PROVISIONING);
+        var t2 = createTransferProcess("id1", PROVISIONING);
         getTransferProcessStore().updateOrCreate(t2);
 
         assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
@@ -106,10 +103,10 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void nextNotLeased() {
         var state = STARTED;
-        var all = IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
+        var all = range(0, 10)
+                .mapToObj(i -> createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::updateOrCreate)
-                .collect(Collectors.toList());
+                .toList();
 
         assertThat(getTransferProcessStore().nextNotLeased(5, hasState(state.code())))
                 .hasSize(5)
@@ -121,13 +118,13 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void nextNotLeased_shouldOnlyReturnFreeItems() {
         var state = STARTED;
-        var all = IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
+        var all = range(0, 10)
+                .mapToObj(i -> createTransferProcess("id" + i, state))
                 .peek(getTransferProcessStore()::updateOrCreate)
                 .collect(Collectors.toList());
 
         // lease a few
-        var leasedTp = all.stream().skip(5).peek(tp -> lockEntity(tp.getId(), CONNECTOR_NAME)).collect(Collectors.toList());
+        var leasedTp = all.stream().skip(5).peek(tp -> lockEntity(tp.getId(), CONNECTOR_NAME)).toList();
 
         // should not contain leased TPs
         assertThat(getTransferProcessStore().nextNotLeased(10, hasState(state.code())))
@@ -139,8 +136,8 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void nextNotLeased_noFreeItem_shouldReturnEmpty() {
         var state = STARTED;
-        IntStream.range(0, 3)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
+        range(0, 3)
+                .mapToObj(i -> createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::updateOrCreate);
 
         // first time works
@@ -151,8 +148,8 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextNotLeased_noneInDesiredState() {
-        IntStream.range(0, 3)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, STARTED))
+        range(0, 3)
+                .mapToObj(i -> createTransferProcess("id" + i, STARTED))
                 .forEach(getTransferProcessStore()::updateOrCreate);
 
         var nextNotLeased = getTransferProcessStore().nextNotLeased(10, hasState(TERMINATED.code()));
@@ -163,27 +160,21 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void nextNotLeased_batchSizeLimits() {
         var state = STARTED;
-        IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, state))
+        range(0, 10)
+                .mapToObj(i -> createTransferProcess("id" + i, state))
                 .forEach(getTransferProcessStore()::updateOrCreate);
 
         // first time works
-        assertThat(getTransferProcessStore().nextNotLeased(3, hasState(state.code()))).hasSize(3);
+        var result = getTransferProcessStore().nextNotLeased(3, hasState(state.code()));
+        assertThat(result).hasSize(3);
     }
 
     @Test
     void nextNotLeased_verifyTemporalOrdering() {
         var state = STARTED;
-        IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess(String.valueOf(i), state))
-                .peek(t -> {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException ignored) {
-                        // noop
-                    }
-                    t.updateStateTimestamp();
-                })
+        range(0, 10)
+                .mapToObj(i -> createTransferProcess(String.valueOf(i), state))
+                .peek(this::delayByTenMillis)
                 .forEach(getTransferProcessStore()::updateOrCreate);
 
         assertThat(getTransferProcessStore().nextNotLeased(20, hasState(state.code())))
@@ -194,10 +185,10 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextNotLeased_verifyMostRecentlyUpdatedIsLast() throws InterruptedException {
-        var all = IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i, STARTED))
+        var all = range(0, 10)
+                .mapToObj(i -> createTransferProcess("id" + i, STARTED))
                 .peek(getTransferProcessStore()::updateOrCreate)
-                .collect(Collectors.toList());
+                .toList();
 
         Thread.sleep(100);
 
@@ -212,7 +203,7 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     @DisplayName("Verifies that calling nextNotLeased locks the TP for any subsequent calls")
     void nextNotLeased_locksEntity() {
-        var t = TestFunctions.createTransferProcess("id1", INITIAL);
+        var t = createTransferProcess("id1", INITIAL);
         getTransferProcessStore().updateOrCreate(t);
 
         getTransferProcessStore().nextNotLeased(100, hasState(INITIAL.code()));
@@ -222,52 +213,87 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void nextNotLeased_expiredLease() {
-        var t = TestFunctions.createTransferProcess("id1", INITIAL);
+        var t = createTransferProcess("id1", INITIAL);
         getTransferProcessStore().updateOrCreate(t);
 
         lockEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
         Awaitility.await().atLeast(Duration.ofMillis(100))
                 .atMost(Duration.ofMillis(500))
-                .until(() -> getTransferProcessStore().nextNotLeased(10, hasState(INITIAL.code())), Matchers.hasSize(1));
+                .until(() -> getTransferProcessStore().nextNotLeased(10, hasState(INITIAL.code())), hasSize(1));
     }
 
     @Test
-    void find() {
-        var t = TestFunctions.createTransferProcess("id1");
+    void nextNotLeased_shouldLeaseEntityUntilUpdate() {
+        var initialTransferProcess = initialTransferProcess();
+        getTransferProcessStore().updateOrCreate(initialTransferProcess);
+
+        var firstQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
+        assertThat(firstQueryResult).hasSize(1);
+
+        var secondQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
+        assertThat(secondQueryResult).hasSize(0);
+
+        var retrieved = firstQueryResult.get(0);
+        getTransferProcessStore().updateOrCreate(retrieved);
+
+        var thirdQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
+        assertThat(thirdQueryResult).hasSize(1);
+    }
+
+    @Test
+    void nextNotLeased_avoidsStarvation() throws InterruptedException {
+        for (int i = 0; i < 10; i++) {
+            var process = createTransferProcess("test-process-" + i);
+            getTransferProcessStore().updateOrCreate(process);
+        }
+
+        var list1 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
+        Thread.sleep(50); //simulate a short delay to generate different timestamps
+        list1.forEach(tp -> {
+            tp.updateStateTimestamp();
+            getTransferProcessStore().updateOrCreate(tp);
+        });
+        var list2 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
+        assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
+    }
+
+    @Test
+    void findById() {
+        var t = createTransferProcess("id1");
         getTransferProcessStore().updateOrCreate(t);
 
-        var res = getTransferProcessStore().findById("id1");
+        var result = getTransferProcessStore().findById("id1");
 
-        assertThat(res).usingRecursiveComparison().isEqualTo(t);
+        assertThat(result).usingRecursiveComparison().isEqualTo(t);
     }
 
     @Test
-    void find_notExist() {
-        assertThat(getTransferProcessStore().findById("not-exist")).isNull();
+    void findById_notExist() {
+        var result = getTransferProcessStore().findById("not-exist");
+
+        assertThat(result).isNull();
     }
 
     @Test
-    void processIdForTransferId() {
-        var pid = "process-id1";
-        var tid = "transfer-id1";
+    void findForCorrelationId() {
+        var dataRequest = createDataRequestBuilder().id("correlationId").build();
+        var transferProcess = createTransferProcessBuilder("id1").dataRequest(dataRequest).build();
+        getTransferProcessStore().updateOrCreate(transferProcess);
 
-        var dr = TestFunctions.createDataRequest(pid);
-        var t = TestFunctions.createTransferProcess(tid, dr);
+        var res = getTransferProcessStore().findForCorrelationId("correlationId");
 
-        getTransferProcessStore().updateOrCreate(t);
-
-        assertThat(getTransferProcessStore().processIdForDataRequestId(dr.getId())).isEqualTo("transfer-id1");
+        assertThat(res).usingRecursiveComparison().isEqualTo(transferProcess);
     }
 
     @Test
-    void processIdForTransferId_notExist() {
-        assertThat(getTransferProcessStore().processIdForDataRequestId("not-exist")).isNull();
+    void findForCorrelationId_notExist() {
+        assertThat(getTransferProcessStore().findForCorrelationId("not-exist")).isNull();
     }
 
     @Test
     void update_shouldPersistDataRequest() {
-        var t1 = TestFunctions.createTransferProcess("id1", STARTED);
+        var t1 = createTransferProcess("id1", STARTED);
         getTransferProcessStore().updateOrCreate(t1);
 
         t1.getDataRequest().getProperties().put("newKey", "newValue");
@@ -284,7 +310,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_exists_shouldUpdate() {
-        var t1 = TestFunctions.createTransferProcess("id1", STARTED);
+        var t1 = createTransferProcess("id1", STARTED);
         getTransferProcessStore().updateOrCreate(t1);
 
         t1.transitionCompleted(); //modify
@@ -298,7 +324,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_notExist_shouldCreate() {
-        var t1 = TestFunctions.createTransferProcess("id1", STARTED);
+        var t1 = createTransferProcess("id1", STARTED);
 
         t1.transitionCompleted(); //modify
         getTransferProcessStore().updateOrCreate(t1);
@@ -313,7 +339,7 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     @DisplayName("Verify that the lease on a TP is cleared by an update")
     void update_shouldBreakLease() {
-        var t1 = TestFunctions.createTransferProcess("id1");
+        var t1 = createTransferProcess("id1");
         getTransferProcessStore().updateOrCreate(t1);
         // acquire lease
         lockEntity(t1.getId(), CONNECTOR_NAME);
@@ -322,13 +348,15 @@ public abstract class TransferProcessStoreTestBase {
         getTransferProcessStore().updateOrCreate(t1);
 
         // lease should be broken
-        assertThat(getTransferProcessStore().nextNotLeased(10, hasState(PROVISIONING.code()))).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
+        var notLeased = getTransferProcessStore().nextNotLeased(10, hasState(PROVISIONING.code()));
+
+        assertThat(notLeased).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
     }
 
     @Test
     void update_leasedByOther_shouldThrowException() {
         var tpId = "id1";
-        var t1 = TestFunctions.createTransferProcess(tpId);
+        var t1 = createTransferProcess(tpId);
         getTransferProcessStore().updateOrCreate(t1);
         lockEntity(tpId, "someone");
 
@@ -340,7 +368,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void delete() {
-        var t1 = TestFunctions.createTransferProcess("id1");
+        var t1 = createTransferProcess("id1");
         getTransferProcessStore().updateOrCreate(t1);
 
         getTransferProcessStore().delete("id1");
@@ -349,7 +377,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void delete_isLeasedBySelf_shouldThrowException() {
-        var t1 = TestFunctions.createTransferProcess("id1");
+        var t1 = createTransferProcess("id1");
         getTransferProcessStore().updateOrCreate(t1);
         lockEntity(t1.getId(), CONNECTOR_NAME);
 
@@ -359,7 +387,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void delete_isLeasedByOther_shouldThrowException() {
-        var t1 = TestFunctions.createTransferProcess("id1");
+        var t1 = createTransferProcess("id1");
         getTransferProcessStore().updateOrCreate(t1);
 
         lockEntity(t1.getId(), "someone-else");
@@ -375,8 +403,8 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void findAll_noQuerySpec() {
-        var all = IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess("id" + i))
+        var all = range(0, 10)
+                .mapToObj(i -> createTransferProcess("id" + i))
                 .peek(getTransferProcessStore()::updateOrCreate)
                 .collect(Collectors.toList());
 
@@ -385,8 +413,8 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void findAll_verifyPaging() {
-        IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess(String.valueOf(i)))
+        range(0, 10)
+                .mapToObj(i -> createTransferProcess(String.valueOf(i)))
                 .forEach(getTransferProcessStore()::updateOrCreate);
 
         var qs = QuerySpec.Builder.newInstance().limit(5).offset(3).build();
@@ -399,8 +427,8 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void findAll_verifyPaging_pageSizeLargerThanCollection() {
 
-        IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess(String.valueOf(i)))
+        range(0, 10)
+                .mapToObj(i -> createTransferProcess(String.valueOf(i)))
                 .forEach(getTransferProcessStore()::updateOrCreate);
 
         var qs = QuerySpec.Builder.newInstance().limit(20).offset(3).build();
@@ -414,8 +442,8 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void findAll_verifyPaging_pageSizeOutsideCollection() {
 
-        IntStream.range(0, 10)
-                .mapToObj(i -> TestFunctions.createTransferProcess(String.valueOf(i)))
+        range(0, 10)
+                .mapToObj(i -> createTransferProcess(String.valueOf(i)))
                 .forEach(getTransferProcessStore()::updateOrCreate);
 
         var qs = QuerySpec.Builder.newInstance().limit(10).offset(12).build();
@@ -425,7 +453,7 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void update_dataRequestWithNewId_replacesOld() {
-        var bldr = TestFunctions.createTransferProcessBuilder("id1").state(STARTED.code());
+        var bldr = createTransferProcessBuilder("id1").state(STARTED.code());
         var t1 = bldr.build();
         getTransferProcessStore().updateOrCreate(t1);
 
@@ -839,7 +867,7 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void verifyCreateUpdateDelete() {
         var id = UUID.randomUUID().toString();
-        var transferProcess = createTransferProcess(id, createDataRequestBuilder().id("clientid").build());
+        var transferProcess = createTransferProcess(id, createDataRequestBuilder().id("correlationId").build());
         getTransferProcessStore().updateOrCreate(transferProcess);
 
         TransferProcess found = getTransferProcessStore().findById(id);
@@ -847,7 +875,7 @@ public abstract class TransferProcessStoreTestBase {
         assertNotNull(found);
         assertNotSame(found, transferProcess); // enforce by-value
 
-        assertNotNull(getTransferProcessStore().processIdForDataRequestId("clientid"));
+        assertNotNull(getTransferProcessStore().findForCorrelationId("correlationId"));
 
         assertEquals(INITIAL.code(), found.getState());
 
@@ -861,103 +889,12 @@ public abstract class TransferProcessStoreTestBase {
 
         getTransferProcessStore().delete(id);
         assertNull(getTransferProcessStore().findById(id));
-        assertNull(getTransferProcessStore().processIdForDataRequestId("clientid"));
-
-    }
-
-    @Test
-    void verifyNext() throws InterruptedException {
-        var transferProcess1 = initialTransferProcess(UUID.randomUUID().toString(), "req1");
-        getTransferProcessStore().updateOrCreate(transferProcess1);
-        var transferProcess2 = initialTransferProcess(UUID.randomUUID().toString(), "req2");
-        getTransferProcessStore().updateOrCreate(transferProcess2);
-
-        transferProcess2.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        getTransferProcessStore().updateOrCreate(transferProcess2);
-        Thread.sleep(1);
-        transferProcess1.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-        getTransferProcessStore().updateOrCreate(transferProcess1);
-
-        assertThat(getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()))).isEmpty();
-
-        var found = getTransferProcessStore().nextNotLeased(1, hasState(PROVISIONING.code()));
-        assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess2));
-
-        found = getTransferProcessStore().nextNotLeased(3, hasState(PROVISIONING.code()));
-        assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess1));
-    }
-
-    @Test
-    void nextNotLeased_shouldLeaseEntityUntilUpdate() {
-        var initialTransferProcess = initialTransferProcess();
-        getTransferProcessStore().updateOrCreate(initialTransferProcess);
-
-        var firstQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
-        assertThat(firstQueryResult).hasSize(1);
-
-        var secondQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
-        assertThat(secondQueryResult).hasSize(0);
-
-        var retrieved = firstQueryResult.get(0);
-        getTransferProcessStore().updateOrCreate(retrieved);
-
-        var thirdQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
-        assertThat(thirdQueryResult).hasSize(1);
-    }
-
-    @Test
-    void verifyMutlipleRequets() {
-        String id1 = UUID.randomUUID().toString();
-        TransferProcess transferProcess1 = createTransferProcess(id1, createDataRequestBuilder().id("clientid1").build());
-        getTransferProcessStore().updateOrCreate(transferProcess1);
-
-        String id2 = UUID.randomUUID().toString();
-        TransferProcess transferProcess2 = createTransferProcess(id2, createDataRequestBuilder().id("clientid2").build());
-        getTransferProcessStore().updateOrCreate(transferProcess2);
-
-
-        TransferProcess found1 = getTransferProcessStore().findById(id1);
-        assertNotNull(found1);
-
-        TransferProcess found2 = getTransferProcessStore().findById(id2);
-        assertNotNull(found2);
-
-        var found = getTransferProcessStore().nextNotLeased(3, hasState(INITIAL.code()));
-        org.junit.jupiter.api.Assertions.assertEquals(2, found.size());
-    }
-
-    @Test
-    void verifyOrderingByTimestamp() {
-        for (int i = 0; i < 100; i++) {
-            var process = createTransferProcess("test-process-" + i);
-            getTransferProcessStore().updateOrCreate(process);
-        }
-
-        var processes = getTransferProcessStore().nextNotLeased(50, hasState(INITIAL.code()));
-
-        assertThat(processes).hasSize(50).allMatch(p -> p.getStateTimestamp() > 0);
-    }
-
-    @Test
-    void nextNotLeased_avoidsStarvation() throws InterruptedException {
-        for (int i = 0; i < 10; i++) {
-            var process = createTransferProcess("test-process-" + i);
-            getTransferProcessStore().updateOrCreate(process);
-        }
-
-        var list1 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
-        Thread.sleep(50); //simulate a short delay to generate different timestamps
-        list1.forEach(tp -> {
-            tp.updateStateTimestamp();
-            getTransferProcessStore().updateOrCreate(tp);
-        });
-        var list2 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
-        assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
+        assertNull(getTransferProcessStore().findForCorrelationId("correlationId"));
     }
 
     @Test
     void findAll_verifyFiltering() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
         var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", "test-neg-3")).build();
 
         var result = getTransferProcessStore().findAll(querySpec);
@@ -967,38 +904,42 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
         var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("something", "foobar", "other")).build();
 
         assertThatThrownBy(() -> getTransferProcessStore().findAll(querySpec)).isInstanceOfAny(IllegalArgumentException.class);
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
     void findAll_verifySorting() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
 
         assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
         assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.sortorder", matches = "true", disabledReason = "This test only runs if sorting is supported")
     protected void findAll_verifySorting_invalidProperty() {
-        IntStream.range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         assertThat(getTransferProcessStore().findAll(query).collect(Collectors.toList())).isEmpty();
     }
 
+    private void delayByTenMillis(TransferProcess t) {
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException ignored) {
+            // noop
+        }
+        t.updateStateTimestamp();
+    }
+
+
     protected abstract boolean supportsCollectionQuery();
 
     protected abstract boolean supportsLikeOperator();
-
-    protected abstract boolean supportsInOperator();
-
-    protected abstract boolean supportsSortOrder();
 
     protected abstract TransferProcessStore getTransferProcessStore();
 
