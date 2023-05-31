@@ -134,9 +134,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .contractId(message.getContractId())
                 .build();
 
-        var existentTransferProcess = transferProcessStore.findForCorrelationId(dataRequest.getId());
-        if (existentTransferProcess != null) {
-            return ServiceResult.success(existentTransferProcess);
+        var existingTransferProcess = transferProcessStore.findForCorrelationId(dataRequest.getId());
+        if (existingTransferProcess != null) {
+            return ServiceResult.success(existingTransferProcess);
         }
         var process = TransferProcess.Builder.newInstance()
                 .id(randomUUID().toString())
