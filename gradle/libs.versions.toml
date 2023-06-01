@@ -11,9 +11,7 @@ bouncyCastle-jdk18on = "1.73"
 cloudEvents = "2.5.0"
 edc = "0.1.1-SNAPSHOT"
 failsafe = "3.3.1"
-googleCloudIamAdmin = "3.13.0"
-googleCloudIamCredentials = "2.18.0"
-googleCloudStorage = "2.22.3"
+
 h2 = "2.1.214"
 httpMockServer = "5.15.0"
 jakarta-json = "2.0.1"
@@ -93,12 +91,6 @@ opentelemetry-proto = { module = "io.opentelemetry.proto:opentelemetry-proto", v
 restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 titaniumJsonLd = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium" }
-
-
-# Google dependencies
-googlecloud-iam-admin = { module = "com.google.cloud:google-iam-admin", version.ref = "googleCloudIamAdmin" }
-googlecloud-iam-credentials = { module = "com.google.cloud:google-cloud-iamcredentials", version.ref = "googleCloudIamCredentials" }
-googlecloud-storage = { module = "com.google.cloud:google-cloud-storage", version.ref = "googleCloudStorage" }
 
 # other technology extensions
 apache-commons-pool = { module = "org.apache.commons:commons-pool2", version.ref = "apacheCommonsPool2" }
