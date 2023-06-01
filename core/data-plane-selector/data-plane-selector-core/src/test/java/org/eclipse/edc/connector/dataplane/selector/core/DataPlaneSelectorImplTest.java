@@ -45,7 +45,7 @@ class DataPlaneSelectorImplTest {
         var instances = IntStream.range(0, 10).mapToObj(i -> createInstanceMock("instance" + i, true));
         when(storeMock.getAll()).thenReturn(instances);
 
-        var result = selector.select(createAddress("AzureStorzge"), createAddress("AzureStorzge"));
+        var result = selector.select(createAddress("TestType"), createAddress("TestType"));
 
         assertThat(result).isNotNull();
     }
@@ -61,7 +61,7 @@ class DataPlaneSelectorImplTest {
         );
         when(storeMock.getAll()).thenReturn(instances);
 
-        var result = selector.select(createAddress("AzureStorage"), createAddress("FTP"));
+        var result = selector.select(createAddress("SomeType"), createAddress("FTP"));
 
         assertThat(result).isNotNull().extracting(DataPlaneInstance::getId).isIn("instance1", "instance2");
     }
@@ -71,7 +71,7 @@ class DataPlaneSelectorImplTest {
         var instances = IntStream.range(0, 10).mapToObj(i -> createInstanceMock("instance" + i, false));
         when(storeMock.getAll()).thenReturn(instances);
 
-        var result = selector.select(createAddress("AzureStorzge"), createAddress("AmazonS3"));
+        var result = selector.select(createAddress("TestType"), createAddress("AmazonS3"));
 
         assertThat(result).isNull();
     }
@@ -81,7 +81,7 @@ class DataPlaneSelectorImplTest {
         var instances = IntStream.range(0, 10).mapToObj(i -> createInstanceMock("instance" + i, true));
         when(storeMock.getAll()).thenReturn(instances);
 
-        var result = selector.select(createAddress("AzureStorage"), createAddress("http"), instances1 -> instances1.get(0));
+        var result = selector.select(createAddress("TestType"), createAddress("http"), instances1 -> instances1.get(0));
 
         assertThat(result).isNotNull().extracting(DataPlaneInstance::getId).isEqualTo("instance0");
     }

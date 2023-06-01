@@ -26,7 +26,6 @@ dependencies {
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:data-plane:data-plane-http"))
-    implementation(project(":extensions:data-plane:data-plane-azure-storage"))
     implementation(project(":extensions:data-plane:data-plane-api"))
 }
 
