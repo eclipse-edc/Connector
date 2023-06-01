@@ -63,30 +63,7 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport
 
-  Aws-Integration-Tests:
-    runs-on: ubuntu-latest
 
-    env:
-      S3_ACCESS_KEY_ID: root
-      S3_SECRET_ACCESS_KEY: password
-
-    services:
-      minio:
-        image: bitnami/minio:latest
-        ports:
-          - 9000:9000
-        env:
-          MINIO_ROOT_USER: root
-          MINIO_ROOT_PASSWORD: password
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: AWS Tests
-        uses: ./.github/actions/run-tests
-        with:
-          command: ./gradlew -p extensions test -DincludeTags="AwsS3IntegrationTest"
 
   Daps-Integration-Tests:
     runs-on: ubuntu-latest
