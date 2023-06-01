@@ -35,7 +35,6 @@ styleguide.md @paullatzelsperger
 /docs/ @juliapampus
 
 /extensions/common/api/ @ndr-brt @paullatzelsperger
-/extensions/common/aws/ @paullatzelsperger
 /extensions/common/azure/ @paullatzelsperger
 /extensions/common/configuration/ @jimmarino
 /extensions/common/events/ @ndr-brt

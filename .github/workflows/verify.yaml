@@ -186,7 +186,6 @@ jobs:
   Upload-Test-Report:
     needs:
       - API-Tests
-      - Aws-Integration-Tests
       - Component-Tests
       - Daps-Integration-Tests
       - End-To-End-Tests
