@@ -57,6 +57,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
         left = jsonFactory.createObjectBuilder().add(VALUE, "left").build();
     }
 
+    /**
+     * Verifies a Json-ld expanded array containing two strings as-is.
+     */
     @Test
     void verify_array_of_strings() {
         var right = jsonFactory.createArrayBuilder().add("value1").add("value2").build();
@@ -79,6 +82,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
         verifyNoInteractions(context);
     }
 
+    /**
+     * Verifies a Json-Ld array containing a single element of a complex type has the complex type extracted and returned.
+     */
     @Test
     void verify_array_of_single_complex_type() {
         var right = jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder(Map.of("edc:foo", "bar"))).build();
@@ -101,6 +107,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
         verifyNoInteractions(context);
     }
 
+    /**
+     * Verifies a Json-Ld object with no {@code value} property is returned as-is.
+     */
     @Test
     void verify_object_no_value() {
         var right = jsonFactory.createObjectBuilder(Map.of("edc:foo", "bar")).build();
@@ -125,6 +134,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
         verifyNoInteractions(context);
     }
 
+    /**
+     * Verifies a Json-Ld object with a {@code value} property has the property extracted and transformed.
+     */
     @Test
     void verify_object_with_value() {
         var right = jsonFactory.createObjectBuilder(Map.of(VALUE, "bar")).build();
@@ -142,6 +154,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
         verifyNoInteractions(context);
     }
 
+    /**
+     * Verifies string values are returned correctly.
+     */
     @Test
     void verify_expanded_string() {
         var constraint = createConstraint("bar");
@@ -157,6 +172,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
         verifyNoInteractions(context);
     }
 
+    /**
+     * Verifies int values are returned correctly.
+     */
     @Test
     void verify_expanded_int() {
         var constraint = createConstraint(1);
@@ -172,6 +190,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
         verifyNoInteractions(context);
     }
 
+    /**
+     * Verifies decimal values are returned correctly.
+     */
     @Test
     void verify_expanded_decimal() {
         var constraint = createConstraint(1.1d);
