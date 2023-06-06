@@ -37,7 +37,7 @@ public class EndpointDataAddressConstants {
             ID,
             ENDPOINT,
             AUTH_CODE,
-            DataAddress.TYPE,
+            DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY,
             AUTH_KEY);
 
     private EndpointDataAddressConstants() {

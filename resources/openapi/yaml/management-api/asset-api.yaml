@@ -312,9 +312,6 @@ components:
           $ref: '#/components/schemas/Asset'
         dataAddress:
           $ref: '#/components/schemas/DataAddress'
-      required:
-      - asset
-      - dataAddress
     AssetResponseDto:
       type: object
       example: null

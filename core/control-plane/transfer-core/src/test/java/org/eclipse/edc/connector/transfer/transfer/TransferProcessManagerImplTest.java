@@ -105,7 +105,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
-import static org.eclipse.edc.spi.types.domain.DataAddress.SECRET;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -289,7 +289,7 @@ class TransferProcessManagerImplTest {
         var destinationDataAddress = DataAddress.Builder.newInstance()
                 .keyName("keyName")
                 .type("type")
-                .property(SECRET, "secret")
+                .property(EDC_DATA_ADDRESS_SECRET, "secret")
                 .build();
         var dataRequest = createDataRequestBuilder().dataDestination(destinationDataAddress).build();
         var transferProcess = createTransferProcessBuilder(INITIAL).type(PROVIDER).dataRequest(dataRequest).build();
@@ -502,7 +502,7 @@ class TransferProcessManagerImplTest {
             verify(listener).requested(process);
             var requestMessage = captor.getValue();
             assertThat(requestMessage.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
-            assertThat(requestMessage.getDataDestination().getProperty(SECRET)).isNull();
+            assertThat(requestMessage.getDataDestination().getProperty(EDC_DATA_ADDRESS_SECRET)).isNull();
         });
     }
 
@@ -524,7 +524,7 @@ class TransferProcessManagerImplTest {
             verify(listener).requested(process);
             verify(vault).resolveSecret("keyName");
             var requestMessage = captor.getValue();
-            assertThat(requestMessage.getDataDestination().getProperty(SECRET)).isEqualTo("secret");
+            assertThat(requestMessage.getDataDestination().getProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
         });
     }
 

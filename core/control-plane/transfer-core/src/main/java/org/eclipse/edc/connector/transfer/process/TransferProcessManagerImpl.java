@@ -93,7 +93,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
-import static org.eclipse.edc.spi.types.domain.DataAddress.SECRET;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -320,7 +320,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             process.setContentDataAddress(dataAddress);
 
             var dataDestination = process.getDataRequest().getDataDestination();
-            var secret = dataDestination.getProperty(SECRET);
+            var secret = dataDestination.getProperty(EDC_DATA_ADDRESS_SECRET);
             if (secret != null) {
                 vault.storeSecret(dataDestination.getKeyName(), secret);
             }
@@ -394,7 +394,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataDestination = Optional.ofNullable(dataRequest.getDataDestination().getKeyName())
                 .flatMap(key -> Optional.ofNullable(vault.resolveSecret(key)))
-                .map(secret -> DataAddress.Builder.newInstance().properties(dataRequest.getDataDestination().getProperties()).property(SECRET, secret).build())
+                .map(secret -> DataAddress.Builder.newInstance().properties(dataRequest.getDataDestination().getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
                 .orElse(dataRequest.getDataDestination());
 
         var message = TransferRequestMessage.Builder.newInstance()

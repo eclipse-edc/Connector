@@ -111,8 +111,8 @@ class JsonObjectToDataAddressTransformerTest {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + DataAddress.TYPE, TEST_TYPE)
-                .add(EDC_NAMESPACE + DataAddress.KEY_NAME, TEST_KEY_NAME);
+                .add(EDC_NAMESPACE + DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, TEST_TYPE)
+                .add(EDC_NAMESPACE + DataAddress.EDC_DATA_ADDRESS_KEY_NAME, TEST_KEY_NAME);
     }
 
     private JsonObjectBuilder createContextBuilder() {

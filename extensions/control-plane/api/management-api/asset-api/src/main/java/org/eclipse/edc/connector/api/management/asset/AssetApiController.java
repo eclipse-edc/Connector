@@ -36,16 +36,20 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.util.List;
-import java.util.function.Function;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_TYPE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
@@ -57,13 +61,16 @@ public class AssetApiController implements AssetApi {
     private final DataAddressResolver dataAddressResolver;
     private final JsonLd jsonLdService;
     private final Monitor monitor;
+    private final JsonObjectValidatorRegistry validator;
 
-    public AssetApiController(AssetService service, DataAddressResolver dataAddressResolver, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService, Monitor monitor) {
+    public AssetApiController(AssetService service, DataAddressResolver dataAddressResolver, TypeTransformerRegistry transformerRegistry,
+                              JsonLd jsonLdService, Monitor monitor, JsonObjectValidatorRegistry validator) {
         this.transformerRegistry = transformerRegistry;
         this.service = service;
         this.dataAddressResolver = dataAddressResolver;
         this.jsonLdService = jsonLdService;
         this.monitor = monitor;
+        this.validator = validator;
     }
 
     @POST
@@ -71,6 +78,7 @@ public class AssetApiController implements AssetApi {
     public JsonObject createAsset(JsonObject assetEntryDto) {
 
         var assetEntry = jsonLdService.expand(assetEntryDto)
+                .onSuccess(expanded -> validator.validate(EDC_ASSET_ENTRY_DTO_TYPE, expanded).orElseThrow(ValidationFailureException::new))
                 .compose(expanded -> transformerRegistry.transform(expanded, AssetEntryNewDto.class))
                 .orElseThrow(InvalidRequestException::new);
 
@@ -90,17 +98,16 @@ public class AssetApiController implements AssetApi {
     @Path("/request")
     @Override
     public List<JsonObject> requestAssets(JsonObject querySpecDto) {
-
-        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
-                expandedResult -> expandedResult
-                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
-                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
-
-        var querySpec = ofNullable(querySpecDto)
-                .map(jsonLdService::expand)
-                .map(expandedMapper)
-                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
-                .orElseThrow(InvalidRequestException::new);
+        QuerySpec querySpec;
+        if (querySpecDto == null) {
+            querySpec = QuerySpec.Builder.newInstance().build();
+        } else {
+            querySpec = jsonLdService.expand(querySpecDto)
+                    .onSuccess(expanded -> validator.validate(EDC_QUERY_SPEC_TYPE, expanded).orElseThrow(ValidationFailureException::new))
+                    .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
+                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+                    .orElseThrow(InvalidRequestException::new);
+        }
 
         return queryAssets(querySpec);
     }
@@ -130,8 +137,11 @@ public class AssetApiController implements AssetApi {
     @PUT
     @Override
     public void updateAsset(JsonObject assetJsonObject) {
-        var assetResult = jsonLdService.expand(assetJsonObject).compose(jo -> transformerRegistry.transform(jo, Asset.class))
+        var assetResult = jsonLdService.expand(assetJsonObject)
+                .onSuccess(expanded -> validator.validate(EDC_ASSET_TYPE, expanded).orElseThrow(ValidationFailureException::new))
+                .compose(jo -> transformerRegistry.transform(jo, Asset.class))
                 .orElseThrow(InvalidRequestException::new);
+
         service.update(assetResult)
                 .orElseThrow(exceptionMapper(Asset.class, assetResult.getId()));
     }
@@ -140,7 +150,9 @@ public class AssetApiController implements AssetApi {
     @Path("{assetId}/dataaddress")
     @Override
     public void updateDataAddress(@PathParam("assetId") String assetId, JsonObject dataAddressJson) {
-        var dataAddressResult = jsonLdService.expand(dataAddressJson).compose(jo -> transformerRegistry.transform(jo, DataAddress.class))
+        var dataAddressResult = jsonLdService.expand(dataAddressJson)
+                .onSuccess(expanded -> validator.validate(EDC_DATA_ADDRESS_TYPE, expanded).orElseThrow(ValidationFailureException::new))
+                .compose(jo -> transformerRegistry.transform(jo, DataAddress.class))
                 .orElseThrow(InvalidRequestException::new);
 
         service.update(assetId, dataAddressResult)

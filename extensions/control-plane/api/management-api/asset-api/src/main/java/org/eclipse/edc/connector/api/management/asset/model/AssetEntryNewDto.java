@@ -17,8 +17,6 @@ package org.eclipse.edc.connector.api.management.asset.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
@@ -31,14 +29,9 @@ public class AssetEntryNewDto {
     public static final String EDC_ASSET_ENTRY_DTO_ASSET = EDC_NAMESPACE + "asset";
     public static final String EDC_ASSET_ENTRY_DTO_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
 
-    @NotNull(message = "asset cannot be null")
     private Asset asset;
-
-    @NotNull(message = "dataAddress cannot be null")
-    @Valid
     private DataAddress dataAddress;
 
-    @NotNull(message = "dataAddress cannot be null")
     public DataAddress getDataAddress() {
         return dataAddress;
     }
@@ -46,7 +39,6 @@ public class AssetEntryNewDto {
     public Asset getAsset() {
         return asset;
     }
-
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
@@ -67,7 +59,7 @@ public class AssetEntryNewDto {
             return this;
         }
 
-        public AssetEntryNewDto.Builder dataAddress(@NotNull DataAddress dataAddress) {
+        public AssetEntryNewDto.Builder dataAddress(DataAddress dataAddress) {
             assetEntryDto.dataAddress = dataAddress;
             return this;
         }

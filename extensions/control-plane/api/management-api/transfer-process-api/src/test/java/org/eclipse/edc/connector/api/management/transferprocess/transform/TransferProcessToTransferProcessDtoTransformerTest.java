@@ -108,7 +108,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
         data.dto
                 .dataDestination(
                         DataAddressDto.Builder.newInstance()
-                                .properties(Map.of(DataAddress.TYPE, data.dataDestinationType))
+                                .properties(Map.of(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, data.dataDestinationType))
                                 .build())
                 .state("INITIAL")
                 .stateTimestamp(data.stateTimestamp)
