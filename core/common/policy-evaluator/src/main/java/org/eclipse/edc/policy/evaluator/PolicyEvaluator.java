@@ -72,7 +72,7 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     @Override
     public Boolean visitPermission(Permission permission) {
-        for (RuleFunction<Permission> function : permissionRuleFunctions) {
+        for (var function : permissionRuleFunctions) {
             if (!function.evaluate(permission)) {
                 ruleProblems.add(RuleProblem.Builder.newInstance().rule(permission).description("Evalution failed for: " + permission.toString()).build());
                 return false;
@@ -96,7 +96,7 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     @Override
     public Boolean visitProhibition(Prohibition prohibition) {
-        for (RuleFunction<Prohibition> function : prohibitionRuleFunctions) {
+        for (var function : prohibitionRuleFunctions) {
             if (function.evaluate(prohibition)) {
                 ruleProblems.add(RuleProblem.Builder.newInstance().rule(prohibition).description("Evalution failed for: " + prohibition.toString()).build());
                 return false;
@@ -112,7 +112,7 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     @Override
     public Boolean visitDuty(Duty duty) {
-        for (RuleFunction<Duty> function : dutyRuleFunctions) {
+        for (var function : dutyRuleFunctions) {
             if (!function.evaluate(duty)) {
                 ruleProblems.add(RuleProblem.Builder.newInstance().rule(duty).description("Evalution failed for: " + duty.toString()).build());
                 return false;
@@ -139,7 +139,7 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     @Override
     public Boolean visitXoneConstraint(XoneConstraint xoneConstraint) {
         int count = 0;
-        for (Constraint constraint : xoneConstraint.getConstraints()) {
+        for (var constraint : xoneConstraint.getConstraints()) {
             if (constraint.accept(this)) {
                 count++;
                 if (count > 1) {
@@ -153,7 +153,7 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     @Override
     public Boolean visitAtomicConstraint(AtomicConstraint constraint) {
         var rightValue = constraint.getRightExpression().accept(this);
-        Object leftRawValue = constraint.getLeftExpression().accept(this);
+        var leftRawValue = constraint.getLeftExpression().accept(this);
         if (leftRawValue instanceof String) {
             AtomicConstraintFunction<Object, Rule, Boolean> function;
             if (ruleContext instanceof Permission) {
@@ -198,7 +198,7 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     private Boolean visitRule(Rule rule) {
         var valid = true;
         RuleProblem.Builder problemBuilder = null;
-        for (Constraint constraint : rule.getConstraints()) {
+        for (var constraint : rule.getConstraints()) {
             var result = constraint.accept(this);
             if ((!result && !(ruleContext instanceof Prohibition) || (result && ruleContext instanceof Prohibition))) {
                 if (problemBuilder == null) {

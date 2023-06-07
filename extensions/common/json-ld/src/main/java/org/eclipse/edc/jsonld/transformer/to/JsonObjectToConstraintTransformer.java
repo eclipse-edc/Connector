@@ -14,7 +14,10 @@
 
 package org.eclipse.edc.jsonld.transformer.to;
 
+import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -31,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_LEFT_OPERAND_ATTRIBUTE;
@@ -41,6 +45,16 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
 
 /**
  * Converts from an ODRL constraint as a {@link JsonObject} in JSON-LD expanded form to a {@link Constraint}.
+ * <p>
+ * Right operands of atomic constraints are transformed as follows:
+ * <ul>
+ *     <li>Json-Ld expanded scalar types are extracted from their enclosing array and passed directly to the constraint evaluator.</li>
+ *     <li>Json-Ld arrays that contain a single element (Json-Ld scalar or complex type) will return the extracted element. </li>
+ *     <li>Json-Ld arrays that contain multiple elements will be returned as-is.</li>
+ *     <li>Json-Ld objects that contain an @code{value} property will have that property extracted and returned.</li>
+ *     <li>All other Json-Ld forms are returned as-is.</li>
+ * </ul>
+ * -
  */
 public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer<JsonObject, Constraint> {
 
@@ -86,7 +100,8 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
             return null;
         }
 
-        var rightOperand = transformString(object.get(ODRL_RIGHT_OPERAND_ATTRIBUTE), context);
+        var rightOperand = extractComplexValue(object.get(ODRL_RIGHT_OPERAND_ATTRIBUTE));
+
         builder.rightExpression(new LiteralExpression(rightOperand));
 
         return builderResult(builder::build, context);
@@ -104,4 +119,61 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
                 })
                 .orElse(null);
     }
+
+    /**
+     * Extracts a value from a root type according to the rules specified by this class.
+     *
+     * @param root the root object to extract the value from.
+     * @return the extracted value
+     */
+    private Object extractComplexValue(JsonValue root) {
+        switch (root.getValueType()) {
+            case ARRAY -> {
+                var array = root.asJsonArray();
+                if (array.size() != 1) {
+                    // not a single element array, return as-is
+                    return array;
+                }
+                // single element array, extract and return it
+                return extractComplexValue(array.get(0));
+            }
+            case OBJECT -> {
+                var valueProp = root.asJsonObject().get(VALUE);
+                if (valueProp != null) {
+                    // object has a value type, extract and return it
+                    return extractValue(valueProp);
+                }
+            }
+            default -> {
+                // extract the value directly
+                return extractValue(root);
+            }
+        }
+
+        return extractValue(root);
+    }
+
+    /**
+     * Extracts the value. If the value is a scalar, its Java representation is returned; otherwise the Json representation is returned.
+     */
+    private Object extractValue(JsonValue value) {
+        switch (value.getValueType()) {
+            case STRING -> {
+                return ((JsonString) value).getString();
+            }
+            case NUMBER -> {
+                return ((JsonNumber) value).numberValue();
+            }
+            case TRUE -> {
+                return true;
+            }
+            case FALSE -> {
+                return false;
+            }
+            default -> {
+                return value;
+            }
+        }
+    }
+
 }

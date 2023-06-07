@@ -52,6 +52,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
  * Base JSON-LD transformer implementation.
  */
 public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLdTransformer<INPUT, OUTPUT> {
+    private static final Consumer<JsonValue> NOOP_CONSUMER = v -> {
+    };
+
     private final Class<INPUT> input;
     private final Class<OUTPUT> output;
 
@@ -62,8 +65,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
 
     @NotNull
     protected static Consumer<JsonValue> doNothing() {
-        return v -> {
-        };
+        return NOOP_CONSUMER;
     }
 
     @Override
@@ -191,7 +193,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      */
     protected void visitArray(JsonValue value, Consumer<JsonValue> resultFunction, TransformerContext context) {
         if (value instanceof JsonArray) {
-            visitArray(value.asJsonArray(), resultFunction);
+            var jsonArray = value.asJsonArray();
+            jsonArray.forEach(resultFunction);
         } else {
             context.problem()
                     .unexpectedType()
@@ -199,16 +202,6 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .expected(ARRAY)
                     .report();
         }
-    }
-
-    /**
-     * Visit all the elements of the value and apply the result function.
-     *
-     * @param array          The input array
-     * @param resultFunction The function to apply to each element
-     */
-    protected void visitArray(JsonArray array, Consumer<JsonValue> resultFunction) {
-        array.forEach(resultFunction);
     }
 
     @Nullable
@@ -274,7 +267,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .filter(Objects::nonNull)
                     .findFirst().map(it -> transformString(it, context))
                     .orElseGet(() -> {
-                        // no need to report problem as it will have been donne above with call to transformString()
+                        // no need to report problem as it will have been done above with call to transformString()
                         return null;
                     });
         } else if (value instanceof JsonArray) {

@@ -15,15 +15,26 @@
 package org.eclipse.edc.policy.evaluator;
 
 import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.AtomicConstraintFunction;
 import org.eclipse.edc.policy.model.Duty;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.eclipse.edc.policy.evaluator.PolicyTestFunctions.createLiteralAtomicConstraint;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PolicyEvaluatorTest {
 
@@ -129,6 +140,26 @@ class PolicyEvaluatorTest {
 
         evaluator = PolicyEvaluator.Builder.newInstance().dutyRuleFunction((p) -> false).build();
         assertFalse(evaluator.evaluate(policy).valid());
-
     }
+
+    @Test
+    void verifyAtomicConstrainComplexType() {
+        var left = new LiteralExpression("test");
+        var right = new LiteralExpression(List.of("one", "two", "three"));
+        var constraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(Operator.EQ).rightExpression(right).build();
+
+        var duty = Duty.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().duty(duty).build();
+
+        @SuppressWarnings("unchecked") AtomicConstraintFunction<Object, Duty, Boolean> mock = mock(AtomicConstraintFunction.class);
+        when(mock.evaluate(eq(Operator.EQ), isA(List.class), isA(Duty.class))).thenReturn(true);
+
+        // verify that the constraint function is invoked and passed the collection
+        var evaluator = PolicyEvaluator.Builder.newInstance().dutyFunction("test", mock).build();
+        assertTrue(evaluator.evaluate(policy).valid());
+
+        verify(mock).evaluate(eq(Operator.EQ), isA(List.class), isA(Duty.class));
+    }
+
+
 }
