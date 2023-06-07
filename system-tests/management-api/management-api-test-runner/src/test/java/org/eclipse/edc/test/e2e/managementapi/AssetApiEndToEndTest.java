@@ -30,6 +30,7 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -108,6 +109,34 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
         assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
         assertThat(assetIndex.findById("test-asset-id")).isNotNull();
+    }
+
+    @Test
+    void createAsset_shouldFail_whenBodyIsNotValid() {
+        var assetJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "Asset")
+                .add(ID, " ")
+                .add("properties", createPropertiesBuilder().build())
+                .build();
+
+        var assetNewJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "AssetEntryDto")
+                .add("asset", assetJson)
+                .build();
+
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(assetNewJson)
+                .post()
+                .then()
+                .log().ifError()
+                .statusCode(400);
+
+        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
+
+        assertThat(assetIndex.countAssets(emptyList())).isEqualTo(0);
     }
 
     @Test

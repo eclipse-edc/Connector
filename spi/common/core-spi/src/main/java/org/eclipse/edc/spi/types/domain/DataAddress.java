@@ -41,10 +41,12 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class DataAddress {
     public static final String SIMPLE_TYPE = "type";
-    public static final String TYPE = EDC_NAMESPACE + SIMPLE_TYPE;
     public static final String SIMPLE_KEY_NAME = "keyName";
-    public static final String KEY_NAME = EDC_NAMESPACE + "keyName";
-    public static final String SECRET = EDC_NAMESPACE + "secret";
+    public static final String EDC_DATA_ADDRESS_TYPE = EDC_NAMESPACE + "DataAddress";
+    public static final String EDC_DATA_ADDRESS_TYPE_PROPERTY = EDC_NAMESPACE + SIMPLE_TYPE;
+    public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + "keyName";
+    public static final String EDC_DATA_ADDRESS_SECRET = EDC_NAMESPACE + "secret";
+
     protected final Map<String, String> properties = new HashMap<>();
 
     protected DataAddress() {
@@ -52,13 +54,13 @@ public class DataAddress {
 
     @NotNull
     public String getType() {
-        return getProperty(TYPE);
+        return getProperty(EDC_DATA_ADDRESS_TYPE_PROPERTY);
     }
 
     @JsonIgnore
     public void setType(String type) {
         Objects.requireNonNull(type);
-        properties.put(TYPE, type);
+        properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, type);
     }
 
     @Nullable
@@ -80,13 +82,13 @@ public class DataAddress {
     }
 
     public String getKeyName() {
-        return getProperty(KEY_NAME);
+        return getProperty(EDC_DATA_ADDRESS_KEY_NAME);
     }
 
     @JsonIgnore
     public void setKeyName(String keyName) {
         Objects.requireNonNull(keyName);
-        properties.put(KEY_NAME, keyName);
+        properties.put(EDC_DATA_ADDRESS_KEY_NAME, keyName);
     }
 
     /**
@@ -114,16 +116,16 @@ public class DataAddress {
         }
 
         public B type(String type) {
-            address.properties.put(TYPE, Objects.requireNonNull(type));
+            address.properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, Objects.requireNonNull(type));
             return self();
         }
 
         public B property(String key, String value) {
             Objects.requireNonNull(key, "Property key null.");
             if (SIMPLE_TYPE.equals(key)) {
-                key = TYPE;
+                key = EDC_DATA_ADDRESS_TYPE_PROPERTY;
             } else if (SIMPLE_KEY_NAME.equals(key)) {
-                key = KEY_NAME;
+                key = EDC_DATA_ADDRESS_KEY_NAME;
             }
             address.properties.put(key, value);
             return self();
@@ -135,7 +137,7 @@ public class DataAddress {
         }
 
         public B keyName(String keyName) {
-            address.getProperties().put(KEY_NAME, Objects.requireNonNull(keyName));
+            address.getProperties().put(EDC_DATA_ADDRESS_KEY_NAME, Objects.requireNonNull(keyName));
             return self();
         }
 

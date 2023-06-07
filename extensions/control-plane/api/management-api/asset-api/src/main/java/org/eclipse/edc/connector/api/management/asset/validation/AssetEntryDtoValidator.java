@@ -1,0 +1,67 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.api.management.asset.validation;
+
+import jakarta.json.JsonObject;
+import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
+import org.eclipse.edc.validator.jsonobject.MandatoryField;
+import org.eclipse.edc.validator.jsonobject.OptionalIdNotBlank;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
+
+import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_ASSET;
+import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_DATA_ADDRESS;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
+import static org.eclipse.edc.validator.spi.Violation.violation;
+
+/**
+ * Contains the AssetEntryDto validator definition
+ */
+public class AssetEntryDtoValidator {
+
+    public static Validator<JsonObject> instance() {
+        return JsonObjectValidator.newValidator()
+                .verify(EDC_ASSET_ENTRY_DTO_ASSET, MandatoryField::new)
+                .verifyObject(EDC_ASSET_ENTRY_DTO_ASSET, v -> v
+                        .verify(ID, OptionalIdNotBlank::new)
+                        .verify(EDC_ASSET_PROPERTIES, MandatoryField::new)
+                        .verify(path -> new AssetPropertiesUniqueness())
+                )
+                .verify(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, MandatoryField::new)
+                .verifyObject(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, v -> v
+                        .verify(EDC_DATA_ADDRESS_TYPE_PROPERTY, MandatoryField::new)
+                );
+    }
+
+    private static class AssetPropertiesUniqueness implements Validator<JsonObject> {
+        @Override
+        public ValidationResult validate(JsonObject input) {
+            if (!input.containsKey(EDC_ASSET_PROPERTIES) || !input.containsKey(EDC_ASSET_PRIVATE_PROPERTIES)) {
+                return ValidationResult.success();
+            }
+            var properties = input.getJsonArray(EDC_ASSET_PROPERTIES).getJsonObject(0);
+            var privateProperties = input.getJsonArray(EDC_ASSET_PRIVATE_PROPERTIES).getJsonObject(0);
+
+            if (properties.keySet().stream().anyMatch(privateProperties::containsKey)) {
+                return ValidationResult.failure(violation("cannot exists duplicated keys between 'properties' and 'privateProperties'", EDC_ASSET_ENTRY_DTO_ASSET + "/" + EDC_ASSET_PROPERTIES));
+            }
+            return ValidationResult.success();
+        }
+    }
+
+}

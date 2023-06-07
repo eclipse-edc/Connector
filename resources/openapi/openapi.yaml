@@ -1655,9 +1655,6 @@ components:
           example: null
       example: null
     AssetEntryNewDto:
-      required:
-      - asset
-      - dataAddress
       type: object
       properties:
         asset:
@@ -1721,38 +1718,6 @@ components:
     CallbackAddress:
       type: object
       properties:
-        authCodeId:
-          type: string
-          example: null
-        authKey:
-          type: string
-          example: null
-        events:
-          uniqueItems: true
-          type: array
-          example: null
-          items:
-            type: string
-            example: null
-        transactional:
-          type: boolean
-          example: null
-        uri:
-          type: string
-          example: null
-      example: null
-    CallbackAddressDto:
-      required:
-      - events
-      - uri
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
         authCodeId:
           type: string
           example: null
@@ -2334,7 +2299,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddressDto'
+            $ref: '#/components/schemas/CallbackAddress'
         connectorAddress:
           type: string
           example: null
@@ -2590,7 +2555,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddressDto'
+            $ref: '#/components/schemas/CallbackAddress'
         createdAt:
           type: integer
           format: int64
@@ -2649,7 +2614,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddressDto'
+            $ref: '#/components/schemas/CallbackAddress'
         connectorAddress:
           type: string
           example: null
