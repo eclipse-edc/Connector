@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
 import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.edc.connector.core.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.connector.core.validator.JsonObjectValidatorImpl;
+import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
 import org.eclipse.edc.policy.engine.ScopeFilter;
@@ -179,7 +179,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public JsonObjectValidatorRegistry jsonObjectValidator() {
-        return new JsonObjectValidatorImpl();
+        return new JsonObjectValidatorRegistryImpl();
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {

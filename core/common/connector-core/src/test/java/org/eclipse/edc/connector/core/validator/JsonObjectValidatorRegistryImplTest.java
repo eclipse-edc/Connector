@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.core.validator;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectValidatorRegistryImplTest {
 
-    private final JsonObjectValidatorImpl registry = new JsonObjectValidatorImpl();
+    private final JsonObjectValidatorRegistry registry = new JsonObjectValidatorRegistryImpl();
 
     @Test
     void shouldSucceed_whenValidatorDoesNotExist() {

@@ -22,7 +22,7 @@ import org.eclipse.edc.validator.spi.Validator;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JsonObjectValidatorImpl implements JsonObjectValidatorRegistry {
+public class JsonObjectValidatorRegistryImpl implements JsonObjectValidatorRegistry {
 
     private final Map<String, Validator<JsonObject>> validators = new HashMap<>();
 
