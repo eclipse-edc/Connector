@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.contract.negotiation;
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -82,8 +83,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
-    private static final String PARTICIPANT_ID = "participantId";
 
+    private static final String PARTICIPANT_ID = "participantId";
     private static final int RETRY_LIMIT = 1;
 
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
@@ -91,12 +92,12 @@ class ConsumerContractNegotiationManagerImplTest {
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
     private final ProtocolWebhook protocolWebhook = mock(ProtocolWebhook.class);
-    private final String procotolWebhookUrl = "http://protocol.webhook/url";
+    private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
     void setUp() {
-        when(protocolWebhook.url()).thenReturn(procotolWebhookUrl);
+        when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
         CommandQueue<ContractNegotiationCommand> queue = mock(CommandQueue.class);
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
 
@@ -171,13 +172,13 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture(null));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(protocolWebhook.url()).thenReturn(procotolWebhookUrl);
+        when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
 
         negotiationManager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
-            verify(dispatcherRegistry, only()).send(any(), and(isA(ContractRequestMessage.class), argThat(it -> procotolWebhookUrl.equals(it.getCallbackAddress()))));
+            verify(dispatcherRegistry, only()).send(any(), and(isA(ContractRequestMessage.class), argThat(it -> protocolWebhookUrl.equals(it.getCallbackAddress()))));
             verify(listener).requested(any());
         });
     }
@@ -214,7 +215,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void verifying_shouldSendMessageAndTransitionToVerified() {
-        var negotiation = contractNegotiationBuilder().state(VERIFYING.code()).build();
+        var negotiation = contractNegotiationBuilder().state(VERIFYING.code()).contractAgreement(createContractAgreement()).build();
         when(store.nextNotLeased(anyInt(), stateIs(VERIFYING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture("any"));
@@ -252,7 +253,6 @@ class ConsumerContractNegotiationManagerImplTest {
         when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
-
         negotiationManager.start();
 
         await().untilAsserted(() -> {
@@ -282,6 +282,16 @@ class ConsumerContractNegotiationManagerImplTest {
                 .build();
     }
 
+    private ContractAgreement createContractAgreement() {
+        return ContractAgreement.Builder.newInstance()
+                .id("contractId")
+                .consumerId("consumerId")
+                .providerId("providerId")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
     private static class DispatchFailureArguments implements ArgumentsProvider {
 
         private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
@@ -293,14 +303,24 @@ class ConsumerContractNegotiationManagerImplTest {
                     // retries not exhausted
                     new DispatchFailure(REQUESTING, REQUESTING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
                     new DispatchFailure(ACCEPTING, ACCEPTING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(VERIFYING, VERIFYING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).errorDetail("an error")),
+                    new DispatchFailure(VERIFYING, VERIFYING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractAgreement(createContractAgreement())),
+                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer())),
                     // retries exhausted
                     new DispatchFailure(REQUESTING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer())),
                     new DispatchFailure(ACCEPTING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(VERIFYING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED).errorDetail("an error"))
+                    new DispatchFailure(VERIFYING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED).contractAgreement(createContractAgreement())),
+                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer()))
             );
+        }
+
+        private ContractAgreement createContractAgreement() {
+            return ContractAgreement.Builder.newInstance()
+                    .id("contractId")
+                    .consumerId("consumerId")
+                    .providerId("providerId")
+                    .assetId("assetId")
+                    .policy(Policy.Builder.newInstance().build())
+                    .build();
         }
 
         private ContractOffer contractOffer() {

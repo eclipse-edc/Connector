@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,6 +95,11 @@ public class ContractRequestMessage implements ContractRemoteMessage {
 
     public String getCallbackAddress() {
         return callbackAddress;
+    }
+
+    @Override
+    public Policy getPolicy() {
+        return contractOffer.getPolicy();
     }
 
     public enum Type {

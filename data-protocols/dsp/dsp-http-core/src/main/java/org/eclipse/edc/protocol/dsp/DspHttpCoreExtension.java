@@ -14,7 +14,19 @@
 
 package org.eclipse.edc.protocol.dsp;
 
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.protocol.dsp.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdRemoteMessageSerializerImpl;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
@@ -57,6 +69,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private JsonLd jsonLdService;
     @Inject(required = false)
     private TokenDecorator decorator;
+    @Inject
+    private PolicyEngine policyEngine;
 
     @Override
     public String name() {
@@ -72,9 +86,29 @@ public class DspHttpCoreExtension implements ServiceExtension {
             context.getMonitor().warning("No TokenDecorator was registered. The 'scope' field of outgoing protocol messages will be empty");
             td = bldr -> bldr;
         }
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td);
+
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td, policyEngine);
+        registerNegotiationPolicyScopes(dispatcher);
+        registerTransferProcessPolicyScopes(dispatcher);
         dispatcherRegistry.register(dispatcher);
         return dispatcher;
+    }
+
+    private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
+        var scope = "contract.negotiation.request";
+        dispatcher.registerPolicyScope(ContractAgreementMessage.class, scope, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractNegotiationEventMessage.class, scope, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractRequestMessage.class, scope, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractNegotiationTerminationMessage.class, scope, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractAgreementVerificationMessage.class, scope, ContractRemoteMessage::getPolicy);
+    }
+
+    private void registerTransferProcessPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
+        var scope = "transfer.process.request";
+        dispatcher.registerPolicyScope(TransferCompletionMessage.class, scope, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferTerminationMessage.class, scope, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferStartMessage.class, scope, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferRequestMessage.class, scope, TransferRemoteMessage::getPolicy);
     }
 
     @Provider

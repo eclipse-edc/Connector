@@ -153,11 +153,9 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorId("connectorId")
                 .counterPartyAddress("http://any")
                 .processId("processId")
                 .contractAgreement(contractAgreement)
-                .policy(createPolicy())
                 .build();
 
         var result = service.notifyAgreed(message, token);
@@ -181,11 +179,9 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
-                .connectorId("connectorId")
                 .counterPartyAddress("http://any")
                 .processId("processId")
                 .contractAgreement(contractAgreement)
-                .policy(createPolicy())
                 .build();
 
         var result = service.notifyAgreed(message, token);
@@ -383,11 +379,9 @@ class ContractNegotiationProtocolServiceImplTest {
             return Stream.of(
                     Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
                             .protocol("protocol")
-                            .connectorId("connectorId")
                             .counterPartyAddress("http://any")
                             .processId("processId")
                             .contractAgreement(mock(ContractAgreement.class))
-                            .policy(Policy.Builder.newInstance().build())
                             .build()),
                     Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
                             .protocol("protocol")

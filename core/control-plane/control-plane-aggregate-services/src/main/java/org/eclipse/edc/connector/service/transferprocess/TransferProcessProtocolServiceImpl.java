@@ -126,7 +126,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(message.getProcessId())
                 .protocol(message.getProtocol())
-                .connectorId(message.getConnectorId())
                 .connectorAddress(message.getCallbackAddress())
                 .dataDestination(message.getDataDestination())
                 .properties(message.getProperties())

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,12 +27,11 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
 
     private String id;
     private String protocol = "unknown";
-    @Deprecated(forRemoval = true)
-    private String connectorId;
     private String counterPartyAddress;
     private String processId;
     private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
     private String code;
+    private Policy policy;
 
     @NotNull
     @Override
@@ -55,11 +55,6 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         return counterPartyAddress;
     }
 
-    @Deprecated
-    public String getConnectorId() {
-        return connectorId;
-    }
-
     @Override
     @NotNull
     public String getProcessId() {
@@ -76,11 +71,16 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         return code;
     }
 
+    @Override
+    public Policy getPolicy() {
+        return policy;
+    }
+
     public static class Builder {
-        private final ContractNegotiationTerminationMessage contractNegotiationTerminationMessage;
+        private final ContractNegotiationTerminationMessage message;
 
         private Builder() {
-            this.contractNegotiationTerminationMessage = new ContractNegotiationTerminationMessage();
+            message = new ContractNegotiationTerminationMessage();
         }
 
         public static Builder newInstance() {
@@ -88,48 +88,47 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         }
 
         public Builder id(String id) {
-            this.contractNegotiationTerminationMessage.id = id;
+            message.id = id;
             return this;
         }
 
         public Builder protocol(String protocol) {
-            this.contractNegotiationTerminationMessage.protocol = protocol;
-            return this;
-        }
-
-        @Deprecated
-        public Builder connectorId(String connectorId) {
-            this.contractNegotiationTerminationMessage.connectorId = connectorId;
+            message.protocol = protocol;
             return this;
         }
 
         public Builder counterPartyAddress(String counterPartyAddress) {
-            this.contractNegotiationTerminationMessage.counterPartyAddress = counterPartyAddress;
+            message.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
         public Builder processId(String processId) {
-            this.contractNegotiationTerminationMessage.processId = processId;
+            message.processId = processId;
             return this;
         }
 
         public Builder rejectionReason(String rejectionReason) {
-            this.contractNegotiationTerminationMessage.rejectionReason = rejectionReason;
+            message.rejectionReason = rejectionReason;
             return this;
         }
 
         public Builder code(String code) {
-            this.contractNegotiationTerminationMessage.code = code;
+            message.code = code;
+            return this;
+        }
+
+        public Builder policy(Policy policy) {
+            message.policy = policy;
             return this;
         }
 
         public ContractNegotiationTerminationMessage build() {
-            if (contractNegotiationTerminationMessage.id == null) {
-                contractNegotiationTerminationMessage.id = randomUUID().toString();
+            if (message.id == null) {
+                message.id = randomUUID().toString();
             }
 
-            Objects.requireNonNull(contractNegotiationTerminationMessage.processId, "processId");
-            return contractNegotiationTerminationMessage;
+            Objects.requireNonNull(message.processId, "processId");
+            return message;
         }
     }
 }

@@ -179,7 +179,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void finalizing_shouldSendMessageAndTransitionToFinalized() {
-        var negotiation = contractNegotiationBuilder().state(FINALIZING.code()).build();
+        var negotiation = contractNegotiationBuilder().state(FINALIZING.code()).contractOffer(contractOffer()).contractAgreement(contractAgreementBuilder().build()).build();
         when(store.nextNotLeased(anyInt(), stateIs(FINALIZING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.send(any(), any())).thenReturn(completedFuture("any"));
@@ -271,13 +271,13 @@ class ProviderContractNegotiationManagerImplTest {
                     // retries not exhausted
                     new DispatchFailure(OFFERING, OFFERING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
                     new DispatchFailure(AGREEING, AGREEING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(FINALIZING, FINALIZING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).errorDetail("an error")),
+                    new DispatchFailure(FINALIZING, FINALIZING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).contractOffer(contractOffer()).contractAgreement(createContractAgreement())),
+                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer())),
                     // retries exhausted
                     new DispatchFailure(OFFERING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer())),
                     new DispatchFailure(AGREEING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(FINALIZING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer())),
-                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED).errorDetail("an error"))
+                    new DispatchFailure(FINALIZING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED).contractOffer(contractOffer()).contractAgreement(createContractAgreement())),
+                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED).errorDetail("an error").contractOffer(contractOffer()))
             );
         }
 
@@ -287,6 +287,17 @@ class ProviderContractNegotiationManagerImplTest {
                     .assetId("assetId")
                     .build();
         }
+
+        private ContractAgreement createContractAgreement() {
+            return ContractAgreement.Builder.newInstance()
+                    .id("contractId")
+                    .consumerId("consumerId")
+                    .providerId("providerId")
+                    .assetId("assetId")
+                    .policy(Policy.Builder.newInstance().build())
+                    .build();
+        }
+
     }
 
 }

@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -32,6 +33,7 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
     private String counterPartyAddress;
     private String protocol = "unknown";
     private String processId;
+    private Policy policy;
 
     @NotNull
     @Override
@@ -61,6 +63,11 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
         return processId;
     }
 
+    @Override
+    public Policy getPolicy() {
+        return policy;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final TransferCompletionMessage message;
@@ -81,6 +88,11 @@ public class TransferCompletionMessage implements TransferRemoteMessage {
 
         public Builder counterPartyAddress(String address) {
             message.counterPartyAddress = address;
+            return this;
+        }
+
+        public Builder policy(Policy policy) {
+            message.policy = policy;
             return this;
         }
 

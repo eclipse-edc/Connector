@@ -14,8 +14,11 @@
 
 package org.eclipse.edc.protocol.dsp.spi.dispatcher;
 
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+
+import java.util.function.Function;
 
 /**
  * {@link RemoteMessageDispatcher} for sending dataspace protocol messages.
@@ -30,5 +33,14 @@ public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher 
      * @param <R> the response type
      */
     <M extends RemoteMessage, R> void registerDelegate(DspHttpDispatcherDelegate<M, R> delegate);
-    
+
+    /**
+     * Registers a {@link Policy} scope to be evaluated for certain types of messages
+     *
+     * @param messageClass the message type for which evaluate the policy.
+     * @param scope the scope to be used.
+     * @param policyProvider function that extracts the Policy from the message.
+     * @param <M> the message type.
+     */
+    <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, String scope, Function<M, Policy> policyProvider);
 }
