@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.web.spi.provider;
+package org.eclipse.edc.web.jersey.jsonld;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.ext.ContextResolver;

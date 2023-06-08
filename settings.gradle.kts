@@ -42,6 +42,7 @@ dependencyResolutionManagement {
 // EDC core modules --------------------------------------------------------------------------------
 include(":core:common:boot")
 include(":core:common:connector-core")
+include(":core:common:jersey-providers")
 include(":core:common:junit")
 include(":core:common:jwt-core")
 include(":core:common:policy-engine")

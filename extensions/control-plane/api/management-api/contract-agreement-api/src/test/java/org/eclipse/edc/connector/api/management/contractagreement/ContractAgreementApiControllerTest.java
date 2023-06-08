@@ -21,8 +21,6 @@ import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -52,7 +50,6 @@ import static org.mockito.Mockito.when;
 class ContractAgreementApiControllerTest extends RestControllerTestBase {
 
     private final ContractAgreementService service = mock(ContractAgreementService.class);
-    private final JsonLd jsonLdService = new TitaniumJsonLd(monitor);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
 
     @Test
@@ -182,7 +179,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new ContractAgreementApiController(service, jsonLdService, transformerRegistry, monitor);
+        return new ContractAgreementApiController(service, transformerRegistry, monitor);
     }
 
     private RequestSpecification baseRequest() {

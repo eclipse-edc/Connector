@@ -22,14 +22,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
-
-import java.util.List;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Definition")
@@ -44,7 +43,7 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    List<JsonObject> queryAllContractDefinitions(JsonObject querySpecDto);
+    JsonArray queryAllContractDefinitions(JsonObject querySpecDto);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {

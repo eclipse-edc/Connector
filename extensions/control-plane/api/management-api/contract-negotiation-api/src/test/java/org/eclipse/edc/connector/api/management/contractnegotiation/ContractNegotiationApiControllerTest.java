@@ -32,8 +32,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -41,7 +40,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -51,12 +49,9 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_TYPE;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,20 +65,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+@ApiTest
 class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     private final ContractNegotiationService service = mock(ContractNegotiationService.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
-    private final JsonLd jsonLd = new TitaniumJsonLd(monitor);
-
-    @BeforeEach
-    public void setup() {
-        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
-    }
 
     @Test
     void getAllContractNegotiations() {
-
-
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
@@ -110,7 +98,6 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getAllContractNegotiations_queryTransformationFails() {
-
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
@@ -134,7 +121,6 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getAllContractNegotiations_dtoTransformationFails() {
-
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
@@ -157,7 +143,6 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getAllContractNegotiations_singleFailure_shouldLogError() {
-
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
@@ -184,7 +169,6 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getAllContractNegotiations_jsonObjectTransformationFails() {
-
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
@@ -269,16 +253,16 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(any(ContractNegotiationDto.class), eq(JsonObject.class));
     }
 
-
     @Test
     void getSingleContractNegotationState() {
-        var expanded = Json.createObjectBuilder()
+        var compacted = Json.createObjectBuilder()
                 .add(TYPE, NEGOTIATION_STATE_TYPE)
-                .add(NEGOTIATION_STATE_STATE, "REQUESTED")
+                .add("edc:state", "REQUESTED")
                 .build();
 
         when(service.getState(eq("cn1"))).thenReturn("REQUESTED");
-        when(transformerRegistry.transform(any(NegotiationState.class), eq(JsonObject.class))).thenReturn(Result.success(expanded));
+        when(transformerRegistry.transform(any(NegotiationState.class), eq(JsonObject.class)))
+                .thenReturn(Result.success(compacted));
 
         baseRequest()
                 .get("/cn1/state")
@@ -481,7 +465,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new ContractNegotiationApiController(service, transformerRegistry, jsonLd, monitor);
+        return new ContractNegotiationApiController(service, transformerRegistry, monitor);
     }
 
     private RequestSpecification baseRequest() {

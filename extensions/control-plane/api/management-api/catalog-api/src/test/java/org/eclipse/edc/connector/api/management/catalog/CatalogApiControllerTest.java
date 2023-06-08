@@ -14,12 +14,10 @@
 
 package org.eclipse.edc.connector.api.management.catalog;
 
-import jakarta.json.Json;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -46,19 +44,16 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     private final CatalogService service = mock(CatalogService.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
-    private final JsonLd jsonLd = mock(JsonLd.class);
 
     @Override
     protected Object controller() {
-        return new CatalogApiController(service, transformerRegistry, jsonLd);
+        return new CatalogApiController(service, transformerRegistry);
     }
 
     @Test
     void requestCatalog() {
-        var expanded = Json.createObjectBuilder().build();
         var dto = CatalogRequestDto.Builder.newInstance().providerUrl("http://url").build();
         var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
         when(transformerRegistry.transform(any(), eq(CatalogRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.request(any(), any(), any())).thenReturn(completedFuture("{}".getBytes()));
@@ -83,15 +78,12 @@ class CatalogApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(200)
                 .contentType(JSON);
-        verify(jsonLd).expand(any());
-        verify(transformerRegistry).transform(expanded, CatalogRequestDto.class);
+        verify(transformerRegistry).transform(any(), eq(CatalogRequestDto.class));
         verify(transformerRegistry).transform(dto, CatalogRequest.class);
     }
 
     @Test
     void catalogRequest_shouldReturnBadRequest_whenTransformFails() {
-        var expanded = Json.createObjectBuilder().build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
         when(transformerRegistry.transform(any(), eq(CatalogRequestDto.class))).thenReturn(Result.failure("error"));
 
         var requestDto = CatalogRequestDto.Builder.newInstance()
@@ -128,10 +120,8 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestCatalog_shouldReturnBadGateway_whenServiceFails() {
-        var expanded = Json.createObjectBuilder().build();
         var dto = CatalogRequestDto.Builder.newInstance().providerUrl("http://url").build();
         var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
         when(transformerRegistry.transform(any(), eq(CatalogRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.request(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));

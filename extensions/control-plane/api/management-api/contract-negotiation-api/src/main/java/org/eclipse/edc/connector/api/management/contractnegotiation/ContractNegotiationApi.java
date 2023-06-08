@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
@@ -32,8 +33,6 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Contra
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
-
-import java.util.List;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Negotiation")
@@ -47,7 +46,7 @@ public interface ContractNegotiationApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<JsonObject> queryNegotiations(JsonObject querySpecDto);
+    JsonArray queryNegotiations(JsonObject querySpecDto);
 
     @Operation(description = "Gets a contract negotiation with the given ID",
             responses = {

@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonOb
 import org.eclipse.edc.connector.api.management.transferprocess.transform.TransferProcessToTransferProcessDtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.TransferRequestDtoToTransferRequestTransformer;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -53,9 +52,6 @@ public class TransferProcessApiExtension implements ServiceExtension {
     private TransferProcessService service;
 
     @Inject
-    private JsonLd jsonLd;
-
-    @Inject
     private TypeManager typeManager;
 
     @Override
@@ -79,7 +75,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToTerminateTransferDtoTransformer());
         transformerRegistry.register(new JsonObjectToTransferRequestDtoTransformer());
 
-        var newController = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry, jsonLd);
+        var newController = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry);
         webService.registerResource(configuration.getContextAlias(), newController);
     }
 }

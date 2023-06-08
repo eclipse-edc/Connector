@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitio
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionToPolicyDefinitionResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -51,9 +50,6 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     @Inject
     private PolicyDefinitionService service;
 
-    @Inject
-    private JsonLd jsonLd;
-
     @Override
     public String name() {
         return NAME;
@@ -70,6 +66,6 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromPolicyDefinitionResponseDtoTransformer(jsonBuilderFactory));
 
         var monitor = context.getMonitor();
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, transformerRegistry, service, jsonLd));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, transformerRegistry, service));
     }
 }

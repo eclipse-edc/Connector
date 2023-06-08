@@ -24,7 +24,6 @@ import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
@@ -39,20 +38,17 @@ public class CatalogApiController implements CatalogApi {
 
     private final CatalogService service;
     private final TypeTransformerRegistry transformerRegistry;
-    private final JsonLd jsonLd;
 
-    public CatalogApiController(CatalogService service, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd) {
+    public CatalogApiController(CatalogService service, TypeTransformerRegistry transformerRegistry) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
-        this.jsonLd = jsonLd;
     }
 
     @Override
     @POST
     @Path("/request")
     public void requestCatalog(JsonObject requestBody, @Suspended AsyncResponse response) {
-        var request = jsonLd.expand(requestBody)
-                .compose(expanded -> transformerRegistry.transform(expanded, CatalogRequestDto.class))
+        var request = transformerRegistry.transform(requestBody, CatalogRequestDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, CatalogRequest.class))
                 .orElseThrow(InvalidRequestException::new);
 

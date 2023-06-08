@@ -46,6 +46,7 @@ public class ContractAgreementApiEndToEndTest extends BaseManagementApiEndToEndT
                 .contentType(JSON)
                 .post("/request")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .contentType(JSON)
                 .body("size()", is(2))

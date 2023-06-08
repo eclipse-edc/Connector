@@ -25,8 +25,6 @@ import org.eclipse.edc.connector.api.management.contractdefinition.model.Contrac
 import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -65,7 +63,6 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class ContractDefinitionApiControllerTest extends RestControllerTestBase {
 
-    private final JsonLd jsonLd = new TitaniumJsonLd(monitor);
     private final ContractDefinitionService service = mock(ContractDefinitionService.class);
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
 
@@ -337,7 +334,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new ContractDefinitionApiController(jsonLd, transformerRegistry, service, monitor);
+        return new ContractDefinitionApiController(transformerRegistry, service, monitor);
     }
 
     private JsonArrayBuilder createCriterionBuilder() {

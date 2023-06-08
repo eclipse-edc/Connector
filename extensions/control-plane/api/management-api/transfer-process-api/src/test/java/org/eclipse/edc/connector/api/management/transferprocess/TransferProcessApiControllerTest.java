@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -55,19 +54,16 @@ import static org.mockito.Mockito.when;
 class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
-    private final JsonLd jsonLd = mock(JsonLd.class);
     private final TransferProcessService service = mock(TransferProcessService.class);
 
     @Test
     void get_shouldReturnTransferProcess() {
         var transferProcess = createTransferProcess().id("id").build();
         var dto = TransferProcessDto.Builder.newInstance().id("id").createdAt(1234).build();
-        var expandedBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         var responseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
-        when(service.findById(any())).thenReturn(transferProcess);
         when(transformerRegistry.transform(any(), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
-        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedBody));
-        when(jsonLd.compact(any())).thenReturn(Result.success(responseBody));
+        when(service.findById(any())).thenReturn(transferProcess);
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
 
         given()
                 .port(port)
@@ -80,7 +76,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         verify(service).findById("id");
         verify(transformerRegistry).transform(transferProcess, TransferProcessDto.class);
         verify(transformerRegistry).transform(dto, JsonObject.class);
-        verify(jsonLd).compact(expandedBody);
     }
 
     @Test
@@ -112,10 +107,8 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     @Test
     void getState_shouldReturnTheState() {
         when(service.getState(any())).thenReturn("INITIAL");
-        var expanded = Json.createObjectBuilder().build();
-        var compacted = Json.createObjectBuilder().add("state", "INITIAL").build();
-        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expanded));
-        when(jsonLd.compact(any())).thenReturn(Result.success(compacted));
+        var result = Json.createObjectBuilder().add("state", "INITIAL").build();
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(result));
 
         given()
                 .port(port)
@@ -137,7 +130,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(404);
         verify(service).getState("id");
-        verifyNoInteractions(transformerRegistry, jsonLd);
     }
 
     @Test
@@ -149,13 +141,11 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var dto = TransferProcessDto.Builder.newInstance().id("id").createdAt(1234).build();
         var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         var responseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expandedRequestBody));
         when(transformerRegistry.transform(any(), eq(QuerySpecDto.class))).thenReturn(Result.success(querySpecDto));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
         when(transformerRegistry.transform(any(), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
-        when(jsonLd.compact(any())).thenReturn(Result.success(responseBody));
         var requestBody = Json.createObjectBuilder().build();
 
         given()
@@ -169,13 +159,11 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .body("size()", is(1))
                 .body("[0].id", is("id"))
                 .body("[0].createdAt", is(1234));
-        verify(jsonLd).expand(any());
         verify(transformerRegistry).transform(expandedRequestBody, QuerySpecDto.class);
         verify(transformerRegistry).transform(querySpecDto, QuerySpec.class);
         verify(service).query(querySpec);
         verify(transformerRegistry).transform(transferProcess, TransferProcessDto.class);
         verify(transformerRegistry).transform(dto, JsonObject.class);
-        verify(jsonLd).compact(responseBody);
     }
 
     @Test
@@ -198,7 +186,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     @Test
     void query_shouldReturn400_whenQuerySpecTransformFails() {
         var expandedRequestBody = Json.createObjectBuilder().build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expandedRequestBody));
         when(transformerRegistry.transform(any(), eq(QuerySpecDto.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -217,7 +204,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var querySpec = QuerySpec.none();
         var querySpecDto = QuerySpecDto.Builder.newInstance().build();
         var expandedRequestBody = Json.createObjectBuilder().build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expandedRequestBody));
         when(transformerRegistry.transform(any(), eq(QuerySpecDto.class))).thenReturn(Result.success(querySpecDto));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.badRequest("error"));
@@ -239,7 +225,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var querySpecDto = QuerySpecDto.Builder.newInstance().build();
         var expandedRequestBody = Json.createObjectBuilder().build();
         var transferProcess = createTransferProcess().id("id").build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expandedRequestBody));
         when(transformerRegistry.transform(any(), eq(QuerySpecDto.class))).thenReturn(Result.success(querySpecDto));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
@@ -262,14 +247,11 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var dto = TransferRequestDto.Builder.newInstance().build();
         var transferRequest = TransferRequest.Builder.newInstance().dataRequest(createDataRequest()).build();
         var transferProcess = createTransferProcess().id("id").build();
-        var expandedOutput = Json.createObjectBuilder().build();
         var responseBody = Json.createObjectBuilder().add(ID, "transferProcessId").build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(transformerRegistry.transform(any(), eq(TransferRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(transferProcess));
-        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedOutput));
-        when(jsonLd.compact(any())).thenReturn(Result.success(responseBody));
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
         var requestBody = Json.createObjectBuilder().build();
 
         given()
@@ -281,17 +263,14 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .contentType(JSON)
                 .body(ID, is("transferProcessId"));
-        verify(jsonLd).expand(isA(JsonObject.class));
         verify(transformerRegistry).transform(isA(JsonObject.class), eq(TransferRequestDto.class));
         verify(transformerRegistry).transform(dto, TransferRequest.class);
         verify(service).initiateTransfer(transferRequest);
         verify(transformerRegistry).transform(isA(IdResponseDto.class), eq(JsonObject.class));
-        verify(jsonLd).compact(expandedOutput);
     }
 
     @Test
     void initiate_shouldReturnBadRequest_whenTransformationFails() {
-        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -310,7 +289,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     void initiate_shouldReturnConflict_whenItAlreadyExists() {
         var dto = TransferRequestDto.Builder.newInstance().build();
         var transferRequest = TransferRequest.Builder.newInstance().dataRequest(createDataRequest()).build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(transformerRegistry.transform(any(), eq(TransferRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.conflict("already exists"));
@@ -369,7 +347,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var transferProcess = createTransferProcess().build();
         var expanded = Json.createObjectBuilder().build();
         var dto = TerminateTransferDto.Builder.newInstance().reason("anyReason").build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
         when(transformerRegistry.transform(any(), eq(TerminateTransferDto.class))).thenReturn(Result.success(dto));
         when(service.terminate(any(), any())).thenReturn(ServiceResult.success(transferProcess));
 
@@ -380,14 +357,12 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .post("/v2/transferprocesses/id/terminate")
                 .then()
                 .statusCode(204);
-        verify(jsonLd).expand(any());
         verify(transformerRegistry).transform(expanded, TerminateTransferDto.class);
         verify(service).terminate("id", "anyReason");
     }
 
     @Test
     void terminate_shouldReturnBadRequest_whenTransformFail() {
-        when(jsonLd.expand(any())).thenReturn(Result.success(Json.createObjectBuilder().build()));
         when(transformerRegistry.transform(any(), eq(TerminateTransferDto.class))).thenReturn(Result.failure("failure"));
 
         given()
@@ -404,7 +379,6 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     void terminate_shouldReturnConflict_whenServiceReturnsConflict() {
         var expanded = Json.createObjectBuilder().build();
         var dto = TerminateTransferDto.Builder.newInstance().reason("anyReason").build();
-        when(jsonLd.expand(any())).thenReturn(Result.success(expanded));
         when(transformerRegistry.transform(any(), eq(TerminateTransferDto.class))).thenReturn(Result.success(dto));
         when(service.terminate(any(), any())).thenReturn(ServiceResult.conflict("conflict"));
 
@@ -418,7 +392,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new TransferProcessApiController(monitor, service, transformerRegistry, jsonLd);
+        return new TransferProcessApiController(monitor, service, transformerRegistry);
     }
 
     @NotNull

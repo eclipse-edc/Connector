@@ -28,9 +28,10 @@ dependencies {
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
 
     testImplementation(libs.awaitility)

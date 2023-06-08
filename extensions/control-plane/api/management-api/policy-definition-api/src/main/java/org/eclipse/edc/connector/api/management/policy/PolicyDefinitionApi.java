@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
@@ -29,8 +30,6 @@ import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionReq
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
-
-import java.util.List;
 
 @OpenAPIDefinition
 @Tag(name = "Policy Definition")
@@ -43,7 +42,7 @@ public interface PolicyDefinitionApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    List<JsonObject> queryPolicyDefinitions(JsonObject querySpecDto);
+    JsonArray queryPolicyDefinitions(JsonObject querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {

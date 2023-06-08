@@ -21,11 +21,11 @@ import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
-import org.eclipse.edc.web.spi.provider.ObjectMapperProvider;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 

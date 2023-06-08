@@ -53,8 +53,8 @@ public class JerseyExtension implements ServiceExtension {
 
         provider = new ResourceInterceptorProvider();
         jerseyRestService.registerInstance(() -> new ResourceInterceptorBinder(provider));
-
         context.registerService(WebService.class, jerseyRestService);
+
     }
 
     @Override

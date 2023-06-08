@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.transferprocess;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -31,7 +32,6 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -40,14 +40,12 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
@@ -59,40 +57,31 @@ public class TransferProcessApiController implements TransferProcessApi {
     private final Monitor monitor;
     private final TransferProcessService service;
     private final TypeTransformerRegistry transformerRegistry;
-    private final JsonLd jsonLd;
 
-    public TransferProcessApiController(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd) {
+    public TransferProcessApiController(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.service = service;
         this.transformerRegistry = transformerRegistry;
-        this.jsonLd = jsonLd;
     }
 
     @POST
     @Path("request")
     @Override
-    public List<JsonObject> queryTransferProcesses(JsonObject querySpecDto) {
-
-        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
-                expandedResult -> expandedResult
-                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
-                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
-
+    public JsonArray queryTransferProcesses(JsonObject querySpecDto) {
         var querySpec = ofNullable(querySpecDto)
-                .map(jsonLd::expand)
-                .map(expandedMapper)
+                .map(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class)
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class)))
                 .orElse(Result.success(QuerySpec.none()))
                 .orElseThrow(InvalidRequestException::new);
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
             return stream
                     .map(policyDefinition -> transformerRegistry.transform(policyDefinition, TransferProcessDto.class)
-                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)
-                                    .compose(jsonLd::compact))
+                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
                             .onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
-                    .collect(toList());
+                    .collect(toJsonArray());
         }
     }
 
@@ -107,7 +96,6 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         return transformerRegistry.transform(definition, TransferProcessDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
-                .compose(jsonLd::compact)
                 .onFailure(f -> monitor.warning(f.getFailureDetail()))
                 .orElseThrow(failure -> new ObjectNotFoundException(PolicyDefinition.class, id));
     }
@@ -120,7 +108,6 @@ public class TransferProcessApiController implements TransferProcessApi {
                 .map(service::getState)
                 .map(TransferState::new)
                 .map(state -> transformerRegistry.transform(state, JsonObject.class)
-                        .compose(jsonLd::compact)
                         .onFailure(f -> monitor.warning(f.getFailureDetail()))
                         .orElseThrow(failure -> new ObjectNotFoundException(TransferProcess.class, id)))
                 .orElseThrow(() -> new ObjectNotFoundException(TransferProcess.class, id));
@@ -129,8 +116,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     @POST
     @Override
     public JsonObject initiateTransferProcess(JsonObject request) {
-        var transferRequest = jsonLd.expand(request)
-                .compose(json -> transformerRegistry.transform(json, TransferRequestDto.class))
+        var transferRequest = transformerRegistry.transform(request, TransferRequestDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, TransferRequest.class))
                 .orElseThrow(InvalidRequestException::new);
 
@@ -144,7 +130,6 @@ public class TransferProcessApiController implements TransferProcessApi {
                 .build();
 
         return transformerRegistry.transform(responseDto, JsonObject.class)
-                .compose(jsonLd::compact)
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
@@ -161,8 +146,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Path("/{id}/terminate")
     @Override
     public void terminateTransferProcess(@PathParam("id") String id, JsonObject requestBody) {
-        var dto = jsonLd.expand(requestBody)
-                .compose(json -> transformerRegistry.transform(requestBody, TerminateTransferDto.class))
+        var dto = transformerRegistry.transform(requestBody, TerminateTransferDto.class)
                 .orElseThrow(InvalidRequestException::new);
 
         service.terminate(id, dto.getReason())

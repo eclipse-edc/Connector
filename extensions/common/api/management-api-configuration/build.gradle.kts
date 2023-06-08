@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:web-spi"))
+    implementation(project(":core:common:jersey-providers"))
     implementation(project(":extensions:common:api:api-core"))
 
     testImplementation(project(":core:common:junit"))
