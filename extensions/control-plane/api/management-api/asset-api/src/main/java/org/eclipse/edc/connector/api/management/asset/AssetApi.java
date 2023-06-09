@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.DataAddressDto;
 import org.eclipse.edc.api.model.IdResponseDto;
@@ -31,8 +32,6 @@ import org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetResponseDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetUpdateRequestDto;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
-
-import java.util.List;
 
 @OpenAPIDefinition(info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will become the standard API once the Dataspace Protocol is stable. " +
         "The new Asset API is prefixed with /v2, and the old endpoints have been deprecated. At that time of switching, the old API will be removed, and this API will be available without the /v2 prefix.", title = "Asset API"))
@@ -59,7 +58,7 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
-    List<JsonObject> requestAssets(JsonObject querySpecDto);
+    JsonArray requestAssets(JsonObject querySpecDto);
 
     @Operation(description = "Gets an asset with the given ID",
             responses = {

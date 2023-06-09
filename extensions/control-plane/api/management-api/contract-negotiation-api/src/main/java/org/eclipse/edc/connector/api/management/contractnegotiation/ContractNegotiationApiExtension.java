@@ -26,7 +26,6 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.transform.Js
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToNegotiationInitiateRequestDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.NegotiationInitiateRequestDtoToDataRequestTransformer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -57,9 +56,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    @Inject
-    private JsonLd jsonLd;
-
     @Override
     public String name() {
         return NAME;
@@ -79,6 +75,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
 
-        webService.registerResource(config.getContextAlias(), new ContractNegotiationApiController(service, transformerRegistry, jsonLd, monitor));
+        webService.registerResource(config.getContextAlias(), new ContractNegotiationApiController(service, transformerRegistry, monitor));
     }
 }

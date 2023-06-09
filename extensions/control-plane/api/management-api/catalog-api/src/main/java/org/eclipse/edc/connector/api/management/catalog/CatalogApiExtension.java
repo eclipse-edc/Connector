@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToCa
 import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToQuerySpecDtoTransformer;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -42,9 +41,6 @@ public class CatalogApiExtension implements ServiceExtension {
     @Inject
     private CatalogService service;
 
-    @Inject
-    private JsonLd jsonLd;
-
     @Override
     public String name() {
         return NAME;
@@ -56,6 +52,6 @@ public class CatalogApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToCatalogRequestDtoTransformer());
         transformerRegistry.register(new JsonObjectToQuerySpecDtoTransformer());
 
-        webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, jsonLd));
+        webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry));
     }
 }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.policy;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -31,7 +32,6 @@ import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpd
 import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -40,13 +40,10 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
-import java.util.List;
-import java.util.function.Function;
-
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
@@ -57,39 +54,30 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     private final Monitor monitor;
     private final TypeTransformerRegistry transformerRegistry;
     private final PolicyDefinitionService service;
-    private final JsonLd jsonLd;
 
-    public PolicyDefinitionApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service, JsonLd jsonLd) {
+    public PolicyDefinitionApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service) {
         this.monitor = monitor;
         this.transformerRegistry = transformerRegistry;
         this.service = service;
-        this.jsonLd = jsonLd;
     }
 
     @POST
     @Path("request")
     @Override
-    public List<JsonObject> queryPolicyDefinitions(JsonObject querySpecDto) {
-
-        Function<Result<JsonObject>, Result<QuerySpec>> expandedMapper =
-                expandedResult -> expandedResult
-                        .compose(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class))
-                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class));
-
+    public JsonArray queryPolicyDefinitions(JsonObject querySpecDto) {
         var querySpec = ofNullable(querySpecDto)
-                .map(jsonLd::expand)
-                .map(expandedMapper)
+                .map(json -> transformerRegistry.transform(json, QuerySpecDto.class)
+                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class)))
                 .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
                 .orElseThrow(InvalidRequestException::new);
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
             return stream
                     .map(policyDefinition -> transformerRegistry.transform(policyDefinition, PolicyDefinitionResponseDto.class)
-                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)
-                                    .compose(jsonLd::compact)))
+                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
-                    .collect(toList());
+                    .collect(toJsonArray());
         }
     }
 
@@ -104,15 +92,13 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         return transformerRegistry.transform(definition, PolicyDefinitionResponseDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
-                .compose(jsonLd::compact)
                 .orElseThrow(failure -> new ObjectNotFoundException(PolicyDefinition.class, id));
     }
 
     @POST
     @Override
     public JsonObject createPolicyDefinition(JsonObject request) {
-        var definition = jsonLd.expand(request)
-                .compose(json -> transformerRegistry.transform(json, PolicyDefinitionRequestDto.class))
+        var definition = transformerRegistry.transform(request, PolicyDefinitionRequestDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, PolicyDefinition.class))
                 .orElseThrow(InvalidRequestException::new);
 
@@ -126,7 +112,6 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
                 .build();
 
         return transformerRegistry.transform(responseDto, JsonObject.class)
-                .compose(jsonLd::compact)
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
@@ -143,8 +128,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Path("{id}")
     @Override
     public void updatePolicyDefinition(@PathParam("id") String id, JsonObject input) {
-        var policyDefinition = jsonLd.expand(input)
-                .compose(expanded -> transformerRegistry.transform(expanded, PolicyDefinitionUpdateDto.class))
+        var policyDefinition = transformerRegistry.transform(input, PolicyDefinitionUpdateDto.class)
                 .map(dto -> PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
                         .policyId(id)
                         .updateRequest(dto)

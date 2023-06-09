@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.api.management.asset.transform.JsonObjectToAsse
 import org.eclipse.edc.connector.api.management.asset.validation.AssetEntryDtoValidator;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.spi.asset.AssetService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -56,9 +55,6 @@ public class AssetApiExtension implements ServiceExtension {
     private DataAddressResolver dataAddressResolver;
 
     @Inject
-    private JsonLd jsonLdService;
-
-    @Inject
     private JsonObjectValidatorRegistry validator;
 
     @Override
@@ -77,6 +73,6 @@ public class AssetApiExtension implements ServiceExtension {
 
         validator.register(EDC_ASSET_ENTRY_DTO_TYPE, AssetEntryDtoValidator.instance());
         
-        webService.registerResource(config.getContextAlias(), new AssetApiController(assetService, dataAddressResolver, transformerRegistry, jsonLdService, monitor, validator));
+        webService.registerResource(config.getContextAlias(), new AssetApiController(assetService, dataAddressResolver, transformerRegistry, monitor, validator));
     }
 }

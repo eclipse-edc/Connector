@@ -2246,6 +2246,26 @@ components:
           format: int64
           example: null
       example: null
+    JsonArray:
+      type: array
+      properties:
+        empty:
+          type: boolean
+          example: null
+        valueType:
+          type: string
+          example: null
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+      example: null
+      items:
+        $ref: '#/components/schemas/JsonValue'
     JsonObject:
       type: object
       properties:

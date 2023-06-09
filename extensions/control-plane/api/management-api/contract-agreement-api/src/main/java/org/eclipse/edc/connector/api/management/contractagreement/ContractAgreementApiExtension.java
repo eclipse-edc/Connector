@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.api.management.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractagreement.transform.JsonObjectFromContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -46,9 +45,6 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     @Inject
     private ContractAgreementService service;
 
-    @Inject
-    private JsonLd jsonLd;
-
     @Override
     public String name() {
         return NAME;
@@ -60,6 +56,6 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromContractAgreementDtoTransformer(Json.createBuilderFactory(Map.of())));
         var monitor = context.getMonitor();
 
-        webService.registerResource(config.getContextAlias(), new ContractAgreementApiController(service, jsonLd, transformerRegistry, monitor));
+        webService.registerResource(config.getContextAlias(), new ContractAgreementApiController(service, transformerRegistry, monitor));
     }
 }

@@ -16,7 +16,6 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":extensions:common:http:jersey-core"))
     api(project(":extensions:common:http:jetty-core"))

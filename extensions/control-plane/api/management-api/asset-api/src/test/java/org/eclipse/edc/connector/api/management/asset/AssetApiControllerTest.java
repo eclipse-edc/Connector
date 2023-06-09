@@ -22,11 +22,9 @@ import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -44,7 +42,6 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_CREATED_AT;
 import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_TYPE;
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_TYPE;
@@ -97,7 +94,6 @@ class AssetApiControllerTest extends RestControllerTestBase {
                     .build()
             );
         });
-
     }
 
     @Test
@@ -214,15 +210,12 @@ class AssetApiControllerTest extends RestControllerTestBase {
         var jobj = createAssetJson().build();
         when(transformerRegistry.transform(isA(Asset.class), eq(JsonObject.class))).thenReturn(Result.success(jobj));
 
-        var response = baseRequest()
+        baseRequest()
                 .get("/assets/id")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body(ID, equalTo(TEST_ASSET_ID))
-                .extract().body().jsonPath();
-
-        assertThat(response.getMap("'" + Asset.EDC_ASSET_PROPERTIES + "'")).hasSize(4);
+                .body(ID, equalTo(TEST_ASSET_ID));
 
         verify(transformerRegistry).transform(isA(Asset.class), eq(JsonObject.class));
         verifyNoMoreInteractions(transformerRegistry);
@@ -524,7 +517,7 @@ class AssetApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new AssetApiController(service, dataAddressResolver, transformerRegistry, new TitaniumJsonLd(mock(Monitor.class)), monitor, validator);
+        return new AssetApiController(service, dataAddressResolver, transformerRegistry, monitor, validator);
     }
 
     private JsonObject createDataAddressJson() {
@@ -543,12 +536,6 @@ class AssetApiControllerTest extends RestControllerTestBase {
         return createObjectBuilder()
                 .add("asset", asset)
                 .add("dataAddress", dataAddress)
-                .build();
-    }
-
-    private JsonObject createAssetEntryDto(JsonObject asset) {
-        return createObjectBuilder()
-                .add("asset", asset)
                 .build();
     }
 

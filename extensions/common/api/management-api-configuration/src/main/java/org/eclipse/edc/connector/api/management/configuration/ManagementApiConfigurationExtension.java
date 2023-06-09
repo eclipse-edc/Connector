@@ -16,17 +16,19 @@ package org.eclipse.edc.connector.api.management.configuration;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
+import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
-import org.eclipse.edc.web.spi.provider.ObjectMapperProvider;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
@@ -70,6 +72,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private JsonLd jsonLd;
+
     @Override
     public String name() {
         return NAME;
@@ -84,5 +89,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
+        webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper));
     }
 }
