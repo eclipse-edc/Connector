@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.catalog.api;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -47,8 +46,6 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Inject
     private CatalogProtocolService service;
     @Inject
-    private JsonLd jsonLdService;
-    @Inject
     private DataServiceRegistry dataServiceRegistry;
 
     @Override
@@ -59,7 +56,7 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dspCallbackAddress = apiConfiguration.getDspCallbackAddress();
-        var catalogController = new DspCatalogApiController(context.getMonitor(), identityService, transformerRegistry, dspCallbackAddress, service, jsonLdService);
+        var catalogController = new DspCatalogApiController(context.getMonitor(), identityService, transformerRegistry, dspCallbackAddress, service);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
 
         dataServiceRegistry.register(DataService.Builder.newInstance()

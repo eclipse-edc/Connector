@@ -29,8 +29,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Action;
@@ -55,7 +53,6 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -100,11 +97,6 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     private final JsonObject request = Json.createObjectBuilder()
             .add("http://schema/key", "value")
             .build();
-    private final JsonLd jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
-
-    private static ClaimToken token() {
-        return ClaimToken.Builder.newInstance().build();
-    }
 
     private static ContractAgreementMessage contractAgreementMessage() {
         return ContractAgreementMessage.Builder.newInstance()
@@ -216,7 +208,6 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var message = contractRequestMessage();
         var process = contractNegotiation();
         var json = Json.createObjectBuilder().build();
-        var map = Map.of("key", "value");
         var request = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
@@ -465,11 +456,11 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspNegotiationApiController(callbackAddress, identityService, registry, protocolService, jsonLdService, mock(Monitor.class));
+        return new DspNegotiationApiController(callbackAddress, identityService, registry, protocolService, mock(Monitor.class));
     }
 
     private RequestSpecification baseRequest() {
-        String authHeader = "auth";
+        var authHeader = "auth";
         return given()
                 .baseUri("http://localhost:" + port)
                 .basePath("/")
@@ -577,4 +568,9 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
             );
         }
     }
+
+    private ClaimToken token() {
+        return ClaimToken.Builder.newInstance().build();
+    }
+
 }

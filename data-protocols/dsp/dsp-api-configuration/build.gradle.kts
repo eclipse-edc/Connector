@@ -19,9 +19,9 @@ plugins {
 dependencies {
     api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:core-spi"))
+    api(project(":data-protocols:dsp:dsp-spi"))
     implementation(project(":core:common:jersey-providers"))
-    api(project(":extensions:common:http"))
-    api(project(":extensions:common:json-ld"))
+    implementation(project(":extensions:common:http"))
 
     implementation(libs.jakarta.rsApi)
 

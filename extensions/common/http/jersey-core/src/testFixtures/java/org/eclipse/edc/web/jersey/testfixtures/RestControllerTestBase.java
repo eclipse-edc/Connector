@@ -49,7 +49,7 @@ public abstract class RestControllerTestBase {
         var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(JerseyConfiguration.class), monitor);
         jerseyService.registerResource("test", new ObjectMapperProvider(objectMapper));
         jerseyService.registerResource("test", controller());
-        Object additionalResource = additionalResource();
+        var additionalResource = additionalResource();
         if (additionalResource != null) {
             jerseyService.registerResource("test", additionalResource);
         }

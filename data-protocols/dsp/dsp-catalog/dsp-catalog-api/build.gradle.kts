@@ -25,10 +25,10 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
-    api(project(":extensions:common:json-ld"))
 
     implementation(libs.jakarta.rsApi)
 
+    testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     testImplementation(libs.restAssured)

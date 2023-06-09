@@ -32,8 +32,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.protocol.dsp.DspError;
+import org.eclipse.edc.protocol.dsp.api.configuration.error.DspErrorResponse;
 import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -46,16 +45,13 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
-import static org.eclipse.edc.protocol.dsp.DspErrorDetails.NOT_IMPLEMENTED;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
@@ -87,20 +83,17 @@ public class DspNegotiationApiController {
     private final String callbackAddress;
     private final Monitor monitor;
     private final ContractNegotiationProtocolService protocolService;
-    private final JsonLd jsonLdService;
 
     public DspNegotiationApiController(String callbackAddress,
                                        IdentityService identityService,
                                        TypeTransformerRegistry transformerRegistry,
                                        ContractNegotiationProtocolService protocolService,
-                                       JsonLd jsonLdService,
                                        Monitor monitor) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.transformerRegistry = transformerRegistry;
-        this.jsonLdService = jsonLdService;
     }
 
     /**
@@ -113,7 +106,9 @@ public class DspNegotiationApiController {
     @GET
     @Path("{id}")
     public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
+        return error()
+                .processId(id)
+                .notImplemented();
     }
 
     /**
@@ -135,7 +130,8 @@ public class DspNegotiationApiController {
                 .build());
 
         if (negotiationResult.failed()) {
-            return errorResponse(Optional.empty(), getHttpStatus(negotiationResult.reason()), negotiationResult.getFailureDetail());
+            return error()
+                    .from(negotiationResult.getFailure());
         }
 
         var negotiation = negotiationResult.getContent();
@@ -144,7 +140,11 @@ public class DspNegotiationApiController {
                 .orElse(failure -> {
                     var errorCode = UUID.randomUUID();
                     monitor.warning(String.format("Error transforming negotiation, error id %s: %s", errorCode, failure.getFailureDetail()));
-                    return errorResponse(Optional.of(negotiation.getCorrelationId()), Response.Status.INTERNAL_SERVER_ERROR, String.format("Error code %s", errorCode));
+                    var processId = negotiation.getCorrelationId();
+                    return error()
+                            .processId(processId)
+                            .message(String.format("Error code %s", errorCode))
+                            .internalServerError();
                 });
 
     }
@@ -191,7 +191,10 @@ public class DspNegotiationApiController {
                 .processId(id)
                 .message(jsonObject)
                 .token(token)
-                .serviceCall(this::dispatchEventMessage)
+                .serviceCall((message, claimToken) -> switch (message.getType()) {
+                    case FINALIZED -> protocolService.notifyFinalized(message, claimToken);
+                    case ACCEPTED -> protocolService.notifyAccepted(message, claimToken);
+                })
                 .build())
                 .map(cn -> Response.ok().build())
                 .orElse(createErrorResponse(id));
@@ -258,7 +261,7 @@ public class DspNegotiationApiController {
     public Response providerOffer(@PathParam("id") String id,
                                   JsonObject body,
                                   @HeaderParam(AUTHORIZATION) String token) {
-        return errorResponse(Optional.of(id), Response.Status.NOT_IMPLEMENTED, NOT_IMPLEMENTED);
+        return error().processId(id).notImplemented();
     }
 
     /**
@@ -294,16 +297,11 @@ public class DspNegotiationApiController {
             return ServiceResult.unauthorized(claimToken.getFailureMessages());
         }
 
-        var expanded = jsonLdService.expand(messageSpec.getMessage());
-        if (expanded.failed()) {
-            return ServiceResult.badRequest(expanded.getFailureMessages());
-        }
-
-        if (!isOfExpectedType(expanded.getContent(), messageSpec.getExpectedMessageType())) {
+        if (!isOfExpectedType(messageSpec.getMessage(), messageSpec.getExpectedMessageType())) {
             return ServiceResult.badRequest(format("Request body was not of expected type: %s", messageSpec.getExpectedMessageType()));
         }
 
-        var ingressResult = transformerRegistry.transform(expanded.getContent(), messageSpec.getMessageClass())
+        var ingressResult = transformerRegistry.transform(messageSpec.getMessage(), messageSpec.getMessageClass())
                 .compose(contractNegotiationMessage -> {
                     // set the remote protocol used
                     contractNegotiationMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
@@ -314,8 +312,6 @@ public class DspNegotiationApiController {
             return ServiceResult.badRequest(format("Failed to read request body: %s", ingressResult.getFailureDetail()));
         }
 
-
-        // invokes negotiation protocol service method
         return messageSpec.getServiceCall().apply(ingressResult.getContent(), claimToken.getContent());
     }
 
@@ -327,60 +323,26 @@ public class DspNegotiationApiController {
         return protocolService.notifyRequested(message, claimToken);
     }
 
-    @NotNull
-    private ServiceResult<ContractNegotiation> dispatchEventMessage(ContractNegotiationEventMessage message, ClaimToken claimToken) {
-        switch (message.getType()) {
-            case FINALIZED:
-                return protocolService.notifyFinalized(message, claimToken);
-            case ACCEPTED:
-                return protocolService.notifyAccepted(message, claimToken);
-            default:
-                throw new InvalidRequestException(String.format("Cannot process dspace:ContractNegotiationEventMessage with unexpected type %s.", message.getType()));
-        }
-    }
-
     private Result<ClaimToken> checkAndReturnAuthToken(String token) {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
         return identityService.verifyJwtToken(tokenRepresentation, callbackAddress);
     }
 
     private <M extends ContractRemoteMessage> Result<M> validateProcessId(@Nullable String expected, M actual) {
-
         if (expected == null) {
             return Result.success(actual);
         }
         return Objects.equals(expected, actual.getProcessId()) ? Result.success(actual) : Result.failure(format("Invalid process ID. Expected: %s, actual: %s", expected, actual));
     }
 
-    private Response errorResponse(Optional<String> processId, Response.Status code, String message) {
-        var builder = DspError.Builder.newInstance()
-                .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
-                .code(Integer.toString(code.getStatusCode()))
-                .messages(List.of(message));
-
-        processId.ifPresent(builder::processId);
-
-        return Response.status(code).type(MediaType.APPLICATION_JSON)
-                .entity(builder.build().toJson())
-                .build();
-    }
-
-    @NotNull
-    private Response.Status getHttpStatus(ServiceFailure.Reason reason) {
-        switch (reason) {
-            case UNAUTHORIZED:
-                return Response.Status.UNAUTHORIZED;
-            case CONFLICT:
-                return Response.Status.CONFLICT;
-            default:
-                return Response.Status.BAD_REQUEST;
-        }
-
-    }
-
     @NotNull
     private Function<ServiceFailure, Response> createErrorResponse(String id) {
-        return f -> errorResponse(Optional.of(id), getHttpStatus(f.getReason()), f.getFailureDetail());
+        return failure -> error().processId(id).from(failure);
+    }
+
+    @NotNull
+    private DspErrorResponse error() {
+        return DspErrorResponse.type(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
     }
 
 }
