@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,4 +31,11 @@ public interface TransferRemoteMessage extends ProcessRemoteMessage {
     @Override
     @NotNull
     String getProcessId();
+
+    /**
+     * Returns the {@link Policy} associated with the Transfer Process.
+     *
+     * @return the transfer process {@link Policy}.
+     */
+    Policy getPolicy();
 }

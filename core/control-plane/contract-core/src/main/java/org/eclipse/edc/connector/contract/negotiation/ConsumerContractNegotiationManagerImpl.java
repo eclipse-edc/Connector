@@ -183,11 +183,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .connectorId(negotiation.getCounterPartyId())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .processId(negotiation.getId())
-                .policy(policy)
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
@@ -223,6 +221,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
+                .policy(negotiation.getContractAgreement().getPolicy())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))
@@ -245,10 +244,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processTerminating(ContractNegotiation negotiation) {
         var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .connectorId(negotiation.getCounterPartyId())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getId())
                 .rejectionReason(negotiation.getErrorDetail())
+                .policy(negotiation.getLastContractOffer().getPolicy())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))

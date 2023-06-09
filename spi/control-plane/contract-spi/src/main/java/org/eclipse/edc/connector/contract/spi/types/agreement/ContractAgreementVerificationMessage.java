@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -27,6 +28,7 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
     private String protocol = "unknown";
     private String counterPartyAddress;
     private String processId;
+    private Policy policy;
 
     @NotNull
     @Override
@@ -56,11 +58,16 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
         return processId;
     }
 
+    @Override
+    public Policy getPolicy() {
+        return policy;
+    }
+
     public static class Builder {
         private final ContractAgreementVerificationMessage message;
 
         private Builder() {
-            this.message = new ContractAgreementVerificationMessage();
+            message = new ContractAgreementVerificationMessage();
         }
 
         public static Builder newInstance() {
@@ -68,22 +75,27 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
         }
 
         public Builder id(String id) {
-            this.message.id = id;
+            message.id = id;
             return this;
         }
 
         public Builder protocol(String protocol) {
-            this.message.protocol = protocol;
+            message.protocol = protocol;
             return this;
         }
 
         public Builder counterPartyAddress(String counterPartyAddress) {
-            this.message.counterPartyAddress = counterPartyAddress;
+            message.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
         public Builder processId(String processId) {
-            this.message.processId = processId;
+            message.processId = processId;
+            return this;
+        }
+
+        public Builder policy(Policy policy) {
+            message.policy = policy;
             return this;
         }
 

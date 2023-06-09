@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.contract.spi.types.protocol;
 
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 
 /**
@@ -21,5 +22,11 @@ import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
  */
 public interface ContractRemoteMessage extends ProcessRemoteMessage {
 
+    /**
+     * Returns the {@link Policy} associated with the Contract.
+     *
+     * @return the contract {@link Policy}.
+     */
+    Policy getPolicy();
 
 }

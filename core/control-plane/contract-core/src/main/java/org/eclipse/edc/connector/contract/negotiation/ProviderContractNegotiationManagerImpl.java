@@ -29,7 +29,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
@@ -132,10 +131,10 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processTerminating(ContractNegotiation negotiation) {
         var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .connectorId(negotiation.getCounterPartyId())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getCorrelationId())
                 .rejectionReason(negotiation.getErrorDetail())
+                .policy(negotiation.getLastContractOffer().getPolicy())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, rejection))
@@ -170,7 +169,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var retrievedAgreement = negotiation.getContractAgreement();
 
         ContractAgreement agreement;
-        Policy policy;
         if (retrievedAgreement == null) {
             var lastOffer = negotiation.getLastContractOffer();
 
@@ -181,28 +179,23 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             }
             var definitionId = contractId.definitionPart();
 
-            policy = lastOffer.getPolicy();
-
             agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId, lastOffer.getAssetId()))
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())
-                    .policy(policy)
+                    .policy(lastOffer.getPolicy())
                     .assetId(lastOffer.getAssetId())
                     .build();
         } else {
             agreement = retrievedAgreement;
-            policy = agreement.getPolicy();
         }
 
         var request = ContractAgreementMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .connectorId(negotiation.getCounterPartyId())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .processId(negotiation.getCorrelationId())
-                .policy(policy)
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, request))
@@ -239,6 +232,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .processId(negotiation.getCorrelationId())
+                .policy(negotiation.getContractAgreement().getPolicy())
                 .build();
 
         return entityRetryProcessFactory.doAsyncProcess(negotiation, () -> dispatcherRegistry.send(Object.class, message))

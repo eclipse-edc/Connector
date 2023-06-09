@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.dispatcher;
 
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -39,15 +42,20 @@ import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBeSuccessful;
  */
 public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageDispatcher {
 
-    private final Map<Class<? extends RemoteMessage>, DspHttpDispatcherDelegate<?, ?>> delegates;
+    private final Map<Class<? extends RemoteMessage>, DspHttpDispatcherDelegate<?, ?>> delegates = new HashMap<>();
+    private final Map<Class<? extends RemoteMessage>, PolicyScope<? extends RemoteMessage>> policyScopes = new HashMap<>();
     private final EdcHttpClient httpClient;
     private final IdentityService identityService;
+    private final PolicyEngine policyEngine;
     private final TokenDecorator tokenDecorator;
 
-    public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient, IdentityService identityService, TokenDecorator decorator) {
+    public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient,
+                                              IdentityService identityService,
+                                              TokenDecorator decorator,
+                                              PolicyEngine policyEngine) {
         this.httpClient = httpClient;
         this.identityService = identityService;
-        this.delegates = new HashMap<>();
+        this.policyEngine = policyEngine;
         this.tokenDecorator = decorator;
     }
 
@@ -75,26 +83,41 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
         var request = delegate.buildRequest(message);
 
-        var tokenParameters = tokenDecorator.decorate(TokenParameters.Builder.newInstance())
+        var tokenParametersBuilder = tokenDecorator.decorate(TokenParameters.Builder.newInstance());
+
+        var policyScope = policyScopes.get(message.getClass());
+        if (policyScope != null) {
+            var policyContext = new HashMap<Class<?>, Object>();
+            policyContext.put(TokenParameters.Builder.class, tokenParametersBuilder);
+            var policyProvider = (Function<M, Policy>) policyScope.policyProvider;
+            policyEngine.evaluate(policyScope.scope, policyProvider.apply(message), null, policyContext);
+        }
+
+        var tokenParameters = tokenParametersBuilder
                 .audience(message.getCounterPartyAddress()) // enforce the audience, ignore anything a decorator might have set
                 .build();
 
-        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
-        if (tokenResult.failed()) {
-            return failedFuture(new EdcException(format("Unable to obtain credentials: %s", String.join(", ", tokenResult.getFailureMessages()))));
-        }
+        return identityService.obtainClientCredentials(tokenParameters)
+                .map(token -> {
+                    var requestWithAuth = request.newBuilder()
+                            .header("Authorization", token.getToken())
+                            .build();
 
-        var token = tokenResult.getContent();
-        var requestWithAuth = request.newBuilder()
-                .header("Authorization", token.getToken())
-                .build();
-
-        return httpClient.executeAsync(requestWithAuth, List.of(statusMustBeSuccessful()), delegate.parseResponse());
+                    return httpClient.executeAsync(requestWithAuth, List.of(statusMustBeSuccessful()), delegate.parseResponse());
+                })
+                .orElse(failure -> failedFuture(new EdcException(format("Unable to obtain credentials: %s", failure.getFailureDetail()))));
     }
 
     @Override
     public <M extends RemoteMessage, R> void registerDelegate(DspHttpDispatcherDelegate<M, R> delegate) {
         delegates.put(delegate.getMessageType(), delegate);
     }
+
+    @Override
+    public <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, String scope, Function<M, Policy> policyProvider) {
+        policyScopes.put(messageClass, new PolicyScope<M>(messageClass, scope, policyProvider));
+    }
+
+    private record PolicyScope<M extends RemoteMessage>(Class<M> messageClass, String scope, Function<M, Policy> policyProvider) {}
 
 }

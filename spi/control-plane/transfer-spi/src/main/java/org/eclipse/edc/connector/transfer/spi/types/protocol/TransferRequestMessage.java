@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,13 +36,10 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     private String protocol = "unknown";
     private String processId;
     private String contractId;
-    @Deprecated(forRemoval = true)
-    private String assetId;
     private DataAddress dataDestination;
-    @Deprecated(forRemoval = true)
-    private String connectorId;
     private String callbackAddress;
     private Map<String, String> properties = new HashMap<>();
+    private Policy policy;
 
     @NotNull
     @Override
@@ -71,18 +69,13 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         return processId;
     }
 
-    @Deprecated
-    public String getAssetId() {
-        return assetId;
+    @Override
+    public Policy getPolicy() {
+        return policy;
     }
 
     public String getContractId() {
         return contractId;
-    }
-
-    @Deprecated
-    public String getConnectorId() {
-        return connectorId;
     }
 
     public Map<String, String> getProperties() {
@@ -111,7 +104,12 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         }
 
         public Builder id(String id) {
-            this.message.id = id;
+            message.id = id;
+            return this;
+        }
+
+        public Builder policy(Policy policy) {
+            message.policy = policy;
             return this;
         }
 
@@ -140,20 +138,8 @@ public class TransferRequestMessage implements TransferRemoteMessage {
             return this;
         }
 
-        @Deprecated
-        public Builder assetId(String assetId) {
-            message.assetId = assetId;
-            return this;
-        }
-
         public Builder dataDestination(DataAddress dataDestination) {
             message.dataDestination = dataDestination;
-            return this;
-        }
-
-        @Deprecated
-        public Builder connectorId(String connectorId) {
-            message.connectorId = connectorId;
             return this;
         }
 

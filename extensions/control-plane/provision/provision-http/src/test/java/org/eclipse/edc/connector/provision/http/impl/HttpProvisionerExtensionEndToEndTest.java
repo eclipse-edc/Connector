@@ -170,7 +170,6 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .counterPartyAddress("http://any")
                 .callbackAddress("http://any")
                 .contractId(CONTRACT_ID)
-                .assetId(ASSET_ID)
                 .build();
     }
 

@@ -55,7 +55,6 @@ public class TokenParameters {
             return this;
         }
 
-
         public TokenParameters build() {
             Objects.requireNonNull(result.audience, "audience");
             return result;

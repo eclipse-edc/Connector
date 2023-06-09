@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -33,10 +34,9 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
     private String counterPartyAddress;
     private String protocol = "unknown";
     private String processId;
-
     private String code;
-
     private String reason; //TODO change to List  https://github.com/eclipse-edc/Connector/issues/2729
+    private Policy policy;
 
     @NotNull
     @Override
@@ -64,6 +64,11 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
     @NotNull
     public String getProcessId() {
         return processId;
+    }
+
+    @Override
+    public Policy getPolicy() {
+        return policy;
     }
 
     public String getCode() {
@@ -94,6 +99,11 @@ public class TransferTerminationMessage implements TransferRemoteMessage {
 
         public Builder counterPartyAddress(String counterPartyAddress) {
             message.counterPartyAddress = counterPartyAddress;
+            return this;
+        }
+
+        public Builder policy(Policy policy) {
+            message.policy = policy;
             return this;
         }
 
