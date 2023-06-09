@@ -15,18 +15,13 @@
 package org.eclipse.edc.connector.api.management.contractdefinition.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.api.model.CriterionDto;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -41,12 +36,8 @@ public class ContractDefinitionRequestDto extends BaseDto {
     /**
      * Default validity is set to one year.
      */
-    @NotNull(message = "accessPolicyId cannot be null")
     protected String accessPolicyId;
-    @NotNull(message = "contractPolicyId cannot be null")
     protected String contractPolicyId;
-    @Valid
-    @NotNull(message = "assetsSelector cannot be null")
     protected List<CriterionDto> assetsSelector = new ArrayList<>();
 
     //this cannot be non-null, because that would break backwards compatibility with the old API
@@ -67,16 +58,6 @@ public class ContractDefinitionRequestDto extends BaseDto {
     public List<CriterionDto> getAssetsSelector() {
         return assetsSelector;
     }
-
-    @AssertTrue(message = "id must be either be null or not blank, and it cannot contain the ':' character")
-    @JsonIgnore
-    public boolean isIdValid() {
-        return Optional.of(this)
-                .map(it -> it.id)
-                .map(it -> !it.isBlank() && !it.contains(":"))
-                .orElse(true);
-    }
-
 
     public String getId() {
         return id;

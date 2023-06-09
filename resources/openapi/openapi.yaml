@@ -1832,10 +1832,6 @@ components:
           example: null
       example: null
     ContractDefinitionRequestDto:
-      required:
-      - accessPolicyId
-      - assetsSelector
-      - contractPolicyId
       type: object
       properties:
         '@context':

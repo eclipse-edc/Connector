@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.api.management.asset.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
-import org.eclipse.edc.validator.jsonobject.MandatoryField;
-import org.eclipse.edc.validator.jsonobject.OptionalIdNotBlank;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
+import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_ASSET;
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_DATA_ADDRESS;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
@@ -36,16 +36,17 @@ public class AssetEntryDtoValidator {
 
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
-                .verify(EDC_ASSET_ENTRY_DTO_ASSET, MandatoryField::new)
+                .verify(EDC_ASSET_ENTRY_DTO_ASSET, MandatoryObject::new)
                 .verifyObject(EDC_ASSET_ENTRY_DTO_ASSET, v -> v
-                        .verify(ID, OptionalIdNotBlank::new)
-                        .verify(EDC_ASSET_PROPERTIES, MandatoryField::new)
+                        .verifyId(OptionalIdNotBlank::new)
+                        .verify(EDC_ASSET_PROPERTIES, MandatoryObject::new)
                         .verify(path -> new AssetPropertiesUniqueness())
                 )
-                .verify(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, MandatoryField::new)
+                .verify(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, MandatoryObject::new)
                 .verifyObject(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, v -> v
-                        .verify(EDC_DATA_ADDRESS_TYPE_PROPERTY, MandatoryField::new)
-                );
+                        .verify(EDC_DATA_ADDRESS_TYPE_PROPERTY, MandatoryValue::new)
+                )
+                .build();
     }
 
     private static class AssetPropertiesUniqueness implements Validator<JsonObject> {

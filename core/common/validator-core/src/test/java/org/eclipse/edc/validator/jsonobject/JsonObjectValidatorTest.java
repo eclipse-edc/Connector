@@ -14,12 +14,17 @@
 
 package org.eclipse.edc.validator.jsonobject;
 
+import jakarta.json.JsonArrayBuilder;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
+import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 class JsonObjectValidatorTest {
@@ -28,17 +33,18 @@ class JsonObjectValidatorTest {
     void shouldSucceed() {
         var input = createObjectBuilder();
 
-        var result = JsonObjectValidator.newValidator().validate(input.build());
+        var result = JsonObjectValidator.newValidator().build().validate(input.build());
 
         assertThat(result).isSucceeded();
     }
 
     @Test
-    void shouldValidateRootLevelId() {
+    void shouldValidateId() {
         var input = createObjectBuilder().add(ID, " ");
 
         var result = JsonObjectValidator.newValidator()
-                .verify(ID, OptionalIdNotBlank::new)
+                .verifyId(OptionalIdNotBlank::new)
+                .build()
                 .validate(input.build());
 
         assertThat(result).isFailed();
@@ -46,10 +52,11 @@ class JsonObjectValidatorTest {
 
     @Test
     void shouldValidateMandatoryObject_success() {
-        var input = createObjectBuilder().add("mandatoryField", createArrayBuilder().add(createObjectBuilder()));
+        var input = createObjectBuilder().add("mandatoryObject", createArrayBuilder().add(createObjectBuilder()));
 
         var result = JsonObjectValidator.newValidator()
-                .verify("mandatoryField", MandatoryField::new)
+                .verify("mandatoryObject", MandatoryObject::new)
+                .build()
                 .validate(input.build());
 
         assertThat(result).isSucceeded();
@@ -60,7 +67,8 @@ class JsonObjectValidatorTest {
         var input = createObjectBuilder();
 
         var result = JsonObjectValidator.newValidator()
-                .verify("mandatoryField", MandatoryField::new)
+                .verify("mandatoryObject", MandatoryObject::new)
+                .build()
                 .validate(input.build());
 
         assertThat(result).isFailed();
@@ -69,15 +77,16 @@ class JsonObjectValidatorTest {
     @Test
     void shouldValidateNestedObject_whenMandatoryObject_success() {
         var input = createObjectBuilder()
-                .add("mandatoryField", createArrayBuilder()
+                .add("mandatoryObject", createArrayBuilder()
                         .add(createObjectBuilder()
-                                .add("subField", createObjectBuilder()))
+                                .add("subProperty", value("subValue")))
                 );
 
         var result = JsonObjectValidator.newValidator()
-                .verify("mandatoryField", MandatoryField::new)
-                .verifyObject("mandatoryField", v -> v
-                        .verify("subField", MandatoryField::new))
+                .verify("mandatoryObject", MandatoryObject::new)
+                .verifyObject("mandatoryObject", v -> v
+                        .verify("subProperty", MandatoryValue::new))
+                .build()
                 .validate(input.build());
 
         assertThat(result).isSucceeded();
@@ -86,19 +95,20 @@ class JsonObjectValidatorTest {
     @Test
     void shouldValidateNestedObject_whenMandatoryObject_failure() {
         var input = createObjectBuilder()
-                .add("mandatoryField", createArrayBuilder()
+                .add("mandatoryObject", createArrayBuilder()
                         .add(createObjectBuilder())
                 );
 
         var result = JsonObjectValidator.newValidator()
-                .verify("mandatoryField", MandatoryField::new)
-                .verifyObject("mandatoryField", v -> v
-                        .verify("subField", MandatoryField::new))
+                .verify("mandatoryObject", MandatoryObject::new)
+                .verifyObject("mandatoryObject", v -> v
+                        .verify("subProperty", MandatoryValue::new))
+                .build()
                 .validate(input.build());
 
         assertThat(result).isFailed().satisfies(failure -> {
             assertThat(failure.getViolations()).anySatisfy(violation -> {
-                assertThat(violation.path()).contains("mandatoryField/subField");
+                assertThat(violation.path()).contains("mandatoryObject/subProperty");
             });
         });
     }
@@ -108,11 +118,53 @@ class JsonObjectValidatorTest {
         var input = createObjectBuilder();
 
         var result = JsonObjectValidator.newValidator()
-                .verifyObject("optionalField", v -> v
-                        .verify("subField", MandatoryField::new))
+                .verifyObject("optionalProperty", v -> v
+                        .verify("subProperty", MandatoryValue::new))
+                .build()
                 .validate(input.build());
 
         assertThat(result).isSucceeded();
     }
 
+    @Test
+    void shouldValidateNestedArrayItem_success() {
+        var input = createObjectBuilder()
+                .add("arrayProperty", createArrayBuilder()
+                        .add(createObjectBuilder().add("subProperty", value("value1")))
+                        .add(createObjectBuilder().add("subProperty", value("value2")))
+                );
+
+        var result = JsonObjectValidator.newValidator()
+                .verifyArrayItem("arrayProperty", v -> v
+                        .verify("subProperty", MandatoryValue::new))
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void shouldValidateNestedArrayItem_failure() {
+        var input = createObjectBuilder()
+                .add("arrayProperty", createArrayBuilder()
+                        .add(createObjectBuilder().add("subProperty", value("value1")))
+                        .add(createObjectBuilder().add("subProperty", value(" ")))
+                );
+
+        var result = JsonObjectValidator.newValidator()
+                .verifyArrayItem("arrayProperty", v -> v
+                        .verify("subProperty", MandatoryValue::new))
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.getViolations()).anySatisfy(violation -> {
+                assertThat(violation.path()).contains("arrayProperty/subProperty");
+            });
+        });
+    }
+
+    private JsonArrayBuilder value(String value) {
+        return createArrayBuilder().add(createObjectBuilder().add(VALUE, value));
+    }
 }

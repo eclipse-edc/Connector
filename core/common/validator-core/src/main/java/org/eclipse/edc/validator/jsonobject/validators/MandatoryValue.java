@@ -12,32 +12,36 @@
  *
  */
 
-package org.eclipse.edc.validator.jsonobject;
+package org.eclipse.edc.validator.jsonobject.validators;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
+import java.util.Optional;
+
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
- * Verify that a specific object exists
+ * Verifies that a @value is present and not blank.
  */
-public class MandatoryField implements Validator<JsonObject> {
-
+public class MandatoryValue implements Validator<JsonObject> {
     private final JsonLdPath path;
 
-    public MandatoryField(JsonLdPath path) {
+    public MandatoryValue(JsonLdPath path) {
         this.path = path;
     }
 
     @Override
     public ValidationResult validate(JsonObject input) {
-        if (input.containsKey(path.last())) {
-            return ValidationResult.success();
-        } else {
-            return ValidationResult.failure(violation(format("mandatory object '%s' is missing", path), path.toString()));
-        }
+        return Optional.ofNullable(input.getJsonArray(path.last()))
+                .map(it -> it.getJsonObject(0))
+                .map(it -> it.getString(VALUE))
+                .filter(it -> !it.isBlank())
+                .map(it -> ValidationResult.success())
+                .orElseGet(() -> ValidationResult.failure(violation(format("mandatory value '%s' is missing or it is blank", path), path.toString())));
     }
 }
