@@ -21,10 +21,11 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
     implementation(project(":core:common:util"))
-    implementation(project(":extensions:common:api:management-api-configuration"))
-
     implementation(libs.jakarta.rsApi)
+
     testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
+    testImplementation(libs.restAssured)
 }
 
 edcBuild {
