@@ -16,7 +16,7 @@ package org.eclipse.edc.jsonld.spi;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.Namespaces.ODRL_SCHEMA;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -62,6 +62,7 @@ public interface PropertyAndTypeNames {
     String ODRL_REFINEMENT_ATTRIBUTE = ODRL_SCHEMA + "refinement";
     String ODRL_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "constraint";
     String ODRL_LEFT_OPERAND_ATTRIBUTE = ODRL_SCHEMA + "leftOperand";
+    String ODRL_OPERATOR_TYPE = ODRL_SCHEMA + "Operator";
     String ODRL_OPERATOR_ATTRIBUTE = ODRL_SCHEMA + "operator";
     String ODRL_RIGHT_OPERAND_ATTRIBUTE = ODRL_SCHEMA + "rightOperand";
     String ODRL_DUTY_ATTRIBUTE = ODRL_SCHEMA + "duty";

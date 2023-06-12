@@ -71,6 +71,7 @@ import java.time.Clock;
 
 import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
 import static org.eclipse.edc.connector.contract.validation.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 
 @Provides({
         ContractOfferResolver.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
@@ -151,6 +152,7 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
 
@@ -199,6 +201,7 @@ public class ContractCoreExtension implements ServiceExtension {
 
         // bind/register rule to evaluate contract expiry
         ruleBindingRegistry.bind("USE", TRANSFER_SCOPE);
+        ruleBindingRegistry.bind(ODRL_SCHEMA + "use", TRANSFER_SCOPE);
         ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
         var function = new ContractExpiryCheckFunction();
         policyEngine.registerFunction(TRANSFER_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, function);
@@ -208,7 +211,7 @@ public class ContractCoreExtension implements ServiceExtension {
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
         CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
-        CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
+        var commandRunner = new CommandRunner<ContractNegotiationCommand>(commandHandlerRegistry, monitor);
 
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(new ContractNegotiationEventListener(eventRouter, clock));

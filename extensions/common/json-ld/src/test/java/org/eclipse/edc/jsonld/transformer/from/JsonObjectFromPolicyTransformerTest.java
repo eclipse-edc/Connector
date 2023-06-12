@@ -17,12 +17,12 @@ package org.eclipse.edc.jsonld.transformer.from;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.OdrlNamespace;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.Permission;
@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
@@ -88,7 +89,7 @@ class JsonObjectFromPolicyTransformerTest {
         var result = transformer.transform(policy, context);
         
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(Namespaces.ODRL_SCHEMA + "Set");
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(OdrlNamespace.ODRL_SCHEMA + "Set");
         assertThat(result.getString(ODRL_TARGET_ATTRIBUTE)).isEqualTo("target");
     
         assertThat(result.get(ODRL_PERMISSION_ATTRIBUTE))
@@ -143,8 +144,8 @@ class JsonObjectFromPolicyTransformerTest {
         var constraintJson = actionJson.getJsonObject(ODRL_REFINEMENT_ATTRIBUTE);
         assertThat(constraintJson.getJsonObject(ODRL_LEFT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
-        assertThat(constraintJson.getJsonString(ODRL_OPERATOR_ATTRIBUTE).getString())
-                .isEqualTo(constraint.getOperator().name());
+        assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
+                .isEqualTo(constraint.getOperator().getOdrlRepresentation());
         assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
     
@@ -172,8 +173,8 @@ class JsonObjectFromPolicyTransformerTest {
         var constraintJson = permissionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();
         assertThat(constraintJson.getJsonObject(ODRL_LEFT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
-        assertThat(constraintJson.getJsonString(ODRL_OPERATOR_ATTRIBUTE).getString())
-                .isEqualTo(constraint.getOperator().name());
+        assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
+                .isEqualTo(constraint.getOperator().getOdrlRepresentation());
         assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
 
@@ -201,8 +202,8 @@ class JsonObjectFromPolicyTransformerTest {
         var constraintJson = prohibitionJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();
         assertThat(constraintJson.getJsonObject(ODRL_LEFT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
-        assertThat(constraintJson.getJsonString(ODRL_OPERATOR_ATTRIBUTE).getString())
-                .isEqualTo(constraint.getOperator().name());
+        assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
+                .isEqualTo(constraint.getOperator().getOdrlRepresentation());
         assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
     
@@ -231,8 +232,8 @@ class JsonObjectFromPolicyTransformerTest {
         var constraintJson = dutyJson.getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE).get(0).asJsonObject();
         assertThat(constraintJson.getJsonObject(ODRL_LEFT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
-        assertThat(constraintJson.getJsonString(ODRL_OPERATOR_ATTRIBUTE).getString())
-                .isEqualTo(constraint.getOperator().name());
+        assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
+                .isEqualTo(constraint.getOperator().getOdrlRepresentation());
         assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
         

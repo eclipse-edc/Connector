@@ -85,20 +85,23 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
         if (!transformMandatoryString(object.get(ODRL_LEFT_OPERAND_ATTRIBUTE), s -> builder.leftExpression(new LiteralExpression(s)), context)) {
             context.problem()
                     .missingProperty()
-                    .type("Constraint")
-                    .property(ODRL_LEFT_OPERAND_ATTRIBUTE)
-                    .report();
-            return null;
-        }
-
-        if (!transformMandatoryString(object.get(ODRL_OPERATOR_ATTRIBUTE), s -> builder.operator(Operator.valueOf(s)), context)) {
-            context.problem()
-                    .missingProperty()
                     .type(ODRL_CONSTRAINT_TYPE)
                     .property(ODRL_LEFT_OPERAND_ATTRIBUTE)
                     .report();
             return null;
         }
+
+        var jsonOperator = object.get(ODRL_OPERATOR_ATTRIBUTE);
+        if (jsonOperator == null) {
+            context.problem()
+                    .missingProperty()
+                    .type(ODRL_CONSTRAINT_TYPE)
+                    .property(ODRL_OPERATOR_ATTRIBUTE)
+                    .report();
+            return null;
+        }
+
+        builder.operator(transformObject(jsonOperator, Operator.class, context));
 
         var rightOperand = extractComplexValue(object.get(ODRL_RIGHT_OPERAND_ATTRIBUTE));
 

@@ -22,6 +22,7 @@ import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ import static org.eclipse.edc.policy.model.Operator.EQ;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class JsonObjectToAtomicConstraintComplexTypeTest {
 
@@ -54,6 +55,7 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToConstraintTransformer();
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
         left = jsonFactory.createObjectBuilder().add(VALUE, "left").build();
     }
 
@@ -78,8 +80,6 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                     assertThat(array.get(0)).asInstanceOf(type(JsonObject.class)).extracting(v -> v.getJsonString(VALUE).getString()).isEqualTo("value1");
                     assertThat(array.get(1)).asInstanceOf(type(JsonObject.class)).extracting(v -> v.getJsonString(VALUE).getString()).isEqualTo("value2");
                 });
-
-        verifyNoInteractions(context);
     }
 
     /**
@@ -103,8 +103,6 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                     assertThat(array.size()).isEqualTo(1);
                     assertThat(array.get(0)).asInstanceOf(type(JsonObject.class)).extracting(v -> v.getJsonString(VALUE).getString()).isEqualTo("bar");
                 });
-
-        verifyNoInteractions(context);
     }
 
     /**
@@ -130,8 +128,6 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                 .extracting(VALUE).asInstanceOf(type(JsonString.class))
                 .extracting(JsonString::getString)
                 .isEqualTo("bar");
-
-        verifyNoInteractions(context);
     }
 
     /**
@@ -150,8 +146,6 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                 .asInstanceOf(type(LiteralExpression.class))
                 .extracting(LiteralExpression::getValue)
                 .isEqualTo("bar");
-
-        verifyNoInteractions(context);
     }
 
     /**
@@ -168,8 +162,6 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                 .asInstanceOf(type(LiteralExpression.class))
                 .extracting(LiteralExpression::getValue)
                 .isEqualTo("bar");
-
-        verifyNoInteractions(context);
     }
 
     /**
@@ -186,8 +178,6 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                 .asInstanceOf(type(LiteralExpression.class))
                 .extracting(LiteralExpression::getValue)
                 .isEqualTo(1);
-
-        verifyNoInteractions(context);
     }
 
     /**
@@ -205,8 +195,6 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                 .extracting(expr -> (BigDecimal) expr.getValue())
                 .usingComparator(BigDecimal::compareTo)
                 .isEqualTo(BigDecimal.valueOf(1.1d));
-
-        verifyNoInteractions(context);
     }
 
     private JsonObject createConstraint(Object value) {

@@ -19,7 +19,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
@@ -29,6 +28,7 @@ import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.MultiplicityConstraint;
+import org.eclipse.edc.policy.model.OdrlNamespace;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
@@ -125,7 +125,8 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             var constraintBuilder = jsonFactory.createObjectBuilder();
 
             constraintBuilder.add(ODRL_LEFT_OPERAND_ATTRIBUTE, atomicConstraint.getLeftExpression().accept(this));
-            constraintBuilder.add(ODRL_OPERATOR_ATTRIBUTE, atomicConstraint.getOperator().name());
+            var operator = atomicConstraint.getOperator().getOdrlRepresentation();
+            constraintBuilder.add(ODRL_OPERATOR_ATTRIBUTE, jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder().add(ID, operator)));
             constraintBuilder.add(ODRL_RIGHT_OPERAND_ATTRIBUTE, atomicConstraint.getRightExpression().accept(this));
 
             return constraintBuilder.build();
@@ -151,7 +152,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
             var builder = jsonFactory.createObjectBuilder()
                     .add(ID, randomUUID().toString())
-                    .add(TYPE, Namespaces.ODRL_SCHEMA + getTypeAsString(policy.getType()))
+                    .add(TYPE, OdrlNamespace.ODRL_SCHEMA + getTypeAsString(policy.getType()))
                     .add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder)
                     .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
                     .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
@@ -211,7 +212,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         private JsonArray visitConstraints(Rule rule) {
             var constraintsBuilder = jsonFactory.createArrayBuilder();
 
-            for (Constraint constraint : rule.getConstraints()) {
+            for (var constraint : rule.getConstraints()) {
                 Optional.of(constraint)
                         .map(c -> c.accept(this))
                         .ifPresent(constraintsBuilder::add);
@@ -231,18 +232,15 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
             }
             return actionBuilder.build();
         }
-    }
 
-    // Hint: can be removed if internal type "contract" was changed to "agreement"
-    private static String getTypeAsString(PolicyType type) {
-        switch (type) {
-            default:
-            case SET:
-                return "Set";
-            case OFFER:
-                return "Offer";
-            case CONTRACT:
-                return "Agreement";
+        // Hint: can be removed if internal type "contract" was changed to "agreement"
+        private String getTypeAsString(PolicyType type) {
+            return switch (type) {
+                default -> "Set";
+                case OFFER -> "Offer";
+                case CONTRACT -> "Agreement";
+            };
         }
     }
+
 }
