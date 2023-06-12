@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.spi.iam;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -22,6 +24,8 @@ import java.util.Objects;
 public class TokenParameters {
     private String scope;
     private String audience;
+
+    private Map<String, Object> additional = new HashMap<>();
 
     private TokenParameters() {
     }
@@ -32,6 +36,10 @@ public class TokenParameters {
 
     public String getAudience() {
         return audience;
+    }
+
+    public Map<String, Object> getAdditional() {
+        return additional;
     }
 
     public static class Builder {
@@ -52,6 +60,11 @@ public class TokenParameters {
 
         public Builder audience(String audience) {
             result.audience = audience;
+            return this;
+        }
+
+        public Builder additional(Map<String, Object> additional) {
+            result.additional = additional;
             return this;
         }
 
