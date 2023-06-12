@@ -30,8 +30,10 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.function.Function;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -101,7 +103,9 @@ class DspHttpRemoteMessageDispatcherImplTest {
         Function<Response, String> responseFunction = response -> responseBody;
         var authToken = "token";
 
-        when(tokenDecoratorMock.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).scope("test-scope"));
+        Map<String, Object> additional = Map.of("foo", "bar");
+
+        when(tokenDecoratorMock.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).scope("test-scope").additional(additional));
         when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(delegate.parseResponse()).thenReturn(responseFunction);
         when(httpClient.executeAsync(any(), any(), any())).thenReturn(completedFuture(responseBody));
@@ -115,10 +119,18 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
         assertThat(result).succeedsWithin(timeout).isEqualTo(responseBody);
 
+        var captor = ArgumentCaptor.forClass(TokenParameters.class);
+
         verify(delegate).buildRequest(message);
-        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCounterPartyAddress())));
+        verify(identityService).obtainClientCredentials(captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
-        verify(identityService).obtainClientCredentials(argThat(tp -> tp.getScope().equals("test-scope")));
+
+        assertThat(captor.getValue()).satisfies(tr -> {
+            assertThat(tr.getScope()).isEqualTo("test-scope");
+            assertThat(tr.getAudience()).isEqualTo(message.getCounterPartyAddress());
+            assertThat(tr.getAdditional()).containsAllEntriesOf(additional);
+        });
+
     }
 
     @Test
