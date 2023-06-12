@@ -92,7 +92,6 @@ public class CatalogRequestHttpDelegate extends DspHttpDispatcherDelegate<Catalo
                     throw new EdcException(expansion.getFailureDetail());
                 }
 
-
             } catch (NullPointerException e) {
                 throw new EdcException("Failed to read response body, as body was null.");
             } catch (IndexOutOfBoundsException e) {

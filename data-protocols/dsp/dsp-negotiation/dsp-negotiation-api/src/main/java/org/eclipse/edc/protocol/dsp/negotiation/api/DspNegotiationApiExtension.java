@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.negotiation.api;
 
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.negotiation.api.controller.DspNegotiationApiController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -47,8 +46,6 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     private Monitor monitor;
     @Inject
     private ContractNegotiationProtocolService protocolService;
-    @Inject
-    private JsonLd jsonLdService;
 
     @Override
     public String name() {
@@ -59,7 +56,7 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var callbackAddress = apiConfiguration.getDspCallbackAddress();
 
-        var controller = new DspNegotiationApiController(callbackAddress, identityService, transformerRegistry, protocolService, jsonLdService, monitor);
+        var controller = new DspNegotiationApiController(callbackAddress, identityService, transformerRegistry, protocolService, monitor);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }

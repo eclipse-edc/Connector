@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -21,6 +22,7 @@ import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
@@ -68,6 +70,9 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Inject
     private WebServiceConfigurer configurator;
+
+    @Inject
+    private JsonLd jsonLd;
     
     @Override
     public String name() {
@@ -84,6 +89,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
+        webService.registerResource(config.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper));
     }
     
 }

@@ -26,7 +26,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessa
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -81,11 +80,6 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
     private final TransferProcessProtocolService protocolService = mock(TransferProcessProtocolService.class);
     private final String callbackAddress = "http://callback";
-    private final String authHeader = "auth";
-
-    private static ClaimToken token() {
-        return ClaimToken.Builder.newInstance().build();
-    }
 
     private static JsonObject transferRequestJson() {
         return Json.createObjectBuilder().add(TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE).build();
@@ -399,14 +393,14 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspTransferProcessApiController(mock(Monitor.class), registry, protocolService, identityService, callbackAddress, new TitaniumJsonLd(monitor));
+        return new DspTransferProcessApiController(mock(Monitor.class), registry, protocolService, identityService, callbackAddress);
     }
 
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
                 .basePath("/")
-                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                .header(HttpHeaders.AUTHORIZATION, "auth")
                 .when();
     }
 
@@ -416,7 +410,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
 
     private static class ControllerMethodArguments implements ArgumentsProvider {
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
                     Arguments.of(BASE_PATH + TRANSFER_INITIAL_REQUEST, transferRequestJson()),
                     Arguments.of(BASE_PATH + PROCESS_ID + TRANSFER_START, transferStartJson()),
@@ -428,7 +422,7 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
 
     private static class ControllerMethodArgumentsForIdValidationFails implements ArgumentsProvider {
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
                     Arguments.of(BASE_PATH + "invalidId" + TRANSFER_START, transferStartJson(), transferStartMessage()),
                     Arguments.of(BASE_PATH + "invalidId" + TRANSFER_COMPLETION, transferCompletionJson(), transferCompletionMessage()),
@@ -465,5 +459,9 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                             TransferProcessProtocolService.class.getDeclaredMethod("notifyTerminated", TransferTerminationMessage.class, ClaimToken.class))
             );
         }
+    }
+
+    private ClaimToken token() {
+        return ClaimToken.Builder.newInstance().build();
     }
 }
