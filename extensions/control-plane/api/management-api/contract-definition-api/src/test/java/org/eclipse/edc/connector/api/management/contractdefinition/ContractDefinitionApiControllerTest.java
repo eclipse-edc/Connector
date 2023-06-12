@@ -30,6 +30,8 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 import org.hamcrest.Matchers;
@@ -42,7 +44,9 @@ import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.Builder;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ASSETS_SELECTOR;
@@ -51,26 +55,29 @@ import static org.eclipse.edc.connector.api.management.contractdefinition.model.
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
 class ContractDefinitionApiControllerTest extends RestControllerTestBase {
 
-    private final ContractDefinitionService service = mock(ContractDefinitionService.class);
-    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
+    private final ContractDefinitionService service = mock();
+    private final TypeTransformerRegistry transformerRegistry = mock();
+    private final JsonObjectValidatorRegistry validatorRegistry = mock();
 
     @ParameterizedTest
     @ValueSource(strings = { "", "{}" })
     void queryAllContractDefinitions(String body) {
-
         var dto = createContractDefinitionDto().build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(createContractDefinition().build())));
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
@@ -86,13 +93,31 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .body("size()", greaterThan(0));
 
         verify(service).query(eq(QuerySpec.Builder.newInstance().build()));
+        if (!body.isEmpty()) {
+            verify(validatorRegistry).validate(eq(EDC_QUERY_SPEC_TYPE), any());
+        }
+    }
+
+    @Test
+    void queryAll_shouldReturnBadRequest_whenValidationFails() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "path")));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(createObjectBuilder().build())
+                .post("/request")
+                .then()
+                .statusCode(400);
+
+        verifyNoInteractions(service, transformerRegistry);
     }
 
     @Test
     void queryAll_queryTransformationFails() {
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(createContractDefinition().build())));
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.failure("test-failure"));
+        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(createContractDefinition().build())));
 
         baseRequest()
                 .contentType(JSON)
@@ -102,11 +127,12 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .statusCode(400);
 
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
-        verify(service, never()).query(eq(QuerySpec.Builder.newInstance().build()));
+        verifyNoInteractions(service);
     }
 
     @Test
-    void queryAll_queryNotValid() {
+    void queryAll_serviceBadRequest() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
         when(service.query(any())).thenReturn(ServiceResult.badRequest("test-message"));
@@ -127,7 +153,6 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(eq(QuerySpec.Builder.newInstance().build()));
         verifyNoMoreInteractions(transformerRegistry);
-
     }
 
     @Test
@@ -165,13 +190,12 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry, never()).transform(any(ContractDefinition.class), eq(ContractDefinitionResponseDto.class));
     }
 
-
     @Test
-    void createContractDef() {
+    void create() {
         var entity = createContractDefinition().build();
         var requestJson = createExpandedJsonObject();
-        var responseBody = Json.createObjectBuilder().add(TYPE, IdResponseDto.EDC_ID_RESPONSE_DTO_TYPE).add(ID, entity.getId()).build();
-
+        var responseBody = createObjectBuilder().add(TYPE, IdResponseDto.EDC_ID_RESPONSE_DTO_TYPE).add(ID, entity.getId()).build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(entity));
         when(transformerRegistry.transform(any(JsonObject.class), eq(ContractDefinitionRequestDto.class))).thenReturn(Result.success(Builder.newInstance().build()));
         when(service.create(any(ContractDefinition.class))).thenReturn(ServiceResult.success(entity));
@@ -185,14 +209,35 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body(ID, Matchers.equalTo(entity.getId()));
 
+        verify(validatorRegistry).validate(eq(CONTRACT_DEFINITION_TYPE), any());
         verify(service).create(any(ContractDefinition.class));
     }
 
     @Test
-    void createContractDef_exists() {
+    void create_shouldReturnBadRequest_whenValidationFails() {
+        var requestJson = createObjectBuilder()
+                .add(TYPE, CONTRACT_DEFINITION_TYPE)
+                .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
+                .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
+                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createCriterionBuilder().build())
+                .build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "path")));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(requestJson)
+                .post()
+                .then()
+                .statusCode(400);
+
+        verifyNoInteractions(service, transformerRegistry);
+    }
+
+    @Test
+    void create_exists() {
         var entity = createContractDefinition().build();
         var requestJson = createExpandedJsonObject();
-
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(entity));
         when(transformerRegistry.transform(any(JsonObject.class), eq(ContractDefinitionRequestDto.class))).thenReturn(Result.success(Builder.newInstance().build()));
@@ -209,15 +254,15 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void createContractDef_transformationFails() {
+    void create_transformationFails() {
         var entity = createContractDefinition().build();
-        var requestJson = Json.createObjectBuilder()
+        var requestJson = createObjectBuilder()
                 .add(TYPE, CONTRACT_DEFINITION_TYPE)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
                 .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createCriterionBuilder().build())
                 .build();
-
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(entity));
         when(transformerRegistry.transform(any(JsonObject.class), eq(ContractDefinitionRequestDto.class))).thenReturn(Result.failure("test-failure"));
@@ -275,6 +320,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
     void update_whenExists() {
         var entity = createContractDefinition().build();
         var requestJson = createExpandedJsonObject();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(entity));
         when(transformerRegistry.transform(any(JsonObject.class), eq(ContractDefinitionRequestDto.class))).thenReturn(Result.success(Builder.newInstance().build()));
@@ -290,12 +336,25 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
         verify(service).update(eq(entity));
     }
 
+    @Test
+    void update_shouldReturnBadRequest_whenValidationFails() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "path")));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(createExpandedJsonObject())
+                .put()
+                .then()
+                .statusCode(400);
+
+        verifyNoInteractions(service, transformerRegistry);
+    }
 
     @Test
     void update_whenNotExists_shouldThrowException() {
         var entity = createContractDefinition().build();
         var requestJson = createExpandedJsonObject();
-
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(entity));
         when(transformerRegistry.transform(any(JsonObject.class), eq(ContractDefinitionRequestDto.class))).thenReturn(Result.success(Builder.newInstance().build()));
@@ -314,7 +373,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
     @Test
     void update_whenTransformationFails_shouldThrowException() {
         var entity = createContractDefinition().build();
-
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(ContractDefinitionRequestDto.class), eq(ContractDefinition.class))).thenReturn(Result.success(entity));
         when(transformerRegistry.transform(any(JsonObject.class), eq(ContractDefinitionRequestDto.class))).thenReturn(Result.failure("test-failure"));
         when(service.update(any(ContractDefinition.class))).thenReturn(ServiceResult.success());
@@ -331,15 +390,14 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
         verify(service, never()).update(eq(entity));
     }
 
-
     @Override
     protected Object controller() {
-        return new ContractDefinitionApiController(transformerRegistry, service, monitor);
+        return new ContractDefinitionApiController(transformerRegistry, service, monitor, validatorRegistry);
     }
 
     private JsonArrayBuilder createCriterionBuilder() {
         return Json.createArrayBuilder()
-                .add(Json.createObjectBuilder()
+                .add(createObjectBuilder()
                         .add(TYPE, EDC_NAMESPACE + "CriterionDto")
                         .add(EDC_NAMESPACE + "operandLeft", "foo")
                         .add(EDC_NAMESPACE + "operator", "=")
@@ -348,7 +406,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
     }
 
     private JsonObject createExpandedJsonObject() {
-        return Json.createObjectBuilder()
+        return createObjectBuilder()
                 .add(TYPE, CONTRACT_DEFINITION_TYPE)
                 .add(ID, "test-id")
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")

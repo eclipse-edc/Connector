@@ -12,33 +12,35 @@
  *
  */
 
-package org.eclipse.edc.validator.jsonobject;
+package org.eclipse.edc.validator.jsonobject.validators;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
+import java.util.Optional;
+
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
- * Verify that the @id field is not blank. It can be null, though.
+ * Verifies that a single object is present.
  */
-public class OptionalIdNotBlank implements Validator<JsonObject> {
+public class MandatoryObject implements Validator<JsonObject> {
 
     private final JsonLdPath path;
 
-    public OptionalIdNotBlank(JsonLdPath path) {
+    public MandatoryObject(JsonLdPath path) {
         this.path = path;
     }
 
     @Override
     public ValidationResult validate(JsonObject input) {
-        if (input.containsKey(ID) && input.getString(ID).isBlank()) {
-            return ValidationResult.failure(violation(format("%s optional %s cannot be blank", path, ID), path.toString()));
-        } else {
-            return ValidationResult.success();
-        }
+        return Optional.ofNullable(input.getJsonArray(path.last()))
+                .filter(it -> it.size() > 0)
+                .map(it -> it.getJsonObject(0))
+                .map(it -> ValidationResult.success())
+                .orElseGet(() -> ValidationResult.failure(violation(format("mandatory object '%s' is missing", path), path.toString())));
     }
 }

@@ -215,10 +215,6 @@ components:
         contractPolicyId:
           type: string
           example: null
-      required:
-      - accessPolicyId
-      - assetsSelector
-      - contractPolicyId
     ContractDefinitionResponseDto:
       type: object
       example: null

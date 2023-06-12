@@ -15,6 +15,7 @@
 package org.eclipse.edc.validator.jsonobject;
 
 import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
@@ -22,9 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.validator.jsonobject.JsonLdPath.path;
+import static org.eclipse.edc.validator.jsonobject.JsonWalkers.ARRAY_ITEMS;
+import static org.eclipse.edc.validator.jsonobject.JsonWalkers.NESTED_OBJECT;
+import static org.eclipse.edc.validator.jsonobject.JsonWalkers.ROOT_OBJECT;
 
 /**
  * The {@link JsonObject} {@link Validator} implementation.
@@ -34,24 +38,20 @@ public class JsonObjectValidator implements Validator<JsonObject> {
 
     private final List<Validator<JsonObject>> validators = new ArrayList<>();
     private final JsonLdPath path;
-    private final Navigator navigator;
+    private final JsonWalker walker;
 
-    public static JsonObjectValidator newValidator() {
-        return new JsonObjectValidator();
+    public static JsonObjectValidator.Builder newValidator() {
+        return JsonObjectValidator.Builder.newInstance(path(), ROOT_OBJECT);
     }
 
-    private JsonObjectValidator() {
-        this(path(), new RootObjectNavigator());
-    }
-
-    protected JsonObjectValidator(JsonLdPath path, Navigator navigator) {
+    protected JsonObjectValidator(JsonLdPath path, JsonWalker walker) {
         this.path = path;
-        this.navigator = navigator;
+        this.walker = walker;
     }
 
     @Override
     public ValidationResult validate(JsonObject input) {
-        var violations = navigator.extract(input, path)
+        var violations = walker.extract(input, path)
                 .flatMap(target -> this.validators.stream().map(validator -> validator.validate(target)))
                 .filter(ValidationResult::failed)
                 .flatMap(it -> it.getFailure().getViolations().stream())
@@ -64,47 +64,51 @@ public class JsonObjectValidator implements Validator<JsonObject> {
         }
     }
 
-    public JsonObjectValidator verify(Function<JsonLdPath, Validator<JsonObject>> validatorProvider) {
-        var validator = validatorProvider.apply(path);
-        this.validators.add(validator);
-        return this;
-    }
+    public static class Builder {
 
-    public JsonObjectValidator verify(String fieldName, Function<JsonLdPath, Validator<JsonObject>> validatorProvider) {
-        var newPath = path.append(fieldName);
-        var validator = validatorProvider.apply(newPath);
-        this.validators.add(validator);
-        return this;
-    }
+        private final JsonObjectValidator validator;
 
-    public JsonObjectValidator verifyObject(String fieldName, UnaryOperator<JsonObjectValidator> provider) {
-        var newPath = path.append(fieldName);
-        this.validators.add(provider.apply(new JsonObjectValidator(newPath, new NestedObjectNavigator())));
-        return this;
-    }
-
-    private static class RootObjectNavigator implements Navigator {
-
-        @Override
-        public Stream<JsonObject> extract(JsonObject object, JsonLdPath path) {
-            return Stream.of(object);
+        private Builder(JsonObjectValidator validator) {
+            this.validator = validator;
         }
-    }
 
-    private static class NestedObjectNavigator implements Navigator {
-        @Override
-        public Stream<JsonObject> extract(JsonObject o, JsonLdPath p) {
-            var array = o.getJsonArray(p.last());
-
-            if (array == null) {
-                return Stream.empty();
-            } else {
-                return Stream.of(array.getJsonObject(0));
-            }
+        public static Builder newInstance(JsonLdPath path, JsonWalker walker) {
+            return new Builder(new JsonObjectValidator(path, walker));
         }
-    }
 
-    interface Navigator {
-        Stream<JsonObject> extract(JsonObject object, JsonLdPath path);
+        public Builder verify(Function<JsonLdPath, Validator<JsonObject>> validatorProvider) {
+            validator.validators.add(validatorProvider.apply(validator.path));
+            return this;
+        }
+
+        public Builder verify(String fieldName, Function<JsonLdPath, Validator<JsonObject>> validatorProvider) {
+            var newPath = validator.path.append(fieldName);
+            validator.validators.add(validatorProvider.apply(newPath));
+            return this;
+        }
+
+        public Builder verifyId(Function<JsonLdPath, Validator<JsonString>> idValidatorProvider) {
+            var newPath = validator.path.append(ID);
+            validator.validators.add(input -> idValidatorProvider.apply(newPath).validate(input.getJsonString(ID)));
+            return this;
+        }
+
+        public Builder verifyObject(String fieldName, UnaryOperator<JsonObjectValidator.Builder> provider) {
+            var newPath = validator.path.append(fieldName);
+            var builder = JsonObjectValidator.Builder.newInstance(newPath, NESTED_OBJECT);
+            validator.validators.add(provider.apply(builder).build());
+            return this;
+        }
+
+        public Builder verifyArrayItem(String fieldName, UnaryOperator<JsonObjectValidator.Builder> provider) {
+            var newPath = validator.path.append(fieldName);
+            var builder = JsonObjectValidator.Builder.newInstance(newPath, ARRAY_ITEMS);
+            validator.validators.add(provider.apply(builder).build());
+            return this;
+        }
+
+        public JsonObjectValidator build() {
+            return validator;
+        }
     }
 }

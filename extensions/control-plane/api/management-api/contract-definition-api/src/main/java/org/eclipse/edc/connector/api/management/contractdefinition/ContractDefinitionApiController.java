@@ -35,13 +35,15 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
@@ -51,22 +53,31 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     private final TypeTransformerRegistry transformerRegistry;
     private final ContractDefinitionService service;
     private final Monitor monitor;
+    private final JsonObjectValidatorRegistry validatorRegistry;
 
-    public ContractDefinitionApiController(TypeTransformerRegistry transformerRegistry, ContractDefinitionService service, Monitor monitor) {
+    public ContractDefinitionApiController(TypeTransformerRegistry transformerRegistry, ContractDefinitionService service,
+                                           Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
         this.transformerRegistry = transformerRegistry;
         this.service = service;
         this.monitor = monitor;
+        this.validatorRegistry = validatorRegistry;
     }
 
     @POST
     @Path("/request")
     @Override
     public JsonArray queryAllContractDefinitions(JsonObject querySpecDto) {
-        var querySpec = ofNullable(querySpecDto)
-                .map(json -> transformerRegistry.transform(json, QuerySpecDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class)))
-                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
-                .orElseThrow(InvalidRequestException::new);
+        QuerySpec querySpec;
+        if (querySpecDto == null) {
+            querySpec = QuerySpec.Builder.newInstance().build();
+        } else {
+            validatorRegistry.validate(QuerySpecDto.EDC_QUERY_SPEC_TYPE, querySpecDto)
+                    .orElseThrow(ValidationFailureException::new);
+
+            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
+                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+                    .orElseThrow(InvalidRequestException::new);
+        }
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class))) {
             return stream
@@ -89,12 +100,14 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
                         .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)))
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
-
     }
 
     @POST
     @Override
     public JsonObject createContractDefinition(JsonObject createObject) {
+        validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, createObject)
+                .orElseThrow(ValidationFailureException::new);
+
         var transform = transformerRegistry.transform(createObject, ContractDefinitionRequestDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
                 .orElseThrow(InvalidRequestException::new);
@@ -120,10 +133,13 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @PUT
     @Override
     public void updateContractDefinition(JsonObject updateObject) {
-        var rqDto = transformerRegistry.transform(updateObject, ContractDefinitionRequestDto.class)
+        validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, updateObject)
+                .orElseThrow(ValidationFailureException::new);
+
+        var contractDefinition = transformerRegistry.transform(updateObject, ContractDefinitionRequestDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
                 .orElseThrow(InvalidRequestException::new);
 
-        service.update(rqDto).orElseThrow(exceptionMapper(ContractDefinition.class));
+        service.update(contractDefinition).orElseThrow(exceptionMapper(ContractDefinition.class));
     }
 }
