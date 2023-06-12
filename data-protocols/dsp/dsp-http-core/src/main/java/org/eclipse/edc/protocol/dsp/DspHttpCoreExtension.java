@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessag
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.protocol.dsp.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdRemoteMessageSerializerImpl;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
@@ -54,6 +55,18 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 public class DspHttpCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Core Extension";
+
+    /**
+     * Policy scope evaluated when a contract negotiation request is made.
+     */
+    @PolicyScope
+    private static final String CONTRACT_NEGOTIATION_REQUEST_SCOPE = "contract.negotiation.request";
+
+    /**
+     * Policy scope evaluated when a transfer process request is made.
+     */
+    @PolicyScope
+    private static final String TRANSFER_PROCESS_REQUEST_SCOPE = "transfer.process.request";
 
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
@@ -95,20 +108,18 @@ public class DspHttpCoreExtension implements ServiceExtension {
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
-        var scope = "contract.negotiation.request";
-        dispatcher.registerPolicyScope(ContractAgreementMessage.class, scope, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractNegotiationEventMessage.class, scope, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractRequestMessage.class, scope, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractNegotiationTerminationMessage.class, scope, ContractRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(ContractAgreementVerificationMessage.class, scope, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractAgreementMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractNegotiationEventMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractRequestMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractNegotiationTerminationMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(ContractAgreementVerificationMessage.class, CONTRACT_NEGOTIATION_REQUEST_SCOPE, ContractRemoteMessage::getPolicy);
     }
 
     private void registerTransferProcessPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
-        var scope = "transfer.process.request";
-        dispatcher.registerPolicyScope(TransferCompletionMessage.class, scope, TransferRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(TransferTerminationMessage.class, scope, TransferRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(TransferStartMessage.class, scope, TransferRemoteMessage::getPolicy);
-        dispatcher.registerPolicyScope(TransferRequestMessage.class, scope, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferCompletionMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferTerminationMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferStartMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
+        dispatcher.registerPolicyScope(TransferRequestMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
     }
 
     @Provider
