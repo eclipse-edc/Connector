@@ -22,10 +22,9 @@ import java.util.Objects;
  * Parameter Object for {@link IdentityService#obtainClientCredentials(TokenParameters)}.
  */
 public class TokenParameters {
+    private final Map<String, Object> additional = new HashMap<>();
     private String scope;
     private String audience;
-
-    private Map<String, Object> additional = new HashMap<>();
 
     private TokenParameters() {
     }
@@ -64,7 +63,12 @@ public class TokenParameters {
         }
 
         public Builder additional(Map<String, Object> additional) {
-            result.additional = additional;
+            result.additional.putAll(additional);
+            return this;
+        }
+
+        public Builder additional(String key, Object value) {
+            result.additional.put(key, value);
             return this;
         }
 
