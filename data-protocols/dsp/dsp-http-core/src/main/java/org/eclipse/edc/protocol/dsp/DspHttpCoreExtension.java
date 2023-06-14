@@ -73,7 +73,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
      * Policy scope evaluated when an outgoing catalog request is made
      */
     @PolicyScope
-    private static final String CATALOGING_REQUEST_SCOPE = "contract.cataloging.request";
+    private static final String CATALOGING_REQUEST_SCOPE = "catalog.request";
 
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
