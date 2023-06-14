@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp;
 
+import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
@@ -68,6 +69,12 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @PolicyScope
     private static final String TRANSFER_PROCESS_REQUEST_SCOPE = "transfer.process.request";
 
+    /**
+     * Policy scope evaluated when an outgoing catalog request is made
+     */
+    @PolicyScope
+    private static final String CATALOGING_REQUEST_SCOPE = "catalog.request";
+
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
@@ -103,8 +110,14 @@ public class DspHttpCoreExtension implements ServiceExtension {
         var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td, policyEngine);
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
+        registerCatalogPolicyScopes(dispatcher);
         dispatcherRegistry.register(dispatcher);
         return dispatcher;
+    }
+
+    @Provider
+    public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
+        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(JSON_LD), jsonLdService);
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
@@ -122,9 +135,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
         dispatcher.registerPolicyScope(TransferRequestMessage.class, TRANSFER_PROCESS_REQUEST_SCOPE, TransferRemoteMessage::getPolicy);
     }
 
-    @Provider
-    public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(transformerRegistry, typeManager.getMapper(JSON_LD), jsonLdService);
+    private void registerCatalogPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
+        dispatcher.registerPolicyScope(CatalogRequestMessage.class, CATALOGING_REQUEST_SCOPE, CatalogRequestMessage::getPolicy);
     }
 
 }
