@@ -30,7 +30,7 @@ public interface ObservabilityApi {
 
     @Operation(description = "Performs a liveness probe to determine whether the runtime is working properly.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Runtime is working properly.",
+                    @ApiResponse(responseCode = "200", description = "The runtime is working properly.",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
     )
     Response checkHealth();

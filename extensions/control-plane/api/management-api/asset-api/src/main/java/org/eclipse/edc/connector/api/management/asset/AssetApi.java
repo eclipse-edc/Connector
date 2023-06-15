@@ -53,7 +53,7 @@ public interface AssetApi {
     @Operation(description = " all assets according to a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The assets",
+                    @ApiResponse(responseCode = "200", description = "The assets matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))

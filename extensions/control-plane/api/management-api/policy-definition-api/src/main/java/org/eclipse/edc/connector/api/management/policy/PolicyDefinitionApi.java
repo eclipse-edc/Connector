@@ -38,7 +38,7 @@ public interface PolicyDefinitionApi {
     @Operation(description = "Returns all policy definitions according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The policy definitions",
+                    @ApiResponse(responseCode = "200", description = "The policy definitions matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinitionResponseDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
