@@ -56,7 +56,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/PolicyDefinitionResponseDto'
-          description: The policy definitions
+          description: The policy definitions matching the query
         "400":
           content:
             application/json:

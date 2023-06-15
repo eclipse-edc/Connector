@@ -41,7 +41,7 @@ public interface TransferProcessApi {
     @Operation(description = "Returns all transfer process according to a query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The transfer process matching the query",
+                    @ApiResponse(responseCode = "200", description = "The transfer processes matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = TransferProcessDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }

@@ -54,7 +54,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
-          description: The contract negotiations
+          description: The contract negotiations that match the query
         "400":
           content:
             application/json:

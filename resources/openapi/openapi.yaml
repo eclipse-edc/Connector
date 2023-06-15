@@ -79,7 +79,7 @@ paths:
       operationId: checkHealth
       responses:
         "200":
-          description: Runtime is working properly.
+          description: The runtime is working properly.
           content:
             application/json:
               schema:
@@ -381,7 +381,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
-          description: The assets
+          description: The assets matching the query
           content:
             application/json:
               schema:
@@ -738,7 +738,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
-          description: The contract definitions
+          description: The contract definitions matching the query
           content:
             application/json:
               schema:
@@ -882,7 +882,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
-          description: The contract negotiations
+          description: The contract negotiations that match the query
           content:
             application/json:
               schema:
@@ -1158,7 +1158,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
-          description: The policy definitions
+          description: The policy definitions matching the query
           content:
             application/json:
               schema:
@@ -1352,7 +1352,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
-          description: The transfer process
+          description: The transfer processes matching the query
           content:
             application/json:
               schema:

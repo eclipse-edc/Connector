@@ -14,7 +14,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
-          description: Runtime is working properly.
+          description: The runtime is working properly.
       tags:
       - Application Observability
   /check/liveness:
