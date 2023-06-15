@@ -14,6 +14,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
+          description: The runtime is working properly.
       tags:
       - Application Observability
   /check/liveness:
@@ -30,6 +31,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
+          description: The runtime is working properly.
       tags:
       - Application Observability
   /check/readiness:
@@ -46,6 +48,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
+          description: The runtime is able to accept requests.
       tags:
       - Application Observability
   /check/startup:
@@ -62,6 +65,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/HealthStatus'
+          description: The runtime has completed startup.
       tags:
       - Application Observability
 components:
