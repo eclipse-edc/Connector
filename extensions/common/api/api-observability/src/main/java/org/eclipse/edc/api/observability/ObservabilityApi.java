@@ -30,25 +30,29 @@ public interface ObservabilityApi {
 
     @Operation(description = "Performs a liveness probe to determine whether the runtime is working properly.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
+                    @ApiResponse(responseCode = "200", description = "Runtime is working properly.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
     )
     Response checkHealth();
 
     @Operation(description = "Performs a liveness probe to determine whether the runtime is working properly.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
+                    @ApiResponse(responseCode = "200", description = "The runtime is working properly.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
     )
     Response getLiveness();
 
     @Operation(description = "Performs a readiness probe to determine whether the runtime is able to accept requests.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
+                    @ApiResponse(responseCode = "200", description = "The runtime is able to accept requests.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
     )
     Response getReadiness();
 
     @Operation(description = "Performs a startup probe to determine whether the runtime has completed startup.",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
+                    @ApiResponse(responseCode = "200", description = "The runtime has completed startup.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = HealthStatus.class)))) }
     )
     Response getStartup();
 

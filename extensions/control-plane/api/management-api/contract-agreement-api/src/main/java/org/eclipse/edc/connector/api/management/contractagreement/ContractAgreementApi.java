@@ -35,7 +35,7 @@ public interface ContractAgreementApi {
     @Operation(description = "Gets all contract agreements according to a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
             responses = {
-                    @ApiResponse(responseCode = "200",
+                    @ApiResponse(responseCode = "200", description = "The contract agreements matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
