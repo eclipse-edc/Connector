@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 public interface ContractDefinitionResolver {
 
     @PolicyScope
-    String CATALOGING_SCOPE = "contract.cataloging";
+    String CATALOGING_SCOPE = "catalog";
 
     /**
      * Returns the definitions for the given participant agent.

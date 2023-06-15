@@ -16,6 +16,7 @@ package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.jetbrains.annotations.NotNull;
@@ -28,11 +29,17 @@ import java.util.Objects;
 @JsonDeserialize(builder = CatalogRequestMessage.Builder.class)
 public class CatalogRequestMessage implements RemoteMessage {
 
+    private final Policy policy;
     private String protocol = "unknown";
     @Deprecated(forRemoval = true)
     private String connectorId;
     private String counterPartyAddress;
     private QuerySpec querySpec;
+
+    private CatalogRequestMessage() {
+        // at this time, this is just a placeholder.
+        policy = Policy.Builder.newInstance().build();
+    }
 
     @NotNull
     @Override
@@ -60,11 +67,21 @@ public class CatalogRequestMessage implements RemoteMessage {
         return querySpec;
     }
 
-    private CatalogRequestMessage() {
+    /**
+     * Returns the {@link Policy} associated with the Catalog Request. Currently, this is an empty policy and serves as placeholder.
+     *
+     * @return the stub {@link Policy}.
+     */
+    public Policy getPolicy() {
+        return policy;
     }
 
     public static class Builder {
-        private CatalogRequestMessage message;
+        private final CatalogRequestMessage message;
+
+        private Builder() {
+            message = new CatalogRequestMessage();
+        }
 
         @JsonCreator
         public static CatalogRequestMessage.Builder newInstance() {
@@ -100,10 +117,6 @@ public class CatalogRequestMessage implements RemoteMessage {
             }
 
             return message;
-        }
-
-        private Builder() {
-            message = new CatalogRequestMessage();
         }
 
     }
