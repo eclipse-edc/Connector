@@ -18,6 +18,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ContractAgreementDto'
+          description: The contract agreements matching the query
         "400":
           content:
             application/json:

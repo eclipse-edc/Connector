@@ -53,6 +53,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
+          description: The transfer process
         "400":
           content:
             application/json:

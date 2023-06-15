@@ -88,6 +88,7 @@ paths:
                 example: null
                 items:
                   $ref: '#/components/schemas/ContractDefinitionResponseDto'
+          description: The contract definitions
         "400":
           content:
             application/json:

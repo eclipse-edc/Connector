@@ -79,6 +79,7 @@ paths:
       operationId: checkHealth
       responses:
         "200":
+          description: Runtime is working properly.
           content:
             application/json:
               schema:
@@ -95,6 +96,7 @@ paths:
       operationId: getLiveness
       responses:
         "200":
+          description: The runtime is working properly.
           content:
             application/json:
               schema:
@@ -111,6 +113,7 @@ paths:
       operationId: getReadiness
       responses:
         "200":
+          description: The runtime is able to accept requests.
           content:
             application/json:
               schema:
@@ -127,6 +130,7 @@ paths:
       operationId: getStartup
       responses:
         "200":
+          description: The runtime has completed startup.
           content:
             application/json:
               schema:
@@ -377,6 +381,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
+          description: The assets
           content:
             application/json:
               schema:
@@ -593,6 +598,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
+          description: The contract agreements matching the query
           content:
             application/json:
               schema:
@@ -732,6 +738,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
+          description: The contract definitions
           content:
             application/json:
               schema:
@@ -875,6 +882,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
+          description: The contract negotiations
           content:
             application/json:
               schema:
@@ -1150,6 +1158,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
+          description: The policy definitions
           content:
             application/json:
               schema:
@@ -1343,6 +1352,7 @@ paths:
               $ref: '#/components/schemas/QuerySpecDto'
       responses:
         "200":
+          description: The transfer process
           content:
             application/json:
               schema:
