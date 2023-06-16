@@ -27,6 +27,7 @@ import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.result.Result;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,20 +37,23 @@ import java.util.TreeMap;
 import java.util.function.BiFunction;
 
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.spi.result.Result.failure;
+import static org.eclipse.edc.spi.result.Result.success;
 
 /**
  * Default implementation of the policy engine.
  */
 public class PolicyEngineImpl implements PolicyEngine {
-    private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + ".";
+    private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
 
     private final ScopeFilter scopeFilter;
 
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private final Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
 
-    private final List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
-    private final List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
+    private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> preValidators = new HashMap<>();
+
+    private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> postValidators = new HashMap<>();
 
     public PolicyEngineImpl(ScopeFilter scopeFilter) {
         this.scopeFilter = scopeFilter;
@@ -69,15 +73,16 @@ public class PolicyEngineImpl implements PolicyEngine {
     public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation) {
         var context = new PolicyContextImpl(agent, contextInformation);
 
-        for (BiFunction<Policy, PolicyContext, Boolean> validator : preValidators) {
+        var delimitedScope = scope + ".";
+
+        var scopedPreValidators = preValidators.entrySet().stream().filter(entry -> scopeFilter(entry.getKey(), delimitedScope)).flatMap(l -> l.getValue().stream()).toList();
+        for (var validator : scopedPreValidators) {
             if (!validator.apply(policy, context)) {
-                return Result.failure(context.hasProblems() ? context.getProblems() : List.of("Pre-validator failed: " + validator.getClass().getName()));
+                return failValidator("Pre-validator", validator, context);
             }
         }
 
         var evalBuilder = PolicyEvaluator.Builder.newInstance();
-
-        final var delimitedScope = scope + ".";
 
         ruleFunctions.entrySet().stream().filter(entry -> scopeFilter(entry.getKey(), delimitedScope)).flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
             if (Duty.class.isAssignableFrom(entry.type)) {
@@ -106,24 +111,26 @@ public class PolicyEngineImpl implements PolicyEngine {
         var result = evaluator.evaluate(filteredPolicy);
 
         if (result.valid()) {
-            for (BiFunction<Policy, PolicyContext, Boolean> validator : postValidators) {
+
+            var scopedPostValidators = postValidators.entrySet().stream().filter(entry -> scopeFilter(entry.getKey(), delimitedScope)).flatMap(l -> l.getValue().stream()).toList();
+            for (var validator : scopedPostValidators) {
                 if (!validator.apply(policy, context)) {
-                    return Result.failure(context.hasProblems() ? context.getProblems() : List.of("Post-validator failed: " + validator.getClass().getName()));
+                    return failValidator("Post-validator", validator, context);
                 }
             }
 
             updateContextInformation(context, contextInformation);
-            return Result.success(policy);
+            return success(policy);
         } else {
             updateContextInformation(context, contextInformation);
-            return Result.failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
+            return failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
     }
 
     /**
      * Updates the initially supplied context data from the policy context.
      *
-     * @param context the policy context.
+     * @param context            the policy context.
      * @param contextInformation the initial context data.
      */
     private void updateContextInformation(PolicyContext context, Map<Class<?>, Object> contextInformation) {
@@ -144,16 +151,21 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     @Override
     public void registerPreValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
-        preValidators.add(validator);
+        preValidators.computeIfAbsent(scope + DELIMITER, k -> new ArrayList<>()).add(validator);
     }
 
     @Override
     public void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
-        postValidators.add(validator);
+        postValidators.computeIfAbsent(scope + DELIMITER, k -> new ArrayList<>()).add(validator);
     }
 
     private boolean scopeFilter(String entry, String scope) {
         return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
+    }
+
+    @NotNull
+    private Result<Policy> failValidator(String type, BiFunction<Policy, PolicyContext, Boolean> validator, PolicyContext context) {
+        return failure(context.hasProblems() ? context.getProblems() : List.of(type + " failed: " + validator.getClass().getName()));
     }
 
     private static class ConstraintFunctionEntry<R extends Rule> {
