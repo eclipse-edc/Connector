@@ -14,36 +14,36 @@
 
 package org.eclipse.edc.api.observability;
 
-import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.spi.monitor.Monitor;
+import io.restassured.specification.RequestSpecification;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.health.HealthStatus;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class ObservabilityApiControllerTest {
+@ApiTest
+class ObservabilityApiControllerTest extends RestControllerTestBase {
 
     private final HealthCheckService healthCheckService = mock(HealthCheckService.class);
-    private ObservabilityApiController controller;
-
-    @BeforeEach
-    void setUp() {
-        controller = new ObservabilityApiController(healthCheckService, false, mock(Monitor.class));
-    }
 
     @Test
     void checkHealth() {
         when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success()));
 
-        assertThat(controller.checkHealth()).extracting(Response::getStatus).isEqualTo(200);
+        baseRequest()
+                .get("/health")
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).getStartupStatus();
         verifyNoMoreInteractions(healthCheckService);
@@ -53,7 +53,11 @@ class ObservabilityApiControllerTest {
     void checkHealth_mixedResults() {
         when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
 
-        assertThat(controller.checkHealth()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/health")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).getStartupStatus();
         verifyNoMoreInteractions(healthCheckService);
@@ -63,8 +67,11 @@ class ObservabilityApiControllerTest {
     void checkHealth_noProviders() {
         when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus());
 
-        // no provider = system not healthy
-        assertThat(controller.checkHealth()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/health")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).getStartupStatus();
         verifyNoMoreInteractions(healthCheckService);
@@ -74,7 +81,11 @@ class ObservabilityApiControllerTest {
     void getLiveness() {
         when(healthCheckService.isLive()).thenReturn(new HealthStatus(HealthCheckResult.success()));
 
-        assertThat(controller.getLiveness()).extracting(Response::getStatus).isEqualTo(200);
+        baseRequest()
+                .get("/liveness")
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).isLive();
         verifyNoMoreInteractions(healthCheckService);
@@ -84,7 +95,11 @@ class ObservabilityApiControllerTest {
     void getLiveness_mixedResults() {
         when(healthCheckService.isLive()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
 
-        assertThat(controller.getLiveness()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/liveness")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).isLive();
         verifyNoMoreInteractions(healthCheckService);
@@ -94,7 +109,11 @@ class ObservabilityApiControllerTest {
     void getLiveness_noProviders() {
         when(healthCheckService.isLive()).thenReturn(new HealthStatus());
 
-        assertThat(controller.getLiveness()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/liveness")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).isLive();
         verifyNoMoreInteractions(healthCheckService);
@@ -104,7 +123,11 @@ class ObservabilityApiControllerTest {
     void getReadiness() {
         when(healthCheckService.isReady()).thenReturn(new HealthStatus(HealthCheckResult.success()));
 
-        assertThat(controller.getReadiness()).extracting(Response::getStatus).isEqualTo(200);
+        baseRequest()
+                .get("/readiness")
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).isReady();
         verifyNoMoreInteractions(healthCheckService);
@@ -114,7 +137,11 @@ class ObservabilityApiControllerTest {
     void getReadiness_mixedResults() {
         when(healthCheckService.isReady()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
 
-        assertThat(controller.getReadiness()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/readiness")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).isReady();
         verifyNoMoreInteractions(healthCheckService);
@@ -124,7 +151,11 @@ class ObservabilityApiControllerTest {
     void getReadiness_noProvider() {
         when(healthCheckService.isReady()).thenReturn(new HealthStatus());
 
-        assertThat(controller.getReadiness()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/readiness")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).isReady();
         verifyNoMoreInteractions(healthCheckService);
@@ -134,7 +165,11 @@ class ObservabilityApiControllerTest {
     void getStartup() {
         when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success()));
 
-        assertThat(controller.getStartup()).extracting(Response::getStatus).isEqualTo(200);
+        baseRequest()
+                .get("/startup")
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).getStartupStatus();
         verifyNoMoreInteractions(healthCheckService);
@@ -144,7 +179,11 @@ class ObservabilityApiControllerTest {
     void getStartup_mixedResults() {
         when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus(HealthCheckResult.success(), HealthCheckResult.failed("test failure")));
 
-        assertThat(controller.getStartup()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/startup")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).getStartupStatus();
         verifyNoMoreInteractions(healthCheckService);
@@ -154,10 +193,24 @@ class ObservabilityApiControllerTest {
     void getStartup_noProviders() {
         when(healthCheckService.getStartupStatus()).thenReturn(new HealthStatus());
 
-        // no provider = system not healthy
-        assertThat(controller.checkHealth()).extracting(Response::getStatus).isEqualTo(503);
+        baseRequest()
+                .get("/startup")
+                .then()
+                .statusCode(503)
+                .contentType(JSON);
 
         verify(healthCheckService, times(1)).getStartupStatus();
         verifyNoMoreInteractions(healthCheckService);
+    }
+
+    @Override
+    protected Object controller() {
+        return new ObservabilityApiController(healthCheckService);
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port + "/check")
+                .when();
     }
 }
