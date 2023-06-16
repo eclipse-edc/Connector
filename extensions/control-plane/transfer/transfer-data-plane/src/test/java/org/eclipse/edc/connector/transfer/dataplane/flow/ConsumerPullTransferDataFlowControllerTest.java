@@ -14,39 +14,30 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyResolver;
-import org.eclipse.edc.connector.transfer.dataplane.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
-import org.eclipse.edc.connector.transfer.dataplane.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ConsumerPullTransferDataFlowControllerTest {
 
-    private ConsumerPullTransferProxyResolver proxyResolverMock;
-    private ConsumerPullTransferEndpointDataReferenceService proxyReferenceServiceMock;
-    private ConsumerPullTransferDataFlowController flowController;
+    private final DataPlaneSelectorClient selectorClient = mock(DataPlaneSelectorClient.class);
+    private final ConsumerPullDataPlaneProxyResolver resolver = mock(ConsumerPullDataPlaneProxyResolver.class);
 
-    @BeforeEach
-    void setUp() {
-        proxyResolverMock = mock(ConsumerPullTransferProxyResolver.class);
-        proxyReferenceServiceMock = mock(ConsumerPullTransferEndpointDataReferenceService.class);
-        flowController = new ConsumerPullTransferDataFlowController(proxyResolverMock, proxyReferenceServiceMock);
-    }
+    private final ConsumerPullTransferDataFlowController flowController = new ConsumerPullTransferDataFlowController(selectorClient, resolver);
 
     @Test
     void verifyCanHandle() {
@@ -55,81 +46,55 @@ class ConsumerPullTransferDataFlowControllerTest {
     }
 
     @Test
-    void verifySuccessfulProxyReferenceCreation() {
-        var request = createDataRequest();
-        var dataAddress = testDataAddress();
-        var edr = createEndpointDataReference();
-        var proxyUrl = "proxy.test.url";
+    void verifyInitiateFlowSuccess() {
+        var request = dataRequest();
+        var proxyAddress = dataAddress();
+        var contentAddress = dataAddress();
+        var instance = mock(DataPlaneInstance.class);
 
-        var proxyCreationRequestCaptor = ArgumentCaptor.forClass(ConsumerPullTransferEndpointDataReferenceCreationRequest.class);
+        when(selectorClient.find(eq(contentAddress), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
+        when(resolver.toDataAddress(request, contentAddress, instance)).thenReturn(Result.success(proxyAddress));
 
-        when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.success(edr));
-        when(proxyResolverMock.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
-
-        var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
-
-        verify(proxyReferenceServiceMock).createProxyReference(proxyCreationRequestCaptor.capture());
-        verify(proxyResolverMock).resolveProxyUrl(any());
+        var result = flowController.initiateFlow(request, contentAddress, null);
 
         assertThat(result.succeeded()).isTrue();
-
-        var dataFlowResponse = result.getContent();
-        assertThat(dataFlowResponse.getDataAddress()).isNotNull().satisfies(address -> {
-            assertThat(address.getType()).isEqualTo(EndpointDataReference.EDR_SIMPLE_TYPE);
-            assertThat(address.getProperty(EndpointDataReference.ENDPOINT)).isEqualTo(edr.getEndpoint());
-            assertThat(address.getProperty(EndpointDataReference.AUTH_KEY)).isEqualTo(edr.getAuthKey());
-            assertThat(address.getProperty(EndpointDataReference.ID)).isEqualTo(edr.getId());
-            assertThat(address.getProperty(EndpointDataReference.AUTH_CODE)).isEqualTo(edr.getAuthCode());
-            assertThat(address.getProperties()).containsAllEntriesOf(edr.getProperties());
-        });
-
-        var proxyCreationRequest = proxyCreationRequestCaptor.getValue();
-        assertThat(proxyCreationRequest.getId()).isEqualTo(request.getId());
-        assertThat(proxyCreationRequest.getContentAddress()).isEqualTo(dataAddress);
-        assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyUrl);
-        assertThat(proxyCreationRequest.getContractId()).isEqualTo(request.getContractId());
-        assertThat(proxyCreationRequest.getProperties()).isEmpty();
+        var response = result.getContent();
+        assertThat(response.getDataAddress()).isEqualTo(proxyAddress);
     }
 
     @Test
-    void verifyReturnFailedResultIfProxyUrlResolutionFails() {
-        var request = createDataRequest();
-        var dataAddress = testDataAddress();
-        var errorMsg = "test-errormsg";
+    void verifyInitiateFlowReturnsFailureIfNoDataPlaneInstance() {
+        var request = dataRequest();
+        var contentAddress = dataAddress();
 
-        when(proxyResolverMock.resolveProxyUrl(dataAddress)).thenReturn(Result.failure(errorMsg));
-
-        var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
-
-        verify(proxyResolverMock).resolveProxyUrl(any());
+        var result = flowController.initiateFlow(request, contentAddress, null);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
+        assertThat(result.getFailureDetail())
+                .isEqualTo(String.format("Failed to find DataPlaneInstance for source/destination: %s/%s", contentAddress.getType(), HTTP_PROXY));
     }
 
     @Test
-    void verifyReturnFailedResultIfProxyCreationFails() {
-        var request = createDataRequest();
-        var dataAddress = testDataAddress();
+    void verifyInitiateFlowReturnsFailureIfAddressResolutionFails() {
+        var request = dataRequest();
+        var contentAddress = dataAddress();
         var errorMsg = "Test Error Message";
-        var proxyUrl = "test.proxy.url";
+        var instance = mock(DataPlaneInstance.class);
 
-        when(proxyResolverMock.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
-        when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.failure(errorMsg));
+        when(selectorClient.find(eq(contentAddress), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
+        when(resolver.toDataAddress(request, contentAddress, instance)).thenReturn(Result.failure(errorMsg));
 
-        var result = flowController.initiateFlow(request, dataAddress, Policy.Builder.newInstance().build());
-
-        verify(proxyResolverMock).resolveProxyUrl(any());
+        var result = flowController.initiateFlow(request, contentAddress, Policy.Builder.newInstance().build());
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
+        assertThat(result.getFailureDetail()).contains(errorMsg);
     }
 
-    private DataAddress testDataAddress() {
-        return DataAddress.Builder.newInstance().type("test-type").build();
+    private DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
     }
 
-    private DataRequest createDataRequest() {
+    private DataRequest dataRequest() {
         return DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("protocol")
@@ -140,12 +105,4 @@ class ConsumerPullTransferDataFlowControllerTest {
                 .destinationType(HTTP_PROXY)
                 .build();
     }
-
-    private EndpointDataReference createEndpointDataReference() {
-        return EndpointDataReference.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .endpoint("test.endpoint.url")
-                .build();
-    }
-
 }

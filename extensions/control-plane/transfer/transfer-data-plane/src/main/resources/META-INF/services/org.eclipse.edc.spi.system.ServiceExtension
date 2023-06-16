@@ -13,6 +13,4 @@
 #
 
 org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneCoreExtension
-org.eclipse.edc.connector.transfer.dataplane.ConsumerPullTransferProxyResolverExtension
-org.eclipse.edc.connector.transfer.dataplane.ConsumerPullTransferKeyPairExtension
 org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneDefaultServicesExtension

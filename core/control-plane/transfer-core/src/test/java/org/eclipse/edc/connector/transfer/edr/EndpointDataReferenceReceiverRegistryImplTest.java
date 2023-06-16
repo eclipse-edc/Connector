@@ -15,18 +15,19 @@
 package org.eclipse.edc.connector.transfer.edr;
 
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
-import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataAddressConstants;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -35,39 +36,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class EndpointDataReferenceReceiverRegistryImplTest {
 
-    private final EndpointDataReferenceTransformerRegistry transformerRegistry = mock(EndpointDataReferenceTransformerRegistry.class);
-    private EndpointDataReferenceReceiver receiver1;
-    private EndpointDataReferenceReceiver receiver2;
-    private EndpointDataReferenceReceiverRegistryImpl registry;
+    private final EndpointDataReferenceReceiver receiver1 = mock(EndpointDataReferenceReceiver.class);
+    private final EndpointDataReferenceReceiver receiver2 = mock(EndpointDataReferenceReceiver.class);
+    private final TypeTransformerRegistry typeTransformerRegistry = mock(TypeTransformerRegistry.class);
 
-    @BeforeEach
-    public void setUp() {
-        receiver1 = mock(EndpointDataReferenceReceiver.class);
-        receiver2 = mock(EndpointDataReferenceReceiver.class);
-        registry = new EndpointDataReferenceReceiverRegistryImpl(transformerRegistry);
-
-    }
+    private final EndpointDataReferenceReceiverRegistryImpl registry = new EndpointDataReferenceReceiverRegistryImpl(typeTransformerRegistry);
 
     @Test
     void receiveAll_success() {
         registry.registerReceiver(receiver1);
         registry.registerReceiver(receiver2);
 
-        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var edr = createEndpointDataReference();
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
         when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
 
         var future = registry.receiveAll(edr);
 
-        verify(receiver1, times(1)).send(edr);
-        verify(receiver2, times(1)).send(edr);
+        verify(receiver1).send(edr);
+        verify(receiver2).send(edr);
 
         assertThat(future).succeedsWithin(1, TimeUnit.SECONDS).satisfies(res -> assertThat(res.succeeded()).isTrue());
     }
@@ -77,7 +71,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
         registry.registerReceiver(receiver1);
         registry.registerReceiver(receiver2);
 
-        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var edr = createEndpointDataReference();
         var errorMsg = "Test error message";
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
@@ -85,8 +79,8 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
         var future = registry.receiveAll(edr);
 
-        verify(receiver1, times(1)).send(edr);
-        verify(receiver2, times(1)).send(edr);
+        verify(receiver1).send(edr);
+        verify(receiver2).send(edr);
 
         assertThat(future).succeedsWithin(1, TimeUnit.SECONDS).satisfies(res -> {
             assertThat(res.failed()).isTrue();
@@ -99,7 +93,7 @@ class EndpointDataReferenceReceiverRegistryImplTest {
         registry.registerReceiver(receiver1);
         registry.registerReceiver(receiver2);
 
-        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var edr = createEndpointDataReference();
         var errorMsg = "Test error message";
 
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
@@ -107,8 +101,8 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
         var future = registry.receiveAll(edr);
 
-        verify(receiver1, times(1)).send(edr);
-        verify(receiver2, times(1)).send(edr);
+        verify(receiver1).send(edr);
+        verify(receiver2).send(edr);
 
         assertThat(future).succeedsWithin(1, TimeUnit.SECONDS).satisfies(res -> {
             assertThat(res.failed()).isTrue();
@@ -118,8 +112,10 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
     @Test
     void receiveAll_throwsExceptionIfNoReceiversRegistered() {
-        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var edr = createEndpointDataReference();
+
         var future = registry.receiveAll(edr);
+
         assertThat(future).failsWithin(1, TimeUnit.SECONDS)
                 .withThrowableOfType(ExecutionException.class)
                 .withRootCauseInstanceOf(EdcException.class)
@@ -128,83 +124,73 @@ class EndpointDataReferenceReceiverRegistryImplTest {
 
     @Test
     void onEvent_success() {
+        var address = DataAddress.Builder.newInstance().type("test").build();
         registry.registerReceiver(receiver1);
         registry.registerReceiver(receiver2);
 
-        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var edr = createEndpointDataReference();
 
-        when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
-        when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
-        when(transformerRegistry.transform(any())).thenReturn(Result.success(edr));
+        var captor = ArgumentCaptor.forClass(EndpointDataReference.class);
+        when(typeTransformerRegistry.transform(address, EndpointDataReference.class)).thenReturn(Result.success(edr));
+        when(receiver1.send(captor.capture())).thenReturn(CompletableFuture.completedFuture(Result.success()));
+        when(receiver2.send(captor.capture())).thenReturn(CompletableFuture.completedFuture(Result.success()));
 
         var envelope = EventEnvelope.Builder.newInstance()
                 .at(10)
                 .id("id")
                 .payload(TransferProcessStarted.Builder.newInstance()
                         .transferProcessId("id")
-                        .dataAddress(EndpointDataAddressConstants.from(edr))
+                        .dataAddress(address)
                         .build())
                 .build();
 
         registry.on(envelope);
 
-        var captor = ArgumentCaptor.forClass(EndpointDataReference.class);
+        assertThat(captor.getAllValues()).allSatisfy(sent -> assertThat(sent).usingRecursiveComparison().isEqualTo(edr));
+    }
 
-        verify(receiver1, times(1)).send(captor.capture());
-        assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(edr);
+    @Test
+    void onEvent_failsBecauseDataAddressCannotBeTransformedToEdr_shouldReturnFailedResult() {
+        var address = DataAddress.Builder.newInstance().type("test").build();
+        registry.registerReceiver(receiver1);
+        registry.registerReceiver(receiver2);
+        var errorMsg = "Test error message";
 
-        var captor1 = ArgumentCaptor.forClass(EndpointDataReference.class);
+        when(typeTransformerRegistry.transform(address, EndpointDataReference.class)).thenReturn(Result.failure(errorMsg));
 
-        verify(receiver2, times(1)).send(captor1.capture());
-        assertThat(captor1.getValue()).usingRecursiveComparison().isEqualTo(edr);
+        var envelope = envelope(startedEvent(address));
 
+        assertThatThrownBy(() -> registry.on(envelope)).isInstanceOf(EdcException.class).hasMessageContaining(errorMsg);
+
+        verifyNoInteractions(receiver1, receiver2);
     }
 
     @Test
     void onEvent_failsBecauseReceiverReturnsFailedResult_shouldReturnFailedResult() {
+        var address = dataAddress();
         registry.registerReceiver(receiver1);
         registry.registerReceiver(receiver2);
 
-        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
+        var edr = createEndpointDataReference();
         var errorMsg = "Test error message";
 
+        when(typeTransformerRegistry.transform(address, EndpointDataReference.class)).thenReturn(Result.success(edr));
         when(receiver1.send(any())).thenReturn(CompletableFuture.completedFuture(Result.success()));
         when(receiver2.send(any())).thenReturn(CompletableFuture.completedFuture(Result.failure(errorMsg)));
-        when(transformerRegistry.transform(any())).thenReturn(Result.success(edr));
 
-
-        var envelope = envelope(startedEvent(edr));
+        var envelope = envelope(startedEvent(address));
 
         assertThatThrownBy(() -> registry.on(envelope)).isInstanceOf(EdcException.class).hasMessage(errorMsg);
 
-        verify(receiver1, times(1)).send(any());
-        verify(receiver2, times(1)).send(any());
+        verify(receiver1).send(any());
+        verify(receiver2).send(any());
 
     }
 
-    @Test
-    void onEvent_shouldFail_WhenTransformFails() {
-        registry.registerReceiver(receiver1);
-        registry.registerReceiver(receiver2);
-
-        var edr = EndpointDataReferenceFixtures.createEndpointDataReference();
-        var errorMsg = "TestFails";
-
-        when(transformerRegistry.transform(any())).thenReturn(Result.failure(errorMsg));
-
-        var envelope = envelope(startedEvent(edr));
-
-        assertThatThrownBy(() -> registry.on(envelope)).isInstanceOf(EdcException.class).hasMessageContaining(errorMsg);
-
-        verify(receiver1, times(0)).send(any());
-        verify(receiver2, times(0)).send(any());
-
-    }
-
-    private TransferProcessStarted startedEvent(EndpointDataReference edr) {
+    private TransferProcessStarted startedEvent(DataAddress address) {
         return TransferProcessStarted.Builder.newInstance()
                 .transferProcessId("id")
-                .dataAddress(EndpointDataAddressConstants.from(edr))
+                .dataAddress(address)
                 .build();
     }
 
@@ -213,6 +199,20 @@ class EndpointDataReferenceReceiverRegistryImplTest {
                 .at(10)
                 .id("id")
                 .payload(e)
+                .build();
+    }
+
+    private static DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type("test").build();
+    }
+
+    private static EndpointDataReference createEndpointDataReference() {
+        return EndpointDataReference.Builder.newInstance()
+                .endpoint("test.endpoint.url")
+                .authKey("test-authkey")
+                .authCode(UUID.randomUUID().toString())
+                .id(UUID.randomUUID().toString())
+                .properties(Map.of("test-key", UUID.randomUUID().toString()))
                 .build();
     }
 }

@@ -16,10 +16,19 @@ package org.eclipse.edc.connector.transfer.dataplane;
 
 import org.eclipse.edc.connector.transfer.dataplane.security.NoopDataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
+import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import java.time.Clock;
+import java.util.Date;
+
+import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.DEFAULT_TOKEN_VALIDITY_SECONDS;
+import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VALIDITY_SECONDS;
 
 /**
  * Provides default service implementations for fallback
@@ -28,6 +37,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 public class TransferDataPlaneDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Data Plane Default Services";
+
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
@@ -38,5 +50,11 @@ public class TransferDataPlaneDefaultServicesExtension implements ServiceExtensi
     public DataEncrypter getDataEncrypter(ServiceExtensionContext context) {
         context.getMonitor().warning("No DataEncrypter registered, a no-op implementation will be used, not suitable for production environments");
         return new NoopDataEncrypter();
+    }
+
+    @Provider(isDefault = true)
+    public ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction(ServiceExtensionContext context) {
+        var validity = context.getSetting(TOKEN_VALIDITY_SECONDS, DEFAULT_TOKEN_VALIDITY_SECONDS);
+        return (contentAddress, contractId) -> Result.success(Date.from(clock.instant().plusSeconds(validity)));
     }
 }

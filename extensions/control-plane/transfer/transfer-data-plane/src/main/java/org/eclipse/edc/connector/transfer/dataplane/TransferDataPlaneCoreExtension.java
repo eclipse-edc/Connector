@@ -17,20 +17,18 @@ package org.eclipse.edc.connector.transfer.dataplane;
 
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ProviderPushTransferDataFlowController;
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferEndpointDataReferenceServiceImpl;
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyResolver;
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyTransformer;
-import org.eclipse.edc.connector.transfer.dataplane.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
+import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
+import org.eclipse.edc.connector.transfer.dataplane.security.ConsumerPullKeyPairFactory;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
-import org.eclipse.edc.connector.transfer.dataplane.spi.security.KeyPairWrapper;
+import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.dataplane.validation.ContractValidationRule;
 import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateValidationRule;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
-import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.jwt.TokenValidationRulesRegistryImpl;
@@ -38,17 +36,21 @@ import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.security.PrivateKeyResolver;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.web.spi.WebService;
 
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.time.Clock;
+import java.util.Objects;
 
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.DEFAULT_TOKEN_VALIDITY_SECONDS;
-import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VALIDITY_SECONDS;
+import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
+import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
 
 @Extension(value = TransferDataPlaneCoreExtension.NAME)
 public class TransferDataPlaneCoreExtension implements ServiceExtension {
@@ -59,13 +61,16 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private ContractNegotiationStore contractNegotiationStore;
 
     @Inject
+    private Vault vault;
+
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
+    @Inject
     private WebService webService;
 
     @Inject
     private DataFlowManager dataFlowManager;
-
-    @Inject
-    private EndpointDataReferenceTransformerRegistry transformerRegistry;
 
     @Inject
     private Clock clock;
@@ -80,10 +85,10 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private ControlApiConfiguration controlApiConfiguration;
 
     @Inject
-    private KeyPairWrapper keyPairWrapper;
+    private DataPlaneSelectorClient selectorClient;
 
     @Inject
-    private ConsumerPullTransferProxyResolver proxyResolver;
+    private ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction;
 
     @Inject(required = false)
     private ControlPlaneApiUrl callbackUrl;
@@ -98,34 +103,33 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var tokenValidationService = createTokenValidationService();
-        webService.registerResource(controlApiConfiguration.getContextAlias(), new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager));
+        var keyPair = keyPairFromConfig(context);
+        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(keyPair.getPublic()), dataEncrypter, typeManager);
+        webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
-        var proxyReferenceService = createDataProxyReferenceService(context.getConfig(), typeManager);
-        dataFlowManager.register(new ConsumerPullTransferDataFlowController(proxyResolver, proxyReferenceService));
+        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new TokenGenerationServiceImpl(keyPair.getPrivate()), tokenExpirationDateFunction);
+        dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorClient, resolver));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, dataPlaneClient));
-
-        var consumerProxyTransformer = new ConsumerPullTransferProxyTransformer(proxyResolver, proxyReferenceService);
-        transformerRegistry.registerTransformer(consumerProxyTransformer);
     }
 
-    /**
-     * Creates service generating {@link EndpointDataReference} corresponding
-     * to a http proxy.
-     */
-    private ConsumerPullTransferEndpointDataReferenceService createDataProxyReferenceService(Config config, TypeManager typeManager) {
-        var tokenValiditySeconds = config.getLong(TOKEN_VALIDITY_SECONDS, DEFAULT_TOKEN_VALIDITY_SECONDS);
-        var tokenGenerationService = new TokenGenerationServiceImpl(keyPairWrapper.get().getPrivate());
-        return new ConsumerPullTransferEndpointDataReferenceServiceImpl(tokenGenerationService, typeManager, tokenValiditySeconds, dataEncrypter, clock);
+    private KeyPair keyPairFromConfig(ServiceExtensionContext context) {
+        var keyPairFactory = new ConsumerPullKeyPairFactory(privateKeyResolver, vault);
+        var pubKeyAlias = context.getSetting(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null);
+        var privKeyAlias = context.getSetting(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null);
+        if (pubKeyAlias == null && privKeyAlias == null) {
+            context.getMonitor().info(() -> "No public or private key provided for 'Consumer Pull' transfers -> a key pair will be generated (DO NOT USE IN PRODUCTION)");
+            return keyPairFactory.defaultKeyPair();
+        }
+        Objects.requireNonNull(pubKeyAlias, "public key alias");
+        Objects.requireNonNull(privKeyAlias, "private key alias");
+        return keyPairFactory.fromConfig(pubKeyAlias, privKeyAlias)
+                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
     }
 
-    /**
-     * Service in charge of validating access token sent by the Data Plane.
-     */
-    private TokenValidationService createTokenValidationService() {
+    private TokenValidationService tokenValidationService(PublicKey publicKey) {
         var registry = new TokenValidationRulesRegistryImpl();
         registry.addRule(new ContractValidationRule(contractNegotiationStore, clock));
         registry.addRule(new ExpirationDateValidationRule(clock));
-        return new TokenValidationServiceImpl(id -> keyPairWrapper.get().getPublic(), registry);
+        return new TokenValidationServiceImpl(id -> publicKey, registry);
     }
 }

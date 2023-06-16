@@ -18,8 +18,8 @@ package org.eclipse.edc.connector.transfer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.command.handlers.AddProvisionedResourceCommandHandler;
 import org.eclipse.edc.connector.transfer.command.handlers.DeprovisionCompleteCommandHandler;
+import org.eclipse.edc.connector.transfer.edr.DataAddressToEndpointDataReferenceTransformer;
 import org.eclipse.edc.connector.transfer.edr.EndpointDataReferenceReceiverRegistryImpl;
-import org.eclipse.edc.connector.transfer.edr.EndpointDataReferenceTransformerRegistryImpl;
 import org.eclipse.edc.connector.transfer.flow.DataFlowManagerImpl;
 import org.eclipse.edc.connector.transfer.listener.TransferProcessEventListener;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
@@ -29,7 +29,6 @@ import org.eclipse.edc.connector.transfer.provision.ProvisionManagerImpl;
 import org.eclipse.edc.connector.transfer.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
-import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
@@ -63,6 +62,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.time.Clock;
 
@@ -72,7 +72,7 @@ import java.time.Clock;
 @CoreExtension
 @Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
         TransferProcessObservable.class, DataFlowManager.class, ProvisionManager.class,
-        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformerRegistry.class })
+        EndpointDataReferenceReceiverRegistry.class })
 @Extension(value = TransferCoreExtension.NAME)
 public class TransferCoreExtension implements ServiceExtension {
 
@@ -129,6 +129,9 @@ public class TransferCoreExtension implements ServiceExtension {
     private Telemetry telemetry;
 
     @Inject
+    private TypeTransformerRegistry typeTransformerRegistry;
+
+    @Inject
     private ProtocolWebhook protocolWebhook;
 
     private TransferProcessManagerImpl processManager;
@@ -159,11 +162,9 @@ public class TransferCoreExtension implements ServiceExtension {
         var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
-        // Register a default EndpointDataReferenceTransformer that can be overridden in extensions.
-        var endpointDataReferenceTransformerRegistry = new EndpointDataReferenceTransformerRegistryImpl();
-        context.registerService(EndpointDataReferenceTransformerRegistry.class, endpointDataReferenceTransformerRegistry);
+        typeTransformerRegistry.register(new DataAddressToEndpointDataReferenceTransformer());
 
-        var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl(endpointDataReferenceTransformerRegistry);
+        var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl(typeTransformerRegistry);
         context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
 
 

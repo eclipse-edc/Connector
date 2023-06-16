@@ -23,11 +23,7 @@ import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ProviderPushTransferDataFlowController;
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyResolver;
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyTransformer;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
-import org.eclipse.edc.connector.transfer.dataplane.spi.security.KeyPairWrapper;
-import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -35,14 +31,16 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.security.KeyPair;
+import java.io.IOException;
+import java.security.PrivateKey;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -57,36 +55,31 @@ class TransferDataPlaneCoreExtensionTest {
 
     private static final String CONTROL_PLANE_API_CONTEXT = "control";
 
+    private final PrivateKeyResolver privateKeyResolver = mock(PrivateKeyResolver.class);
+    private final Vault vault = mock(Vault.class);
+    private final WebService webService = mock(WebService.class);
+    private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
+
     private ServiceExtensionContext context;
-    private WebService webServiceMock;
-    private EndpointDataReferenceTransformerRegistry endpointDataReferenceTransformerRegistryMock;
-    private DataFlowManager dataFlowManagerMock;
     private TransferDataPlaneCoreExtension extension;
 
     @BeforeEach
-    public void setUp(ServiceExtensionContext context, ObjectFactory factory) throws JOSEException {
+    public void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         var monitor = mock(Monitor.class);
-        this.webServiceMock = mock(WebService.class);
-        ControlApiConfiguration controlApiConfigurationMock = mock(ControlApiConfiguration.class);
+        var controlApiConfigurationMock = mock(ControlApiConfiguration.class);
         when(controlApiConfigurationMock.getContextAlias()).thenReturn(CONTROL_PLANE_API_CONTEXT);
-        this.endpointDataReferenceTransformerRegistryMock = mock(EndpointDataReferenceTransformerRegistry.class);
-        this.dataFlowManagerMock = mock(DataFlowManager.class);
 
         context.registerService(PrivateKeyResolver.class, mock(PrivateKeyResolver.class));
         context.registerService(Vault.class, mock(Vault.class));
-        context.registerService(WebService.class, webServiceMock);
+        context.registerService(WebService.class, webService);
         context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         context.registerService(RemoteMessageDispatcherRegistry.class, mock(RemoteMessageDispatcherRegistry.class));
-        context.registerService(DataFlowManager.class, dataFlowManagerMock);
+        context.registerService(DataFlowManager.class, dataFlowManager);
         context.registerService(DataEncrypter.class, mock(DataEncrypter.class));
         context.registerService(ControlApiConfiguration.class, controlApiConfigurationMock);
-        var keyPair = generateRandomKeyPair();
-        var keyPairWrapper = mock(KeyPairWrapper.class);
-        when(keyPairWrapper.get()).thenReturn(keyPair);
-        context.registerService(KeyPairWrapper.class, keyPairWrapper);
-        context.registerService(EndpointDataReferenceTransformerRegistry.class, endpointDataReferenceTransformerRegistryMock);
         context.registerService(DataPlaneClient.class, mock(DataPlaneClient.class));
-        context.registerService(ConsumerPullTransferProxyResolver.class, mock(ConsumerPullTransferProxyResolver.class));
+        context.registerService(Vault.class, vault);
+        context.registerService(PrivateKeyResolver.class, privateKeyResolver);
 
         this.context = spy(context); //used to inject the config
         when(this.context.getMonitor()).thenReturn(monitor);
@@ -95,28 +88,33 @@ class TransferDataPlaneCoreExtensionTest {
     }
 
     @Test
-    void verifyRegisterBaseServices() {
-        extension.initialize(context);
-
-        verify(dataFlowManagerMock).register(any(ConsumerPullTransferDataFlowController.class));
-        verify(dataFlowManagerMock).register(any(ProviderPushTransferDataFlowController.class));
-        verify(endpointDataReferenceTransformerRegistryMock).registerTransformer(any(ConsumerPullTransferProxyTransformer.class));
-    }
-
-    @Test
-    void verifyControllerRegisteredOnControlPlaneApiConfigContext() {
-        when(context.getConfig()).thenReturn(ConfigFactory.empty());
+    void verifyInitializeSuccess() throws IOException, JOSEException {
+        var publicKeyAlias = "publicKey";
+        var privateKeyAlias = "privateKey";
+        var config = mock(Config.class);
+        when(context.getConfig()).thenReturn(config);
+        when(config.getString("edc.transfer.proxy.token.verifier.publickey.alias")).thenReturn(publicKeyAlias);
+        when(config.getString("edc.transfer.proxy.token.signer.privatekey.alias")).thenReturn(privateKeyAlias);
+        when(vault.resolveSecret(publicKeyAlias)).thenReturn(publicKeyPem());
+        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class)).thenReturn(privateKey());
 
         extension.initialize(context);
 
-        verify(webServiceMock).registerResource(eq(CONTROL_PLANE_API_CONTEXT), any(ConsumerPullTransferTokenValidationApiController.class));
+        verify(dataFlowManager).register(any(ConsumerPullTransferDataFlowController.class));
+        verify(dataFlowManager).register(any(ProviderPushTransferDataFlowController.class));
+        verify(webService).registerResource(eq(CONTROL_PLANE_API_CONTEXT), any(ConsumerPullTransferTokenValidationApiController.class));
     }
 
-    private static KeyPair generateRandomKeyPair() throws JOSEException {
+    private static PrivateKey privateKey() throws JOSEException {
         return new RSAKeyGenerator(2048)
                 .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
                 .keyID(UUID.randomUUID().toString()) // give the key a unique ID
                 .generate()
-                .toKeyPair();
+                .toPrivateKey();
+    }
+
+    private static String publicKeyPem() throws IOException {
+        return new String(Objects.requireNonNull(TransferDataPlaneCoreExtensionTest.class.getClassLoader().getResourceAsStream("rsa-pubkey.pem"))
+                .readAllBytes());
     }
 }

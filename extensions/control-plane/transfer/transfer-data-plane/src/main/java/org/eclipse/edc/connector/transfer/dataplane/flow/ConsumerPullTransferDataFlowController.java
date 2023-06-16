@@ -14,31 +14,31 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
-import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullTransferProxyResolver;
-import org.eclipse.edc.connector.transfer.dataplane.spi.proxy.ConsumerPullTransferEndpointDataReferenceCreationRequest;
-import org.eclipse.edc.connector.transfer.dataplane.spi.proxy.ConsumerPullTransferEndpointDataReferenceService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataAddressConstants;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.edc.spi.response.StatusResult.failure;
 
 public class ConsumerPullTransferDataFlowController implements DataFlowController {
 
-    private final ConsumerPullTransferProxyResolver proxyResolver;
-    private final ConsumerPullTransferEndpointDataReferenceService proxyReferenceService;
+    private final DataPlaneSelectorClient selectorClient;
+    private final ConsumerPullDataPlaneProxyResolver resolver;
 
-    public ConsumerPullTransferDataFlowController(ConsumerPullTransferProxyResolver proxyResolver, ConsumerPullTransferEndpointDataReferenceService proxyReferenceService) {
-        this.proxyResolver = proxyResolver;
-        this.proxyReferenceService = proxyReferenceService;
+    public ConsumerPullTransferDataFlowController(DataPlaneSelectorClient selectorClient, ConsumerPullDataPlaneProxyResolver resolver) {
+        this.selectorClient = selectorClient;
+        this.resolver = resolver;
     }
 
     @Override
@@ -48,25 +48,15 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
 
     @Override
     public @NotNull StatusResult<DataFlowResponse> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
-        var proxyUrl = proxyResolver.resolveProxyUrl(contentAddress);
-        if (proxyUrl.failed()) {
-            return StatusResult.failure(FATAL_ERROR, format("Failed to resolve proxy url for data request %s%n %s", dataRequest.getId(), proxyUrl.getFailureDetail()));
-        }
-
-        var proxyCreationRequest = ConsumerPullTransferEndpointDataReferenceCreationRequest.Builder.newInstance()
-                .id(dataRequest.getId())
-                .contentAddress(contentAddress)
-                .proxyEndpoint(proxyUrl.getContent())
-                .contractId(dataRequest.getContractId())
-                .build();
-
-        return proxyReferenceService.createProxyReference(proxyCreationRequest)
-                .map(this::createResponse)
-                .map(StatusResult::success)
-                .orElse(failure -> StatusResult.failure(FATAL_ERROR, "Failed to generate proxy: " + failure.getFailureDetail()));
+        return Optional.ofNullable(selectorClient.find(contentAddress, dataRequest.getDataDestination()))
+                .map(instance -> resolver.toDataAddress(dataRequest, contentAddress, instance)
+                        .map(this::toResponse)
+                        .map(StatusResult::success)
+                        .orElse(failure -> failure(FATAL_ERROR, "Failed to generate proxy: " + failure.getFailureDetail())))
+                .orElse(failure(FATAL_ERROR, format("Failed to find DataPlaneInstance for source/destination: %s/%s", contentAddress.getType(), HTTP_PROXY)));
     }
 
-    private DataFlowResponse createResponse(EndpointDataReference edr) {
-        return DataFlowResponse.Builder.newInstance().dataAddress(EndpointDataAddressConstants.from(edr)).build();
+    private DataFlowResponse toResponse(DataAddress address) {
+        return DataFlowResponse.Builder.newInstance().dataAddress(address).build();
     }
 }

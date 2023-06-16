@@ -16,15 +16,14 @@ package org.eclipse.edc.connector.transfer.edr;
 
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiver;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
-import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataAddressConstants;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -39,12 +38,11 @@ import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
  */
 public class EndpointDataReferenceReceiverRegistryImpl implements EndpointDataReferenceReceiverRegistry, EventSubscriber {
 
+    private final TypeTransformerRegistry typeTransformerRegistry;
     private final List<EndpointDataReferenceReceiver> receivers = new ArrayList<>();
 
-    private final EndpointDataReferenceTransformerRegistry transformerRegistry;
-
-    public EndpointDataReferenceReceiverRegistryImpl(EndpointDataReferenceTransformerRegistry transformerRegistry) {
-        this.transformerRegistry = transformerRegistry;
+    public EndpointDataReferenceReceiverRegistryImpl(TypeTransformerRegistry typeTransformerRegistry) {
+        this.typeTransformerRegistry = typeTransformerRegistry;
     }
 
     @Override
@@ -62,11 +60,9 @@ public class EndpointDataReferenceReceiverRegistryImpl implements EndpointDataRe
         if (event.getPayload() instanceof TransferProcessStarted) {
             var msg = (TransferProcessStarted) event.getPayload();
             if (msg.getDataAddress() != null) {
-                var edr = EndpointDataAddressConstants.to(msg.getDataAddress())
-                        .compose(transformerRegistry::transform)
+                var edr = typeTransformerRegistry.transform(msg.getDataAddress(), EndpointDataReference.class)
                         .orElseThrow(failure -> new EdcException(format("Failed to send EDR for transfer process %s with error %s", msg.getTransferProcessId(), failure.getFailureDetail())));
-
-
+                
                 sendEdr(edr).join().orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
             }
         }

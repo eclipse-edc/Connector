@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +95,7 @@ class ConsumerPullTransferTokenValidationApiControllerTest {
 
         when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
 
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> controller.validate(token));
+        assertThatExceptionOfType(InvalidRequestException.class).isThrownBy(() -> controller.validate(token));
 
         verify(encrypterMock, never()).decrypt(anyString());
     }
