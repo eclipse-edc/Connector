@@ -80,7 +80,7 @@ public interface PolicyEngine {
      * Registers a function that is invoked when a policy contains a rule of the given type for the specified scope.
      *
      * @param scope    the scope the function applies to
-     * @param type     the {@link Rule} sub-type
+     * @param type     the {@link Rule} subtype
      * @param function the function
      */
     <R extends Rule> void registerFunction(String scope, Class<R> type, RuleFunction<R> function);

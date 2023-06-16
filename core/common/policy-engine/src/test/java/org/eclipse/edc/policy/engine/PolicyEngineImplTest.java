@@ -26,6 +26,8 @@ import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -184,11 +186,16 @@ class PolicyEngineImplTest {
         assertThat(policyEngine.evaluate("bar", policy, agent).succeeded()).isTrue();
     }
 
-    @Test
-    void validatePreValidator() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void validateAllScopesPrePostValidator(boolean preValidation) {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
-        policyEngine.registerPreValidator(ALL_SCOPES, (policy, context) -> false);
+        if (preValidation) {
+            policyEngine.registerPreValidator(ALL_SCOPES, (policy, context) -> false);
+        } else {
+            policyEngine.registerPostValidator(ALL_SCOPES, (policy, context) -> false);
+        }
         var policy = Policy.Builder.newInstance().build();
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
 
@@ -197,15 +204,80 @@ class PolicyEngineImplTest {
         assertThat(result.succeeded()).isFalse();
     }
 
-    @Test
-    void validatePostValidator() {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void validateScopedPrePostValidator(boolean preValidation) {
+        bindingRegistry.bind("foo", TEST_SCOPE);
 
-        policyEngine.registerPostValidator(ALL_SCOPES, (policy, context) -> false);
+        if (preValidation) {
+            policyEngine.registerPreValidator(TEST_SCOPE, (policy, context) -> false);
+        } else {
+            policyEngine.registerPostValidator(TEST_SCOPE, (policy, context) -> false);
+        }
+
         var policy = Policy.Builder.newInstance().build();
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
 
         var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+
+        assertThat(result.succeeded()).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void validateOutOfScopedPrePostValidator(boolean preValidation) {
+        bindingRegistry.bind("foo", TEST_SCOPE);
+
+        if (preValidation) {
+            policyEngine.registerPreValidator("random.scope", (policy, context) -> false);
+        } else {
+            policyEngine.registerPostValidator("random.scope", (policy, context) -> false);
+        }
+
+        var policy = Policy.Builder.newInstance().build();
+        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void validateHierarchicalScopedNotFiredPrePostValidator(boolean preValidation) {
+        bindingRegistry.bind("foo", TEST_SCOPE);
+
+        if (preValidation) {
+            policyEngine.registerPreValidator(TEST_SCOPE + ".test", (policy, context) -> false);
+        } else {
+            policyEngine.registerPostValidator(TEST_SCOPE + ".test", (policy, context) -> false);
+        }
+
+        var policy = Policy.Builder.newInstance().build();
+        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void validateHierarchicalScopedFiredPrePostValidator(boolean preValidation) {
+        bindingRegistry.bind("foo", TEST_SCOPE);
+
+        if (preValidation) {
+            policyEngine.registerPreValidator(TEST_SCOPE, (policy, context) -> false);
+        } else {
+            policyEngine.registerPostValidator(TEST_SCOPE, (policy, context) -> false);
+        }
+
+        var policy = Policy.Builder.newInstance().build();
+        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+
+        var result = policyEngine.evaluate(TEST_SCOPE + ".test", policy, agent);
 
         assertThat(result.succeeded()).isFalse();
     }
