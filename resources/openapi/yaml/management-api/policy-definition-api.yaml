@@ -428,8 +428,6 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-      required:
-      - policy
     PolicyDefinitionResponseDto:
       type: object
       example: null
@@ -449,16 +447,12 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-      required:
-      - policy
     PolicyDefinitionUpdateDto:
       type: object
       example: null
       properties:
         policy:
           $ref: '#/components/schemas/Policy'
-      required:
-      - policy
     Prohibition:
       type: object
       example: null

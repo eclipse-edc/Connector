@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:management-api-configuration"))
+    implementation(project(":core:common:validator-core"))
 
     implementation(libs.jakarta.rsApi)
 

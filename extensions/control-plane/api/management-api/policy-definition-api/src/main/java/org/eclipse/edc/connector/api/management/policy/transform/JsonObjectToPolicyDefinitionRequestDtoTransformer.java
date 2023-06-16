@@ -23,7 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_POLICY;
 
 public class JsonObjectToPolicyDefinitionRequestDtoTransformer extends AbstractJsonLdTransformer<JsonObject, PolicyDefinitionRequestDto> {
 
