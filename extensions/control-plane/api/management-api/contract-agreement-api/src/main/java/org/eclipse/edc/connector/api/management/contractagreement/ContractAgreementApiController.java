@@ -32,13 +32,15 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Produces({MediaType.APPLICATION_JSON})
@@ -47,24 +49,32 @@ public class ContractAgreementApiController implements ContractAgreementApi {
     private final ContractAgreementService service;
     private final TypeTransformerRegistry transformerRegistry;
     private final Monitor monitor;
+    private final JsonObjectValidatorRegistry validatorRegistry;
 
-    public ContractAgreementApiController(ContractAgreementService service, TypeTransformerRegistry transformerRegistry, Monitor monitor) {
+    public ContractAgreementApiController(ContractAgreementService service, TypeTransformerRegistry transformerRegistry,
+                                          Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
         this.monitor = monitor;
+        this.validatorRegistry = validatorRegistry;
     }
 
     @POST
     @Path("/request")
     @Override
     public JsonArray queryAllAgreements(JsonObject querySpecDto) {
-        var query = ofNullable(querySpecDto)
-                .map(input -> transformerRegistry.transform(input, QuerySpecDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class)))
-                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
-                .orElseThrow(InvalidRequestException::new);
+        QuerySpec querySpec;
+        if (querySpecDto == null) {
+            querySpec = QuerySpec.Builder.newInstance().build();
+        } else {
+            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecDto).orElseThrow(ValidationFailureException::new);
 
-        try (var stream = service.query(query).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
+            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
+                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+                    .orElseThrow(InvalidRequestException::new);
+        }
+
+        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
             return stream
                     .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
                             .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)))

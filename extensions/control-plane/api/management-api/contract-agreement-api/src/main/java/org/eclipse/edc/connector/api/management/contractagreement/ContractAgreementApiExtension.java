@@ -25,6 +25,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
@@ -45,6 +46,9 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     @Inject
     private ContractAgreementService service;
 
+    @Inject
+    private JsonObjectValidatorRegistry validatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -56,6 +60,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromContractAgreementDtoTransformer(Json.createBuilderFactory(Map.of())));
         var monitor = context.getMonitor();
 
-        webService.registerResource(config.getContextAlias(), new ContractAgreementApiController(service, transformerRegistry, monitor));
+        var controller = new ContractAgreementApiController(service, transformerRegistry, monitor, validatorRegistry);
+        webService.registerResource(config.getContextAlias(), controller);
     }
 }
