@@ -16,7 +16,6 @@ package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.ContractId;
-import org.eclipse.edc.policy.model.Operator;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -91,7 +90,7 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         var now = Instant.now();
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        var contractPolicy = inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, now.minus(ofDays(5)));
+        var contractPolicy = inForcePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
         createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
         var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
@@ -113,7 +112,7 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         var now = Instant.now();
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        var contractPolicy = inForcePolicy(Operator.GEQ, now.minus(ofDays(10)), Operator.LEQ, "contractAgreement+1s");
+        var contractPolicy = inForcePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
         createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
         var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
@@ -283,7 +282,7 @@ public abstract class AbstractEndToEndTransfer {
                 .build();
     }
 
-    private JsonObject inForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
+    private JsonObject inForcePolicy(String operatorStart, Object startDate, String operatorEnd, Object endDate) {
         return createObjectBuilder()
                 .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
                 .add("permission", createArrayBuilder()
@@ -291,12 +290,12 @@ public abstract class AbstractEndToEndTransfer {
                 .build();
     }
 
-    private JsonObject permission(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {
+    private JsonObject permission(String operatorStart, Object startDate, String operatorEnd, Object endDate) {
         return createObjectBuilder()
-                .add("odrl:action", "USE")
-                .add("odrl:constraint", createObjectBuilder()
+                .add("action", "use")
+                .add("constraint", createObjectBuilder()
                         .add(TYPE, "LogicalConstraint")
-                        .add("odrl:and", createArrayBuilder()
+                        .add("and", createArrayBuilder()
                                 .add(atomicConstraint(CONTRACT_EXPIRY_EVALUATION_KEY, operatorStart, startDate))
                                 .add(atomicConstraint(CONTRACT_EXPIRY_EVALUATION_KEY, operatorEnd, endDate))
                                 .build())
@@ -304,12 +303,12 @@ public abstract class AbstractEndToEndTransfer {
                 .build();
     }
 
-    private JsonObject atomicConstraint(String leftOperand, Operator operator, Object rightOperand) {
+    private JsonObject atomicConstraint(String leftOperand, String operator, Object rightOperand) {
         return createObjectBuilder()
                 .add(TYPE, "Constraint")
-                .add("odrl:leftOperand", leftOperand)
-                .add("odrl:operator", operator.name())
-                .add("odrl:rightOperand", rightOperand.toString())
+                .add("leftOperand", leftOperand)
+                .add("operator", operator)
+                .add("rightOperand", rightOperand.toString())
                 .build();
     }
 }

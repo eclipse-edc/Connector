@@ -17,6 +17,7 @@ package org.eclipse.edc.jsonld.transformer.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -40,6 +41,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
@@ -59,7 +61,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToConstraintTransformerTest {
@@ -76,80 +77,24 @@ class JsonObjectToConstraintTransformerTest {
     }
 
     @Test
-    void atomicConstraint_attributesAsObjects_returnConstraint() {
-        var left = "left";
-        var operator = Operator.EQ;
-        var right = "right";
-
-        var constraint = jsonFactory.createObjectBuilder()
-                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, jsonFactory.createObjectBuilder()
-                        .add(VALUE, left))
-                .add(ODRL_OPERATOR_ATTRIBUTE, jsonFactory.createObjectBuilder()
-                        .add(VALUE, operator.name()))
-                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, jsonFactory.createObjectBuilder()
-                        .add(VALUE, right))
-                .build();
-
-        var result = transformer.transform(getExpanded(constraint), context);
-
-        assertThat(result).isNotNull().asInstanceOf(type(AtomicConstraint.class)).satisfies(atomicConstraint -> {
-            assertThat(((LiteralExpression) atomicConstraint.getLeftExpression()).getValue()).isEqualTo(left);
-            assertThat(atomicConstraint.getOperator()).isEqualTo(operator);
-            assertThat(((LiteralExpression) atomicConstraint.getRightExpression()).getValue()).isEqualTo(right);
-        });
-
-        verifyNoInteractions(context);
-    }
-
-    @Test
     void atomicConstraint_attributesAsArrays_returnConstraint() {
         var left = "left";
-        var operator = Operator.EQ;
         var right = "right";
-
+        when(context.transform(any(), eq(Operator.class))).thenReturn(Operator.GEQ);
         var constraint = jsonFactory.createObjectBuilder()
-                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder()
-                        .add(jsonFactory.createObjectBuilder()
-                                .add(VALUE, left)))
-                .add(ODRL_OPERATOR_ATTRIBUTE, jsonFactory.createArrayBuilder()
-                        .add(jsonFactory.createObjectBuilder()
-                                .add(VALUE, operator.name())))
-                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder()
-                        .add(jsonFactory.createObjectBuilder()
-                                .add(VALUE, right)))
+                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder().add(id(left)))
+                .add(ODRL_OPERATOR_ATTRIBUTE, jsonFactory.createArrayBuilder().add(id("gteq")))
+                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder().add(value(right)))
                 .build();
 
         var result = transformer.transform(getExpanded(constraint), context);
 
         assertThat(result).isNotNull().asInstanceOf(type(AtomicConstraint.class)).satisfies(atomicConstraint -> {
             assertThat(((LiteralExpression) atomicConstraint.getLeftExpression()).getValue()).isEqualTo(left);
-            assertThat(atomicConstraint.getOperator()).isEqualTo(operator);
+            assertThat(atomicConstraint.getOperator()).isEqualTo(Operator.GEQ);
             assertThat(((LiteralExpression) atomicConstraint.getRightExpression()).getValue()).isEqualTo(right);
         });
-        verifyNoInteractions(context);
-    }
-
-    @Test
-    void atomicConstraint_operatorAsString_returnConstraint() {
-        var left = "left";
-        var operator = Operator.EQ;
-        var right = "right";
-
-        var constraint = jsonFactory.createObjectBuilder()
-                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, jsonFactory.createObjectBuilder()
-                        .add(VALUE, left))
-                .add(ODRL_OPERATOR_ATTRIBUTE, operator.name())
-                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, jsonFactory.createObjectBuilder()
-                        .add(VALUE, right))
-                .build();
-
-        var result = transformer.transform(getExpanded(constraint), context);
-
-        assertThat(result).isNotNull().asInstanceOf(type(AtomicConstraint.class))
-                .extracting(AtomicConstraint::getOperator)
-                .isEqualTo(operator);
-
-        verifyNoInteractions(context);
+        verify(context).transform(id("gteq").build(), Operator.class);
     }
 
     @Test
@@ -221,7 +166,16 @@ class JsonObjectToConstraintTransformerTest {
         verify(context, never()).transform(any(JsonObject.class), eq(Constraint.class));
     }
 
+    private JsonObjectBuilder id(String value) {
+        return jsonFactory.createObjectBuilder().add(ID, value);
+    }
+
+    private JsonObjectBuilder value(String value) {
+        return jsonFactory.createObjectBuilder().add(VALUE, value);
+    }
+
     static class OperandsProvider implements ArgumentsProvider {
+
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
@@ -231,4 +185,6 @@ class JsonObjectToConstraintTransformerTest {
             );
         }
     }
+
+
 }

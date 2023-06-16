@@ -14,36 +14,81 @@
 
 package org.eclipse.edc.policy.model;
 
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+
 /**
  * The set of supported expression operators. Not all operators may be supported for particular expression types.
  */
 public enum Operator {
+
     /**
-     * Operator expressing equality of two operands
+     * Indicating that a given value equals the right operand of the Constraint.
      */
-    EQ,
+    EQ("eq"),
+
     /**
-     * Operator expressing inequality of two operands
+     * Indicating that a given value is not equal to the right operand of the Constraint.
      */
-    NEQ,
+    NEQ("neq"),
+
     /**
-     * Operator expressing left operand is greater than right operand
+     * Indicating that a given value is greater than the right operand of the Constraint.
      */
-    GT,
+    GT("gt"),
+
     /**
-     * Operator expressing left operand is greater or equal than to the right operand
+     * Indicating that a given value is greater than or equal to the right operand of the Constraint.
      */
-    GEQ,
+    GEQ("gteq"),
+
     /**
-     * Operator expressing left operand is lesser than to the right operand
+     * Indicating that a given value is less than the right operand of the Constraint.
      */
-    LT,
+    LT("lt"),
+
     /**
-     * Operator expressing left operand is lesser or equal than to the right operand
+     * Indicating that a given value is less than or equal to the right operand of the Constraint.
      */
-    LEQ,
+    LEQ("lteq"),
+
     /**
-     * Operator expressing left operand is contained in the right operand
+     * A set-based operator indicating that a given value is contained by the right operand of the Constraint.
      */
-    IN
+    IN("isPartOf"),
+
+    /**
+     * A set-based operator indicating that a given value contains the right operand of the Constraint.
+     */
+    HAS_PART("hasPart"),
+
+    /**
+     * A set-based operator indicating that a given value is contained by the right operand of the Constraint.
+     */
+    IS_A("isA"),
+
+    /**
+     * A set-based operator indicating that a given value is all of the right operand of the Constraint.
+     */
+    IS_ALL_OF("isAllOf"),
+
+    /**
+     * A set-based operator indicating that a given value is any of the right operand of the Constraint.
+     */
+    IS_ANY_OF("isAnyOf"),
+
+    /**
+     * A set-based operator indicating that a given value is none of the right operand of the Constraint.
+     */
+    IS_NONE_OF("isNoneOf");
+
+    private final String odrlRepresentation;
+
+    Operator(String odrlRepresentation) {
+        this.odrlRepresentation = ODRL_SCHEMA + odrlRepresentation;
+    }
+
+    public String getOdrlRepresentation() {
+        return odrlRepresentation;
+    }
+
 }

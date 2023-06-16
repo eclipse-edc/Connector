@@ -12,19 +12,12 @@
  *
  */
 
-package org.eclipse.edc.jsonld.spi;
+package org.eclipse.edc.policy.model;
 
-/**
- * Well-known schema namespace definitions.
- */
-public interface Namespaces {
+public interface OdrlNamespace {
 
-    String DCAT_PREFIX = "dcat";
-    String DCAT_SCHEMA = "https://www.w3.org/ns/dcat/";
+    // ref: https://www.w3.org/ns/odrl.jsonld
+    String ODRL_PREFIX = "odrl";
+    String ODRL_SCHEMA = "http://www.w3.org/ns/odrl/2/";
 
-    String DCT_PREFIX = "dct";
-    String DCT_SCHEMA = "https://purl.org/dc/terms/";
-
-    String DSPACE_PREFIX = "dspace";
-    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/"; // TODO to be defined
 }
