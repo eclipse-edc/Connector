@@ -73,8 +73,7 @@ public class PolicyEngineImpl implements PolicyEngine {
     public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation) {
         var context = new PolicyContextImpl(agent, contextInformation);
 
-        final var delimitedScope = scope + ".";
-
+        var delimitedScope = scope + ".";
 
         var scopedPreValidators = preValidators.entrySet().stream().filter(entry -> scopeFilter(entry.getKey(), delimitedScope)).flatMap(l -> l.getValue().stream()).toList();
         for (var validator : scopedPreValidators) {
