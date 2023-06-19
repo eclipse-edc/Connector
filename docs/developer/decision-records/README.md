@@ -63,3 +63,4 @@
 - [2023-05-25-template-repository](2023-05-25-template-repository)
 - [2023-06-02-separating_plugins_and_metamodel](2023-06-02-separating_plugins_and_metamodel)
 - [2023-06-05-validation-engine](2023-06-05-validation-engine)
+- [2023-06-19-change-of-github-labels](2023-06-19-new-issue-triage-process/)
