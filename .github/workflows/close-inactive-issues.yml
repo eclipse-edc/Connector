@@ -5,6 +5,27 @@ on:
   workflow_dispatch: # allow manual trigger
 
 jobs:
+  close-issues-in-triage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/stale@v8
+        with:
+          operations-per-run: 1000
+          days-before-issue-stale: 28
+          days-before-issue-close: 14
+          stale-issue-label: "stale"
+          stale-issue-message: "This issue is stale because it has been open for 28 days with no activity."
+          close-issue-message: "This issue was closed because it has been inactive for 14 days since being marked as stale."
+          close-issue-reason: 'not_planned'
+          days-before-pr-stale: -1 # ignore PRs (overwrite default days-before-stale)
+          days-before-pr-close: -1 # ignore PRs (overwrite default days-before-close)
+          remove-issue-stale-when-updated: true
+          exempt-all-issue-milestones: false # issues with assigned milestones will be ignored
+          only-label: 'triage'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
   close-issues-with-assignee:
     runs-on: ubuntu-latest
     permissions:
