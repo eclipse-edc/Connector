@@ -43,7 +43,10 @@ public interface PolicyContext {
 
     /**
      * Returns the participant agent to evaluate the policy against.
+     *
+     * @deprecated please use {@link #getContextData(Class)}.
      */
+    @Deprecated(since = "0.1.1")
     ParticipantAgent getParticipantAgent();
 
     /**

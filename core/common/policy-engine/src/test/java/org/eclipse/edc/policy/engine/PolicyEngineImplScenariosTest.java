@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.policy.engine;
 
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -30,6 +31,7 @@ import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.engine.spi.PolicyEngine.ALL_SCOPES;
 import static org.eclipse.edc.policy.model.Operator.IN;
 
@@ -42,8 +44,13 @@ public class PolicyEngineImplScenariosTest {
     private static final String CONNECTOR_CONSTRAINT = "connector";
     private static final Action USE_ACTION = Action.Builder.newInstance().type("USE").build();
 
+    private final RuleBindingRegistry bindingRegistry = new RuleBindingRegistryImpl();
     private PolicyEngineImpl policyEngine;
-    private RuleBindingRegistry bindingRegistry;
+
+    @BeforeEach
+    void setUp() {
+        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry));
+    }
 
     /**
      * Demonstrates how to evaluate a simple policy.
@@ -51,14 +58,13 @@ public class PolicyEngineImplScenariosTest {
     @Test
     void verifyUnrestrictedUse() {
         bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
-
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).build();
-
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
+        assertThat(result).isSucceeded();
     }
 
     /**
@@ -67,15 +73,14 @@ public class PolicyEngineImplScenariosTest {
     @Test
     void verifyNoUse() {
         bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
-
+        policyEngine.registerFunction(ALL_SCOPES, Prohibition.class, (rule, ctx) -> rule.getAction().getType().equals(USE_ACTION.getType()));
         var prohibition = Prohibition.Builder.newInstance().action(USE_ACTION).build();
-
         var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
-        policyEngine.registerFunction(ALL_SCOPES, Prohibition.class, (rule, context) -> rule.getAction().getType().equals(USE_ACTION.getType()));
-        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isFalse();
+        assertThat(result.succeeded()).isFalse();
     }
 
     /**
@@ -88,23 +93,27 @@ public class PolicyEngineImplScenariosTest {
 
         // function that verifies the EU region
         policyEngine.registerFunction(ALL_SCOPES, Permission.class, ABS_SPATIAL_CONSTRAINT, (operator, value, permission, context) -> {
-            var claims = context.getParticipantAgent().getClaims();
+            var claims = context.getContextData(ParticipantAgent.class).getClaims();
             return claims.containsKey("region") && claims.get("region").equals(value);
         });
 
         var left = new LiteralExpression(ABS_SPATIAL_CONSTRAINT);
         var right = new LiteralExpression("eu");
         var spatialConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IN).rightExpression(right).build();
-
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(spatialConstraint).build();
-
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
-        var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
-        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, euAgent).succeeded()).isTrue();
+        var euContext = PolicyContextImpl.Builder.newInstance()
+                .additional(ParticipantAgent.class, new ParticipantAgent(Map.of("region", "eu"), emptyMap()))
+                .build();
+        var euResult = policyEngine.evaluate(TEST_SCOPE, policy, euContext);
+        assertThat(euResult).isSucceeded();
 
-        var noRegionAgent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, noRegionAgent).succeeded()).isFalse();
+        var noRegionContext = PolicyContextImpl.Builder.newInstance()
+                .additional(ParticipantAgent.class, new ParticipantAgent(emptyMap(), emptyMap()))
+                .build();
+        var noRegionResult = policyEngine.evaluate(TEST_SCOPE, policy, noRegionContext);
+        assertThat(noRegionResult).isFailed();
     }
 
     /**
@@ -125,17 +134,12 @@ public class PolicyEngineImplScenariosTest {
         var right = new LiteralExpression(List.of("connector1"));
         var connectorConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IN).rightExpression(right).build();
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(connectorConstraint).build();
-
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
-    }
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
-    @BeforeEach
-    void setUp() {
-        bindingRegistry = new RuleBindingRegistryImpl();
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry));
+        assertThat(result.succeeded()).isTrue();
     }
 
 }

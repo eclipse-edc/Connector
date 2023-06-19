@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Permission;
@@ -57,15 +58,17 @@ import static org.eclipse.edc.connector.contract.spi.validation.ContractValidati
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ContractValidationServiceImplTest {
@@ -110,7 +113,7 @@ class ContractValidationServiceImplTest {
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
         when(assetIndex.findById("1")).thenReturn(asset);
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(policyEquality.test(any(), any())).thenReturn(true);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
@@ -128,7 +131,11 @@ class ContractValidationServiceImplTest {
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionResolver).definitionFor(isA(ParticipantAgent.class), eq("1"));
         verify(assetIndex).findById("1");
-        verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
+        verify(policyEngine).evaluate(
+                eq(NEGOTIATION_SCOPE),
+                eq(newPolicy),
+                and(isA(PolicyContext.class), argThat(c -> c.getContextData(ParticipantAgent.class).equals(participantAgent)))
+        );
     }
 
     @Test
@@ -161,7 +168,6 @@ class ContractValidationServiceImplTest {
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
         when(assetIndex.findById("1")).thenReturn(asset);
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
         when(policyEquality.test(any(), any())).thenReturn(true);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
@@ -170,6 +176,7 @@ class ContractValidationServiceImplTest {
         var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result).isFailed().detail().isEqualTo("Invalid consumer identity");
+        verifyNoInteractions(policyEngine);
     }
 
     @Test
@@ -189,6 +196,7 @@ class ContractValidationServiceImplTest {
         var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result).isFailed().detail().isEqualTo("Invalid consumer identity");
+        verifyNoInteractions(policyEngine);
     }
 
     @Test
@@ -212,21 +220,20 @@ class ContractValidationServiceImplTest {
         var result = validationService.validateInitialOffer(claimToken, offer);
 
         assertThat(result.failed()).isTrue();
+        verifyNoInteractions(policyEngine);
     }
 
     @Test
     void verifyContractAgreementValidation() {
         var newPolicy = Policy.Builder.newInstance().build();
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<Class<?>, Object>> captor = ArgumentCaptor.forClass(Map.class);
+        var captor = ArgumentCaptor.forClass(PolicyContext.class);
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
 
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
-        when(policyEngine.evaluate(eq(TRANSFER_SCOPE), eq(newPolicy), isA(ParticipantAgent.class), any())).thenReturn(Result.success(newPolicy));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
@@ -241,11 +248,10 @@ class ContractValidationServiceImplTest {
         assertThat(isValid.succeeded()).isTrue();
 
         verify(agentService).createFor(isA(ClaimToken.class));
-        verify(policyEngine).evaluate(eq(TRANSFER_SCOPE), eq(newPolicy), isA(ParticipantAgent.class), captor.capture());
+        verify(policyEngine).evaluate(eq(TRANSFER_SCOPE), eq(newPolicy), captor.capture());
 
         var context = captor.getValue();
-        assertThat(context.get(ContractAgreement.class)).isNotNull().isInstanceOf(ContractAgreement.class);
-
+        assertThat(context.getContextData(ContractAgreement.class)).isNotNull().isInstanceOf(ContractAgreement.class);
     }
 
     @ParameterizedTest
@@ -444,9 +450,7 @@ class ContractValidationServiceImplTest {
         var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(participantAgent);
         when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(createContractDefinition());
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
-
-        when((policyEngine.evaluate(eq(TRANSFER_SCOPE), any(Policy.class), any(ParticipantAgent.class), anyMap()))).thenReturn(Result.failure("test-failure"));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("test-failure"));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
@@ -461,7 +465,7 @@ class ContractValidationServiceImplTest {
     private Result<ContractAgreement> validateAgreementDate(long signingDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionResolver.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(createContractDefinition());
-        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(PolicyContext.class))).thenReturn(Result.success());
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()

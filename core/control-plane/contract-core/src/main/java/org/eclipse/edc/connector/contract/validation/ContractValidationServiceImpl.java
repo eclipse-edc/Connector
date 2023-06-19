@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
@@ -39,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.ContractId.createContractId;
@@ -130,12 +130,12 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Invalid provider credentials");
         }
 
-        // Create additional context information for policy engine to make agreement available in context
-        var contextInformation = new HashMap<Class<?>, Object>();
-        contextInformation.put(ContractAgreement.class, agreement);
-        contextInformation.put(Instant.class, Instant.now());
-
-        var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), agent, contextInformation);
+        var policyContext = PolicyContextImpl.Builder.newInstance()
+                .additional(ParticipantAgent.class, agent)
+                .additional(ContractAgreement.class, agreement)
+                .additional(Instant.class, Instant.now())
+                .build();
+        var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), policyContext);
         if (!policyResult.succeeded()) {
             return failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));
         }
@@ -209,8 +209,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var policy = policyDefinition.getPolicy().withTarget(contractId.assetIdPart());
-
-        var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent);
+        var policyContext = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
+        var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, policy, policyContext);
         if (policyResult.failed()) {
             return failure(format("Policy %s not fulfilled", policyDefinition.getUid()));
         }

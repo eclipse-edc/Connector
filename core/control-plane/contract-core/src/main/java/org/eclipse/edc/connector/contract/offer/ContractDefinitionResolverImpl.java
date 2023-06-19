@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -72,10 +73,11 @@ public class ContractDefinitionResolverImpl implements ContractDefinitionResolve
      * Determines the applicability of a definition to an agent by evaluating its access policy.
      */
     private boolean evaluateAccessPolicy(ContractDefinition definition, ParticipantAgent agent) {
+        var policyContext = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
         var accessResult = Optional.of(definition.getAccessPolicyId())
                 .map(policyStore::findById)
                 .map(PolicyDefinition::getPolicy)
-                .map(policy -> policyEngine.evaluate(CATALOGING_SCOPE, policy, agent))
+                .map(policy -> policyEngine.evaluate(CATALOGING_SCOPE, policy, policyContext))
                 .orElse(Result.failure(format("Policy %s not found", definition.getAccessPolicyId())));
 
         if (accessResult.failed()) {

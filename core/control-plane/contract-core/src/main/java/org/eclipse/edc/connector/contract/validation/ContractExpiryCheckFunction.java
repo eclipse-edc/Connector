@@ -127,40 +127,27 @@ public class ContractExpiryCheckFunction implements AtomicConstraintFunction<Per
      * @throws EdcException if the string was not recognized
      */
     private TemporalUnit asChrono(String unit) {
-        switch (unit) {
-            case "s":
-                return ChronoUnit.SECONDS;
-            case "m":
-                return ChronoUnit.MINUTES;
-            case "h":
-                return ChronoUnit.HOURS;
-            case "d":
-                return ChronoUnit.DAYS;
-            default:
-                throw new EdcException(format("Cannot parse '%s' into a ChronoUnit", unit));
-        }
+        return switch (unit) {
+            case "s" -> ChronoUnit.SECONDS;
+            case "m" -> ChronoUnit.MINUTES;
+            case "h" -> ChronoUnit.HOURS;
+            case "d" -> ChronoUnit.DAYS;
+            default -> throw new EdcException(format("Cannot parse '%s' into a ChronoUnit", unit));
+        };
     }
 
     private boolean checkFixedPeriod(Instant now, Operator operator, Instant bound) {
         var comparison = now.compareTo(bound);
 
-        switch (operator) {
-            case EQ:
-                return comparison == 0;
-            case NEQ:
-                return comparison != 0;
-            case GT:
-                return comparison > 0;
-            case GEQ:
-                return comparison >= 0;
-            case LT:
-                return comparison < 0;
-            case LEQ:
-                return comparison <= 0;
-            case IN:
-            default:
-                throw new IllegalStateException("Unexpected value: " + operator);
-        }
+        return switch (operator) {
+            case EQ -> comparison == 0;
+            case NEQ -> comparison != 0;
+            case GT -> comparison > 0;
+            case GEQ -> comparison >= 0;
+            case LT -> comparison < 0;
+            case LEQ -> comparison <= 0;
+            default -> throw new IllegalStateException("Unexpected value: " + operator);
+        };
     }
 
     private Instant asInstant(String isoString) {

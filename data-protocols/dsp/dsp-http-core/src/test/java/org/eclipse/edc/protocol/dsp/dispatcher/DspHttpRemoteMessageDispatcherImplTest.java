@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.dispatcher;
 
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -40,10 +41,11 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -182,7 +184,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var result = dispatcher.send(String.class, new TestMessage());
 
         assertThat(result).succeedsWithin(timeout);
-        verify(policyEngine).evaluate(any(), eq(policy), isNull(), argThat(map -> map.containsKey(TokenParameters.Builder.class)));
+        verify(policyEngine).evaluate(eq("test.message"), eq(policy), and(isA(PolicyContext.class), argThat(c -> c.getContextData(TokenParameters.Builder.class) != null)));
     }
 
     static class TestMessage implements RemoteMessage {
