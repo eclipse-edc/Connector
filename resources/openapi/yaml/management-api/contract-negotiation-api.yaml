@@ -415,14 +415,6 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-        validity:
-          type: integer
-          format: int64
-          example: null
-      required:
-      - assetId
-      - offerId
-      - policy
     CriterionDto:
       type: object
       example: null
@@ -573,11 +565,6 @@ components:
         providerId:
           type: string
           example: null
-      required:
-      - connectorAddress
-      - connectorId
-      - offer
-      - protocol
     NegotiationState:
       type: object
       example: null
