@@ -61,7 +61,6 @@ public class TitaniumJsonLd implements JsonLd {
     @Override
     public Result<JsonObject> expand(JsonObject json) {
         try {
-
             var document = JsonDocument.of(injectVocab(json));
             var expanded = com.apicatalog.jsonld.JsonLd.expand(document)
                     .options(new JsonLdOptions(documentLoader))
@@ -69,7 +68,7 @@ public class TitaniumJsonLd implements JsonLd {
             if (expanded.size() > 0) {
                 return Result.success(expanded.getJsonObject(0));
             }
-            return Result.success(createObjectBuilder().build());
+            return Result.failure("Error expanding JSON-LD structure: result was empty, it could be caused by missing '@context'");
         } catch (JsonLdError error) {
             monitor.warning("Error expanding JSON-LD structure", error);
             return Result.failure(error.getMessage());

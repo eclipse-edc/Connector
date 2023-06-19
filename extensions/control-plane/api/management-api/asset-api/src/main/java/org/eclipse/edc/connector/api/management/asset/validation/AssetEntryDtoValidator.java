@@ -34,7 +34,7 @@ import static org.eclipse.edc.validator.spi.Violation.violation;
  */
 public class AssetEntryDtoValidator {
 
-    public static Validator<JsonObject> instance() {
+    public static Validator<JsonObject> assetEntryValidator() {
         return JsonObjectValidator.newValidator()
                 .verify(EDC_ASSET_ENTRY_DTO_ASSET, MandatoryObject::new)
                 .verifyObject(EDC_ASSET_ENTRY_DTO_ASSET, v -> v
@@ -46,6 +46,14 @@ public class AssetEntryDtoValidator {
                 .verifyObject(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, v -> v
                         .verify(EDC_DATA_ADDRESS_TYPE_PROPERTY, MandatoryValue::new)
                 )
+                .build();
+    }
+
+    public static Validator<JsonObject> assetValidator() {
+        return JsonObjectValidator.newValidator()
+                .verifyId(OptionalIdNotBlank::new)
+                .verify(EDC_ASSET_PROPERTIES, MandatoryObject::new)
+                .verify(path -> new AssetPropertiesUniqueness())
                 .build();
     }
 

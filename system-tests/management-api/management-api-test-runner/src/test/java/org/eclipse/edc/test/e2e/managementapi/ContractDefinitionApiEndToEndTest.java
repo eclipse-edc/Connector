@@ -56,7 +56,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
 
         var body = baseRequest()
                 .contentType(JSON)
-                .body("{}")
                 .post("/request")
                 .then()
                 .statusCode(200)

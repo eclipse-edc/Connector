@@ -33,7 +33,7 @@ import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
 
 class AssetEntryDtoValidatorTest {
 
-    private final Validator<JsonObject> validator = AssetEntryDtoValidator.instance();
+    private final Validator<JsonObject> validator = AssetEntryDtoValidator.assetEntryValidator();
 
     @Test
     void shouldSucceed_whenValidInput() {
