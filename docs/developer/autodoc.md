@@ -22,12 +22,12 @@ this (kotlin DSL):
 implementation("org.eclipse.edc:<ARTIFACT>:<VERSION>:manifest@json")
 ```
 
-For example, for the `:core:control-plane:control-plane-core` module in version `0.1.1-SNAPSHOT`, this would be:
+For example, for the `:core:control-plane:control-plane-core` module in version `0.1.2-SNAPSHOT`, this would be:
 
 ```kotlin
-implementation("org.eclipse.edc:control-plane-core:0.1.1-SNAPSHOT:manifest@json")
+implementation("org.eclipse.edc:control-plane-core:0.1.2-SNAPSHOT:manifest@json")
 ```
 
 When the dependency gets resolved, the manifest file will get downloaded to the local gradle cache, typically located
 at `.gradle/caches/modules-2/files-2.1`. So in the example the manifest would get downloaded
-at `~/.gradle/caches/modules-2/files-2.1/org.eclipse.edc/control-plane-core/0.1.1-SNAPSHOT/<HASH>/control-plane-core-0.1.1-SNAPSHOT-manifest.json`
+at `~/.gradle/caches/modules-2/files-2.1/org.eclipse.edc/control-plane-core/0.1.2-SNAPSHOT/<HASH>/control-plane-core-0.1.2-SNAPSHOT-manifest.json`
