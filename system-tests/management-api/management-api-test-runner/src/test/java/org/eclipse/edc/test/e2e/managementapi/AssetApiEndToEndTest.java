@@ -305,6 +305,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .body(assetJson)
                 .put()
                 .then()
+                .log().all()
                 .statusCode(204)
                 .body(notNullValue());
 

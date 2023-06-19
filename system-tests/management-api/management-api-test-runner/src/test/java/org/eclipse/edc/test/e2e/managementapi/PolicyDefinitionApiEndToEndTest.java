@@ -94,7 +94,6 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .extract().jsonPath().getString(ID);
 
         var createdAt = baseRequest()
-                .body(createObjectBuilder().build())
                 .contentType(JSON)
                 .post("/request")
                 .then()

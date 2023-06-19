@@ -63,8 +63,7 @@ class TitaniumJsonLdTest {
 
         var expanded = defaultService().expand(jsonObject);
 
-        assertThat(expanded.succeeded()).isTrue();
-        assertThat(expanded.getContent().toString())
+        assertThat(expanded).isSucceeded().extracting(Object::toString).asString()
                 .contains("test:item")
                 .contains("test:key1")
                 .contains("@value\":\"value1\"")
@@ -73,11 +72,12 @@ class TitaniumJsonLdTest {
     }
 
     @Test
-    void expand_withEmptyArray() {
-        var expanded = defaultService().expand(createObjectBuilder().build());
+    void expand_shouldFail_whenPropertiesWithoutNamespaceAndContextIsMissing() {
+        var emptyJson = createObjectBuilder().add("key", "value").build();
 
-        assertThat(expanded.succeeded()).isTrue();
-        assertThat(expanded.getContent()).isEmpty();
+        var expanded = defaultService().expand(emptyJson);
+
+        assertThat(expanded).isFailed();
     }
 
     @Test
@@ -93,8 +93,7 @@ class TitaniumJsonLdTest {
 
         var expanded = defaultService().expand(jsonObject);
 
-        assertThat(expanded.succeeded()).isTrue();
-        assertThat(expanded.getContent().toString())
+        assertThat(expanded).isSucceeded().extracting(Object::toString).asString()
                 .contains("test:item")
                 .contains("test:key1")
                 .contains("@value\":\"value1\"")
@@ -114,10 +113,11 @@ class TitaniumJsonLdTest {
 
         var compacted = defaultService().compact(expanded);
 
-        assertThat(compacted.succeeded()).isTrue();
-        assertThat(compacted.getContent().getJsonObject(ns + "item")).isNotNull();
-        assertThat(compacted.getContent().getJsonObject(ns + "item").getJsonString(ns + "key1").getString()).isEqualTo("value1");
-        assertThat(compacted.getContent().getJsonObject(ns + "item").getJsonString(ns + "key2").getString()).isEqualTo("value2");
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            assertThat(c.getJsonObject(ns + "item")).isNotNull();
+            assertThat(c.getJsonObject(ns + "item").getJsonString(ns + "key1").getString()).isEqualTo("value1");
+            assertThat(c.getJsonObject(ns + "item").getJsonString(ns + "key2").getString()).isEqualTo("value2");
+        });
     }
 
     @Test
@@ -135,10 +135,11 @@ class TitaniumJsonLdTest {
         service.registerNamespace(prefix, ns);
         var compacted = service.compact(expanded);
 
-        assertThat(compacted.succeeded()).isTrue();
-        assertThat(compacted.getContent().getJsonObject(prefix + ":item")).isNotNull();
-        assertThat(compacted.getContent().getJsonObject(prefix + ":item").getJsonString(prefix + ":key1").getString()).isEqualTo("value1");
-        assertThat(compacted.getContent().getJsonObject(prefix + ":item").getJsonString(prefix + ":key2").getString()).isEqualTo("value2");
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            assertThat(c.getJsonObject(prefix + ":item")).isNotNull();
+            assertThat(c.getJsonObject(prefix + ":item").getJsonString(prefix + ":key1").getString()).isEqualTo("value1");
+            assertThat(c.getJsonObject(prefix + ":item").getJsonString(prefix + ":key2").getString()).isEqualTo("value2");
+        });
     }
 
     @Test

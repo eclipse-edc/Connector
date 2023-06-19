@@ -37,6 +37,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
@@ -54,11 +55,9 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
     void getAll() {
         getStore().updateOrCreate(createTransferProcess("tp1"));
         getStore().updateOrCreate(createTransferProcess("tp2"));
-        var requestBody = createObjectBuilder().build();
 
         baseRequest()
                 .contentType(JSON)
-                .body(requestBody)
                 .post("/request")
                 .then()
                 .statusCode(200)
@@ -138,10 +137,14 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
     void terminate() {
         var id = UUID.randomUUID().toString();
         getStore().updateOrCreate(createTransferProcess(id));
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add("reason", "any")
+                .build();
 
         baseRequest()
                 .contentType(JSON)
-                .body(createObjectBuilder().build())
+                .body(requestBody)
                 .post("/" + id + "/terminate")
                 .then()
                 .statusCode(204);
