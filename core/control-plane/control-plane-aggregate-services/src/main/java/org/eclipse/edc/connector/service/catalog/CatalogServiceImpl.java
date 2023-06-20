@@ -19,6 +19,7 @@ import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -31,7 +32,7 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public CompletableFuture<byte[]> request(String providerUrl, String protocol, QuerySpec querySpec) {
+    public CompletableFuture<StatusResult<byte[]>> request(String providerUrl, String protocol, QuerySpec querySpec) {
         var request = CatalogRequestMessage.Builder.newInstance()
                 .protocol(protocol)
                 .connectorId(providerUrl)
@@ -39,6 +40,6 @@ public class CatalogServiceImpl implements CatalogService {
                 .querySpec(querySpec)
                 .build();
 
-        return dispatcher.send(byte[].class, request);
+        return dispatcher.dispatch(byte[].class, request);
     }
 }

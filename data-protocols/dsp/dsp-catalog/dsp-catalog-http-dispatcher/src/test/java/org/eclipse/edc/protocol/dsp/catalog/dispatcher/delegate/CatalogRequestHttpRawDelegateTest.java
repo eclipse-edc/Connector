@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
-import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -58,11 +57,10 @@ class CatalogRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
 
     @Test
     void parseResponse_returnCatalog() throws IOException {
-        var response = mock(Response.class);
         var responseBody = mock(ResponseBody.class);
+        var response = dummyResponseBuilder(200).body(responseBody).build();
         var bytes = "test".getBytes();
 
-        when(response.body()).thenReturn(responseBody);
         when(responseBody.bytes()).thenReturn(bytes);
         when(responseBody.byteStream()).thenReturn(new ByteArrayInputStream(bytes));
 

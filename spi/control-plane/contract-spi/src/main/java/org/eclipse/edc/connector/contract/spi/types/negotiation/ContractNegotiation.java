@@ -313,7 +313,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state TERMINATED.
      */
     public void transitionTerminated() {
-        transition(TERMINATED, TERMINATED, TERMINATING, VERIFIED, OFFERED, AGREEING, AGREED, REQUESTED);
+        transition(TERMINATED, state -> canBeTerminated());
     }
 
     /**

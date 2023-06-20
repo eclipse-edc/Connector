@@ -410,11 +410,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCounterPartyAddress());
-        return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToRequested(t))
                 .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onDelay(this::breakLease)
                 .execute(description);
     }
@@ -461,10 +462,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
 
-        entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToStarted(t))
                 .onFailure((t, throwable) -> transitionToStarting(t))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onDelay(this::breakLease)
                 .execute(description);
@@ -530,10 +532,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onDelay(this::breakLease)
                 .execute(description);
@@ -562,10 +565,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .build();
 
         var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
-        return entityRetryProcessFactory.doAsyncProcess(process, () -> dispatcherRegistry.send(Object.class, message))
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted(this::transitionToTerminated)
                 .onDelay(this::breakLease)
                 .execute(description);
@@ -602,8 +606,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .map(response -> {
                     var provisionedResource = response.getResource();
 
-                    if (provisionedResource instanceof ProvisionedDataAddressResource) {
-                        var dataAddressResource = (ProvisionedDataAddressResource) provisionedResource;
+                    if (provisionedResource instanceof ProvisionedDataAddressResource dataAddressResource) {
                         var dataAddress = dataAddressResource.getDataAddress();
                         var secretToken = response.getSecretToken();
                         if (secretToken != null) {
@@ -762,7 +765,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void transitionToTerminated(TransferProcess process, Throwable throwable) {
-        process.setErrorDetail(throwable.getMessage());
+        transitionToTerminated(process, throwable.getMessage());
+    }
+
+    private void transitionToTerminated(TransferProcess process, String string) {
+        process.setErrorDetail(string);
         transitionToTerminated(process);
     }
 

@@ -36,8 +36,8 @@ import java.util.function.Function;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
-import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBe;
-import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBeSuccessful;
+import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
+import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusNot2xxOr4xx;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.matchers.Times.once;
 import static org.mockserver.matchers.Times.unlimited;
@@ -110,7 +110,7 @@ class EdcHttpClientImplTest {
     }
 
     @Test
-    void execute_fallback_shouldRetryIfStatusIsNotSuccessful() {
+    void execute_fallback_shouldRetryIfStatusIsNot2xxOr4xx() {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
@@ -119,7 +119,7 @@ class EdcHttpClientImplTest {
 
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
 
-        var result = client.execute(request, List.of(statusMustBeSuccessful()), handleResponse());
+        var result = client.execute(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
 
         assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
                 .first().asString().matches(it -> it.startsWith("Server response to"));
@@ -135,7 +135,7 @@ class EdcHttpClientImplTest {
                 .build();
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
 
-        var result = client.execute(request, List.of(statusMustBe(204)), handleResponse());
+        var result = client.execute(request, List.of(retryWhenStatusIsNot(204)), handleResponse());
 
         assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
                 .first().asString().matches(it -> it.startsWith("Server response to"));
@@ -167,10 +167,42 @@ class EdcHttpClientImplTest {
 
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
 
-        var result = client.executeAsync(request, List.of(statusMustBeSuccessful()), handleResponse());
+        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
         server.verify(request(), exactly(2));
+    }
+
+    @Test
+    void executeAsync_fallback_shouldRetryIfStatusIs4xx() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+        var request = new Request.Builder()
+                .url("http://localhost:" + port)
+                .build();
+
+        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
+
+        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+
+        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
+        server.verify(request(), exactly(2));
+    }
+
+    @Test
+    void executeAsync_fallback_shouldNotRetryIfStatusIsExpected() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+        var request = new Request.Builder()
+                .url("http://localhost:" + port)
+                .build();
+
+        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(404));
+
+        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+
+        assertThat(result).succeedsWithin(5, TimeUnit.SECONDS);
+        server.verify(request(), exactly(1));
     }
 
     @Test
@@ -182,7 +214,7 @@ class EdcHttpClientImplTest {
                 .build();
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
 
-        var result = client.executeAsync(request, List.of(statusMustBe(204)), handleResponse());
+        var result = client.executeAsync(request, List.of(retryWhenStatusIsNot(204)), handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
         server.verify(request(), exactly(2));
@@ -211,7 +243,11 @@ class EdcHttpClientImplTest {
     private Function<Response, Result<String>> handleResponse() {
         return r -> {
             try {
-                return Result.success(typeManager.readValue(r.body().string(), Map.class).get("message").toString());
+                if (r.isSuccessful()) {
+                    return Result.success(typeManager.readValue(r.body().string(), Map.class).get("message").toString());
+                } else {
+                    return Result.success(r.message());
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

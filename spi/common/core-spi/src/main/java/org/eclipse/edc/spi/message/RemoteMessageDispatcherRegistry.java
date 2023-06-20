@@ -15,6 +15,7 @@
 package org.eclipse.edc.spi.message;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.concurrent.CompletableFuture;
@@ -38,7 +39,20 @@ public interface RemoteMessageDispatcherRegistry {
      * @param responseType the expected response type
      * @param message      the message
      * @return a future that can be used to retrieve the response when the operation has completed
+     * @deprecated please use {@link #dispatch(Class, RemoteMessage)}
      */
-    <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message);
+    @Deprecated(since = "0.1.1")
+    default <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message) {
+        return dispatch(responseType, message).thenApply(StatusResult::getContent);
+    }
+
+    /**
+     * Sends the message.
+     *
+     * @param responseType the expected response type
+     * @param message      the message
+     * @return a future that can be used to retrieve the response when the operation has completed, it contains a {@link StatusResult}
+     */
+    <T> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, RemoteMessage message);
 
 }

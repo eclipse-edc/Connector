@@ -25,13 +25,14 @@ import java.util.function.Consumer;
  * This works only used on a state machine, where states are persisted.
  * The process is a unit of logic that can be executed on the entity.
  */
-public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryProcess<E, T>> {
+public abstract class RetryProcess<E extends StatefulEntity<E>, SELF extends RetryProcess<E, SELF>> {
 
     private final E entity;
-    private final EntityRetryProcessConfiguration configuration;
-    private final Monitor monitor;
-    private final Clock clock;
+    protected final EntityRetryProcessConfiguration configuration;
+    protected final Monitor monitor;
+    protected final Clock clock;
     protected Consumer<E> onDelay;
+    protected String description;
 
     protected RetryProcess(E entity, EntityRetryProcessConfiguration configuration, Monitor monitor, Clock clock) {
         this.entity = entity;
@@ -53,6 +54,7 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryP
      * @return false if process should not be run yet, the result of the process otherwise.
      */
     public boolean execute(String description) {
+        this.description = description;
         if (isRetry(entity)) {
             var delay = delayMillis(entity);
             if (delay > 0) {
@@ -72,9 +74,9 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryP
     /**
      * Handler that is called if the entity is not yet ready for processing
      */
-    public T onDelay(Consumer<E> onDelay) {
+    public SELF onDelay(Consumer<E> onDelay) {
         this.onDelay = onDelay;
-        return (T) this;
+        return (SELF) this;
     }
 
     /**
@@ -96,7 +98,7 @@ public abstract class RetryProcess<E extends StatefulEntity<E>, T extends RetryP
         delayStrategy.failures(entity.getStateCount() - 1);
 
         // Get the delay time following the number of failures.
-        long waitMillis = delayStrategy.retryInMillis();
+        var waitMillis = delayStrategy.retryInMillis();
 
         return entity.getStateTimestamp() + waitMillis - clock.millis();
     }

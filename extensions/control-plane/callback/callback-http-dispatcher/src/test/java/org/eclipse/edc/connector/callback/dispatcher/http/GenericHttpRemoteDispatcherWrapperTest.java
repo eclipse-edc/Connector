@@ -60,19 +60,16 @@ public class GenericHttpRemoteDispatcherWrapperTest {
     private static ClientAndServer receiverEndpointServer;
     private final TypeManager typeManager = new TypeManager();
     private EdcHttpClient httpClient;
-
-    private Vault vault;
+    private final Vault vault = mock();
 
     @BeforeEach
     void setup() {
         receiverEndpointServer = startClientAndServer(CALLBACK_PORT);
         httpClient = spy(testHttpClient());
-        vault = mock(Vault.class);
     }
 
     @AfterEach
     void tearDown() {
-
         stopQuietly(receiverEndpointServer);
     }
 
@@ -96,7 +93,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
         receiverEndpointServer.when(request).respond(successfulResponse());
 
 
-        dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
+        dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
 
         verify(httpClient, atMostOnce()).execute(any());
 
@@ -132,12 +129,9 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
-
-        dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
+        dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
 
         verify(httpClient, atMostOnce()).execute(any());
-
-
     }
 
     @Test
@@ -160,7 +154,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
         receiverEndpointServer.when(request).respond(failedResponse());
 
 
-        assertThatThrownBy(() -> dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get())
+        assertThatThrownBy(() -> dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get())
                 .cause()
                 .isInstanceOf(EdcException.class);
 

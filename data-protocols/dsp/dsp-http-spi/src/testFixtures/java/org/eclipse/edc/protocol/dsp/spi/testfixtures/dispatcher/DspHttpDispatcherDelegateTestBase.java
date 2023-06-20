@@ -16,6 +16,8 @@ package org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import okhttp3.MediaType;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -23,8 +25,10 @@ import okio.Buffer;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -93,11 +97,9 @@ public abstract class DspHttpDispatcherDelegateTestBase<M extends RemoteMessage>
      * for delegates that process the response body.
      */
     protected void testParseResponse_shouldThrowException_whenResponseBodyNull() {
-        var response = mock(Response.class);
+        var response = dummyResponseBuilder(200).body(null).build();
 
-        when(response.body()).thenReturn(null);
-
-        assertThatThrownBy(() -> delegate().parseResponse().apply(response)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> delegate().handleResponse().apply(response)).isInstanceOf(EdcException.class);
     }
 
     /**
@@ -105,14 +107,13 @@ public abstract class DspHttpDispatcherDelegateTestBase<M extends RemoteMessage>
      * relevant for delegates that process the response body.
      */
     protected void testParseResponse_shouldThrowException_whenReadingResponseBodyFails() throws IOException {
-        var response = mock(Response.class);
         var responseBody = mock(ResponseBody.class);
+        var response = dummyResponseBuilder(200).body(responseBody).build();
 
-        when(response.body()).thenReturn(responseBody);
         when(responseBody.bytes()).thenReturn("test".getBytes());
         when(mapper.readValue(any(byte[].class), eq(JsonObject.class))).thenThrow(IOException.class);
 
-        assertThatThrownBy(() -> delegate().parseResponse().apply(response)).isInstanceOf(EdcException.class);
+        assertThatThrownBy(() -> delegate().handleResponse().apply(response)).isInstanceOf(EdcException.class);
     }
 
     /**
@@ -120,14 +121,24 @@ public abstract class DspHttpDispatcherDelegateTestBase<M extends RemoteMessage>
      * for delegates that do not process the response body.
      */
     protected void testParseResponse_shouldReturnNullFunction_whenResponseBodyNotProcessed() {
-        var response = mock(Response.class);
+        var response = dummyResponseBuilder(200).body(null).build();
 
-        assertThat(delegate().parseResponse().apply(response)).isNull();
+        assertThat(delegate().handleResponse().apply(response)).extracting(StatusResult::getContent).isNull();
     }
 
     protected String readRequestBody(Request request) throws IOException {
         var buffer = new Buffer();
         request.body().writeTo(buffer);
         return buffer.readUtf8();
+    }
+
+    @NotNull
+    protected Response.Builder dummyResponseBuilder(int code) {
+        return new Response.Builder()
+                .code(code)
+                .message("any")
+                .body(ResponseBody.create("", MediaType.get("application/json")))
+                .protocol(Protocol.HTTP_1_1)
+                .request(new Request.Builder().url("http://any").build());
     }
 }

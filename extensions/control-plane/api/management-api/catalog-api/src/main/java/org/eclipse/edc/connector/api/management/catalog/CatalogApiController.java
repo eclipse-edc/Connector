@@ -53,9 +53,13 @@ public class CatalogApiController implements CatalogApi {
                 .orElseThrow(InvalidRequestException::new);
 
         service.request(request.getProviderUrl(), request.getProtocol(), request.getQuerySpec())
-                .whenComplete((content, throwable) -> {
+                .whenComplete((result, throwable) -> {
                     if (throwable == null) {
-                        response.resume(content);
+                        if (result.succeeded()) {
+                            response.resume(result.getContent());
+                        } else {
+                            response.resume(new BadGatewayException(result.getFailureDetail()));
+                        }
                     } else {
                         if (throwable instanceof EdcException || throwable.getCause() instanceof EdcException) {
                             response.resume(new BadGatewayException(throwable.getMessage()));

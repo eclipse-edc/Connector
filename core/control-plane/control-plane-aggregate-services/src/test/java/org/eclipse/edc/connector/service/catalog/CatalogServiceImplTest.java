@@ -18,11 +18,13 @@ import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.api.Test;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -37,12 +39,13 @@ class CatalogServiceImplTest {
 
     @Test
     void request_shouldDispatchRequestAndReturnResult() {
-        when(dispatcher.send(eq(byte[].class), any())).thenReturn(completedFuture("content".getBytes()));
+        when(dispatcher.dispatch(eq(byte[].class), any())).thenReturn(completedFuture(StatusResult.success("content".getBytes())));
 
         var result = service.request("http://provider/url", "protocol", QuerySpec.none());
 
-        assertThat(result).succeedsWithin(5, SECONDS);
-        assertThat(result.join()).isEqualTo("content".getBytes());
-        verify(dispatcher).send(eq(byte[].class), isA(CatalogRequestMessage.class));
+        assertThat(result).succeedsWithin(5, SECONDS).satisfies(statusResult -> {
+            assertThat(statusResult).isSucceeded().isEqualTo("content".getBytes());
+        });
+        verify(dispatcher).dispatch(eq(byte[].class), isA(CatalogRequestMessage.class));
     }
 }

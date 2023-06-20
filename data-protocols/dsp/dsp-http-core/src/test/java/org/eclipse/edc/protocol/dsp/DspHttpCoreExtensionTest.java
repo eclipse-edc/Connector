@@ -61,7 +61,7 @@ class DspHttpCoreExtensionTest {
         extension = factory.constructInstance(DspHttpCoreExtension.class);
         var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
         dispatcher.registerDelegate(new TestMessageDelegate());
-        dispatcher.send(String.class, new TestMessage());
+        dispatcher.dispatch(String.class, new TestMessage());
 
         verify(isMock).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope() == null));
     }
@@ -78,7 +78,7 @@ class DspHttpCoreExtensionTest {
         extension = factory.constructInstance(DspHttpCoreExtension.class);
         var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
         dispatcher.registerDelegate(new TestMessageDelegate());
-        dispatcher.send(String.class, new TestMessage());
+        dispatcher.dispatch(String.class, new TestMessage());
 
         verify(isMock).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope().equals("test-scope")));
     }

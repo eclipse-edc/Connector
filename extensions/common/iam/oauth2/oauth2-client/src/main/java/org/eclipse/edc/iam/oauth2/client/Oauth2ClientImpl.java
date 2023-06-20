@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.eclipse.edc.spi.http.FallbackFactories.statusMustBe;
+import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
 
 public class Oauth2ClientImpl implements Oauth2Client {
 
@@ -49,7 +49,7 @@ public class Oauth2ClientImpl implements Oauth2Client {
 
     @Override
     public Result<TokenRepresentation> requestToken(Oauth2CredentialsRequest request) {
-        return httpClient.execute(toRequest(request), List.of(statusMustBe(200)), this::handleResponse);
+        return httpClient.execute(toRequest(request), List.of(retryWhenStatusIsNot(200)), this::handleResponse);
     }
 
     private Result<TokenRepresentation> handleResponse(Response response) {

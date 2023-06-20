@@ -27,11 +27,11 @@ import static java.lang.String.format;
 public interface FallbackFactories {
 
     /**
-     * Verifies that the response is successful, otherwise it should be retried
+     * Verifies that the response code is between 400 and 499, otherwise it should be retried
      *
      * @return the {@link FallbackFactory}
      */
-    static FallbackFactory statusMustBeSuccessful() {
+    static FallbackFactory retryWhenStatusNot2xxOr4xx() {
         return request -> {
             CheckedFunction<ExecutionAttemptedEvent<? extends Response>, Exception> exceptionSupplier = event -> {
                 var response = event.getLastResult();
@@ -42,7 +42,7 @@ public interface FallbackFactories {
                 }
             };
             return Fallback.builderOfException(exceptionSupplier)
-                    .handleResultIf(r -> !r.isSuccessful())
+                    .handleResultIf(r -> !(r.isSuccessful() || r.code() >= 400 && r.code() < 500))
                     .build();
         };
     }
@@ -52,7 +52,7 @@ public interface FallbackFactories {
      *
      * @return the {@link FallbackFactory}
      */
-    static FallbackFactory statusMustBe(int status) {
+    static FallbackFactory retryWhenStatusIsNot(int status) {
         return request -> {
             CheckedFunction<ExecutionAttemptedEvent<? extends Response>, Exception> exceptionSupplier = event -> {
                 var response = event.getLastResult();
