@@ -1956,10 +1956,6 @@ components:
           example: null
       example: null
     ContractOfferDescription:
-      required:
-      - assetId
-      - offerId
-      - policy
       type: object
       properties:
         assetId:
@@ -1970,10 +1966,6 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-        validity:
-          type: integer
-          format: int64
-          example: null
       example: null
     CriterionDto:
       required:
@@ -2308,11 +2300,6 @@ components:
           - "NULL"
       example: null
     NegotiationInitiateRequestDto:
-      required:
-      - connectorAddress
-      - connectorId
-      - offer
-      - protocol
       type: object
       properties:
         '@context':

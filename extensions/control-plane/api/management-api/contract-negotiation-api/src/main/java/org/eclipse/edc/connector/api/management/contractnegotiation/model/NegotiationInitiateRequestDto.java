@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
@@ -33,17 +31,10 @@ public class NegotiationInitiateRequestDto extends BaseDto {
     public static final String CONSUMER_ID = EDC_NAMESPACE + "consumerId";
     public static final String OFFER = EDC_NAMESPACE + "offer";
     public static final String CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
-    public static final String OFFER_ID = EDC_NAMESPACE + "offerId";
-    public static final String ASSET_ID = EDC_NAMESPACE + "assetId";
-    public static final String POLICY = EDC_NAMESPACE + "policy";
 
-    @NotBlank(message = "connectorAddress is mandatory")
     private String connectorAddress; // TODO change to callbackAddress
-    @NotBlank(message = "protocol is mandatory")
     private String protocol;
-    @NotBlank(message = "connectorId is mandatory")
     private String connectorId;
-    @NotNull(message = "offer cannot be null")
     private ContractOfferDescription offer;
     private String providerId;
     private String consumerId;
