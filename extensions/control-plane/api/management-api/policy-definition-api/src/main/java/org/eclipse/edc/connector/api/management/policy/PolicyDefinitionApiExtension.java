@@ -22,21 +22,25 @@ import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPol
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionRequestDtoToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionToPolicyDefinitionResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.policy.validation.PolicyDefinitionRequestDtoValidator;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
+
+import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_TYPE;
 
 
 @Extension(value = PolicyDefinitionApiExtension.NAME)
 public class PolicyDefinitionApiExtension implements ServiceExtension {
 
-    public static final String NAME = "Management API: Policy";
+    public static final String NAME = "Management API: Policy Definition";
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -49,6 +53,9 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
 
     @Inject
     private PolicyDefinitionService service;
+
+    @Inject
+    private JsonObjectValidatorRegistry validatorRegistry;
 
     @Override
     public String name() {
@@ -65,7 +72,9 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToPolicyDefinitionUpdateDtoTransformer());
         transformerRegistry.register(new JsonObjectFromPolicyDefinitionResponseDtoTransformer(jsonBuilderFactory));
 
+        validatorRegistry.register(EDC_POLICY_DEFINITION_TYPE, PolicyDefinitionRequestDtoValidator.instance());
+
         var monitor = context.getMonitor();
-        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, transformerRegistry, service));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, transformerRegistry, service, validatorRegistry));
     }
 }

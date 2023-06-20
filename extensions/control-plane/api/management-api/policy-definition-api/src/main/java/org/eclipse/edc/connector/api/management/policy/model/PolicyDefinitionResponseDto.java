@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.policy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.api.model.BaseResponseDto;
 import org.eclipse.edc.policy.model.Policy;
 
@@ -26,7 +25,6 @@ import java.util.Objects;
 @JsonDeserialize(builder = PolicyDefinitionResponseDto.Builder.class)
 public class PolicyDefinitionResponseDto extends BaseResponseDto {
 
-    @NotNull
     private Policy policy;
 
     private PolicyDefinitionResponseDto() {
@@ -53,7 +51,7 @@ public class PolicyDefinitionResponseDto extends BaseResponseDto {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PolicyDefinitionResponseDto that = (PolicyDefinitionResponseDto) o;
+        var that = (PolicyDefinitionResponseDto) o;
         return Objects.equals(id, that.id) && policy.equals(that.policy);
     }
 

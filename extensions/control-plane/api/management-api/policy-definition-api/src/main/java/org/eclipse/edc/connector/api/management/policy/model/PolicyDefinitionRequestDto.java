@@ -23,10 +23,13 @@ import org.eclipse.edc.policy.model.Policy;
 import java.util.Objects;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 @JsonDeserialize(builder = PolicyDefinitionRequestDto.Builder.class)
 public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
 
+    public static final String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + "PolicyDefinition";
+    public static final String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
     @JsonProperty(value = ID)
     private String id;
 
@@ -54,7 +57,7 @@ public class PolicyDefinitionRequestDto extends PolicyDefinitionDto {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PolicyDefinitionRequestDto that = (PolicyDefinitionRequestDto) o;
+        var that = (PolicyDefinitionRequestDto) o;
         return Objects.equals(id, that.id) && policy.equals(that.policy);
     }
 

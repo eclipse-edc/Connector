@@ -37,13 +37,16 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
@@ -54,22 +57,30 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     private final Monitor monitor;
     private final TypeTransformerRegistry transformerRegistry;
     private final PolicyDefinitionService service;
+    private final JsonObjectValidatorRegistry validatorRegistry;
 
-    public PolicyDefinitionApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service) {
+    public PolicyDefinitionApiController(Monitor monitor, TypeTransformerRegistry transformerRegistry,
+                                         PolicyDefinitionService service, JsonObjectValidatorRegistry validatorRegistry) {
         this.monitor = monitor;
         this.transformerRegistry = transformerRegistry;
         this.service = service;
+        this.validatorRegistry = validatorRegistry;
     }
 
     @POST
     @Path("request")
     @Override
     public JsonArray queryPolicyDefinitions(JsonObject querySpecDto) {
-        var querySpec = ofNullable(querySpecDto)
-                .map(json -> transformerRegistry.transform(json, QuerySpecDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class)))
-                .orElse(Result.success(QuerySpec.Builder.newInstance().build()))
-                .orElseThrow(InvalidRequestException::new);
+        QuerySpec querySpec;
+        if (querySpecDto == null) {
+            querySpec = QuerySpec.Builder.newInstance().build();
+        } else {
+            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecDto).orElseThrow(ValidationFailureException::new);
+
+            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
+                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+                    .orElseThrow(InvalidRequestException::new);
+        }
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
             return stream
@@ -98,6 +109,8 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @POST
     @Override
     public JsonObject createPolicyDefinition(JsonObject request) {
+        validatorRegistry.validate(EDC_POLICY_DEFINITION_TYPE, request).orElseThrow(ValidationFailureException::new);
+
         var definition = transformerRegistry.transform(request, PolicyDefinitionRequestDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, PolicyDefinition.class))
                 .orElseThrow(InvalidRequestException::new);
@@ -128,6 +141,8 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Path("{id}")
     @Override
     public void updatePolicyDefinition(@PathParam("id") String id, JsonObject input) {
+        validatorRegistry.validate(EDC_POLICY_DEFINITION_TYPE, input).orElseThrow(ValidationFailureException::new);
+
         var policyDefinition = transformerRegistry.transform(input, PolicyDefinitionUpdateDto.class)
                 .map(dto -> PolicyDefinitionUpdateWrapperDto.Builder.newInstance()
                         .policyId(id)

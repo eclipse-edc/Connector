@@ -2427,8 +2427,6 @@ components:
           example: null
       example: null
     PolicyDefinitionRequestDto:
-      required:
-      - policy
       type: object
       properties:
         '@id':
@@ -2438,8 +2436,6 @@ components:
           $ref: '#/components/schemas/Policy'
       example: null
     PolicyDefinitionResponseDto:
-      required:
-      - policy
       type: object
       properties:
         '@context':
@@ -2459,8 +2455,6 @@ components:
           $ref: '#/components/schemas/Policy'
       example: null
     PolicyDefinitionUpdateDto:
-      required:
-      - policy
       type: object
       properties:
         policy:
