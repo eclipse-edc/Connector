@@ -16,6 +16,7 @@ package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.evaluator.PolicyEvaluator;
@@ -44,16 +45,14 @@ import static org.eclipse.edc.spi.result.Result.success;
  * Default implementation of the policy engine.
  */
 public class PolicyEngineImpl implements PolicyEngine {
-    private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
 
-    private final ScopeFilter scopeFilter;
+    private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
 
     private final Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private final Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
-
     private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> preValidators = new HashMap<>();
-
     private final Map<String, List<BiFunction<Policy, PolicyContext, Boolean>>> postValidators = new HashMap<>();
+    private final ScopeFilter scopeFilter;
 
     public PolicyEngineImpl(ScopeFilter scopeFilter) {
         this.scopeFilter = scopeFilter;
@@ -65,14 +64,7 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @Override
-    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
-        return evaluate(scope, policy, agent, new HashMap<>());
-    }
-
-    @Override
-    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation) {
-        var context = new PolicyContextImpl(agent, contextInformation);
-
+    public Result<Void> evaluate(String scope, Policy policy, PolicyContext context) {
         var delimitedScope = scope + ".";
 
         var scopedPreValidators = preValidators.entrySet().stream().filter(entry -> scopeFilter(entry.getKey(), delimitedScope)).flatMap(l -> l.getValue().stream()).toList();
@@ -119,22 +111,28 @@ public class PolicyEngineImpl implements PolicyEngine {
                 }
             }
 
-            updateContextInformation(context, contextInformation);
-            return success(policy);
+            return success();
         } else {
-            updateContextInformation(context, contextInformation);
             return failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
     }
 
-    /**
-     * Updates the initially supplied context data from the policy context.
-     *
-     * @param context            the policy context.
-     * @param contextInformation the initial context data.
-     */
-    private void updateContextInformation(PolicyContext context, Map<Class<?>, Object> contextInformation) {
-        contextInformation.keySet().forEach(key -> contextInformation.put(key, context.getContextData(key)));
+    @Override
+    @Deprecated(since = "0.1.1")
+    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
+        var context = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
+        return evaluate(scope, policy, context).map(it -> policy);
+    }
+
+    @Override
+    @Deprecated(since = "0.1.1")
+    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation) {
+        var builder = PolicyContextImpl.Builder.newInstance()
+                .additional(ParticipantAgent.class, agent);
+
+        contextInformation.forEach((key, value) -> builder.additional(key, key.cast(value)));
+
+        return evaluate(scope, policy, builder.build()).map(it -> policy);
     }
 
     @Override
@@ -164,7 +162,7 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @NotNull
-    private Result<Policy> failValidator(String type, BiFunction<Policy, PolicyContext, Boolean> validator, PolicyContext context) {
+    private Result<Void> failValidator(String type, BiFunction<Policy, PolicyContext, Boolean> validator, PolicyContext context) {
         return failure(context.hasProblems() ? context.getProblems() : List.of(type + " failed: " + validator.getClass().getName()));
     }
 

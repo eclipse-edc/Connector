@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.transfer.TestResourceDefinition;
 import org.eclipse.edc.connector.transfer.spi.provision.ConsumerResourceDefinitionGenerator;
 import org.eclipse.edc.connector.transfer.spi.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;
@@ -29,22 +30,22 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ResourceManifestGeneratorImplTest {
 
-    private final ConsumerResourceDefinitionGenerator consumerGenerator = mock(ConsumerResourceDefinitionGenerator.class);
-    private final ProviderResourceDefinitionGenerator providerGenerator = mock(ProviderResourceDefinitionGenerator.class);
+    private final ConsumerResourceDefinitionGenerator consumerGenerator = mock();
+    private final ProviderResourceDefinitionGenerator providerGenerator = mock();
+    private final PolicyEngine policyEngine = mock();
     private ResourceManifestGeneratorImpl generator;
     private Policy policy;
     private DataAddress dataAddress;
-    private PolicyEngine policyEngine;
 
     @BeforeEach
     void setUp() {
-        policyEngine = mock(PolicyEngine.class);
         generator = new ResourceManifestGeneratorImpl(policyEngine);
         generator.registerGenerator(consumerGenerator);
         generator.registerGenerator(providerGenerator);
@@ -58,7 +59,7 @@ class ResourceManifestGeneratorImplTest {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.canGenerate(any(), any())).thenReturn(true);
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
-        when(policyEngine.evaluate(any(), any(), any(), any())).thenReturn(Result.success(policy));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
 
         var result = generator.generateConsumerResourceManifest(dataRequest, policy);
 
@@ -70,9 +71,8 @@ class ResourceManifestGeneratorImplTest {
     @Test
     void shouldGenerateEmptyResourceManifestForNotGeneratedFilter() {
         var dataRequest = createDataRequest(true);
-        var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.canGenerate(any(), any())).thenReturn(false);
-        when(policyEngine.evaluate(any(), any(), any(), any())).thenReturn(Result.success(policy));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
 
         var result = generator.generateConsumerResourceManifest(dataRequest, policy);
 
@@ -97,7 +97,7 @@ class ResourceManifestGeneratorImplTest {
         var dataRequest = createDataRequest(true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
-        when(policyEngine.evaluate(any(), any(), any(), any())).thenReturn(Result.failure("error"));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("error"));
 
         var result = generator.generateConsumerResourceManifest(dataRequest, policy);
 

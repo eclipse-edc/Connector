@@ -21,15 +21,15 @@ import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestContext;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -71,15 +71,12 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         var manifestContext = new ResourceManifestContext(manifest);
 
         // Create additional context information for policy engine to make manifest context available
-        var contextInformation = new HashMap<Class<?>, Object>();
-        contextInformation.put(ResourceManifestContext.class, manifestContext);
+        var policyContext = PolicyContextImpl.Builder.newInstance()
+                .additional(ResourceManifestContext.class, manifestContext)
+                .build();
 
-        var result = policyEngine.evaluate(MANIFEST_VERIFICATION_SCOPE, policy, null, contextInformation);
-        if (result.succeeded()) {
-            return Result.success(buildFromContextInformation(contextInformation));
-        } else {
-            return Result.failure(result.getFailureMessages());
-        }
+        return policyEngine.evaluate(MANIFEST_VERIFICATION_SCOPE, policy, policyContext)
+                .map(a -> extractModifiedManifest(policyContext));
     }
 
     @Override
@@ -92,9 +89,8 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();
     }
 
-    private ResourceManifest buildFromContextInformation(Map<Class<?>, Object> contextInformation) {
-        var manifestContext = (ResourceManifestContext) contextInformation.get(ResourceManifestContext.class);
+    private ResourceManifest extractModifiedManifest(PolicyContext policyContext) {
+        var manifestContext = policyContext.getContextData(ResourceManifestContext.class);
         return ResourceManifest.Builder.newInstance().definitions(manifestContext.getDefinitions()).build();
     }
-
 }

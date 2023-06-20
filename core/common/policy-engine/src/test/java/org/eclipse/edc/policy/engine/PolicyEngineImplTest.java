@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.policy.engine;
 
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -22,41 +24,46 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.engine.spi.PolicyEngine.ALL_SCOPES;
 import static org.eclipse.edc.policy.model.Operator.EQ;
 
 class PolicyEngineImplTest {
+
     private static final String TEST_SCOPE = "test";
-    private RuleBindingRegistry bindingRegistry;
-    private PolicyEngineImpl policyEngine;
+    private final RuleBindingRegistry bindingRegistry = new RuleBindingRegistryImpl();
+    private PolicyEngine policyEngine;
+
+
+    @BeforeEach
+    void setUp() {
+        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry));
+    }
 
     @Test
     void validateEmptyPolicy() {
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
-
+        var context = PolicyContextImpl.Builder.newInstance().build();
         var emptyPolicy = Policy.Builder.newInstance().build();
 
         // No explicit rule specified, policy should evaluate to true
-        var result = policyEngine.evaluate(TEST_SCOPE, emptyPolicy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE, emptyPolicy, context);
 
-        assertThat(result.succeeded()).isTrue();
+        assertThat(result).isSucceeded();
     }
 
     @Test
     void validateUnsatisfiedDuty() {
+        var context = PolicyContextImpl.Builder.newInstance().build();
         bindingRegistry.bind("foo", ALL_SCOPES);
 
-        policyEngine.registerFunction(ALL_SCOPES, Duty.class, "foo", (op, rv, duty, context) -> false);
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        policyEngine.registerFunction(ALL_SCOPES, Duty.class, "foo", (op, rv, duty, ctx) -> false);
 
         var left = new LiteralExpression("foo");
         var right = new LiteralExpression("bar");
@@ -65,7 +72,9 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().duty(duty).build();
 
         // The duty is not satisfied, so the policy should evaluate to false
-        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isFalse();
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result).isFailed();
     }
 
     @Test
@@ -73,8 +82,7 @@ class PolicyEngineImplTest {
         // Verifies that a rule will be filtered if its action is not registered. The constraint is registered but should be filtered since it is contained in the permission.
         // If the permission is not properly filtered, the constraint will not be fulfilled and raise an exception.
         bindingRegistry.bind("foo", ALL_SCOPES);
-
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
         var left = new LiteralExpression("foo");
         var right = new LiteralExpression("bar");
@@ -85,7 +93,9 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         // the permission containing the unfulfilled constraint should be filtered, resulting in the policy evaluation succeeding
-        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
+
+        assertThat(result).isSucceeded();
     }
 
     @Test
@@ -93,7 +103,7 @@ class PolicyEngineImplTest {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
         policyEngine.registerFunction(ALL_SCOPES, Permission.class, "foo", (op, rv, duty, context) -> false);
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
         var left = new LiteralExpression("foo");
         var right = new LiteralExpression("bar");
@@ -102,9 +112,9 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         // The permission is not granted, so the policy should evaluate to false
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @Test
@@ -112,14 +122,14 @@ class PolicyEngineImplTest {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
         policyEngine.registerFunction(ALL_SCOPES, Prohibition.class, "foo", (op, rv, duty, context) -> true);
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        Policy policy = createTestPolicy();
+        var policy = createTestPolicy();
 
         // The prohibition is triggered (it is true), so the policy should evaluate to false
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @Test
@@ -128,14 +138,14 @@ class PolicyEngineImplTest {
 
         policyEngine.registerFunction("foo", Prohibition.class, "foo", (op, rv, duty, context) -> Assertions.fail("Foo prohibition should be out of scope"));
         policyEngine.registerFunction("bar", Prohibition.class, "foo", (op, rv, duty, context) -> true);
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        Policy policy = createTestPolicy();
+        var policy = createTestPolicy();
 
         // The bar-scoped prohibition is triggered (it is true), so the policy should evaluate to false
-        var result = policyEngine.evaluate("bar", policy, agent);
+        var result = policyEngine.evaluate("bar", policy, context);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @Test
@@ -144,14 +154,14 @@ class PolicyEngineImplTest {
 
         policyEngine.registerFunction("bar", Prohibition.class, "foo", (op, rv, duty, context) -> true);
         policyEngine.registerFunction("bar.child", Prohibition.class, "foo", (op, rv, duty, context) -> Assertions.fail("Child prohibition should be out of scope"));
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        Policy policy = createTestPolicy();
+        var policy = createTestPolicy();
 
         // The bar-scoped prohibition is triggered (it is true), so the policy should evaluate to false
-        var result = policyEngine.evaluate("bar", policy, agent);
+        var result = policyEngine.evaluate("bar", policy, context);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @Test
@@ -159,14 +169,14 @@ class PolicyEngineImplTest {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
         policyEngine.registerFunction("bar", Prohibition.class, "foo", (op, rv, duty, context) -> true);
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        Policy policy = createTestPolicy();
+        var policy = createTestPolicy();
 
         // The bar-scoped prohibition is triggered (it is true), so the policy should evaluate to false
-        var result = policyEngine.evaluate("bar.child", policy, agent);
+        var result = policyEngine.evaluate("bar.child", policy, context);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @Test
@@ -179,15 +189,15 @@ class PolicyEngineImplTest {
 
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        policyEngine.registerFunction("foo", Permission.class, (rule, context) -> Assertions.fail("Foo permission should be out of scope"));
-        policyEngine.registerFunction("bar", Permission.class, (rule, context) -> rule.getAction().getType().equals(action.getType()));
-        assertThat(policyEngine.evaluate("bar", policy, agent).succeeded()).isTrue();
+        policyEngine.registerFunction("foo", Permission.class, (rule, ctx) -> Assertions.fail("Foo permission should be out of scope"));
+        policyEngine.registerFunction("bar", Permission.class, (rule, ctx) -> rule.getAction().getType().equals(action.getType()));
+        assertThat(policyEngine.evaluate("bar", policy, context).succeeded()).isTrue();
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void validateAllScopesPrePostValidator(boolean preValidation) {
         bindingRegistry.bind("foo", ALL_SCOPES);
 
@@ -197,11 +207,11 @@ class PolicyEngineImplTest {
             policyEngine.registerPostValidator(ALL_SCOPES, (policy, context) -> false);
         }
         var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @ParameterizedTest
@@ -216,11 +226,11 @@ class PolicyEngineImplTest {
         }
 
         var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
-        assertThat(result.succeeded()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @ParameterizedTest
@@ -235,9 +245,9 @@ class PolicyEngineImplTest {
         }
 
         var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -255,9 +265,9 @@ class PolicyEngineImplTest {
         }
 
         var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, context);
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -275,17 +285,11 @@ class PolicyEngineImplTest {
         }
 
         var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var context = PolicyContextImpl.Builder.newInstance().build();
 
-        var result = policyEngine.evaluate(TEST_SCOPE + ".test", policy, agent);
+        var result = policyEngine.evaluate(TEST_SCOPE + ".test", policy, context);
 
-        assertThat(result.succeeded()).isFalse();
-    }
-
-    @BeforeEach
-    void setUp() {
-        bindingRegistry = new RuleBindingRegistryImpl();
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry));
+        assertThat(result).isFailed();
     }
 
     private Policy createTestPolicy() {

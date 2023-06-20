@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
@@ -33,13 +34,15 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver.CATALOGING_SCOPE;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ContractDefinitionResolverImplTest {
@@ -49,14 +52,6 @@ class ContractDefinitionResolverImplTest {
     private final ContractDefinitionStore definitionStore = mock(ContractDefinitionStore.class);
 
     private ContractDefinitionResolverImpl definitionService;
-
-    private static ContractDefinition createContractDefinition() {
-        return ContractDefinition.Builder.newInstance()
-                .id("1")
-                .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .build();
-    }
 
     @BeforeEach
     void setUp() {
@@ -68,13 +63,17 @@ class ContractDefinitionResolverImplTest {
         var agent = new ParticipantAgent(Map.of(), Map.of());
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(policyStore.findById(any())).thenReturn(def);
-        when(policyEngine.evaluate(CATALOGING_SCOPE, def.getPolicy(), agent)).thenReturn(Result.success(def.getPolicy()));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(createContractDefinition()));
 
         var definitions = definitionService.definitionsFor(agent);
 
         assertThat(definitions).hasSize(1);
-        verify(policyEngine, atLeastOnce()).evaluate(CATALOGING_SCOPE, def.getPolicy(), agent);
+        verify(policyEngine, atLeastOnce()).evaluate(
+                eq(CATALOGING_SCOPE),
+                eq(def.getPolicy()),
+                and(isA(PolicyContext.class), argThat(c -> c.getContextData(ParticipantAgent.class).equals(agent)))
+        );
         verify(definitionStore).findAll(any());
     }
 
@@ -84,28 +83,26 @@ class ContractDefinitionResolverImplTest {
         var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("access").build();
         when(policyStore.findById(any())).thenReturn(definition);
         var contractDefinition = createContractDefinition();
-        when(policyEngine.evaluate(any(), any(), any())).thenReturn(Result.failure("invalid"));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("invalid"));
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
 
         var result = definitionService.definitionsFor(agent);
 
         assertThat(result).isEmpty();
-        verify(policyEngine, atLeastOnce()).evaluate(CATALOGING_SCOPE, definition.getPolicy(), agent);
         verify(definitionStore).findAll(any());
     }
 
     @Test
     void definitionsFor_verifyPoliciesNotFound() {
         var agent = new ParticipantAgent(Map.of(), Map.of());
-        var policy = Policy.Builder.newInstance().build();
         when(policyStore.findById(any())).thenReturn(null);
-        when(policyEngine.evaluate(CATALOGING_SCOPE, policy, agent)).thenReturn(Result.success(policy));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(QuerySpec.max())).thenReturn(Stream.of(createContractDefinition()));
 
         var definitions = definitionService.definitionsFor(agent);
 
         assertThat(definitions).isEmpty();
-        verify(policyEngine, never()).evaluate(any(), any(), any());
+        verifyNoInteractions(policyEngine);
     }
 
     @Test
@@ -114,13 +111,17 @@ class ContractDefinitionResolverImplTest {
         var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var contractDefinition = createContractDefinition();
         when(policyStore.findById(any())).thenReturn(definition);
-        when(policyEngine.evaluate(eq(CATALOGING_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(definition.getPolicy()));
+        when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findById("1")).thenReturn(contractDefinition);
 
         var result = definitionService.definitionFor(agent, "1");
 
         assertThat(result).isNotNull();
-        verify(policyEngine, atLeastOnce()).evaluate(CATALOGING_SCOPE, definition.getPolicy(), agent);
+        verify(policyEngine, atLeastOnce()).evaluate(
+                eq(CATALOGING_SCOPE),
+                eq(definition.getPolicy()),
+                and(isA(PolicyContext.class), argThat(c -> c.getContextData(ParticipantAgent.class).equals(agent)))
+        );
     }
 
     @Test
@@ -131,6 +132,14 @@ class ContractDefinitionResolverImplTest {
         var result = definitionService.definitionFor(agent, "nodefinition");
 
         assertThat(result).isNull();
-        verify(policyEngine, never()).evaluate(any(), any(), any());
+        verifyNoInteractions(policyEngine);
+    }
+
+    private ContractDefinition createContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
+                .build();
     }
 }

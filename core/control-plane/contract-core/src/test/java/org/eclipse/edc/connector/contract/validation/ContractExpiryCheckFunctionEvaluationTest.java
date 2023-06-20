@@ -19,6 +19,7 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
 import org.eclipse.edc.policy.engine.ScopeFilter;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Action;
@@ -28,7 +29,6 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,7 +38,6 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -55,7 +54,6 @@ import static org.eclipse.edc.policy.model.Operator.LEQ;
 import static org.eclipse.edc.policy.model.Operator.LT;
 import static org.eclipse.edc.policy.model.Operator.NEQ;
 import static org.junit.jupiter.params.provider.Arguments.of;
-import static org.mockito.Mockito.mock;
 
 @ComponentTest
 class ContractExpiryCheckFunctionEvaluationTest {
@@ -78,19 +76,22 @@ class ContractExpiryCheckFunctionEvaluationTest {
     @ArgumentsSource(ValidTimeProvider.class)
     void evaluate_fixed_isValid(Operator startOp, Instant start, Operator endOp, Instant end) {
         var policy = createInForcePolicy(startOp, start, endOp, end);
-        var contextInfo = new HashMap<Class<?>, Object>();
-        contextInfo.put(Instant.class, NOW);
-        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isSucceeded();
+        var context = PolicyContextImpl.Builder.newInstance().additional(Instant.class, NOW).build();
+
+        var result = policyEngine.evaluate(TRANSFER_SCOPE, policy, context);
+
+        assertThat(result).isSucceeded();
     }
 
     @ParameterizedTest
     @ArgumentsSource(InvalidTimeProvider.class)
     void evaluate_fixed_isInvalid(Operator startOp, Instant start, Operator endOp, Instant end) {
         var policy = createInForcePolicy(startOp, start, endOp, end);
-        var contextInfo = new HashMap<Class<?>, Object>();
+        var context = PolicyContextImpl.Builder.newInstance().additional(Instant.class, NOW).build();
 
-        contextInfo.put(Instant.class, NOW);
-        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo))
+        var result = policyEngine.evaluate(TRANSFER_SCOPE, policy, context);
+
+        assertThat(result)
                 .isFailed()
                 .detail().contains(CONTRACT_EXPIRY_EVALUATION_KEY);
     }
@@ -99,33 +100,42 @@ class ContractExpiryCheckFunctionEvaluationTest {
     @ValueSource(strings = { "100d", "25h", "2m", "67s" })
     void evaluate_durationAsEnd_isValid(String numeric) {
         var policy = createInForcePolicy(GEQ, NOW.minusSeconds(60), LEQ, "contractAgreement+" + numeric);
-        var contextInfo = new HashMap<Class<?>, Object>();
+        var context = PolicyContextImpl.Builder.newInstance()
+                .additional(Instant.class, NOW)
+                .additional(ContractAgreement.class, createAgreement("test-agreement", NOW))
+                .build();
 
-        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement", NOW));
-        contextInfo.put(Instant.class, NOW);
-        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isSucceeded();
+        var result = policyEngine.evaluate(TRANSFER_SCOPE, policy, context);
+
+        assertThat(result).isSucceeded();
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "-100d", "-25h", "-2m", "-67s" })
     void evaluate_durationAsStart_isValid(String numeric) {
         var policy = createInForcePolicy(GEQ, "contractAgreement+" + numeric, LEQ, NOW.plusSeconds(60));
-        var contextInfo = new HashMap<Class<?>, Object>();
+        var context = PolicyContextImpl.Builder.newInstance()
+                .additional(Instant.class, NOW)
+                .additional(ContractAgreement.class, createAgreement("test-agreement", NOW))
+                .build();
 
-        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement", NOW));
-        contextInfo.put(Instant.class, NOW);
-        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isSucceeded();
+        var result = policyEngine.evaluate(TRANSFER_SCOPE, policy, context);
+
+        assertThat(result).isSucceeded();
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "d", "*25h", "2ms" })
     void evaluate_duration_invalidExpression(String numeric) {
         var policy = createInForcePolicy(GEQ, "contractAgreement+" + numeric, LEQ, NOW.plusSeconds(60));
-        var contextInfo = new HashMap<Class<?>, Object>();
+        var context = PolicyContextImpl.Builder.newInstance()
+                .additional(Instant.class, NOW)
+                .additional(ContractAgreement.class, createAgreement("test-agreement", NOW))
+                .build();
 
-        contextInfo.put(ContractAgreement.class, createAgreement("test-agreement", NOW));
-        contextInfo.put(Instant.class, NOW);
-        assertThat(policyEngine.evaluate(TRANSFER_SCOPE, policy, mock(ParticipantAgent.class), contextInfo)).isFailed();
+        var result = policyEngine.evaluate(TRANSFER_SCOPE, policy, context);
+
+        assertThat(result).isFailed();
     }
 
     private Policy createInForcePolicy(Operator operatorStart, Object startDate, Operator operatorEnd, Object endDate) {

@@ -56,14 +56,25 @@ public interface PolicyEngine {
     Policy filter(Policy policy, String scope);
 
     /**
-     * Evaluates the given policy for an agent for the given scope.
+     * Evaluates the given policy with a context for the given scope.
      */
+    Result<Void> evaluate(String scope, Policy policy, PolicyContext context);
+
+    /**
+     * Evaluates the given policy for an agent for the given scope.
+     *
+     * @deprecated please use {@link #evaluate(String, Policy, PolicyContext)}.
+     */
+    @Deprecated(since = "0.1.1")
     Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent);
 
     /**
      * Evaluates the given policy for an agent for the given scope using additional context information.
      * Values in the map need to be of the same type defined by the key.
+     *
+     * @deprecated please use {@link #evaluate(String, Policy, PolicyContext)}.
      */
+    @Deprecated(since = "0.1.1")
     Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation);
 
     /**

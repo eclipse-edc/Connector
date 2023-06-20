@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.dispatcher;
 
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -87,10 +88,11 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
         var policyScope = policyScopes.get(message.getClass());
         if (policyScope != null) {
-            var policyContext = new HashMap<Class<?>, Object>();
-            policyContext.put(TokenParameters.Builder.class, tokenParametersBuilder);
+            var context = PolicyContextImpl.Builder.newInstance()
+                    .additional(TokenParameters.Builder.class, tokenParametersBuilder)
+                    .build();
             var policyProvider = (Function<M, Policy>) policyScope.policyProvider;
-            policyEngine.evaluate(policyScope.scope, policyProvider.apply(message), null, policyContext);
+            policyEngine.evaluate(policyScope.scope, policyProvider.apply(message), context);
         }
 
         var tokenParameters = tokenParametersBuilder
