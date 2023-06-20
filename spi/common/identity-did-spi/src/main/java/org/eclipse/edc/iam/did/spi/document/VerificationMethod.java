@@ -19,12 +19,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.Map;
+
 @JsonDeserialize(builder = VerificationMethod.Builder.class)
 public class VerificationMethod {
     private String id;
     private String controller;
     private String type;
-    private JwkPublicKey publicKeyJwk;
+    private Map<String, Object> publicKeyJwk;
 
     @JsonProperty("id")
     public String getId() {
@@ -54,11 +56,11 @@ public class VerificationMethod {
     }
 
     @JsonProperty("publicKeyJwk")
-    public JwkPublicKey getPublicKeyJwk() {
+    public Map<String, Object> getPublicKeyJwk() {
         return publicKeyJwk;
     }
 
-    public void setPublicKeyJwk(JwkPublicKey publicKeyJwk) {
+    public void setPublicKeyJwk(Map<String, Object> publicKeyJwk) {
         this.publicKeyJwk = publicKeyJwk;
     }
 
@@ -68,7 +70,7 @@ public class VerificationMethod {
         private String id;
         private String controller;
         private String type;
-        private JwkPublicKey publicKeyJwk;
+        private Map<String, Object> publicKeyJwk;
 
         private Builder() {
         }
@@ -93,7 +95,7 @@ public class VerificationMethod {
             return this;
         }
 
-        public Builder publicKeyJwk(JwkPublicKey publicKeyJwk) {
+        public Builder publicKeyJwk(Map<String, Object> publicKeyJwk) {
             this.publicKeyJwk = publicKeyJwk;
             return this;
         }
