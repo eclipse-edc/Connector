@@ -17,17 +17,11 @@ package org.eclipse.edc.connector.api.management.asset.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.api.model.DataAddressDto;
 
 @JsonDeserialize(builder = AssetEntryDto.Builder.class)
 public class AssetEntryDto {
-    @NotNull(message = "asset cannot be null")
-    @Valid
     private AssetCreationRequestDto asset;
-    @NotNull(message = "dataAddress cannot be null")
-    @Valid
     private DataAddressDto dataAddress;
 
     private AssetEntryDto() {

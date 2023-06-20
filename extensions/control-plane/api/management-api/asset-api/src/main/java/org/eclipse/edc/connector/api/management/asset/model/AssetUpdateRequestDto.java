@@ -15,10 +15,8 @@
 package org.eclipse.edc.connector.api.management.asset.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.AssertTrue;
 
 import java.util.Map;
 
@@ -27,18 +25,6 @@ public class AssetUpdateRequestDto extends AssetRequestDto {
 
 
     private AssetUpdateRequestDto() {
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "no empty property keys and no duplicate keys")
-    public boolean isValid() {
-        return mapKeysValid();
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "no duplicate keys in properties and private properties")
-    public boolean isDistinctKeysValid() {
-        return checkDistinctKeys();
     }
 
     public Map<String, Object> getProperties() {

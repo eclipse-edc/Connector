@@ -26,7 +26,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
@@ -46,7 +45,7 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    JsonArray queryTransferProcesses(@Valid JsonObject querySpecDto);
+    JsonArray queryTransferProcesses(JsonObject querySpecDto);
 
     @Operation(description = "Gets an transfer process with the given ID",
             responses = {
@@ -86,7 +85,7 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
-    JsonObject initiateTransferProcess(@Valid JsonObject transferRequestDto);
+    JsonObject initiateTransferProcess(JsonObject transferRequestDto);
 
     @Operation(description = "Requests the deprovisioning of resources associated with a transfer process. Due to the asynchronous nature of transfers, a successful " +
             "response only indicates that the request was successfully received. This may take a long time, so clients must poll the /{id}/state endpoint to track the state.",

@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.transferprocess.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
@@ -45,24 +44,17 @@ public class TransferRequestDto {
     public static final String EDC_TRANSFER_REQUEST_DTO_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String EDC_TRANSFER_REQUEST_DTO_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 
-
     private String id;
-    @NotNull(message = "connectorAddress cannot be null")
     private String connectorAddress; // TODO change to callbackAddress
-    @NotNull(message = "contractId cannot be null")
     private String contractId;
-    @NotNull(message = "dataDestination cannot be null")
     private DataAddress dataDestination;
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
 
     private Map<String, String> privateProperties = new HashMap<>();
 
-    @NotNull(message = "protocol cannot be null")
     private String protocol;
-    @NotNull(message = "connectorId cannot be null")
     private String connectorId;
-    @NotNull(message = "assetId cannot be null")
     private String assetId;
 
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
