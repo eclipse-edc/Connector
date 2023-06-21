@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,19 +27,16 @@ import java.util.List;
  */
 @JsonDeserialize(builder = DidDocument.Builder.class)
 public class DidDocument {
-    private final List<Service> service = new ArrayList<>();
+
     private String id;
+    private final List<Service> service = new ArrayList<>();
     @JsonProperty("@context")
-    private List<Object> context = Collections.singletonList("https://w3id.org/did-resolution/v1");
-    private List<VerificationMethod> verificationMethod = new ArrayList<>();
-    private List<String> authentication = new ArrayList<>();
+    private final List<Object> context = new ArrayList<>(List.of("https://w3id.org/did-resolution/v1"));
+    private final List<VerificationMethod> verificationMethod = new ArrayList<>();
+    private final List<String> authentication = new ArrayList<>();
 
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public List<Object> getContext() {
@@ -84,7 +80,7 @@ public class DidDocument {
 
         @JsonProperty("@context")
         public Builder context(List<Object> context) {
-            document.context = context;
+            document.context.addAll(context);
             return this;
         }
 
@@ -94,22 +90,12 @@ public class DidDocument {
         }
 
         public Builder verificationMethod(List<VerificationMethod> verificationMethod) {
-            document.verificationMethod = verificationMethod;
-            return this;
-        }
-
-        public Builder verificationMethod(String id, String type, EllipticCurvePublicKey publicKey) {
-            document.verificationMethod.add(VerificationMethod.Builder.create()
-                    .id(id)
-                    .type(type)
-                    //.publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
-                    .publicKeyJwk(publicKey)
-                    .build());
+            document.verificationMethod.addAll(verificationMethod);
             return this;
         }
 
         public Builder authentication(List<String> authentication) {
-            document.authentication = authentication;
+            document.authentication.addAll(authentication);
             return this;
         }
 

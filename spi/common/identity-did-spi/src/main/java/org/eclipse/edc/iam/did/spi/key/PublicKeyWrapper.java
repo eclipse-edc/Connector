@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.did.spi.key;
 
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWSVerifier;
 
@@ -33,18 +31,4 @@ public interface PublicKeyWrapper {
      * Returns the JWE verifier for the wrapped key.
      */
     JWSVerifier verifier();
-
-    /**
-     * Returns the wrapped key algorithm.
-     */
-    default JWEAlgorithm jweAlgorithm() {
-        return JWEAlgorithm.ECDH_ES_A256KW;
-    }
-
-    /**
-     * Returns the wrapped key encryption method.
-     */
-    default EncryptionMethod encryptionMethod() {
-        return EncryptionMethod.A256GCM;
-    }
 }

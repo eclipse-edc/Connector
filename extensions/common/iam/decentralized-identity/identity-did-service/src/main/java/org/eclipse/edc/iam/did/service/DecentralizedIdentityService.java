@@ -78,17 +78,21 @@ public class DecentralizedIdentityService implements IdentityService {
             monitor.debug("Extracting public key");
 
             // this will return the _first_ public key entry
-            var publicKey = getPublicKey(didResult.getContent());
+            var publicKey = firstVerificationMethod(didResult.getContent());
             if (publicKey.isEmpty()) {
                 return Result.failure("Public Key not found in DID Document!");
             }
 
             //convert the POJO into a usable PK-wrapper:
             var publicKeyJwk = publicKey.get().getPublicKeyJwk();
-            var publicKeyWrapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
+            var publicKeyWrapperResult = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
+            if (publicKeyWrapperResult.failed()) {
+                monitor.debug("Failed to convert JWK into public key wrapper");
+                return publicKeyWrapperResult.mapTo();
+            }
 
             monitor.debug("Verifying JWT with public key...");
-            var verified = JwtUtils.verify(jwt, publicKeyWrapper, audience);
+            var verified = JwtUtils.verify(jwt, publicKeyWrapperResult.getContent(), audience);
             if (verified.failed()) {
                 monitor.debug(() -> "Failure in token verification: " + verified.getFailureDetail());
                 return Result.failure("Token could not be verified!");
@@ -115,7 +119,9 @@ public class DecentralizedIdentityService implements IdentityService {
     }
 
     @NotNull
-    private Optional<VerificationMethod> getPublicKey(DidDocument did) {
-        return did.getVerificationMethod().stream().filter(vm -> DidConstants.ALLOWED_VERIFICATION_TYPES.contains(vm.getType())).findFirst();
+    private Optional<VerificationMethod> firstVerificationMethod(DidDocument did) {
+        return did.getVerificationMethod().stream()
+                .filter(vm -> DidConstants.ALLOWED_VERIFICATION_TYPES.contains(vm.getType()))
+                .findFirst();
     }
 }

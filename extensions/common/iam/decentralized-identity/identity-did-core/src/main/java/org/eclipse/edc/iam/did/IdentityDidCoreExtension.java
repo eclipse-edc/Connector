@@ -14,10 +14,11 @@
 
 package org.eclipse.edc.iam.did;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import org.eclipse.edc.iam.did.crypto.key.EcPrivateKeyWrapper;
+import com.nimbusds.jose.jwk.RSAKey;
+import org.eclipse.edc.iam.did.parser.EcPrivateKeyParserFunction;
+import org.eclipse.edc.iam.did.parser.PrivateKeyWrapperParserFunction;
+import org.eclipse.edc.iam.did.parser.RsaPrivateKeyParserFunction;
 import org.eclipse.edc.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.edc.iam.did.resolution.DidResolverRegistryImpl;
 import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
@@ -26,7 +27,6 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -57,23 +57,8 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     }
 
     private void registerParsers(PrivateKeyResolver resolver) {
-
-        // add EC-/PEM-Parser
-        resolver.addParser(ECKey.class, encoded -> {
-            try {
-                return (ECKey) JWK.parseFromPEMEncodedObjects(encoded);
-            } catch (JOSEException e) {
-                throw new EdcException(e);
-            }
-        });
-        resolver.addParser(PrivateKeyWrapper.class, encoded -> {
-            try {
-                var ecKey = (ECKey) JWK.parseFromPEMEncodedObjects(encoded);
-                return new EcPrivateKeyWrapper(ecKey);
-            } catch (JOSEException e) {
-                throw new EdcException(e);
-            }
-        });
-
+        resolver.addParser(RSAKey.class, new RsaPrivateKeyParserFunction());
+        resolver.addParser(ECKey.class, new EcPrivateKeyParserFunction());
+        resolver.addParser(PrivateKeyWrapper.class, new PrivateKeyWrapperParserFunction());
     }
 }
