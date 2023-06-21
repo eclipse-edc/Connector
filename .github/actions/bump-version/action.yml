@@ -5,6 +5,9 @@ inputs:
     default: 'main'
     description: "Branch on which the version bump is to be done."
     required: false
+  from_version:
+    description: "The current version, which is to be bumped to the next snapshot"
+    required: false
 
 runs:
   using: "composite"
@@ -21,14 +24,27 @@ runs:
         git fetch origin
         git checkout ${{ inputs.target_branch }}
 
-        # determine current version
-        oldVersion=$(grep "version" gradle.properties  | awk -F= '{print $2}')
-
+        # use current version from input
+        oldVersion=${{ inputs.from_version }}
+        if [ -z $oldVersion ]; then
+          #... or read it from gradle.properties
+          echo "No from_version input was given, will read base version from gradle.properties"
+          oldVersion=$(grep "version" gradle.properties  | awk -F= '{print $2}')
+        fi      
+        
         # read the major, minor, and patch components, consume -SNAPSHOT
         IFS=.- read -r RELEASE_VERSION_MAJOR RELEASE_VERSION_MINOR RELEASE_VERSION_PATCH SNAPSHOT<<<"$oldVersion"
+        INC=0
+        # Compute new snapshot version, do not increment snapshot on non-final releases, e.g. -rc1
+        if [ -z $SNAPSHOT ]; then
+          echo "$oldVersion is a final release version, increase patch for next snapshot"
+          INC=1
+        else
+          echo "$oldVersion is not a final release version (contains \"$SNAPSHOT\"), will not increase patch"
+        fi
 
         # construct the new version
-        newVersion="$RELEASE_VERSION_MAJOR.$RELEASE_VERSION_MINOR.$((RELEASE_VERSION_PATCH+1))"-SNAPSHOT
+        newVersion="$RELEASE_VERSION_MAJOR.$RELEASE_VERSION_MINOR.$((RELEASE_VERSION_PATCH+$INC))"-SNAPSHOT
 
         # replace every occurrence of =$oldVersion with =$newVersion
         grep -rlz "$oldVersion" . --exclude=\*.{sh,bin} | xargs sed -i "s/$oldVersion/$newVersion/g"
