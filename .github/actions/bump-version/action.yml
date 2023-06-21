@@ -5,7 +5,7 @@ inputs:
     default: 'main'
     description: "Branch on which the version bump is to be done."
     required: false
-  from_version:
+  base_version:
     description: "The current version, which is to be bumped to the next snapshot"
     required: false
 
@@ -25,10 +25,10 @@ runs:
         git checkout ${{ inputs.target_branch }}
 
         # use current version from input
-        oldVersion=${{ inputs.from_version }}
+        oldVersion=${{ inputs.base_version }}
         if [ -z $oldVersion ]; then
           #... or read it from gradle.properties
-          echo "No from_version input was given, will read base version from gradle.properties"
+          echo "No base_version input was given, will read base version from gradle.properties"
           oldVersion=$(grep "version" gradle.properties  | awk -F= '{print $2}')
         fi      
         

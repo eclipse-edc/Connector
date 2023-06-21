@@ -72,4 +72,4 @@ jobs:
       - uses: ./.github/actions/bump-version
         with:
           target_branch: "main"
-          from_version: ${{ needs.Prepare-Release.outputs.edc-version }}
+          base_version: ${{ needs.Prepare-Release.outputs.edc-version }}
