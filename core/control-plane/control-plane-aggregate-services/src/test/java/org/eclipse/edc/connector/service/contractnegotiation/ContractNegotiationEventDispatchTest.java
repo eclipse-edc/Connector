@@ -36,6 +36,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -62,7 +62,6 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationEventDispatchTest {
     private static final String CONSUMER = "consumer";
     private static final String PROVIDER = "provider";
-    private static final long CONTRACT_VALIDITY = TimeUnit.HOURS.toSeconds(1);
 
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim(ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY, CONSUMER).build();
@@ -131,7 +130,7 @@ class ContractNegotiationEventDispatchTest {
     private RemoteMessageDispatcher succeedingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(completedFuture("any"));
+        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         return testDispatcher;
     }
 

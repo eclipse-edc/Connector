@@ -35,7 +35,6 @@ import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryCo
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
@@ -47,6 +46,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -76,7 +76,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ComponentTest
+//@ComponentTest
 class ContractNegotiationIntegrationTest {
     private static final String CONSUMER_ID = "consumer";
     private static final String PROVIDER_ID = "provider";
@@ -101,10 +101,10 @@ class ContractNegotiationIntegrationTest {
     void init() {
         var monitor = new ConsoleMonitor();
 
-        CommandQueue<ContractNegotiationCommand> queue = (CommandQueue<ContractNegotiationCommand>) mock(CommandQueue.class);
+        CommandQueue<ContractNegotiationCommand> queue = mock();
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
 
-        CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
+        CommandRunner<ContractNegotiationCommand> runner = mock();
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(PROVIDER_ID)
@@ -142,10 +142,10 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferAccepted() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractAgreementVerificationMessage.class))).then(onConsumerSentAgreementVerification());
-        when(providerDispatcherRegistry.send(any(), isA(ContractNegotiationEventMessage.class))).then(onProviderSentNegotiationEventMessage());
+        when(consumerDispatcherRegistry.dispatch(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
+        when(providerDispatcherRegistry.dispatch(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
+        when(consumerDispatcherRegistry.dispatch(any(), isA(ContractAgreementVerificationMessage.class))).then(onConsumerSentAgreementVerification());
+        when(providerDispatcherRegistry.dispatch(any(), isA(ContractNegotiationEventMessage.class))).then(onProviderSentNegotiationEventMessage());
         consumerNegotiationId = "consumerNegotiationId";
         var offer = getContractOffer();
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
@@ -189,10 +189,10 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferDeclined() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractNegotiationTerminationMessage.class))).then(onProviderSentRejection());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
+        when(providerDispatcherRegistry.dispatch(any(), isA(ContractNegotiationTerminationMessage.class))).then(onProviderSentRejection());
+        when(consumerDispatcherRegistry.dispatch(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
         consumerNegotiationId = null;
-        ContractOffer offer = getContractOffer();
+        var offer = getContractOffer();
 
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.failure("must be declined"));
 
@@ -212,9 +212,9 @@ class ContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_agreementDeclined() {
-        when(providerDispatcherRegistry.send(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
-        when(consumerDispatcherRegistry.send(any(), isA(ContractNegotiationTerminationMessage.class))).then(onConsumerSentRejection());
+        when(providerDispatcherRegistry.dispatch(any(), isA(ContractAgreementMessage.class))).then(onProviderSentAgreementRequest());
+        when(consumerDispatcherRegistry.dispatch(any(), isA(ContractRequestMessage.class))).then(onConsumerSentOfferRequest());
+        when(consumerDispatcherRegistry.dispatch(any(), isA(ContractNegotiationTerminationMessage.class))).then(onConsumerSentRejection());
         consumerNegotiationId = null;
         var offer = getContractOffer();
 
@@ -313,7 +313,7 @@ class ContractNegotiationIntegrationTest {
     @NotNull
     private CompletableFuture<?> toFuture(ServiceResult<ContractNegotiation> result) {
         if (result.succeeded()) {
-            return completedFuture("Success!");
+            return completedFuture(StatusResult.success("Success!"));
         } else {
             return failedFuture(new Exception("Negotiation failed."));
         }

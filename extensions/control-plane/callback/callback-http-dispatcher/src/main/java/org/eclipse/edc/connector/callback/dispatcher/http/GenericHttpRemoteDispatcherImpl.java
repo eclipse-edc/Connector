@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.callback.dispatcher.http;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.HashMap;
@@ -31,8 +32,7 @@ public class GenericHttpRemoteDispatcherImpl implements GenericHttpRemoteDispatc
 
     public static final String CALLBACK_EVENT_HTTP = "callback-event-http";
     private final EdcHttpClient httpClient;
-    private Map<Class<? extends RemoteMessage>, GenericHttpDispatcherDelegate> delegates = new HashMap<>();
-
+    private final Map<Class<? extends RemoteMessage>, GenericHttpDispatcherDelegate> delegates = new HashMap<>();
 
     protected GenericHttpRemoteDispatcherImpl(EdcHttpClient httpClient) {
         this.httpClient = httpClient;
@@ -44,14 +44,13 @@ public class GenericHttpRemoteDispatcherImpl implements GenericHttpRemoteDispatc
     }
 
     @Override
-    public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message) {
+    public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, M message) {
         var delegate = (GenericHttpDispatcherDelegate<M, T>) delegates.get(message.getClass());
         if (delegate == null) {
             throw new EdcException(format("No %s message dispatcher found for message type %s", protocol(), message.getClass()));
         }
         var request = delegate.buildRequest(message);
-        return httpClient.executeAsync(request, delegate.parseResponse());
-
+        return httpClient.executeAsync(request, delegate.parseResponse()).thenApply(StatusResult::success);
     }
 
     @Override

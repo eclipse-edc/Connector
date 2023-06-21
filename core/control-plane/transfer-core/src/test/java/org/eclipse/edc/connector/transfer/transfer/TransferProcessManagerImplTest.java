@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.transfer.transfer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
@@ -79,6 +78,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -105,6 +105,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
@@ -142,8 +143,8 @@ class TransferProcessManagerImplTest {
     private final Vault vault = mock(Vault.class);
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
-    private final CommandQueue<TransferProcessCommand> commandQueue = mock(CommandQueue.class);
-    private final CommandRunner<TransferProcessCommand> commandRunner = mock(CommandRunner.class);
+    private final CommandQueue<TransferProcessCommand> commandQueue = mock();
+    private final CommandRunner<TransferProcessCommand> commandRunner = mock();
     private final ProtocolWebhook protocolWebhook = mock(ProtocolWebhook.class);
     private final DataAddressResolver addressResolver = mock(DataAddressResolver.class);
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
@@ -426,7 +427,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        var provisionResult = StatusResult.<ProvisionResponse>failure(ResponseStatus.FATAL_ERROR, "test error");
+        var provisionResult = StatusResult.<ProvisionResponse>failure(FATAL_ERROR, "test error");
 
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
@@ -488,7 +489,7 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_shouldSendMessageAndTransitionToRequested() {
         var process = createTransferProcess(REQUESTING);
-        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.dispatch(eq(Object.class), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
         when(vault.resolveSecret(any())).thenReturn(null);
@@ -497,7 +498,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-            verify(dispatcherRegistry).send(eq(Object.class), captor.capture());
+            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
             verify(transferProcessStore, times(1)).updateOrCreate(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
             var requestMessage = captor.getValue();
@@ -510,7 +511,7 @@ class TransferProcessManagerImplTest {
     void requesting_shouldAddSecretToDataAddress_whenItExists() {
         var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
         var process = createTransferProcessBuilder(REQUESTING).dataRequest(createDataRequestBuilder().dataDestination(destination).build()).build();
-        when(dispatcherRegistry.send(eq(Object.class), any())).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.dispatch(eq(Object.class), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
         when(vault.resolveSecret(any())).thenReturn("secret");
@@ -519,7 +520,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-            verify(dispatcherRegistry).send(eq(Object.class), captor.capture());
+            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
             verify(transferProcessStore, times(1)).updateOrCreate(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
             verify(vault).resolveSecret("keyName");
@@ -536,14 +537,14 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
-        when(dispatcherRegistry.send(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
         manager.start();
 
         await().untilAsserted(() -> {
             var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-            verify(dispatcherRegistry).send(any(), captor.capture());
+            verify(dispatcherRegistry).dispatch(any(), captor.capture());
             assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
             verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == STARTED.code()));
             verify(listener).started(eq(process), any());
@@ -569,7 +570,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR));
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
         manager.start();
 
@@ -699,12 +700,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(COMPLETING);
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
-        when(dispatcherRegistry.send(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferCompletionMessage.class));
+            verify(dispatcherRegistry).dispatch(any(), isA(TransferCompletionMessage.class));
             verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(argThat(p -> p.getState() == COMPLETED.code()));
             verify(listener).completed(process);
         });
@@ -715,12 +716,12 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-        when(dispatcherRegistry.send(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture("any"));
+        when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).send(any(), isA(TransferTerminationMessage.class));
+            verify(dispatcherRegistry).dispatch(any(), isA(TransferTerminationMessage.class));
             verify(transferProcessStore, times(RETRY_LIMIT)).updateOrCreate(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
@@ -826,7 +827,7 @@ class TransferProcessManagerImplTest {
                 .provisionedResourceSet(resourceSet)
                 .build();
 
-        var deprovisionResult = StatusResult.<DeprovisionedResource>failure(ResponseStatus.FATAL_ERROR, "test error");
+        var deprovisionResult = StatusResult.<DeprovisionedResource>failure(FATAL_ERROR, "test error");
 
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
@@ -894,17 +895,21 @@ class TransferProcessManagerImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(DispatchFailureArguments.class)
-    void dispatchFailure(TransferProcessStates starting, TransferProcessStates ending, UnaryOperator<TransferProcess.Builder> builderEnricher) {
+    void dispatchFailure(TransferProcessStates starting, TransferProcessStates ending, CompletableFuture<StatusResult<Object>> result, UnaryOperator<TransferProcess.Builder> builderEnricher) {
         var negotiation = builderEnricher.apply(createTransferProcessBuilder(starting).state(starting.code())).build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.send(any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(transferProcessStore.findById(negotiation.getId())).thenReturn(negotiation);
 
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == ending.code()));
-            verify(dispatcherRegistry, only()).send(any(), any());
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore).updateOrCreate(captor.capture());
+            assertThat(captor.getAllValues()).hasSize(1).first().satisfies(n -> {
+                assertThat(n.getState()).isEqualTo(ending.code());
+            });
+            verify(dispatcherRegistry, only()).dispatch(any(), any());
         });
     }
 
@@ -999,22 +1004,24 @@ class TransferProcessManagerImplTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(
                     // retries not exhausted
-                    new DispatchFailure(REQUESTING, REQUESTING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, STARTING, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, COMPLETING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATING, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(REQUESTING, REQUESTING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, STARTING, failedFuture(new EdcException("error")), b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, COMPLETING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(TERMINATING, TERMINATING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     // retries exhausted
-                    new DispatchFailure(REQUESTING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, TERMINATING, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(TERMINATING, TERMINATED, b -> b.stateCount(RETRIES_EXHAUSTED))
+                    new DispatchFailure(REQUESTING, TERMINATED, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, failedFuture(new EdcException("error")), b -> b.type(PROVIDER).stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, TERMINATING, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(TERMINATING, TERMINATED, failedFuture(new EdcException("error")), b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    // fatal error, in this case retry should never be done
+                    new DispatchFailure(REQUESTING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(TERMINATING, TERMINATED, completedFuture(StatusResult.failure(FATAL_ERROR)), b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
             );
         }
-
     }
 
-
-    @JsonTypeName("dataspaceconnector:testprovisioneddcontentresource")
     @JsonDeserialize(builder = TestProvisionedContentResource.Builder.class)
     private static class TestProvisionedContentResource extends ProvisionedContentResource {
 

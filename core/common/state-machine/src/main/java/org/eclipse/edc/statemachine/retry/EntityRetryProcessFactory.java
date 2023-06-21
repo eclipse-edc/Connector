@@ -54,8 +54,15 @@ public class EntityRetryProcessFactory {
     /**
      * Initialize an asynchronous process that needs to be retried if it does not succeed
      */
-    public <T extends StatefulEntity<T>, C> CompletableFutureRetryProcess<T, C> doAsyncProcess(T entity, Supplier<CompletableFuture<C>> process) {
-        return new CompletableFutureRetryProcess<>(entity, process, monitor, clock, configuration);
+    public <T extends StatefulEntity<T>, C, SELF extends CompletableFutureRetryProcess<T, C, SELF>> SELF doAsyncProcess(T entity, Supplier<CompletableFuture<C>> process) {
+        return (SELF) new CompletableFutureRetryProcess<T, C, SELF>(entity, process, monitor, clock, configuration);
+    }
+
+    /**
+     * Initialize an asynchronous process that will return a {@link StatusResult} and it will need to be handled
+     */
+    public <T extends StatefulEntity<T>, C, SELF extends AsyncStatusResultRetryProcess<T, C, SELF>> SELF doAsyncStatusResultProcess(T entity, Supplier<CompletableFuture<StatusResult<C>>> process) {
+        return (SELF) new AsyncStatusResultRetryProcess<T, C, SELF>(entity, process, monitor, clock, configuration);
     }
 
 }

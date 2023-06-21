@@ -47,6 +47,12 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
         var result = process.get();
 
+        handleResult(entity, description, result);
+
+        return true;
+    }
+
+    public void handleResult(E entity, String description, StatusResult<C> result) {
         if (result.succeeded()) {
             if (onSuccessHandler != null) {
                 onSuccessHandler.accept(entity, result.getContent());
@@ -86,8 +92,6 @@ public class StatusResultRetryProcess<E extends StatefulEntity<E>, C> extends Re
                 }
             }
         }
-
-        return true;
     }
 
     public StatusResultRetryProcess<E, C> onSuccess(BiConsumer<E, C> onSuccessHandler) {

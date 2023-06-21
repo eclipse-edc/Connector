@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.spi.catalog;
 
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -28,5 +29,5 @@ public interface CatalogService {
      * @param querySpec the {@link QuerySpec} object.
      * @return the provider's catalog
      */
-    CompletableFuture<byte[]> request(String providerUrl, String protocol, QuerySpec querySpec);
+    CompletableFuture<StatusResult<byte[]>> request(String providerUrl, String protocol, QuerySpec querySpec);
 }

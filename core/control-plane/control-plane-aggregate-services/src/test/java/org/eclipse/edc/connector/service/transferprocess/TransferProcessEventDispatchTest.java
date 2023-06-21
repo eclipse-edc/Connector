@@ -45,17 +45,18 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static java.util.UUID.randomUUID;
-import static java.util.concurrent.CompletableFuture.failedFuture;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
@@ -97,11 +98,8 @@ public class TransferProcessEventDispatchTest {
                                                            RemoteMessageDispatcherRegistry dispatcherRegistry,
                                                            StatusCheckerRegistry statusCheckerRegistry,
                                                            PolicyArchive policyArchive) {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
+        dispatcherRegistry.register(getTestDispatcher());
         when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
-        dispatcherRegistry.register(testDispatcher);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var statusCheck = mock(StatusChecker.class);
 
@@ -167,10 +165,7 @@ public class TransferProcessEventDispatchTest {
 
     @Test
     void shouldTerminateOnInvalidPolicy(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
-        dispatcherRegistry.register(testDispatcher);
+        dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
@@ -197,10 +192,7 @@ public class TransferProcessEventDispatchTest {
 
     @Test
     void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(CompletableFuture.completedFuture("any"));
-        dispatcherRegistry.register(testDispatcher);
+        dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
@@ -225,10 +217,7 @@ public class TransferProcessEventDispatchTest {
 
     @Test
     void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.send(any(), any())).thenReturn(failedFuture(new RuntimeException("an error")));
-        dispatcherRegistry.register(testDispatcher);
+        dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var dataRequest = DataRequest.Builder.newInstance()
@@ -247,6 +236,14 @@ public class TransferProcessEventDispatchTest {
         service.initiateTransfer(transferRequest);
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
+    }
+
+    @NotNull
+    private static RemoteMessageDispatcher getTestDispatcher() {
+        var testDispatcher = mock(RemoteMessageDispatcher.class);
+        when(testDispatcher.protocol()).thenReturn("test");
+        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        return testDispatcher;
     }
 
 }

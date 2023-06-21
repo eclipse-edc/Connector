@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -62,7 +63,6 @@ public class CallbackEventDispatcherTest {
         dispatcher.on(envelope(event));
 
         verifyNoInteractions(registry);
-
     }
 
     @Test
@@ -78,14 +78,14 @@ public class CallbackEventDispatcherTest {
                 .build());
 
         when(callbackRegistry.resolve(event.name())).thenReturn(callbacks);
-        when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(registry.dispatch(any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("any")));
 
         dispatcher.on(envelope(event));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
 
-        verify(registry).send(any(), captor.capture());
+        verify(registry).dispatch(any(), captor.capture());
 
         assertThat(captor.getValue().getEventEnvelope().getPayload())
                 .usingRecursiveComparison()
@@ -98,7 +98,7 @@ public class CallbackEventDispatcherTest {
         dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, true, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
-        when(registry.send(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Test")));
+        when(registry.dispatch(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Test")));
 
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("local://test")
@@ -121,7 +121,7 @@ public class CallbackEventDispatcherTest {
     void verifyShouldDispatchWithSameTransactionalConfiguration(boolean transactional) {
 
         when(resolverRegistry.resolve("local")).thenReturn("local");
-        when(registry.send(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(registry.dispatch(any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("any")));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
@@ -142,7 +142,7 @@ public class CallbackEventDispatcherTest {
 
         dispatcher.on(envelope(event));
 
-        verify(registry).send(any(), captor.capture());
+        verify(registry).dispatch(any(), captor.capture());
 
         assertThat(captor.getValue().getEventEnvelope().getPayload().getCallbackAddresses())
                 .usingRecursiveFieldByFieldElementComparator()

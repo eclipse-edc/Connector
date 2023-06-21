@@ -28,13 +28,14 @@ import static java.lang.String.format;
 /**
  * Provides retry capabilities to an asynchronous process that returns a {@link CompletableFuture} object
  */
-public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C> extends RetryProcess<E, CompletableFutureRetryProcess<E, C>> {
+public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C, SELF extends CompletableFutureRetryProcess<E, C, SELF>>
+        extends RetryProcess<E, CompletableFutureRetryProcess<E, C, SELF>> {
     private final Supplier<CompletableFuture<C>> process;
     private final Monitor monitor;
     private Function<String, E> entityRetrieve;
-    private BiConsumer<E, C> onSuccessHandler;
-    private BiConsumer<E, Throwable> onFailureHandler;
-    private BiConsumer<E, Throwable> onRetryExhausted;
+    protected BiConsumer<E, C> onSuccessHandler;
+    protected BiConsumer<E, Throwable> onFailureHandler;
+    protected BiConsumer<E, Throwable> onRetryExhausted;
 
     public CompletableFutureRetryProcess(E entity, Supplier<CompletableFuture<C>> process, Monitor monitor, Clock clock, EntityRetryProcessConfiguration configuration) {
         super(entity, configuration, monitor, clock);
@@ -79,23 +80,23 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C> exten
         return true;
     }
 
-    public CompletableFutureRetryProcess<E, C> onSuccess(BiConsumer<E, C> onSuccessHandler) {
+    public SELF onSuccess(BiConsumer<E, C> onSuccessHandler) {
         this.onSuccessHandler = onSuccessHandler;
-        return this;
+        return (SELF) this;
     }
 
-    public CompletableFutureRetryProcess<E, C> onFailure(BiConsumer<E, Throwable> onFailureHandler) {
+    public SELF onFailure(BiConsumer<E, Throwable> onFailureHandler) {
         this.onFailureHandler = onFailureHandler;
-        return this;
+        return (SELF) this;
     }
 
-    public CompletableFutureRetryProcess<E, C> entityRetrieve(Function<String, E> entityRetrieve) {
+    public SELF entityRetrieve(Function<String, E> entityRetrieve) {
         this.entityRetrieve = entityRetrieve;
-        return this;
+        return (SELF) this;
     }
 
-    public CompletableFutureRetryProcess<E, C> onRetryExhausted(BiConsumer<E, Throwable> onRetryExhausted) {
+    public SELF onRetryExhausted(BiConsumer<E, Throwable> onRetryExhausted) {
         this.onRetryExhausted = onRetryExhausted;
-        return this;
+        return (SELF) this;
     }
 }

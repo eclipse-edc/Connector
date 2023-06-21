@@ -16,8 +16,10 @@ package org.eclipse.edc.connector.transfer.transfer;
 
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.params.provider.Arguments;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
 
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
@@ -27,20 +29,22 @@ public class DispatchFailure implements Arguments {
 
     private final TransferProcessStates starting;
     private final TransferProcessStates ending;
+    private final CompletableFuture<StatusResult<Object>> result;
     private final UnaryOperator<TransferProcess.Builder> builderEnricher;
 
     public DispatchFailure() {
-        this(INITIAL, INITIAL, it -> it);
+        this(INITIAL, INITIAL, CompletableFuture.failedFuture(new RuntimeException("any")), it -> it);
     }
 
-    public DispatchFailure(TransferProcessStates starting, TransferProcessStates ending, UnaryOperator<TransferProcess.Builder> builderEnricher) {
+    public DispatchFailure(TransferProcessStates starting, TransferProcessStates ending, CompletableFuture<StatusResult<Object>> result, UnaryOperator<TransferProcess.Builder> builderEnricher) {
         this.starting = starting;
         this.ending = ending;
+        this.result = result;
         this.builderEnricher = builderEnricher;
     }
 
     @Override
     public Object[] get() {
-        return new Object[]{ starting, ending, builderEnricher };
+        return new Object[]{ starting, ending, result, builderEnricher };
     }
 }

@@ -62,7 +62,7 @@ public class CallbackEventDispatcher implements EventSubscriber {
                 try {
                     var protocol = resolverRegistry.resolve(URI.create(callback.getUri()).getScheme());
                     if (protocol != null) {
-                        dispatcher.send(Object.class, new CallbackEventRemoteMessage<>(callback, eventEnvelope, protocol)).get();
+                        dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, eventEnvelope, protocol)).get();
                     } else {
                         monitor.warning(format("Failed to resolve protocol for URI %s", callback.getUri()));
                     }
