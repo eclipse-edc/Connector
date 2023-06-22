@@ -61,6 +61,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -312,6 +313,51 @@ class ContractNegotiationProtocolServiceImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         verify(store, never()).save(any());
         verifyNoInteractions(listener);
+    }
+    
+    @Test
+    void findById_shouldReturnNegotiation_whenValidCounterParty() {
+        var id = "negotiationId";
+        var token = ClaimToken.Builder.newInstance().build();
+        var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).state(VERIFIED.code()).build();
+        
+        when(store.findById(id)).thenReturn(negotiation);
+        when(validationService.validateRequest(token, negotiation)).thenReturn(Result.success());
+        
+        var result = service.findById(id, token);
+        
+        assertThat(result)
+                .isSucceeded()
+                .isEqualTo(negotiation);
+    }
+    
+    @Test
+    void findById_shouldReturnNotFound_whenNegotiationNotFound() {
+        when(store.findById(any())).thenReturn(null);
+    
+        var result = service.findById("invalidId", ClaimToken.Builder.newInstance().build());
+        
+        assertThat(result)
+                .isFailed()
+                .extracting(ServiceFailure::getReason)
+                .isEqualTo(NOT_FOUND);
+    }
+    
+    @Test
+    void findById_shouldReturnNotFound_whenCounterPartyUnauthorized() {
+        var id = "negotiationId";
+        var token = ClaimToken.Builder.newInstance().build();
+        var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).state(VERIFIED.code()).build();
+    
+        when(store.findById(id)).thenReturn(negotiation);
+        when(validationService.validateRequest(token, negotiation)).thenReturn(Result.failure("validation error"));
+    
+        var result = service.findById(id, token);
+        
+        assertThat(result)
+                .isFailed()
+                .extracting(ServiceFailure::getReason)
+                .isEqualTo(NOT_FOUND);
     }
 
     @ParameterizedTest

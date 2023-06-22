@@ -35,6 +35,7 @@ import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -142,6 +143,15 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                     observable.invokeForEach(l -> l.terminated(negotiation));
                 }));
     }
+    
+    @Override
+    @WithSpan
+    @NotNull
+    public ServiceResult<ContractNegotiation> findById(String id, ClaimToken claimToken) {
+        return transactionContext.execute(() -> Optional.ofNullable(store.findById(id))
+                .map(negotiation -> validateGetRequest(claimToken, id, negotiation))
+                .orElse(ServiceResult.notFound(format("No negotiation with id %s found", id))));
+    }
 
     @NotNull
     private ServiceResult<ContractNegotiation> createNegotiation(ContractRequestMessage message, ValidatedConsumerOffer validatedOffer) {
@@ -190,6 +200,17 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         var result = validationService.validateRequest(claimToken, negotiation);
         if (result.failed()) {
             return ServiceResult.badRequest("Invalid client credentials: " + result.getFailureDetail());
+        } else {
+            return ServiceResult.success(negotiation);
+        }
+    }
+    
+    @NotNull
+    private ServiceResult<ContractNegotiation> validateGetRequest(ClaimToken claimToken, String id, ContractNegotiation negotiation) {
+        var result = validationService.validateRequest(claimToken, negotiation);
+        if (result.failed()) {
+            // should return not found if counter-party not authorized
+            return ServiceResult.notFound(format("No negotiation with id %s found", id));
         } else {
             return ServiceResult.success(negotiation);
         }
