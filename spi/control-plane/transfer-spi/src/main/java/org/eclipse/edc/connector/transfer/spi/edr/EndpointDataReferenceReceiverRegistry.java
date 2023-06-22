@@ -15,11 +15,7 @@
 package org.eclipse.edc.connector.transfer.spi.edr;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Registry for {@link EndpointDataReferenceReceiver}.
@@ -30,10 +26,4 @@ public interface EndpointDataReferenceReceiverRegistry {
      * Adds a new {@link EndpointDataReferenceReceiver} into the registry.
      */
     void registerReceiver(@NotNull EndpointDataReferenceReceiver receiver);
-
-    /**
-     * Apply all {@link EndpointDataReferenceReceiver} to the provided {@link EndpointDataReference}.
-     */
-    @NotNull
-    CompletableFuture<Result<Void>> receiveAll(@NotNull EndpointDataReference edr);
 }

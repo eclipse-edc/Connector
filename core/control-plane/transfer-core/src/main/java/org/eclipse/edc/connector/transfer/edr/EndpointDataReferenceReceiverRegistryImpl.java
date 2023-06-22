@@ -51,18 +51,13 @@ public class EndpointDataReferenceReceiverRegistryImpl implements EndpointDataRe
     }
 
     @Override
-    public @NotNull CompletableFuture<Result<Void>> receiveAll(@NotNull EndpointDataReference edr) {
-        return sendEdr(edr);
-    }
-
-    @Override
     public <E extends Event> void on(EventEnvelope<E> event) {
         if (event.getPayload() instanceof TransferProcessStarted) {
             var msg = (TransferProcessStarted) event.getPayload();
             if (msg.getDataAddress() != null) {
                 var edr = typeTransformerRegistry.transform(msg.getDataAddress(), EndpointDataReference.class)
                         .orElseThrow(failure -> new EdcException(format("Failed to send EDR for transfer process %s with error %s", msg.getTransferProcessId(), failure.getFailureDetail())));
-                
+
                 sendEdr(edr).join().orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
             }
         }
