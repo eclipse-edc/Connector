@@ -87,7 +87,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-public class DspNegotiationApiControllerTest extends RestControllerTestBase {
+class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     private final IdentityService identityService = mock(IdentityService.class);
     private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
@@ -182,24 +182,49 @@ public class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void getNegotiation_shouldReturnNotImplemented_whenOperationNotSupported() {
+    void getNegotiation_shouldReturnNegotiation_whenValidRequest() {
         var token = token();
+        var id = "negotiationId";
+        var negotiation = contractNegotiation();
+        var json = Json.createObjectBuilder().build();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-
-        //operation not yet supported
+        when(protocolService.findById(id, token)).thenReturn(ServiceResult.success(negotiation));
+        when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
+        
         var result = baseRequest()
-                .get(BASE_PATH + "testId")
+                .get(BASE_PATH + id)
                 .then()
                 .contentType(MediaType.APPLICATION_JSON)
-                .statusCode(501)
+                .statusCode(200)
                 .extract().as(JsonObject.class);
 
         assertThat(result).isNotNull();
+        verify(protocolService, times(1)).findById(id, token);
+    }
+    
+    @Test
+    void getNegotiation_shouldReturnNotFound_whenServiceResultNotFound() {
+        var token = token();
+        var id = "negotiationId";
+        
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
+        when(protocolService.findById(id, token)).thenReturn(ServiceResult.notFound("not found"));
+        
+        var result = baseRequest()
+                .get(BASE_PATH + id)
+                .then()
+                .contentType(MediaType.APPLICATION_JSON)
+                .statusCode(404)
+                .extract().as(JsonObject.class);
+        
+        assertThat(result).isNotNull();
         assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
-        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
+        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("404");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
+        
+        verify(protocolService, times(1)).findById(id, token);
     }
 
     @Test

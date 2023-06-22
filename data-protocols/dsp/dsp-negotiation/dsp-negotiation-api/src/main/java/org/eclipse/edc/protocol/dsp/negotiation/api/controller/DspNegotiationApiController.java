@@ -106,9 +106,14 @@ public class DspNegotiationApiController {
     @GET
     @Path("{id}")
     public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        return error()
-                .processId(id)
-                .notImplemented();
+        var claimTokenResult = checkAndReturnAuthToken(token);
+        if (claimTokenResult.failed()) {
+            return error().processId(id).unauthorized();
+        }
+        
+        return protocolService.findById(id, claimTokenResult.getContent())
+                .map(this::createNegotiationResponse)
+                .orElse(createErrorResponse(id));
     }
 
     /**
@@ -133,20 +138,8 @@ public class DspNegotiationApiController {
             return error()
                     .from(negotiationResult.getFailure());
         }
-
-        var negotiation = negotiationResult.getContent();
-        return transformerRegistry.transform(negotiation, JsonObject.class)
-                .map(transformedJson -> Response.ok().type(MediaType.APPLICATION_JSON).entity(transformedJson).build())
-                .orElse(failure -> {
-                    var errorCode = UUID.randomUUID();
-                    monitor.warning(String.format("Error transforming negotiation, error id %s: %s", errorCode, failure.getFailureDetail()));
-                    var processId = negotiation.getCorrelationId();
-                    return error()
-                            .processId(processId)
-                            .message(String.format("Error code %s", errorCode))
-                            .internalServerError();
-                });
-
+    
+        return createNegotiationResponse(negotiationResult.getContent());
     }
 
     /**
@@ -333,6 +326,20 @@ public class DspNegotiationApiController {
             return Result.success(actual);
         }
         return Objects.equals(expected, actual.getProcessId()) ? Result.success(actual) : Result.failure(format("Invalid process ID. Expected: %s, actual: %s", expected, actual));
+    }
+    
+    private Response createNegotiationResponse(ContractNegotiation negotiation) {
+        return transformerRegistry.transform(negotiation, JsonObject.class)
+                .map(transformedJson -> Response.ok().type(MediaType.APPLICATION_JSON).entity(transformedJson).build())
+                .orElse(failure -> {
+                    var errorCode = UUID.randomUUID();
+                    monitor.warning(String.format("Error transforming negotiation, error id %s: %s", errorCode, failure.getFailureDetail()));
+                    var processId = negotiation.getCorrelationId();
+                    return error()
+                            .processId(processId)
+                            .message(String.format("Error code %s", errorCode))
+                            .internalServerError();
+                });
     }
 
     @NotNull
