@@ -149,7 +149,8 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @NotNull
     public ServiceResult<ContractNegotiation> findById(String id, ClaimToken claimToken) {
         return transactionContext.execute(() -> Optional.ofNullable(store.findById(id))
-                .map(negotiation -> validateGetRequest(claimToken, id, negotiation))
+                .map(negotiation -> validateGetRequest(claimToken, negotiation))
+                .map(ServiceResult::success)
                 .orElse(ServiceResult.notFound(format("No negotiation with id %s found", id))));
     }
 
@@ -205,14 +206,12 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         }
     }
     
-    @NotNull
-    private ServiceResult<ContractNegotiation> validateGetRequest(ClaimToken claimToken, String id, ContractNegotiation negotiation) {
+    private ContractNegotiation validateGetRequest(ClaimToken claimToken, ContractNegotiation negotiation) {
         var result = validationService.validateRequest(claimToken, negotiation);
         if (result.failed()) {
-            // should return not found if counter-party not authorized
-            return ServiceResult.notFound(format("No negotiation with id %s found", id));
+            return null;
         } else {
-            return ServiceResult.success(negotiation);
+            return negotiation;
         }
     }
 
