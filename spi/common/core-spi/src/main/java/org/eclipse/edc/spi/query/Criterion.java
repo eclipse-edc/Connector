@@ -87,7 +87,7 @@ public class Criterion {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Criterion criterion = (Criterion) o;
+        var criterion = (Criterion) o;
         return Objects.equals(operandLeft, criterion.operandLeft) && Objects.equals(operator, criterion.operator) && Objects.equals(operandRight, criterion.operandRight);
     }
 
