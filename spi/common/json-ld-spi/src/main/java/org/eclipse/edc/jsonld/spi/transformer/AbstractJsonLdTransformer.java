@@ -38,14 +38,12 @@ import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static jakarta.json.JsonValue.ValueType.FALSE;
 import static jakarta.json.JsonValue.ValueType.NUMBER;
 import static jakarta.json.JsonValue.ValueType.OBJECT;
-import static jakarta.json.JsonValue.ValueType.STRING;
 import static jakarta.json.JsonValue.ValueType.TRUE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.KEYWORDS;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
 /**
@@ -206,8 +204,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
 
     @Nullable
     protected Object transformGenericProperty(JsonValue value, TransformerContext context) {
-        if (value instanceof JsonArray) {
-            var jsonArray = (JsonArray) value;
+        if (value instanceof JsonArray jsonArray) {
             if (jsonArray.size() == 1) {
                 // unwrap array
                 return context.transform(jsonArray.get(0), Object.class);
@@ -352,8 +349,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param <T>            the desired result type
      */
     protected <T> void transformArrayOrObject(JsonValue value, Class<T> type, Consumer<T> resultFunction, TransformerContext context) {
-        if (value instanceof JsonArray) {
-            var jsonArray = (JsonArray) value;
+        if (value instanceof JsonArray jsonArray) {
             jsonArray.stream().map(entry -> context.transform(entry, type)).forEach(resultFunction);
         } else if (value instanceof JsonObject) {
             var result = context.transform(value, type);
@@ -463,71 +459,6 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             var value = object.asJsonObject().get(VALUE);
             return value instanceof JsonString ? ((JsonString) value).getString() : null;
         }
-    }
-
-    /**
-     * Returns the {@code @value} of the JSON object.
-     */
-    protected String nodeValue(JsonValue value, TransformerContext context) {
-        if (value instanceof JsonString) {
-            var jsonString = (JsonString) value;
-            return jsonString.getString();
-        } else if (value instanceof JsonObject) {
-            var object = (JsonObject) value;
-            return object.getString(VALUE);
-        } else if (value instanceof JsonArray) {
-            var array = (JsonArray) value;
-            return nodeValue(array.get(0), context);
-        } else {
-            context.problem()
-                    .invalidProperty()
-                    .property(VALUE)
-                    .value(value != null ? value.toString() : null)
-                    .report();
-            return null;
-        }
-    }
-
-    /**
-     * Returns the {@code @type} of the JSON object. If more than one type is specified, this method will return the first.
-     */
-    protected String nodeType(JsonObject object, TransformerContext context) {
-        var typeNode = object.get(TYPE);
-        if (typeNode == null) {
-            context.problem()
-                    .missingProperty()
-                    .property(TYPE)
-                    .report();
-            return null;
-        }
-
-        if (typeNode instanceof JsonString) {
-            return ((JsonString) typeNode).getString();
-        } else if (typeNode instanceof JsonArray) {
-            var array = (JsonArray) typeNode;
-            if (array.isEmpty()) {
-                return null;
-            }
-            var typeValue = array.get(0); // a note can have more than one type, take the first
-            if (!(typeValue instanceof JsonString)) {
-                var problem = context.problem().unexpectedType().property(TYPE).expected(STRING);
-                if (typeValue != null) {
-                    problem.actual(typeValue.getValueType());
-                }
-                problem.report();
-                return null;
-            }
-            return ((JsonString) typeValue).getString();
-        }
-
-        context.problem()
-                .unexpectedType()
-                .property(TYPE)
-                .actual(typeNode.getValueType())
-                .expected(STRING)
-                .expected(ARRAY)
-                .report();
-        return null;
     }
 
     /**
