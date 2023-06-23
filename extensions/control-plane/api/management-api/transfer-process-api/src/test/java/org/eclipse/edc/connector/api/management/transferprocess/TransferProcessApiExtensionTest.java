@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.asset;
+package org.eclipse.edc.connector.api.management.transferprocess;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -21,16 +21,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_TYPE;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class AssetApiExtensionTest {
+class TransferProcessApiExtensionTest {
 
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
 
@@ -40,11 +39,10 @@ class AssetApiExtensionTest {
     }
 
     @Test
-    void initialize_shouldRegisterValidators(AssetApiExtension extension, ServiceExtensionContext context) {
+    void initialize_shouldRegisterValidators(TransferProcessApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(EDC_ASSET_TYPE), any());
-        verify(validatorRegistry).register(eq(EDC_ASSET_ENTRY_DTO_TYPE), any());
-        verify(validatorRegistry).register(eq(EDC_DATA_ADDRESS_TYPE), any());
+        verify(validatorRegistry).register(eq(EDC_TRANSFER_REQUEST_DTO_TYPE), any());
+        verify(validatorRegistry).register(eq(EDC_TERMINATE_TRANSFER_TYPE), any());
     }
 }

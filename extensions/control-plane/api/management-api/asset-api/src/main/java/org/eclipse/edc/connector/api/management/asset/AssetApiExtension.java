@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.connector.api.management.asset;
 
+import org.eclipse.edc.api.validation.DataAddressDtoValidator;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetRequestDtoToAssetTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetToAssetResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetUpdateRequestWrapperDtoToAssetTransformer;
@@ -33,6 +34,7 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_TYPE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 
 @Extension(value = AssetApiExtension.NAME)
@@ -74,6 +76,7 @@ public class AssetApiExtension implements ServiceExtension {
 
         validator.register(EDC_ASSET_ENTRY_DTO_TYPE, AssetEntryDtoValidator.assetEntryValidator());
         validator.register(EDC_ASSET_TYPE, AssetEntryDtoValidator.assetValidator());
+        validator.register(EDC_DATA_ADDRESS_TYPE, DataAddressDtoValidator.instance());
 
         webService.registerResource(config.getContextAlias(), new AssetApiController(assetService, dataAddressResolver, transformerRegistry, monitor, validator));
     }

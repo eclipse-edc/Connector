@@ -364,8 +364,6 @@ components:
             type: object
             example: null
           example: null
-      required:
-      - properties
     CriterionDto:
       type: object
       example: null
@@ -414,8 +412,6 @@ components:
             type: string
             example: null
           example: null
-      required:
-      - properties
     IdResponseDto:
       type: object
       example: null

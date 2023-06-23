@@ -222,6 +222,7 @@ public class Participant {
                 .add("protocol", "dataspace-protocol-http")
                 .add("assetId", assetId)
                 .add("contractId", contractId)
+                .add("connectorId", provider.participantId)
                 .add("connectorAddress", provider.protocolEndpoint + PROTOCOL_PATH)
                 .add("privateProperties", privateProperties)
                 .build();
@@ -233,6 +234,7 @@ public class Participant {
                 .when()
                 .post("/v2/transferprocesses")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .extract().body().jsonPath().getString(ID);
     }

@@ -24,6 +24,8 @@ import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonOb
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTransferRequestDtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.TransferProcessToTransferProcessDtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.TransferRequestDtoToTransferRequestTransformer;
+import org.eclipse.edc.connector.api.management.transferprocess.validation.TerminateTransferDtoValidator;
+import org.eclipse.edc.connector.api.management.transferprocess.validation.TransferRequestDtoValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -31,14 +33,19 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import static java.util.Collections.emptyMap;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = TransferProcessApiExtension.NAME)
 public class TransferProcessApiExtension implements ServiceExtension {
+
     public static final String NAME = "Management API: Transfer Process";
+
     @Inject
     private WebService webService;
 
@@ -53,6 +60,9 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Inject
+    private JsonObjectValidatorRegistry validatorRegistry;
 
     @Override
     public String name() {
@@ -75,7 +85,10 @@ public class TransferProcessApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToTerminateTransferDtoTransformer());
         transformerRegistry.register(new JsonObjectToTransferRequestDtoTransformer());
 
-        var newController = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry);
+        validatorRegistry.register(EDC_TRANSFER_REQUEST_DTO_TYPE, TransferRequestDtoValidator.instance());
+        validatorRegistry.register(EDC_TERMINATE_TRANSFER_TYPE, TerminateTransferDtoValidator.instance());
+
+        var newController = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry, validatorRegistry);
         webService.registerResource(configuration.getContextAlias(), newController);
     }
 }

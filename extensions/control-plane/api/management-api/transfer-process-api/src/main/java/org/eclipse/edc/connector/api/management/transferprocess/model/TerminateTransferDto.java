@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.transferprocess.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotEmpty;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -25,7 +24,6 @@ public class TerminateTransferDto {
     public static final String EDC_TERMINATE_TRANSFER_TYPE = EDC_NAMESPACE + "TerminateTransfer";
     public static final String EDC_TERMINATE_TRANSFER_REASON = EDC_NAMESPACE + "reason";
 
-    @NotEmpty(message = "transfer process termination reason cannot be null nor empty")
     private String reason;
 
     private TerminateTransferDto() {

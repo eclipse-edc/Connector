@@ -15,14 +15,11 @@
 package org.eclipse.edc.connector.api.management.asset.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.AssertTrue;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 
@@ -33,27 +30,6 @@ public class AssetCreationRequestDto extends AssetRequestDto {
     private String id;
 
     private AssetCreationRequestDto() {
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "no empty property keys and no duplicate keys")
-    public boolean isValid() {
-        return mapKeysValid();
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "no duplicate keys in properties and private properties")
-    public boolean isDistinctKeysValid() {
-        return checkDistinctKeys();
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "id must be either null or not blank")
-    public boolean isIdValid() {
-        return Optional.of(this)
-                .map(it -> it.id)
-                .map(it -> !id.isBlank())
-                .orElse(true);
     }
 
     public Map<String, Object> getProperties() {

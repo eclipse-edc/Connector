@@ -28,7 +28,6 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateT
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
@@ -37,15 +36,19 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
@@ -57,26 +60,34 @@ public class TransferProcessApiController implements TransferProcessApi {
     private final Monitor monitor;
     private final TransferProcessService service;
     private final TypeTransformerRegistry transformerRegistry;
+    private final JsonObjectValidatorRegistry validatorRegistry;
 
-    public TransferProcessApiController(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry) {
+    public TransferProcessApiController(Monitor monitor, TransferProcessService service,
+                                        TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry) {
         this.monitor = monitor;
         this.service = service;
         this.transformerRegistry = transformerRegistry;
+        this.validatorRegistry = validatorRegistry;
     }
 
     @POST
     @Path("request")
     @Override
     public JsonArray queryTransferProcesses(JsonObject querySpecDto) {
-        var querySpec = ofNullable(querySpecDto)
-                .map(jsonObject -> transformerRegistry.transform(jsonObject, QuerySpecDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class)))
-                .orElse(Result.success(QuerySpec.none()))
-                .orElseThrow(InvalidRequestException::new);
+        QuerySpec querySpec;
+        if (querySpecDto == null) {
+            querySpec = QuerySpec.none();
+        } else {
+            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecDto).orElseThrow(ValidationFailureException::new);
 
-        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
+            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
+                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+                    .orElseThrow(InvalidRequestException::new);
+        }
+
+        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(TransferProcess.class))) {
             return stream
-                    .map(policyDefinition -> transformerRegistry.transform(policyDefinition, TransferProcessDto.class)
+                    .map(transferProcess -> transformerRegistry.transform(transferProcess, TransferProcessDto.class)
                             .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
                             .onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
@@ -91,13 +102,13 @@ public class TransferProcessApiController implements TransferProcessApi {
     public JsonObject getTransferProcess(@PathParam("id") String id) {
         var definition = service.findById(id);
         if (definition == null) {
-            throw new ObjectNotFoundException(PolicyDefinition.class, id);
+            throw new ObjectNotFoundException(TransferProcess.class, id);
         }
 
         return transformerRegistry.transform(definition, TransferProcessDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
                 .onFailure(f -> monitor.warning(f.getFailureDetail()))
-                .orElseThrow(failure -> new ObjectNotFoundException(PolicyDefinition.class, id));
+                .orElseThrow(failure -> new ObjectNotFoundException(TransferProcess.class, id));
     }
 
     @GET
@@ -116,6 +127,8 @@ public class TransferProcessApiController implements TransferProcessApi {
     @POST
     @Override
     public JsonObject initiateTransferProcess(JsonObject request) {
+        validatorRegistry.validate(EDC_TRANSFER_REQUEST_DTO_TYPE, request).orElseThrow(ValidationFailureException::new);
+
         var transferRequest = transformerRegistry.transform(request, TransferRequestDto.class)
                 .compose(dto -> transformerRegistry.transform(dto, TransferRequest.class))
                 .orElseThrow(InvalidRequestException::new);
@@ -146,6 +159,8 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Path("/{id}/terminate")
     @Override
     public void terminateTransferProcess(@PathParam("id") String id, JsonObject requestBody) {
+        validatorRegistry.validate(EDC_TERMINATE_TRANSFER_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
+
         var dto = transformerRegistry.transform(requestBody, TerminateTransferDto.class)
                 .orElseThrow(InvalidRequestException::new);
 

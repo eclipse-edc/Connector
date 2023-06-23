@@ -327,8 +327,6 @@ components:
             type: string
             example: null
           example: null
-      required:
-      - properties
     DataRequestDto:
       type: object
       example: null
@@ -456,8 +454,6 @@ components:
         reason:
           type: string
           example: null
-      required:
-      - reason
     TransferProcessDto:
       type: object
       example: null
@@ -551,13 +547,6 @@ components:
         protocol:
           type: string
           example: null
-      required:
-      - assetId
-      - connectorAddress
-      - connectorId
-      - contractId
-      - dataDestination
-      - protocol
     TransferState:
       type: object
       example: null
