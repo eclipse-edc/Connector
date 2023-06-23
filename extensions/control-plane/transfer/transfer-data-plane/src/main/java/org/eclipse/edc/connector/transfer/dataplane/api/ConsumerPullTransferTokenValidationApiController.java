@@ -22,12 +22,13 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 
 @Path("/token")
@@ -53,16 +54,21 @@ public class ConsumerPullTransferTokenValidationApiController implements Consume
     @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public DataAddress validate(@HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
-        var result = service.validate(token);
-        if (result.failed()) {
-            throw new NotAuthorizedException("Token validation failed: " + join(", ", result.getFailureMessages()));
-        }
+        return service.validate(token)
+                .map(this::extractDataAddressClaim)
+                .map(this::toDataAddress)
+                .orElseThrow(failure -> new NotAuthorizedException("Token validation failed: " + failure.getFailureDetail()));
+    }
 
-        var obj = result.getContent().getClaim(DATA_ADDRESS);
-        if (!(obj instanceof String)) {
-            throw new IllegalArgumentException(format("Missing claim `%s` in token", DATA_ADDRESS));
+    String extractDataAddressClaim(ClaimToken claims) {
+        var claim = claims.getClaim(DATA_ADDRESS);
+        if (!(claim instanceof String)) {
+            throw new InvalidRequestException(format("Missing claim `%s` in token", DATA_ADDRESS));
         }
+        return (String) claim;
+    }
 
-        return typeManager.readValue(dataEncrypter.decrypt((String) obj), DataAddress.class);
+    private DataAddress toDataAddress(String claim) {
+        return typeManager.readValue(dataEncrypter.decrypt(claim), DataAddress.class);
     }
 }

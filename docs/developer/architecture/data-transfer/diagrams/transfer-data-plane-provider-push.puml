@@ -51,24 +51,28 @@ box "Provider ecosystem" #ProviderColor
 end box
 
 title
- **Data Plane Transfer - Provider Push**
+ **Transfer Data Plane - Provider Push**
 end title
 autonumber 1
 
 activate CCP
-CCP ->> PCP : initiate data transfer (see `TransferProcessApiController`)
+CCP ->> PCP : send data request with any destination type different from HttpProxy
 activate PCP
-PCP ->> PCP : create `DataFlowRequest`
-PCP ->> PDPS : ask for data plane instance
+PCP ->> PCP : create DataFlowRequest
+PCP ->> PDPS : resolve data plane instance
 activate PDPS
-return data plane instance
-PCP ->> PDP : send `DataFlowRequest`
+PDPS -->> PCP : data plane instance
+deactivate PDPS
+PCP ->> PDP : send DataFlowRequest
 activate PDP
-PDP ->> PDP : validate `DataFlowRequest`
-return acknowledge that request is valid
-PDP ->> PDP : create `DataSink`/`DataSource`\n based on `DataFlowRequest`
+PDP ->> PDP : validate DataFlowRequest
+PDP -->> PCP : acknowledge that request is valid
+deactivate PCP
+PDP ->> PDP : create DataSink/DataSource
 PDP ->> PBE : fetch data
 activate PBE
+PBE -->> PDP : data
+deactivate PBE
 PDP ->> CBE : transfer data
 activate CBE
 

@@ -18,6 +18,7 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:common:transform-spi"))
     implementation(project(":core:common:state-machine"))
     implementation(project(":core:common:util"))
     implementation(libs.opentelemetry.annotations)
