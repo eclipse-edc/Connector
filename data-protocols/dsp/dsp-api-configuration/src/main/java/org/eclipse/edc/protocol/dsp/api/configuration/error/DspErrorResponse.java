@@ -99,6 +99,7 @@ public class DspErrorResponse {
         return switch (failure.getReason()) {
             case UNAUTHORIZED -> Response.Status.UNAUTHORIZED;
             case CONFLICT -> Response.Status.CONFLICT;
+            case NOT_FOUND -> Response.Status.NOT_FOUND;
             default -> Response.Status.BAD_REQUEST;
         };
     }

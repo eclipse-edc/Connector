@@ -104,4 +104,15 @@ public interface ContractNegotiationProtocolService {
      */
     @NotNull
     ServiceResult<ContractNegotiation> notifyTerminated(ContractNegotiationTerminationMessage message, ClaimToken claimToken);
+    
+    /**
+     * Finds a contract negotiation that has been requested by the counter-part. An existing
+     * negotiation, for which the counter-part is not authorized, is treated as non-existent.
+     *
+     * @param id id of the negotiation
+     * @param claimToken the counter-party claim token
+     * @return a succeeded result containing the negotiation if it was found, a failed one otherwise
+     */
+    @NotNull
+    ServiceResult<ContractNegotiation> findById(String id, ClaimToken claimToken);
 }
