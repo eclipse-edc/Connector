@@ -26,7 +26,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.Builder;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSETID;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSET_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_POLICY;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_ID;
@@ -58,7 +58,7 @@ class JsonObjectFromContractAgreementDtoTransformerTest {
 
         var jobj = transformer.transform(agreement, context);
         assertThat(jobj).isNotNull();
-        assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_ASSETID)).extracting(JsonString::getString).isEqualTo("test-asset");
+        assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_ASSET_ID)).extracting(JsonString::getString).isEqualTo("test-asset");
         assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_PROVIDER_ID)).extracting(JsonString::getString).isEqualTo("test-provider");
         assertThat(jobj.getJsonString(CONTRACT_AGREEMENT_CONSUMER_ID)).extracting(JsonString::getString).isEqualTo("test-consumer");
         assertThat(jobj.getJsonObject(CONTRACT_AGREEMENT_POLICY)).isNotNull();

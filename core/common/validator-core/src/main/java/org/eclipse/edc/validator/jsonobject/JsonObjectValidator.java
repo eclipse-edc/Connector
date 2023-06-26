@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
+import org.eclipse.edc.validator.spi.Violation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,10 @@ public class JsonObjectValidator implements Validator<JsonObject> {
 
     @Override
     public ValidationResult validate(JsonObject input) {
+        if (input == null) {
+            return ValidationResult.failure(Violation.violation("input json is null", path.toString()));
+        }
+
         var violations = walker.extract(input, path)
                 .flatMap(target -> this.validators.stream().map(validator -> validator.validate(target)))
                 .filter(ValidationResult::failed)

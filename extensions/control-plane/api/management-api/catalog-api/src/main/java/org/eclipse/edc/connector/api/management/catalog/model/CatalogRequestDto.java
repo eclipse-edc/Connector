@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.catalog.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
 
@@ -27,7 +26,6 @@ import static java.util.Objects.requireNonNull;
 public class CatalogRequestDto extends BaseDto {
 
     private QuerySpecDto querySpec;
-    @NotNull
     private String providerUrl;
     private String protocol;
 

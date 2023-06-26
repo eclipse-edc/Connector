@@ -15,8 +15,6 @@
 package org.eclipse.edc.connector.api.management.contractagreement.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.policy.model.Policy;
 
@@ -33,17 +31,11 @@ public class ContractAgreementDto extends BaseDto {
     public static final String CONTRACT_AGREEMENT_POLICY = EDC_NAMESPACE + "policy";
 
     @JsonProperty(value = ID)
-    @NotNull(message = "id cannot be null")
     private String id;
-    @NotNull(message = "providerId cannot be null")
     private String providerId;
-    @NotNull(message = "consumerId cannot be null")
     private String consumerId;
-    @Positive(message = "contractSigningDate must be greater than 0")
     private long contractSigningDate;
-    @NotNull(message = "assetId Id cannot be null")
     private String assetId;
-    @NotNull(message = "policy cannot be null")
     private Policy policy;
 
     public String getId() {
@@ -66,7 +58,7 @@ public class ContractAgreementDto extends BaseDto {
         return assetId;
     }
 
-    public @NotNull Policy getPolicy() {
+    public Policy getPolicy() {
         return policy;
     }
 

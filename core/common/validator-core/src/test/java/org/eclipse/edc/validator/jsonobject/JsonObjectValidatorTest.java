@@ -18,11 +18,14 @@ import jakarta.json.JsonArrayBuilder;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
+import org.eclipse.edc.validator.spi.ValidationFailure;
+import org.eclipse.edc.validator.spi.Violation;
 import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -162,6 +165,19 @@ class JsonObjectValidatorTest {
                 assertThat(violation.path()).contains("arrayProperty/subProperty");
             });
         });
+    }
+
+    @Test
+    void shouldFail_whenInputIsNull() {
+        var result = JsonObjectValidator.newValidator().build()
+                .validate(null);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .hasSize(1)
+                .first().satisfies(violation -> {
+                    assertThat(violation.message()).contains("null");
+                    assertThat(violation.path()).isEmpty();
+                });
     }
 
     private JsonArrayBuilder value(String value) {

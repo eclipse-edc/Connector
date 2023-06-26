@@ -21,12 +21,12 @@ package org.eclipse.edc.validator.spi;
  * @param path the path in the object.
  * @param value the actual value.
  */
-public record Violation(String message, String path, String value) {
+public record Violation(String message, String path, Object value) {
     public static Violation violation(String message, String path) {
         return new Violation(message, path, null);
     }
 
-    public static Violation violation(String message, String path, String value) {
+    public static Violation violation(String message, String path, Object value) {
         return new Violation(message, path, value);
     }
 }

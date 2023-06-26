@@ -28,7 +28,7 @@ public class ApiErrorDetail {
     @JsonProperty
     private String path;
     @JsonProperty
-    private String invalidValue;
+    private Object invalidValue;
 
     private ApiErrorDetail() {
 
@@ -68,7 +68,7 @@ public class ApiErrorDetail {
      *
      * @return the invalid value
      */
-    public String getInvalidValue() {
+    public Object getInvalidValue() {
         return invalidValue;
     }
 
@@ -98,7 +98,7 @@ public class ApiErrorDetail {
             return this;
         }
 
-        public Builder value(String value) {
+        public Builder value(Object value) {
             apiError.invalidValue = value;
             return this;
         }

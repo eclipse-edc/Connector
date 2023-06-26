@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.api.management.contractdefinition.validation;
 
 import jakarta.json.JsonString;
+import org.eclipse.edc.api.validation.CriterionDtoValidator;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
@@ -23,8 +24,6 @@ import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ASSETS_SELECTOR;
 import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
@@ -38,10 +37,7 @@ public class ContractDefinitionRequestDtoValidator {
                 .verifyId(IdCannotContainColon::new)
                 .verify(CONTRACT_DEFINITION_ACCESSPOLICY_ID, MandatoryValue::new)
                 .verify(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, MandatoryValue::new)
-                .verifyArrayItem(CONTRACT_DEFINITION_ASSETS_SELECTOR, v -> v
-                        .verify(CRITERION_OPERAND_LEFT, MandatoryValue::new)
-                        .verify(CRITERION_OPERATOR, MandatoryValue::new)
-                )
+                .verifyArrayItem(CONTRACT_DEFINITION_ASSETS_SELECTOR, CriterionDtoValidator::instance)
                 .build();
     }
 

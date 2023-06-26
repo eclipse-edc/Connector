@@ -63,7 +63,7 @@ components:
       example: null
       properties:
         invalidValue:
-          type: string
+          type: object
           example: null
         message:
           type: string

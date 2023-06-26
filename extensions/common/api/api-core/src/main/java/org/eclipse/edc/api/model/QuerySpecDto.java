@@ -15,13 +15,8 @@
 package org.eclipse.edc.api.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.ws.rs.QueryParam;
 import org.eclipse.edc.spi.query.SortOrder;
 
 import java.util.ArrayList;
@@ -39,21 +34,11 @@ public class QuerySpecDto extends BaseDto {
     public static final String EDC_QUERY_SPEC_SORT_ORDER = EDC_NAMESPACE + "sortOrder";
     public static final String EDC_QUERY_SPEC_SORT_FIELD = EDC_NAMESPACE + "sortField";
 
-    @QueryParam("offset")
-    @PositiveOrZero(message = "offset must be greater or equal to zero")
     private Integer offset = 0;
-
-    @QueryParam("limit")
-    @Positive(message = "limit must be greater than 0")
     private Integer limit = 50;
-
-    private final List<CriterionDto> filterExpression = new ArrayList<>();
-
-    @QueryParam("sort")
     private SortOrder sortOrder = SortOrder.ASC;
-
-    @QueryParam("sortField")
     private String sortField;
+    private final List<CriterionDto> filterExpression = new ArrayList<>();
 
     public Integer getOffset() {
         return offset;
@@ -69,12 +54,6 @@ public class QuerySpecDto extends BaseDto {
 
     public String getSortField() {
         return sortField;
-    }
-
-    @JsonIgnore
-    @AssertTrue
-    public boolean isValid() {
-        return sortField == null || !sortField.isBlank();
     }
 
     public List<CriterionDto> getFilterExpression() {
