@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -56,6 +57,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final ContractValidationService contractValidationService;
     private final DataAddressValidator dataAddressValidator;
     private final TransferProcessObservable observable;
+    private final ParticipantAgentService agentService;
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
@@ -64,6 +66,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               DataAddressValidator dataAddressValidator, TransferProcessObservable observable,
+                                              ParticipantAgentService agentService,
                                               Clock clock, Monitor monitor, Telemetry telemetry) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
@@ -71,6 +74,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.contractValidationService = contractValidationService;
         this.dataAddressValidator = dataAddressValidator;
         this.observable = observable;
+        this.agentService = agentService;
         this.clock = clock;
         this.monitor = monitor;
         this.telemetry = telemetry;
@@ -117,7 +121,17 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken) {
         return onMessageDo(message, transferProcess -> terminatedAction(message, transferProcess));
     }
-
+    
+    @Override
+    @WithSpan
+    @NotNull
+    public ServiceResult<TransferProcess> findById(String id, ClaimToken claimToken) {
+        return transactionContext.execute(() -> Optional.ofNullable(transferProcessStore.findById(id))
+                .map(tp -> validateCounterParty(claimToken, tp))
+                .map(ServiceResult::success)
+                .orElse(ServiceResult.notFound(format("No negotiation with id %s found", id))));
+    }
+    
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message) {
         var contractId = ContractId.parse(message.getContractId());
@@ -199,6 +213,18 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .map(transferProcessStore::findForCorrelationId)
                 .map(action)
                 .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", message.getProcessId()))));
+    }
+    
+    private TransferProcess validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {
+        var agentId = agentService.createFor(claimToken).getIdentity();
+        if (agentId == null) {
+            return null;
+        }
+        
+        return Optional.ofNullable(negotiationStore.findContractAgreement(transferProcess.getDataRequest().getContractId()))
+                .filter(agreement -> agentId.equals(agreement.getConsumerId()) || agentId.equals(agreement.getProviderId()))
+                .map(agreement -> transferProcess)
+                .orElse(null);
     }
 
     private void update(TransferProcess transferProcess) {
