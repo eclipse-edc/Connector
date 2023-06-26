@@ -77,8 +77,6 @@ components:
           example: null
         querySpec:
           $ref: '#/components/schemas/QuerySpecDto'
-      required:
-      - providerUrl
     Constraint:
       type: object
       discriminator:
@@ -124,9 +122,6 @@ components:
         operator:
           type: string
           example: null
-      required:
-      - operandLeft
-      - operator
     DataService:
       type: object
       example: null

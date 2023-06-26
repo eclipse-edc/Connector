@@ -22,8 +22,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.catalog.spi.Catalog;
@@ -42,5 +40,5 @@ public interface CatalogApi {
                     ),
                     description = "Gets contract offers (=catalog) of a single connector") }
     )
-    void requestCatalog(@Valid @NotNull JsonObject requestDto, @Suspended AsyncResponse response);
+    void requestCatalog(JsonObject requestDto, @Suspended AsyncResponse response);
 }

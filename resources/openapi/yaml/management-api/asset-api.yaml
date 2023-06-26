@@ -271,7 +271,7 @@ components:
       example: null
       properties:
         invalidValue:
-          type: string
+          type: object
           example: null
         message:
           type: string
@@ -383,9 +383,6 @@ components:
         operator:
           type: string
           example: null
-      required:
-      - operandLeft
-      - operator
     DataAddress:
       type: object
       example: null

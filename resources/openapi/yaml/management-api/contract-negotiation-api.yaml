@@ -283,7 +283,7 @@ components:
       example: null
       properties:
         invalidValue:
-          type: string
+          type: object
           example: null
         message:
           type: string
@@ -350,12 +350,6 @@ components:
         providerId:
           type: string
           example: null
-      required:
-      - assetId
-      - consumerId
-      - id
-      - policy
-      - providerId
     ContractNegotiationDto:
       type: object
       example: null
@@ -434,9 +428,6 @@ components:
         operator:
           type: string
           example: null
-      required:
-      - operandLeft
-      - operator
     Duty:
       type: object
       example: null

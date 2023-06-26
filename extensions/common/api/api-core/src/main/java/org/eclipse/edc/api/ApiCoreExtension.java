@@ -26,15 +26,18 @@ import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseDtoTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCriterionDtoTransformer;
 import org.eclipse.edc.api.transformer.QuerySpecDtoToQuerySpecTransformer;
+import org.eclipse.edc.api.validation.QuerySpecDtoValidator;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import java.util.Map;
 
+import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = ApiCoreExtension.NAME)
@@ -47,6 +50,9 @@ public class ApiCoreExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+
+    @Inject
+    private JsonObjectValidatorRegistry validatorRegistry;
 
     @Override
     public String name() {
@@ -71,5 +77,7 @@ public class ApiCoreExtension implements ServiceExtension {
 
         transformerRegistry.register(new JsonObjectToCallbackAddressTransformer());
         transformerRegistry.register(new JsonObjectToCriterionDtoTransformer());
+
+        validatorRegistry.register(EDC_QUERY_SPEC_TYPE, QuerySpecDtoValidator.instance());
     }
 }

@@ -14,33 +14,24 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.eclipse.edc.policy.model.Policy;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class ContractAgreementDto {
     public static final String TYPE = EDC_NAMESPACE + "ContractAgreementDto";
-    public static final String CONTRACT_AGREEMENT_ASSETID = EDC_NAMESPACE + "assetId";
+    public static final String CONTRACT_AGREEMENT_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String CONTRACT_AGREEMENT_PROVIDER_ID = EDC_NAMESPACE + "providerId";
     public static final String CONTRACT_AGREEMENT_CONSUMER_ID = EDC_NAMESPACE + "consumerId";
     public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
     public static final String CONTRACT_AGREEMENT_POLICY = EDC_NAMESPACE + "policy";
 
-    @NotNull(message = "id cannot be null")
     private String id;
-    @NotNull(message = "providerId cannot be null")
     private String providerId;
-    @NotNull(message = "consumerId cannot be null")
     private String consumerId;
-    @Positive(message = "contractSigningDate must be greater than 0")
     private long contractSigningDate;
-    @NotNull(message = "assetId cannot be null")
     private String assetId;
-    @NotNull(message = "policy cannot be null")
     private Policy policy;
-
 
     public String getId() {
         return id;

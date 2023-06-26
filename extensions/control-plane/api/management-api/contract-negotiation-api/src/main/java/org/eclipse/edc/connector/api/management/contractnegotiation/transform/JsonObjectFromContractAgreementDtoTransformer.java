@@ -22,7 +22,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSETID;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_ASSET_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_CONSUMER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_POLICY;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto.CONTRACT_AGREEMENT_PROVIDER_ID;
@@ -44,7 +44,7 @@ public class JsonObjectFromContractAgreementDtoTransformer extends AbstractJsonL
         var bldr = jsonFactory.createObjectBuilder();
         bldr.add(TYPE, ContractAgreementDto.TYPE)
                 .add(ID, dto.getId())
-                .add(CONTRACT_AGREEMENT_ASSETID, dto.getAssetId())
+                .add(CONTRACT_AGREEMENT_ASSET_ID, dto.getAssetId())
                 .add(CONTRACT_AGREEMENT_POLICY, context.transform(dto.getPolicy(), JsonObject.class))
                 .add(CONTRACT_AGREEMENT_SIGNING_DATE, dto.getContractSigningDate())
                 .add(CONTRACT_AGREEMENT_CONSUMER_ID, dto.getConsumerId())
