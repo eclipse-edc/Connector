@@ -34,8 +34,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTermination
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -55,7 +53,6 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -69,7 +66,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.atLeastOnce;
@@ -88,7 +84,6 @@ class TransferProcessProtocolServiceImplTest {
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final DataAddressValidator dataAddressValidator = mock(DataAddressValidator.class);
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
-    private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
 
     private TransferProcessProtocolService service;
 
@@ -97,7 +92,7 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                dataAddressValidator, observable, agentService, mock(Clock.class), mock(Monitor.class), mock(Telemetry.class));
+                dataAddressValidator, observable, mock(Clock.class), mock(Monitor.class), mock(Telemetry.class));
     }
 
     @Test
@@ -313,6 +308,24 @@ class TransferProcessProtocolServiceImplTest {
         verify(store, never()).updateOrCreate(any());
         verifyNoInteractions(listener);
     }
+    
+    @Test
+    void findById_shouldReturnTransferProcess_whenValidCounterParty() {
+        var processId = "transferProcessId";
+        var transferProcess = transferProcess(INITIAL, processId);
+        var token = claimToken();
+        var agreement = contractAgreement();
+    
+        when(store.findById(processId)).thenReturn(transferProcess);
+        when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+        when(validationService.validateRequest(token, agreement)).thenReturn(Result.success());
+    
+        var result = service.findById(processId, token);
+    
+        assertThat(result)
+                .isSucceeded()
+                .isEqualTo(transferProcess);
+    }
 
     @Test
     void findById_shouldReturnNotFound_whenNegotiationNotFound() {
@@ -326,35 +339,23 @@ class TransferProcessProtocolServiceImplTest {
                 .isEqualTo(NOT_FOUND);
     }
     
-    @ParameterizedTest
-    @ArgumentsSource(FindByIdArguments.class)
-    void findById_shouldSucceedOrFail_dependingOnCounterParty(String counterPartyId, boolean shouldSucceed) {
+    @Test
+    void findById_shouldReturnNotFound_whenCounterPartyUnauthorized() {
         var processId = "transferProcessId";
-        var contractId = "contractId";
-        var transferProcess = transferProcess(INITIAL, processId).toBuilder()
-                .dataRequest(dataRequest(contractId))
-                .build();
-        
-        var token = ClaimToken.Builder.newInstance().build();
-        var agent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, counterPartyId));
+        var transferProcess = transferProcess(INITIAL, processId);
+        var token = claimToken();
         var agreement = contractAgreement();
-    
+        
         when(store.findById(processId)).thenReturn(transferProcess);
-        when(agentService.createFor(token)).thenReturn(agent);
-        when(negotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
-    
+        when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+        when(validationService.validateRequest(token, agreement)).thenReturn(Result.failure("error"));
+        
         var result = service.findById(processId, token);
-    
-        if (shouldSucceed) {
-            assertThat(result)
-                    .isSucceeded()
-                    .isEqualTo(transferProcess);
-        } else {
-            assertThat(result)
-                    .isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(NOT_FOUND);
-        }
+
+        assertThat(result)
+                .isFailed()
+                .extracting(ServiceFailure::getReason)
+                .isEqualTo(NOT_FOUND);
     }
 
     @ParameterizedTest
@@ -373,6 +374,7 @@ class TransferProcessProtocolServiceImplTest {
         return TransferProcess.Builder.newInstance()
                 .state(state.code())
                 .id(id)
+                .dataRequest(dataRequest())
                 .build();
     }
 
@@ -392,9 +394,9 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
     }
     
-    private DataRequest dataRequest(String contractId) {
+    private DataRequest dataRequest() {
         return DataRequest.Builder.newInstance()
-                .contractId(contractId)
+                .contractId("contractId")
                 .destinationType("type")
                 .build();
     }
@@ -419,17 +421,6 @@ class TransferProcessProtocolServiceImplTest {
                     Arguments.of(terminated, TransferTerminationMessage.Builder.newInstance().protocol("protocol")
                             .counterPartyAddress("http://any").processId("correlationId").code("TestCode")
                             .reason("TestReason").build())
-            );
-        }
-    }
-    
-    private static class FindByIdArguments implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
-            return Stream.of(
-                    Arguments.of("provider", true),
-                    Arguments.of("consumer", true),
-                    Arguments.of("invalid", false)
             );
         }
     }

@@ -380,6 +380,45 @@ class ContractValidationServiceImplTest {
 
         verify(agentService).createFor(eq(token));
     }
+    
+    @Test
+    void validateRequest_shouldReturnSuccess_whenRequestingPartyProvider() {
+        var token = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement().build();
+        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, PROVIDER_ID));
+    
+        when(agentService.createFor(token)).thenReturn(participantAgent);
+        
+        var result = validationService.validateRequest(token, agreement);
+        
+        assertThat(result).isSucceeded();
+    }
+    
+    @Test
+    void validateRequest_shouldReturnSuccess_whenRequestingPartyConsumer() {
+        var token = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement().build();
+        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+    
+        when(agentService.createFor(token)).thenReturn(participantAgent);
+    
+        var result = validationService.validateRequest(token, agreement);
+    
+        assertThat(result).isSucceeded();
+    }
+    
+    @Test
+    void validateRequest_shouldReturnFailure_whenRequestingPartyUnauthorized() {
+        var token = ClaimToken.Builder.newInstance().build();
+        var agreement = createContractAgreement().build();
+        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, "invalid"));
+    
+        when(agentService.createFor(token)).thenReturn(participantAgent);
+    
+        var result = validationService.validateRequest(token, agreement);
+    
+        assertThat(result).isFailed();
+    }
 
     @Test
     void validateConsumerRequest() {

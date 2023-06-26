@@ -32,10 +32,10 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +57,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final ContractValidationService contractValidationService;
     private final DataAddressValidator dataAddressValidator;
     private final TransferProcessObservable observable;
-    private final ParticipantAgentService agentService;
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
@@ -66,7 +65,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               DataAddressValidator dataAddressValidator, TransferProcessObservable observable,
-                                              ParticipantAgentService agentService,
                                               Clock clock, Monitor monitor, Telemetry telemetry) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
@@ -74,7 +72,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.contractValidationService = contractValidationService;
         this.dataAddressValidator = dataAddressValidator;
         this.observable = observable;
-        this.agentService = agentService;
         this.clock = clock;
         this.monitor = monitor;
         this.telemetry = telemetry;
@@ -127,7 +124,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @NotNull
     public ServiceResult<TransferProcess> findById(String id, ClaimToken claimToken) {
         return transactionContext.execute(() -> Optional.ofNullable(transferProcessStore.findById(id))
-                .map(tp -> validateCounterParty(claimToken, tp))
+                .filter(tp -> validateCounterParty(claimToken, tp))
                 .map(ServiceResult::success)
                 .orElse(ServiceResult.notFound(format("No negotiation with id %s found", id))));
     }
@@ -215,16 +212,11 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", message.getProcessId()))));
     }
     
-    private TransferProcess validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {
-        var agentId = agentService.createFor(claimToken).getIdentity();
-        if (agentId == null) {
-            return null;
-        }
-        
+    private boolean validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {
         return Optional.ofNullable(negotiationStore.findContractAgreement(transferProcess.getDataRequest().getContractId()))
-                .filter(agreement -> agentId.equals(agreement.getConsumerId()) || agentId.equals(agreement.getProviderId()))
-                .map(agreement -> transferProcess)
-                .orElse(null);
+                .map(agreement -> contractValidationService.validateRequest(claimToken, agreement))
+                .filter(Result::succeeded)
+                .isPresent();
     }
 
     private void update(TransferProcess transferProcess) {

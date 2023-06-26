@@ -70,6 +70,17 @@ public interface ContractValidationService {
      */
     @NotNull
     Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement);
+    
+    /**
+     * Validates the request for a contract agreement. Verifies that the requesting party is involved
+     * in the contract agreement, but does not perform policy evaluation.
+     *
+     * @param token The {@link ClaimToken} of the counter-party
+     * @param agreement The agreement
+     * @return The result of the validation
+     */
+    @NotNull
+    Result<Void> validateRequest(ClaimToken token, ContractAgreement agreement);
 
     /**
      * Validates the request for a contract negotiation.
