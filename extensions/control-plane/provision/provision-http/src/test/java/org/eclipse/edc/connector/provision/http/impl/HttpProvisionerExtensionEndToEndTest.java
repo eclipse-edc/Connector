@@ -72,7 +72,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 public class HttpProvisionerExtensionEndToEndTest {
     private static final String ASSET_ID = "assetId";
-    private static final String CONTRACT_ID = ContractId.createContractId("definitionId", ASSET_ID);
+    private static final String CONTRACT_ID = ContractId.create("definitionId", ASSET_ID).toString();
     private static final String POLICY_ID = "3";
     private final int dataPort = getFreePort();
     private final Interceptor delegate = mock(Interceptor.class);

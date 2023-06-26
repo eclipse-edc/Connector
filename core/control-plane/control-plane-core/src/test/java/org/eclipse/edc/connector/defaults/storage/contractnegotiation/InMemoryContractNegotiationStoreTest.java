@@ -275,7 +275,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_noQuerySpec() {
         range(0, 10).forEach(i -> {
-            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID)).build();
+            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.create(UUID.randomUUID().toString(), TEST_ASSET_ID).toString()).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
@@ -288,7 +288,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_verifyPaging() {
         range(0, 10).forEach(i -> {
-            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID)).build();
+            var contractAgreement = TestFunctions.createAgreementBuilder().id(ContractId.create(UUID.randomUUID().toString(), TEST_ASSET_ID).toString()).build();
             var negotiation = TestFunctions.createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });

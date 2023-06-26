@@ -23,6 +23,8 @@ dependencies {
     api(project(":spi:common:policy-engine-spi"))
     api(project(":spi:control-plane:policy-spi"))
 
+    testImplementation(project(":core:common:junit"))
+
     // needed by the abstract test spec located in testFixtures
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)

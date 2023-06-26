@@ -211,7 +211,7 @@ class KafkaTransferTest {
 
     private ContractId getContractId(JsonObject dataset) {
         var id = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractId.parse(id);
+        return ContractId.parseId(id).getContent();
     }
 
     private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {

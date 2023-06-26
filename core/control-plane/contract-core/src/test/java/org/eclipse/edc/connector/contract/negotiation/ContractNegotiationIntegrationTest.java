@@ -326,7 +326,7 @@ class ContractNegotiationIntegrationTest {
      */
     private ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId("1", "test-asset-id"))
+                .id(ContractId.create("1", "test-asset-id").toString())
                 .providerId("provider")
                 .assetId(randomUUID().toString())
                 .policy(Policy.Builder.newInstance()

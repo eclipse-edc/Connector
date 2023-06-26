@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store;
 
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
@@ -47,8 +48,8 @@ public class TestFunctions {
                 .build();
     }
 
-    public static ContractAgreement createContract(String id) {
-        return createContractBuilder(id)
+    public static ContractAgreement createContract(ContractId contractId) {
+        return createContractBuilder(contractId.toString())
                 .build();
     }
 

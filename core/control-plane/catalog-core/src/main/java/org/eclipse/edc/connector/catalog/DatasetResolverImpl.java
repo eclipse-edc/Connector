@@ -92,8 +92,8 @@ public class DatasetResolverImpl implements DatasetResolver {
         if (policyDefinition == null) {
             return null;
         }
-        var contractId = ContractId.createContractId(definition.getId(), assetId);
-        return new Offer(contractId, policyDefinition.getPolicy());
+        var contractId = ContractId.create(definition.getId(), assetId);
+        return new Offer(contractId.toString(), policyDefinition.getPolicy());
     }
 
     private static class Offer {

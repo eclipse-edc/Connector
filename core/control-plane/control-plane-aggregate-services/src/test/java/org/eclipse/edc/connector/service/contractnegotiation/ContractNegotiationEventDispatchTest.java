@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.service.contractnegotiation;
 
+import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
@@ -45,7 +46,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
-import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -110,7 +110,7 @@ class ContractNegotiationEventDispatchTest {
 
     private ContractRequestMessage createContractOfferRequest(Policy policy, String assetId) {
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id("contractDefinitionId:" + assetId + ":" + UUID.randomUUID())
+                .id(ContractId.create("contractDefinitionId", assetId).toString())
                 .assetId("assetId")
                 .policy(policy)
                 .providerId(PROVIDER)
