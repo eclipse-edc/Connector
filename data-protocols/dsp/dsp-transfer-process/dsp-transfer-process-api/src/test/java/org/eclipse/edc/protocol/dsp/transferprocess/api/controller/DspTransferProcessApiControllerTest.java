@@ -135,19 +135,47 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
                 .processId(PROCESS_ID)
                 .build();
     }
-
+    
     @Test
-    void getTransferProcess_shouldReturnNotImplemented_whenOperationNotSupported() {
-        //operation not yet supported
+    void getTransferProcess_shouldReturnTransferProcess_whenValidRequest() {
+        var token = token();
+        var id = "transferProcessId";
+        var transferProcess = transferProcess();
+        var json = Json.createObjectBuilder().build();
+    
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
+        when(protocolService.findById(id, token)).thenReturn(ServiceResult.success(transferProcess));
+        when(registry.transform(any(TransferProcess.class), eq(JsonObject.class))).thenReturn(Result.success(json));
+    
         var result = baseRequest()
-                .get(BASE_PATH + PROCESS_ID)
+                .get(BASE_PATH + id)
                 .then()
-                .statusCode(501)
+                .contentType(MediaType.APPLICATION_JSON)
+                .statusCode(200)
                 .extract().as(JsonObject.class);
-
+    
+        assertThat(result).isNotNull();
+        verify(protocolService, times(1)).findById(id, token);
+    }
+    
+    @Test
+    void getTransferProcess_shouldReturnNotFound_whenServiceResultNotFound() {
+        var token = token();
+        var id = "transferProcessId";
+    
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
+        when(protocolService.findById(id, token)).thenReturn(ServiceResult.notFound("not found"));
+    
+        var result = baseRequest()
+                .get(BASE_PATH + id)
+                .then()
+                .contentType(MediaType.APPLICATION_JSON)
+                .statusCode(404)
+                .extract().as(JsonObject.class);
+    
         assertThat(result).isNotNull();
         assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR);
-        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("501");
+        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("404");
         assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
         assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
     }

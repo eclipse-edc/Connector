@@ -96,8 +96,15 @@ public class DspTransferProcessApiController {
      */
     @GET
     @Path("/{id}")
-    public Response getTransferProcess(@PathParam("id") String id) {
-        return error().processId(id).notImplemented();
+    public Response getTransferProcess(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+        var claimTokenResult = checkAuthToken(token);
+        if (claimTokenResult.failed()) {
+            return error().processId(id).unauthorized();
+        }
+    
+        return protocolService.findById(id, claimTokenResult.getContent())
+                .map(this::createTransferProcessResponse)
+                .orElse(createErrorResponse(id));
     }
 
     /**
@@ -120,15 +127,8 @@ public class DspTransferProcessApiController {
         if (transferProcessResult.failed()) {
             return error().from(transferProcessResult.getFailure());
         }
-
-        var transferProcess = transferProcessResult.getContent();
-        return registry.transform(transferProcess, JsonObject.class)
-                .map(transformedJson -> Response.ok().type(MediaType.APPLICATION_JSON).entity(transformedJson).build())
-                .orElse(failure -> {
-                    var errorCode = UUID.randomUUID();
-                    monitor.warning(String.format("Error transforming transfer process, error id %s: %s", errorCode, failure.getFailureDetail()));
-                    return error().processId(transferProcess.getCorrelationId()).message(String.format("Error code %s", errorCode)).internalServerError();
-                });
+        
+        return createTransferProcessResponse(transferProcessResult.getContent());
     }
 
     /**
@@ -269,6 +269,16 @@ public class DspTransferProcessApiController {
             }
         }
         return Result.success(message);
+    }
+    
+    private Response createTransferProcessResponse(TransferProcess transferProcess) {
+        return registry.transform(transferProcess, JsonObject.class)
+                .map(transformedJson -> Response.ok().type(MediaType.APPLICATION_JSON).entity(transformedJson).build())
+                .orElse(failure -> {
+                    var errorCode = UUID.randomUUID();
+                    monitor.warning(String.format("Error transforming transfer process, error id %s: %s", errorCode, failure.getFailureDetail()));
+                    return error().processId(transferProcess.getCorrelationId()).message(String.format("Error code %s", errorCode)).internalServerError();
+                });
     }
 
     @NotNull
