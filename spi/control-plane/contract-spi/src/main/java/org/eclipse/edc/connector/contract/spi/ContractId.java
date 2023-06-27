@@ -56,7 +56,7 @@ public final class ContractId {
      * @deprecated please use {@link #create(String, String)}
      */
     @NotNull
-    @Deprecated(since = "0.1.2")
+    @Deprecated(since = "0.1.2", forRemoval = true)
     public static String createContractId(String definitionPart, String assetId) {
         return create(definitionPart, assetId).toString();
     }
@@ -100,7 +100,7 @@ public final class ContractId {
      * @return the {@link ContractId} instance that represent the id
      * @deprecated please use {@link #parseId(String)}
      */
-    @Deprecated(since = "0.1.2")
+    @Deprecated(since = "0.1.2", forRemoval = true)
     public static ContractId parse(String id) {
         return parseId(id).getContent();
     }
@@ -115,7 +115,7 @@ public final class ContractId {
      * @return true if it is valid, false otherwise
      * @deprecated an instantiated {@link ContractId} object is always valid
      */
-    @Deprecated(since = "0.1.2")
+    @Deprecated(since = "0.1.2", forRemoval = true)
     public boolean isValid() {
         return true;
     }
@@ -148,7 +148,12 @@ public final class ContractId {
                 encoder.encodeToString(uuid.getBytes());
     }
 
-    public ContractId spawn() {
+    /**
+     * Create a new {@link ContractId} with the same definitionId and assetId but a new random UUID part.
+     *
+     * @return new {@link ContractId} instance.
+     */
+    public ContractId derive() {
         return create(definitionId, assetId);
     }
 }

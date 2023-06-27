@@ -74,7 +74,7 @@ class ContractIdTest {
 
         var first = ContractId.parseId(base64representation).getContent();
 
-        var result = first.spawn();
+        var result = first.derive();
 
         assertThat(result.definitionPart()).isEqualTo("definitionId");
         assertThat(result.assetIdPart()).isEqualTo("assetId");

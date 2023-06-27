@@ -183,7 +183,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             var contractId = contractIdResult.getContent();
 
             agreement = ContractAgreement.Builder.newInstance()
-                    .id(contractId.spawn().toString())
+                    .id(contractId.derive().toString())
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())
