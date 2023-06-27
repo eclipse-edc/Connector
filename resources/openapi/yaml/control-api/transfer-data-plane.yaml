@@ -9,7 +9,6 @@ paths:
       parameters:
       - in: header
         name: Authorization
-        required: true
         schema:
           type: string
           example: null

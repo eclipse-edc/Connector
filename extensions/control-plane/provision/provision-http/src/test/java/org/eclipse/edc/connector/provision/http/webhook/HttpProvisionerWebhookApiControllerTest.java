@@ -15,18 +15,13 @@
 package org.eclipse.edc.connector.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.ApiTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -37,34 +32,22 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThan;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ApiTest
-@ExtendWith(EdcExtension.class)
-class HttpProvisionerWebhookApiControllerIntegrationTest {
+class HttpProvisionerWebhookApiControllerTest extends RestControllerTestBase {
 
-    private static final String PROVISIONER_BASE_PATH = "/api/v1/provisioner";
-    private final int port = getFreePort();
-    private final String authKey = "123456";
-
-    @BeforeEach
-    void setUp(EdcExtension extension) {
-        extension.setConfiguration(Map.of(
-                "web.http.port", String.valueOf(getFreePort()),
-                "web.http.path", "/api",
-                "web.http.management.port", String.valueOf(port),
-                "web.http.management.path", PROVISIONER_BASE_PATH,
-                "edc.api.auth.key", authKey
-        ));
-        extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
-    }
+    private final TransferProcessService transferProcessService = mock();
 
     @ParameterizedTest
     @ArgumentsSource(InvalidRequestParams.class)
@@ -88,9 +71,8 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     }
 
     @Test
-    void callProvisionWebhook(TransferProcessStore store) {
-
-        store.updateOrCreate(createTransferProcess());
+    void callProvisionWebhook() {
+        when(transferProcessService.addProvisionedResource(any(), any())).thenReturn(ServiceResult.success());
 
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
@@ -107,11 +89,12 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .then()
                 .statusCode(allOf(greaterThanOrEqualTo(200), lessThan(300)))
                 .body(anything());
+
+        verify(transferProcessService).addProvisionedResource(eq("tp-id"), any());
     }
 
     @Test
     void callDeprovisionWebhook_invalidBody() {
-
         baseRequest()
                 .contentType("application/json")
                 .post("/callback/{processId}/deprovision", "tp-id")
@@ -122,6 +105,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     @Test
     void callDeprovisionWebhook_notFound() {
+        when(transferProcessService.completeDeprovision(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
         var rq = DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId("resource-id")
@@ -138,9 +122,8 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     }
 
     @Test
-    void callDeprovisionWebhook(TransferProcessStore store) {
-
-        store.updateOrCreate(createTransferProcess());
+    void callDeprovisionWebhook() {
+        when(transferProcessService.completeDeprovision(any(), any())).thenReturn(ServiceResult.success());
 
         var rq = DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId("resource-id")
@@ -154,6 +137,8 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .then()
                 .statusCode(allOf(greaterThanOrEqualTo(200), lessThan(300)))
                 .body(anything());
+
+        verify(transferProcessService).completeDeprovision(eq("tp-id"), any());
     }
 
     private DataAddress dataAddress() {
@@ -162,24 +147,13 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port)
-                .basePath(PROVISIONER_BASE_PATH)
-                .header("x-api-key", authKey)
+                .port(port)
                 .when();
     }
 
-    private TransferProcess createTransferProcess() {
-        return createTransferProcessBuilder().build();
-    }
-
-    private TransferProcess.Builder createTransferProcessBuilder() {
-        return TransferProcess.Builder.newInstance()
-                .id("tp-id")
-                .state(TransferProcessStates.STARTED.code())
-                .type(TransferProcess.Type.PROVIDER)
-                .dataRequest(DataRequest.Builder.newInstance()
-                        .destinationType("file")
-                        .build());
+    @Override
+    protected Object controller() {
+        return new HttpProvisionerWebhookApiController(transferProcessService);
     }
 
     private static class InvalidRequestParams implements ArgumentsProvider {

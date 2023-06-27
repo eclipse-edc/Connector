@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.api.transferprocess;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -25,6 +23,10 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
+import org.eclipse.edc.validator.spi.Violation;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -36,7 +38,7 @@ public class TransferProcessControlApiController implements TransferProcessContr
 
     public static final String PATH = "/transferprocess";
     private final TransferProcessService transferProcessService;
-
+    private final Validator<TransferProcessFailStateDto> validator = new TransferProcessFailStateDtoValidator();
 
     public TransferProcessControlApiController(TransferProcessService transferProcessService) {
         this.transferProcessService = transferProcessService;
@@ -53,8 +55,23 @@ public class TransferProcessControlApiController implements TransferProcessContr
     @POST
     @Path("/{processId}/fail")
     @Override
-    public void fail(@PathParam("processId") String processId, @NotNull @Valid TransferProcessFailStateDto request) {
+    public void fail(@PathParam("processId") String processId, TransferProcessFailStateDto request) {
+        validator.validate(request).orElseThrow(ValidationFailureException::new);
+
         transferProcessService.terminate(processId, request.getErrorMessage()).orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 
+    private static class TransferProcessFailStateDtoValidator implements Validator<TransferProcessFailStateDto> {
+        @Override
+        public ValidationResult validate(TransferProcessFailStateDto input) {
+            if (input == null) {
+                return ValidationResult.failure(Violation.violation("requestBody cannot be null", ""));
+            }
+
+            if (input.getErrorMessage() == null) {
+                return ValidationResult.failure(Violation.violation("errorMessage cannot be null", "errorMessage"));
+            }
+            return ValidationResult.success();
+        }
+    }
 }

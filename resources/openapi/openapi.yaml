@@ -195,7 +195,7 @@ paths:
       parameters:
       - name: Authorization
         in: header
-        required: true
+        required: false
         style: simple
         explode: false
         schema:
@@ -292,7 +292,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TransferProcessFailStateDto'
-        required: true
       responses:
         "400":
           description: "Request was malformed, e.g. id was null"
@@ -2453,12 +2452,6 @@ components:
           example: null
       example: null
     ProvisionerWebhookRequest:
-      required:
-      - apiKeyJwt
-      - assetId
-      - contentDataAddress
-      - resourceDefinitionId
-      - resourceName
       type: object
       properties:
         apiKeyJwt:
@@ -2579,8 +2572,6 @@ components:
           example: null
       example: null
     TransferProcessFailStateDto:
-      required:
-      - errorMessage
       type: object
       properties:
         errorMessage:

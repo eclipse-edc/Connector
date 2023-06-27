@@ -15,11 +15,6 @@
 package org.eclipse.edc.web.jersey.mapper;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.MessageInterpolator;
-import jakarta.validation.Valid;
-import jakarta.validation.Validation;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -42,10 +37,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
@@ -53,12 +45,8 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(EdcExtension.class)
 public class ExceptionMappersIntegrationTest {
 
-    private static final String POSITIVE_TEMPLATE = "{jakarta.validation.constraints.Positive.message}";
-    private static final String NOT_BLANK_TEMPLATE = "{jakarta.validation.constraints.NotBlank.message}";
     private final int port = getFreePort();
     private final Runnable runnable = mock(Runnable.class);
-
-    private MessageInterpolator interpolator;
 
     @BeforeEach
     void setUp(EdcExtension extension) {
@@ -67,10 +55,6 @@ public class ExceptionMappersIntegrationTest {
                 "web.http.path", "/api"
         ));
         extension.registerSystemExtension(ServiceExtension.class, new MyServiceExtension());
-
-        try (var factory = Validation.buildDefaultValidatorFactory()) {
-            interpolator = factory.getMessageInterpolator();
-        }
     }
 
     @Test
@@ -90,31 +74,6 @@ public class ExceptionMappersIntegrationTest {
     }
 
     @Test
-    void shouldListJakartaValidationMessageInResponseBody() {
-        given()
-                .port(port)
-                .accept(JSON)
-                .contentType(JSON)
-                .body(Map.of("data", "", "number", "-1"))
-                .post("/api/test")
-                .then()
-                .statusCode(400)
-                .body("size()", is(2))
-                .body("", hasItems(
-                        hasEntry("message", interpolator.interpolate(POSITIVE_TEMPLATE, null)),
-                        hasEntry("type", POSITIVE_TEMPLATE),
-                        hasEntry(is("path"), endsWith(".number")),
-                        hasEntry("invalidValue", "-1")
-                ))
-                .body("", hasItems(
-                        hasEntry("message", interpolator.interpolate(NOT_BLANK_TEMPLATE, null)),
-                        hasEntry("type", NOT_BLANK_TEMPLATE),
-                        hasEntry(is("path"), endsWith(".data")),
-                        hasEntry("invalidValue", "")
-                ));
-    }
-
-    @Test
     void shouldReturn500ErrorOnJavaLangExceptions() {
         doThrow(new NullPointerException()).when(runnable).run();
 
@@ -127,11 +86,9 @@ public class ExceptionMappersIntegrationTest {
     }
 
     private static class RequestPayload {
-        @NotBlank
         @JsonProperty
         private String data;
 
-        @Positive
         @JsonProperty
         private long number;
     }
@@ -148,7 +105,7 @@ public class ExceptionMappersIntegrationTest {
 
         @POST
         @Consumes("application/json")
-        public void doAction(@Valid RequestPayload payload) {
+        public void doAction(RequestPayload payload) {
         }
 
     }

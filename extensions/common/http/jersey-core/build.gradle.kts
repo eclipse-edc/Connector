@@ -27,7 +27,6 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)
-    testImplementation(libs.jersey.beanvalidation) //for validation
 
     testFixturesApi(project(":core:common:junit"))
     testFixturesApi(project(":extensions:common:json-ld"))

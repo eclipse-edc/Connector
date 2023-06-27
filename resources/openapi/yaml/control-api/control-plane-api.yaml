@@ -43,7 +43,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TransferProcessFailStateDto'
-        required: true
       responses:
         "400":
           content:
@@ -81,5 +80,3 @@ components:
         errorMessage:
           type: string
           example: null
-      required:
-      - errorMessage
