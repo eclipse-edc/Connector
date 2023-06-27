@@ -67,5 +67,15 @@ public interface TransferProcessProtocolService {
      */
     @NotNull
     ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken);
-
+    
+    /**
+     * Finds a transfer process that has been requested by the counter-part. An existing
+     * process, for which the counter-part is not authorized, is treated as non-existent.
+     *
+     * @param id id of the transfer process
+     * @param claimToken the counter-party claim token
+     * @return a succeeded result containing the transfer process if it was found, a failed one otherwise
+     */
+    @NotNull
+    ServiceResult<TransferProcess> findById(String id, ClaimToken claimToken);
 }

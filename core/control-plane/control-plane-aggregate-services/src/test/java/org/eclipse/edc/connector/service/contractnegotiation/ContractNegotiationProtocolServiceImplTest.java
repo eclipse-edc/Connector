@@ -197,7 +197,7 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyVerified_shouldTransitionToVerified() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
         when(store.findForCorrelationId("processId")).thenReturn(negotiation);
-        when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
+        when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
@@ -209,7 +209,7 @@ class ContractNegotiationProtocolServiceImplTest {
         assertThat(result).isSucceeded();
         verify(store).save(argThat(n -> n.getState() == VERIFIED.code()));
         verify(listener).verified(negotiation);
-        verify(validationService).validateRequest(any(), any());
+        verify(validationService).validateRequest(any(), any(ContractNegotiation.class));
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -217,7 +217,7 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyVerified_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
         when(store.findForCorrelationId("processId")).thenReturn(negotiation);
-        when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
+        when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
@@ -235,7 +235,7 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyFinalized_shouldTransitionToFinalized() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
         when(store.findForCorrelationId("processId")).thenReturn(negotiation);
-        when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
+        when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
@@ -249,7 +249,7 @@ class ContractNegotiationProtocolServiceImplTest {
         assertThat(result).isSucceeded();
         verify(store).save(argThat(n -> n.getState() == FINALIZED.code()));
         verify(listener).finalized(negotiation);
-        verify(validationService).validateRequest(any(), any());
+        verify(validationService).validateRequest(any(), any(ContractNegotiation.class));
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -257,7 +257,7 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyFinalized_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
         when(store.findForCorrelationId("processId")).thenReturn(negotiation);
-        when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
+        when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol("protocol")
@@ -277,7 +277,7 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyTerminated_shouldTransitionToTerminated() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
         when(store.findForCorrelationId("processId")).thenReturn(negotiation);
-        when(validationService.validateRequest(any(), any())).thenReturn(Result.success());
+        when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")
@@ -291,7 +291,7 @@ class ContractNegotiationProtocolServiceImplTest {
         assertThat(result).isSucceeded();
         verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
         verify(listener).terminated(negotiation);
-        verify(validationService).validateRequest(any(), any());
+        verify(validationService).validateRequest(any(), any(ContractNegotiation.class));
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -299,7 +299,7 @@ class ContractNegotiationProtocolServiceImplTest {
     void notifyTerminated_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
         when(store.findForCorrelationId("processId")).thenReturn(negotiation);
-        when(validationService.validateRequest(any(), any())).thenReturn(Result.failure("validation error"));
+        when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")

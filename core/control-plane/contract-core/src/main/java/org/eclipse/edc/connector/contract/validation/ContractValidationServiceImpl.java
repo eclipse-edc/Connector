@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.ContractId.createContractId;
@@ -141,7 +142,16 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
         return success(agreement);
     }
-
+    
+    @Override
+    public @NotNull Result<Void> validateRequest(ClaimToken token, ContractAgreement agreement) {
+        var agent = agentService.createFor(token);
+        return Optional.ofNullable(agent.getIdentity())
+                .filter(id -> id.equals(agreement.getConsumerId()) || id.equals(agreement.getProviderId()))
+                .map(id -> Result.success())
+                .orElse(Result.failure("Invalid counter-party identity"));
+    }
+    
     @Override
     @NotNull
     public Result<Void> validateRequest(ClaimToken token, ContractNegotiation negotiation) {

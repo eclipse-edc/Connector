@@ -35,6 +35,7 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +118,17 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken) {
         return onMessageDo(message, transferProcess -> terminatedAction(message, transferProcess));
     }
-
+    
+    @Override
+    @WithSpan
+    @NotNull
+    public ServiceResult<TransferProcess> findById(String id, ClaimToken claimToken) {
+        return transactionContext.execute(() -> Optional.ofNullable(transferProcessStore.findById(id))
+                .filter(tp -> validateCounterParty(claimToken, tp))
+                .map(ServiceResult::success)
+                .orElse(ServiceResult.notFound(format("No negotiation with id %s found", id))));
+    }
+    
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message) {
         var contractId = ContractId.parse(message.getContractId());
@@ -199,6 +210,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .map(transferProcessStore::findForCorrelationId)
                 .map(action)
                 .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", message.getProcessId()))));
+    }
+    
+    private boolean validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {
+        return Optional.ofNullable(negotiationStore.findContractAgreement(transferProcess.getDataRequest().getContractId()))
+                .map(agreement -> contractValidationService.validateRequest(claimToken, agreement))
+                .filter(Result::succeeded)
+                .isPresent();
     }
 
     private void update(TransferProcess transferProcess) {

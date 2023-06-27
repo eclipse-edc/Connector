@@ -150,7 +150,7 @@ class ContractNegotiationIntegrationTest {
         var offer = getContractOffer();
         when(validationService.validateInitialOffer(token, offer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
-        when(validationService.validateRequest(eq(token), any())).thenReturn(Result.success());
+        when(validationService.validateRequest(eq(token), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         // Start provider and consumer negotiation managers
         providerManager.start();
