@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.provision.http.webhook;
 
-import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -26,9 +25,16 @@ import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
+import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -38,6 +44,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Path("/callback")
 public class HttpProvisionerWebhookApiController implements HttpProvisionerWebhookApi {
     private final TransferProcessService transferProcessService;
+    private final Validator<ProvisionerWebhookRequest> provisionerWebhookRequestValidator = new ProvisionerWebhookRequestValidator();
 
     public HttpProvisionerWebhookApiController(TransferProcessService transferProcessService) {
         this.transferProcessService = transferProcessService;
@@ -46,7 +53,9 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
     @Override
     @POST
     @Path("/{processId}/provision")
-    public void callProvisionWebhook(@PathParam("processId") String transferProcessId, @Valid ProvisionerWebhookRequest request) {
+    public void callProvisionWebhook(@PathParam("processId") String transferProcessId, ProvisionerWebhookRequest request) {
+        provisionerWebhookRequestValidator.validate(request).orElseThrow(ValidationFailureException::new);
+
         var contentResource = HttpProvisionedContentResource.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .assetId(request.getAssetId())
@@ -64,19 +73,44 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
 
         transferProcessService.addProvisionedResource(transferProcessId, response)
                 .orElseThrow(exceptionMapper(TransferProcess.class, transferProcessId));
-
     }
 
     @Override
     @POST
     @Path("/{processId}/deprovision")
-    public void callDeprovisionWebhook(@PathParam("processId") String transferProcessId, @Valid DeprovisionedResource resource) {
+    public void callDeprovisionWebhook(@PathParam("processId") String transferProcessId, DeprovisionedResource resource) {
         if (resource == null || resource.getProvisionedResourceId() == null) {
             throw new InvalidRequestException("Request body cannot be null and it should provide a valid provisionedResourceId value");
         }
 
         transferProcessService.completeDeprovision(transferProcessId, resource)
                 .orElseThrow(exceptionMapper(TransferProcess.class, transferProcessId));
+    }
+
+    private static class ProvisionerWebhookRequestValidator implements Validator<ProvisionerWebhookRequest> {
+        @Override
+        public ValidationResult validate(ProvisionerWebhookRequest input) {
+            Map<String, Function<ProvisionerWebhookRequest, ?>> fieldsNotNull = Map.of(
+                    "resourceDefinitionId", ProvisionerWebhookRequest::getResourceDefinitionId,
+                    "assetId", ProvisionerWebhookRequest::getAssetId,
+                    "resourceName", ProvisionerWebhookRequest::getResourceName,
+                    "contentDataAddress", ProvisionerWebhookRequest::getContentDataAddress,
+                    "apiKeyJwt", ProvisionerWebhookRequest::getApiKeyJwt
+            );
+
+            var violations = new ArrayList<Violation>();
+            fieldsNotNull.forEach((fieldName, supplier) -> {
+                if (supplier.apply(input) == null) {
+                    violations.add(Violation.violation(fieldName + " cannot be null", fieldName));
+                }
+            });
+
+            if (violations.isEmpty()) {
+                return ValidationResult.success();
+            } else {
+                return ValidationResult.failure(violations);
+            }
+        }
     }
 
 }

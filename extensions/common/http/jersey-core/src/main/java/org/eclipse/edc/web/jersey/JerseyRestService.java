@@ -21,7 +21,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.jersey.mapper.EdcApiExceptionMapper;
 import org.eclipse.edc.web.jersey.mapper.UnexpectedExceptionMapper;
-import org.eclipse.edc.web.jersey.mapper.ValidationExceptionMapper;
 import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.spi.WebService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -92,7 +91,6 @@ public class JerseyRestService implements WebService {
         resourceConfig.registerInstances(new Binder());
         resourceConfig.registerInstances(new ObjectMapperProvider(typeManager.getMapper()));
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
-        resourceConfig.registerInstances(new ValidationExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
 
         additionalInstances.forEach(supplier -> resourceConfig.registerInstances(supplier.get()));

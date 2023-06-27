@@ -15,7 +15,6 @@ httpMockServer = "5.15.0"
 jakarta-json = "2.0.1"
 jakarta-transaction = "2.0.1"
 jackson = "2.15.2"
-jakartaValidation = "3.0.2"
 jersey = "3.1.2"
 jetbrainsAnnotation = "24.0.1"
 jetty = "11.0.15"
@@ -55,9 +54,7 @@ jackson-datatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-data
 jacksonJsonP = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp", version.ref = "jackson" }
 jakarta-rsApi = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "rsApi" }
 jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
-jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakartaValidation" }
 jakartaJson = { module = "org.glassfish:jakarta.json", version.ref = "jakarta-json" }
-jersey-beanvalidation = { module = "org.glassfish.jersey.ext:jersey-bean-validation", version.ref = "jersey" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
 jersey-inject = { module = "org.glassfish.jersey.inject:jersey-hk2", version.ref = "jersey" }
 jersey-jackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson", version.ref = "jersey" }
@@ -99,7 +96,7 @@ kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka
 
 [bundles]
 jersey-core = ["jersey.server", "jersey.common", "jersey.jackson", "jersey.multipart", "jersey.inject", "jersey.servlet", "jersey.servletcore"]
-jersey-api = ["jersey.beanvalidation", "jersey.common", "jersey.server"]
+jersey-api = ["jersey.common", "jersey.server"]
 jackson = ["jackson.core", "jackson.annotations", "jackson.databind", "jackson-datatypeJsr310"]
 jupiter = ["junit-jupiter-api", "junit-jupiter-params"]
 

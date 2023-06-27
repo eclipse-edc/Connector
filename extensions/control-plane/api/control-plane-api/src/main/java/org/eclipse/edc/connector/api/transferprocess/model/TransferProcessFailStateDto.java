@@ -18,11 +18,9 @@ package org.eclipse.edc.connector.api.transferprocess.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotNull;
 
 @JsonDeserialize(builder = TransferProcessFailStateDto.Builder.class)
 public class TransferProcessFailStateDto {
-    @NotNull
     private String errorMessage;
 
     private TransferProcessFailStateDto() {

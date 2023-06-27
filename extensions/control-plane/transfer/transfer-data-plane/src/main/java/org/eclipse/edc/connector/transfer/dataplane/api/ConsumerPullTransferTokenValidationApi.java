@@ -18,7 +18,6 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 @OpenAPIDefinition
@@ -32,5 +31,5 @@ public interface ConsumerPullTransferTokenValidationApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed"),
                     @ApiResponse(responseCode = "403", description = "Token is invalid") }
     )
-    DataAddress validate(@NotNull(message = "token cannot be null") String token);
+    DataAddress validate(String token);
 }

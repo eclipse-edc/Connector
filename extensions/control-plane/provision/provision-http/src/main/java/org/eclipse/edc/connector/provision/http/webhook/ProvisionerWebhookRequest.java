@@ -19,23 +19,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.Polymorphic;
 
 @JsonDeserialize(builder = ProvisionerWebhookRequest.Builder.class)
 @JsonTypeName("dataspaceconnector:provisioner-callback-request")
 public class ProvisionerWebhookRequest implements Polymorphic {
-    @NotNull(message = "resourceDefinitionId cannot be null")
     private String resourceDefinitionId;
     private boolean hasToken;
-    @NotNull(message = "assetId cannot be null")
     private String assetId;
-    @NotNull(message = "resourceName cannot be null")
     private String resourceName;
-    @NotNull(message = "contentDataAddress cannot be null")
     private DataAddress contentDataAddress;
-    @NotNull(message = "apiKeyJwt cannot be null")
     private String apiKeyJwt;
 
     private ProvisionerWebhookRequest() {

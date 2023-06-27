@@ -26,8 +26,6 @@ dependencies {
     implementation(project(":extensions:common:api:control-api-configuration"))
 
     implementation(libs.jakarta.rsApi)
-    implementation(libs.jakarta.validation)
-    implementation(libs.jersey.beanvalidation) //for validation
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))

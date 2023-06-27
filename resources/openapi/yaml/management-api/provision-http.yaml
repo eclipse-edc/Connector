@@ -93,9 +93,3 @@ components:
         resourceName:
           type: string
           example: null
-      required:
-      - apiKeyJwt
-      - assetId
-      - contentDataAddress
-      - resourceDefinitionId
-      - resourceName
