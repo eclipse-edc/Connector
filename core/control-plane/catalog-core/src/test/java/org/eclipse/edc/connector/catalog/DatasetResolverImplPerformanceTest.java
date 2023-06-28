@@ -51,11 +51,6 @@ class DatasetResolverImplPerformanceTest {
 
     private final Clock clock = Clock.systemUTC();
 
-    @NotNull
-    private static PolicyDefinition.Builder createPolicyDefinition(String id) {
-        return PolicyDefinition.Builder.newInstance().id(id).policy(Policy.Builder.newInstance().build());
-    }
-
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
@@ -98,6 +93,11 @@ class DatasetResolverImplPerformanceTest {
         var lastPageDatasets = queryDatasetsIn(datasetResolver, lastPageQuery, ofSeconds(1));
 
         assertThat(lastPageDatasets).hasSize(100);
+    }
+
+    @NotNull
+    private PolicyDefinition.Builder createPolicyDefinition(String id) {
+        return PolicyDefinition.Builder.newInstance().id(id).policy(Policy.Builder.newInstance().build());
     }
 
     private Stream<Dataset> queryDatasetsIn(DatasetResolver datasetResolver, QuerySpec querySpec, Duration duration) {

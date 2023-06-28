@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 public interface DatasetResolver {
 
     /**
-     * Resolves {@link Dataset}s given the {@link ParticipantAgent}, a {@link QuerySpec} and a {@link DataService}
+     * Resolves {@link Dataset}s given the {@link ParticipantAgent} and a {@link QuerySpec}
      *
      * @param agent the participant agent that requested the dataset.
      * @param querySpec the query spec for filtering and pagination.
@@ -34,4 +34,13 @@ public interface DatasetResolver {
      */
     @NotNull
     Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec);
+
+    /**
+     * Resolves a {@link Dataset} given its id
+     *
+     * @param participantAgent the participant agent that requested the dataset.
+     * @param id the dataset id.
+     * @return the {@link Dataset} if found, null otherwise.
+     */
+    Dataset getById(ParticipantAgent participantAgent, String id);
 }

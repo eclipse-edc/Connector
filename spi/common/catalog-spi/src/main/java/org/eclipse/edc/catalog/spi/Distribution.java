@@ -44,7 +44,7 @@ public class Distribution {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Distribution distribution;
+        private final Distribution distribution;
 
         private Builder() {
             distribution = new Distribution();

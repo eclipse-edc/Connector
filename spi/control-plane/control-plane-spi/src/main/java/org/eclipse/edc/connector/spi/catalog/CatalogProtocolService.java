@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.spi.catalog;
 
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
@@ -34,4 +35,14 @@ public interface CatalogProtocolService {
      */
     @NotNull
     ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ClaimToken token);
+
+    /**
+     * Returns a dataset given its id and a {@link ClaimToken}
+     *
+     * @param datasetId the dataset id.
+     * @param claimToken the claim token.
+     * @return succeeded result with the {@link Dataset}, failed result otherwise.
+     */
+    @NotNull
+    ServiceResult<Dataset> getDataset(String datasetId, ClaimToken claimToken);
 }
