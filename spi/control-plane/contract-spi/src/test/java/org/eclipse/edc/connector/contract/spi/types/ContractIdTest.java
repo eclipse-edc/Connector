@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.junit.jupiter.api.Test;
 
 import java.util.Base64;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,9 +30,25 @@ class ContractIdTest {
 
     @Test
     void parseId_shouldSucceedWhenItsValid() {
-        var result = ContractId.parseId(encodedContractId("this", "is", "valid"));
+        var base64representation = encodedContractId("definitionId", "assetId", "uuid");
 
-        assertThat(result).isSucceeded();
+        var result = ContractId.parseId(base64representation);
+
+        assertThat(result).isSucceeded().satisfies(it -> {
+            assertThat(it.definitionPart()).isEqualTo("definitionId");
+            assertThat(it.assetIdPart()).isEqualTo("assetId");
+            assertThat(it.toString()).isEqualTo(base64representation);
+        });
+    }
+
+    @Test
+    void parseId_shouldNotDecodePartsIfTheyArentBase64() {
+        var result = ContractId.parseId("not:base64:" + UUID.randomUUID());
+
+        assertThat(result).isSucceeded().satisfies(it -> {
+            assertThat(it.definitionPart()).isEqualTo("not");
+            assertThat(it.assetIdPart()).isEqualTo("base64");
+        });
     }
 
     @Test
@@ -56,20 +73,7 @@ class ContractIdTest {
     }
 
     @Test
-    void definitionPart_returnsTheFirstPartOfTheId() {
-        var base64representation = encodedContractId("definitionId", "assetId", "uuid");
-
-        var result = ContractId.parseId(base64representation);
-
-        assertThat(result).isSucceeded().satisfies(it -> {
-            assertThat(it.definitionPart()).isEqualTo("definitionId");
-            assertThat(it.assetIdPart()).isEqualTo("assetId");
-            assertThat(it.toString()).isEqualTo(base64representation);
-        });
-    }
-
-    @Test
-    void spawn_shouldCreateNewContractWithSameDefinitionAndAssetPartsAndDifferentUuid() {
+    void derive_shouldCreateNewContractWithSameDefinitionAndAssetPartsAndDifferentUuid() {
         var base64representation = encodedContractId("definitionId", "assetId", "uuid");
 
         var first = ContractId.parseId(base64representation).getContent();

@@ -81,15 +81,16 @@ public final class ContractId {
         var definitionIdPart = parts[DEFINITION_ID_PART];
         var assetIdPart = parts[ASSET_ID_PART];
         var uuidPart = parts[UUID_PART];
-        try {
-            var definitionId = decode(definitionIdPart);
-            var assetId = decode(assetIdPart);
-            var uuid = decode(uuidPart);
 
-            return Result.success(new ContractId(definitionId, assetId, uuid));
-        } catch (IllegalArgumentException e) {
-            return Result.failure(format("contract id parts should be encoded in base64 but they were: Definition ID: %s, Asset ID: %s, UUID: %s", definitionIdPart, assetIdPart, uuidPart));
-        }
+        var definitionId = decodeSafely(definitionIdPart);
+        var assetId = decodeSafely(assetIdPart);
+        var uuid = decodeSafely(uuidPart);
+
+        var contractId = (definitionId == null || assetId == null || uuid == null)
+                ? new ContractId(definitionIdPart, assetIdPart, uuidPart)
+                : new ContractId(definitionId, assetId, uuid);
+
+        return Result.success(contractId);
     }
 
     /**
@@ -105,8 +106,12 @@ public final class ContractId {
         return parseId(id).getContent();
     }
 
-    private static String decode(String base64string) {
-        return new String(Base64.getDecoder().decode(base64string));
+    private static String decodeSafely(String base64string) {
+        try {
+            return new String(Base64.getDecoder().decode(base64string));
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     /**
