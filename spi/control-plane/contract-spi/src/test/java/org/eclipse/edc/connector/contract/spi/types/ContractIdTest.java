@@ -16,51 +16,80 @@ package org.eclipse.edc.connector.contract.spi.types;
 
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Base64;
+import java.util.UUID;
+
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 class ContractIdTest {
 
-    @ParameterizedTest
-    @ValueSource(strings = { "this:is:valid", "this:is:valid:" })
-    void isValid(String idString) {
-        var id = ContractId.parse(idString);
+    private final Base64.Encoder base64encoder = Base64.getEncoder();
 
-        assertThat(id.isValid()).isTrue();
+    @Test
+    void parseId_shouldSucceedWhenItsValid() {
+        var base64representation = encodedContractId("definitionId", "assetId", "uuid");
+
+        var result = ContractId.parseId(base64representation);
+
+        assertThat(result).isSucceeded().satisfies(it -> {
+            assertThat(it.definitionPart()).isEqualTo("definitionId");
+            assertThat(it.assetIdPart()).isEqualTo("assetId");
+            assertThat(it.toString()).isEqualTo(base64representation);
+        });
     }
 
     @Test
-    void isValid_tooFewParts() {
-        assertThat(ContractId.parse("thisis:invalid").isValid()).isFalse();
+    void parseId_shouldNotDecodePartsIfTheyArentBase64() {
+        var result = ContractId.parseId("not:base64:" + UUID.randomUUID());
+
+        assertThat(result).isSucceeded().satisfies(it -> {
+            assertThat(it.definitionPart()).isEqualTo("not");
+            assertThat(it.assetIdPart()).isEqualTo("base64");
+        });
     }
 
     @Test
-    void isValid_falseIfNoColonPresent() {
-        var id = ContractId.parse("thisisaninvalidid");
+    void shouldNotParse_whenInputIsNull() {
+        var result = ContractId.parseId(null);
 
-        assertThat(id.isValid()).isFalse();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "thisis:a:very:invalidid", ":this:is:invalid" })
-    void isValid_falseIfTooManyColonsPresent(String idString) {
-        var id = ContractId.parse(idString);
-        assertThat(id.isValid()).isFalse();
+        assertThat(result).isFailed();
     }
 
     @Test
-    void definitionPart_returnsTheFirstPartOfTheId() {
-        var id = ContractId.parse("definitionPart:assetPart:agreementPart");
+    void shouldNotParse_whenTooFewParts() {
+        var result = ContractId.parseId("this:isinvalid");
 
-        assertThat(id.definitionPart()).isEqualTo("definitionPart");
+        assertThat(result).isFailed();
     }
 
     @Test
-    void assetIdPart_returnsSecondPartOfTheId() {
-        var id = ContractId.parse("definitionPart:assetPart:agreementPart");
+    void shouldNotParse_whenTooManyParts() {
+        var result = ContractId.parseId("this:is:not:valid");
 
-        assertThat(id.assetIdPart()).isEqualTo("assetPart");
+        assertThat(result).isFailed();
+    }
+
+    @Test
+    void derive_shouldCreateNewContractWithSameDefinitionAndAssetPartsAndDifferentUuid() {
+        var base64representation = encodedContractId("definitionId", "assetId", "uuid");
+
+        var first = ContractId.parseId(base64representation).getContent();
+
+        var result = first.derive();
+
+        assertThat(result.definitionPart()).isEqualTo("definitionId");
+        assertThat(result.assetIdPart()).isEqualTo("assetId");
+        assertThat(result.toString()).isNotEqualTo(first.toString());
+    }
+
+    private String encodedContractId(String definitionId, String assetId, String uuid) {
+        return format("%s:%s:%s",
+                base64encoder.encodeToString(definitionId.getBytes()),
+                base64encoder.encodeToString(assetId.getBytes()),
+                base64encoder.encodeToString(uuid.getBytes())
+        );
     }
 }

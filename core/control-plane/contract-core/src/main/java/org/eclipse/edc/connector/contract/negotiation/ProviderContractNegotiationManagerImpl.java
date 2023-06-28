@@ -174,15 +174,16 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         if (retrievedAgreement == null) {
             var lastOffer = negotiation.getLastContractOffer();
 
-            var contractId = ContractId.parse(lastOffer.getId());
-            if (!contractId.isValid()) {
-                monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
+            var contractIdResult = ContractId.parseId(lastOffer.getId());
+            if (contractIdResult.failed()) {
+                monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted: " + contractIdResult.getFailureDetail());
                 return false;
             }
-            var definitionId = contractId.definitionPart();
+
+            var contractId = contractIdResult.getContent();
 
             agreement = ContractAgreement.Builder.newInstance()
-                    .id(ContractId.createContractId(definitionId, lastOffer.getAssetId()))
+                    .id(contractId.derive().toString())
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())

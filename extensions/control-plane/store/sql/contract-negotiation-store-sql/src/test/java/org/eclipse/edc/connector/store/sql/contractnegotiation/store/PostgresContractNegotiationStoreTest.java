@@ -95,15 +95,14 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
     @Test
     void query_byAgreementId() {
-
-        var agreement1 = createContract("agr1");
-        var agreement2 = createContract("agr2");
-        var negotiation1 = createNegotiation("neg1", agreement1);
-        var negotiation2 = createNegotiation("neg2", agreement2);
+        var contractId1 = ContractId.create("def1", "asset");
+        var contractId2 = ContractId.create("def2", "asset");
+        var negotiation1 = createNegotiation("neg1", createContract(contractId1));
+        var negotiation2 = createNegotiation("neg2", createContract(contractId2));
         store.save(negotiation1);
         store.save(negotiation2);
 
-        var expression = criterion("contractAgreement.id", "=", "agr1");
+        var expression = criterion("contractAgreement.id", "=", contractId1.toString());
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
         var result = store.queryNegotiations(query).collect(Collectors.toList());
 
@@ -145,11 +144,12 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
     @Test
     void query_invalidKey_shouldThrowException() {
-        var agreement1 = createContract("agr1");
+        var contractId = ContractId.create("definition", "asset");
+        var agreement1 = createContract(contractId);
         var negotiation1 = createNegotiation("neg1", agreement1);
         store.save(negotiation1);
 
-        var expression = criterion("contractAgreement.notexist", "=", "agr1");
+        var expression = criterion("contractAgreement.notexist", "=", contractId.toString());
         var query = QuerySpec.Builder.newInstance().filter(expression).build();
         assertThatThrownBy(() -> store.queryNegotiations(query))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -158,7 +158,8 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
     @Test
     void query_invalidKeyInJson() {
-        var agreement1 = createContract("agr1");
+        var contractId = ContractId.create("definition", "asset");
+        var agreement1 = createContract(contractId);
         var negotiation1 = createNegotiation("neg1", agreement1);
         store.save(negotiation1);
 
@@ -170,7 +171,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
+            var contractAgreement = createContractBuilder(ContractId.create(UUID.randomUUID().toString(), TEST_ASSET_ID).toString())
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -186,7 +187,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_invalidOperand() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
+            var contractAgreement = createContractBuilder(ContractId.create(UUID.randomUUID().toString(), TEST_ASSET_ID).toString())
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -200,7 +201,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_noFilter() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
+            var contractAgreement = createContractBuilder(ContractId.create(UUID.randomUUID().toString(), TEST_ASSET_ID).toString())
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -214,7 +215,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     @Test
     void queryAgreements_withQuerySpec_invalidValue() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = createContractBuilder(ContractId.createContractId(UUID.randomUUID().toString(), TEST_ASSET_ID))
+            var contractAgreement = createContractBuilder(ContractId.create(UUID.randomUUID().toString(), TEST_ASSET_ID).toString())
                     .assetId("asset-" + i)
                     .build();
             var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -232,7 +233,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         store.save(negotiation);
 
         // now add the agreement
-        var agreement = createContract("test-ca1");
+        var agreement = createContract(ContractId.create("definition", "asset"));
         var updatedNegotiation = createNegotiation(negotiationId, agreement);
 
         store.save(updatedNegotiation);
@@ -256,7 +257,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                 .state(REQUESTED.code())
                 .type(CONSUMER)
                 .build()).forEach(store::save);
-        Criterion[] criteria = { hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER") };
+        var criteria = new Criterion[]{hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER")};
 
         var result = store.nextNotLeased(10, criteria);
 

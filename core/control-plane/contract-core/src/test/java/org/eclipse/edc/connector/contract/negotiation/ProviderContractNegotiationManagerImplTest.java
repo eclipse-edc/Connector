@@ -248,7 +248,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     private ContractAgreement.Builder contractAgreementBuilder() {
         return ContractAgreement.Builder.newInstance()
-                .id(ContractId.createContractId(UUID.randomUUID().toString(), "test-asset-id"))
+                .id(ContractId.create(UUID.randomUUID().toString(), "test-asset-id").toString())
                 .providerId("any")
                 .consumerId("any")
                 .assetId("default")
@@ -257,7 +257,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId("1", "test-asset-id"))
+                .id(ContractId.create("1", "test-asset-id").toString())
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("assetId")
                 .providerId(PROVIDER_ID)

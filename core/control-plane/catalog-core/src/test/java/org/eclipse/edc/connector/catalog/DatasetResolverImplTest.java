@@ -47,6 +47,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.model.PolicyType.OFFER;
 import static org.eclipse.edc.policy.model.PolicyType.SET;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -89,8 +90,7 @@ class DatasetResolverImplTest {
             assertThat(dataset.getId()).matches(isUuid());
             assertThat(dataset.getDistributions()).hasSize(1).first().isEqualTo(distribution);
             assertThat(dataset.getOffers()).hasSize(1).allSatisfy((id, policy) -> {
-                assertThat(id).startsWith("definitionId");
-                assertThat(ContractId.parse(id)).matches(ContractId::isValid);
+                assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).asString().isEqualTo("definitionId");
                 assertThat(policy.getTarget()).isEqualTo("assetId");
             });
             assertThat(dataset.getProperties()).contains(entry("key", "value"));
@@ -127,11 +127,11 @@ class DatasetResolverImplTest {
             assertThat(dataset.getId()).matches(isUuid());
             assertThat(dataset.getOffers()).hasSize(2)
                     .anySatisfy((id, policy) -> {
-                        assertThat(id).startsWith("definition1");
+                        assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).asString().isEqualTo("definition1");
                         assertThat(policy.getType()).isEqualTo(SET);
                     })
                     .anySatisfy((id, policy) -> {
-                        assertThat(id).startsWith("definition2");
+                        assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).asString().isEqualTo("definition2");
                         assertThat(policy.getType()).isEqualTo(OFFER);
                     });
         });

@@ -165,16 +165,16 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private boolean processAccepting(ContractNegotiation negotiation) {
         var lastOffer = negotiation.getLastContractOffer();
 
-        var contractId = ContractId.parse(lastOffer.getId());
-        if (!contractId.isValid()) {
-            monitor.severe("ConsumerContractNegotiationManagerImpl.approveContractOffers(): Offer Id not correctly formatted.");
+        var contractIdResult = ContractId.parseId(lastOffer.getId());
+        if (contractIdResult.failed()) {
+            monitor.severe("ConsumerContractNegotiationManagerImpl.approveContractOffers(): Offer Id not correctly formatted: " + contractIdResult.getFailureDetail());
             return false;
         }
-        var definitionId = contractId.definitionPart();
+        var contractId = contractIdResult.getContent();
 
         var policy = lastOffer.getPolicy();
         var agreement = ContractAgreement.Builder.newInstance()
-                .id(ContractId.createContractId(definitionId, lastOffer.getAssetId()))
+                .id(contractId.derive().toString())
                 .contractSigningDate(clock.instant().getEpochSecond())
                 .providerId(negotiation.getCounterPartyId())
                 .consumerId(participantId)

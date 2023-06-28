@@ -113,15 +113,16 @@ public class ContractOfferResolverImpl implements ContractOfferResolver {
         return Optional.of(definition.getContractPolicyId())
                 .map(policyStore::findById)
                 .map(policyDefinition -> assetIndex.queryAssets(assetQuerySpec)
-                        .map(asset -> createContractOffer(definition, policyDefinition.getPolicy(), asset.getId())))
+                        .map(asset -> ContractId.create(definition.getId(), asset.getId()))
+                        .map(contractId -> createContractOffer(policyDefinition.getPolicy(), contractId)))
                 .orElse(Stream.empty());
     }
 
     @NotNull
-    private ContractOffer.Builder createContractOffer(ContractDefinition definition, Policy policy, String assetId) {
+    private ContractOffer.Builder createContractOffer(Policy policy, ContractId contractId) {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId(definition.getId(), assetId))
-                .policy(policy.withTarget(assetId))
-                .assetId(assetId);
+                .id(contractId.toString())
+                .policy(policy.withTarget(contractId.assetIdPart()))
+                .assetId(contractId.assetIdPart());
     }
 }

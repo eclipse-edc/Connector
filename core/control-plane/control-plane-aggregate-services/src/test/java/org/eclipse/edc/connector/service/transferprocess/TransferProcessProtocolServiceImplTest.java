@@ -99,7 +99,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_validAgreement_shouldInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("transferProcessId")
-                .contractId(ContractId.createContractId("definitionId", "assetId"))
+                .contractId(ContractId.create("definitionId", "assetId").toString())
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -125,7 +125,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_doNothingIfProcessAlreadyExist() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("correlationId")
-                .contractId(ContractId.createContractId("definitionId", "assetId"))
+                .contractId(ContractId.create("definitionId", "assetId").toString())
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -164,7 +164,7 @@ class TransferProcessProtocolServiceImplTest {
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
-                .contractId(ContractId.createContractId("definitionId", "assetId"))
+                .contractId(ContractId.create("definitionId", "assetId").toString())
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -183,7 +183,7 @@ class TransferProcessProtocolServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
-                .contractId(ContractId.createContractId("definitionId", "assetId"))
+                .contractId(ContractId.create("definitionId", "assetId").toString())
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();

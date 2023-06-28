@@ -81,9 +81,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
-        var contractId = ContractId.parse(message.getContractId());
-        if (!contractId.isValid()) {
-            return ServiceResult.badRequest("ContractId is not valid");
+        var contractIdResult = ContractId.parseId(message.getContractId());
+        if (contractIdResult.failed()) {
+            return ServiceResult.badRequest("ContractId is not valid: " + contractIdResult.getFailureDetail());
         }
 
         var validDestination = dataAddressValidator.validate(message.getDataDestination());
@@ -94,7 +94,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return transactionContext.execute(() ->
                 Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
                         .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
-                        .map(agreement -> requestedAction(message))
+                        .map(agreement -> requestedAction(message, contractIdResult.getContent()))
                         .orElse(ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"))));
     }
 
@@ -130,8 +130,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
     
     @NotNull
-    private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message) {
-        var contractId = ContractId.parse(message.getContractId());
+    private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, ContractId contractId) {
         var assetId = contractId.assetIdPart();
 
         var dataRequest = DataRequest.Builder.newInstance()
