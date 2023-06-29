@@ -21,6 +21,6 @@ public interface CatalogApiPaths {
     
     String BASE_PATH = "/catalog";
     String CATALOG_REQUEST = "/request";
-    String DATASET_REQUEST = "/catalog/datasets";
+    String DATASET_REQUEST = "/datasets";
 
 }
