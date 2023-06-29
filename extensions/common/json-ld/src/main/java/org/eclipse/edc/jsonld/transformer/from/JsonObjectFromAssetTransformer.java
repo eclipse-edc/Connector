@@ -38,21 +38,24 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
 
     @Override
     public @Nullable JsonObject transform(@NotNull Asset asset, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
-        builder.add(ID, asset.getId());
-        builder.add(TYPE, Asset.EDC_ASSET_TYPE);
-        //transform public properties
+        var builder = jsonFactory.createObjectBuilder()
+                .add(ID, asset.getId())
+                .add(TYPE, Asset.EDC_ASSET_TYPE);
+
         var propBuilder = jsonFactory.createObjectBuilder();
         transformProperties(asset.getProperties(), propBuilder, mapper, context);
         builder.add(Asset.EDC_ASSET_PROPERTIES, propBuilder);
 
-
-        //transform private properties
         if (asset.getPrivateProperties() != null && !asset.getPrivateProperties().isEmpty()) {
             var privatePropBuilder = jsonFactory.createObjectBuilder();
             transformProperties(asset.getPrivateProperties(), privatePropBuilder, mapper, context);
             builder.add(Asset.EDC_ASSET_PRIVATE_PROPERTIES, privatePropBuilder);
         }
+
+        if (asset.getDataAddress() != null) {
+            builder.add(Asset.EDC_ASSET_DATA_ADDRESS, context.transform(asset.getDataAddress(), JsonObject.class));
+        }
+
         return builder.build();
     }
 }

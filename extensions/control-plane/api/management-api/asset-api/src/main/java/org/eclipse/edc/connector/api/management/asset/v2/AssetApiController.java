@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.asset;
+package org.eclipse.edc.connector.api.management.asset.v2;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -47,12 +47,12 @@ import static java.util.Optional.of;
 import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_TYPE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v2/assets")
+@Deprecated
 public class AssetApiController implements AssetApi {
     private final TypeTransformerRegistry transformerRegistry;
     private final AssetService service;
@@ -136,7 +136,8 @@ public class AssetApiController implements AssetApi {
     @PUT
     @Override
     public void updateAsset(JsonObject assetJsonObject) {
-        validator.validate(EDC_ASSET_TYPE, assetJsonObject).orElseThrow(ValidationFailureException::new);
+        // validation removed because now the asset validation requires the dataAddress field
+        // validator.validate(EDC_ASSET_TYPE, assetJsonObject).orElseThrow(ValidationFailureException::new);
 
         var assetResult = transformerRegistry.transform(assetJsonObject, Asset.class)
                 .orElseThrow(InvalidRequestException::new);

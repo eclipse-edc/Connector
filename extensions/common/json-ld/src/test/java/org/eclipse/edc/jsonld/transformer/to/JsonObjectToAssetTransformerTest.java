@@ -15,7 +15,6 @@
 package org.eclipse.edc.jsonld.transformer.to;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
@@ -24,8 +23,8 @@ import org.eclipse.edc.connector.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.transformer.Payload;
 import org.eclipse.edc.jsonld.transformer.PayloadTransformer;
-import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +39,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.transformer.to.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
@@ -62,17 +62,16 @@ class JsonObjectToAssetTransformerTest {
     private static final String CUSTOM_PAYLOAD_NAME = "max";
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TitaniumJsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
-    private ObjectMapper jsonPmapper;
     private TypeTransformerRegistry typeTransformerRegistry;
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
-
-        jsonPmapper = createObjectMapper();
+        var objectMapper = createObjectMapper();
         var transformer = new JsonObjectToAssetTransformer();
         typeTransformerRegistry = new TypeTransformerRegistryImpl();
-        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(jsonPmapper));
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
         typeTransformerRegistry.register(transformer);
+        typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new PayloadTransformer());
         typeTransformerRegistry.registerTypeAlias(EDC_NAMESPACE + "customPayload", Payload.class);
     }
@@ -84,19 +83,24 @@ class JsonObjectToAssetTransformerTest {
                 .add(TYPE, EDC_ASSET_TYPE)
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder().build())
+                .add("dataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
                 .build();
         jsonObj = expand(jsonObj);
-        var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
 
-        AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
-        assertThat(asset.getContent().getProperties())
-                .hasSize(5)
-                .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
-                .containsEntry(PROPERTY_ID, asset.getContent().getId())
-                .containsEntry(PROPERTY_NAME, TEST_ASSET_NAME)
-                .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
-                .containsEntry(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
-                .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
+        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
+
+        assertThat(result).isSucceeded().satisfies(asset -> {
+            assertThat(asset.getProperties())
+                    .hasSize(5)
+                    .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
+                    .containsEntry(PROPERTY_ID, result.getContent().getId())
+                    .containsEntry(PROPERTY_NAME, TEST_ASSET_NAME)
+                    .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
+                    .containsEntry(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
+                    .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
+            assertThat(asset.getDataAddress()).isNotNull().extracting(DataAddress::getType).isEqualTo("address-type");
+        });
+
     }
 
     @Test
@@ -111,7 +115,7 @@ class JsonObjectToAssetTransformerTest {
         jsonObj = expand(jsonObj);
         var asset = typeTransformerRegistry.transform(jsonObj, Asset.class);
 
-        AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
+        assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
                 .hasSize(5)
                 .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
@@ -137,7 +141,7 @@ class JsonObjectToAssetTransformerTest {
                 .build();
         jsonObj = expand(jsonObj);
         var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
-        AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
+        assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
                 .hasSize(6)
                 .hasEntrySatisfying(EDC_NAMESPACE + "payload", o -> assertThat(o).isInstanceOf(Payload.class)
@@ -176,7 +180,7 @@ class JsonObjectToAssetTransformerTest {
         jsonObj = expand(jsonObj);
         var asset = typeTransformerRegistry.transform(getExpanded(jsonObj), Asset.class);
 
-        AbstractResultAssert.assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
+        assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getVersion()).isNull();
         assertThat(asset.getContent().getProperties())
                 .containsEntry("edc:version", TEST_ASSET_VERSION);

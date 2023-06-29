@@ -21,7 +21,9 @@ import org.eclipse.edc.connector.api.management.asset.transform.AssetRequestDtoT
 import org.eclipse.edc.connector.api.management.asset.transform.AssetToAssetResponseDtoTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.AssetUpdateRequestWrapperDtoToAssetTransformer;
 import org.eclipse.edc.connector.api.management.asset.transform.JsonObjectToAssetEntryNewDtoTransformer;
+import org.eclipse.edc.connector.api.management.asset.v3.AssetApiController;
 import org.eclipse.edc.connector.api.management.asset.validation.AssetEntryDtoValidator;
+import org.eclipse.edc.connector.api.management.asset.validation.AssetValidator;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -75,9 +77,10 @@ public class AssetApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToAssetEntryNewDtoTransformer());
 
         validator.register(EDC_ASSET_ENTRY_DTO_TYPE, AssetEntryDtoValidator.assetEntryValidator());
-        validator.register(EDC_ASSET_TYPE, AssetEntryDtoValidator.assetValidator());
+        validator.register(EDC_ASSET_TYPE, AssetValidator.instance());
         validator.register(EDC_DATA_ADDRESS_TYPE, DataAddressDtoValidator.instance());
 
-        webService.registerResource(config.getContextAlias(), new AssetApiController(assetService, dataAddressResolver, transformerRegistry, monitor, validator));
+        webService.registerResource(config.getContextAlias(), new org.eclipse.edc.connector.api.management.asset.v2.AssetApiController(assetService, dataAddressResolver, transformerRegistry, monitor, validator));
+        webService.registerResource(config.getContextAlias(), new AssetApiController(assetService, transformerRegistry, monitor, validator));
     }
 }

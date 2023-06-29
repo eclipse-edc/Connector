@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,7 +69,7 @@ class DatasetResolverImplPerformanceTest {
                 .contractPolicyId("policy")
                 .assetsSelectorCriterion(criterion(Asset.PROPERTY_ID, "=", String.valueOf(i))).build()
                 ).forEach(contractDefinitionStore::save);
-        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::create);
+        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).forEach(assetIndex::create);
 
         var firstPageQuery = QuerySpec.Builder.newInstance().offset(0).limit(100).build();
         var firstPageDatasets = queryDatasetsIn(datasetResolver, firstPageQuery, ofSeconds(1));
@@ -87,7 +86,7 @@ class DatasetResolverImplPerformanceTest {
     void fewDefinitionsSelectAllAssets(DatasetResolver datasetResolver, ContractDefinitionStore contractDefinitionStore, AssetIndex assetIndex, PolicyDefinitionStore policyDefinitionStore) {
         policyDefinitionStore.create(createPolicyDefinition("policy").build());
         range(0, 10).mapToObj(i -> createContractDefinition(String.valueOf(i)).accessPolicyId("policy").contractPolicyId("policy").build()).forEach(contractDefinitionStore::save);
-        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).map(this::createAssetEntry).forEach(assetIndex::create);
+        range(0, 10000).mapToObj(i -> createAsset(String.valueOf(i)).build()).forEach(assetIndex::create);
 
         var firstPageQuery = QuerySpec.Builder.newInstance().offset(0).limit(100).build();
         var firstPageDatasets = queryDatasetsIn(datasetResolver, firstPageQuery, ofSeconds(1));
@@ -116,12 +115,10 @@ class DatasetResolverImplPerformanceTest {
                 .contractPolicyId("contract");
     }
 
-    @NotNull
-    private AssetEntry createAssetEntry(Asset it) {
-        return new AssetEntry(it, DataAddress.Builder.newInstance().type("type").build());
-    }
-
     private Asset.Builder createAsset(String id) {
-        return Asset.Builder.newInstance().id(id).name("test asset " + id);
+        return Asset.Builder.newInstance()
+                .id(id)
+                .name("test asset " + id)
+                .dataAddress(DataAddress.Builder.newInstance().type("type").build());
     }
 }

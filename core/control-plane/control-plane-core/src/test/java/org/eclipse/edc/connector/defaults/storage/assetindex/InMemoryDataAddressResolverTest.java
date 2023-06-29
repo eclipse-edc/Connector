@@ -35,9 +35,9 @@ class InMemoryDataAddressResolverTest {
     @Test
     void resolveForAsset() {
         var id = UUID.randomUUID().toString();
-        var testAsset = createAsset("foobar", id);
-        var address = createDataAddress(testAsset);
-        resolver.create(testAsset, address);
+        var address = createDataAddress();
+        var testAsset = createAssetBuilder("foobar", id).dataAddress(address).build();
+        resolver.create(testAsset);
 
         assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
     }
@@ -45,31 +45,31 @@ class InMemoryDataAddressResolverTest {
     @Test
     void resolveForAsset_assetNull_raisesException() {
         var id = UUID.randomUUID().toString();
-        var testAsset = createAsset("foobar", id);
-        var address = createDataAddress(testAsset);
-        resolver.create(testAsset, address);
+        var address = createDataAddress();
+        var testAsset = createAssetBuilder("foobar", id).dataAddress(address).build();
+        resolver.create(testAsset);
 
         assertThatThrownBy(() -> resolver.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void resolveForAsset_whenAssetDeleted_raisesException() {
-        var testAsset = createAsset("foobar", UUID.randomUUID().toString());
-        var address = createDataAddress(testAsset);
-        resolver.create(testAsset, address);
+        var address = createDataAddress();
+        var testAsset = createAssetBuilder("foobar", UUID.randomUUID().toString()).dataAddress(address).build();
+        resolver.create(testAsset);
         resolver.deleteById(testAsset.getId());
 
         assertThat(resolver.resolveForAsset(testAsset.getId())).isNull();
     }
 
-    private Asset createAsset(String name, String id) {
-        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType("type").build();
+    private static Asset.Builder createAssetBuilder(String name, String id) {
+        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType("type");
     }
 
-    private DataAddress createDataAddress(Asset asset) {
+    private DataAddress createDataAddress() {
         return DataAddress.Builder.newInstance()
                 .keyName("test-keyname")
-                .type(asset.getContentType())
+                .type("type")
                 .build();
     }
 }

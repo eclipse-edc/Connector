@@ -40,9 +40,8 @@ class AssetTest {
                 .build();
 
         var json = typeManager.writeValueAsString(asset);
-        assertThat(json).isNotNull();
 
-        assertThat(json).contains("abcd123")
+        assertThat(json).isNotNull().contains("abcd123")
                 .contains("application/json")
                 .contains("testasset")
                 .contains("some-critical.value")

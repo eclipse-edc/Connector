@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.asset;
+package org.eclipse.edc.connector.api.management.asset.v2;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +36,7 @@ import org.eclipse.edc.web.spi.ApiErrorDetail;
 @OpenAPIDefinition(info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will become the standard API once the Dataspace Protocol is stable. " +
         "The new Asset API is prefixed with /v2, and the old endpoints have been deprecated. At that time of switching, the old API will be removed, and this API will be available without the /v2 prefix.", title = "Asset API"))
 @Tag(name = "Asset")
+@Deprecated
 public interface AssetApi {
 
     @Operation(description = "Creates a new asset together with a data address",

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.Entity;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,10 +44,9 @@ public class Asset extends Entity {
     public static final String EDC_ASSET_TYPE = EDC_NAMESPACE + "Asset";
     public static final String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String EDC_ASSET_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
+    public static final String EDC_ASSET_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
 
-    @Deprecated(since = "milestone9")
-    private static final String DEPRECATED_PROPERTY_PREFIX = "asset:prop:";
-
+    private DataAddress dataAddress;
     private final Map<String, Object> properties;
     private final Map<String, Object> privateProperties;
 
@@ -57,28 +57,28 @@ public class Asset extends Entity {
 
     @Override
     public String getId() {
-        return id == null ? ofNullable(getPropertyAsString(PROPERTY_ID)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + id)) : id;
+        return id == null ? ofNullable(getPropertyAsString(PROPERTY_ID)).orElse(getPropertyAsString(id)) : id;
     }
 
     @JsonIgnore
     public String getName() {
         return ofNullable(getPropertyAsString(PROPERTY_NAME))
-                .orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "name"));
+                .orElse(getPropertyAsString("name"));
     }
 
     @JsonIgnore
     public String getDescription() {
-        return ofNullable(getPropertyAsString(PROPERTY_DESCRIPTION)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "description"));
+        return ofNullable(getPropertyAsString(PROPERTY_DESCRIPTION)).orElse(getPropertyAsString("description"));
     }
 
     @JsonIgnore
     public String getVersion() {
-        return ofNullable(getPropertyAsString(PROPERTY_VERSION)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "version"));
+        return ofNullable(getPropertyAsString(PROPERTY_VERSION)).orElse(getPropertyAsString("version"));
     }
 
     @JsonIgnore
     public String getContentType() {
-        return ofNullable(getPropertyAsString(PROPERTY_CONTENT_TYPE)).orElse(getPropertyAsString(DEPRECATED_PROPERTY_PREFIX + "contenttype"));
+        return ofNullable(getPropertyAsString(PROPERTY_CONTENT_TYPE)).orElse(getPropertyAsString("contenttype"));
     }
 
     public Map<String, Object> getProperties() {
@@ -88,6 +88,11 @@ public class Asset extends Entity {
     @JsonIgnore
     public Object getProperty(String key) {
         return properties.get(key);
+    }
+
+    @JsonIgnore
+    public Object getPropertyOrPrivate(String key) {
+        return properties.getOrDefault(key, privateProperties.get(key));
     }
 
     public Map<String, Object> getPrivateProperties() {
@@ -103,9 +108,27 @@ public class Asset extends Entity {
         return val != null ? val.toString() : null;
     }
 
-    private String getPrivatePropertyAsString(String key) {
-        var val = getPrivateProperty(key);
-        return val != null ? val.toString() : null;
+    public DataAddress getDataAddress() {
+        return dataAddress;
+    }
+
+    public Builder toBuilder() {
+        return Asset.Builder.newInstance()
+                .id(id)
+                .properties(properties)
+                .privateProperties(privateProperties)
+                .dataAddress(dataAddress)
+                .createdAt(createdAt);
+    }
+
+    @JsonIgnore
+    public boolean hasDuplicatePropertyKeys() {
+        var properties = getProperties();
+        var privateProperties = getPrivateProperties();
+        if (privateProperties != null && properties != null) {
+            return privateProperties.keySet().stream().distinct().anyMatch(properties::containsKey);
+        }
+        return true;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -122,9 +145,8 @@ public class Asset extends Entity {
 
         @Override
         public Builder id(String id) {
-            // todo: remove storing the ID in the properties map in future versions
-            entity.properties.put(PROPERTY_ID, id);
             entity.id = id;
+            entity.properties.put(PROPERTY_ID, id);
             return self();
         }
 
@@ -137,14 +159,6 @@ public class Asset extends Entity {
         @Override
         public Builder self() {
             return this;
-        }
-
-        @Override
-        public Asset build() {
-            if (entity.getId() == null) {
-                id(UUID.randomUUID().toString());
-            }
-            return super.build();
         }
 
         public Builder name(String title) {
@@ -178,6 +192,11 @@ public class Asset extends Entity {
             return self();
         }
 
+        public Builder dataAddress(DataAddress dataAddress) {
+            entity.dataAddress = dataAddress;
+            return self();
+        }
+
         public Builder privateProperties(Map<String, Object> privateProperties) {
             Objects.requireNonNull(privateProperties);
             entity.privateProperties.putAll(privateProperties);
@@ -187,6 +206,17 @@ public class Asset extends Entity {
         public Builder privateProperty(String key, Object value) {
             entity.privateProperties.put(key, value);
             return self();
+        }
+
+        @Override
+        public Asset build() {
+            super.build();
+
+            if (entity.getId() == null) {
+                id(UUID.randomUUID().toString());
+            }
+
+            return entity;
         }
     }
 

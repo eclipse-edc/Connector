@@ -39,7 +39,7 @@ public interface AssetIndex extends DataAddressResolver {
 
     String ASSET_EXISTS_TEMPLATE = "Asset with ID %s already exists";
     String ASSET_NOT_FOUND_TEMPLATE = "Asset with ID %s not found";
-    String DATAADDRESS_NOT_FOUND_TEMPLATE = "DataAddress with ID %s not found";
+    String DATA_ADDRESS_NOT_FOUND_TEMPLATE = "DataAddress with ID %s not found";
     String DUPLICATE_PROPERTY_KEYS_TEMPLATE = "Duplicate keys in properties and private properties are not allowed";
 
     /**
@@ -73,12 +73,39 @@ public interface AssetIndex extends DataAddressResolver {
      * @param asset       The {@link Asset} to store
      * @param dataAddress The {@link DataAddress} to store
      * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
+     * @deprecated please use {@link #create(Asset)}
      */
+    @Deprecated(since = "0.1.2", forRemoval = true)
     default StoreResult<Void> create(Asset asset, DataAddress dataAddress) {
         return create(new AssetEntry(asset, dataAddress));
     }
 
-    StoreResult<Void> create(AssetEntry item);
+    /**
+     * This method will be removed in favor of {@link #create(Asset)}
+     *
+     * @param item the asset entry.
+     * @return the result.
+     * @deprecated please use and override {@link #create(Asset)}
+     */
+    @Deprecated(since = "0.1.2")
+    default StoreResult<Void> create(AssetEntry item) {
+        var asset = item.getAsset();
+        var assetWithDataAddress = asset.toBuilder()
+                .dataAddress(item.getDataAddress())
+                .build();
+        return create(assetWithDataAddress);
+    }
+
+    /**
+     * Stores a {@link Asset} in the asset index, if no asset with the same ID already exists.
+     * Implementors must ensure that it's stored in a transactional way.
+     *
+     * @param asset       The {@link Asset} to store
+     * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
+     */
+    default StoreResult<Void> create(Asset asset) {
+        return create(new AssetEntry(asset, asset.getDataAddress()));
+    }
 
     /**
      * Deletes an asset if it exists.
