@@ -51,23 +51,20 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
     }
 
     private void transformProperties(String key, JsonValue value, Dataset.Builder builder, TransformerContext context) {
-        if (ODRL_POLICY_ATTRIBUTE.equals(key)) {
-            transformPolicies(value, builder, context);
-        } else if (DCAT_DISTRIBUTION_ATTRIBUTE.equals(key)) {
-            transformArrayOrObject(value, Distribution.class, builder::distribution, context);
-        } else {
-            builder.property(key, transformGenericProperty(value, context));
+        switch (key) {
+            case ODRL_POLICY_ATTRIBUTE -> transformPolicies(value, builder, context);
+            case DCAT_DISTRIBUTION_ATTRIBUTE ->
+                    transformArrayOrObject(value, Distribution.class, builder::distribution, context);
+            default -> builder.property(key, transformGenericProperty(value, context));
         }
     }
 
     private void transformPolicies(JsonValue value, Dataset.Builder builder, TransformerContext context) {
-        if (value instanceof JsonObject) {
-            var object = (JsonObject) value;
+        if (value instanceof JsonObject object) {
             var id = nodeId(object);
             var policy = context.transform(object, Policy.class);
             builder.offer(id, policy);
-        } else if (value instanceof JsonArray) {
-            var array = (JsonArray) value;
+        } else if (value instanceof JsonArray array) {
             array.forEach(entry -> transformPolicies(entry, builder, context));
         } else {
             context.problem()

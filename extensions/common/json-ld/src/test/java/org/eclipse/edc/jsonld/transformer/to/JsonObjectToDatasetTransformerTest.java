@@ -48,8 +48,8 @@ class JsonObjectToDatasetTransformerTest {
 
     private static final String DATASET_ID = "datasetId";
 
-    private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private TransformerContext context = mock(TransformerContext.class);
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+    private final TransformerContext context = mock();
 
     private JsonObjectToDatasetTransformer transformer;
 
@@ -123,30 +123,6 @@ class JsonObjectToDatasetTransformerTest {
 
         verify(context, never()).reportProblem(anyString());
         verify(context, times(1)).transform(any(JsonValue.class), eq(Object.class));
-    }
-
-    @Test
-    void transform_invalidType_reportProblem() {
-        var dataset = jsonFactory.createObjectBuilder()
-                .add(TYPE, "not-a-dataset")
-                .build();
-
-        transformer.transform(getExpanded(dataset), context);
-
-        verify(context, times(1)).reportProblem(anyString());
-    }
-
-    @Test
-    void transform_requiredAttributesMissing_reportProblem() {
-        var dataset = jsonFactory.createObjectBuilder()
-                .add(ID, DATASET_ID)
-                .add(TYPE, DCAT_DATASET_TYPE)
-                .build();
-
-        var result = transformer.transform(getExpanded(dataset), context);
-
-        assertThat(result).isNull();
-        verify(context, times(1)).reportProblem(anyString());
     }
 
     private JsonObject getJsonObject(String id, String type) {

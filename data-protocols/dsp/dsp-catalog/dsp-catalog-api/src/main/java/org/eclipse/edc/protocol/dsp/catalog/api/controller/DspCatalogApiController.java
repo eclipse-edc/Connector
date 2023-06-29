@@ -16,9 +16,11 @@ package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
@@ -39,6 +41,7 @@ import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
+import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.DATASET_REQUEST;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
@@ -69,7 +72,7 @@ public class DspCatalogApiController {
 
     @POST
     @Path(CATALOG_REQUEST)
-    public Response getCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response requestCatalog(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         monitor.debug(() -> "DSP: Incoming catalog request.");
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
@@ -116,6 +119,39 @@ public class DspCatalogApiController {
         return status(Response.Status.OK)
                 .type(APPLICATION_JSON)
                 .entity(catalogJson.getContent())
+                .build();
+    }
+
+    @GET
+    @Path(DATASET_REQUEST + "/{id}")
+    public Response getDataset(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                .token(token)
+                .build();
+
+        var verificationResult = identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress);
+        if (verificationResult.failed()) {
+            monitor.debug(format("Unauthorized, %s", verificationResult.getFailureMessages()));
+            return error().unauthorized();
+        }
+
+        var datasetResult = service.getDataset(id, verificationResult.getContent());
+        if (datasetResult.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(format("Error returning dataset, error id %s: %s", errorCode, datasetResult.getFailureMessages()));
+            return error().message(format("Error code %s", errorCode)).from(datasetResult.getFailure());
+        }
+
+        var datasetJson = transformerRegistry.transform(datasetResult.getContent(), JsonObject.class);
+        if (datasetJson.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning(format("Error transforming dataset, error id %s: %s", errorCode, datasetJson.getFailureMessages()));
+            return error().message(format("Error code %s", errorCode)).internalServerError();
+        }
+
+        return status(Response.Status.OK)
+                .type(APPLICATION_JSON)
+                .entity(datasetJson.getContent())
                 .build();
     }
 

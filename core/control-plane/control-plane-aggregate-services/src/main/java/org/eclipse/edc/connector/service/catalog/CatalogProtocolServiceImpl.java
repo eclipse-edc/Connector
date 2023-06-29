@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.service.catalog;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -24,6 +25,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -47,8 +49,8 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     @Override
     @NotNull
-    public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ClaimToken token) {
-        var agent = participantAgentService.createFor(token);
+    public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ClaimToken claimToken) {
+        var agent = participantAgentService.createFor(claimToken);
 
         try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
             var dataServices = dataServiceRegistry.getDataServices();
@@ -61,5 +63,18 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
             return ServiceResult.success(catalog);
         }
+    }
+
+    @Override
+    public @NotNull ServiceResult<Dataset> getDataset(String datasetId, ClaimToken claimToken) {
+        var agent = participantAgentService.createFor(claimToken);
+
+        var dataset = datasetResolver.getById(agent, datasetId);
+
+        if (dataset == null) {
+            return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));
+        }
+
+        return ServiceResult.success(dataset);
     }
 }

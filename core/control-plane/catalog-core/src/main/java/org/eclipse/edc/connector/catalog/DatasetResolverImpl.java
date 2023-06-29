@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.AssetPredicateConverter;
@@ -30,12 +29,11 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.MAX_VALUE;
-import static java.util.stream.Collectors.toList;
 
 public class DatasetResolverImpl implements DatasetResolver {
 
@@ -56,68 +54,47 @@ public class DatasetResolverImpl implements DatasetResolver {
     @Override
     @NotNull
     public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec) {
-        var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).collect(toList());
+        var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).toList();
         var assetsQuery = QuerySpec.Builder.newInstance().offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression()).build();
         return assetIndex.queryAssets(assetsQuery)
-                .map(asset -> {
-                    var offers = contractDefinitions.stream()
-                            .filter(definition -> definition.getAssetsSelector().stream()
-                                    .map(predicateConverter::convert)
-                                    .reduce(x -> true, Predicate::and)
-                                    .test(asset))
-                            .map(contractDefinition -> createOffer(contractDefinition, asset.getId()))
-                            .filter(Objects::nonNull)
-                            .collect(toList());
-                    return new ProtoDataset(asset, offers);
-                })
-                .filter(ProtoDataset::hasOffers)
+                .map(asset -> toDataset(contractDefinitions, asset))
+                .filter(Dataset::hasOffers)
                 .skip(querySpec.getOffset())
-                .limit(querySpec.getLimit())
-                .map(proto -> {
-                    var asset = proto.asset;
-                    var offers = proto.offers;
-                    var distributions = distributionResolver.getDistributions(asset, null); // TODO: data addresses should be retrieved
-                    var datasetBuilder = Dataset.Builder.newInstance()
-                            .distributions(distributions)
-                            .properties(asset.getProperties());
+                .limit(querySpec.getLimit());
+    }
 
-                    offers.forEach(offer -> datasetBuilder.offer(offer.contractId, offer.policy.withTarget(asset.getId())));
+    @Override
+    public Dataset getById(ParticipantAgent agent, String id) {
+        var contractDefinitions = contractDefinitionResolver.definitionsFor(agent).toList();
+        return Optional.of(id)
+                .map(assetIndex::findById)
+                .map(asset -> toDataset(contractDefinitions, asset))
+                .orElse(null);
+    }
 
-                    return datasetBuilder.build();
+    private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset) {
+
+        var distributions = distributionResolver.getDistributions(asset, null); // TODO: data addresses should be retrieved
+        var datasetBuilder = Dataset.Builder.newInstance()
+                .id(asset.getId())
+                .distributions(distributions)
+                .properties(asset.getProperties());
+
+        contractDefinitions.stream()
+                .filter(definition -> definition.getAssetsSelector().stream()
+                        .map(predicateConverter::convert)
+                        .reduce(x -> true, Predicate::and)
+                        .test(asset)
+                )
+                .forEach(contractDefinition -> {
+                    var policyDefinition = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
+                    if (policyDefinition != null) {
+                        var contractId = ContractId.create(contractDefinition.getId(), asset.getId());
+                        datasetBuilder.offer(contractId.toString(), policyDefinition.getPolicy().withTarget(asset.getId()));
+                    }
                 });
-    }
 
-    private Offer createOffer(ContractDefinition definition, String assetId) {
-        var policyDefinition = policyDefinitionStore.findById(definition.getContractPolicyId());
-        if (policyDefinition == null) {
-            return null;
-        }
-        var contractId = ContractId.create(definition.getId(), assetId);
-        return new Offer(contractId.toString(), policyDefinition.getPolicy());
-    }
-
-    private static class Offer {
-        private final String contractId;
-        private final Policy policy;
-
-        Offer(String contractId, Policy policy) {
-            this.contractId = contractId;
-            this.policy = policy;
-        }
-    }
-
-    private static class ProtoDataset {
-        private final Asset asset;
-        private final List<Offer> offers;
-
-        private ProtoDataset(Asset asset, List<Offer> offers) {
-            this.asset = asset;
-            this.offers = offers;
-        }
-
-        boolean hasOffers() {
-            return offers.size() > 0;
-        }
+        return datasetBuilder.build();
     }
 
 }

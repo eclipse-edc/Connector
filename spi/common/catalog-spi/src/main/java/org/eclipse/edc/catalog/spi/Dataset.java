@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static java.util.UUID.randomUUID;
 
@@ -41,7 +40,7 @@ public class Dataset {
     /**
      * Policies under which this Dataset is available.
      */
-    private Map<String, Policy> offers;
+    private final Map<String, Policy> offers = new HashMap<>();
 
     /**
      * Representations of this Dataset.
@@ -74,6 +73,10 @@ public class Dataset {
         return properties.get(key);
     }
 
+    public boolean hasOffers() {
+        return !offers.isEmpty();
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final Dataset dataset;
@@ -92,15 +95,7 @@ public class Dataset {
             return this;
         }
 
-        public Builder offers(Map<String, Policy> offers) {
-            this.dataset.offers = offers;
-            return this;
-        }
-
         public Builder offer(String offerId, Policy policy) {
-            if (dataset.offers == null) {
-                dataset.offers = new HashMap<>();
-            }
             dataset.offers.put(offerId, policy);
             return this;
         }
@@ -135,9 +130,6 @@ public class Dataset {
             if (dataset.id == null) {
                 dataset.id = randomUUID().toString();
             }
-
-            Objects.requireNonNull(dataset.offers, "At least one offer required for Dataset.");
-            Objects.requireNonNull(dataset.distributions, "At least one Distribution required for Dataset.");
 
             return dataset;
         }

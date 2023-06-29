@@ -21,6 +21,7 @@ import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -34,6 +35,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -52,8 +54,8 @@ class CatalogProtocolServiceImplTest {
     void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
         var querySpec = QuerySpec.none();
         var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
-        var token = ClaimToken.Builder.newInstance().build();
-        var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
+        var token = createToken();
+        var participantAgent = createParticipantAgent();
         var dataService = DataService.Builder.newInstance().build();
         when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
         when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
@@ -69,12 +71,47 @@ class CatalogProtocolServiceImplTest {
         verify(participantAgentService).createFor(token);
     }
 
-    private static Dataset createDataset() {
+    @Test
+    void getDataset_shouldReturnDataset() {
+        var claimToken = createToken();
+        var participantAgent = createParticipantAgent();
+        var dataset = createDataset();
+        when(participantAgentService.createFor(any())).thenReturn(participantAgent);
+        when(datasetResolver.getById(any(), any())).thenReturn(dataset);
+
+        var result = service.getDataset("datasetId", claimToken);
+
+        assertThat(result).isSucceeded().isEqualTo(dataset);
+        verify(participantAgentService).createFor(claimToken);
+        verify(datasetResolver).getById(participantAgent, "datasetId");
+    }
+
+    @Test
+    void getDataset_shouldFail_whenDatasetIsNull() {
+        var claimToken = createToken();
+        var participantAgent = createParticipantAgent();
+        when(participantAgentService.createFor(any())).thenReturn(participantAgent);
+        when(datasetResolver.getById(any(), any())).thenReturn(null);
+
+        var result = service.getDataset("datasetId", claimToken);
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    private ParticipantAgent createParticipantAgent() {
+        return new ParticipantAgent(emptyMap(), emptyMap());
+    }
+
+    private Dataset createDataset() {
         var dataService = DataService.Builder.newInstance().build();
         var distribution = Distribution.Builder.newInstance().dataService(dataService).format("any").build();
         return Dataset.Builder.newInstance()
                 .offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build())
                 .distribution(distribution)
                 .build();
+    }
+
+    private ClaimToken createToken() {
+        return ClaimToken.Builder.newInstance().build();
     }
 }

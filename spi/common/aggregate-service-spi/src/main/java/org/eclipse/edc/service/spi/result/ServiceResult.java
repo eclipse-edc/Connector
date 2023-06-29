@@ -60,28 +60,24 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
         if (storeResult.succeeded()) {
             return success(storeResult.getContent());
         }
-        switch (storeResult.reason()) {
-            case NOT_FOUND:
-                return notFound(storeResult.getFailureDetail());
-            case ALREADY_EXISTS:
-                return conflict(storeResult.getFailureDetail());
-            default:
-                return badRequest(storeResult.getFailureDetail());
-        }
+
+        return switch (storeResult.reason()) {
+            case NOT_FOUND -> notFound(storeResult.getFailureDetail());
+            case ALREADY_EXISTS -> conflict(storeResult.getFailureDetail());
+            default -> badRequest(storeResult.getFailureDetail());
+        };
     }
 
     public static <T> ServiceResult<T> fromFailure(StoreResult<?> storeResult) {
         if (storeResult.succeeded()) {
             throw new IllegalArgumentException("Can only use this method when the argument is a failed result!");
         }
-        switch (storeResult.reason()) {
-            case NOT_FOUND:
-                return notFound(storeResult.getFailureDetail());
-            case ALREADY_EXISTS:
-                return conflict(storeResult.getFailureDetail());
-            default:
-                return badRequest(storeResult.getFailureDetail());
-        }
+
+        return switch (storeResult.reason()) {
+            case NOT_FOUND -> notFound(storeResult.getFailureDetail());
+            case ALREADY_EXISTS -> conflict(storeResult.getFailureDetail());
+            default -> badRequest(storeResult.getFailureDetail());
+        };
     }
 
     public static <T> ServiceResult<T> unauthorized(List<String> failureMessages) {
