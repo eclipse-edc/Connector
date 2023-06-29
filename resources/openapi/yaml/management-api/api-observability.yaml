@@ -10,10 +10,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
           description: The runtime is working properly.
       tags:
       - Application Observability
@@ -27,10 +24,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
           description: The runtime is working properly.
       tags:
       - Application Observability
@@ -44,10 +38,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
           description: The runtime is able to accept requests.
       tags:
       - Application Observability
@@ -61,10 +52,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
           description: The runtime has completed startup.
       tags:
       - Application Observability

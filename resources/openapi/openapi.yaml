@@ -83,10 +83,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
   /check/liveness:
     get:
       tags:
@@ -100,10 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
   /check/readiness:
     get:
       tags:
@@ -117,10 +111,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
   /check/startup:
     get:
       tags:
@@ -134,10 +125,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthStatus'
   /instances:
     get:
       tags:
