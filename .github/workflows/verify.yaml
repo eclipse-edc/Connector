@@ -1,4 +1,4 @@
-name: Test Code (Style, Tests)
+name: Run Tests
 
 on:
   workflow_dispatch:
