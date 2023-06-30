@@ -237,27 +237,30 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
-        var validationResult = responses.stream()
+        responses.stream()
                 .map(result -> result.succeeded()
                         ? storeProvisionedSecrets(transferProcess.getId(), result.getContent())
                         : toFatalError(result)
                 )
                 .filter(AbstractResult::failed)
                 .reduce(Result::merge)
-                .orElse(Result.success());
+                .orElse(Result.success())
+                .onSuccess(v -> {
+                    var provisionResponses = responses.stream()
+                            .filter(AbstractResult::succeeded)
+                            .map(AbstractResult::getContent)
+                            .collect(Collectors.toList());
 
-        if (validationResult.failed()) {
-            var message = format("Transitioning transfer process %s to TERMINATED state due to fatal provisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
-            transitionToTerminating(transferProcess, message);
-            return;
-        }
-
-        var provisionResponses = responses.stream()
-                .filter(AbstractResult::succeeded)
-                .map(AbstractResult::getContent)
-                .collect(Collectors.toList());
-
-        handleProvisionResponses(transferProcess, provisionResponses);
+                    handleProvisionResponses(transferProcess, provisionResponses);
+                })
+                .onFailure(failure -> {
+                    var message = format("Terminating transfer process %s due to fatal provisioning errors: %s", transferProcess.getId(), failure.getFailureDetail());
+                    if (transferProcess.getType() == PROVIDER) {
+                        transitionToTerminating(transferProcess, message);
+                    } else {
+                        transitionToTerminated(transferProcess, message);
+                    }
+                });
     }
 
     private void handleDeprovisionResult(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> responses) {
@@ -296,7 +299,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var policy = policyArchive.findPolicyForContract(contractId);
 
         if (policy == null) {
-            transitionToTerminating(process, "Policy not found for contract: " + contractId);
+            transitionToTerminated(process, "Policy not found for contract: " + contractId);
             return true;
         }
 
@@ -304,9 +307,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (process.getType() == CONSUMER) {
             var manifestResult = manifestGenerator.generateConsumerResourceManifest(dataRequest, policy);
             if (manifestResult.failed()) {
-                monitor.severe(format("Transitioning transfer process %s to TERMINATED state. Resource manifest cannot be modified to fulfil policy: %s",
-                        process.getId(), manifestResult.getFailureMessages()));
-                transitionToTerminating(process, format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
+                transitionToTerminated(process, format("Resource manifest for process %s cannot be modified to fulfil policy. %s", process.getId(), manifestResult.getFailureMessages()));
                 return true;
             }
             manifest = manifestResult.getContent();
@@ -358,7 +359,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .entityRetrieve(transferProcessStore::findById)
                 .onSuccess(this::handleProvisionResult)
                 .onFailure((t, throwable) -> transitionToProvisioning(t))
-                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage())))
+                .onRetryExhausted((t, throwable) -> {
+                    if (t.getType() == PROVIDER) {
+                        transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage()));
+                    } else {
+                        transitionToTerminated(t, format("Error during provisioning: %s", throwable.getMessage()));
+                    }
+                })
                 .onDelay(this::breakLease)
                 .execute("Provisioning");
     }
@@ -759,7 +766,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
-        monitor.severe(message, errors);
+        monitor.warning(message, errors);
         process.transitionTerminating(message);
         update(process);
     }
@@ -768,8 +775,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         transitionToTerminated(process, throwable.getMessage());
     }
 
-    private void transitionToTerminated(TransferProcess process, String string) {
-        process.setErrorDetail(string);
+    private void transitionToTerminated(TransferProcess process, String message) {
+        process.setErrorDetail(message);
+        monitor.warning(message);
         transitionToTerminated(process);
     }
 
