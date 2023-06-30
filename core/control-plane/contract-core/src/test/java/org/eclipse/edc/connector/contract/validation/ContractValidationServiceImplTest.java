@@ -304,8 +304,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void validateConfirmed_succeed() {
-        var id = ContractId.create("1", "2").toString();
-        var agreement = createContractAgreement().id(id).build();
+        var agreement = createContractAgreement().id("any").build();
         var offer = createContractOffer();
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -322,45 +321,28 @@ class ContractValidationServiceImplTest {
 
     @Test
     void validateConfirmed_failsIfOfferIsNull() {
-        var id = ContractId.create("1", "2").toString();
-        var agreement = createContractAgreement().id(id).build();
+        var agreement = createContractAgreement().id("any").build();
         var token = ClaimToken.Builder.newInstance().build();
 
         var result = validationService.validateConfirmed(token, agreement, null);
 
         assertThat(result).isFailed();
-        verify(agentService, times(0)).createFor(eq(token));
+        verifyNoInteractions(agentService, policyEquality);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { CONSUMER_ID })
-    @NullSource
-    void validateConfirmed_failsIfInvalidClaims(String counterPartyId) {
+    @Test
+    void validateConfirmed_shouldFail_whenParticipantIdentityIsNotTheExpectedOne() {
         var agreement = createContractAgreement().build();
         var offer = createContractOffer();
         var token = ClaimToken.Builder.newInstance().build();
 
-        var participantAgent = new ParticipantAgent(Map.of(), counterPartyId != null ? Map.of(PARTICIPANT_IDENTITY, counterPartyId) : Map.of());
+        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, "not-the-expected-one"));
         when(agentService.createFor(eq(token))).thenReturn(participantAgent);
 
         var result = validationService.validateConfirmed(token, agreement, offer);
 
-        assertThat(result.succeeded()).isFalse();
-
-        verify(agentService).createFor(isA(ClaimToken.class));
-    }
-
-    @Test
-    void validateConfirmed_failsIfIdIsNotValid() {
-        var agreement = createContractAgreement().id("not a valid id").build();
-        var offer = createContractOffer();
-        var token = ClaimToken.Builder.newInstance().build();
-
-        var result = validationService.validateConfirmed(token, agreement, offer);
-
-        assertThat(result.failed()).isTrue();
-
-        verify(agentService, times(0)).createFor(eq(token));
+        assertThat(result).isFailed();
+        verifyNoInteractions(policyEquality);
     }
 
     @Test
