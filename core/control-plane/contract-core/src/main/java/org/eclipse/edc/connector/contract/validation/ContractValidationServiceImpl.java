@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -144,20 +145,16 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("No offer found");
         }
 
-        return ContractId.parseId(agreement.getId())
-                .compose(contractId -> {
-                    var agent = agentService.createFor(token);
-                    var providerIdentity = agent.getIdentity();
-                    if (providerIdentity == null || !providerIdentity.equals(agreement.getProviderId())) {
-                        return failure("Invalid provider credentials");
-                    }
+        var agent = agentService.createFor(token);
+        if (!Objects.equals(agent.getIdentity(), agreement.getProviderId())) {
+            return failure("Invalid provider credentials");
+        }
 
-                    if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAssetId()), latestOffer.getPolicy())) {
-                        return failure("Policy in the contract agreement is not equal to the one in the contract offer");
-                    }
+        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAssetId()), latestOffer.getPolicy())) {
+            return failure("Policy in the contract agreement is not equal to the one in the contract offer");
+        }
 
-                    return success();
-                });
+        return success();
     }
 
     /**
