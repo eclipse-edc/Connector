@@ -43,7 +43,7 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s -> '%s'", getResourceManifestColumn(), "definitions"), DEFINITIONS_ALIAS);
             return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this));
         } else if (querySpec.containsAnyLeftOperand("provisionedResourceSet.resources")) {
-            var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s -> '%s'", getProvisionedResourcesetColumn(), "resources"), RESOURCES_ALIAS);
+            var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s -> '%s'", getProvisionedResourceSetColumn(), "resources"), RESOURCES_ALIAS);
             return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this));
         } else if (querySpec.containsAnyLeftOperand("deprovisionedResources")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s", getDeprovisionedResourcesColumn()), DEPROVISIONED_RESOURCES_ALIAS);

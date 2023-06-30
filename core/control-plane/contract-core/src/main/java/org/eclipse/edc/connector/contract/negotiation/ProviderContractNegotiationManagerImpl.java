@@ -105,7 +105,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
         var contractOfferRequest = ContractRequestMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
-                .connectorId(negotiation.getCounterPartyId())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractOffer(currentOffer)
                 .processId(negotiation.getCorrelationId())

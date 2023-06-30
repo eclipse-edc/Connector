@@ -175,7 +175,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
                 .managedResources(resultSet.getBoolean(statements.getManagedResourcesColumn()))
                 .processId(resultSet.getString(statements.getProcessIdColumn()))
-                .properties(fromJson(resultSet.getString(statements.getDataRequestPropertiesColumn()), getTypeRef()))
                 .build();
     }
 
@@ -223,7 +222,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 dataRequest.getContractId(),
                 toJson(dataRequest.getDataDestination()),
                 dataRequest.isManagedResources(),
-                toJson(dataRequest.getProperties()),
                 existingDataRequestId);
     }
 
@@ -279,7 +277,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 dr.getAssetId(),
                 dr.getContractId(),
                 toJson(dr.getDataDestination()),
-                toJson(dr.getProperties()),
                 processId,
                 dr.getProtocol(),
                 dr.isManagedResources());
@@ -296,7 +293,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .stateCount(resultSet.getInt(statements.getStateCountColumn()))
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), getTypeRef()))
                 .resourceManifest(fromJson(resultSet.getString(statements.getResourceManifestColumn()), ResourceManifest.class))
-                .provisionedResourceSet(fromJson(resultSet.getString(statements.getProvisionedResourcesetColumn()), ProvisionedResourceSet.class))
+                .provisionedResourceSet(fromJson(resultSet.getString(statements.getProvisionedResourceSetColumn()), ProvisionedResourceSet.class))
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .dataRequest(mapDataRequest(resultSet))
                 .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))

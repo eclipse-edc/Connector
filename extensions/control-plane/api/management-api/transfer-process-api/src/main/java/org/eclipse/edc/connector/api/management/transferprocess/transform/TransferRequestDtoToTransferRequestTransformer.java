@@ -40,7 +40,7 @@ public class TransferRequestDtoToTransferRequestTransformer implements DtoTransf
     @Override
     public @Nullable TransferRequest transform(@NotNull TransferRequestDto object, @NotNull TransformerContext context) {
         // Generate a DataRequest ID if none is provided (used for idempotency)
-        String id = Objects.requireNonNullElseGet(object.getId(), () -> UUID.randomUUID().toString());
+        var id = Objects.requireNonNullElseGet(object.getId(), () -> UUID.randomUUID().toString());
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -50,7 +50,6 @@ public class TransferRequestDtoToTransferRequestTransformer implements DtoTransf
                 .connectorAddress(object.getConnectorAddress())
                 .contractId(object.getContractId())
                 .destinationType(object.getDataDestination().getType())
-                .properties(object.getProperties())
                 .managedResources(object.isManagedResources())
                 .protocol(object.getProtocol())
                 .dataDestination(object.getDataDestination())

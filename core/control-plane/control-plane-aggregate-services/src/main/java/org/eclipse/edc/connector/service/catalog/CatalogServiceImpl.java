@@ -35,7 +35,6 @@ public class CatalogServiceImpl implements CatalogService {
     public CompletableFuture<StatusResult<byte[]>> request(String providerUrl, String protocol, QuerySpec querySpec) {
         var request = CatalogRequestMessage.Builder.newInstance()
                 .protocol(protocol)
-                .connectorId(providerUrl)
                 .counterPartyAddress(providerUrl)
                 .querySpec(querySpec)
                 .build();

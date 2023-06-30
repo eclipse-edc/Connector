@@ -64,7 +64,6 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .destinationType(dataRequest.getDestinationType())
                 .destinationDataAddress(dataRequest.getDataDestination())
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
-                .properties(dataRequest.getProperties())
                 .build();
     }
 }

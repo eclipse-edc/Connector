@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,12 +79,8 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
 
     @Test
     void transformTransferRequestMessageWithDataAddress() {
-        var properties = new HashMap<String, String>();
-        properties.put("key", "value");
-
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId(id)
-                .properties(properties)
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)
                 .protocol(protocol)
@@ -107,12 +102,8 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
 
     @Test
     void transformTransferRequestMessageWithoutDataAddress() {
-        var properties = new HashMap<String, String>();
-        properties.put("key", "value");
-
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId(id)
-                .properties(properties)
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)
                 .protocol(protocol)

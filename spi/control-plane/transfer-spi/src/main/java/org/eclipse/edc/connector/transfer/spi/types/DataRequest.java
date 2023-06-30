@@ -21,9 +21,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.Polymorphic;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Polymorphic data request.
  */
@@ -38,9 +35,7 @@ public class DataRequest implements Polymorphic {
     private String assetId;
     private String contractId;
     private DataAddress dataDestination;
-
     private boolean managedResources = true;
-    private Map<String, String> properties = new HashMap<>();
 
     /**
      * The unique request id. Request ids are provided by the originating consumer and must be unique.
@@ -110,13 +105,6 @@ public class DataRequest implements Polymorphic {
      */
     public DataAddress getDataDestination() {
         return dataDestination;
-    }
-
-    /**
-     * Custom properties that are passed to the provider connector.
-     */
-    public Map<String, String> getProperties() {
-        return properties;
     }
 
     public boolean isManagedResources() {
@@ -192,11 +180,6 @@ public class DataRequest implements Polymorphic {
 
         public Builder managedResources(boolean value) {
             request.managedResources = value;
-            return this;
-        }
-
-        public Builder properties(Map<String, String> value) {
-            request.properties = value;
             return this;
         }
 

@@ -74,18 +74,6 @@ public interface TransferProcessListener {
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#STARTED STARTED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated please use preStarted instead
-     */
-    @Deprecated(since = "milestone9")
-    default void preInProgress(TransferProcess process) {
-        preStarted(process);
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
      * {@link TransferProcessStates#STARTED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
@@ -127,30 +115,6 @@ public interface TransferProcessListener {
      * @param process the transfer process whose state has changed.
      */
     default void preTerminated(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#TERMINATED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated please use preTerminated instead
-     */
-    @Deprecated(since = "milestone9")
-    default void preEnded(TransferProcess process) {
-        preTerminated(process);
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#TERMINATED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated please use preTerminated instead
-     */
-    @Deprecated(since = "milestone9")
-    default void preError(TransferProcess process) {
-        preTerminated(process);
     }
 
     /**
@@ -232,28 +196,6 @@ public interface TransferProcessListener {
      */
     default void deprovisioned(TransferProcess process) {
 
-    }
-
-    /**
-     * Called after a {@link TransferProcess} was ended.
-     *
-     * @param process the transfer process that has been ended.
-     * @deprecated please use terminated instead
-     */
-    @Deprecated(since = "milestone9")
-    default void ended(TransferProcess process) {
-        terminated(process);
-    }
-
-    /**
-     * Called after a {@link TransferProcess} was cancelled.
-     *
-     * @param process the transfer process that has been cancelled.
-     * @deprecated please use terminated instead
-     */
-    @Deprecated(since = "milestone9")
-    default void cancelled(TransferProcess process) {
-        terminated(process);
     }
 
     /**

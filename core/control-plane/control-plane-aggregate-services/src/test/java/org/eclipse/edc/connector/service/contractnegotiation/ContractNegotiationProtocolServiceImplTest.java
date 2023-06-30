@@ -99,7 +99,6 @@ class ContractNegotiationProtocolServiceImplTest {
         var validatedOffer = new ValidatedConsumerOffer(CONSUMER_ID, contractOffer);
         when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.success(validatedOffer));
         var message = ContractRequestMessage.Builder.newInstance()
-                .connectorId(CONSUMER_ID)
                 .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
@@ -113,7 +112,6 @@ class ContractNegotiationProtocolServiceImplTest {
         verify(store).save(calls.capture());
         assertThat(calls.getAllValues()).anySatisfy(n -> {
             assertThat(n.getState()).isEqualTo(REQUESTED.code());
-            assertThat(n.getCounterPartyId()).isEqualTo(message.getConnectorId());
             assertThat(n.getCounterPartyAddress()).isEqualTo(message.getCallbackAddress());
             assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
             assertThat(n.getCorrelationId()).isEqualTo(message.getProcessId());
@@ -132,7 +130,6 @@ class ContractNegotiationProtocolServiceImplTest {
         when(validationService.validateInitialOffer(token, contractOffer)).thenReturn(Result.failure("error"));
 
         var message = ContractRequestMessage.Builder.newInstance()
-                .connectorId(CONSUMER_ID)
                 .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
