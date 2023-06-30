@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,18 +9,15 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering
- *       Microsoft Corporation
  *
  */
 
-package org.eclipse.edc.connector.transfer.transfer;
+package org.eclipse.edc.connector.transfer.process;
 
 import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.TestProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.TestResourceDefinition;
-import org.eclipse.edc.connector.transfer.process.TransferProcessManagerImpl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;

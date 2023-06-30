@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.transfer;
+package org.eclipse.edc.connector.transfer.process;
 
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
