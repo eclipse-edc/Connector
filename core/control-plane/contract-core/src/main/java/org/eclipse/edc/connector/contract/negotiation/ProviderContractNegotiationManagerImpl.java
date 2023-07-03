@@ -18,7 +18,7 @@
 
 package org.eclipse.edc.connector.contract.negotiation;
 
-import io.opentelemetry.extension.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;

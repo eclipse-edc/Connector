@@ -16,7 +16,7 @@
 
 package org.eclipse.edc.connector.transfer.process;
 
-import io.opentelemetry.extension.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;

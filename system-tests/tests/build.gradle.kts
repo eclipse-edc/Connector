@@ -41,7 +41,7 @@ dependencies {
 }
 
 val otelDownloadUrl =
-    "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar"
+    "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.27.0/opentelemetry-javaagent.jar"
 
 fun download(url: String, destFile: File) {
     ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile))
