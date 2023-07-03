@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - implementation for provider offer
  *
  */
 
@@ -23,6 +24,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiatio
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -79,8 +81,16 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> notifyOffered(ContractRequestMessage message, ClaimToken claimToken) {
-        throw new UnsupportedOperationException("not implemented");
+    public ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, ClaimToken claimToken) {
+        return transactionContext.execute(() -> getNegotiation(message)
+                .compose(negotiation -> validateRequest(claimToken, negotiation))
+                .onSuccess(negotiation -> {
+                    monitor.debug(() -> "[Consumer] Contract offer received.");
+                    negotiation.addContractOffer(message.getContractOffer());
+                    negotiation.transitionOffered();
+                    update(negotiation);
+                    observable.invokeForEach(l -> l.offered(negotiation));
+                }));
     }
 
     @Override
