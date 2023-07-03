@@ -65,3 +65,4 @@
 - [2023-06-05-validation-engine](2023-06-05-validation-engine)
 - [2023-06-19-change-of-github-labels](2023-06-19-new-issue-triage-process/)
 - [2023-06-19-onboarding-contributors](2023-06-19-onboarding-contributors/)
+- [2023-06-30-allow-use-of-testcontainers](2023-06-30-allow-use-of-testcontainers/)
