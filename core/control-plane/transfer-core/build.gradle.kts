@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:common:transform-spi"))
     implementation(project(":core:common:state-machine"))
     implementation(project(":core:common:util"))
-    implementation(libs.opentelemetry.annotations)
+    implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))

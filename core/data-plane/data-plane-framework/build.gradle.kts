@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":core:common:util"))
 
-    implementation(libs.opentelemetry.annotations)
+    implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)

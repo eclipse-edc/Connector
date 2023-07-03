@@ -45,7 +45,7 @@ tasks.withType<Test> {
     if (!agentFile.exists()) {
         logger.lifecycle("Downloading OpenTelemetry Agent")
         download(
-            "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar",
+            "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.27.0/opentelemetry-javaagent.jar",
             agentFile
         )
     }

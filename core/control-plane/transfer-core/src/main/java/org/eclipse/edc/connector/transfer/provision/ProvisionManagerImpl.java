@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.provision;
 
-import io.opentelemetry.extension.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.Provisioner;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;

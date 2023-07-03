@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.framework.pipeline;
 
-import io.opentelemetry.extension.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;

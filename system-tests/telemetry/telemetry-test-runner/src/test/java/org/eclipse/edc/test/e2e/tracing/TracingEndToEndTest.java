@@ -100,7 +100,9 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                     var requests = traceCollectorServer.retrieveRecordedRequests(HttpRequest.request());
                     var spans = extractSpansFromRequests(requests);
 
-                    assertThat(spans.stream().map(Span::getName))
+                    assertThat(spans.stream())
+                            .map(Span::getName)
+                            .filteredOn(it -> !it.startsWith("HTTP"))
                             .contains("ConsumerContractNegotiationManagerImpl.initiate");
                 }
         );
@@ -122,7 +124,7 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                     }
                 })
                 .flatMap(r -> r.getResourceSpansList().stream())
-                .flatMap(r -> r.getInstrumentationLibrarySpansList().stream())
+                .flatMap(r -> r.getScopeSpansList().stream())
                 .flatMap(r -> r.getSpansList().stream())
                 .collect(Collectors.toList());
     }

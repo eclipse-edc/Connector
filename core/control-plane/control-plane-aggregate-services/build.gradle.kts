@@ -20,7 +20,7 @@ dependencies {
     implementation(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":core:common:util"))
 
-    implementation(libs.opentelemetry.annotations)
+    implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:control-plane:catalog-core"))
     testImplementation(project(":core:control-plane:contract-core"))

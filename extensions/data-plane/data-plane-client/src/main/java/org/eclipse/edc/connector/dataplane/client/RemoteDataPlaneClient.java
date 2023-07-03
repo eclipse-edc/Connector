@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.opentelemetry.extension.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;

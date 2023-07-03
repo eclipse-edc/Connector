@@ -24,7 +24,7 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:util"))
 
-    implementation(libs.opentelemetry.annotations)
+    implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)
