@@ -20,11 +20,13 @@ import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromCon
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationEventMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationTransformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractOfferMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractAgreementMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractAgreementVerificationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractNegotiationEventMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractNegotiationTerminationMessageTransformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractOfferMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractRequestMessageTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -60,11 +62,13 @@ public class DspNegotiationTransformExtension implements ServiceExtension {
         registry.register(new JsonObjectFromContractNegotiationTerminationMessageTransformer(builderFactory));
         registry.register(new JsonObjectFromContractNegotiationTransformer(builderFactory));
         registry.register(new JsonObjectFromContractRequestMessageTransformer(builderFactory));
+        registry.register(new JsonObjectFromContractOfferMessageTransformer(builderFactory));
 
         registry.register(new JsonObjectToContractAgreementMessageTransformer());
         registry.register(new JsonObjectToContractAgreementVerificationMessageTransformer());
         registry.register(new JsonObjectToContractNegotiationEventMessageTransformer());
         registry.register(new JsonObjectToContractRequestMessageTransformer());
         registry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer());
+        registry.register(new JsonObjectToContractOfferMessageTransformer());
     }
 }
