@@ -58,7 +58,13 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
         params.baseUrl(baseUrl);
 
         params.headers(address.getAdditionalHeaders());
-
+        // simple patch (not failsafe)
+		if (request.getProperties().containsKey("headerParams")) {
+			for (String entry : request.getProperties().get("headerParams").split(",")) {
+				int indexSep = entry.indexOf("=");
+				params.header(entry.substring(0, indexSep).trim(), entry.substring(indexSep + 1).trim());
+			}
+		}
         Optional.ofNullable(address.getAuthKey())
                 .ifPresent(authKey -> params.header(authKey, extractAuthCode(requestId, address)));
 
