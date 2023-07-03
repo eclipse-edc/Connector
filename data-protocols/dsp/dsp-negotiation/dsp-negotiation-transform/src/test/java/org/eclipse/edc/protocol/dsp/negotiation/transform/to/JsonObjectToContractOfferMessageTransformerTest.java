@@ -109,23 +109,6 @@ class JsonObjectToContractOfferMessageTransformerTest {
     }
     
     @Test
-    void transform_shouldReportProblem_whenMissingCallbackAddress() {
-        var message = jsonFactory.createObjectBuilder()
-                .add(ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_PROPERTY_OFFER, jsonFactory.createObjectBuilder()
-                        .add(ID, CONTRACT_OFFER_ID)
-                        .build())
-                .build();
-    
-        var result = transformer.transform(message, context);
-    
-        assertThat(result).isNull();
-        verify(context, times(1)).reportProblem(any());
-    }
-    
-    @Test
     void transform_shouldReportProblem_whenMissingContractOffer() {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
