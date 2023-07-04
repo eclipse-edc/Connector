@@ -24,21 +24,26 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
+import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
+
+import java.util.List;
+
+import static org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi.ContractDefinitionInputSchema.CONTRACT_DEFINITION_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi.ContractDefinitionOutputSchema.CONTRACT_DEFINITION_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Definition")
 public interface ContractDefinitionApi {
 
     @Operation(description = "Returns all contract definitions according to a query",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = QuerySpecDto.class))),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract definitions matching the query",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionResponseDto.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractDefinitionOutputSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
@@ -48,7 +53,7 @@ public interface ContractDefinitionApi {
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract definition",
-                            content = @Content(schema = @Schema(implementation = ContractDefinitionResponseDto.class))),
+                            content = @Content(schema = @Schema(implementation = ContractDefinitionOutputSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
@@ -58,10 +63,10 @@ public interface ContractDefinitionApi {
     JsonObject getContractDefinition(String id);
 
     @Operation(description = "Creates a new contract definition",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionRequestDto.class))),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
-                            content = @Content(schema = @Schema(implementation = IdResponseDto.class))),
+                            content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
@@ -82,7 +87,7 @@ public interface ContractDefinitionApi {
     void deleteContractDefinition(String id);
 
     @Operation(description = "Updated a contract definition with the given ID. The supplied JSON structure must be a valid JSON-LD object",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionRequestDto.class))),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionInputSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "204", description = "Contract definition was updated successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
@@ -93,4 +98,47 @@ public interface ContractDefinitionApi {
     )
     void updateContractDefinition(JsonObject updateObject);
 
+    @Schema(example = CONTRACT_DEFINITION_INPUT_EXAMPLE)
+    record ContractDefinitionInputSchema(
+            @Schema(name = ID)
+            String id,
+            @Schema(name = TYPE, example = CONTRACT_DEFINITION_TYPE)
+            String type,
+            String accessPolicyId,
+            String contractPolicyId,
+            List<ApiCoreSchema.CriterionSchema> assetsSelector) {
+
+        public static final String CONTRACT_DEFINITION_INPUT_EXAMPLE = """
+                {
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@id": "definition-id",
+                    "accessPolicyId": "asset-policy-id",
+                    "contractPolicyId": "contract-policy-id",
+                    "assetsSelector": []
+                }
+                """;
+    }
+
+    @Schema(example = CONTRACT_DEFINITION_OUTPUT_EXAMPLE)
+    record ContractDefinitionOutputSchema(
+            @Schema(name = ID)
+            String id,
+            @Schema(name = TYPE, example = CONTRACT_DEFINITION_TYPE)
+            String type,
+            String accessPolicyId,
+            String contractPolicyId,
+            List<ApiCoreSchema.CriterionSchema> assetsSelector,
+            long createdAt) {
+
+        public static final String CONTRACT_DEFINITION_OUTPUT_EXAMPLE = """
+                {
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@id": "definition-id",
+                    "accessPolicyId": "asset-policy-id",
+                    "contractPolicyId": "contract-policy-id",
+                    "assetsSelector": [],
+                    "createdAt": 1688465655
+                }
+                """;
+    }
 }
