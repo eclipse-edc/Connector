@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 
@@ -42,7 +42,7 @@ public class JsonObjectToContractOfferMessageTransformer extends AbstractJsonLdT
     public @Nullable ContractOfferMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var builder = ContractOfferMessage.Builder.newInstance();
         if (!transformMandatoryString(jsonObject.get(DSPACE_PROPERTY_PROCESS_ID), builder::processId, context)) {
-            reportMissingProperty(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, DSPACE_PROPERTY_PROCESS_ID, context);
+            reportMissingProperty(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE, DSPACE_PROPERTY_PROCESS_ID, context);
             return null;
         }
     
@@ -55,7 +55,7 @@ public class JsonObjectToContractOfferMessageTransformer extends AbstractJsonLdT
         if (contractOffer != null) {
             var policy = transformObject(contractOffer, Policy.class, context);
             if (policy == null) {
-                reportMissingProperty(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, DSPACE_PROPERTY_OFFER, context);
+                reportMissingProperty(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE, DSPACE_PROPERTY_OFFER, context);
                 return null;
             }
             var id = nodeId(contractOffer);
@@ -70,7 +70,7 @@ public class JsonObjectToContractOfferMessageTransformer extends AbstractJsonLdT
                     .build();
             builder.contractOffer(offer);
         } else {
-            reportMissingProperty(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE, DSPACE_PROPERTY_OFFER, context);
+            reportMissingProperty(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE, DSPACE_PROPERTY_OFFER, context);
             return null;
         }
         
