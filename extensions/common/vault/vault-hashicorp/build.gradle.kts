@@ -22,6 +22,10 @@ dependencies {
     implementation(project(":core:common:util"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.vault)
+    implementation(libs.bouncyCastle.bcpkixJdk18on)
+
 }
 
 

@@ -23,14 +23,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Implements a vault backed by Hashicorp Vault.
  */
-class HashicorpVault implements Vault {
+public class HashicorpVault implements Vault {
 
     @NotNull
     private final HashicorpVaultClient hashicorpVaultClient;
     @NotNull
     private final Monitor monitor;
 
-    HashicorpVault(@NotNull HashicorpVaultClient hashicorpVaultClient, @NotNull Monitor monitor) {
+    public HashicorpVault(@NotNull HashicorpVaultClient hashicorpVaultClient, @NotNull Monitor monitor) {
         this.hashicorpVaultClient = hashicorpVaultClient;
         this.monitor = monitor;
     }
