@@ -66,13 +66,15 @@ public abstract class TransferProcessStoreTestBase {
 
     @Test
     void create() {
-        var t = createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).build();
-        getTransferProcessStore().updateOrCreate(t);
+        var transferProcess = createTransferProcessBuilder("test-id")
+                .dataRequest(createDataRequestBuilder().id("data-request-id").build())
+                .privateProperties(Map.of("key", "value")).build();
+        getTransferProcessStore().updateOrCreate(transferProcess);
 
-        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        assertThat(all).containsExactly(t);
-        assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
-        assertThat(all).allSatisfy(tr -> assertThat(tr.getCreatedAt()).isNotEqualTo(0L));
+        var retrieved = getTransferProcessStore().findById("test-id");
+
+        assertThat(retrieved).isNotNull().usingRecursiveComparison().isEqualTo(transferProcess);
+        assertThat(retrieved.getCreatedAt()).isNotEqualTo(0L);
     }
 
     @Test
@@ -289,23 +291,6 @@ public abstract class TransferProcessStoreTestBase {
     @Test
     void findForCorrelationId_notExist() {
         assertThat(getTransferProcessStore().findForCorrelationId("not-exist")).isNull();
-    }
-
-    @Test
-    void update_shouldPersistDataRequest() {
-        var t1 = createTransferProcess("id1", STARTED);
-        getTransferProcessStore().updateOrCreate(t1);
-
-        t1.getDataRequest().getProperties().put("newKey", "newValue");
-        getTransferProcessStore().updateOrCreate(t1);
-
-        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        assertThat(all)
-                .hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(t1);
-
-        assertThat(all.get(0).getDataRequest().getProperties()).containsEntry("newKey", "newValue");
     }
 
     @Test
@@ -870,7 +855,7 @@ public abstract class TransferProcessStoreTestBase {
         var transferProcess = createTransferProcess(id, createDataRequestBuilder().id("correlationId").build());
         getTransferProcessStore().updateOrCreate(transferProcess);
 
-        TransferProcess found = getTransferProcessStore().findById(id);
+        var found = getTransferProcessStore().findById(id);
 
         assertNotNull(found);
         assertNotSame(found, transferProcess); // enforce by-value
@@ -935,7 +920,6 @@ public abstract class TransferProcessStoreTestBase {
         }
         t.updateStateTimestamp();
     }
-
 
     protected abstract boolean supportsCollectionQuery();
 

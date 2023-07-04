@@ -56,19 +56,11 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 getTransferProcessTableName(), getIdColumn(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
                 getCreatedAtColumn(), getUpdatedAtColumn(),
                 getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(),
-                getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(),
+                getProvisionedResourceSetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(),
                 getPrivatePropertiesColumn(), getCallbackAddressesColumn(),
                 // values
                 getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(),
                 getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
-    }
-
-    @Override
-    public String getProcessIdForTransferIdTemplate() {
-        return format("SELECT * FROM %s WHERE %s.%s = (SELECT %s FROM %s WHERE %s.%s = ?);",
-                getTransferProcessTableName(), getTransferProcessTableName(),
-                getIdColumn(), getTransferProcessIdFkColumn(),
-                getDataRequestTable(), getDataRequestTable(), getDataRequestIdColumn());
     }
 
     @Override
@@ -81,19 +73,18 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
         return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=? WHERE %s=?",
                 getTransferProcessTableName(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
                 getTraceContextColumn(), getFormatAsJsonOperator(), getErrorDetailColumn(),
-                getResourceManifestColumn(), getFormatAsJsonOperator(), getProvisionedResourcesetColumn(), getFormatAsJsonOperator(),
+                getResourceManifestColumn(), getFormatAsJsonOperator(), getProvisionedResourceSetColumn(), getFormatAsJsonOperator(),
                 getContentDataAddressColumn(), getFormatAsJsonOperator(), getDeprovisionedResourcesColumn(), getFormatAsJsonOperator(),
                 getCallbackAddressesColumn(), getFormatAsJsonOperator(), getUpdatedAtColumn(), getIdColumn());
     }
 
     @Override
     public String getInsertDataRequestTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?%s, ?%s, ?, ?, ?);",
-                getDataRequestTable(), getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getConnectorIdColumn(),
-                getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(),
-                getDataRequestPropertiesColumn(), getTransferProcessIdFkColumn(), getProtocolColumn(), getManagedResourcesColumn(),
-                getFormatAsJsonOperator(), getFormatAsJsonOperator());
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?, ?);",
+                getDataRequestTable(), getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(),
+                getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(),
+                getTransferProcessIdFkColumn(), getProtocolColumn(), getManagedResourcesColumn(),
+                getFormatAsJsonOperator());
     }
 
     @Override
@@ -104,11 +95,10 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getUpdateDataRequestTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s WHERE %s=?",
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=? WHERE %s=?",
                 getDataRequestTable(),
                 getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getProtocolColumn(), getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(),
-                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestPropertiesColumn(), getFormatAsJsonOperator(),
-                getDataRequestIdColumn());
+                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestIdColumn());
     }
 
     @Override

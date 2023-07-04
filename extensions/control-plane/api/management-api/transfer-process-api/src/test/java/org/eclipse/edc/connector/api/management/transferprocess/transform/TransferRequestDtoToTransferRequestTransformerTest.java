@@ -70,7 +70,6 @@ class TransferRequestDtoToTransferRequestTransformerTest {
         assertThat(dataRequest.getDestinationType()).isEqualTo(transferReq.getDataDestination().getType());
         assertThat(dataRequest.getContractId()).isEqualTo(transferReq.getContractId());
         assertThat(dataRequest.getProtocol()).isEqualTo(transferReq.getProtocol());
-        assertThat(dataRequest.getProperties()).isEqualTo(transferReq.getProperties());
         assertThat(dataRequest.isManagedResources()).isEqualTo(transferReq.isManagedResources());
 
         assertThat(transferRequest.getCallbackAddresses()).hasSize(transferReq.getCallbackAddresses().size());

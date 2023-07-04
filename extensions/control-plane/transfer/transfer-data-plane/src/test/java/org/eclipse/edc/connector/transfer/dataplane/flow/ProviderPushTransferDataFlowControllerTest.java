@@ -43,7 +43,6 @@ class ProviderPushTransferDataFlowControllerTest {
     private DataPlaneClient dataPlaneClientMock;
     private ProviderPushTransferDataFlowController flowController;
 
-
     @BeforeEach
     void setUp() throws MalformedURLException {
         var callbackUrlMock = mock(ControlPlaneApiUrl.class);
@@ -98,7 +97,7 @@ class ProviderPushTransferDataFlowControllerTest {
     @Test
     void verifyTransferSuccessWithAdditionalProperties() {
         var properties = Map.of("foo", "bar", "hello", "world");
-        var request = createDataRequest("test", properties);
+        var request = createDataRequest("test");
         var source = testDataAddress();
 
         when(dataPlaneClientMock.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
@@ -113,19 +112,18 @@ class ProviderPushTransferDataFlowControllerTest {
         assertThat(captured.getProcessId()).isEqualTo(request.getProcessId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
         assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
-        assertThat(captured.getProperties()).containsExactlyInAnyOrderEntriesOf(properties);
         assertThat(captured.getCallbackAddress()).isNotNull();
     }
 
-    private static DataAddress testDataAddress() {
+    private DataAddress testDataAddress() {
         return DataAddress.Builder.newInstance().type("test-type").build();
     }
 
-    private static DataRequest createDataRequest() {
-        return createDataRequest("test", Map.of());
+    private DataRequest createDataRequest() {
+        return createDataRequest("test");
     }
 
-    private static DataRequest createDataRequest(String destinationType, Map<String, String> properties) {
+    private DataRequest createDataRequest(String destinationType) {
         return DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("test-protocol")
@@ -134,7 +132,6 @@ class ProviderPushTransferDataFlowControllerTest {
                 .connectorAddress("test.connector.address")
                 .processId(UUID.randomUUID().toString())
                 .destinationType(destinationType)
-                .properties(properties)
                 .build();
     }
 }

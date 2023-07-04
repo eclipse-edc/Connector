@@ -31,8 +31,6 @@ public class CatalogRequestMessage implements RemoteMessage {
 
     private final Policy policy;
     private String protocol = "unknown";
-    @Deprecated(forRemoval = true)
-    private String connectorId;
     private String counterPartyAddress;
     private QuerySpec querySpec;
 
@@ -55,12 +53,6 @@ public class CatalogRequestMessage implements RemoteMessage {
     @Override
     public String getCounterPartyAddress() {
         return counterPartyAddress;
-    }
-
-    @Deprecated
-    @NotNull
-    public String getConnectorId() {
-        return connectorId;
     }
 
     public QuerySpec getQuerySpec() {
@@ -90,12 +82,6 @@ public class CatalogRequestMessage implements RemoteMessage {
 
         public CatalogRequestMessage.Builder protocol(String protocol) {
             this.message.protocol = protocol;
-            return this;
-        }
-
-        @Deprecated
-        public CatalogRequestMessage.Builder connectorId(String connectorId) {
-            this.message.connectorId = connectorId;
             return this;
         }
 

@@ -20,8 +20,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import static java.util.UUID.randomUUID;
@@ -38,7 +36,6 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     private String contractId;
     private DataAddress dataDestination;
     private String callbackAddress;
-    private Map<String, String> properties = new HashMap<>();
     private Policy policy;
 
     @NotNull
@@ -76,10 +73,6 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     public String getContractId() {
         return contractId;
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
     }
 
     public DataAddress getDataDestination() {
@@ -140,11 +133,6 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
         public Builder dataDestination(DataAddress dataDestination) {
             message.dataDestination = dataDestination;
-            return this;
-        }
-
-        public Builder properties(Map<String, String> properties) {
-            message.properties = properties;
             return this;
         }
 

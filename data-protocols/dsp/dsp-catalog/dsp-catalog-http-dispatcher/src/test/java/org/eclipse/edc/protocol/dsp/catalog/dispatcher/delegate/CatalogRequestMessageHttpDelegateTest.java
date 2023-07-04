@@ -146,7 +146,6 @@ class CatalogRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTes
     private CatalogRequestMessage message() {
         return CatalogRequestMessage.Builder.newInstance()
                 .counterPartyAddress("http://connector")
-                .connectorId("connector-id")
                 .protocol("protocol")
                 .querySpec(QuerySpec.max())
                 .build();

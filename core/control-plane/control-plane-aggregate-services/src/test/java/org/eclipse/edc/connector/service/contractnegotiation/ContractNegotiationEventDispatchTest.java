@@ -118,7 +118,6 @@ class ContractNegotiationEventDispatchTest {
 
         return ContractRequestMessage.Builder.newInstance()
                 .protocol("test")
-                .connectorId("connectorId")
                 .counterPartyAddress("counterPartyAddress")
                 .callbackAddress("callbackAddress")
                 .contractOffer(contractOffer)

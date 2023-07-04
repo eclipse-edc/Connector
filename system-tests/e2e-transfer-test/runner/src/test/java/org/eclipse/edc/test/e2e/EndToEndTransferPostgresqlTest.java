@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance.PASSWORD;
@@ -105,7 +104,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
                         "transfer-process-store-sql")
                 .map(module -> "../../../extensions/control-plane/store/sql/" + module + "/docs/schema.sql")
                 .map(Paths::get)
-                .collect(Collectors.toList());
+                .toList();
 
 
         try (var connection = DriverManager.getConnection(consumer.jdbcUrl(), USER, PASSWORD)) {

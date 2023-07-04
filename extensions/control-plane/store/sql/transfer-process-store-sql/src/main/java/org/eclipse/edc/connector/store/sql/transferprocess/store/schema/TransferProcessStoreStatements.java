@@ -28,8 +28,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     String getInsertStatement();
 
-    String getProcessIdForTransferIdTemplate();
-
     String getDeleteTransferProcessTemplate();
 
     String getUpdateTransferProcessTemplate();
@@ -68,7 +66,7 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "resource_manifest";
     }
 
-    default String getProvisionedResourcesetColumn() {
+    default String getProvisionedResourceSetColumn() {
         return "provisioned_resource_set";
     }
 
@@ -118,10 +116,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     default String getPrivatePropertiesColumn() {
         return "private_properties";
-    }
-
-    default String getDataRequestPropertiesColumn() {
-        return "properties";
     }
 
     default String getDataRequestTable() {

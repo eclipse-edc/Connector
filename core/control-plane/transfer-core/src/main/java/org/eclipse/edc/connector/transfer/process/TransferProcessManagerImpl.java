@@ -411,7 +411,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .counterPartyAddress(dataRequest.getConnectorAddress())
                 .callbackAddress(protocolWebhook.url())
                 .dataDestination(dataDestination)
-                .properties(dataRequest.getProperties())
                 .contractId(dataRequest.getContractId())
                 .policy(policyArchive.findPolicyForContract(dataRequest.getContractId()))
                 .build();

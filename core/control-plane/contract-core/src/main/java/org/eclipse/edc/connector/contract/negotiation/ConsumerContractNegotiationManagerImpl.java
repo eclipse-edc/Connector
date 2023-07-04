@@ -138,7 +138,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .callbackAddress(protocolWebhook.url())
                 .protocol(negotiation.getProtocol())
-                .connectorId(negotiation.getCounterPartyId())
                 .processId(negotiation.getId())
                 .type(ContractRequestMessage.Type.INITIAL)
                 .build();

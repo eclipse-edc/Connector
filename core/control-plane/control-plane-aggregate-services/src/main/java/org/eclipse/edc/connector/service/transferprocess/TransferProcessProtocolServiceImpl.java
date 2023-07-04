@@ -138,7 +138,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .protocol(message.getProtocol())
                 .connectorAddress(message.getCallbackAddress())
                 .dataDestination(message.getDataDestination())
-                .properties(message.getProperties())
                 .assetId(assetId)
                 .contractId(message.getContractId())
                 .build();
