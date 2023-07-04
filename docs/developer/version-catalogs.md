@@ -89,7 +89,7 @@ dependencyResolutionManagement {
     // not shown: repositories
     versionCatalogs {
         create("libs") {
-            from("org.eclipse.edc:edc-versions:0.1.3-SNAPSHOT-SNAPSHOT")
+            from("org.eclipse.edc:edc-versions:0.1.4-SNAPSHOT-SNAPSHOT")
             // this is not part of the published EDC Version Catalog, so we'll just "amend" it. 
             // the versionRef "okhttp" is already defined in the Version Catalog
             library("dnsOverHttps", "com.squareup.okhttp3", "okhttp-dnsoverhttps").versionRef("okhttp")
@@ -110,7 +110,7 @@ dependencyResolutionManagement {
     // not shown: repositories
     versionCatalogs {
         create("libs") {
-            from("org.eclipse.edc:edc-versions:0.1.3-SNAPSHOT-SNAPSHOT")
+            from("org.eclipse.edc:edc-versions:0.1.4-SNAPSHOT-SNAPSHOT")
             // override the version for Jackson. Must use existing alias
             version("jackson", "2.69.0")
         }

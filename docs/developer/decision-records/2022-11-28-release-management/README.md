@@ -53,7 +53,7 @@ interaction.
    is `runtime-metamodel -> connector -> [federated-catalog, identity-hub] -> registration-service`.
 3. **Nightly tagged build**: after the "nightly components build" has successfully completed, every component releases
    a "
-   tagged" version, i.e. a snapshot version with metadata that doesn't get overwritten, e.g. `0.0.1.3-SNAPSHOT0221128-SNAPSHOT`.
+   tagged" version, i.e. a snapshot version with metadata that doesn't get overwritten, e.g. `0.0.1.4-SNAPSHOT0221128-SNAPSHOT`.
    In order to make it truly repeatable, every component must update its dependencies to other dependencies.
    The purpose of this is to allow for repeatable builds in client applications, while keeping feature gaps to a
    minimum.

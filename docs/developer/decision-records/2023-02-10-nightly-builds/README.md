@@ -18,7 +18,7 @@ because they are not permanent, and can be overwritten or deleted at any time.
 ## Approach
 
 - Publish all snapshots to [OSSRH Snapshots](https://oss.sonatype.org/content/repositories/snapshots/)
-- Make nightly versions releases, e.g. `0.0.1.3-SNAPSHOT0230210`
+- Make nightly versions releases, e.g. `0.0.1.4-SNAPSHOT0230210`
 - Publish all release versions to [OSSRH Releases](https://oss.sonatype.org/content/repositories/releases/)
 - Only publish major releases (e.g. milestones) to MavenCentral
 
