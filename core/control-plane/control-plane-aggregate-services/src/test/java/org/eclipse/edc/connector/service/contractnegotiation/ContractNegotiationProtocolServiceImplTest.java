@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementV
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -140,6 +141,74 @@ class ContractNegotiationProtocolServiceImplTest {
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         verify(validationService).validateInitialOffer(token, contractOffer);
+    }
+    
+    @Test
+    void notifyOffered_shouldTransitionToOffered_whenNegotiationFound() {
+        var processId = "processId";
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        var message = ContractOfferMessage.Builder.newInstance()
+                .callbackAddress("callbackAddress")
+                .protocol("protocol")
+                .contractOffer(contractOffer)
+                .processId(processId)
+                .build();
+        var negotiation = createContractNegotiationRequested();
+        
+        when(store.findForCorrelationId(processId)).thenReturn(negotiation);
+        when(validationService.validateRequest(token, negotiation)).thenReturn(Result.success());
+        
+        var result = service.notifyOffered(message, token);
+        
+        assertThat(result).isSucceeded();
+        var updatedNegotiation = result.getContent();
+        assertThat(updatedNegotiation.getContractOffers()).hasSize(2);
+        assertThat(updatedNegotiation.getLastContractOffer()).isEqualTo(contractOffer);
+        
+        verify(listener).offered(any());
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+    
+    @Test
+    void notifyOffered_shouldReturnFailure_whenNegotiationNotFound() {
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        var message = ContractOfferMessage.Builder.newInstance()
+                .callbackAddress("callbackAddress")
+                .protocol("protocol")
+                .contractOffer(contractOffer)
+                .processId("processId")
+                .build();
+    
+        when(store.findForCorrelationId(any())).thenReturn(null);
+        
+        var result = service.notifyOffered(message, token);
+        
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        verify(listener, never()).offered(any());
+    }
+    
+    @Test
+    void notifyOffered_shouldReturnFailure_whenCounterPartyValidationFails() {
+        var processId = "processId";
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        var message = ContractOfferMessage.Builder.newInstance()
+                .callbackAddress("callbackAddress")
+                .protocol("protocol")
+                .contractOffer(contractOffer)
+                .processId(processId)
+                .build();
+        var negotiation = createContractNegotiationRequested();
+    
+        when(store.findForCorrelationId(processId)).thenReturn(negotiation);
+        when(validationService.validateRequest(token, negotiation)).thenReturn(Result.failure("error"));
+        
+        var result = service.notifyOffered(message, token);
+        
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        verify(listener, never()).offered(any());
     }
 
     @Test

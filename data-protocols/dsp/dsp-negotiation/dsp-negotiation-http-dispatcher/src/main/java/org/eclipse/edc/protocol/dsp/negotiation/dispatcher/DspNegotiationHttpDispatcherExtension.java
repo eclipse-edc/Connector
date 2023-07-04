@@ -19,6 +19,7 @@ import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgre
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractAgreementVerificationMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationEventMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractNegotiationTerminationMessageHttpDelegate;
+import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractOfferMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate.ContractRequestMessageHttpDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
@@ -56,5 +57,6 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
         messageDispatcher.registerDelegate(new ContractNegotiationEventMessageHttpDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new ContractNegotiationTerminationMessageHttpDelegate(remoteMessageSerializer));
         messageDispatcher.registerDelegate(new ContractRequestMessageHttpDelegate(remoteMessageSerializer, typeManager.getMapper(JSON_LD), jsonLdService));
+        messageDispatcher.registerDelegate(new ContractOfferMessageHttpDelegate(remoteMessageSerializer));
     }
 }

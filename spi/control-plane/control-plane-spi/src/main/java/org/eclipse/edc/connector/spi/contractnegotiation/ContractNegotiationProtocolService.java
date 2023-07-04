@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementV
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -49,7 +50,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyOffered(ContractRequestMessage message, ClaimToken claimToken);
+    ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, ClaimToken claimToken);
 
     /**
      * Notifies the ContractNegotiation that it has been agreed by the accepted.

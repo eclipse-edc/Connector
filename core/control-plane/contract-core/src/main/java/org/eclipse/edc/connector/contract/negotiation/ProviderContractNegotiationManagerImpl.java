@@ -28,7 +28,7 @@ import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationC
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.StateProcessorImpl;
@@ -102,21 +102,21 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processOffering(ContractNegotiation negotiation) {
         var currentOffer = negotiation.getLastContractOffer();
-
-        var contractOfferRequest = ContractRequestMessage.Builder.newInstance()
+        
+        var contractOfferMessage = ContractOfferMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractOffer(currentOffer)
                 .processId(negotiation.getCorrelationId())
                 .build();
 
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, contractOfferRequest))
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, contractOfferMessage))
                 .entityRetrieve(negotiationStore::findById)
                 .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitionToOffered(n))
                 .onFailure((n, throwable) -> transitionToOffering(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to consumer: %s", contractOfferRequest.getClass().getSimpleName(), throwable.getMessage())))
+                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to consumer: %s", contractOfferMessage.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send counter offer");
     }
 

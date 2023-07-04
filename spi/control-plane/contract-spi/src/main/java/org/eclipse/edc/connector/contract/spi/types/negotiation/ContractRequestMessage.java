@@ -27,6 +27,7 @@ import static java.util.UUID.randomUUID;
 
 /**
  * Object that wraps the contract offer and provides additional information about e.g. protocol and recipient.
+ * Sent by the consumer.
  */
 public class ContractRequestMessage implements ContractRemoteMessage {
 
