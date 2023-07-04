@@ -88,4 +88,20 @@ public class HealthResponsePayload {
     public String getClusterId() {
         return clusterId;
     }
+
+    @Override
+    public String toString() {
+        return "HealthResponsePayload{" +
+                "isInitialized=" + isInitialized +
+                ", isSealed=" + isSealed +
+                ", isStandby=" + isStandby +
+                ", isPerformanceStandby=" + isPerformanceStandby +
+                ", replicationPerformanceMode='" + replicationPerformanceMode + '\'' +
+                ", replicationDrMode='" + replicationDrMode + '\'' +
+                ", serverTimeUtc=" + serverTimeUtc +
+                ", version='" + version + '\'' +
+                ", clusterName='" + clusterName + '\'' +
+                ", clusterId='" + clusterId + '\'' +
+                '}';
+    }
 }
