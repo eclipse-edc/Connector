@@ -24,40 +24,57 @@ import javax.sql.DataSource;
 import static java.lang.String.format;
 
 public final class PostgresqlLocalInstance {
-    public static final String USER = "postgres";
-    public static final String PASSWORD = "password";
-    public static final String JDBC_URL_PREFIX = "jdbc:postgresql://localhost:5432/";
-    private static final String TEST_DATABASE = "itest";
+    private final String password;
+    private final String jdbcUrlPrefix;
+    private final String username;
+    private final String databaseName;
 
-    private PostgresqlLocalInstance() { }
-
-    public static void createTestDatabase() {
-        createDatabase(TEST_DATABASE);
+    public PostgresqlLocalInstance(String user, String password, String jdbcUrlPrefix, String db) {
+        username = user;
+        this.password = password;
+        this.jdbcUrlPrefix = jdbcUrlPrefix;
+        databaseName = db;
     }
 
-    public static void createDatabase(String name) {
-        try (var connection = DriverManager.getConnection(JDBC_URL_PREFIX + USER, USER, PASSWORD)) {
+    public void createDatabase() {
+        createDatabase(databaseName);
+    }
+
+    public void createDatabase(String name) {
+        try (var connection = DriverManager.getConnection(jdbcUrlPrefix + username, username, password)) {
             connection.createStatement().execute(format("create database %s;", name));
         } catch (SQLException e) {
             // database could already exist
         }
     }
 
-    public static Connection getTestConnection() {
+    public Connection getTestConnection(String hostName, int port, String dbName) {
         try {
-            return createTestDataSource().getConnection();
+            return createTestDataSource(hostName, port, dbName).getConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static DataSource createTestDataSource() {
+    public Connection getConnection() {
+        try {
+            return DriverManager.getConnection(jdbcUrlPrefix, username, password);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getJdbcUrlPrefix() {
+        return jdbcUrlPrefix;
+    }
+
+    private DataSource createTestDataSource(String hostName, int port, String dbName) {
         var dataSource = new PGSimpleDataSource();
-        dataSource.setServerNames(new String[]{ "localhost" });
-        dataSource.setPortNumbers(new int[]{ 5432 });
-        dataSource.setUser(USER);
-        dataSource.setPassword(PASSWORD);
-        dataSource.setDatabaseName(TEST_DATABASE);
+        dataSource.setServerNames(new String[]{ hostName });
+        dataSource.setPortNumbers(new int[]{ port });
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
+        dataSource.setDatabaseName(dbName);
         return dataSource;
     }
 }

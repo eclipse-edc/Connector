@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.testfixtures.store.DataPlaneStoreTestBase;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDataPlaneStatements;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
@@ -32,7 +32,7 @@ import java.nio.file.Paths;
 import java.time.Clock;
 
 
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
 

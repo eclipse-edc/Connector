@@ -32,6 +32,9 @@ dependencies {
     testFixturesImplementation(project(":spi:common:transaction-datasource-spi"))
     testFixturesImplementation(libs.mockito.core)
 
+    testFixturesImplementation(libs.testcontainers.junit)
+    testFixturesImplementation(libs.testcontainers.postgres)
+
 }
 
 

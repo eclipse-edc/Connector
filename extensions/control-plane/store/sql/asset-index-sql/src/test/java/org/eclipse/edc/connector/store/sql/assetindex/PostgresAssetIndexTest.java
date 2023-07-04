@@ -18,7 +18,7 @@ package org.eclipse.edc.connector.store.sql.assetindex;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.testfixtures.asset.AssetIndexTestBase;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresAssetIndexTest extends AssetIndexTestBase {
 

@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.testfixtures.store.PolicyDefinitionStoreTestBase;
 import org.eclipse.edc.connector.store.sql.policydefinition.store.SqlPolicyDefinitionStore;
 import org.eclipse.edc.connector.store.sql.policydefinition.store.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -44,7 +44,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  * This test aims to verify those parts of the policy definition store, that are specific to Postgres, e.g. JSON query
  * operators.
  */
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
 

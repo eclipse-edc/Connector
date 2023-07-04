@@ -29,8 +29,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance.PASSWORD;
-import static org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance.USER;
+import static org.eclipse.edc.test.e2e.PostgresConstants.JDBC_URL_PREFIX;
+import static org.eclipse.edc.test.e2e.PostgresConstants.PASSWORD;
+import static org.eclipse.edc.test.e2e.PostgresConstants.USER;
 
 @PostgresqlDbIntegrationTest
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
@@ -94,7 +95,8 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
     private static void createDatabase(Participant consumer) throws ClassNotFoundException, SQLException, IOException {
         Class.forName("org.postgresql.Driver");
 
-        PostgresqlLocalInstance.createDatabase(consumer.getName());
+        var helper = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, consumer.getName());
+        helper.createDatabase(consumer.getName());
 
         var scripts = Stream.of(
                         "asset-index-sql",

@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store.DataPlaneInstanceStoreTestBase;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.postgres.PostgresDataPlaneInstanceStatements;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
@@ -35,7 +35,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 
 
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase {
 
@@ -45,8 +45,8 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
     SqlDataPlaneInstanceStore store;
 
     @BeforeAll
-    static void prepare() {
-        PostgresqlLocalInstance.createTestDatabase();
+    static void prepare(PostgresqlLocalInstance postgres) {
+        postgres.createDatabase();
     }
 
     @BeforeEach

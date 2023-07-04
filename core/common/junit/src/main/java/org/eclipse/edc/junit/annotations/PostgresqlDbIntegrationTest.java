@@ -16,6 +16,7 @@
 package org.eclipse.edc.junit.annotations;
 
 import org.junit.jupiter.api.Tag;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -28,6 +29,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @IntegrationTest
+@Testcontainers
 @Tag("PostgresqlIntegrationTest")
 public @interface PostgresqlDbIntegrationTest {
 }

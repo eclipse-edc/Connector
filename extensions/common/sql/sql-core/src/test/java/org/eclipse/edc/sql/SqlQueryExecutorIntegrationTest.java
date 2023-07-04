@@ -15,7 +15,7 @@
 
 package org.eclipse.edc.sql;
 
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class SqlQueryExecutorIntegrationTest {
 
@@ -114,5 +114,6 @@ public class SqlQueryExecutorIntegrationTest {
         return keyValue;
     }
 
-    private record KeyValue(String key, String value) { }
+    private record KeyValue(String key, String value) {
+    }
 }

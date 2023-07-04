@@ -90,6 +90,7 @@ swagger-annotations-jakarta = { module = "io.swagger.core.v3:swagger-annotations
 titaniumJsonLd = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium" }
 testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 
 # other technology extensions
 apache-commons-pool = { module = "org.apache.commons:commons-pool2", version.ref = "apacheCommonsPool2" }
