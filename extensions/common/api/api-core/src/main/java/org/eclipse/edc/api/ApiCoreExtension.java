@@ -25,6 +25,7 @@ import org.eclipse.edc.api.transformer.JsonObjectFromDataAddressDtoTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseDtoTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCriterionDtoTransformer;
+import org.eclipse.edc.api.transformer.JsonObjectToQuerySpecDtoTransformer;
 import org.eclipse.edc.api.transformer.QuerySpecDtoToQuerySpecTransformer;
 import org.eclipse.edc.api.validation.QuerySpecDtoValidator;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -77,6 +78,7 @@ public class ApiCoreExtension implements ServiceExtension {
 
         transformerRegistry.register(new JsonObjectToCallbackAddressTransformer());
         transformerRegistry.register(new JsonObjectToCriterionDtoTransformer());
+        transformerRegistry.register(new JsonObjectToQuerySpecDtoTransformer());
 
         validatorRegistry.register(EDC_QUERY_SPEC_TYPE, QuerySpecDtoValidator.instance());
     }

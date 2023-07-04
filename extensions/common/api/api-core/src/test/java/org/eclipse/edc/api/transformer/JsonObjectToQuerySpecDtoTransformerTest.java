@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.catalog.transform;
+package org.eclipse.edc.api.transformer;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;

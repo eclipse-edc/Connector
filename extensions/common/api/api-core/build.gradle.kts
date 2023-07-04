@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":core:common:util"))
     implementation(project(":core:common:validator-core"))
     implementation(libs.jakarta.rsApi)
+    implementation(libs.swagger.annotations.jakarta)
 
     testImplementation(libs.jersey.common)
     testImplementation(libs.jersey.server)
