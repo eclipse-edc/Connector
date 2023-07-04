@@ -37,12 +37,11 @@ class HashicorpVaultExtensionTest {
 
     // mocks
     private ServiceExtensionContext context;
-    private HealthCheckService healthCheckService;
 
     @BeforeEach
     void setUp(ObjectFactory factory, ServiceExtensionContext context) {
         this.context = spy(context);
-        healthCheckService = mock(HealthCheckService.class);
+        var healthCheckService = mock(HealthCheckService.class);
         context.registerService(HealthCheckService.class, healthCheckService);
         extension = factory.constructInstance(HashicorpVaultExtension.class);
     }

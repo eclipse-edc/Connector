@@ -43,8 +43,6 @@ public class HashicorpVaultClient {
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
     private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
-    private static final String VAULT_API_VERSION = "v1";
-    private static final String VAULT_SECRET_PATH = "secret";
     private static final String VAULT_SECRET_DATA_PATH = "data";
     private static final String VAULT_SECRET_METADATA_PATH = "metadata";
     private static final String CALL_UNSUCCESSFUL_ERROR_TEMPLATE = "[Hashicorp Vault] Call unsuccessful: %s";

@@ -168,7 +168,6 @@ jobs:
       - Component-Tests
       - Daps-Integration-Tests
       - End-To-End-Tests
-      - Hashicorp-Vault-Integration-Tests
       - Postgresql-Integration-Tests
       - Kafka-Integration-Tests
       - Unit-Tests
