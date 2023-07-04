@@ -15,6 +15,11 @@ A connector is logically divided in 3 parts:
 The connector can run as a single deployable composed by the 3 parts or as separated units, the latter will permit
 to scale data-planes independently of control-planes.
 
+## Prerequisites
+
+Java 17+
+Gradle 8+
+
 ## Build and run a monolithic connector
 
 The easiest way to build up a connector is to build all their parts into a single deployment unit.
@@ -24,7 +29,7 @@ To do this, create a new gradle project with a `build.gradle.kts` file in it:
 plugins {
     `java-library`
     id("application")
-    alias(libs.plugins.shadow)
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 repositories {
@@ -47,6 +52,9 @@ dependencies {
     // management api, will permit to manage the connector through a REST interface
     implementation("org.eclipse.edc:management-api:${edcVersion}")
 
+    // the core data-plane-selector module set
+    implementation("org.eclipse.edc:data-plane-selector-core:${edcVersion}")
+    
     // the core data-plane module set
     implementation("org.eclipse.edc:data-plane-core:${edcVersion}")
 }
@@ -64,13 +72,10 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
 ```
 
-Note that no `data-plane-selector` modules are needed, this because the `data-plane` is built as embedded in the
-connector.
-
 Build:
 
 ```
-./gradlew build
+gradle build
 ```
 
 Run:
