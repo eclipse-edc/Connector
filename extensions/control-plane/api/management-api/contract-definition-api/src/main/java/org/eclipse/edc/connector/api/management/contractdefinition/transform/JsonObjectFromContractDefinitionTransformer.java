@@ -1,0 +1,55 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.api.management.contractdefinition.transform;
+
+import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.transform.spi.TransformerContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+
+public class JsonObjectFromContractDefinitionTransformer extends AbstractJsonLdTransformer<ContractDefinition, JsonObject> {
+    private final JsonBuilderFactory jsonFactory;
+
+    public JsonObjectFromContractDefinitionTransformer(JsonBuilderFactory jsonFactory) {
+        super(ContractDefinition.class, JsonObject.class);
+        this.jsonFactory = jsonFactory;
+    }
+
+    @Override
+    public @Nullable JsonObject transform(@NotNull ContractDefinition contractDefinition, @NotNull TransformerContext context) {
+        var criteria = contractDefinition.getAssetsSelector().stream()
+                .map(criterion -> context.transform(criterion, JsonObject.class))
+                .collect(toJsonArray());
+
+        return jsonFactory.createObjectBuilder()
+                .add(ID, contractDefinition.getId())
+                .add(TYPE, CONTRACT_DEFINITION_TYPE)
+                .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, contractDefinition.getAccessPolicyId())
+                .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, contractDefinition.getContractPolicyId())
+                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, criteria)
+                .build();
+    }
+}

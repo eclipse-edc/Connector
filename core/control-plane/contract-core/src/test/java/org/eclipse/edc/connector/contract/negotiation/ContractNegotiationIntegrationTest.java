@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryCo
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
@@ -76,7 +77,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-//@ComponentTest
+@ComponentTest
 class ContractNegotiationIntegrationTest {
     private static final String CONSUMER_ID = "consumer";
     private static final String PROVIDER_ID = "provider";

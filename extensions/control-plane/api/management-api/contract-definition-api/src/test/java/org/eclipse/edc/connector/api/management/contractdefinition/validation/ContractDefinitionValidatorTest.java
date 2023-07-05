@@ -26,16 +26,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_ASSETS_SELECTOR;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
-class ContractDefinitionRequestDtoValidatorTest {
+class ContractDefinitionValidatorTest {
 
-    private final JsonObjectValidator validator = ContractDefinitionRequestDtoValidator.instance();
+    private final JsonObjectValidator validator = ContractDefinitionValidator.instance();
 
     @Test
     void shouldSucceed_whenObjectIsValid() {
@@ -73,19 +73,6 @@ class ContractDefinitionRequestDtoValidatorTest {
                 .isNotEmpty()
                 .filteredOn(it -> ID.equals(it.path()))
                 .anySatisfy(violation -> assertThat(violation.message()).contains("blank"));
-    }
-
-    @Test
-    void shouldFail_whenIdContainsColon() {
-        var contractDefinition = createObjectBuilder()
-                .add(ID, "id:id")
-                .build();
-
-        var result = validator.validate(contractDefinition);
-
-        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .filteredOn(it -> ID.equals(it.path()))
-                .isNotEmpty();
     }
 
     @Test
