@@ -104,7 +104,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
         baseRequest()
                 .contentType(JSON)
-                .body(requestBody)
+                .body(createObjectBuilder(requestBody).add(ID, id).build())
                 .put("/" + id)
                 .then()
                 .statusCode(204);

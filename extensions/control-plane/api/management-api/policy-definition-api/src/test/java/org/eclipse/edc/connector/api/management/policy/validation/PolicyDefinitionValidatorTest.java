@@ -24,13 +24,13 @@ import org.junit.jupiter.api.Test;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
-import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
-class PolicyDefinitionRequestDtoValidatorTest {
+class PolicyDefinitionValidatorTest {
 
-    private final Validator<JsonObject> validator = PolicyDefinitionRequestDtoValidator.instance();
+    private final Validator<JsonObject> validator = PolicyDefinitionValidator.instance();
 
     @Test
     void shouldSucceed_whenObjectIsValid() {

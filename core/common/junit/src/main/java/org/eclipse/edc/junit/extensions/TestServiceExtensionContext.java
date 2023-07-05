@@ -19,10 +19,12 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import static java.util.Optional.ofNullable;
+import static org.mockito.Mockito.mock;
 
 /**
  * This variant of the {@link DefaultServiceExtensionContext} maintains a list of service mocks, so that they will be used for dependency resolution
@@ -39,11 +41,16 @@ import static java.util.Optional.ofNullable;
 public class TestServiceExtensionContext extends DefaultServiceExtensionContext {
     private final LinkedHashMap<Class<?>, Object> serviceMocks;
 
+    public static ServiceExtensionContext testServiceExtensionContext() {
+        var context = new TestServiceExtensionContext(mock(), Collections.emptyList(), new LinkedHashMap<>());
+        context.initialize();
+        return context;
+    }
+
     public TestServiceExtensionContext(Monitor monitor, List<ConfigurationExtension> configurationExtensions, LinkedHashMap<Class<?>, Object> serviceMocks) {
         super(monitor, configurationExtensions);
         this.serviceMocks = serviceMocks;
     }
-
 
     @Override
     public <T> boolean hasService(Class<T> type) {

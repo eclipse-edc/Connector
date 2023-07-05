@@ -1111,7 +1111,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionRequestDto'
+              $ref: '#/components/schemas/PolicyDefinitionInputSchema'
       responses:
         "200":
           description: policy definition was created successfully. Returns the Policy
@@ -1119,7 +1119,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseDto'
+                $ref: '#/components/schemas/IdResponseSchema'
         "400":
           description: Request body was malformed
           content:
@@ -1149,7 +1149,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           description: The policy definitions matching the query
@@ -1159,7 +1159,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+                  $ref: '#/components/schemas/PolicyDefinitionOutputSchema'
         "400":
           description: Request was malformed
           content:
@@ -1190,7 +1190,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+                $ref: '#/components/schemas/PolicyDefinitionOutputSchema'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1228,7 +1228,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
+              $ref: '#/components/schemas/PolicyDefinitionInputSchema'
       responses:
         "200":
           description: policy definition was updated successfully. Returns the Policy
@@ -2702,40 +2702,57 @@ components:
           type: string
           example: null
       example: null
-    PolicyDefinitionRequestDto:
+    PolicyDefinitionInputSchema:
       type: object
       properties:
-        '@id':
-          type: string
-          example: null
-        policy:
-          $ref: '#/components/schemas/Policy'
-      example: null
-    PolicyDefinitionResponseDto:
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
         '@id':
           type: string
           example: null
         '@type':
           type: string
-          example: null
-        createdAt:
-          type: integer
-          format: int64
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
         policy:
-          $ref: '#/components/schemas/Policy'
-      example: null
-    PolicyDefinitionUpdateDto:
+          '@context': http://www.w3.org/ns/odrl.jsonld
+          '@type': Set
+          uid: http://example.com/policy:1010
+          permission:
+          - target: http://example.com/asset:9898.movie
+            action: display
+            constraint:
+            - leftOperand: spatial
+              operator: eq
+              rightOperand: https://www.wikidata.org/wiki/Q183
+              comment: i.e Germany
+    PolicyDefinitionOutputSchema:
       type: object
       properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
         policy:
-          $ref: '#/components/schemas/Policy'
-      example: null
+          '@context': http://www.w3.org/ns/odrl.jsonld
+          '@type': Set
+          uid: http://example.com/policy:1010
+          permission:
+          - target: http://example.com/asset:9898.movie
+            action: display
+            constraint:
+            - leftOperand: spatial
+              operator: eq
+              rightOperand: https://www.wikidata.org/wiki/Q183
+              comment: i.e Germany
+        createdAt: 1688465655
     Prohibition:
       type: object
       properties:

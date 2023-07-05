@@ -8,13 +8,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionRequestDto'
+              $ref: '#/components/schemas/PolicyDefinitionInputSchema'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseDto'
+                $ref: '#/components/schemas/IdResponseSchema'
           description: policy definition was created successfully. Returns the Policy
             Definition Id and created timestamp
         "400":
@@ -46,7 +46,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           content:
@@ -55,7 +55,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+                  $ref: '#/components/schemas/PolicyDefinitionOutputSchema'
           description: The policy definitions matching the query
         "400":
           content:
@@ -131,7 +131,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionResponseDto'
+                $ref: '#/components/schemas/PolicyDefinitionOutputSchema'
           description: The  policy definition
         "400":
           content:
@@ -168,7 +168,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionUpdateDto'
+              $ref: '#/components/schemas/PolicyDefinitionInputSchema'
       responses:
         "200":
           description: policy definition was updated successfully. Returns the Policy
@@ -193,18 +193,6 @@ paths:
       - Policy Definition
 components:
   schemas:
-    Action:
-      type: object
-      example: null
-      properties:
-        constraint:
-          $ref: '#/components/schemas/Constraint'
-        includedIn:
-          type: string
-          example: null
-        type:
-          type: string
-          example: null
     ApiErrorDetail:
       type: object
       example: null
@@ -221,27 +209,18 @@ components:
         type:
           type: string
           example: null
-    Constraint:
+    CriterionSchema:
       type: object
-      discriminator:
-        propertyName: edctype
-      example: null
-      properties:
-        edctype:
-          type: string
-          example: null
-      required:
-      - edctype
-    CriterionDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        operandLeft: fieldName
+        operator: =
+        operandRight: some value
+      properties:
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
         operandLeft:
           type: object
           example: null
@@ -251,41 +230,15 @@ components:
         operator:
           type: string
           example: null
-    Duty:
+    IdResponseSchema:
       type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        consequence:
-          $ref: '#/components/schemas/Duty'
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        parentPermission:
-          $ref: '#/components/schemas/Permission'
-        target:
-          type: string
-          example: null
-    IdResponseDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': id-value
+        createdAt: 1688465655
+      properties:
         '@id':
-          type: string
-          example: null
-        '@type':
           type: string
           example: null
         createdAt:
@@ -347,144 +300,76 @@ components:
           - "FALSE"
           - "NULL"
           example: null
-    Permission:
+    PolicyDefinitionInputSchema:
       type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        duties:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Duty'
-        target:
-          type: string
-          example: null
-    Policy:
-      type: object
-      example: null
-      properties:
-        '@type':
-          type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
-          example: null
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-        inheritsFrom:
-          type: string
-          example: null
-        obligations:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Duty'
-        permissions:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Permission'
-        prohibitions:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Prohibition'
-        target:
-          type: string
-          example: null
-    PolicyDefinitionRequestDto:
-      type: object
-      example: null
-      properties:
-        '@id':
-          type: string
-          example: null
-        policy:
-          $ref: '#/components/schemas/Policy'
-    PolicyDefinitionResponseDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
+        policy:
+          '@context': http://www.w3.org/ns/odrl.jsonld
+          '@type': Set
+          uid: http://example.com/policy:1010
+          permission:
+          - target: http://example.com/asset:9898.movie
+            action: display
+            constraint:
+            - leftOperand: spatial
+              operator: eq
+              rightOperand: https://www.wikidata.org/wiki/Q183
+              comment: i.e Germany
+      properties:
         '@id':
           type: string
           example: null
         '@type':
           type: string
-          example: null
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-        policy:
-          $ref: '#/components/schemas/Policy'
-    PolicyDefinitionUpdateDto:
+          example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
+    PolicyDefinitionOutputSchema:
       type: object
-      example: null
-      properties:
-        policy:
-          $ref: '#/components/schemas/Policy'
-    Prohibition:
-      type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        target:
-          type: string
-          example: null
-    QuerySpecDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
+        policy:
+          '@context': http://www.w3.org/ns/odrl.jsonld
+          '@type': Set
+          uid: http://example.com/policy:1010
+          permission:
+          - target: http://example.com/asset:9898.movie
+            action: display
+            constraint:
+            - leftOperand: spatial
+              operator: eq
+              rightOperand: https://www.wikidata.org/wiki/Q183
+              comment: i.e Germany
+        createdAt: 1688465655
+      properties:
+        '@id':
+          type: string
           example: null
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
+    QuerySpecSchema:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        criterion: []
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionDto'
+            $ref: '#/components/schemas/CriterionSchema'
         limit:
           type: integer
           format: int32
