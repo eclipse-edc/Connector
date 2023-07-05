@@ -32,7 +32,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -90,9 +89,9 @@ class ContractOfferResolverImplIntegrationTest {
         var assets2 = range(24, 113).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
         var assets3 = range(113, 178).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
 
-        store(assets1);
-        store(assets2);
-        store(assets3);
+        assets1.forEach(assetIndex::create);
+        assets2.forEach(assetIndex::create);
+        assets3.forEach(assetIndex::create);
 
         var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
         var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
@@ -123,8 +122,8 @@ class ContractOfferResolverImplIntegrationTest {
         var maximumRange = max(0, (assets1.size() + assets2.size()) - from);
         var requestedRange = to - from;
 
-        store(assets1);
-        store(assets2);
+        assets1.forEach(assetIndex::create);
+        assets2.forEach(assetIndex::create);
 
         var contractDefinition1 = getContractDefBuilder("contract-definition-")
                 .assetsSelector(selectorFrom(assets1)).build();
@@ -144,8 +143,8 @@ class ContractOfferResolverImplIntegrationTest {
         var assets1 = range(0, 12).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
         var assets2 = range(12, 18).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
 
-        store(assets1);
-        store(assets2);
+        assets1.forEach(assetIndex::create);
+        assets2.forEach(assetIndex::create);
 
         var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
         var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
@@ -186,11 +185,6 @@ class ContractOfferResolverImplIntegrationTest {
         verify(policyStore, never()).findById("contract");
     }
 
-    private void store(Collection<Asset> assets) {
-        assets.stream().map(a -> new AssetEntry(a, DataAddress.Builder.newInstance().type("test-type").build()))
-                .forEach(assetIndex::create);
-    }
-
     private List<Criterion> selectorFrom(Collection<Asset> assets1) {
         var ids = assets1.stream().map(Asset::getId).toList();
         return List.of(new Criterion(Asset.PROPERTY_ID, "in", ids));
@@ -204,7 +198,10 @@ class ContractOfferResolverImplIntegrationTest {
     }
 
     private Asset.Builder createAsset(String id) {
-        return Asset.Builder.newInstance().id(id).name("test asset " + id);
+        return Asset.Builder.newInstance()
+                .id(id)
+                .name("test asset " + id)
+                .dataAddress(DataAddress.Builder.newInstance().type("test-type").build());
     }
 
     static class RangeProvider implements ArgumentsProvider {

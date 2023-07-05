@@ -70,13 +70,18 @@ public class AssetServiceImpl implements AssetService {
 
     @Override
     public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
-        var validDataAddress = dataAddressValidator.validate(dataAddress);
+        return create(asset.toBuilder().dataAddress(dataAddress).build());
+    }
+
+    @Override
+    public ServiceResult<Asset> create(Asset asset) {
+        var validDataAddress = dataAddressValidator.validate(asset.getDataAddress());
         if (validDataAddress.failed()) {
             return ServiceResult.badRequest(validDataAddress.getFailureMessages());
         }
 
         return transactionContext.execute(() -> {
-            var createResult = index.create(asset, dataAddress);
+            var createResult = index.create(asset);
             if (createResult.succeeded()) {
                 observable.invokeForEach(l -> l.created(asset));
                 return ServiceResult.success(asset);

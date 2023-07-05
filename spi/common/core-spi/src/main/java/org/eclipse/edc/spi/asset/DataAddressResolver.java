@@ -28,8 +28,7 @@ public interface DataAddressResolver {
      * a storage system like a database or a document store.
      *
      * @param assetId The {@code assetId} for which the data pointer should be fetched.
-     * @return A DataAddress
-     * @throws IllegalArgumentException if no corresponding {@code DataAddress} was found for a certain asset
+     * @return A DataAddress, null if not found
      */
     DataAddress resolveForAsset(String assetId);
 }

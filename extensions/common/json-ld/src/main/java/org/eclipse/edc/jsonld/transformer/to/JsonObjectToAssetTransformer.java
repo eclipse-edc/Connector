@@ -18,11 +18,13 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 
 /**
@@ -49,6 +51,8 @@ public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<Json
         } else if (EDC_ASSET_PRIVATE_PROPERTIES.equals(key) && jsonValue instanceof JsonArray) {
             var props = jsonValue.asJsonArray().getJsonObject(0);
             visitProperties(props, (k, val) -> transformProperties(k, val, builder, context, true));
+        } else if (EDC_ASSET_DATA_ADDRESS.equals(key) && jsonValue instanceof JsonArray) {
+            builder.dataAddress(transformObject(jsonValue, DataAddress.class, context));
         } else {
             if (isPrivate) {
                 builder.privateProperty(key, transformGenericProperty(jsonValue, context));

@@ -123,8 +123,8 @@ public class BaseSqlDialectStatements implements AssetStatements {
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         var criteria = querySpec.getFilterExpression();
-        var conditions = criteria.stream().map(SqlConditionExpression::new).collect(Collectors.toList());
-        var results = conditions.stream().map(SqlConditionExpression::isValidExpression).collect(Collectors.toList());
+        var conditions = criteria.stream().map(SqlConditionExpression::new).toList();
+        var results = conditions.stream().map(SqlConditionExpression::isValidExpression).toList();
 
         if (results.stream().anyMatch(Result::failed)) {
             var message = results.stream().flatMap(r -> r.getFailureMessages().stream()).collect(Collectors.joining(", "));

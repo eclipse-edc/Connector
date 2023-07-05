@@ -9,6 +9,7 @@ info:
 paths:
   /v2/assets:
     post:
+      deprecated: true
       description: Creates a new asset together with a data address
       operationId: createAsset
       requestBody:
@@ -46,6 +47,7 @@ paths:
       tags:
       - Asset
     put:
+      deprecated: true
       description: "Updates an asset with the given ID if it exists. If the asset\
         \ is not found, no further action is taken. DANGER ZONE: Note that updating\
         \ assets can have unexpected results, especially for contract offers that\
@@ -74,6 +76,7 @@ paths:
       - Asset
   /v2/assets/request:
     post:
+      deprecated: true
       description: ' all assets according to a particular query'
       operationId: requestAssets
       requestBody:
@@ -104,6 +107,7 @@ paths:
       - Asset
   /v2/assets/{assetId}/dataaddress:
     put:
+      deprecated: true
       description: Updates a DataAddress for an asset with the given ID.
       operationId: updateDataAddress
       parameters:
@@ -143,6 +147,7 @@ paths:
       - Asset
   /v2/assets/{id}:
     delete:
+      deprecated: true
       description: "Removes an asset with the given ID if possible. Deleting an asset\
         \ is only possible if that asset is not yet referenced by a contract agreement,\
         \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
@@ -190,6 +195,7 @@ paths:
       tags:
       - Asset
     get:
+      deprecated: true
       description: Gets an asset with the given ID
       operationId: getAsset
       parameters:
@@ -228,6 +234,7 @@ paths:
       - Asset
   /v2/assets/{id}/dataaddress:
     get:
+      deprecated: true
       description: Gets a data address of an asset with the given ID
       operationId: getAssetDataAddress
       parameters:
@@ -244,6 +251,186 @@ paths:
               schema:
                 $ref: '#/components/schemas/DataAddressDto'
           description: The data address
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An asset with the given ID does not exist
+      tags:
+      - Asset
+  /v3/assets:
+    post:
+      description: Creates a new asset together with a data address
+      operationId: createAsset_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Asset'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDto'
+          description: Asset was created successfully. Returns the asset Id and created
+            timestamp
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+        "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Could not create asset, because an asset with that ID already\
+            \ exists"
+      tags:
+      - Asset
+    put:
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or are ongoing in contract negotiations."
+      operationId: updateAsset_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetUpdateRequestDto'
+      responses:
+        "200":
+          description: Asset was updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: "Asset could not be updated, because it does not exist."
+      tags:
+      - Asset
+  /v3/assets/request:
+    post:
+      description: ' all assets according to a particular query'
+      operationId: requestAssets_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuerySpecDto'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/AssetResponseDto'
+          description: The assets matching the query
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: Request body was malformed
+      tags:
+      - Asset
+  /v3/assets/{id}:
+    delete:
+      description: "Removes an asset with the given ID if possible. Deleting an asset\
+        \ is only possible if that asset is not yet referenced by a contract agreement,\
+        \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
+        \ can have unexpected results, especially for contract offers that have been\
+        \ sent out or ongoing or contract negotiations."
+      operationId: removeAsset_1
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          description: Asset was deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: An asset with the given ID does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
+          description: "The asset cannot be deleted, because it is referenced by a\
+            \ contract agreement"
+      tags:
+      - Asset
+    get:
+      description: Gets an asset with the given ID
+      operationId: getAsset_1
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+          description: The asset
         "400":
           content:
             application/json:
@@ -290,6 +477,8 @@ components:
           type: integer
           format: int64
           example: null
+        dataAddress:
+          $ref: '#/components/schemas/DataAddress'
         id:
           type: string
           example: null

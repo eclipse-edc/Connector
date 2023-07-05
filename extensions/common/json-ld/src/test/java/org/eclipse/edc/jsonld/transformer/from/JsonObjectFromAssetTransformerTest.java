@@ -15,8 +15,10 @@
 package org.eclipse.edc.jsonld.transformer.from;
 
 import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.transformer.Payload;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,14 +26,23 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
+import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class JsonObjectFromAssetTransformerTest {
 
@@ -40,6 +51,7 @@ class JsonObjectFromAssetTransformerTest {
     private static final String TEST_DESCRIPTION = "test-description";
     private static final String TEST_VERSION = "0.6.9";
     private static final String TEST_ASSET_NAME = "test-asset";
+    private final TransformerContext context = mock(TransformerContext.class);
     private JsonObjectFromAssetTransformer transformer;
 
     @BeforeEach
@@ -49,15 +61,18 @@ class JsonObjectFromAssetTransformerTest {
 
     @Test
     void transform_noCustomProperties() {
+        when(context.transform(isA(DataAddress.class), eq(JsonObject.class)))
+                .thenReturn(createObjectBuilder().add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("address-type")).build());
+        var dataAddress = DataAddress.Builder.newInstance().type("address-type").build();
         var asset = createAssetBuilder()
+                .dataAddress(dataAddress)
                 .build();
 
-        var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
+        var jsonObject = transformer.transform(asset, context);
 
         assertThat(jsonObject).isNotNull();
 
         var propsJson = jsonObject.getJsonObject(EDC_ASSET_PROPERTIES);
-        assertThat(propsJson).hasSize(5);
         assertThat(jsonObject.getJsonString(ID).getString()).isEqualTo(TEST_ASSET_ID);
         assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(Asset.EDC_ASSET_TYPE);
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "id").getString()).isEqualTo(TEST_ASSET_ID);
@@ -65,6 +80,8 @@ class JsonObjectFromAssetTransformerTest {
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "description").getString()).isEqualTo(TEST_DESCRIPTION);
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "name").getString()).isEqualTo(TEST_ASSET_NAME);
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "version").getString()).isEqualTo(TEST_VERSION);
+        assertThat(jsonObject.getJsonObject(EDC_ASSET_DATA_ADDRESS).getJsonArray(EDC_DATA_ADDRESS_TYPE_PROPERTY).get(0).asJsonObject().getString(VALUE)).isEqualTo("address-type");
+        verify(context).transform(dataAddress, JsonObject.class);
     }
 
     @Test
@@ -73,7 +90,7 @@ class JsonObjectFromAssetTransformerTest {
                 .property("some-key", "some-value")
                 .build();
 
-        var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
+        var jsonObject = transformer.transform(asset, context);
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getJsonObject(EDC_ASSET_PROPERTIES).getJsonString("some-key").getString()).isEqualTo("some-value");
@@ -85,7 +102,7 @@ class JsonObjectFromAssetTransformerTest {
                 .privateProperty("some-key", "some-value")
                 .build();
 
-        var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
+        var jsonObject = transformer.transform(asset, context);
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getJsonObject(EDC_ASSET_PRIVATE_PROPERTIES).getJsonString("some-key").getString()).isEqualTo("some-value");
@@ -97,7 +114,7 @@ class JsonObjectFromAssetTransformerTest {
                 .property("https://foo.bar.org/schema/some-key", "some-value")
                 .build();
 
-        var jsonObject = transformer.transform(asset, mock(TransformerContext.class));
+        var jsonObject = transformer.transform(asset, context);
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getJsonObject(EDC_ASSET_PROPERTIES).getJsonString("https://foo.bar.org/schema/some-key").getString()).isEqualTo("some-value");
@@ -109,8 +126,7 @@ class JsonObjectFromAssetTransformerTest {
                 .property("https://foo.bar.org/schema/payload", new Payload("foo-bar", 42))
                 .build();
 
-        var mock = mock(TransformerContext.class);
-        var jsonObject = transformer.transform(asset, mock);
+        var jsonObject = transformer.transform(asset, context);
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getJsonObject(EDC_ASSET_PROPERTIES).getJsonObject("https://foo.bar.org/schema/payload")).isInstanceOf(JsonObject.class);
@@ -123,5 +139,9 @@ class JsonObjectFromAssetTransformerTest {
                 .contentType(TEST_CONTENT_TYPE)
                 .description(TEST_DESCRIPTION)
                 .name(TEST_ASSET_NAME);
+    }
+
+    private JsonArrayBuilder value(String value) {
+        return createArrayBuilder().add(createObjectBuilder().add(VALUE, value));
     }
 }

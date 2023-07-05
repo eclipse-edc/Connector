@@ -87,10 +87,9 @@ public class Participant {
     public void createAsset(String assetId, Map<String, Object> dataAddressProperties) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add("asset", createObjectBuilder()
-                        .add(ID, assetId)
-                        .add("properties", createObjectBuilder()
-                                .add("description", "description")))
+                .add(ID, assetId)
+                .add("properties", createObjectBuilder()
+                        .add("description", "description"))
                 .add("dataAddress", createObjectBuilder(dataAddressProperties))
                 .build();
 
@@ -99,7 +98,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v2/assets")
+                .post("/v3/assets")
                 .then()
                 .statusCode(200)
                 .contentType(JSON);

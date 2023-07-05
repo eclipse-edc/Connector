@@ -43,7 +43,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -156,10 +155,11 @@ public class HttpProvisionerExtensionEndToEndTest {
     }
 
     @NotNull
-    private AssetEntry createAssetEntry() {
-        var asset = Asset.Builder.newInstance().id(ASSET_ID).build();
-        var dataAddress = DataAddress.Builder.newInstance().type(TEST_DATA_TYPE).build();
-        return new AssetEntry(asset, dataAddress);
+    private Asset createAssetEntry() {
+        return Asset.Builder.newInstance()
+                .id(ASSET_ID)
+                .dataAddress(DataAddress.Builder.newInstance().type(TEST_DATA_TYPE).build())
+                .build();
     }
 
     private TransferRequestMessage createTransferRequestMessage() {

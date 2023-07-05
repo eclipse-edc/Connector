@@ -23,7 +23,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -67,8 +66,8 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     @Test
     void shouldReturnCatalog_withQuerySpec() {
-        var asset = createAsset("id-1");
-        var asset1 = createAsset("id-2");
+        var asset = createAsset("id-1").dataAddress(createDataAddress().build());
+        var asset1 = createAsset("id-2").dataAddress(createDataAddress().build());
 
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
         var policyDefinitionStore = controlPlane.getContext().getService(PolicyDefinitionStore.class);
@@ -88,8 +87,8 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
         contractDefinitionStore.save(cd);
 
-        assetIndex.create(new AssetEntry(asset.build(), createDataAddress().build()));
-        assetIndex.create(new AssetEntry(asset1.build(), createDataAddress().build()));
+        assetIndex.create(asset.build());
+        assetIndex.create(asset1.build());
 
         var criteria = createArrayBuilder()
                 .add(createObjectBuilder()

@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
@@ -38,7 +37,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -90,14 +88,16 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                         var allPropertiesStream = queryExecutor.query(connection, false, this::mapPropertyResultSet, findPropertyByIdSql, assetId)
                 ) {
                     var createdAt = createdAtStream.findFirst().orElse(0L);
-                    Map<Boolean, List<SqlPropertyWrapper>> groupedProperties = allPropertiesStream.collect(partitioningBy(SqlPropertyWrapper::isPrivate));
+                    var groupedProperties = allPropertiesStream.collect(partitioningBy(SqlPropertyWrapper::isPrivate));
                     var assetProperties = groupedProperties.get(false).stream().collect(toMap(SqlPropertyWrapper::getPropertyKey, SqlPropertyWrapper::getPropertyValue));
                     var assetPrivateProperties = groupedProperties.get(true).stream().collect(toMap(SqlPropertyWrapper::getPropertyKey, SqlPropertyWrapper::getPropertyValue));
+                    var dataAddress = resolveForAsset(assetId);
                     return Asset.Builder.newInstance()
                             .id(assetId)
                             .properties(assetProperties)
                             .privateProperties(assetPrivateProperties)
                             .createdAt(createdAt)
+                            .dataAddress(dataAddress)
                             .build();
                 }
             });
@@ -112,12 +112,10 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Void> create(AssetEntry item) {
-        Objects.requireNonNull(item);
-        var asset = item.getAsset();
-        var dataAddress = item.getDataAddress();
-
+    public StoreResult<Void> create(Asset asset) {
         Objects.requireNonNull(asset);
+        var dataAddress = asset.getDataAddress();
+
         Objects.requireNonNull(dataAddress);
 
         var assetId = asset.getId();
@@ -128,7 +126,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     return StoreResult.alreadyExists(msg);
                 }
 
-                if (checkDuplicatePropertyKeys(asset)) {
+                if (asset.hasDuplicatePropertyKeys()) {
                     var msg = format(DUPLICATE_PROPERTY_KEYS_TEMPLATE);
                     return StoreResult.duplicateKeys(msg);
                 }
@@ -183,7 +181,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     public StoreResult<Asset> updateAsset(Asset asset) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                if (checkDuplicatePropertyKeys(asset)) {
+                if (asset.hasDuplicatePropertyKeys()) {
                     var msg = format(DUPLICATE_PROPERTY_KEYS_TEMPLATE);
                     return StoreResult.duplicateKeys(msg);
                 }
@@ -302,15 +300,6 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     privateProperty.getValue().getClass().getName(),
                     true);
         }
-    }
-
-    private boolean checkDuplicatePropertyKeys(Asset asset) {
-        var properties = asset.getProperties();
-        var privateProperties = asset.getPrivateProperties();
-        if (privateProperties != null && properties != null) {
-            return privateProperties.keySet().stream().distinct().anyMatch(properties::containsKey);
-        }
-        return true;
     }
 
     private static class SqlPropertyWrapper {

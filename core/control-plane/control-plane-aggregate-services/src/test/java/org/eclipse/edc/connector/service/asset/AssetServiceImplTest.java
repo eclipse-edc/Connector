@@ -19,7 +19,9 @@ import org.eclipse.edc.connector.asset.spi.observe.AssetObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
@@ -53,9 +55,11 @@ import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -72,7 +76,7 @@ class AssetServiceImplTest {
     private final AssetObservable observable = mock(AssetObservable.class);
     private final DataAddressValidator dataAddressValidator = mock(DataAddressValidator.class);
 
-    private final AssetServiceImpl service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext,
+    private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext,
             observable, dataAddressValidator);
 
     @Test
@@ -132,15 +136,13 @@ class AssetServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var assetId = "assetId";
         var asset = createAsset(assetId);
-        var addressType = "addressType";
-        var dataAddress = DataAddress.Builder.newInstance().type(addressType).build();
-        when(index.create(asset, dataAddress)).thenReturn(StoreResult.success());
+        when(index.create(asset)).thenReturn(StoreResult.success());
 
-        var inserted = service.create(asset, dataAddress);
+        var inserted = service.create(asset);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(assetId));
-        verify(index).create(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
+        verify(index).create(and(isA(Asset.class), argThat(it -> assetId.equals(it.getId()))));
         verifyNoMoreInteractions(index);
         verify(observable).invokeForEach(any());
     }
@@ -149,17 +151,59 @@ class AssetServiceImplTest {
     void createAsset_shouldNotCreateAssetIfItAlreadyExists() {
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
         var asset = createAsset("assetId");
-        var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
-        when(index.create(asset, dataAddress)).thenReturn(StoreResult.alreadyExists("test"));
+        when(index.create(asset)).thenReturn(StoreResult.alreadyExists("test"));
 
-        var inserted = service.create(asset, dataAddress);
+        var inserted = service.create(asset);
 
-        assertThat(inserted.succeeded()).isFalse();
-        assertThat(inserted.reason()).isEqualTo(CONFLICT);
+        assertThat(inserted).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
     }
 
     @Test
     void createAsset_shouldNotCreateAssetIfDataAddressInvalid() {
+        var asset = createAsset("assetId");
+        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("Data address is invalid"));
+
+        var result = service.create(asset);
+
+        Assertions.assertThat(result).satisfies(ServiceResult::failed)
+                .extracting(ServiceResult::reason)
+                .isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(index);
+    }
+
+    @Test
+    @Deprecated(since = "0.1.2")
+    void createAssetDeprecated_shouldCreateAssetIfItDoesNotAlreadyExist() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        var addressType = "addressType";
+        var dataAddress = DataAddress.Builder.newInstance().type(addressType).build();
+        when(index.create(isA(Asset.class))).thenReturn(StoreResult.success());
+
+        var inserted = service.create(asset, dataAddress);
+
+        assertThat(inserted.succeeded()).isTrue();
+        assertThat(inserted.getContent()).matches(hasId(assetId));
+        verify(observable).invokeForEach(any());
+    }
+
+    @Test
+    @Deprecated(since = "0.1.2")
+    void createAssetDeprecated_shouldNotCreateAssetIfItAlreadyExists() {
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        var asset = createAsset("assetId");
+        var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
+        when(index.create(isA(Asset.class))).thenReturn(StoreResult.alreadyExists("test"));
+
+        var inserted = service.create(asset, dataAddress);
+
+        assertThat(inserted).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+    }
+
+    @Test
+    @Deprecated(since = "0.1.2")
+    void createAssetDeprecated_shouldNotCreateAssetIfDataAddressInvalid() {
         var asset = createAsset("assetId");
         var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("Data address is invalid"));
@@ -307,6 +351,6 @@ class AssetServiceImplTest {
     }
 
     private Asset createAsset(String assetId) {
-        return Asset.Builder.newInstance().id(assetId).build();
+        return Asset.Builder.newInstance().id(assetId).dataAddress(DataAddress.Builder.newInstance().type("any").build()).build();
     }
 }

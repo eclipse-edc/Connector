@@ -37,16 +37,20 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * Asset V3 endpoints end-to-end tests
+ * V2 end-to-end tests
+ *
+ * @deprecated can be removed when Asset v2 endpoints will be removed.
  */
 @EndToEndTest
-public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
+@Deprecated(since = "0.1.2")
+public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTest {
 
-    private static final String BASE_PATH = "/management/v3/assets";
+    private static final String BASE_PATH = "/management/v2/assets";
 
     private static final String TEST_ASSET_ID = "test-asset-id";
     private static final String TEST_ASSET_CONTENTTYPE = "application/json";
@@ -58,7 +62,8 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void getAssetById() {
         //insert one asset into the index
         controlPlane.getContext().getService(AssetIndex.class)
-                .create(createAsset().dataAddress(createDataAddress().type("addressType").build()).build());
+                .create(new AssetEntry(createAsset().build(),
+                        createDataAddress().build()));
 
         var body = baseRequest()
                 .get("/" + TEST_ASSET_ID)
@@ -74,26 +79,33 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .containsEntry("edc:description", TEST_ASSET_DESCRIPTION)
                 .containsEntry("edc:contenttype", TEST_ASSET_CONTENTTYPE)
                 .containsEntry("edc:version", TEST_ASSET_VERSION);
-        assertThat(body.getMap("'edc:dataAddress'"))
-                .containsEntry("edc:type", "addressType");
     }
 
     @Test
     void createAsset_shouldBeStored() {
+
         var assetJson = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "Asset")
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder().build())
-                .add("dataAddress", createObjectBuilder()
-                        .add(TYPE, "DataAddress")
-                        .add("type", "test-type")
-                        .build())
+                .build();
+
+        var dataAddressJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "DataAddress")
+                .add("type", "test-type").build();
+
+        var assetNewJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "AssetEntryDto")
+                .add("asset", assetJson)
+                .add("dataAddress", dataAddressJson)
                 .build();
 
         baseRequest()
                 .contentType(ContentType.JSON)
-                .body(assetJson)
+                .body(assetNewJson)
                 .post()
                 .then()
                 .log().ifError()
@@ -114,9 +126,15 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add("properties", createPropertiesBuilder().build())
                 .build();
 
+        var assetNewJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "AssetEntryDto")
+                .add("asset", assetJson)
+                .build();
+
         baseRequest()
                 .contentType(ContentType.JSON)
-                .body(assetJson)
+                .body(assetNewJson)
                 .post()
                 .then()
                 .log().ifError()
@@ -135,16 +153,24 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder()
                         .add("unprefixed-key", "test-value").build())
-                .add("dataAddress", createObjectBuilder()
-                        .add(TYPE, "DataAddress")
-                        .add("type", "test-type")
-                        .add("unprefixed-key", "test-value")
-                        .build())
+                .build();
+
+        var dataAddressJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "DataAddress")
+                .add("type", "test-type")
+                .add("unprefixed-key", "test-value").build();
+
+        var assetNewJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "AssetEntryDto")
+                .add("asset", assetJson)
+                .add("dataAddress", dataAddressJson)
                 .build();
 
         baseRequest()
                 .contentType(ContentType.JSON)
-                .body(assetJson)
+                .body(assetNewJson)
                 .post()
                 .then()
                 .log().ifError()
@@ -278,8 +304,6 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder()
                         .add("some-new-property", "some-new-value").build())
-                .add("dataAddress", createObjectBuilder()
-                        .add("type", "addressType"))
                 .build();
 
         baseRequest()
@@ -294,7 +318,20 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
         var dbAsset = assetIndex.findById(TEST_ASSET_ID);
         assertThat(dbAsset).isNotNull();
         assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
-        assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
+    }
+
+    @Test
+    void getDataAddress() {
+        controlPlane.getContext().getService(AssetIndex.class)
+                .create(new AssetEntry(Asset.Builder.newInstance().id("test-asset").build(),
+                        DataAddress.Builder.newInstance().type("test-type").property(EDC_NAMESPACE + "another-key", "another-value").build()));
+
+        baseRequest()
+                .get("/test-asset/dataaddress")
+                .then()
+                .statusCode(200)
+                .body("'edc:type'", equalTo("test-type"))
+                .body("'edc:another-key'", equalTo("another-value"));
     }
 
     private DataAddress.Builder createDataAddress() {
@@ -341,5 +378,21 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .when();
     }
 
-    private record TestObject(String description, int number) { }
+    private static class TestObject {
+        private final String description;
+        private final int number;
+
+        TestObject(String description, int number) {
+            this.description = description;
+            this.number = number;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public int getNumber() {
+            return number;
+        }
+    }
 }
