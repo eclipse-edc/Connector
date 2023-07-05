@@ -70,14 +70,14 @@ public class AssetApiController implements AssetApi {
         var asset = transformerRegistry.transform(assetJson, Asset.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var dto = service.create(asset)
+        var idResponse = service.create(asset)
                 .map(a -> IdResponseDto.Builder.newInstance()
                         .id(a.getId())
                         .createdAt(a.getCreatedAt())
                         .build())
                 .orElseThrow(exceptionMapper(Asset.class, asset.getId()));
 
-        return transformerRegistry.transform(dto, JsonObject.class)
+        return transformerRegistry.transform(idResponse, JsonObject.class)
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 

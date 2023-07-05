@@ -279,13 +279,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Asset'
+              $ref: '#/components/schemas/AssetInputSchema'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseDto'
+                $ref: '#/components/schemas/IdResponseSchema'
           description: Asset was created successfully. Returns the asset Id and created
             timestamp
         "400":
@@ -319,7 +319,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetUpdateRequestDto'
+              $ref: '#/components/schemas/AssetInputSchema'
       responses:
         "200":
           description: Asset was updated successfully
@@ -344,7 +344,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           content:
@@ -353,7 +353,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/AssetResponseDto'
+                  $ref: '#/components/schemas/AssetOutputSchema'
           description: The assets matching the query
         "400":
           content:
@@ -429,7 +429,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Asset'
+                $ref: '#/components/schemas/AssetOutputSchema'
           description: The asset
         "400":
           content:
@@ -502,6 +502,77 @@ components:
           $ref: '#/components/schemas/Asset'
         dataAddress:
           $ref: '#/components/schemas/DataAddress'
+    AssetInputSchema:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
+        properties:
+          key: value
+        privateProperties:
+          privateKey: privateValue
+        dataAddress:
+          type: HttpData
+      properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Asset
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressSchema'
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+    AssetOutputSchema:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
+        edc:properties:
+          edc:key: value
+        edc:privateProperties:
+          edc:privateKey: privateValue
+        edc:dataAddress:
+          edc:type: HttpData
+        edc:createdAt: 1688465655
+      properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Asset
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressSchema'
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
     AssetResponseDto:
       type: object
       example: null
@@ -572,6 +643,27 @@ components:
         operator:
           type: string
           example: null
+    CriterionSchema:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        operandLeft: fieldName
+        operator: =
+        operandRight: some value
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
+        operandLeft:
+          type: object
+          example: null
+        operandRight:
+          type: object
+          example: null
+        operator:
+          type: string
+          example: null
     DataAddress:
       type: object
       example: null
@@ -598,6 +690,16 @@ components:
             type: string
             example: null
           example: null
+    DataAddressSchema:
+      type: object
+      example: null
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type:
+          type: string
+          example: null
     IdResponseDto:
       type: object
       example: null
@@ -609,6 +711,21 @@ components:
           type: string
           example: null
         '@type':
+          type: string
+          example: null
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+    IdResponseSchema:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': id-value
+        createdAt: 1688465655
+      properties:
+        '@id':
           type: string
           example: null
         createdAt:
@@ -685,6 +802,42 @@ components:
           example: null
           items:
             $ref: '#/components/schemas/CriterionDto'
+        limit:
+          type: integer
+          format: int32
+          example: null
+        offset:
+          type: integer
+          format: int32
+          example: null
+        sortField:
+          type: string
+          example: null
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+          example: null
+    QuerySpecSchema:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        criterion: []
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
+        filterExpression:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CriterionSchema'
         limit:
           type: integer
           format: int32

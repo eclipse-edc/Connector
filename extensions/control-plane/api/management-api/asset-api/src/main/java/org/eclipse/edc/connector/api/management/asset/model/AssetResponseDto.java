@@ -22,6 +22,7 @@ import org.eclipse.edc.api.model.BaseResponseDto;
 import java.util.Map;
 
 @JsonDeserialize(builder = AssetResponseDto.Builder.class)
+@Deprecated(since = "0.1.3")
 public class AssetResponseDto extends BaseResponseDto {
 
     private Map<String, Object> properties;

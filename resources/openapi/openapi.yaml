@@ -1557,7 +1557,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetUpdateRequestDto'
+              $ref: '#/components/schemas/AssetInputSchema'
       responses:
         "200":
           description: Asset was updated successfully
@@ -1581,7 +1581,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Asset'
+              $ref: '#/components/schemas/AssetInputSchema'
       responses:
         "200":
           description: Asset was created successfully. Returns the asset Id and created
@@ -1589,7 +1589,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseDto'
+                $ref: '#/components/schemas/IdResponseSchema'
         "400":
           description: Request body was malformed
           content:
@@ -1619,7 +1619,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           description: The assets matching the query
@@ -1629,7 +1629,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/AssetResponseDto'
+                  $ref: '#/components/schemas/AssetOutputSchema'
         "400":
           description: Request body was malformed
           content:
@@ -1660,7 +1660,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Asset'
+                $ref: '#/components/schemas/AssetOutputSchema'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1852,6 +1852,77 @@ components:
         dataAddress:
           $ref: '#/components/schemas/DataAddress'
       example: null
+    AssetInputSchema:
+      type: object
+      properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Asset
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressSchema'
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
+        properties:
+          key: value
+        privateProperties:
+          privateKey: privateValue
+        dataAddress:
+          type: HttpData
+    AssetOutputSchema:
+      type: object
+      properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Asset
+        createdAt:
+          type: integer
+          format: int64
+          example: null
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressSchema'
+        privateProperties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+            example: null
+          example: null
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@id': definition-id
+        edc:properties:
+          edc:key: value
+        edc:privateProperties:
+          edc:privateKey: privateValue
+        edc:dataAddress:
+          edc:type: HttpData
+        edc:createdAt: 1688465655
     AssetResponseDto:
       type: object
       properties:
@@ -2066,10 +2137,10 @@ components:
         '@context':
           edc: https://w3id.org/edc/v0.0.1/ns/
         '@id': definition-id
-        accessPolicyId: asset-policy-id
-        contractPolicyId: contract-policy-id
-        assetsSelector: []
-        createdAt: 1688465655
+        edc:accessPolicyId: asset-policy-id
+        edc:contractPolicyId: contract-policy-id
+        edc:assetsSelector: []
+        edc:createdAt: 1688465655
     ContractNegotiationDto:
       type: object
       properties:
@@ -2208,6 +2279,16 @@ components:
           additionalProperties:
             type: string
             example: null
+          example: null
+      example: null
+    DataAddressSchema:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type:
+          type: string
           example: null
       example: null
     DataFlowRequest:

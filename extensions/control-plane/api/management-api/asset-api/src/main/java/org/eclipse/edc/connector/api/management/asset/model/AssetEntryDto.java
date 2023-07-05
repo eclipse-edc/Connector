@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.api.model.DataAddressDto;
 
 @JsonDeserialize(builder = AssetEntryDto.Builder.class)
+@Deprecated(since = "0.1.3")
 public class AssetEntryDto {
     private AssetCreationRequestDto asset;
     private DataAddressDto dataAddress;

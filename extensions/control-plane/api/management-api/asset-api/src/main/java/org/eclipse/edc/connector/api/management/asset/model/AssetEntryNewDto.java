@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 @JsonDeserialize(builder = AssetEntryNewDto.Builder.class)
+@Deprecated(since = "0.1.3")
 public class AssetEntryNewDto {
 
     public static final String EDC_ASSET_ENTRY_DTO_TYPE = EDC_NAMESPACE + "AssetEntryDto";
