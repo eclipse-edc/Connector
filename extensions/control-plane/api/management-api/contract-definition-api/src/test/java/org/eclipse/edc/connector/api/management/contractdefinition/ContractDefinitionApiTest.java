@@ -17,8 +17,8 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionRequestDtoValidator;
+import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -38,8 +38,8 @@ class ContractDefinitionApiTest {
 
     @Test
     void contractDefinitionInputExample() throws JsonProcessingException {
-        var transformer = new JsonObjectToContractDefinitionRequestDtoTransformer();
-        var validator = ContractDefinitionRequestDtoValidator.instance();
+        var transformer = new JsonObjectToContractDefinitionTransformer();
+        var validator = ContractDefinitionValidator.instance();
 
         var jsonObject = objectMapper.readValue(CONTRACT_DEFINITION_INPUT_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

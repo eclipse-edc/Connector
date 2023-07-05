@@ -26,8 +26,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionResponseDto;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.EdcException;
@@ -43,7 +41,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
@@ -81,8 +79,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class))) {
             return stream
-                    .map(contractDefinition -> transformerRegistry.transform(contractDefinition, ContractDefinitionResponseDto.class)
-                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)))
+                    .map(contractDefinition -> transformerRegistry.transform(contractDefinition, JsonObject.class))
                     .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
@@ -96,8 +93,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     public JsonObject getContractDefinition(@PathParam("id") String id) {
         return Optional.ofNullable(id)
                 .map(service::findById)
-                .map(it -> transformerRegistry.transform(it, ContractDefinitionResponseDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)))
+                .map(it -> transformerRegistry.transform(it, JsonObject.class))
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
     }
@@ -108,8 +104,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, createObject)
                 .orElseThrow(ValidationFailureException::new);
 
-        var transform = transformerRegistry.transform(createObject, ContractDefinitionRequestDto.class)
-                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
+        var transform = transformerRegistry.transform(createObject, ContractDefinition.class)
                 .orElseThrow(InvalidRequestException::new);
 
         var responseDto = service.create(transform)
@@ -136,8 +131,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, updateObject)
                 .orElseThrow(ValidationFailureException::new);
 
-        var contractDefinition = transformerRegistry.transform(updateObject, ContractDefinitionRequestDto.class)
-                .compose(dto -> transformerRegistry.transform(dto, ContractDefinition.class))
+        var contractDefinition = transformerRegistry.transform(updateObject, ContractDefinition.class)
                 .orElseThrow(InvalidRequestException::new);
 
         service.update(contractDefinition).orElseThrow(exceptionMapper(ContractDefinition.class));

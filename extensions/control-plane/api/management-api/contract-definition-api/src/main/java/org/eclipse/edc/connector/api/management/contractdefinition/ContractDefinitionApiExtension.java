@@ -17,12 +17,9 @@ package org.eclipse.edc.connector.api.management.contractdefinition;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.contractdefinition.model.ContractDefinitionRequestDto;
-import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionRequestDtoToContractDefinitionTransformer;
-import org.eclipse.edc.connector.api.management.contractdefinition.transform.ContractDefinitionToContractDefinitionResponseDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionResponseDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionRequestDtoValidator;
+import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -33,6 +30,8 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
+
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
 
 @Extension(value = ContractDefinitionApiExtension.NAME)
 public class ContractDefinitionApiExtension implements ServiceExtension {
@@ -62,12 +61,10 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var jsonFactory = Json.createBuilderFactory(Map.of());
-        transformerRegistry.register(new ContractDefinitionToContractDefinitionResponseDtoTransformer());
-        transformerRegistry.register(new ContractDefinitionRequestDtoToContractDefinitionTransformer());
-        transformerRegistry.register(new JsonObjectFromContractDefinitionResponseDtoTransformer(jsonFactory));
-        transformerRegistry.register(new JsonObjectToContractDefinitionRequestDtoTransformer());
+        transformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory));
+        transformerRegistry.register(new JsonObjectToContractDefinitionTransformer());
 
-        validatorRegistry.register(ContractDefinitionRequestDto.CONTRACT_DEFINITION_TYPE, ContractDefinitionRequestDtoValidator.instance());
+        validatorRegistry.register(CONTRACT_DEFINITION_TYPE, ContractDefinitionValidator.instance());
 
         var monitor = context.getMonitor();
 
