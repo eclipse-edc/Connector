@@ -19,7 +19,7 @@ import org.eclipse.edc.api.model.BaseDto;
 import java.util.HashMap;
 import java.util.Map;
 
-
+@Deprecated(since = "0.1.3")
 public abstract class AssetRequestDto extends BaseDto {
 
     protected Map<String, Object> properties;

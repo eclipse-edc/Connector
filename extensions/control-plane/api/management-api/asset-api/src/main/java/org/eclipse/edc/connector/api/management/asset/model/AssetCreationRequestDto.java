@@ -24,6 +24,7 @@ import java.util.Map;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 
 @JsonDeserialize(builder = AssetCreationRequestDto.Builder.class)
+@Deprecated(since = "0.1.3")
 public class AssetCreationRequestDto extends AssetRequestDto {
 
     @JsonProperty(value = ID)

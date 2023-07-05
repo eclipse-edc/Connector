@@ -52,7 +52,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v2/assets")
-@Deprecated
+@Deprecated(since = "0.1.3")
 public class AssetApiController implements AssetApi {
     private final TypeTransformerRegistry transformerRegistry;
     private final AssetService service;
@@ -72,6 +72,7 @@ public class AssetApiController implements AssetApi {
     @POST
     @Override
     public JsonObject createAsset(JsonObject assetEntryDto) {
+        logDeprecationWarning();
         validator.validate(EDC_ASSET_ENTRY_DTO_TYPE, assetEntryDto).orElseThrow(ValidationFailureException::new);
 
         var assetEntry = transformerRegistry.transform(assetEntryDto, AssetEntryNewDto.class)
@@ -92,6 +93,7 @@ public class AssetApiController implements AssetApi {
     @Path("/request")
     @Override
     public JsonArray requestAssets(JsonObject querySpecDto) {
+        logDeprecationWarning();
         QuerySpec querySpec;
         if (querySpecDto == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
@@ -117,6 +119,7 @@ public class AssetApiController implements AssetApi {
     @Path("{id}")
     @Override
     public JsonObject getAsset(@PathParam("id") String id) {
+        logDeprecationWarning();
         var asset = of(id)
                 .map(it -> service.findById(id))
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
@@ -130,12 +133,14 @@ public class AssetApiController implements AssetApi {
     @Path("{id}")
     @Override
     public void removeAsset(@PathParam("id") String id) {
+        logDeprecationWarning();
         service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
     }
 
     @PUT
     @Override
     public void updateAsset(JsonObject assetJsonObject) {
+        logDeprecationWarning();
         // validation removed because now the asset validation requires the dataAddress field
         // validator.validate(EDC_ASSET_TYPE, assetJsonObject).orElseThrow(ValidationFailureException::new);
 
@@ -150,6 +155,7 @@ public class AssetApiController implements AssetApi {
     @Path("{assetId}/dataaddress")
     @Override
     public void updateDataAddress(@PathParam("assetId") String assetId, JsonObject dataAddressJson) {
+        logDeprecationWarning();
         validator.validate(EDC_DATA_ADDRESS_TYPE, dataAddressJson).orElseThrow(ValidationFailureException::new);
 
         var dataAddressResult = transformerRegistry.transform(dataAddressJson, DataAddress.class)
@@ -163,12 +169,17 @@ public class AssetApiController implements AssetApi {
     @Path("{id}/dataaddress")
     @Override
     public JsonObject getAssetDataAddress(@PathParam("id") String id) {
+        logDeprecationWarning();
         return of(id)
                 .map(it -> dataAddressResolver.resolveForAsset(id))
                 .map(it -> transformerRegistry.transform(it, JsonObject.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
+    }
+
+    private void logDeprecationWarning() {
+        monitor.warning("the /v2/assets endpoint have been deprecated, please switch to the new /v3/assets");
     }
 
 }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.asset.model;
 
+@Deprecated(since = "0.1.3")
 public class AssetUpdateRequestWrapperDto {
 
     private AssetUpdateRequestDto requestDto;

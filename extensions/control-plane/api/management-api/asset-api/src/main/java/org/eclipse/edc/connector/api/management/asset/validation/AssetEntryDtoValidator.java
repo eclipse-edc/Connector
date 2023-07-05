@@ -33,7 +33,7 @@ import static org.eclipse.edc.validator.spi.Violation.violation;
  *
  * @deprecated this will supersede by {@link AssetValidator}
  */
-@Deprecated(since = "0.1.2", forRemoval = true)
+@Deprecated(since = "0.1.3", forRemoval = true)
 public class AssetEntryDtoValidator {
 
     public static Validator<JsonObject> assetEntryValidator() {

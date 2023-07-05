@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Map;
 
 @JsonDeserialize(builder = AssetUpdateRequestDto.Builder.class)
+@Deprecated(since = "0.1.3")
 public class AssetUpdateRequestDto extends AssetRequestDto {
 
 
