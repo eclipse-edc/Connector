@@ -113,7 +113,6 @@ class ContractNegotiationEventDispatchTest {
                 .id(ContractId.create("contractDefinitionId", assetId).toString())
                 .assetId("assetId")
                 .policy(policy)
-                .providerId(PROVIDER)
                 .build();
 
         return ContractRequestMessage.Builder.newInstance()

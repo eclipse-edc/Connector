@@ -21,6 +21,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,9 +43,6 @@ import static jakarta.json.JsonValue.ValueType.TRUE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.KEYWORDS;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
 /**
  * Base JSON-LD transformer implementation.
@@ -162,7 +160,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             } catch (IllegalArgumentException e) {
                 context.problem()
                         .invalidProperty()
-                        .type(VALUE)
+                        .type(JsonLdKeywords.VALUE)
                         .property(k)
                         .value(v != null ? v.toString() : "null")
                         .error(e.getMessage())
@@ -172,12 +170,12 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     protected void visitProperties(JsonObject object, BiConsumer<String, JsonValue> consumer) {
-        object.entrySet().stream().filter(entry -> !KEYWORDS.contains(entry.getKey())).forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
+        object.entrySet().stream().filter(entry -> !JsonLdKeywords.KEYWORDS.contains(entry.getKey())).forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
     }
 
     protected void visitProperties(JsonObject object, Function<String, Consumer<JsonValue>> consumer) {
         object.entrySet().stream()
-                .filter(entry -> !KEYWORDS.contains(entry.getKey()))
+                .filter(entry -> !JsonLdKeywords.KEYWORDS.contains(entry.getKey()))
                 .forEach(entry -> consumer.apply(entry.getKey()).accept(entry.getValue()));
     }
 
@@ -260,7 +258,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return ((JsonString) value).getString();
         } else if (value instanceof JsonObject) {
             var object = value.asJsonObject();
-            return Stream.of(VALUE, ID).map(object::get)
+            return Stream.of(JsonLdKeywords.VALUE, JsonLdKeywords.ID).map(object::get)
                     .filter(Objects::nonNull)
                     .findFirst().map(it -> transformString(it, context))
                     .orElseGet(() -> {
@@ -293,7 +291,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         if (value instanceof JsonNumber) {
             return ((JsonNumber) value).intValue();
         } else if (value instanceof JsonObject) {
-            var jsonNumber = value.asJsonObject().getJsonNumber(VALUE);
+            var jsonNumber = value.asJsonObject().getJsonNumber(JsonLdKeywords.VALUE);
             return transformInt(jsonNumber, context);
         } else if (value instanceof JsonArray) {
             return transformInt(value.asJsonArray().get(0), context);
@@ -320,7 +318,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return false;
         }
         if (value instanceof JsonObject) {
-            return value.asJsonObject().getBoolean(VALUE);
+            return value.asJsonObject().getBoolean(JsonLdKeywords.VALUE);
         } else if (value instanceof JsonArray) {
             return transformBoolean(value.asJsonArray().get(0), context);
         } else if (TRUE == value.getValueType()) {
@@ -444,7 +442,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         if (object instanceof JsonArray) {
             return nodeId(object.asJsonArray().get(0));
         } else {
-            var id = object.asJsonObject().get(ID);
+            var id = object.asJsonObject().get(JsonLdKeywords.ID);
             return id instanceof JsonString ? ((JsonString) id).getString() : null;
         }
     }
@@ -456,7 +454,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         if (object instanceof JsonArray) {
             return nodeValue(object.asJsonArray().get(0));
         } else {
-            var value = object.asJsonObject().get(VALUE);
+            var value = object.asJsonObject().get(JsonLdKeywords.VALUE);
             return value instanceof JsonString ? ((JsonString) value).getString() : null;
         }
     }

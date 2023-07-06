@@ -203,7 +203,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private ContractOffer createContractOffer(Policy policy, ContractId contractId) {
         return ContractOffer.Builder.newInstance()
                 .id(contractId.toString())
-                .providerId(participantId)
                 .policy(policy)
                 .assetId(contractId.assetIdPart())
                 .build();

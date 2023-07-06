@@ -16,8 +16,8 @@ package org.eclipse.edc.api.transformer;
 
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 

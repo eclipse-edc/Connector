@@ -72,10 +72,9 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
         traceCollectorServer.when(HttpRequest.request()).respond(HttpResponse.response().withStatusCode(200));
 
         var requestJson = Json.createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "NegotiationInitiateRequestDto")
+                .add(TYPE, EDC_NAMESPACE + "ContractRequest")
                 .add(EDC_NAMESPACE + "connectorAddress", "test-address")
                 .add(EDC_NAMESPACE + "protocol", "test-protocol")
-                .add(EDC_NAMESPACE + "connectorId", "test-conn-id")
                 .add(EDC_NAMESPACE + "providerId", "test-provider-id")
                 .add(EDC_NAMESPACE + "consumerId", "test-consumer-id")
                 .add(EDC_NAMESPACE + "offer", Json.createObjectBuilder()

@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationC
 import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
@@ -192,14 +191,13 @@ class ContractNegotiationServiceImplTest {
     void initiateNegotiation_callsManager() {
         var contractNegotiation = createContractNegotiation("negotiationId");
         when(consumerManager.initiate(isA(ContractRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
-        var requestData = ContractRequestData.Builder.newInstance()
-                .connectorId("connectorId")
+
+        var request = ContractRequest.Builder.newInstance()
+                .providerId("providerId")
                 .counterPartyAddress("address")
                 .protocol("protocol")
                 .contractOffer(createContractOffer())
                 .build();
-
-        var request = ContractRequest.Builder.newInstance().requestData(requestData).build();
 
         var result = service.initiateNegotiation(request);
 

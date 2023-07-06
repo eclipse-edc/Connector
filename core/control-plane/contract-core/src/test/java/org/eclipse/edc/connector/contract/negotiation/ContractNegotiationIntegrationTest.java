@@ -26,7 +26,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -158,9 +157,13 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId(PROVIDER_ID).counterPartyAddress("callbackAddress").contractOffer(offer).protocol("protocol").build();
-
-        var request = ContractRequest.Builder.newInstance().callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).requestData(requestData).build();
+        var request = ContractRequest.Builder.newInstance()
+                .providerId(PROVIDER_ID)
+                .counterPartyAddress("callbackAddress")
+                .contractOffer(offer)
+                .protocol("protocol")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
+                .build();
 
         consumerManager.initiate(request);
 
@@ -202,9 +205,12 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("protocol").build();
-
-        var request = ContractRequest.Builder.newInstance().requestData(requestData).build();
+        var request = ContractRequest.Builder.newInstance()
+                .providerId("connectorId")
+                .counterPartyAddress("callbackAddress")
+                .contractOffer(offer)
+                .protocol("protocol")
+                .build();
 
         consumerManager.initiate(request);
 
@@ -227,9 +233,14 @@ class ContractNegotiationIntegrationTest {
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        var requestData = ContractRequestData.Builder.newInstance().connectorId("connectorId").counterPartyAddress("callbackAddress").contractOffer(offer).protocol("protocol").build();
+        var request = ContractRequest.Builder.newInstance()
+                .providerId("connectorId")
+                .counterPartyAddress("callbackAddress")
+                .contractOffer(offer)
+                .protocol("protocol")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
+                .build();
 
-        var request = ContractRequest.Builder.newInstance().requestData(requestData).callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build())).build();
         consumerManager.initiate(request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> {
@@ -328,7 +339,6 @@ class ContractNegotiationIntegrationTest {
     private ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(ContractId.create("1", "test-asset-id").toString())
-                .providerId("provider")
                 .assetId(randomUUID().toString())
                 .policy(Policy.Builder.newInstance()
                         .type(PolicyType.CONTRACT)

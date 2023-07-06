@@ -471,7 +471,6 @@ class ContractNegotiationProtocolServiceImplTest {
                 .id(ContractId.create("1", "test-asset-id").toString())
                 .policy(createPolicy())
                 .assetId("assetId")
-                .providerId(PROVIDER_ID)
                 .build();
     }
 

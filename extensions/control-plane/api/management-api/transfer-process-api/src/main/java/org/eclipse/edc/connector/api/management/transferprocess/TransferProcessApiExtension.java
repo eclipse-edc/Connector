@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.transferprocess;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
+import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.DataRequestToDataRequestDtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromDataRequestDtoTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferProcessDtoTransformer;
@@ -32,7 +33,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -53,7 +53,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
     private ManagementApiConfiguration configuration;
 
     @Inject
-    private TypeTransformerRegistry transformerRegistry;
+    private ManagementApiTypeTransformerRegistry transformerRegistry;
 
     @Inject
     private TransferProcessService service;

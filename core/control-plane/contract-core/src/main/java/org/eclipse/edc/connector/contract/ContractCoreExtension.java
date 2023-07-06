@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.contract.negotiation.ConsumerContractNegotiatio
 import org.eclipse.edc.connector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.offer.ContractDefinitionResolverImpl;
-import org.eclipse.edc.connector.contract.offer.ContractOfferResolverImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyArchiveImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -31,7 +30,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
-import org.eclipse.edc.connector.contract.spi.offer.ContractOfferResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -74,9 +72,8 @@ import static org.eclipse.edc.connector.contract.validation.ContractExpiryCheckF
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 
 @Provides({
-        ContractOfferResolver.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
-        PolicyArchive.class, ProviderContractNegotiationManager.class, ContractNegotiationObservable.class,
-        ContractDefinitionResolver.class
+        ContractValidationService.class, ConsumerContractNegotiationManager.class, PolicyArchive.class,
+        ProviderContractNegotiationManager.class, ContractNegotiationObservable.class, ContractDefinitionResolver.class
 })
 @CoreExtension
 @Extension(value = ContractCoreExtension.NAME)
@@ -192,8 +189,6 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ContractDefinitionResolver.class, definitionService);
 
         var participantId = context.getParticipantId();
-        var contractOfferResolver = new ContractOfferResolverImpl(participantId, agentService, definitionService, assetIndex, policyStore, clock, monitor);
-        context.registerService(ContractOfferResolver.class, contractOfferResolver);
 
         var policyEquality = new PolicyEquality(typeManager);
         var validationService = new ContractValidationServiceImpl(participantId, agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality);

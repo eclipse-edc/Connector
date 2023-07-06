@@ -21,7 +21,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class ContractOfferDescription {
 
-    public static final String TYPE = EDC_NAMESPACE + "ContractOfferDescription";
+    public static final String CONTRACT_OFFER_DESCRIPTION_TYPE = EDC_NAMESPACE + "ContractOfferDescription";
     public static final String OFFER_ID = EDC_NAMESPACE + "offerId";
     public static final String ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String POLICY = EDC_NAMESPACE + "policy";

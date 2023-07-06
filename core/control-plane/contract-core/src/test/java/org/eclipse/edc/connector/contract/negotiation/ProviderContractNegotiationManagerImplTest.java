@@ -260,7 +260,6 @@ class ProviderContractNegotiationManagerImplTest {
                 .id(ContractId.create("1", "test-asset-id").toString())
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("assetId")
-                .providerId(PROVIDER_ID)
                 .build();
     }
 

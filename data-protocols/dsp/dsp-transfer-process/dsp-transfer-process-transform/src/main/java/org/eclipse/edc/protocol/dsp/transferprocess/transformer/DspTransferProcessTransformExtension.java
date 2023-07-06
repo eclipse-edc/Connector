@@ -15,8 +15,7 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transformer;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.transformer.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferProcessTransformer;
@@ -45,8 +44,6 @@ public class DspTransferProcessTransformExtension implements ServiceExtension {
 
     @Inject
     private TypeTransformerRegistry registry;
-    @Inject
-    private JsonLd jsonLdService;
 
     @Override
     public String name() {
