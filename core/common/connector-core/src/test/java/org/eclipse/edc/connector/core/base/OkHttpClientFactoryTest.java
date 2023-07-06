@@ -37,6 +37,7 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.core.base.OkHttpClientFactory.EDC_HTTP_CLIENT_HTTPS_ENFORCE;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -46,8 +47,8 @@ class OkHttpClientFactoryTest {
 
     private static final String HTTP_URL = "http://localhost:11111";
     private static final String HTTPS_URL = "https://localhost:11111";
-    private final Monitor monitor = mock(Monitor.class);
-    private final EventListener eventListener = mock(EventListener.class);
+    private final Monitor monitor = mock();
+    private final EventListener eventListener = mock();
 
     @Test
     void shouldPrintLogIfHttpsNotEnforced() {
@@ -64,7 +65,7 @@ class OkHttpClientFactoryTest {
 
     @Test
     void shouldEnforceHttpsCalls() {
-        var config = Map.of("edc.http.enforce-https", "true");
+        var config = Map.of(EDC_HTTP_CLIENT_HTTPS_ENFORCE, "true");
         var context = createContextWithConfig(config);
 
         var okHttpClient = OkHttpClientFactory.create(context, eventListener)

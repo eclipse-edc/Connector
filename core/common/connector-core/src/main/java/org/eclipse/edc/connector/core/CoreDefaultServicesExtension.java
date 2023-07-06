@@ -48,8 +48,7 @@ import java.util.concurrent.Executors;
 public class CoreDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Core Default Services";
-    public static final String SECRET_SEPARATOR = ";";
-    public static final String SECRET_KEY_VAULE_SEPARATOR = ":";
+
     /**
      * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
      */
