@@ -96,6 +96,14 @@ execute the standard *dependencies* task:
 gradle dependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s]+" | sort | uniq | java -jar /path/org.eclipse.dash.licenses-<VERSION>.jar - -summary DEPENDENCIES
 ```
 
+> Caution macOS users: by default, macOS has BSD Grep installed, rather than GNU Grep. If you experience any issues,
+> please try to [install
+GNU Grep](https://apple.stackexchange.com/questions/193288/how-to-install-and-use-gnu-grep-in-macos). Furthermore,
+> sorting depends on locale and collation, and
+>
+may [differ between OSes](https://unix.stackexchange.com/questions/362728/why-does-gnu-sort-sort-differently-on-my-osx-machine-and-linux-machine).
+> Our CI job, which verifies the `DEPENDENCIES` file, is running on `ubuntu-latest`
+
 - For each dependency that is reported as `restricted`, an IPlap issue must be opened. For details, please refer to
   the [documentation](https://github.com/eclipse/dash-licenses) of the Dash tool.
 
