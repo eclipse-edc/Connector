@@ -11,21 +11,20 @@
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
  *
  */
-plugins {
-    `java-library`
+
+package org.eclipse.edc.vault.hashicorp;
+
+public class PathUtil {
+
+    private PathUtil() {
+    }
+
+    public static String trimLeadingOrEndingSlash(String path) {
+        var fixedPath = path;
+
+        if (fixedPath.startsWith("/")) fixedPath = fixedPath.substring(1);
+        if (fixedPath.endsWith("/")) fixedPath = fixedPath.substring(0, fixedPath.length() - 1);
+
+        return fixedPath;
+    }
 }
-
-dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:http-spi"))
-
-    implementation(project(":core:common:util"))
-
-    testImplementation(project(":core:common:junit"))
-    testImplementation(libs.testcontainers.junit)
-    testImplementation(libs.testcontainers.vault)
-    implementation(libs.bouncyCastle.bcpkixJdk18on)
-
-}
-
-

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Mercedes-Benz Tech Innovation GmbH
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,19 +8,19 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.vault.hashicorp.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-class GetEntryResponsePayload {
+public class GetEntryResponsePayload {
 
     private GetEntryResponsePayloadGetVaultEntryData data;
 
-    GetEntryResponsePayload() {
+    public GetEntryResponsePayload() {
     }
 
     public GetEntryResponsePayloadGetVaultEntryData getData() {
