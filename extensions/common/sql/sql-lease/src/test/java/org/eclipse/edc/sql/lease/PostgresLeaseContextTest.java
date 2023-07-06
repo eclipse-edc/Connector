@@ -15,7 +15,7 @@
 
 package org.eclipse.edc.sql.lease;
 
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresLeaseContextTest {
 
@@ -57,13 +57,13 @@ class PostgresLeaseContextTest {
 
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final TestEntityLeaseStatements dialect = new TestEntityLeaseStatements();
+    private final SqlQueryExecutor queryExecutor = new SqlQueryExecutor();
     private SqlLeaseContextBuilder builder;
     private SqlLeaseContext leaseContext;
-    private final SqlQueryExecutor queryExecutor = new SqlQueryExecutor();
 
     @BeforeAll
-    static void prepare() {
-        PostgresqlLocalInstance.createTestDatabase();
+    static void prepare(PostgresqlLocalInstance postgres) {
+        postgres.createDatabase();
     }
 
     @BeforeEach

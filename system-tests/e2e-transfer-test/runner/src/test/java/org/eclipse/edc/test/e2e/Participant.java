@@ -27,7 +27,6 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -425,24 +424,24 @@ public class Participant {
             {
                 put("edc.datasource.asset.name", "asset");
                 put("edc.datasource.asset.url", jdbcUrl());
-                put("edc.datasource.asset.user", PostgresqlLocalInstance.USER);
-                put("edc.datasource.asset.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.asset.user", PostgresConstants.USER);
+                put("edc.datasource.asset.password", PostgresConstants.PASSWORD);
                 put("edc.datasource.contractdefinition.name", "contractdefinition");
                 put("edc.datasource.contractdefinition.url", jdbcUrl());
-                put("edc.datasource.contractdefinition.user", PostgresqlLocalInstance.USER);
-                put("edc.datasource.contractdefinition.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.contractdefinition.user", PostgresConstants.USER);
+                put("edc.datasource.contractdefinition.password", PostgresConstants.PASSWORD);
                 put("edc.datasource.contractnegotiation.name", "contractnegotiation");
                 put("edc.datasource.contractnegotiation.url", jdbcUrl());
-                put("edc.datasource.contractnegotiation.user", PostgresqlLocalInstance.USER);
-                put("edc.datasource.contractnegotiation.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.contractnegotiation.user", PostgresConstants.USER);
+                put("edc.datasource.contractnegotiation.password", PostgresConstants.PASSWORD);
                 put("edc.datasource.policy.name", "policy");
                 put("edc.datasource.policy.url", jdbcUrl());
-                put("edc.datasource.policy.user", PostgresqlLocalInstance.USER);
-                put("edc.datasource.policy.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.policy.user", PostgresConstants.USER);
+                put("edc.datasource.policy.password", PostgresConstants.PASSWORD);
                 put("edc.datasource.transferprocess.name", "transferprocess");
                 put("edc.datasource.transferprocess.url", jdbcUrl());
-                put("edc.datasource.transferprocess.user", PostgresqlLocalInstance.USER);
-                put("edc.datasource.transferprocess.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.transferprocess.user", PostgresConstants.USER);
+                put("edc.datasource.transferprocess.password", PostgresConstants.PASSWORD);
             }
         };
         baseConfiguration.putAll(postgresConfiguration);
@@ -452,7 +451,7 @@ public class Participant {
 
     @NotNull
     public String jdbcUrl() {
-        return PostgresqlLocalInstance.JDBC_URL_PREFIX + name;
+        return PostgresConstants.JDBC_URL_PREFIX + name;
     }
 
     public Map<String, String> dataPlaneConfiguration() {

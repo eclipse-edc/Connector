@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.store.sql.contractnegotiation.store;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.ContractNegotiationStoreTestBase;
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -62,14 +62,14 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  * This test aims to verify those parts of the contract negotiation store, that are specific to Postgres, e.g. JSON
  * query operators.
  */
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
 
     private static final String TEST_ASSET_ID = "test-asset-id";
+    private final Clock clock = Clock.systemUTC();
     private SqlContractNegotiationStore store;
     private LeaseUtil leaseUtil;
-    private final Clock clock = Clock.systemUTC();
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
@@ -257,7 +257,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
                 .state(REQUESTED.code())
                 .type(CONSUMER)
                 .build()).forEach(store::save);
-        var criteria = new Criterion[]{hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER")};
+        var criteria = new Criterion[]{ hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER") };
 
         var result = store.nextNotLeased(10, criteria);
 

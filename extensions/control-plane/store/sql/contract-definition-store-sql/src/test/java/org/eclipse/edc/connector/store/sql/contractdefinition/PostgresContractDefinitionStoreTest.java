@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.ContractD
 import org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions;
 import org.eclipse.edc.connector.store.sql.contractdefinition.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.store.sql.contractdefinition.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -42,7 +42,7 @@ import java.util.List;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@PostgresqlDbIntegrationTest
+@ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBase {
 

@@ -14,28 +14,35 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class PathUtilTest {
 
-    private static Stream<Arguments> provideStringsForTrimsPathsCorrect() {
-        return Stream.of(
-                Arguments.of("v1/secret/data", "v1/secret/data"),
-                Arguments.of("/v1/secret/data", "v1/secret/data"),
-                Arguments.of("/v1/secret/data/", "v1/secret/data"),
-                Arguments.of("v1/secret/data/", "v1/secret/data"));
-    }
 
     @ParameterizedTest
-    @MethodSource("provideStringsForTrimsPathsCorrect")
+    @ArgumentsSource(CorrectPathsProvider.class)
     void trimsPathsCorrect(String path, String expected) {
         final String result = PathUtil.trimLeadingOrEndingSlash(path);
 
-        Assertions.assertEquals(expected, result);
+        assertThat(expected).isEqualTo(result);
+    }
+
+    private static class CorrectPathsProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of("v1/secret/data", "v1/secret/data"),
+                    Arguments.of("/v1/secret/data", "v1/secret/data"),
+                    Arguments.of("/v1/secret/data/", "v1/secret/data"),
+                    Arguments.of("v1/secret/data/", "v1/secret/data"));
+        }
     }
 }
