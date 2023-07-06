@@ -176,6 +176,35 @@ If an issue labeled with `Bug` and `FlakyTest` is assigned to you, please priori
 We are taking the quality of our code very serious and reporting on flaky tests is an important step toward improvement
 in that area.
 
+## Non-code Contributions
+
+The following list shows examples of non-code contributions which, however, are not limited to:
+
+- Strengthen the EDC brand
+  - Evangelizing the project
+  - Developing community
+- Community education
+  - Answering questions on Github, Discord, Youtube, etc.
+  - Onboarding new contributors
+  - Contribute to EDC docs
+  - Doing hands-on sessions and demos
+- Outward-facing community work
+  - Hosting meetups (Q&A) and general evangelism
+  - Presentation of work to meetups
+  - Social Media
+  - Non-Documentation writing (Blogs, Articles, Interviews)
+- Branding/Visual Communication
+  - Website management
+  - Visuals (diagrams, infographic design, icon design)
+- Management of communication tools (at the discretion of project maintainers)
+  - Mailing list moderation
+  - Discord management
+  - Calendar management
+- Event management
+  - Host community events
+  - Support summits and hackathons
+  - Staffing EDC booths at conferences
+
 ## Project and Milestone Planning
 
 We use milestones to set a common focus for a period of 6 to 8 weeks. 
