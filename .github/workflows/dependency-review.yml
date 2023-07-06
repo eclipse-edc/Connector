@@ -1,11 +1,13 @@
 name: 'Dependency Review'
-on: [ pull_request ]
+on:
+  push:
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  dependency-review:
+  Check-Allowed-Licenses:
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
@@ -24,3 +26,42 @@ jobs:
             MIT, MIT-0, MPL-1.1, MPL-2.0, NTP, OpenSSL, PHP-3.01, PostgreSQL, OFL-1.1, Unlicense,
             Unicode-DFS-2015, Unicode-DFS-2016, Unicode-TOU, UPL-1.0, W3C-20150513, W3C-19980720, W3C,
             WTFPL, X11, Zlib, ZPL-2.1
+
+  Dash-Dependency-Check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-build
+      - name: Download latest Eclipse Dash
+        run: |
+          curl -L https://repo.eclipse.org/service/local/artifact/maven/redirect\?r\=dash-licenses\&g\=org.eclipse.dash\&a\=org.eclipse.dash.licenses\&v\=LATEST --output dash.jar
+      - name: Regenerate DEPENDENCIES
+        run: |
+          # dash returns a nonzero exit code if there are libs that need review. the "|| true" avoids that
+          ./gradlew allDependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s\[\]]+" | sort | uniq | java -jar dash.jar - -summary DEPENDENCIES-gen || true
+
+          # log warning if restricted deps are found
+          grep -E 'restricted' DEPENDENCIES | if test $(wc -l) -gt 0; then 
+            echo "::warning file=DEPENDENCIES,title=Restricted Dependencies found::Some dependencies are marked 'restricted' - please review them" 
+          fi
+
+          # log error and fail job if rejected deps are found
+          grep -E 'rejected' DEPENDENCIES | if test $(wc -l) -gt 0; then
+            echo "::error file=DEPENDENCIES,title=Rejected Dependencies found::Some dependencies are marked 'rejected', they cannot be used"
+            exit 1
+          fi
+      - name: Check for differences
+        run: |
+          diff DEPENDENCIES DEPENDENCIES-gen
+
+  Dependency-Analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-build
+
+      - name: Dependency rules report
+        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx1g" buildHealth
+
+      - name: Dependency analysis report
+        run: cat build/reports/dependency-analysis/build-health-report.txt

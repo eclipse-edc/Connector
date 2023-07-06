@@ -38,44 +38,7 @@ jobs:
       - name: Run Javadoc
         run: ./gradlew javadoc
 
-  Dash-Dependency-Check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-      - name: Download latest Eclipse Dash
-        run: |
-          curl -L https://repo.eclipse.org/service/local/artifact/maven/redirect\?r\=dash-licenses\&g\=org.eclipse.dash\&a\=org.eclipse.dash.licenses\&v\=LATEST --output dash.jar
-      - name: Regenerate DEPENDENCIES
-        run: |
-          # dash returns a nonzero exit code if there are libs that need review. the "|| true" avoids that
-          ./gradlew allDependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s\[\]]+" | sort | uniq | java -jar dash.jar - -summary DEPENDENCIES-gen || true
 
-          # log warning if restricted deps are found
-          grep -E 'restricted' DEPENDENCIES | if test $(wc -l) -gt 0; then 
-            echo "::warning file=DEPENDENCIES,title=Restricted Dependencies found::Some dependencies are marked 'restricted' - please review them" 
-          fi
-
-          # log error and fail job if rejected deps are found
-          grep -E 'rejected' DEPENDENCIES | if test $(wc -l) -gt 0; then
-            echo "::error file=DEPENDENCIES,title=Rejected Dependencies found::Some dependencies are marked 'rejected', they cannot be used"
-            exit 1
-          fi
-      - name: Check for differences
-        run: |
-          diff DEPENDENCIES DEPENDENCIES-gen
-
-  Dependency-analysis:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
-
-      - name: Dependency rules report
-        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx1g" buildHealth
-
-      - name: Dependency analysis report
-        run: cat build/reports/dependency-analysis/build-health-report.txt
 
   Unit-Tests:
     runs-on: ubuntu-latest
