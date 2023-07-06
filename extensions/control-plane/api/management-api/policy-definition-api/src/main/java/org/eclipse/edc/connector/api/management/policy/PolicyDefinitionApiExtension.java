@@ -16,13 +16,9 @@ package org.eclipse.edc.connector.api.management.policy;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectFromPolicyDefinitionResponseDtoTransformer;
-import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionUpdateDtoTransformer;
-import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionRequestDtoToPolicyDefinitionTransformer;
-import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionToPolicyDefinitionResponseDtoTransformer;
-import org.eclipse.edc.connector.api.management.policy.transform.PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer;
-import org.eclipse.edc.connector.api.management.policy.validation.PolicyDefinitionRequestDtoValidator;
+import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.policy.validation.PolicyDefinitionValidator;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -34,7 +30,7 @@ import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
 
-import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_TYPE;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 
 
 @Extension(value = PolicyDefinitionApiExtension.NAME)
@@ -65,14 +61,10 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
-        transformerRegistry.register(new PolicyDefinitionRequestDtoToPolicyDefinitionTransformer());
-        transformerRegistry.register(new PolicyDefinitionToPolicyDefinitionResponseDtoTransformer());
-        transformerRegistry.register(new PolicyDefinitionUpdateWrapperDtoToPolicyDefinitionTransformer());
-        transformerRegistry.register(new JsonObjectToPolicyDefinitionRequestDtoTransformer());
-        transformerRegistry.register(new JsonObjectToPolicyDefinitionUpdateDtoTransformer());
-        transformerRegistry.register(new JsonObjectFromPolicyDefinitionResponseDtoTransformer(jsonBuilderFactory));
+        transformerRegistry.register(new JsonObjectToPolicyDefinitionTransformer());
+        transformerRegistry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonBuilderFactory));
 
-        validatorRegistry.register(EDC_POLICY_DEFINITION_TYPE, PolicyDefinitionRequestDtoValidator.instance());
+        validatorRegistry.register(EDC_POLICY_DEFINITION_TYPE, PolicyDefinitionValidator.instance());
 
         var monitor = context.getMonitor();
         webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, transformerRegistry, service, validatorRegistry));

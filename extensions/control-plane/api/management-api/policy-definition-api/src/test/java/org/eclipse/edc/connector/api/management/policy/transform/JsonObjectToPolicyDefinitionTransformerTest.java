@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.api.management.policy.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
+import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_POLICY;
-import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_TYPE;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,15 +32,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class JsonObjectToPolicyDefinitionUpdateDtoTransformerTest {
+class JsonObjectToPolicyDefinitionTransformerTest {
 
-    private final JsonObjectToPolicyDefinitionUpdateDtoTransformer transformer = new JsonObjectToPolicyDefinitionUpdateDtoTransformer();
+    private final JsonObjectToPolicyDefinitionTransformer transformer = new JsonObjectToPolicyDefinitionTransformer();
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
     void types() {
         assertThat(transformer.getInputType()).isEqualTo(JsonObject.class);
-        assertThat(transformer.getOutputType()).isEqualTo(PolicyDefinitionUpdateDto.class);
+        assertThat(transformer.getOutputType()).isEqualTo(PolicyDefinition.class);
     }
 
     @Test
@@ -57,6 +57,7 @@ class JsonObjectToPolicyDefinitionUpdateDtoTransformerTest {
         var result = transformer.transform(json, context);
 
         assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo("definitionId");
         assertThat(result.getPolicy()).isSameAs(policy);
         verify(context).transform(policyJson, Policy.class);
     }

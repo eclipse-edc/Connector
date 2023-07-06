@@ -20,9 +20,9 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 
-public class PolicyDefinitionRequestDtoValidator {
+public class PolicyDefinitionValidator {
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)

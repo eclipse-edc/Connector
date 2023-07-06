@@ -16,30 +16,30 @@ package org.eclipse.edc.connector.api.management.policy.transform;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
+import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 
-public class JsonObjectToPolicyDefinitionRequestDtoTransformer extends AbstractJsonLdTransformer<JsonObject, PolicyDefinitionRequestDto> {
+public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTransformer<JsonObject, PolicyDefinition> {
 
-    public JsonObjectToPolicyDefinitionRequestDtoTransformer() {
-        super(JsonObject.class, PolicyDefinitionRequestDto.class);
+    public JsonObjectToPolicyDefinitionTransformer() {
+        super(JsonObject.class, PolicyDefinition.class);
     }
 
     @Override
-    public @Nullable PolicyDefinitionRequestDto transform(@NotNull JsonObject input, @NotNull TransformerContext context) {
-        var builder = PolicyDefinitionRequestDto.Builder.newInstance();
+    public @Nullable PolicyDefinition transform(@NotNull JsonObject input, @NotNull TransformerContext context) {
+        var builder = PolicyDefinition.Builder.newInstance();
         builder.id(nodeId(input));
         visitProperties(input, (key, value) -> transformProperty(key, value, builder, context));
         return builder.build();
     }
 
-    private void transformProperty(String key, JsonValue value, PolicyDefinitionRequestDto.Builder builder, TransformerContext context) {
+    private void transformProperty(String key, JsonValue value, PolicyDefinition.Builder builder, TransformerContext context) {
         if (key.equals(EDC_POLICY_DEFINITION_POLICY)) {
             transformArrayOrObject(value, Policy.class, builder::policy, context);
         }

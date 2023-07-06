@@ -18,10 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionResponseDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateDto;
-import org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionUpdateWrapperDto;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -32,7 +28,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
-import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -42,9 +37,10 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
-import static org.eclipse.edc.connector.api.management.policy.model.PolicyDefinitionRequestDto.EDC_POLICY_DEFINITION_TYPE;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,14 +61,12 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     @Test
     void create_shouldReturnDefinitionId() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        var dto = PolicyDefinitionRequestDto.Builder.newInstance().build();
         var policyDefinition = createPolicyDefinition().id("policyDefinitionId").createdAt(1234).build();
         var response = Json.createObjectBuilder()
                 .add("id", policyDefinition.getId())
                 .add("createdAt", policyDefinition.getCreatedAt())
                 .build();
 
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.success(policyDefinition));
         when(transformerRegistry.transform(any(IdResponseDto.class), eq(JsonObject.class))).thenReturn(Result.success(response));
@@ -96,14 +90,13 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
                 .body("createdAt", is(1234));
 
         verify(validatorRegistry).validate(eq(EDC_POLICY_DEFINITION_TYPE), any());
-        verify(transformerRegistry).transform(isA(JsonObject.class), eq(PolicyDefinitionRequestDto.class));
-        verify(transformerRegistry).transform(dto, PolicyDefinition.class);
+        verify(transformerRegistry).transform(isA(JsonObject.class), eq(PolicyDefinition.class));
         verify(service).create(policyDefinition);
     }
 
     @Test
     void create_shouldReturnBadRequest_whenValidationFails() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("failure", "failure path")));
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
@@ -148,9 +141,7 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     @Test
     void create_shouldReturnConflict_whenItAlreadyExists() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        var dto = PolicyDefinitionRequestDto.Builder.newInstance().build();
         var policyDefinition = createPolicyDefinition().id("policyDefinitionId").createdAt(1234).build();
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
         var requestBody = Json.createObjectBuilder()
@@ -199,8 +190,6 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     void update_shouldCallService() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         var policyDefinition = createPolicyDefinition().build();
-        var dto = PolicyDefinitionUpdateDto.Builder.newInstance().build();
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionUpdateDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(any())).thenReturn(ServiceResult.success(policyDefinition));
         var requestBody = Json.createObjectBuilder()
@@ -218,14 +207,13 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(204);
         verify(validatorRegistry).validate(eq(EDC_POLICY_DEFINITION_TYPE), any());
-        verify(transformerRegistry).transform(isA(JsonObject.class), eq(PolicyDefinitionUpdateDto.class));
-        verify(transformerRegistry).transform(isA(PolicyDefinitionUpdateWrapperDto.class), eq(PolicyDefinition.class));
+        verify(transformerRegistry).transform(isA(JsonObject.class), eq(PolicyDefinition.class));
         verify(service).update(policyDefinition);
     }
 
     @Test
     void update_shouldReturnBadRequest_whenValidationFails() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("failure", "failure path")));
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
         var requestBody = Json.createObjectBuilder()
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
@@ -268,8 +256,6 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     void update_shouldReturnNotFound_whenNotFound() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         var policyDefinition = createPolicyDefinition().build();
-        var dto = PolicyDefinitionUpdateDto.Builder.newInstance().build();
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionUpdateDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(any())).thenReturn(ServiceResult.notFound("not found"));
         var requestBody = Json.createObjectBuilder()
@@ -291,10 +277,8 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     @Test
     void get_shouldReturnPolicyDefinition() {
         var policyDefinition = createPolicyDefinition().build();
-        var dto = PolicyDefinitionResponseDto.Builder.newInstance().id("id").createdAt(1234).build();
         var expandedBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         when(service.findById(any())).thenReturn(policyDefinition);
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionResponseDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedBody));
 
         given()
@@ -306,8 +290,7 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
                 .body("id", is("id"))
                 .body("createdAt", is(1234));
         verify(service).findById("id");
-        verify(transformerRegistry).transform(policyDefinition, PolicyDefinitionResponseDto.class);
-        verify(transformerRegistry).transform(dto, JsonObject.class);
+        verify(transformerRegistry).transform(policyDefinition, JsonObject.class);
     }
 
     @Test
@@ -340,13 +323,11 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     void query_shouldReturnQueriedPolicyDefinitions() {
         var querySpec = QuerySpec.none();
         var policyDefinition = createPolicyDefinition().id("id").build();
-        var dto = PolicyDefinitionResponseDto.Builder.newInstance().id("id").createdAt(1234).build();
         var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionResponseDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -365,13 +346,12 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
         verify(validatorRegistry).validate(eq(EDC_QUERY_SPEC_TYPE), any());
         verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(querySpec);
-        verify(transformerRegistry).transform(policyDefinition, PolicyDefinitionResponseDto.class);
-        verify(transformerRegistry).transform(dto, JsonObject.class);
+        verify(transformerRegistry).transform(policyDefinition, JsonObject.class);
     }
 
     @Test
     void query_shouldBadRequest_whenValidationFails() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("failure", "failure path")));
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
         var requestBody = Json.createObjectBuilder().build();
 
         given()
@@ -455,7 +435,7 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(any(), eq(QuerySpecDto.class))).thenReturn(Result.success(querySpecDto));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
-        when(transformerRegistry.transform(any(), eq(PolicyDefinitionResponseDto.class))).thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
 
         given()

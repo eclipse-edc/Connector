@@ -23,6 +23,8 @@ import org.eclipse.edc.spi.entity.Entity;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * A {@link PolicyDefinition} is a container for a {@link Policy} and a unique identifier. Policies by themselves do
  * not have and identity, they are value objects.
@@ -35,6 +37,8 @@ import java.util.UUID;
  */
 @JsonDeserialize(builder = PolicyDefinition.Builder.class)
 public class PolicyDefinition extends Entity {
+    public static final String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + "PolicyDefinition";
+    public static final String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
     private Policy policy;
 
     private PolicyDefinition() {
