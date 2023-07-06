@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-java
+      - uses: ./.github/actions/setup-build
       - name: Download latest Eclipse Dash
         run: |
           curl -L https://repo.eclipse.org/service/local/artifact/maven/redirect\?r\=dash-licenses\&g\=org.eclipse.dash\&a\=org.eclipse.dash.licenses\&v\=LATEST --output dash.jar

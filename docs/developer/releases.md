@@ -93,16 +93,11 @@ execute the standard *dependencies* task:
 - First, the dependencies of this module are calculated with gradle and passed to the Dash tool:
 
 ```
-gradle dependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s]+" | sort | uniq | java -jar /path/org.eclipse.dash.licenses-<VERSION>.jar - -summary NOTICES
+gradle dependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s]+" | sort | uniq | java -jar /path/org.eclipse.dash.licenses-<VERSION>.jar - -summary DEPENDENCIES
 ```
 
-- Second, the resulting report is used as input for the shell script:
-
-```
-./generateThirdPartyReport.sh /path/inputFilename
-```
-
-- Finally, the resulting report is assessed for missing license information which must be then added manually.
+- For each dependency that is reported as `restricted`, an IPlap issue must be opened. For details, please refer to
+  the [documentation](https://github.com/eclipse/dash-licenses) of the Dash tool.
 
 #### Background Information
 
