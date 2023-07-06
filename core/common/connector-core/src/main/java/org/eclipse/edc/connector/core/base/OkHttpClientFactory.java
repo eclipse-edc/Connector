@@ -66,7 +66,7 @@ public class OkHttpClientFactory {
 
         ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
-        if (context.getSetting(EDC_HTTP_ENFORCE_HTTPS, null) == null) {
+        if (context.getSetting(EDC_HTTP_ENFORCE_HTTPS, null) != null) {
             context.getMonitor().warning(format("Configuration setting %s has been deprecated, please use %s instead", EDC_HTTP_ENFORCE_HTTPS, EDC_HTTP_CLIENT_HTTPS_ENFORCE));
         }
 
