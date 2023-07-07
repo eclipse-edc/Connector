@@ -18,6 +18,7 @@ import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.sql.testfixtures.PostgresqlLocalInstance;
+import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -92,7 +93,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
         createDatabase(PROVIDER);
     }
 
-    private static void createDatabase(Participant consumer) throws ClassNotFoundException, SQLException, IOException {
+    private static void createDatabase(EndToEndTransferParticipant consumer) throws ClassNotFoundException, SQLException, IOException {
         Class.forName("org.postgresql.Driver");
 
         var helper = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, consumer.getName());

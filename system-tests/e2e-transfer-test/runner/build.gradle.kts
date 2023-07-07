@@ -23,6 +23,7 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
+    testImplementation(testFixtures(project(":system-tests:e2e-test-fixtures")))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.jakartaJson)

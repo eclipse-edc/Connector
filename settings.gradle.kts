@@ -210,7 +210,7 @@ include(":system-tests:e2e-transfer-test:runner")
 include(":system-tests:management-api:management-api-test-runner")
 include(":system-tests:management-api:management-api-test-runtime")
 
-include(":system-tests:tests")
+include(":system-tests:e2e-test-fixtures")
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
