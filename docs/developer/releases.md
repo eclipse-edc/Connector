@@ -77,7 +77,7 @@ file must be updated regarding the listed third-party dependencies.
 While distributing individual modules, a notice file containing only the relevant subset of dependencies must be
 created (as described below).
 
-#### Creating the Notice File
+#### Creating the DEPENDENCIES File
 
 Notice files consist of some prescribed statements addressing trademarks copyright, and licensing. Additionally, the
 section on third-party content lists all dependencies of the current scope (project or module) and must be maintained
