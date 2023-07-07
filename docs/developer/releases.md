@@ -77,7 +77,7 @@ file must be updated regarding the listed third-party dependencies.
 While distributing individual modules, a notice file containing only the relevant subset of dependencies must be
 created (as described below).
 
-#### Creating the Notice File
+#### Creating the DEPENDENCIES File
 
 Notice files consist of some prescribed statements addressing trademarks copyright, and licensing. Additionally, the
 section on third-party content lists all dependencies of the current scope (project or module) and must be maintained
@@ -93,16 +93,19 @@ execute the standard *dependencies* task:
 - First, the dependencies of this module are calculated with gradle and passed to the Dash tool:
 
 ```
-gradle dependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s]+" | sort | uniq | java -jar /path/org.eclipse.dash.licenses-<VERSION>.jar - -summary NOTICES
+gradle dependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s]+" | sort | uniq | java -jar /path/org.eclipse.dash.licenses-<VERSION>.jar - -summary DEPENDENCIES
 ```
 
-- Second, the resulting report is used as input for the shell script:
+> Caution macOS users: by default, macOS has BSD Grep installed, rather than GNU Grep. If you experience any issues,
+> please try to [install
+GNU Grep](https://apple.stackexchange.com/questions/193288/how-to-install-and-use-gnu-grep-in-macos). Furthermore,
+> sorting depends on locale and collation, and
+>
+may [differ between OSes](https://unix.stackexchange.com/questions/362728/why-does-gnu-sort-sort-differently-on-my-osx-machine-and-linux-machine).
+> Our CI job, which verifies the `DEPENDENCIES` file, is running on `ubuntu-latest`
 
-```
-./generateThirdPartyReport.sh /path/inputFilename
-```
-
-- Finally, the resulting report is assessed for missing license information which must be then added manually.
+- For each dependency that is reported as `restricted`, an IPlap issue must be opened. For details, please refer to
+  the [documentation](https://github.com/eclipse/dash-licenses) of the Dash tool.
 
 #### Background Information
 

@@ -38,17 +38,7 @@ jobs:
       - name: Run Javadoc
         run: ./gradlew javadoc
 
-  Dependency-analysis:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-build
 
-      - name: Dependency rules report
-        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx1g" buildHealth
-
-      - name: Dependency analysis report
-        run: cat build/reports/dependency-analysis/build-health-report.txt
 
   Unit-Tests:
     runs-on: ubuntu-latest
