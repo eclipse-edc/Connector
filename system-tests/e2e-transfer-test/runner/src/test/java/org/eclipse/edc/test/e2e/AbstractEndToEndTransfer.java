@@ -17,7 +17,6 @@ package org.eclipse.edc.test.e2e;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
-import org.eclipse.edc.test.system.utils.TransferTestRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,8 +63,11 @@ public abstract class AbstractEndToEndTransfer {
         createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
         var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
 
-        var runner = new TransferTestRunner(CONSUMER, PROVIDER, syncDataAddress(), dynamicReceiverProps, STARTED);
-        var transferProcessId = runner.apply(assetId);
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress());
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(STARTED.name());
+        });
 
         // retrieve the data reference
         var edr = CONSUMER.getDataReference(transferProcessId);
@@ -91,8 +93,11 @@ public abstract class AbstractEndToEndTransfer {
         var contractPolicy = inForcePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
         createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
-        var runner = new TransferTestRunner(CONSUMER, PROVIDER, syncDataAddress(), noPrivateProperty(), TERMINATED);
-        runner.apply(assetId);
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress());
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(TERMINATED.name());
+        });
     }
 
     @Test
@@ -104,8 +109,11 @@ public abstract class AbstractEndToEndTransfer {
         var contractPolicy = inForcePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
         createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
-        var runner = new TransferTestRunner(CONSUMER, PROVIDER, syncDataAddress(), noPrivateProperty(), TERMINATED);
-        runner.apply(assetId);
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress());
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(TERMINATED.name());
+        });
     }
 
     @Test
@@ -119,11 +127,14 @@ public abstract class AbstractEndToEndTransfer {
                 "proxyQueryParams", "true"
         ));
 
-        var runner = new TransferTestRunner(CONSUMER, PROVIDER, syncDataAddress(), noPrivateProperty(), STARTED);
-        var transferProcessId = runner.apply(assetId);
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress());
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(STARTED.name());
 
-        var edr = CONSUMER.getDataReference(transferProcessId);
-        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of(), equalTo("some information")));
+            var edr = CONSUMER.getDataReference(transferProcessId);
+            CONSUMER.pullData(edr, Map.of(), equalTo("some information"));
+        });
     }
 
     @Test
@@ -133,10 +144,11 @@ public abstract class AbstractEndToEndTransfer {
         createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
         var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
 
-        var runner = new TransferTestRunner(CONSUMER, PROVIDER, destination, noPrivateProperty(), STARTED);
-        runner.apply(assetId);
-
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
         await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(STARTED.name());
+
             given()
                     .baseUri(CONSUMER.backendService().toString())
                     .when()
@@ -155,10 +167,11 @@ public abstract class AbstractEndToEndTransfer {
         createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressOauth2Properties());
         var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
 
-        var runner = new TransferTestRunner(CONSUMER, PROVIDER, destination, noPrivateProperty(), STARTED);
-        runner.apply(assetId);
-
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
         await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(STARTED.name());
+
             given()
                     .baseUri(CONSUMER.backendService().toString())
                     .when()

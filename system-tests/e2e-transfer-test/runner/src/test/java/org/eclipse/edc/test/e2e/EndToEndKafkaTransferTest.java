@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpMethod;
@@ -34,7 +33,6 @@ import org.eclipse.edc.test.e2e.annotations.KafkaIntegrationTest;
 import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
 import org.eclipse.edc.test.e2e.serializers.JacksonDeserializer;
 import org.eclipse.edc.test.e2e.serializers.JacksonSerializer;
-import org.eclipse.edc.test.system.utils.TransferTestRunner;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -70,10 +68,8 @@ import static org.mockserver.verify.VerificationTimes.atLeast;
 class EndToEndKafkaTransferTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private static final String KAFKA_SERVER = "localhost:9092";
-
-    protected final Duration timeout = Duration.ofSeconds(60);
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
 
     private static final String SINK_HTTP_PATH = "/api/service";
     private static final String SOURCE_TOPIC = "source_topic";
@@ -136,20 +132,23 @@ class EndToEndKafkaTransferTest {
     }
 
     @Test
-    void kafkaToHttpTransfer() throws JsonProcessingException {
+    void kafkaToHttpTransfer() {
         PROVIDER.registerDataPlane();
 
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, kafkaSourceProperty());
 
-        var runner = new TransferTestRunner(CONSUMER, PROVIDER, httpSink(), noPrivateProperty(), STARTED);
-        runner.apply(assetId);
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), httpSink());
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(STARTED.name());
 
-        var requestDefinition = HttpRequest.request()
-                .withMethod(HttpMethod.POST.name())
-                .withPath(SINK_HTTP_PATH)
-                .withBody(OBJECT_MAPPER.writeValueAsBytes(JSON_MESSAGE));
-        await().atMost(timeout).untilAsserted(() -> eventDestination.verify(requestDefinition, atLeast(1)));
+            var requestDefinition = HttpRequest.request()
+                    .withMethod(HttpMethod.POST.name())
+                    .withPath(SINK_HTTP_PATH)
+                    .withBody(OBJECT_MAPPER.writeValueAsBytes(JSON_MESSAGE));
+            eventDestination.verify(requestDefinition, atLeast(1));
+        });
     }
 
     @Test
@@ -162,10 +161,11 @@ class EndToEndKafkaTransferTest {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, kafkaSourceProperty());
 
-            var runner = new TransferTestRunner(CONSUMER, PROVIDER, kafkaSink(), noPrivateProperty(), STARTED);
-            runner.apply(assetId);
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink());
+            await().atMost(TIMEOUT).untilAsserted(() -> {
+                var state = CONSUMER.getTransferProcessState(transferProcessId);
+                assertThat(state).isEqualTo(STARTED.name());
 
-            await().atMost(timeout).untilAsserted(() -> {
                 var records = consumer.poll(Duration.ZERO);
                 assertThat(records.isEmpty()).isFalse();
                 records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(JSON_MESSAGE));

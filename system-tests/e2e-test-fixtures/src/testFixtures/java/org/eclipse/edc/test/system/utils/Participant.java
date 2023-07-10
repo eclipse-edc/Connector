@@ -288,6 +288,29 @@ public class Participant {
     }
 
     /**
+     * Request a provider asset:
+     * - retrieves the contract definition associated with the asset,
+     * - handles the contract negotiation,
+     * - initiate the data transfer.
+     *
+     * @param provider          data provider
+     * @param assetId           asset id
+     * @param privateProperties private properties of the data request
+     * @param destination       data destination
+     * @return transfer process id.
+     */
+    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
+        var dataset = getDatasetForAsset(provider, assetId);
+        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
+        var contractDefinitionId = ContractId.parseId(policy.getString(ID))
+                .orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
+        var contractAgreementId = negotiateContract(provider, contractDefinitionId.toString(), assetId, policy);
+        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination);
+        assertThat(transferProcessId).isNotNull();
+        return transferProcessId;
+    }
+
+    /**
      * Get current state of a transfer process.
      *
      * @param id transfer process id
@@ -305,7 +328,7 @@ public class Participant {
 
     private ContractId extractContractDefinitionId(JsonObject dataset) {
         var contractId = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractId.parseId(contractId).getContent();
+        return ContractId.parseId(contractId).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
     }
 
     private String getContractNegotiationState(String id) {
