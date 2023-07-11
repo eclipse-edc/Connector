@@ -314,7 +314,10 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/2.0.5, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.6, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.7, MIT, approved, #5915
+maven/mavencentral/org.testcontainers/database-commons/1.18.3, MIT, approved, clearlydefined
+maven/mavencentral/org.testcontainers/jdbc/1.18.3, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/junit-jupiter/1.18.3, MIT, approved, #7941
+maven/mavencentral/org.testcontainers/postgresql/1.18.3, , restricted, clearlydefined
 maven/mavencentral/org.testcontainers/testcontainers/1.18.3, MIT, approved, #7938
 maven/mavencentral/org.testcontainers/vault/1.18.3, MIT, approved, #7927
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.0, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
