@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpMethod;
@@ -29,9 +28,9 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.test.e2e.annotations.KafkaIntegrationTest;
+import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
 import org.eclipse.edc.test.e2e.serializers.JacksonDeserializer;
 import org.eclipse.edc.test.e2e.serializers.JacksonSerializer;
 import org.junit.jupiter.api.AfterAll;
@@ -57,31 +56,36 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.stop.Stop.stopQuietly;
 import static org.mockserver.verify.VerificationTimes.atLeast;
 
 @KafkaIntegrationTest
-class KafkaTransferTest {
+class EndToEndKafkaTransferTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private static final String KAFKA_SERVER = "localhost:9092";
-
-    protected final Duration timeout = Duration.ofSeconds(60);
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
 
     private static final String SINK_HTTP_PATH = "/api/service";
     private static final String SOURCE_TOPIC = "source_topic";
     private static final String SINK_TOPIC = "sink_topic";
-    private static final Participant CONSUMER = new Participant("consumer", "urn:connector:consumer");
-    private static final Participant PROVIDER = new Participant("provider", "urn:connector:provider");
     private static final int EVENT_DESTINATION_PORT = getFreePort();
     private static final JsonNode JSON_MESSAGE = sampleMessage();
+    private static final AtomicInteger MESSAGE_COUNTER = new AtomicInteger();
+
+    private static final EndToEndTransferParticipant CONSUMER = EndToEndTransferParticipant.Builder.newInstance()
+            .name("consumer")
+            .id("urn:connector:consumer")
+            .build();
+    private static final EndToEndTransferParticipant PROVIDER = EndToEndTransferParticipant.Builder.newInstance()
+            .name("provider")
+            .id("urn:connector:provider")
+            .build();
 
     private static ClientAndServer eventDestination;
     private static ScheduledExecutorService executor;
@@ -107,8 +111,6 @@ class KafkaTransferTest {
             PROVIDER.controlPlaneConfiguration()
     );
 
-    private static final AtomicInteger MESSAGE_COUNTER = new AtomicInteger();
-
     @BeforeAll
     public static void setUp() {
         eventDestination = startClientAndServer(EVENT_DESTINATION_PORT);
@@ -130,19 +132,23 @@ class KafkaTransferTest {
     }
 
     @Test
-    void kafkaToHttpTransfer() throws JsonProcessingException {
+    void kafkaToHttpTransfer() {
         PROVIDER.registerDataPlane();
 
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, kafkaSourceProperty());
-        var agreementId = negotiateContractForAssetId(assetId);
-        initiateTransfer(agreementId, assetId, httpSink());
 
-        var requestDefinition = HttpRequest.request()
-                .withMethod(HttpMethod.POST.name())
-                .withPath(SINK_HTTP_PATH)
-                .withBody(OBJECT_MAPPER.writeValueAsBytes(JSON_MESSAGE));
-        await().atMost(timeout).untilAsserted(() -> eventDestination.verify(requestDefinition, atLeast(1)));
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), httpSink());
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(STARTED.name());
+
+            var requestDefinition = HttpRequest.request()
+                    .withMethod(HttpMethod.POST.name())
+                    .withPath(SINK_HTTP_PATH)
+                    .withBody(OBJECT_MAPPER.writeValueAsBytes(JSON_MESSAGE));
+            eventDestination.verify(requestDefinition, atLeast(1));
+        });
     }
 
     @Test
@@ -154,10 +160,12 @@ class KafkaTransferTest {
 
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, kafkaSourceProperty());
-            var agreementId = negotiateContractForAssetId(assetId);
-            initiateTransfer(agreementId, assetId, kafkaSink());
 
-            await().atMost(timeout).untilAsserted(() -> {
+            var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink());
+            await().atMost(TIMEOUT).untilAsserted(() -> {
+                var state = CONSUMER.getTransferProcessState(transferProcessId);
+                assertThat(state).isEqualTo(STARTED.name());
+
                 var records = consumer.poll(Duration.ZERO);
                 assertThat(records.isEmpty()).isFalse();
                 records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(JSON_MESSAGE));
@@ -190,37 +198,13 @@ class KafkaTransferTest {
                 0, 100, TimeUnit.MILLISECONDS);
     }
 
-    private void initiateTransfer(String contractAgreementId, String assetId, JsonObject destination) {
-        var transferProcessId = CONSUMER.initiateTransfer(contractAgreementId, assetId, PROVIDER, destination);
-
-        await().atMost(timeout).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
-            var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(STARTED.name());
-        });
-    }
-
-    private String negotiateContractForAssetId(String assetId) {
-        var dataset = CONSUMER.getDatasetForAsset(assetId, PROVIDER);
-        var contractId = getContractId(dataset);
-        var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-
-        var contractAgreementId = CONSUMER.negotiateContract(PROVIDER, contractId.toString(), contractId.assetIdPart(), policy);
-        assertThat(contractAgreementId).isNotEmpty();
-        return contractAgreementId;
-    }
-
-    private ContractId getContractId(JsonObject dataset) {
-        var id = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractId.parseId(id).getContent();
-    }
-
     private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
-        PROVIDER.createAsset(assetId, dataAddressProperties);
+        PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
         var noConstraintPolicyDefinition = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyDefinition, noConstraintPolicyDefinition);
     }
 
-    private JsonObject httpSink() {
+    private static JsonObject httpSink() {
         return Json.createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(EDC_NAMESPACE + "type", "HttpData")
@@ -233,7 +217,7 @@ class KafkaTransferTest {
     }
 
     @NotNull
-    private JsonObject kafkaSink() {
+    private static JsonObject kafkaSink() {
         return Json.createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(EDC_NAMESPACE + "type", "Kafka")
@@ -245,7 +229,7 @@ class KafkaTransferTest {
     }
 
     @NotNull
-    private Map<String, Object> kafkaSourceProperty() {
+    private static Map<String, Object> kafkaSourceProperty() {
         return Map.of(
                 "name", "data",
                 "type", "Kafka",
@@ -253,12 +237,6 @@ class KafkaTransferTest {
                 kafkaProperty("bootstrap.servers"), KAFKA_SERVER,
                 kafkaProperty("max.poll.records"), "100"
         );
-    }
-
-    private JsonObject noConstraintPolicy() {
-        return Json.createObjectBuilder()
-                .add(TYPE, "use")
-                .build();
     }
 
     private static JsonNode sampleMessage() {
@@ -269,5 +247,9 @@ class KafkaTransferTest {
 
     private static String kafkaProperty(String property) {
         return "kafka." + property;
+    }
+
+    private static JsonObject noPrivateProperty() {
+        return Json.createObjectBuilder().build();
     }
 }
