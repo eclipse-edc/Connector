@@ -30,11 +30,10 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static java.lang.String.format;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
@@ -93,26 +92,24 @@ public class JsonLdExtension implements ServiceExtension {
         service.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);
         service.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
 
-        getResourceFile("document" + File.separator + "odrl.jsonld")
-                .onSuccess(file -> service.registerCachedDocument("http://www.w3.org/ns/odrl.jsonld", file))
+        getResourceUri("document" + File.separator + "odrl.jsonld")
+                .onSuccess(uri -> service.registerCachedDocument("http://www.w3.org/ns/odrl.jsonld", uri))
                 .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
         return service;
     }
 
     @NotNull
-    private Result<File> getResourceFile(String name) {
-        try (var stream = getClass().getClassLoader().getResourceAsStream(name)) {
-            if (stream == null) {
-                return Result.failure(format("Cannot find resource %s", name));
-            }
-            var filename = Path.of(name).getFileName().toString();
-            var parts = filename.split("\\.");
-            var tempFile = Files.createTempFile(parts[0], "." + parts[1]);
-            Files.copy(stream, tempFile, REPLACE_EXISTING);
-            return Result.success(tempFile.toFile());
-        } catch (Exception e) {
-            return Result.failure(format("Cannot read resource %s: ", name));
+    private Result<URI> getResourceUri(String name) {
+        var uri = getClass().getClassLoader().getResource(name);
+        if (uri == null) {
+            return Result.failure(format("Cannot find resource %s", name));
+        }
+
+        try {
+            return Result.success(uri.toURI());
+        } catch (URISyntaxException e) {
+            return Result.failure(format("Cannot read resource %s: %s", name, e.getMessage()));
         }
     }
 

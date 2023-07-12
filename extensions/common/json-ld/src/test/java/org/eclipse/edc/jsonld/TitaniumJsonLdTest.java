@@ -22,7 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
-import java.io.File;
+import java.net.URI;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -43,8 +43,7 @@ class TitaniumJsonLdTest {
 
     private final int port = getFreePort();
     private final ClientAndServer server = startClientAndServer(port);
-
-    private final Monitor monitor = mock(Monitor.class);
+    private final Monitor monitor = mock();
 
     @AfterEach
     void tearDown() {
@@ -150,7 +149,7 @@ class TitaniumJsonLdTest {
                 .add("test:key", "value")
                 .build();
         var service = defaultService();
-        service.registerCachedDocument(contextUrl, getFileFromResourceName("test-context.jsonld"));
+        service.registerCachedDocument(contextUrl, getFileFromResourceName("test-context.jsonld").toURI());
 
         var expanded = service.expand(jsonObject);
 
@@ -172,7 +171,7 @@ class TitaniumJsonLdTest {
                 .add("test:key", "value")
                 .build();
         var service = defaultService();
-        service.registerCachedDocument("http//any.other/url", new File("any"));
+        service.registerCachedDocument("http//any.other/url", URI.create("any:uri"));
 
         var expanded = service.expand(jsonObject);
 
@@ -188,7 +187,7 @@ class TitaniumJsonLdTest {
                 .add("test:key", "value")
                 .build();
         var service = httpEnabledService();
-        service.registerCachedDocument("http//any.other/url", new File("any"));
+        service.registerCachedDocument("http//any.other/url", URI.create("any:uri"));
 
         var expanded = service.expand(jsonObject);
 
