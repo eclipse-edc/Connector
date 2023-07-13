@@ -526,9 +526,6 @@ components:
         id:
           type: string
           example: null
-        managedResources:
-          type: boolean
-          example: null
         privateProperties:
           type: object
           additionalProperties:

@@ -148,10 +148,9 @@ class TransferProcessManagerImplIntegrationTest {
     }
 
     private TransferProcess.Builder createInitialTransferProcess() {
-        String processId = UUID.randomUUID().toString();
+        var processId = UUID.randomUUID().toString();
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(processId)
-                .managedResources(true)
                 .destinationType("test-type")
                 .contractId(UUID.randomUUID().toString())
                 .build();

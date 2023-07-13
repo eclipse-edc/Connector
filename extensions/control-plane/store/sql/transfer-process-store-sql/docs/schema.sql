@@ -65,7 +65,6 @@ CREATE TABLE IF NOT EXISTS edc_data_request
     asset_id            VARCHAR NOT NULL,
     contract_id         VARCHAR NOT NULL,
     data_destination    JSON    NOT NULL,
-    managed_resources   BOOLEAN DEFAULT TRUE,
     transfer_process_id VARCHAR NOT NULL
         CONSTRAINT data_request_transfer_process_id_fk
             REFERENCES edc_transfer_process

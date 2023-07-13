@@ -54,7 +54,6 @@ public class TestFunctions {
                 .protocol("protocol")
                 .connectorId("some-connector")
                 .contractId("some-contract")
-                .managedResources(false)
                 .assetId(Asset.Builder.newInstance().id("asset-id").build().getId())
                 .processId("test-process-id");
     }

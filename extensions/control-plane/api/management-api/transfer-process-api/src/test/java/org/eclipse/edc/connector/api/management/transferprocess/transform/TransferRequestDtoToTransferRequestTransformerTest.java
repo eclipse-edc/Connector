@@ -48,13 +48,14 @@ class TransferRequestDtoToTransferRequestTransformerTest {
 
     @Test
     void transform() {
-        String destinationType = "test-type";
+        var destinationType = "test-type";
         var context = mock(TransformerContext.class);
         var transferReq = transferRequestDto()
                 .id(UUID.randomUUID().toString())
                 .build();
 
         var transferRequest = transformer.transform(transferReq, context);
+
         assertThat(transferRequest.getDataRequest())
                 .isNotNull()
                 .extracting(DataRequest::getDestinationType)
@@ -70,7 +71,6 @@ class TransferRequestDtoToTransferRequestTransformerTest {
         assertThat(dataRequest.getDestinationType()).isEqualTo(transferReq.getDataDestination().getType());
         assertThat(dataRequest.getContractId()).isEqualTo(transferReq.getContractId());
         assertThat(dataRequest.getProtocol()).isEqualTo(transferReq.getProtocol());
-        assertThat(dataRequest.isManagedResources()).isEqualTo(transferReq.isManagedResources());
 
         assertThat(transferRequest.getCallbackAddresses()).hasSize(transferReq.getCallbackAddresses().size());
         assertThat(transferRequest.getPrivateProperties()).isEqualTo(transferReq.getPrivateProperties());

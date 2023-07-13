@@ -651,25 +651,8 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void started_shouldComplete_whenManagedResourcesAndCheckerCompleted() {
-        var process = createTransferProcess(STARTED);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == COMPLETING.code()));
-        });
-    }
-
-    @Test
-    void started_shouldComplete_whenNotManagedResourcesAndCheckerCompleted() {
-        var process = createTransferProcessBuilder(STARTED, false)
+    void started_shouldComplete_whenCheckerCompleted() {
+        var process = createTransferProcessBuilder(STARTED)
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
                         .resources(List.of(provisionedDataDestinationResource(), provisionedDataDestinationResource()))
                         .build())
@@ -703,7 +686,7 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void started_shouldNotComplete_whenNoCheckerForManaged() {
+    void started_shouldNotComplete_whenNoChecker() {
         var process = createTransferProcess(STARTED);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
@@ -715,25 +698,6 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferProcessStore, never()).updateOrCreate(any());
-        });
-    }
-
-    @Test
-    void started_shouldComplete_whenNoCheckerForNotManaged() {
-        var process = createTransferProcessBuilder(STARTED, false)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
-                        .resources(List.of(provisionedDataDestinationResource(), provisionedDataDestinationResource()))
-                        .build())
-                .build();
-
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-            verify(transferProcessStore).updateOrCreate(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
 
@@ -1001,20 +965,15 @@ class TransferProcessManagerImplTest {
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
-        return createTransferProcessBuilder(inState, true).build();
+        return createTransferProcessBuilder(inState).build();
     }
 
     private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState) {
-        return createTransferProcessBuilder(inState, true);
-    }
-
-    private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates inState, boolean managed) {
         var processId = UUID.randomUUID().toString();
         var dataRequest = createDataRequestBuilder()
                 .processId(processId)
                 .protocol("protocol")
                 .connectorAddress("http://an/address")
-                .managedResources(managed)
                 .build();
 
         return TransferProcess.Builder.newInstance()

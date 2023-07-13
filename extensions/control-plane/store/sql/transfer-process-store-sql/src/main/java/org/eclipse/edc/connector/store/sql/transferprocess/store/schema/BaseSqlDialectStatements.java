@@ -80,11 +80,10 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getInsertDataRequestTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?, ?);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?);",
                 getDataRequestTable(), getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(),
                 getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(),
-                getTransferProcessIdFkColumn(), getProtocolColumn(), getManagedResourcesColumn(),
-                getFormatAsJsonOperator());
+                getTransferProcessIdFkColumn(), getProtocolColumn(), getFormatAsJsonOperator());
     }
 
     @Override
@@ -95,10 +94,10 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getUpdateDataRequestTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=? WHERE %s=?",
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s WHERE %s=?",
                 getDataRequestTable(),
                 getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getProtocolColumn(), getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(),
-                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getDataRequestIdColumn());
+                getDataDestinationColumn(), getFormatAsJsonOperator(), getDataRequestIdColumn());
     }
 
     @Override

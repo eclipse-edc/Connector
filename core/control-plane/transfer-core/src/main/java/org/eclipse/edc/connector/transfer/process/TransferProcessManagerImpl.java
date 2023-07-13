@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataAddressResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
@@ -75,7 +74,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
@@ -500,16 +498,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private Boolean checkCompletion(TransferProcess transferProcess) {
         var checker = statusCheckerRegistry.resolve(transferProcess.getDataRequest().getDestinationType());
         if (checker == null) {
-            if (transferProcess.getDataRequest().isManagedResources()) {
-                monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
-                return false;
-            } else {
-                //no checker, transition the process to the COMPLETED state automatically
-                transitionToCompleting(transferProcess);
-            }
-            return true;
+            monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
+            return false;
         } else {
-            List<ProvisionedResource> resources = transferProcess.getDataRequest().isManagedResources() ? transferProcess.getProvisionedResourceSet().getResources() : emptyList();
+            var resources = transferProcess.getProvisionedResources();
             if (checker.isComplete(transferProcess, resources)) {
                 transitionToCompleting(transferProcess);
                 return true;

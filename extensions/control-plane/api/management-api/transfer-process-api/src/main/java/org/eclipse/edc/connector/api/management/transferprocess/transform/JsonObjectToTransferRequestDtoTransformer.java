@@ -38,7 +38,6 @@ import static org.eclipse.edc.connector.api.management.transferprocess.model.Tra
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PROPERTIES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PROTOCOL;
@@ -62,8 +61,6 @@ public class JsonObjectToTransferRequestDtoTransformer extends AbstractJsonLdTra
                     return (v) -> builder.contractId(transformString(v, context));
                 case EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION:
                     return (v) -> builder.dataDestination(transformObject(v, DataAddress.class, context));
-                case EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES:
-                    return (v) -> builder.managedResources(transformBoolean(v, context));
                 case EDC_TRANSFER_REQUEST_DTO_PROPERTIES:
                     return (v) -> transformProperties(v, builder::properties, context);
                 case EDC_TRANSFER_REQUEST_DTO_CALLBACK_ADDRESSES:
