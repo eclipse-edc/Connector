@@ -24,11 +24,11 @@ import com.apicatalog.jsonld.loader.FileLoader;
 import com.apicatalog.jsonld.loader.HttpLoader;
 import com.apicatalog.jsonld.loader.SchemeRouter;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.jsonld.document.JarLoader;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
-import java.io.File;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,8 +97,8 @@ public class TitaniumJsonLd implements JsonLd {
     }
 
     @Override
-    public void registerCachedDocument(String contextUrl, File file) {
-        documentLoader.register(contextUrl, file);
+    public void registerCachedDocument(String contextUrl, URI uri) {
+        documentLoader.register(contextUrl, uri);
     }
 
     private JsonObject injectVocab(JsonObject json) {
@@ -126,28 +126,30 @@ public class TitaniumJsonLd implements JsonLd {
 
     private static class CachedDocumentLoader implements DocumentLoader {
 
-        private final Map<String, File> cache = new HashMap<>();
+        private final Map<String, URI> cache = new HashMap<>();
         private final DocumentLoader loader;
 
         CachedDocumentLoader(JsonLdConfiguration configuration) {
             loader = new SchemeRouter()
                     .set("http", configuration.isHttpEnabled() ? HttpLoader.defaultInstance() : null)
                     .set("https", configuration.isHttpsEnabled() ? HttpLoader.defaultInstance() : null)
-                    .set("file", new FileLoader());
+                    .set("file", new FileLoader())
+                    .set("jar", new JarLoader());
         }
 
         @Override
         public Document loadDocument(URI url, DocumentLoaderOptions options) throws JsonLdError {
             var uri = Optional.of(url.toString())
                     .map(cache::get)
-                    .map(File::toURI)
                     .orElse(url);
 
             return loader.loadDocument(uri, options);
         }
 
-        public void register(String contextUrl, File file) {
-            cache.put(contextUrl, file);
+        public void register(String contextUrl, URI uri) {
+            cache.put(contextUrl, uri);
         }
+
     }
+
 }

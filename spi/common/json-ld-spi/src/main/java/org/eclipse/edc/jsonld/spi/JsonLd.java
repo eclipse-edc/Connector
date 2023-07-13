@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.result.Result;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * Provides JsonLD expansion/compaction functionalities.
@@ -50,12 +51,26 @@ public interface JsonLd {
 
     /**
      * Register a JsonLD file document loader.
+     * When a document is cached, that url won't be called through http/https, but the content will be
+     * loaded from the URI parameter.
+     *
+     * @param url the url
+     * @param uri the file
+     */
+    void registerCachedDocument(String url, URI uri);
+
+    /**
+     * Register a JsonLD file document loader.
      * When an url is registered with a File, that url won't be called through http/https, but the content will be
      * loaded from the file parameter.
      *
      * @param url the url
      * @param file the file
+     * @deprecated please use {@link #registerCachedDocument(String, URI)}
      */
-    void registerCachedDocument(String url, File file);
+    @Deprecated(since = "0.1.3")
+    default void registerCachedDocument(String url, File file) {
+        registerCachedDocument(url, file.toURI());
+    }
 
 }
