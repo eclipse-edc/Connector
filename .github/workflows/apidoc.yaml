@@ -1,6 +1,7 @@
 name: Verify and Publish OpenAPI Specs
 
 on:
+  workflow_call:
   push:
   pull_request:
     branches: [ main ]
@@ -87,7 +88,13 @@ jobs:
         run: |
           swaggerhub api:create ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
 
-      # Post the API to SwaggerHub as "unpublished", because published APIs cannot be overwritten
+      # Post snapshots of the API to SwaggerHub as "unpublished", because published APIs cannot be overwritten
       - name: Publish API Specs to SwaggerHub
         run: |
-          swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+          if [[ $(grep "version" gradle.properties  | awk -F= '{print $2}') != *-SNAPSHOT ]]; then
+            echo "no snapshot, will set the API to 'published'";
+            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=publish
+          else
+            echo "snapshot, will set the API to 'unpublished'";
+            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+          fi
