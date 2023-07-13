@@ -52,6 +52,8 @@ jobs:
             echo "::error file=DEPENDENCIES,title=Rejected Dependencies found::Some dependencies are marked 'rejected', they cannot be used"
             exit 1
           fi
+      - name: print expected DEPENDENCIES file
+          cat DEPENDENCIES-gen
       - name: Check for differences
         run: |
           diff DEPENDENCIES DEPENDENCIES-gen
