@@ -8,44 +8,19 @@ on:
     types: [ created ]
 
 jobs:
-  message:
-    runs-on: ubuntu-latest
-    steps:
-      - name: New Discussion
-        uses: tsickert/discord-webhook@v5.3.0
-        if: ${{ (github.event_name == 'discussion') }}
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_GITHUB }}
-          avatar-url: https://avatars.githubusercontent.com/u/9919?s=200&v=4
-          embed-author-name: ${{ github.event.sender.login }}
-          embed-author-url: ${{ github.event.sender.html_url }}
-          embed-author-icon-url: ${{ github.event.sender.avatar_url }}
-          embed-title: ${{ github.event.discussion.title }}
-          embed-url: ${{ github.event.discussion.html_url }}
-          embed-description: A **discussion** has been created in ${{ github.repository }}.
-
-      - name: New Issue
-        uses: tsickert/discord-webhook@v5.3.0
-        if: ${{ (github.event_name == 'issues') }}
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_GITHUB }}
-          avatar-url: https://avatars.githubusercontent.com/u/9919?s=200&v=4
-          embed-author-name: ${{ github.event.sender.login }}
-          embed-author-url: ${{ github.event.sender.html_url }}
-          embed-author-icon-url: ${{ github.event.sender.avatar_url }}
-          embed-title: ${{ github.event.issue.title }}
-          embed-url: ${{ github.event.issue.html_url }}
-          embed-description: An **issue** has been opened in ${{ github.repository }}.
-
-      - name: New Pull Request
-        uses: tsickert/discord-webhook@v5.3.0
-        if: ${{ (github.event_name == 'pull_request_target') }}
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_GITHUB }}
-          avatar-url: https://avatars.githubusercontent.com/u/9919?s=200&v=4
-          embed-author-name: ${{ github.event.sender.login }}
-          embed-author-url: ${{ github.event.sender.html_url }}
-          embed-author-icon-url: ${{ github.event.sender.avatar_url }}
-          embed-title: ${{ github.event.pull_request.title }}
-          embed-url: ${{ github.event.pull_request.html_url }}
-          embed-description: A **pull request** has been opened in ${{ github.repository }}.
+  trigger-workflow:
+    uses: eclipse-edc/.github/.github/workflows/discord-webhook.yml@main
+    with:
+      event_discussion_html_url: ${{ github.event.discussion.html_url }}
+      event_discussion_title: ${{ github.event.discussion.title }}
+      event_issue_html_url: ${{ github.event.issue.html_url }}
+      event_issue_title: ${{ github.event.issue.title }}
+      event_name: ${{ github.event_name }}
+      event_pull_request_html_url: ${{ github.event.pull_request.html_url }}
+      event_pull_request_title: ${{ github.event.pull_request.title }}
+      event_sender_avatar_url: ${{ github.event.sender.avatar_url }}
+      event_sender_html_url: ${{ github.event.sender.html_url }}
+      event_sender_login: ${{ github.event.sender.login }}
+      repository_name: ${{ github.repository }}
+    secrets:
+      env_discord: ${{ secrets.DISCORD_WEBHOOK_GITHUB }}
