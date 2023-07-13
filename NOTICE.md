@@ -1,4 +1,4 @@
-# Notices for Eclipse Dataspace Connector
+# Notices for EDC Connector
 
 This content is produced and maintained by the Eclipse Dash, Tools for
 Committers project.

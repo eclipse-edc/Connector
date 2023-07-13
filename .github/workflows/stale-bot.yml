@@ -1,0 +1,12 @@
+name: Close Inactive Issues
+
+on:
+  schedule:
+    - cron: "30 1 * * *" # once a day (1:30 UTC)
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  trigger-workflow:
+    uses: eclipse-edc/.github/.github/workflows/stale-bot.yml@main
+    secrets:
+      envGH: ${{ secrets.GITHUB_TOKEN }}
