@@ -1,7 +1,5 @@
 <h1 align="center">
   <br/>
-    <img alt="Logo" width="100" src="resources/media/logo.png"/>
-  <br/>
       EDC Connector
   <br/>
 </h1>
@@ -39,25 +37,6 @@
   </a>
 </div>
 
-<p align="center">
-  <a href="#contributing">Contribute</a> •
-  <a href="https://eclipse-edc.github.io/docs/">Docs</a> •
-  <a href="https://github.com/eclipse-edc/Connector/issues">Issues</a> •
-  <a href="https://github.com/eclipse-edc/Connector/blob/main/LICENSE">License</a> •
-  <a href="https://github.com/eclipse-edc/Connector/discussions/1303">Q&A</a>
-</p>
-
-The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will
-implement the International Data Spaces Dataspace Protocol (DSP) as well as relevant protocols associated with GAIA-X.
-The connector is designed in an extensible way in order to support alternative protocols and integrate in various
-ecosystems.
-
-Please also refer to:
-
-- The [Eclipse Project Homepage](https://projects.eclipse.org/projects/technology.edc)
-- [International Data Spaces](https://www.internationaldataspaces.org)
-- [Dataspace Protocol specifications](https://docs.internationaldataspaces.org/dataspace-protocol/overview/readme)
-- The [GAIA-X](https://gaia-x.eu) project
 
 ### Built with
 
@@ -69,10 +48,10 @@ embedded into any form of application deployment.
 
 ### Documentation
 
-Developer documentation can be found under [docs/developer](docs/developer/),
-where the main concepts and decisions are captured as [decision records](docs/developer/decision-records/).
+Developer documentation can be found under [docs/developer](docs/developer/README.md),
+where the main concepts and decisions are captured as [decision records](docs/developer/decision-records/README.md).
 
-Some more documentation can be found at [extensions](extensions/), [launchers](launchers/) and
+Some more documentation can be found at [extensions](extensions/README.md), [launchers](launchers/README.md) and
 [the samples repository](https://github.com/eclipse-edc/Samples).
 
 For detailed information about the whole project, please take a look at
@@ -138,7 +117,7 @@ Then you can add snapshot dependencies by simply using the `-SNAPSHOT` version s
 
 ```kotlin
 dependencies {
-    implementation("org.eclipse.edc:spi:core-spi:0.1.4-SNAPSHOT-SNAPSHOT")
+    implementation("org.eclipse.edc:spi:core-spi:0.1.4-SNAPSHOT")
     // any other dependencies
 }
 ```
@@ -156,7 +135,7 @@ Please be aware of the following pitfalls:
 _We plan to have actual release versions starting some time mid 2022. Please check back soon._
 
 
-> For more information about versioning please refer to the [release documentation](docs/developer/releases.md)
+> For more information about versioning please refer to the [release documentation](https://github.com/eclipse-edc/.github/blob/main/docs/developer/releases.md)
 
 ### Checkout and build from source
 
@@ -175,7 +154,7 @@ That will build the connector and run unit tests.
 ### [Optional] Setup your IDE
 
 If you wish to configure your IDE/editor to automatically apply the EDC code style, please
-follow [this guide](styleguide.md).
+follow [this guide](https://github.com/eclipse-edc/.github/blob/main/contributing/styleguide.md).
 
 _Note: the style guide will be checked/enforced in GitHub Actions._
 
@@ -223,11 +202,11 @@ Contains implementations for communication protocols a connector might use, such
 ## Releases
 
 GitHub releases are listed [here](https://github.com/eclipse-edc/Connector/releases).
-Please find more information about releases in our [release approach](docs/developer/releases.md).
+Please find more information about releases in our [release approach](https://github.com/eclipse-edc/.github/blob/main/docs/developer/releases.md).
 
 ### Roadmap
 
-See [here](CONTRIBUTING.md#project-and-milestone-planning) for more information about project and
+See [here](https://github.com/eclipse-edc/.github/blob/main/CONTRIBUTING.md#project-and-milestone-planning) for more information about project and
 milestone planning. Scheduled and ongoing milestones are listed
 [here](https://github.com/eclipse-edc/Connector/milestones).
 
@@ -237,4 +216,4 @@ Available tags can be found [here](https://github.com/eclipse-edc/Connector/tags
 
 ## Contributing
 
-See [how to contribute](CONTRIBUTING.md).
+See [how to contribute](https://github.com/eclipse-edc/.github/blob/main/CONTRIBUTING.md).

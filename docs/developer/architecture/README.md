@@ -1,6 +1,5 @@
 # Architecture
 
-- [Key Principles](coding-principles.md)
 - [Terminology](terminology.md)
 - [Catalog](catalog/)
 - [Usage Control](usage-control/)
