@@ -52,12 +52,20 @@ jobs:
             echo "::error file=DEPENDENCIES,title=Rejected Dependencies found::Some dependencies are marked 'rejected', they cannot be used"
             exit 1
           fi
-      - name: print expected DEPENDENCIES file
-        run: |
-          cat DEPENDENCIES-gen
       - name: Check for differences
         run: |
-          diff DEPENDENCIES DEPENDENCIES-gen
+          if diff DEPENDENCIES DEPENDENCIES-gen ; then
+            echo "DEPENDENCIES up-do-date"
+          else
+            diff DEPENDENCIES DEPENDENCIES-gen
+            echo "------------------------------------------------------------"
+            echo "Please copy the following content back to DEPENDENCIES" 
+            cat DEPENDENCIES-gen
+            echo "end of content"
+            echo "::error file=DEPENDENCIES,title=Dependencies outdated::The DEPENDENCIES file was outdated and must be regenerated. Check the output of this job for more information"
+            exit 1
+          fi
+  
 
   Dependency-Analysis:
     runs-on: ubuntu-latest
