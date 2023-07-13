@@ -64,7 +64,7 @@ jobs:
 
   Publish-To-SwaggerHub:
     # do NOT run on forks or on PRs. The Org ("edc") is unique all across SwaggerHub
-    if: github.repository == 'eclipse-edc/Connector' && github.event_name == 'push' && github.ref_name == 'main'
+    #    if: github.repository == 'eclipse-edc/Connector' && github.event_name == 'push' && github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs: [ Verify-OpenAPI-Definitions ]
     strategy:
