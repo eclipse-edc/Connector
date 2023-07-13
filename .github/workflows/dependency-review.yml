@@ -53,6 +53,7 @@ jobs:
             exit 1
           fi
       - name: print expected DEPENDENCIES file
+        run: |
           cat DEPENDENCIES-gen
       - name: Check for differences
         run: |
