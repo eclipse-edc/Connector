@@ -840,7 +840,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
+              $ref: '#/components/schemas/ContractRequestSchema'
       responses:
         "200":
           description: The negotiation was successfully initiated. Returns the contract
@@ -848,7 +848,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseDto'
+                $ref: '#/components/schemas/IdResponseSchema'
           links:
             poll-state:
               operationId: getNegotiationState
@@ -873,7 +873,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           description: The contract negotiations that match the query
@@ -883,7 +883,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractNegotiationDto'
+                  $ref: '#/components/schemas/ContractNegotiationSchema'
         "400":
           description: Request was malformed
           content:
@@ -914,7 +914,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractNegotiationDto'
+                $ref: '#/components/schemas/ContractNegotiationSchema'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -956,7 +956,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
+                $ref: '#/components/schemas/ContractAgreementSchema'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1997,6 +1997,32 @@ components:
           type: string
           example: null
       example: null
+    CallbackAddressSchema:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/CallbackAddress
+        authCodeId:
+          type: string
+          example: null
+        authKey:
+          type: string
+          example: null
+        events:
+          uniqueItems: true
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+        transactional:
+          type: boolean
+          example: null
+        uri:
+          type: string
+          example: null
+      example: null
     Catalog:
       type: object
       properties:
@@ -2082,6 +2108,48 @@ components:
           type: string
           example: null
       example: null
+    ContractAgreementSchema:
+      type: object
+      properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/ContractAgreement
+        assetId:
+          type: string
+          example: null
+        consumerId:
+          type: string
+          example: null
+        contractSigningDate:
+          type: integer
+          format: int64
+          example: null
+        policy:
+          type: object
+          description: ODRL policy
+          example: null
+        providerId:
+          type: string
+          example: null
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/ContractAgreement
+        '@id': negotiation-id
+        providerId: provider-id
+        consumerId: consumer-id
+        assetId: asset-id
+        contractSigningDate: 1688465655
+        policy:
+          '@context': http://www.w3.org/ns/odrl.jsonld
+          '@type': Set
+          '@id': offer-id
+          permission:
+          - target: asset-id
+            action: display
     ContractDefinitionInputSchema:
       type: object
       properties:
@@ -2141,32 +2209,28 @@ components:
         edc:contractPolicyId: contract-policy-id
         edc:assetsSelector: []
         edc:createdAt: 1688465655
-    ContractNegotiationDto:
+    ContractNegotiationSchema:
       type: object
       properties:
-        '@context':
-          type: object
-          example: null
         '@id':
           type: string
           example: null
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
         callbackAddresses:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddress'
+            $ref: '#/components/schemas/CallbackAddressSchema'
         contractAgreementId:
           type: string
           example: null
         counterPartyAddress:
           type: string
           example: null
-        createdAt:
-          type: integer
-          format: int64
+        counterPartyId:
+          type: string
           example: null
         errorDetail:
           type: string
@@ -2183,11 +2247,27 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
-        updatedAt:
-          type: integer
-          format: int64
-          example: null
-      example: null
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
+        '@id': negotiation-id
+        type: PROVIDER
+        protocol: dataspace-protocol-http
+        counterPartyId: counter-party-id
+        counterPartyAddress: http://counter/party/address
+        state: VERIFIED
+        contractAgreementId: contract:agreement:id
+        errorDetail: eventual-error-detail
+        createdAt: 1688465655
+        callbackAddresses:
+        - transactional: false
+          uri: http://callback/url
+          events:
+          - contract.negotiation
+          - transfer.process
+          authKey: auth-key
+          authCodeId: auth-code-id
     ContractOffer:
       type: object
       properties:
@@ -2199,13 +2279,13 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-        providerId:
-          type: string
-          example: null
       example: null
-    ContractOfferDescription:
+    ContractOfferDescriptionSchema:
       type: object
       properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/ContractOfferDescription
         assetId:
           type: string
           example: null
@@ -2213,8 +2293,67 @@ components:
           type: string
           example: null
         policy:
-          $ref: '#/components/schemas/Policy'
+          type: object
+          description: ODRL policy
+          example: null
       example: null
+    ContractRequestSchema:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/ContractRequest
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddressSchema'
+        connectorAddress:
+          type: string
+          example: null
+        connectorId:
+          type: string
+          description: please use providerId instead
+          example: null
+          deprecated: true
+        consumerId:
+          type: string
+          description: this field is not used anymore
+          example: null
+          deprecated: true
+        offer:
+          $ref: '#/components/schemas/ContractOfferDescriptionSchema'
+        protocol:
+          type: string
+          example: null
+        providerId:
+          type: string
+          example: null
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/ContractRequest
+        connectorAddress: http://provider-address
+        protocol: dataspace-protocol-http
+        providerId: provider-id
+        offer:
+          offerId: offer-id
+          assetId: asset-id
+          policy:
+            '@context': http://www.w3.org/ns/odrl.jsonld
+            '@type': Set
+            '@id': offer-id
+            permission:
+            - target: asset-id
+              action: display
+        callbackAddresses:
+        - transactional: false
+          uri: http://callback/url
+          events:
+          - contract.negotiation
+          - transfer.process
+          authKey: auth-key
+          authCodeId: auth-code-id
     CriterionDto:
       type: object
       properties:
@@ -2587,38 +2726,6 @@ components:
           - "TRUE"
           - "FALSE"
           - "NULL"
-      example: null
-    NegotiationInitiateRequestDto:
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
-        callbackAddresses:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/CallbackAddress'
-        connectorAddress:
-          type: string
-          example: null
-        connectorId:
-          type: string
-          example: null
-        consumerId:
-          type: string
-          example: null
-        offer:
-          $ref: '#/components/schemas/ContractOfferDescription'
-        protocol:
-          type: string
-          example: null
-        providerId:
-          type: string
-          example: null
       example: null
     NegotiationState:
       type: object

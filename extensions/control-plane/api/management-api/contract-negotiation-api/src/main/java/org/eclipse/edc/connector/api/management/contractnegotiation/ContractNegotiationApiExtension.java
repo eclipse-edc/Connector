@@ -17,26 +17,22 @@ package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.ContractAgreementToContractAgreementDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.ContractNegotiationToContractNegotiationDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractAgreementDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationDtoTransformer;
+import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractAgreementTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToNegotiationInitiateRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.NegotiationInitiateRequestDtoToDataRequestTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.validation.NegotiationInitiateRequestDtoValidator;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import java.time.Clock;
 import java.util.Map;
 
 @Extension(value = ContractNegotiationApiExtension.NAME)
@@ -51,13 +47,10 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     private ManagementApiConfiguration config;
 
     @Inject
-    private TypeTransformerRegistry transformerRegistry;
+    private ManagementApiTypeTransformerRegistry transformerRegistry;
 
     @Inject
     private ContractNegotiationService service;
-
-    @Inject
-    private Clock clock;
 
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
@@ -69,17 +62,14 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        transformerRegistry.register(new ContractNegotiationToContractNegotiationDtoTransformer());
-        transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
-        transformerRegistry.register(new NegotiationInitiateRequestDtoToDataRequestTransformer(clock));
         var factory = Json.createBuilderFactory(Map.of());
-        transformerRegistry.register(new JsonObjectFromContractNegotiationDtoTransformer(factory));
-        transformerRegistry.register(new JsonObjectFromContractAgreementDtoTransformer(factory));
-        transformerRegistry.register(new JsonObjectToNegotiationInitiateRequestDtoTransformer());
+        transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
+        transformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
+        transformerRegistry.register(new JsonObjectToContractRequestTransformer());
         transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
         transformerRegistry.register(new JsonObjectToContractOfferDescriptionTransformer());
 
-        validatorRegistry.register(NegotiationInitiateRequestDto.TYPE, NegotiationInitiateRequestDtoValidator.instance());
+        validatorRegistry.register(ContractRequest.CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
 
         var monitor = context.getMonitor();
 

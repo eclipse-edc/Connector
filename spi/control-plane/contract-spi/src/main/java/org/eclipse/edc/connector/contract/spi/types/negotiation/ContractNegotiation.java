@@ -52,6 +52,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represents a contract negotiation.
@@ -62,6 +63,19 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
+
+    // constants used for JSON-LD transformation
+    public static final String CONTRACT_NEGOTIATION_TYPE = EDC_NAMESPACE + "ContractNegotiation";
+    public static final String CONTRACT_NEGOTIATION_AGREEMENT_ID = EDC_NAMESPACE + "contractAgreementId";
+    public static final String CONTRACT_NEGOTIATION_COUNTERPARTY_ID = EDC_NAMESPACE + "counterPartyId";
+    public static final String CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR = EDC_NAMESPACE + "counterPartyAddress";
+    public static final String CONTRACT_NEGOTIATION_ERRORDETAIL = EDC_NAMESPACE + "errorDetail";
+    public static final String CONTRACT_NEGOTIATION_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String CONTRACT_NEGOTIATION_STATE = EDC_NAMESPACE + "state";
+    public static final String CONTRACT_NEGOTIATION_NEG_TYPE = EDC_NAMESPACE + "type";
+    public static final String CONTRACT_NEGOTIATION_CALLBACK_ADDR = EDC_NAMESPACE + "callbackAddresses";
+    public static final String CONTRACT_NEGOTIATION_CREATED_AT = EDC_NAMESPACE + "createdAt";
+
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private String correlationId;
     private String counterPartyId;

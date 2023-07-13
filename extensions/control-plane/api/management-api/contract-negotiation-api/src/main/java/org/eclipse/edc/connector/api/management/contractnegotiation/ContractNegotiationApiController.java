@@ -27,9 +27,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractAgreementDto;
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractNegotiationDto;
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
@@ -85,8 +82,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractNegotiation.class, null))) {
             return stream
-                    .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class)
-                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)))
+                    .map(it -> transformerRegistry.transform(it, JsonObject.class))
                     .peek(this::logIfError)
                     .filter(Result::succeeded)
                     .map(Result::getContent)
@@ -101,9 +97,8 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         return Optional.of(id)
                 .map(service::findbyId)
-                .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
-                        .orElseThrow(InvalidRequestException::new))
+                .map(it -> transformerRegistry.transform(it, JsonObject.class))
+                .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, id));
     }
 
@@ -125,8 +120,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     public JsonObject getAgreementForNegotiation(@PathParam("id") String negotiationId) {
         return Optional.of(negotiationId)
                 .map(service::getForNegotiation)
-                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+                .map(it -> transformerRegistry.transform(it, JsonObject.class)
                         .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(ContractNegotiation.class, negotiationId));
     }
@@ -134,13 +128,11 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @POST
     @Override
     public JsonObject initiateContractNegotiation(JsonObject requestObject) {
-        validatorRegistry.validate(NegotiationInitiateRequestDto.TYPE, requestObject)
+        validatorRegistry.validate(ContractRequest.CONTRACT_REQUEST_TYPE, requestObject)
                 .orElseThrow(ValidationFailureException::new);
 
-        var contractRequest = transformerRegistry.transform(requestObject, NegotiationInitiateRequestDto.class)
-                .compose(dto -> transformerRegistry.transform(dto, ContractRequest.class))
+        var contractRequest = transformerRegistry.transform(requestObject, ContractRequest.class)
                 .orElseThrow(InvalidRequestException::new);
-
 
         var contractNegotiation = service.initiateNegotiation(contractRequest);
 

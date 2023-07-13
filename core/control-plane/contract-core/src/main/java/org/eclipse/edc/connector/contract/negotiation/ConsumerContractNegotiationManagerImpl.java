@@ -89,19 +89,18 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @Override
     public StatusResult<ContractNegotiation> initiate(ContractRequest request) {
         var id = UUID.randomUUID().toString();
-        var requestData = request.getRequestData();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id)
                 .correlationId(id)
-                .protocol(requestData.getProtocol())
-                .counterPartyId(requestData.getConnectorId())
-                .counterPartyAddress(requestData.getCounterPartyAddress())
+                .protocol(request.getProtocol())
+                .counterPartyId(request.getProviderId())
+                .counterPartyAddress(request.getCounterPartyAddress())
                 .callbackAddresses(request.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
                 .build();
 
-        negotiation.addContractOffer(requestData.getContractOffer());
+        negotiation.addContractOffer(request.getContractOffer());
         transitionToInitial(negotiation);
 
         return StatusResult.success(negotiation);

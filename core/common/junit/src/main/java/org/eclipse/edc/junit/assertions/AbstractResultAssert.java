@@ -43,7 +43,7 @@ public class AbstractResultAssert<SELF extends AbstractAssert<SELF, RESULT>, RES
     public ObjectAssert<C> isSucceeded() {
         isNotNull();
         if (!actual.succeeded()) {
-            failWithMessage("Expected result to be succeeded, but it was failed");
+            failWithMessage("Expected result to be succeeded, but it was failed: " + actual.getFailureDetail());
         }
         return Assertions.assertThat(actual.getContent());
     }

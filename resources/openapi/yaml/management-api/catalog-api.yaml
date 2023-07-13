@@ -100,9 +100,6 @@ components:
           example: null
         policy:
           $ref: '#/components/schemas/Policy'
-        providerId:
-          type: string
-          example: null
     CriterionDto:
       type: object
       example: null

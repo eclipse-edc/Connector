@@ -15,9 +15,9 @@
 package org.eclipse.edc.api.transformer;
 
 import jakarta.json.Json;
+import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;

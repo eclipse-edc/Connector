@@ -126,7 +126,6 @@ class ContractValidationServiceImplTest {
         assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         assertThat(validatedOffer.getAssetId()).isEqualTo(asset.getId());
         assertThat(result.getContent().getConsumerIdentity()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
-        assertThat(validatedOffer.getProviderId()).isEqualTo(offer.getProviderId());
 
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionResolver).definitionFor(isA(ParticipantAgent.class), eq("1"));
@@ -501,7 +500,6 @@ class ContractValidationServiceImplTest {
                 .id(ContractId.create("1", asset.getId()).toString())
                 .assetId(asset.getId())
                 .policy(policy)
-                .providerId(PROVIDER_ID)
                 .build();
     }
 

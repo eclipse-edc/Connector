@@ -25,12 +25,20 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * {@link ContractAgreement} to regulate data transfer between two parties.
  */
 @JsonDeserialize(builder = ContractAgreement.Builder.class)
 public class ContractAgreement {
+
+    public static final String CONTRACT_AGREEMENT_TYPE = EDC_NAMESPACE + "ContractAgreement";
+    public static final String CONTRACT_AGREEMENT_ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String CONTRACT_AGREEMENT_PROVIDER_ID = EDC_NAMESPACE + "providerId";
+    public static final String CONTRACT_AGREEMENT_CONSUMER_ID = EDC_NAMESPACE + "consumerId";
+    public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
+    public static final String CONTRACT_AGREEMENT_POLICY = EDC_NAMESPACE + "policy";
 
     private String id;
     private String providerId;

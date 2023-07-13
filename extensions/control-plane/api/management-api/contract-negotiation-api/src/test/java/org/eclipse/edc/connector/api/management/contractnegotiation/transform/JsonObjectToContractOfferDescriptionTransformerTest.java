@@ -53,7 +53,7 @@ class JsonObjectToContractOfferDescriptionTransformerTest {
     @Test
     void transform() {
         var jsonObject = Json.createObjectBuilder()
-                .add(TYPE, ContractOfferDescription.TYPE)
+                .add(TYPE, ContractOfferDescription.CONTRACT_OFFER_DESCRIPTION_TYPE)
                 .add(OFFER_ID, "test-offer-id")
                 .add(ASSET_ID, "test-asset")
                 .add(POLICY, createPolicy())

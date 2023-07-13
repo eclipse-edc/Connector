@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.api.configuration;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
@@ -48,26 +48,26 @@ class DspApiConfigurationExtensionTest {
     private final WebServiceConfigurer configurer = mock();
     private final WebServer webServer = mock();
     private final WebService webService = mock();
-
-    private DspApiConfigurationExtension extension;
+    private final TypeManager typeManager = mock();
 
     @BeforeEach
-    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+    void setUp(ServiceExtensionContext context) {
         context.registerService(WebServer.class, webServer);
         context.registerService(WebService.class, webService);
         context.registerService(WebServiceConfigurer.class, configurer);
-        extension = factory.constructInstance(DspApiConfigurationExtension.class);
-        
+        context.registerService(TypeManager.class, typeManager);
+
         var webServiceConfiguration = WebServiceConfiguration.Builder.newInstance()
                 .contextAlias(CONTEXT_ALIAS)
                 .path("/path")
                 .port(1234)
                 .build();
         when(configurer.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
+        when(typeManager.getMapper(any())).thenReturn(mock());
     }
     
     @Test
-    void initialize_noSettingsProvided_useDspDefault(ServiceExtensionContext context) {
+    void initialize_noSettingsProvided_useDspDefault(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
         when(context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS)).thenReturn(DEFAULT_DSP_CALLBACK_ADDRESS);
         
@@ -80,9 +80,8 @@ class DspApiConfigurationExtensionTest {
     }
     
     @Test
-    void initialize_settingsProvided_useSettings(ServiceExtensionContext context) {
+    void initialize_settingsProvided_useSettings(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
         var webhookAddress = "http://webhook";
-        
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
                 "web.http.protocol.port", String.valueOf(1234),
                 "web.http.protocol.path", "/path"))
@@ -98,7 +97,7 @@ class DspApiConfigurationExtensionTest {
     }
 
     @Test
-    void initialize_shouldRegisterWebServiceProviders(ServiceExtensionContext context) {
+    void initialize_shouldRegisterWebServiceProviders(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
         verify(webService).registerResource(eq(CONTEXT_ALIAS), isA(ObjectMapperProvider.class));

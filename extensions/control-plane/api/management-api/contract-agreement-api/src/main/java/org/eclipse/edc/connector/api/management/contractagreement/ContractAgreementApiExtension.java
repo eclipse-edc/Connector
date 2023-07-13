@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.contractagreement;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
+import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.contractagreement.transform.ContractAgreementToContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.api.management.contractagreement.transform.JsonObjectFromContractAgreementDtoTransformer;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
@@ -24,7 +25,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -41,7 +41,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     private ManagementApiConfiguration config;
 
     @Inject
-    private TypeTransformerRegistry transformerRegistry;
+    private ManagementApiTypeTransformerRegistry transformerRegistry;
 
     @Inject
     private ContractAgreementService service;

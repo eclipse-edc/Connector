@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -40,21 +39,11 @@ public class ContractOffer {
      * The offered asset
      */
     private String assetId;
-    /**
-     * The participant who provides the offered data
-     */
-    private String providerId;
 
     @NotNull
     public String getId() {
         return id;
     }
-
-    @Nullable
-    public String getProviderId() {
-        return providerId;
-    }
-
 
     @NotNull
     public String getAssetId() {
@@ -68,7 +57,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, assetId, providerId);
+        return Objects.hash(id, policy, assetId);
     }
 
     @Override
@@ -80,7 +69,7 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId) && Objects.equals(providerId, that.providerId);
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -99,11 +88,6 @@ public class ContractOffer {
 
         public Builder id(String id) {
             contractOffer.id = id;
-            return this;
-        }
-
-        public Builder providerId(String providerId) {
-            contractOffer.providerId = providerId;
             return this;
         }
 

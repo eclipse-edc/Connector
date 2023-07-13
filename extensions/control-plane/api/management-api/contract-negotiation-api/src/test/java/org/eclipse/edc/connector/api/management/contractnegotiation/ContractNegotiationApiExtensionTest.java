@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
-import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationInitiateRequestDto;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -41,6 +41,6 @@ class ContractNegotiationApiExtensionTest {
     void initiate_shouldRegisterValidator(ServiceExtensionContext context, ContractNegotiationApiExtension extension) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(NegotiationInitiateRequestDto.TYPE), any());
+        verify(validatorRegistry).register(eq(ContractRequest.CONTRACT_REQUEST_TYPE), any());
     }
 }

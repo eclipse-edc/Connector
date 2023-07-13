@@ -109,19 +109,19 @@ public interface PolicyDefinitionApi {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "definition-id",
                     "policy": {
-                       "@context": "http://www.w3.org/ns/odrl.jsonld",
-                       "@type": "Set",
-                       "uid": "http://example.com/policy:1010",
-                       "permission": [{
-                        "target": "http://example.com/asset:9898.movie",
-                        "action": "display",
-                        "constraint": [{
-                                 "leftOperand": "spatial",
-                                 "operator": "eq",
-                                 "rightOperand":  "https://www.wikidata.org/wiki/Q183",
-                           "comment": "i.e Germany"
-                             }]
-                       }]
+                        "@context": "http://www.w3.org/ns/odrl.jsonld",
+                        "@type": "Set",
+                        "uid": "http://example.com/policy:1010",
+                        "permission": [{
+                            "target": "http://example.com/asset:9898.movie",
+                            "action": "display",
+                            "constraint": [{
+                                "leftOperand": "spatial",
+                                "operator": "eq",
+                                "rightOperand":  "https://www.wikidata.org/wiki/Q183",
+                                "comment": "i.e Germany"
+                            }]
+                        }]
                     }
                 }
                 """;
@@ -140,19 +140,19 @@ public interface PolicyDefinitionApi {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "definition-id",
                     "policy": {
-                       "@context": "http://www.w3.org/ns/odrl.jsonld",
-                       "@type": "Set",
-                       "uid": "http://example.com/policy:1010",
-                       "permission": [{
-                        "target": "http://example.com/asset:9898.movie",
-                        "action": "display",
-                        "constraint": [{
-                                 "leftOperand": "spatial",
-                                 "operator": "eq",
-                                 "rightOperand":  "https://www.wikidata.org/wiki/Q183",
-                           "comment": "i.e Germany"
-                             }]
-                       }]
+                        "@context": "http://www.w3.org/ns/odrl.jsonld",
+                        "@type": "Set",
+                        "uid": "http://example.com/policy:1010",
+                        "permission": [{
+                            "target": "http://example.com/asset:9898.movie",
+                            "action": "display",
+                            "constraint": [{
+                                "leftOperand": "spatial",
+                                "operator": "eq",
+                                "rightOperand":  "https://www.wikidata.org/wiki/Q183",
+                                "comment": "i.e Germany"
+                            }]
+                        }]
                     },
                     "createdAt": 1688465655
                 }

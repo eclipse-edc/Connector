@@ -25,13 +25,13 @@ import org.eclipse.edc.connector.api.management.asset.v3.AssetApiController;
 import org.eclipse.edc.connector.api.management.asset.validation.AssetEntryDtoValidator;
 import org.eclipse.edc.connector.api.management.asset.validation.AssetValidator;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
+import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -51,7 +51,7 @@ public class AssetApiExtension implements ServiceExtension {
     private ManagementApiConfiguration config;
 
     @Inject
-    private TypeTransformerRegistry transformerRegistry;
+    private ManagementApiTypeTransformerRegistry transformerRegistry;
 
     @Inject
     private AssetService assetService;

@@ -223,9 +223,7 @@ public class Participant {
     public String negotiateContract(Participant provider, String offerId, String assetId, JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "NegotiationInitiateRequestDto")
-                .add("connectorId", provider.id)
-                .add("consumerId", id)
+                .add(TYPE, "ContractRequestDto")
                 .add("providerId", provider.id)
                 .add("connectorAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", DSP_PROTOCOL)
