@@ -34,7 +34,6 @@ public class TransferRequestDto {
     public static final String EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
     public static final String EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
-    public static final String EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES = EDC_NAMESPACE + "managedResources";
     public static final String EDC_TRANSFER_REQUEST_DTO_PROPERTIES = EDC_NAMESPACE + "properties";
 
     public static final String EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
@@ -48,7 +47,6 @@ public class TransferRequestDto {
     private String connectorAddress; // TODO change to callbackAddress
     private String contractId;
     private DataAddress dataDestination;
-    private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
 
     private Map<String, String> privateProperties = new HashMap<>();
@@ -74,10 +72,6 @@ public class TransferRequestDto {
 
     public DataAddress getDataDestination() {
         return dataDestination;
-    }
-
-    public boolean isManagedResources() {
-        return managedResources;
     }
 
     public Map<String, String> getProperties() {
@@ -134,11 +128,6 @@ public class TransferRequestDto {
 
         public Builder dataDestination(DataAddress dataDestination) {
             request.dataDestination = dataDestination;
-            return this;
-        }
-
-        public Builder managedResources(boolean managedResources) {
-            request.managedResources = managedResources;
             return this;
         }
 

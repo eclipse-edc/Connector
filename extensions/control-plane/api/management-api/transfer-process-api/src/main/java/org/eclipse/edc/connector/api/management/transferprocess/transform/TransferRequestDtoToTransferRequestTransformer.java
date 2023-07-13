@@ -50,7 +50,6 @@ public class TransferRequestDtoToTransferRequestTransformer implements DtoTransf
                 .connectorAddress(object.getConnectorAddress())
                 .contractId(object.getContractId())
                 .destinationType(object.getDataDestination().getType())
-                .managedResources(object.isManagedResources())
                 .protocol(object.getProtocol())
                 .dataDestination(object.getDataDestination())
                 .build();

@@ -35,7 +35,6 @@ public class DataRequest implements Polymorphic {
     private String assetId;
     private String contractId;
     private DataAddress dataDestination;
-    private boolean managedResources = true;
 
     /**
      * The unique request id. Request ids are provided by the originating consumer and must be unique.
@@ -107,10 +106,6 @@ public class DataRequest implements Polymorphic {
         return dataDestination;
     }
 
-    public boolean isManagedResources() {
-        return managedResources;
-    }
-
     public void updateDestination(DataAddress dataAddress) {
         dataDestination = dataAddress;
     }
@@ -175,11 +170,6 @@ public class DataRequest implements Polymorphic {
 
         public Builder dataDestination(DataAddress destination) {
             request.dataDestination = destination;
-            return this;
-        }
-
-        public Builder managedResources(boolean value) {
-            request.managedResources = value;
             return this;
         }
 

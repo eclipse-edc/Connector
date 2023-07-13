@@ -33,7 +33,6 @@ class DataRequestMapping extends TranslationMapping {
     private static final String FIELD_ASSET_ID = "assetId";
     private static final String FIELD_CONTRACT_ID = "contractId";
     private static final String FIELD_DATA_DESTINATION = "dataDestination";
-    private static final String FIELD_MANAGED_RESOURCES = "managedResources";
     private static final String FIELD_TRANSFER_PROCESS_ID = "transferProcessId";
 
     DataRequestMapping(TransferProcessStoreStatements statements) {
@@ -45,7 +44,6 @@ class DataRequestMapping extends TranslationMapping {
         add(FIELD_ASSET_ID, statements.getAssetIdColumn());
         add(FIELD_CONTRACT_ID, statements.getContractIdColumn());
         add(FIELD_DATA_DESTINATION, new JsonFieldMapping(statements.getDataDestinationColumn()));
-        add(FIELD_MANAGED_RESOURCES, statements.getManagedResourcesColumn());
         add(FIELD_TRANSFER_PROCESS_ID, statements.getTransferProcessIdFkColumn());
     }
 }

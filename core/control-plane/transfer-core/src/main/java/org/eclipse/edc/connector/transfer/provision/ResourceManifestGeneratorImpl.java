@@ -57,9 +57,6 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
 
     @Override
     public Result<ResourceManifest> generateConsumerResourceManifest(DataRequest dataRequest, Policy policy) {
-        if (!dataRequest.isManagedResources()) {
-            return Result.success(ResourceManifest.Builder.newInstance().build());
-        }
         var definitions = consumerGenerators.stream()
                 .filter(generator -> generator.canGenerate(dataRequest, policy))
                 .map(generator -> generator.generate(dataRequest, policy))

@@ -30,7 +30,6 @@ import static org.eclipse.edc.connector.api.management.transferprocess.model.Tra
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PROPERTIES;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PROTOCOL;
@@ -72,7 +71,6 @@ class JsonObjectToTransferRequestDtoTransformerTest {
                 .add(EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ADDRESS, "address")
                 .add(EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID, "contractId")
                 .add(EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION, dataDestinationJson)
-                .add(EDC_TRANSFER_REQUEST_DTO_MANAGED_RESOURCES, false)
                 .add(EDC_TRANSFER_REQUEST_DTO_PROPERTIES, propertiesJson)
                 .add(EDC_TRANSFER_REQUEST_DTO_PRIVATE_PROPERTIES, privatePropertiesJson)
                 .add(EDC_TRANSFER_REQUEST_DTO_PROTOCOL, "protocol")
@@ -87,7 +85,6 @@ class JsonObjectToTransferRequestDtoTransformerTest {
         assertThat(result.getConnectorAddress()).isEqualTo("address");
         assertThat(result.getContractId()).isEqualTo("contractId");
         assertThat(result.getDataDestination()).isSameAs(dataDestination);
-        assertThat(result.isManagedResources()).isFalse();
         assertThat(result.getProperties()).containsAllEntriesOf(properties);
         assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProtocol()).isEqualTo("protocol");

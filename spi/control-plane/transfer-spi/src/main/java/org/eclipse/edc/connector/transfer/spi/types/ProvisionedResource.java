@@ -42,10 +42,6 @@ public abstract class ProvisionedResource implements Polymorphic {
         return transferProcessId;
     }
 
-    void setTransferProcessId(String transferProcessId) {
-        this.transferProcessId = transferProcessId;
-    }
-
     @NotNull
     public String getResourceDefinitionId() {
         return resourceDefinitionId;

@@ -111,7 +111,6 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
-                .managedResources(false)
                 .connectorAddress("http://an/address")
                 .contractId("contractId")
                 .build();
@@ -173,7 +172,6 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
-                .managedResources(false)
                 .connectorAddress("http://an/address")
                 .contractId("contractId")
                 .build();
@@ -200,7 +198,6 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
-                .managedResources(true)
                 .connectorAddress("http://an/address")
                 .build();
 
@@ -225,7 +222,6 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
-                .managedResources(false)
                 .connectorAddress("http://an/address")
                 .build();
 

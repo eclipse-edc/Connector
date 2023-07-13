@@ -27,27 +27,13 @@ import java.util.List;
 @JsonTypeName("dataspaceconnector:provisionedresourceset")
 @JsonDeserialize(builder = ProvisionedResourceSet.Builder.class)
 public class ProvisionedResourceSet {
-    private String transferProcessId;
-
     private final List<ProvisionedResource> resources = new ArrayList<>();
-
-    public String getTransferProcessId() {
-        return transferProcessId;
-    }
-
-    void setTransferProcessId(String transferProcessId) {
-        this.transferProcessId = transferProcessId;
-        resources.forEach(r -> r.setTransferProcessId(transferProcessId));
-    }
 
     public List<ProvisionedResource> getResources() {
         return resources;
     }
 
     public void addResource(ProvisionedResource resource) {
-        if (transferProcessId != null) {
-            resource.setTransferProcessId(transferProcessId);
-        }
         resources.add(resource);
     }
 
@@ -69,11 +55,6 @@ public class ProvisionedResourceSet {
 
         public Builder resources(List<ProvisionedResource> resources) {
             resourceSet.resources.addAll(resources);
-            return this;
-        }
-
-        public Builder transferProcessId(String id) {
-            resourceSet.setTransferProcessId(id);
             return this;
         }
 

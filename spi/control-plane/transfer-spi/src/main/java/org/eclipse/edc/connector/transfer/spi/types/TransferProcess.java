@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
@@ -107,7 +108,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private DataRequest dataRequest;
     private DataAddress contentDataAddress;
     private ResourceManifest resourceManifest;
-    private ProvisionedResourceSet provisionedResourceSet;
+    private ProvisionedResourceSet provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().build();
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, String> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
@@ -150,9 +151,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void addProvisionedResource(ProvisionedResource resource) {
-        if (provisionedResourceSet == null) {
-            provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(id).build();
-        }
         provisionedResourceSet.addResource(resource);
         setModified();
 
@@ -165,10 +163,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     @Nullable
     public ProvisionedResource getProvisionedResource(String id) {
-        if (provisionedResourceSet == null) {
-            return null;
-        }
-        return provisionedResourceSet.getResources().stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
+        return getProvisionedResources().stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
     }
 
     /**
@@ -355,7 +350,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        TransferProcess that = (TransferProcess) o;
+        var that = (TransferProcess) o;
         return id.equals(that.id);
     }
 
@@ -384,6 +379,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }
         transitionTo(end.code());
+    }
+
+    @JsonIgnore
+    public List<ProvisionedResource> getProvisionedResources() {
+        return Optional.ofNullable(getProvisionedResourceSet()).map(ProvisionedResourceSet::getResources).orElse(emptyList());
     }
 
     public enum Type {
@@ -453,10 +453,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
             if (entity.resourceManifest != null) {
                 entity.resourceManifest.setTransferProcessId(entity.id);
-            }
-
-            if (entity.provisionedResourceSet != null) {
-                entity.provisionedResourceSet.setTransferProcessId(entity.id);
             }
 
             if (entity.dataRequest != null) {
