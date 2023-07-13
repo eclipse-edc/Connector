@@ -16,7 +16,6 @@ package org.eclipse.edc.jsonld.document;
 
 import com.apicatalog.jsonld.JsonLdError;
 import com.apicatalog.jsonld.loader.DocumentLoaderOptions;
-import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -24,6 +23,7 @@ import java.net.URI;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.getResource;
 
 class JarLoaderTest {
 
@@ -31,7 +31,7 @@ class JarLoaderTest {
 
     @Test
     void shouldLoadJsonSchemaFromJar() throws JsonLdError {
-        var jarUri = TestUtils.getFileFromResourceName("jar-with-resource-example.jar").toURI();
+        var jarUri = getResource("jar-with-resource-example.jar");
         var resourceInJarUri = URI.create(format("jar:%s!/document/odrl.jsonld", jarUri));
 
         var document = jarLoader.loadDocument(resourceInJarUri, new DocumentLoaderOptions());
@@ -65,11 +65,12 @@ class JarLoaderTest {
 
     @Test
     void shouldThrowErrorWhenDocumentFileNotFoundInTheJar() {
-        var jarUri = TestUtils.getFileFromResourceName("jar-with-resource-example.jar").toURI();
+        var jarUri = getResource("jar-with-resource-example.jar");
         var resourceInJarUri = URI.create(format("jar:%s!/document/not-existent.jsonld", jarUri));
 
         assertThatThrownBy(() -> jarLoader.loadDocument(resourceInJarUri, new DocumentLoaderOptions()))
                 .isInstanceOf(JsonLdError.class)
                 .hasMessageStartingWith("File not found");
     }
+
 }

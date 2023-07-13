@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.opentest4j.AssertionFailedError;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +34,6 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 public class TestUtils {
@@ -48,21 +48,29 @@ public class TestUtils {
         GRADLE_WRAPPER = (System.getProperty("os.name").toLowerCase().contains("win")) ? GRADLE_WRAPPER_WINDOWS : GRADLE_WRAPPER_UNIX;
     }
 
-    public static File getFileFromResourceName(String resourceName) {
-        URI uri = null;
-        try {
-            uri = Thread.currentThread().getContextClassLoader().getResource(resourceName).toURI();
-        } catch (URISyntaxException e) {
-            fail("Cannot proceed without File : " + resourceName);
+    public static URI getResource(String name) {
+        var resource = Thread.currentThread().getContextClassLoader().getResource(name);
+        if (resource == null) {
+            throw new AssertionFailedError("Cannot find resource " + name);
         }
+        try {
+            return resource.toURI();
+        } catch (URISyntaxException e) {
+            throw new AssertionFailedError("Cannot find resource " + name, e);
+        }
+    }
 
-        return new File(uri);
+    public static File getFileFromResourceName(String resourceName) {
+        return new File(getResource(resourceName));
     }
 
     public static String getResourceFileContentAsString(String resourceName) {
-        var stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
-        Scanner s = new Scanner(Objects.requireNonNull(stream, "Not found: " + resourceName)).useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
+        try (var stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName)) {
+            var scanner = new Scanner(Objects.requireNonNull(stream, "Not found: " + resourceName)).useDelimiter("\\A");
+            return scanner.hasNext() ? scanner.next() : "";
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

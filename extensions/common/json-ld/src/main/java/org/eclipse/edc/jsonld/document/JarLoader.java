@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Loader that is used by the {@link CachedDocumentLoader} to load documents from jar files
+ * Enables loading documents from jar files
  */
 public class JarLoader implements DocumentLoader {
 
