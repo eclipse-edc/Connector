@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.UUID.randomUUID;
@@ -61,7 +59,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
         var jsonPath = baseRequest()
                 .contentType(JSON)
-                .post("/request")
+                .post("/v2/contractnegotiations/request")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -82,7 +80,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
         var json = baseRequest()
                 .contentType(JSON)
-                .get("cn1")
+                .get("/v2/contractnegotiations/cn1")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -100,7 +98,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
         baseRequest()
                 .contentType(JSON)
-                .get("cn1/state")
+                .get("/v2/contractnegotiations/cn1/state")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -115,7 +113,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
         var json = baseRequest()
                 .contentType(JSON)
-                .get("cn1/agreement")
+                .get("/v2/contractnegotiations/cn1/agreement")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -146,7 +144,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
         var id = baseRequest()
                 .contentType(JSON)
                 .body(requestJson)
-                .post()
+                .post("/v2/contractnegotiations")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -164,7 +162,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
         baseRequest()
                 .contentType(JSON)
-                .post("cn1/cancel")
+                .post("/v2/contractnegotiations/cn1/cancel")
                 .then()
                 .statusCode(204);
     }
@@ -176,16 +174,9 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
 
         baseRequest()
                 .contentType(JSON)
-                .post("cn1/decline")
+                .post("/v2/contractnegotiations/cn1/decline")
                 .then()
                 .statusCode(204);
-    }
-
-    private RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .basePath("/management/v2/contractnegotiations")
-                .when();
     }
 
     private ContractNegotiation createContractNegotiation(String negotiationId) {

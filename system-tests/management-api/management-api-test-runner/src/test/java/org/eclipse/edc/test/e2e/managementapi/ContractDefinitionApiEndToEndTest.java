@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
@@ -23,7 +22,6 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -51,7 +49,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
 
         var body = baseRequest()
                 .contentType(JSON)
-                .post("/request")
+                .post("/v2/contractdefinitions/request")
                 .then()
                 .statusCode(200)
                 .body("size()", greaterThan(0))
@@ -70,7 +68,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         baseRequest()
                 .contentType(JSON)
                 .body(requestJson)
-                .post()
+                .post("/v2/contractdefinitions")
                 .then()
                 .statusCode(200)
                 .body("@id", equalTo(TEST_ID));
@@ -86,7 +84,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         store.save(entity);
 
         baseRequest()
-                .delete(entity.getId())
+                .delete("/v2/contractdefinitions/" + entity.getId())
                 .then()
                 .statusCode(204);
 
@@ -106,7 +104,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         baseRequest()
                 .contentType(JSON)
                 .body(updated)
-                .put()
+                .put("/v2/contractdefinitions")
                 .then()
                 .statusCode(204);
 
@@ -127,19 +125,12 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         baseRequest()
                 .contentType(JSON)
                 .body(updated)
-                .put()
+                .put("/v2/contractdefinitions")
                 .then()
                 .statusCode(404);
 
         var all = store.findAll(QuerySpec.none());
         assertThat(all).isEmpty();
-    }
-
-    private RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .basePath("/management/v2/contractdefinitions")
-                .when();
     }
 
     private JsonObjectBuilder createDefinitionBuilder() {

@@ -18,7 +18,6 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -64,8 +63,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
-        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto(UUID.randomUUID().toString())));
-        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.success(expanded));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(JsonObject.class))).thenReturn(Result.success(expanded));
 
         baseRequest()
                 .contentType(JSON)
@@ -79,8 +77,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
-        verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
-        verify(transformerRegistry, times(2)).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
     }
 
@@ -102,8 +99,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
-        verify(transformerRegistry, never()).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
-        verify(transformerRegistry, never()).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verify(transformerRegistry, never()).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
     }
 
@@ -127,8 +123,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
-        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto(UUID.randomUUID().toString())));
-        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
 
         baseRequest()
                 .contentType(JSON)
@@ -141,8 +136,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
         verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
-        verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
-        verify(transformerRegistry, times(2)).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verify(monitor, times(2)).warning(eq("test-failure"));
         verifyNoMoreInteractions(service, transformerRegistry);
     }
@@ -150,8 +144,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
     @Test
     void getContractAgreement() {
         when(service.findById(eq("id1"))).thenReturn(createContractAgreement("id1"));
-        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto("id1")));
-        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
 
         baseRequest()
                 .contentType(JSON)
@@ -161,8 +154,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .body(notNullValue());
 
         verify(service).findById(eq("id1"));
-        verify(transformerRegistry).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
-        verify(transformerRegistry).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verify(transformerRegistry).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
     }
 
@@ -184,8 +176,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
     @Test
     void getContractAgreement_transformationFails() {
         when(service.findById(eq("id1"))).thenReturn(createContractAgreement("id1"));
-        when(transformerRegistry.transform(any(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.success(createContractAgreementDto("id1")));
-        when(transformerRegistry.transform(any(ContractAgreementDto.class), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
+        when(transformerRegistry.transform(any(ContractAgreement.class), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
 
         baseRequest()
                 .contentType(JSON)
@@ -194,8 +185,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .statusCode(500);
 
         verify(service).findById(eq("id1"));
-        verify(transformerRegistry).transform(any(ContractAgreement.class), eq(ContractAgreementDto.class));
-        verify(transformerRegistry).transform(any(ContractAgreementDto.class), eq(JsonObject.class));
+        verify(transformerRegistry).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
     }
 
@@ -221,13 +211,4 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .build();
     }
 
-    private ContractAgreementDto createContractAgreementDto(String negotiationId) {
-        return ContractAgreementDto.Builder.newInstance()
-                .id(negotiationId)
-                .consumerId("test-consumer")
-                .providerId("test-provider")
-                .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
 }

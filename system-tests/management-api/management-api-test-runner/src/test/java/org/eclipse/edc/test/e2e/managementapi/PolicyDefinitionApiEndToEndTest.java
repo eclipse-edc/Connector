@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -24,7 +23,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.entity.Entity;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -40,8 +38,6 @@ import static org.hamcrest.Matchers.is;
 @EndToEndTest
 public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
-    private static final String BASE_PATH = "/management/v2/policydefinitions";
-
     @Test
     void shouldStorePolicyDefinition() {
         var requestBody = createObjectBuilder()
@@ -55,7 +51,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
         var id = baseRequest()
                 .body(requestBody)
                 .contentType(JSON)
-                .post()
+                .post("/v2/policydefinitions")
                 .then()
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
@@ -65,7 +61,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .extracting(Policy::getPermissions).asList().hasSize(1);
 
         baseRequest()
-                .get("/" + id)
+                .get("/v2/policydefinitions/" + id)
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -88,14 +84,14 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
         var id = baseRequest()
                 .body(requestBody)
                 .contentType(JSON)
-                .post()
+                .post("/v2/policydefinitions")
                 .then()
                 .statusCode(200)
                 .extract().jsonPath().getString(ID);
 
         var createdAt = baseRequest()
                 .contentType(JSON)
-                .post("/request")
+                .post("/v2/policydefinitions/request")
                 .then()
                 .statusCode(200)
                 .extract().as(JsonArray.class)
@@ -105,7 +101,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
         baseRequest()
                 .contentType(JSON)
                 .body(createObjectBuilder(requestBody).add(ID, id).build())
-                .put("/" + id)
+                .put("/v2/policydefinitions/" + id)
                 .then()
                 .statusCode(204);
 
@@ -128,26 +124,20 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
         var id = baseRequest()
                 .body(requestBody)
                 .contentType(JSON)
-                .post()
+                .post("/v2/policydefinitions")
                 .then()
                 .statusCode(200)
                 .extract().jsonPath().getString(ID);
 
         baseRequest()
-                .delete("/" + id)
+                .delete("/v2/policydefinitions/" + id)
                 .then()
                 .statusCode(204);
 
         baseRequest()
-                .get("/" + id)
+                .get("/v2/policydefinitions/" + id)
                 .then()
                 .statusCode(404);
-    }
-
-    private RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .basePath(BASE_PATH);
     }
 
     private JsonObject sampleOdrlPolicy() {
