@@ -203,11 +203,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @Override
-    public Result<Void> runCommand(TransferProcessCommand command) {
-        return commandRunner.runCommand(command);
-    }
-
-    @Override
     public void handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
         var transferProcess = transferProcessStore.findById(processId);
         if (transferProcess == null) {
@@ -675,8 +670,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private Result<Void> storeProvisionedSecrets(String transferProcessId, ProvisionResponse response) {
         var resource = response.getResource();
 
-        if (resource instanceof ProvisionedDataAddressResource) {
-            var dataAddressResource = (ProvisionedDataAddressResource) resource;
+        if (resource instanceof ProvisionedDataAddressResource dataAddressResource) {
             var secretToken = response.getSecretToken();
             if (secretToken != null) {
                 var keyName = dataAddressResource.getResourceName();

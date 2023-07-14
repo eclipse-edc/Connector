@@ -929,18 +929,6 @@ class TransferProcessManagerImplTest {
         verify(commandQueue).enqueue(command);
     }
 
-    @Test
-    void runCommand_willRunCommandAndReturnResult() {
-        var command = new TransferProcessCommand() {
-        };
-        when(commandRunner.runCommand(command)).thenReturn(Result.success());
-
-        var result = manager.runCommand(command);
-
-        assertThat(result).matches(Result::succeeded);
-        verify(commandRunner).runCommand(command);
-    }
-
     private Criterion[] stateIs(int state) {
         return aryEq(new Criterion[]{ hasState(state) });
     }
