@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.api.management.contractnegotiation;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
@@ -64,7 +63,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var factory = Json.createBuilderFactory(Map.of());
         transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
-        transformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
         transformerRegistry.register(new JsonObjectToContractRequestTransformer());
         transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
         transformerRegistry.register(new JsonObjectToContractOfferDescriptionTransformer());

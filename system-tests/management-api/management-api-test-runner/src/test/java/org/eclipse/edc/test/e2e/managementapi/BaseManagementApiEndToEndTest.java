@@ -14,17 +14,20 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 
+import static io.restassured.RestAssured.given;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 
 public abstract class BaseManagementApiEndToEndTest {
 
     public static final int PORT = getFreePort();
     public static final int PROTOCOL_PORT = getFreePort();
+    public static final String BASE_MANAGEMENT_URL = "http://localhost:" + PORT + "/management";
 
     @RegisterExtension
     static EdcRuntimeExtension controlPlane = new EdcRuntimeExtension(
@@ -42,4 +45,11 @@ public abstract class BaseManagementApiEndToEndTest {
                 }
             }
     );
+
+    protected RequestSpecification baseRequest() {
+        return given()
+                .port(PORT)
+                .baseUri(BASE_MANAGEMENT_URL)
+                .when();
+    }
 }

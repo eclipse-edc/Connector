@@ -32,18 +32,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
-import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
-import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
-import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
-import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
-import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
-import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_AGREEMENT_ID;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CALLBACK_ADDR;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR;
@@ -108,22 +101,6 @@ class ContractNegotiationApiTest {
             assertThat(content.getJsonArray(CONTRACT_NEGOTIATION_AGREEMENT_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
             assertThat(content.getJsonArray(CONTRACT_NEGOTIATION_ERRORDETAIL).getJsonObject(0).getString(VALUE)).isNotBlank();
             assertThat(content.getJsonArray(CONTRACT_NEGOTIATION_CALLBACK_ADDR)).asList().isNotEmpty();
-        });
-    }
-
-    @Test
-    void contractAgreementExample() throws JsonProcessingException {
-        var jsonObject = objectMapper.readValue(CONTRACT_AGREEMENT_EXAMPLE, JsonObject.class);
-        var expanded = jsonLd.expand(jsonObject);
-
-        assertThat(expanded).isSucceeded().satisfies(content -> {
-            assertThat(content.getString(ID)).isNotBlank();
-            assertThat(content.getJsonArray(TYPE).getString(0)).isEqualTo(CONTRACT_AGREEMENT_TYPE);
-            assertThat(content.getJsonArray(CONTRACT_AGREEMENT_ASSET_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(CONTRACT_AGREEMENT_PROVIDER_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(CONTRACT_AGREEMENT_CONSUMER_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(CONTRACT_AGREEMENT_SIGNING_DATE).getJsonObject(0).getJsonNumber(VALUE).longValue()).isGreaterThan(0);
-            assertThat(content.getJsonArray(CONTRACT_AGREEMENT_POLICY).getJsonObject(0)).isNotNull();
         });
     }
 

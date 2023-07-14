@@ -589,7 +589,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           description: The contract agreements matching the query
@@ -599,7 +599,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractAgreementDto'
+                  $ref: '#/components/schemas/ContractAgreementSchema'
         "400":
           description: Request body was malformed
           content:
@@ -630,7 +630,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
+                $ref: '#/components/schemas/ContractAgreementSchema'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -2080,34 +2080,6 @@ components:
       example: null
       discriminator:
         propertyName: edctype
-    ContractAgreementDto:
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: null
-        assetId:
-          type: string
-          example: null
-        consumerId:
-          type: string
-          example: null
-        contractSigningDate:
-          type: integer
-          format: int64
-          example: null
-        policy:
-          $ref: '#/components/schemas/Policy'
-        providerId:
-          type: string
-          example: null
-      example: null
     ContractAgreementSchema:
       type: object
       properties:

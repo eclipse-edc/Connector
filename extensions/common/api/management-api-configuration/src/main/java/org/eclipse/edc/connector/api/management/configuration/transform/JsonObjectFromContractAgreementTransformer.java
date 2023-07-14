@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
+package org.eclipse.edc.connector.api.management.configuration.transform;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
@@ -40,15 +40,15 @@ public class JsonObjectFromContractAgreementTransformer extends AbstractJsonLdTr
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull ContractAgreement dto, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull ContractAgreement agreement, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, CONTRACT_AGREEMENT_TYPE)
-                .add(ID, dto.getId())
-                .add(CONTRACT_AGREEMENT_ASSET_ID, dto.getAssetId())
-                .add(CONTRACT_AGREEMENT_POLICY, context.transform(dto.getPolicy(), JsonObject.class))
-                .add(CONTRACT_AGREEMENT_SIGNING_DATE, dto.getContractSigningDate())
-                .add(CONTRACT_AGREEMENT_CONSUMER_ID, dto.getConsumerId())
-                .add(CONTRACT_AGREEMENT_PROVIDER_ID, dto.getProviderId())
+                .add(ID, agreement.getId())
+                .add(CONTRACT_AGREEMENT_ASSET_ID, agreement.getAssetId())
+                .add(CONTRACT_AGREEMENT_POLICY, context.transform(agreement.getPolicy(), JsonObject.class))
+                .add(CONTRACT_AGREEMENT_SIGNING_DATE, agreement.getContractSigningDate())
+                .add(CONTRACT_AGREEMENT_CONSUMER_ID, agreement.getConsumerId())
+                .add(CONTRACT_AGREEMENT_PROVIDER_ID, agreement.getProviderId())
                 .build();
     }
 }

@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -52,12 +51,10 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add("protocol", "dataspace-protocol-http")
                 .build();
 
-        given()
-                .port(PORT)
+        baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
-                .basePath("/management/v2/catalog")
-                .post("/request")
+                .post("/v2/catalog/request")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -66,8 +63,8 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     @Test
     void shouldReturnCatalog_withQuerySpec() {
-        var asset = createAsset("id-1").dataAddress(createDataAddress().build());
-        var asset1 = createAsset("id-2").dataAddress(createDataAddress().build());
+        var asset = createAsset("id-1").dataAddress(createDataAddress());
+        var asset1 = createAsset("id-2").dataAddress(createDataAddress());
 
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
         var policyDefinitionStore = controlPlane.getContext().getService(PolicyDefinitionStore.class);
@@ -113,12 +110,10 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .add("querySpec", querySpec)
                 .build();
 
-        given()
-                .port(PORT)
+        baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
-                .basePath("/management/v2/catalog")
-                .post("/request")
+                .post("/v2/catalog/request")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -127,8 +122,8 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .extract().body().asString();
     }
 
-    private DataAddress.Builder createDataAddress() {
-        return DataAddress.Builder.newInstance().type("test-type");
+    private DataAddress createDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type").build();
     }
 
     private Asset.Builder createAsset(String id) {

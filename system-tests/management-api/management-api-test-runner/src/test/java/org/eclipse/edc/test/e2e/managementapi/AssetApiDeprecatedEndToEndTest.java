@@ -15,7 +15,6 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
-import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -27,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static io.restassured.RestAssured.given;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptyList;
@@ -50,8 +48,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @Deprecated(since = "0.1.2")
 public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTest {
 
-    private static final String BASE_PATH = "/management/v2/assets";
-
     private static final String TEST_ASSET_ID = "test-asset-id";
     private static final String TEST_ASSET_CONTENTTYPE = "application/json";
     private static final String TEST_ASSET_DESCRIPTION = "test description";
@@ -66,7 +62,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
                         createDataAddress().build()));
 
         var body = baseRequest()
-                .get("/" + TEST_ASSET_ID)
+                .get("/v2/assets/" + TEST_ASSET_ID)
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath();
@@ -106,7 +102,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(assetNewJson)
-                .post()
+                .post("/v2/assets")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -135,7 +131,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(assetNewJson)
-                .post()
+                .post("/v2/assets")
                 .then()
                 .log().ifError()
                 .statusCode(400);
@@ -171,7 +167,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(assetNewJson)
-                .post()
+                .post("/v2/assets")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -213,7 +209,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(query)
-                .post("/request")
+                .post("/v2/assets/request")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -236,7 +232,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(query)
-                .post("/request")
+                .post("/v2/assets/request")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -261,7 +257,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(query)
-                .post("/request")
+                .post("/v2/assets/request")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -286,7 +282,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(query)
-                .post("/request")
+                .post("/v2/assets/request")
                 .then()
                 .log().ifError()
                 .statusCode(500);
@@ -309,7 +305,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(assetJson)
-                .put()
+                .put("/v2/assets")
                 .then()
                 .log().all()
                 .statusCode(204)
@@ -327,7 +323,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
                         DataAddress.Builder.newInstance().type("test-type").property(EDC_NAMESPACE + "another-key", "another-value").build()));
 
         baseRequest()
-                .get("/test-asset/dataaddress")
+                .get("/v2/assets/test-asset/dataaddress")
                 .then()
                 .statusCode(200)
                 .body("'edc:type'", equalTo("test-type"))
@@ -371,28 +367,5 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
                 .build();
     }
 
-    private RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .basePath(BASE_PATH)
-                .when();
-    }
-
-    private static class TestObject {
-        private final String description;
-        private final int number;
-
-        TestObject(String description, int number) {
-            this.description = description;
-            this.number = number;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public int getNumber() {
-            return number;
-        }
-    }
+    private record TestObject(String description, int number) { }
 }

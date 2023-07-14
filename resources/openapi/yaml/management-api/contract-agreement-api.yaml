@@ -8,7 +8,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           content:
@@ -17,7 +17,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractAgreementDto'
+                  $ref: '#/components/schemas/ContractAgreementSchema'
           description: The contract agreements matching the query
         "400":
           content:
@@ -46,7 +46,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
+                $ref: '#/components/schemas/ContractAgreementSchema'
           description: The contract agreement
         "400":
           content:
@@ -70,18 +70,6 @@ paths:
       - Contract Agreement
 components:
   schemas:
-    Action:
-      type: object
-      example: null
-      properties:
-        constraint:
-          $ref: '#/components/schemas/Constraint'
-        includedIn:
-          type: string
-          example: null
-        type:
-          type: string
-          example: null
     ApiErrorDetail:
       type: object
       example: null
@@ -98,30 +86,31 @@ components:
         type:
           type: string
           example: null
-    Constraint:
+    ContractAgreementSchema:
       type: object
-      discriminator:
-        propertyName: edctype
-      example: null
-      properties:
-        edctype:
-          type: string
-          example: null
-      required:
-      - edctype
-    ContractAgreementDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/ContractAgreement
+        '@id': negotiation-id
+        providerId: provider-id
+        consumerId: consumer-id
+        assetId: asset-id
+        contractSigningDate: 1688465655
+        policy:
+          '@context': http://www.w3.org/ns/odrl.jsonld
+          '@type': Set
+          '@id': offer-id
+          permission:
+          - target: asset-id
+            action: display
+      properties:
         '@id':
           type: string
           example: null
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/ContractAgreement
         assetId:
           type: string
           example: null
@@ -133,20 +122,24 @@ components:
           format: int64
           example: null
         policy:
-          $ref: '#/components/schemas/Policy'
+          type: object
+          description: ODRL policy
+          example: null
         providerId:
           type: string
           example: null
-    CriterionDto:
+    CriterionSchema:
       type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        operandLeft: fieldName
+        operator: =
+        operandRight: some value
+      properties:
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
         operandLeft:
           type: object
           example: null
@@ -154,30 +147,6 @@ components:
           type: object
           example: null
         operator:
-          type: string
-          example: null
-    Duty:
-      type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        consequence:
-          $ref: '#/components/schemas/Duty'
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        parentPermission:
-          $ref: '#/components/schemas/Permission'
-        target:
           type: string
           example: null
     JsonArray:
@@ -235,110 +204,25 @@ components:
           - "FALSE"
           - "NULL"
           example: null
-    Permission:
+    QuerySpecSchema:
       type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        duties:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Duty'
-        target:
-          type: string
-          example: null
-    Policy:
-      type: object
-      example: null
-      properties:
-        '@type':
-          type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
-          example: null
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-        inheritsFrom:
-          type: string
-          example: null
-        obligations:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Duty'
-        permissions:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Permission'
-        prohibitions:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Prohibition'
-        target:
-          type: string
-          example: null
-    Prohibition:
-      type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        target:
-          type: string
-          example: null
-    QuerySpecDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        criterion: []
+      properties:
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionDto'
+            $ref: '#/components/schemas/CriterionSchema'
         limit:
           type: integer
           format: int32

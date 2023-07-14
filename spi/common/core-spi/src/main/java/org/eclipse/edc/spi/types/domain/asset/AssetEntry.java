@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
+@Deprecated(since = "0.1.2")
 public class AssetEntry {
     private final Asset asset;
     private final DataAddress dataAddress;

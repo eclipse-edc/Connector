@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.connector.api.management.configuration;
 
+import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistryImpl;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -33,6 +35,8 @@ import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+
+import java.util.Map;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
@@ -101,6 +105,10 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     @Provider
     public ManagementApiTypeTransformerRegistry managementApiTypeTransformerRegistry() {
-        return new ManagementApiTypeTransformerRegistryImpl(this.transformerRegistry);
+        var factory = Json.createBuilderFactory(Map.of());
+
+        var registry = new ManagementApiTypeTransformerRegistryImpl(this.transformerRegistry);
+        registry.register(new JsonObjectFromContractAgreementTransformer(factory));
+        return registry;
     }
 }

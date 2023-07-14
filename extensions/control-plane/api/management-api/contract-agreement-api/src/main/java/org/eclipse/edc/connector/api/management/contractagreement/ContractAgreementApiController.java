@@ -23,7 +23,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.contractagreement.model.ContractAgreementDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
@@ -76,8 +75,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
             return stream
-                    .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
-                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class)))
+                    .map(it -> transformerRegistry.transform(it, JsonObject.class))
                     .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
@@ -91,8 +89,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
     public JsonObject getAgreementById(@PathParam("id") String id) {
         return Optional.of(id)
                 .map(service::findById)
-                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class)
-                        .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+                .map(it -> transformerRegistry.transform(it, JsonObject.class)
                         .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }

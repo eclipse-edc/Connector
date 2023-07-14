@@ -27,9 +27,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
@@ -84,7 +84,7 @@ public interface ContractNegotiationApi {
     @Operation(description = "Gets a contract agreement for a contract negotiation with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract agreement that is attached to the negotiation, or null",
-                            content = @Content(schema = @Schema(implementation = ContractAgreementSchema.class))),
+                            content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
@@ -219,42 +219,6 @@ public interface ContractNegotiationApi {
                 }
                 """;
     }
-
-    @Schema(example = ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE)
-    record ContractAgreementSchema(
-            @Schema(name = TYPE, example = ContractAgreement.CONTRACT_AGREEMENT_TYPE)
-            String ldType,
-            @Schema(name = ID)
-            String id,
-            String providerId,
-            String consumerId,
-            long contractSigningDate,
-            String assetId,
-            @Schema(description = "ODRL policy")
-            Object policy
-    ) {
-        public static final String CONTRACT_AGREEMENT_EXAMPLE = """
-                {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/ContractAgreement",
-                    "@id": "negotiation-id",
-                    "providerId": "provider-id",
-                    "consumerId": "consumer-id",
-                    "assetId": "asset-id",
-                    "contractSigningDate": 1688465655,
-                    "policy": {
-                        "@context": "http://www.w3.org/ns/odrl.jsonld",
-                        "@type": "Set",
-                        "@id": "offer-id",
-                        "permission": [{
-                            "target": "asset-id",
-                            "action": "display"
-                        }]
-                    }
-                }
-                """;
-    }
-
 
     @Schema(example = NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE)
     record NegotiationStateSchema(

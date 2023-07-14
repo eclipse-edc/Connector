@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 
-import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptySet;
@@ -50,8 +48,6 @@ import static org.hamcrest.Matchers.is;
 @EndToEndTest
 public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
-    public static final String BASE_PATH = "/management/v2/transferprocesses";
-
     @Test
     void getAll() {
         getStore().updateOrCreate(createTransferProcess("tp1"));
@@ -59,7 +55,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
 
         baseRequest()
                 .contentType(JSON)
-                .post("/request")
+                .post("/v2/transferprocesses/request")
                 .then()
                 .statusCode(200)
                 .body("size()", is(2))
@@ -73,7 +69,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
         getStore().updateOrCreate(createTransferProcess("tp2"));
 
         baseRequest()
-                .get("/tp2")
+                .get("/v2/transferprocesses/tp2")
                 .then()
                 .statusCode(200)
                 .body("@id", is("tp2"))
@@ -85,7 +81,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
         getStore().updateOrCreate(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
 
         baseRequest()
-                .get("/tp2/state")
+                .get("/v2/transferprocesses/tp2/state")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -117,7 +113,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
         var id = baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
-                .post("/")
+                .post("/v2/transferprocesses/")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -133,7 +129,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
 
         baseRequest()
                 .contentType(JSON)
-                .post("/" + id + "/deprovision")
+                .post("/v2/transferprocesses/" + id + "/deprovision")
                 .then()
                 .statusCode(204);
     }
@@ -150,7 +146,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
         baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
-                .post("/" + id + "/terminate")
+                .post("/v2/transferprocesses/" + id + "/terminate")
                 .then()
                 .log().ifError()
                 .statusCode(204);
@@ -186,10 +182,4 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .add(EVENTS, Json.createArrayBuilder().build()));
     }
 
-    private RequestSpecification baseRequest() {
-        return given()
-                .port(PORT)
-                .basePath(BASE_PATH)
-                .when();
-    }
 }
