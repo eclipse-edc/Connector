@@ -41,6 +41,16 @@ jobs:
     outputs:
       edc-version: ${{ env.EDC_VERSION }}
 
+  # Calls the openapi workflow to publish the api spec
+  Publish-OpenApi:
+    needs:
+      - Prepare-Release
+    if: ${{ !endsWith( needs.Prepare-Release.outputs.edc-version, '-SNAPSHOT') }}
+    uses: ./.github/workflows/apidoc.yaml
+    secrets: inherit
+    with:
+      version: ${{ needs.Prepare-Release.outputs.edc-version }}
+
   Github-Release:
     # cannot use the workflow-level env yet as it does not yet exist, must take output from previous job
     if: ${{ !endsWith( needs.Prepare-Release.outputs.edc-version, '-SNAPSHOT') }}

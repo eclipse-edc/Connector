@@ -1,6 +1,13 @@
 name: Verify and Publish OpenAPI Specs
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        description: "The version under which the API should be published"
+        type: string
+
   push:
   pull_request:
     branches: [ main ]
@@ -57,7 +64,7 @@ jobs:
 
   Publish-To-SwaggerHub:
     # do NOT run on forks or on PRs. The Org ("edc") is unique all across SwaggerHub
-    if: github.repository == 'eclipse-edc/Connector' && github.event_name == 'push' && github.ref_name == 'main'
+    if: github.repository == 'eclipse-edc/Connector' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     needs: [ Verify-OpenAPI-Definitions ]
     strategy:
@@ -67,6 +74,7 @@ jobs:
       rootDir: resources/openapi/yaml/${{ matrix.apiGroup }}
       SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_TOKEN }}
       SWAGGERHUB_USER: ${{ secrets.SWAGGERHUB_USER }}
+      VERSION: ${{ github.event.inputs.version || inputs.version }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
@@ -75,7 +83,12 @@ jobs:
       # merge together all api groups
       - name: Generate API Specs
         run: |
-          ./gradlew -PapiTitle="${{ matrix.apiGroup }}" -PapiDescription="REST API documentation for the ${{ matrix.apiGroup }}" :mergeApiSpec --input=${{ env.rootDir }} --output=${{ matrix.apiGroup }}.yaml
+          # give option to override
+          cmd=""
+          if [ ! -z $VERSION ]; then
+            cmd="-Pversion=$VERSION"
+          fi
+          ./gradlew ${cmd} -PapiTitle="${{ matrix.apiGroup }}" -PapiDescription="REST API documentation for the ${{ matrix.apiGroup }}" :mergeApiSpec --input=${{ env.rootDir }} --output=${{ matrix.apiGroup }}.yaml
 
       # install swaggerhub CLI
       - name: Install SwaggerHub CLI
@@ -87,7 +100,16 @@ jobs:
         run: |
           swaggerhub api:create ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
 
-      # Post the API to SwaggerHub as "unpublished", because published APIs cannot be overwritten
+      # Post snapshots of the API to SwaggerHub as "unpublished", because published APIs cannot be overwritten
       - name: Publish API Specs to SwaggerHub
         run: |
-          swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+          # coalesce $VERSION, or whatever's stored in gradle.properties
+          vers=${VERSION:-$(grep "version" gradle.properties  | awk -F= '{print $2}')}
+          
+          if [[ $vers != *-SNAPSHOT ]]; then
+            echo "no snapshot, will set the API to 'published'";
+            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=publish
+          else
+            echo "snapshot, will set the API to 'unpublished'";
+            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+          fi
