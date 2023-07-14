@@ -61,6 +61,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represents a data transfer process.
@@ -104,6 +105,21 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 @JsonDeserialize(builder = TransferProcess.Builder.class)
 public class TransferProcess extends StatefulEntity<TransferProcess> {
 
+    public static final String TRANSFER_PROCESS_TYPE = EDC_NAMESPACE + "TransferProcess";
+    public static final String TRANSFER_PROCESS_CREATED_AT = EDC_NAMESPACE + "createdAt";
+    public static final String TRANSFER_PROCESS_CORRELATION_ID = EDC_NAMESPACE + "correlationId";
+    public static final String TRANSFER_PROCESS_STATE = EDC_NAMESPACE + "state";
+    public static final String TRANSFER_PROCESS_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
+    public static final String TRANSFER_PROCESS_ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String TRANSFER_PROCESS_CONTRACT_ID = EDC_NAMESPACE + "contractId";
+    public static final String TRANSFER_PROCESS_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
+    public static final String TRANSFER_PROCESS_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String TRANSFER_PROCESS_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
+    public static final String TRANSFER_PROCESS_TYPE_TYPE = EDC_NAMESPACE + "type";
+    public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
+    public static final String TRANSFER_PROCESS_DATA_REQUEST = EDC_NAMESPACE + "dataRequest";
+    public static final String TRANSFER_PROCESS_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
+    public static final String TRANSFER_PROCESS_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
     private Type type = CONSUMER;
     private DataRequest dataRequest;
     private DataAddress contentDataAddress;
@@ -319,6 +335,46 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return dataRequest.getId();
     }
 
+    @JsonIgnore
+    public List<ProvisionedResource> getProvisionedResources() {
+        return Optional.ofNullable(getProvisionedResourceSet()).map(ProvisionedResourceSet::getResources).orElse(emptyList());
+    }
+
+    @JsonIgnore
+    public String getConnectorAddress() {
+        return dataRequest.getConnectorAddress();
+    }
+
+    @JsonIgnore
+    public String getAssetId() {
+        return dataRequest.getAssetId();
+    }
+
+    @JsonIgnore
+    public String getContractId() {
+        return dataRequest.getContractId();
+    }
+
+    @JsonIgnore
+    public DataAddress getDataDestination() {
+        return dataRequest.getDataDestination();
+    }
+
+    @JsonIgnore
+    public String getProtocol() {
+        return dataRequest.getProtocol();
+    }
+
+    @JsonIgnore
+    public void updateDestination(DataAddress dataAddress) {
+        dataRequest.updateDestination(dataAddress);
+    }
+
+    @JsonIgnore
+    public String getConnectorId() {
+        return dataRequest.getConnectorId();
+    }
+
     @Override
     public TransferProcess copy() {
         var builder = Builder.newInstance()
@@ -379,11 +435,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }
         transitionTo(end.code());
-    }
-
-    @JsonIgnore
-    public List<ProvisionedResource> getProvisionedResources() {
-        return Optional.ofNullable(getProvisionedResourceSet()).map(ProvisionedResourceSet::getResources).orElse(emptyList());
     }
 
     public enum Type {

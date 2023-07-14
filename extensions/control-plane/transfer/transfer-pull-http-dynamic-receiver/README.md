@@ -10,7 +10,7 @@ and will be used by the consumer connector to dispatch the EDR
   "@context": {
     "edc": "https://w3id.org/edc/v0.0.1/ns/"
   },
-  "@type": "TransferRequestDto",
+  "@type": "TransferRequest",
   "protocol": "dataspace-protocol-http",
   "assetId": "test-document",
   "contractId": "1:8147d6d6-9734-4821-b93d-2832ea7892e4",

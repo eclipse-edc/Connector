@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.StatusChecker;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -55,7 +54,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 
-import static java.util.UUID.randomUUID;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.awaitility.Awaitility.await;
@@ -105,19 +103,7 @@ public class TransferProcessEventDispatchTest {
 
         statusCheckerRegistry.register("any", statusCheck);
         when(statusCheck.isComplete(any(), any())).thenReturn(false);
-
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id("dataRequestId")
-                .assetId("assetId")
-                .destinationType("any")
-                .protocol("test")
-                .connectorAddress("http://an/address")
-                .contractId("contractId")
-                .build();
-
-        var transferRequest = TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
-                .build();
+        var transferRequest = createTransferRequest();
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
@@ -166,19 +152,7 @@ public class TransferProcessEventDispatchTest {
     void shouldTerminateOnInvalidPolicy(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
-
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id("dataRequestId")
-                .assetId("assetId")
-                .destinationType("any")
-                .protocol("test")
-                .connectorAddress("http://an/address")
-                .contractId("contractId")
-                .build();
-
-        var transferRequest = TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
-                .build();
+        var transferRequest = createTransferRequest();
 
         service.initiateTransfer(transferRequest);
 
@@ -192,18 +166,7 @@ public class TransferProcessEventDispatchTest {
     void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
-
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(randomUUID().toString())
-                .assetId("assetId")
-                .destinationType("any")
-                .protocol("test")
-                .connectorAddress("http://an/address")
-                .build();
-
-        var transferRequest = TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
-                .build();
+        var transferRequest = createTransferRequest();
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
@@ -216,22 +179,22 @@ public class TransferProcessEventDispatchTest {
     void shouldDispatchEventOnTransferProcessFailure(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
-
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(String.valueOf(randomUUID()))
-                .assetId("assetId")
-                .destinationType("any")
-                .protocol("test")
-                .connectorAddress("http://an/address")
-                .build();
-
-        var transferRequest = TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
-                .build();
+        var transferRequest = createTransferRequest();
 
         service.initiateTransfer(transferRequest);
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
+    }
+
+    private TransferRequest createTransferRequest() {
+        return TransferRequest.Builder.newInstance()
+                .id("dataRequestId")
+                .assetId("assetId")
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .protocol("test")
+                .connectorAddress("http://an/address")
+                .contractId("contractId")
+                .build();
     }
 
     @NotNull

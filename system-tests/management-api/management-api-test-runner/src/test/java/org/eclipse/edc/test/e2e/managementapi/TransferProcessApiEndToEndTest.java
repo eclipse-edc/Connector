@@ -73,7 +73,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .then()
                 .statusCode(200)
                 .body("@id", is("tp2"))
-                .body(TYPE, is("edc:TransferProcessDto"));
+                .body(TYPE, is("edc:TransferProcess"));
     }
 
     @Test
@@ -93,7 +93,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
     void create() {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "TransferRequestDto")
+                .add(TYPE, "TransferRequest")
                 .add("dataDestination", createObjectBuilder()
                         .add(TYPE, "DataAddress")
                         .add("type", "HttpData")
@@ -170,6 +170,10 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                                 .type("type")
                                 .build())
                         .protocol("dataspace-protocol-http")
+                        .assetId("asset-id")
+                        .connectorId("connector-id")
+                        .contractId("contractId")
+                        .connectorAddress("http://connector/address")
                         .processId(id)
                         .build());
     }

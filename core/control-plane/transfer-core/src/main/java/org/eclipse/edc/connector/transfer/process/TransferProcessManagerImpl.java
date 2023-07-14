@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerato
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
@@ -69,6 +70,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -174,13 +176,25 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @Override
     public StatusResult<TransferProcess> initiateConsumerRequest(TransferRequest transferRequest) {
         // make the request idempotent: if the process exists, return
-        var dataRequest = transferRequest.getDataRequest();
-        var existingTransferProcess = transferProcessStore.findForCorrelationId(dataRequest.getId());
+        var id = Optional.ofNullable(transferRequest.getId()).orElseGet(() -> UUID.randomUUID().toString());
+        var existingTransferProcess = transferProcessStore.findForCorrelationId(id);
         if (existingTransferProcess != null) {
             return StatusResult.success(existingTransferProcess);
         }
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .assetId(transferRequest.getAssetId())
+                .connectorId(transferRequest.getConnectorId())
+                .dataDestination(transferRequest.getDataDestination())
+                .connectorAddress(transferRequest.getConnectorAddress())
+                .contractId(transferRequest.getContractId())
+                .destinationType(transferRequest.getDataDestination().getType())
+                .protocol(transferRequest.getProtocol())
+                .dataDestination(transferRequest.getDataDestination())
+                .build();
+
         var process = TransferProcess.Builder.newInstance()
-                .id(dataRequest.getId())
+                .id(id)
                 .dataRequest(dataRequest)
                 .type(CONSUMER)
                 .clock(clock)
@@ -286,9 +300,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processInitial(TransferProcess process) {
-        var dataRequest = process.getDataRequest();
-
-        var contractId = dataRequest.getContractId();
+        var contractId = process.getContractId();
         var policy = policyArchive.findPolicyForContract(contractId);
 
         if (policy == null) {
@@ -298,14 +310,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
-            var manifestResult = manifestGenerator.generateConsumerResourceManifest(dataRequest, policy);
+            var manifestResult = manifestGenerator.generateConsumerResourceManifest(process.getDataRequest(), policy);
             if (manifestResult.failed()) {
                 transitionToTerminated(process, format("Resource manifest for process %s cannot be modified to fulfil policy. %s", process.getId(), manifestResult.getFailureMessages()));
                 return true;
             }
             manifest = manifestResult.getContent();
         } else {
-            var assetId = process.getDataRequest().getAssetId();
+            var assetId = process.getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);
             if (dataAddress == null) {
                 transitionToTerminating(process, "Asset not found: " + assetId);
@@ -314,13 +326,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             // default the content address to the asset address; this may be overridden during provisioning
             process.setContentDataAddress(dataAddress);
 
-            var dataDestination = process.getDataRequest().getDataDestination();
+            var dataDestination = process.getDataDestination();
             var secret = dataDestination.getProperty(EDC_DATA_ADDRESS_SECRET);
             if (secret != null) {
                 vault.storeSecret(dataDestination.getKeyName(), secret);
             }
 
-            manifest = manifestGenerator.generateProviderResourceManifest(dataRequest, dataAddress, policy);
+            manifest = manifestGenerator.generateProviderResourceManifest(process.getDataRequest(), dataAddress, policy);
         }
 
         process.transitionProvisioning(manifest);
@@ -342,9 +354,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processProvisioning(TransferProcess process) {
-        var dataRequest = process.getDataRequest();
-
-        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
+        var policy = policyArchive.findPolicyForContract(process.getContractId());
 
         var resources = process.getResourcesToProvision();
 
@@ -391,21 +401,20 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return false; // should never happen: a provider transfer cannot be REQUESTING
         }
 
-        var dataRequest = process.getDataRequest();
-
-        var dataDestination = Optional.ofNullable(dataRequest.getDataDestination().getKeyName())
+        var originalDestination = process.getDataDestination();
+        var dataDestination = Optional.ofNullable(originalDestination.getKeyName())
                 .flatMap(key -> Optional.ofNullable(vault.resolveSecret(key)))
-                .map(secret -> DataAddress.Builder.newInstance().properties(dataRequest.getDataDestination().getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
-                .orElse(dataRequest.getDataDestination());
+                .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
+                .orElse(originalDestination);
 
         var message = TransferRequestMessage.Builder.newInstance()
-                .processId(dataRequest.getId())
-                .protocol(dataRequest.getProtocol())
-                .counterPartyAddress(dataRequest.getConnectorAddress())
+                .processId(process.getCorrelationId())
+                .protocol(process.getProtocol())
+                .counterPartyAddress(process.getConnectorAddress())
                 .callbackAddress(protocolWebhook.url())
                 .dataDestination(dataDestination)
-                .contractId(dataRequest.getContractId())
-                .policy(policyArchive.findPolicyForContract(dataRequest.getContractId()))
+                .contractId(process.getContractId())
+                .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCounterPartyAddress());
@@ -432,14 +441,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return false;
         }
 
-        var dataRequest = process.getDataRequest();
         var contentAddress = process.getContentDataAddress();
 
-        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
+        var policy = policyArchive.findPolicyForContract(process.getContractId());
 
         var description = "Initiate data flow";
 
-        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(dataRequest, contentAddress, policy))
+        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(process.getDataRequest(), contentAddress, policy))
                 .onSuccess((p, dataFlowResponse) -> sendTransferStartMessage(p, dataFlowResponse, policy))
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitionToStarting(t))
@@ -450,16 +458,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @WithSpan
     private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse, Policy policy) {
-        var dataRequest = process.getDataRequest();
         var message = TransferStartMessage.Builder.newInstance()
-                .protocol(dataRequest.getProtocol())
+                .processId(process.getCorrelationId())
+                .protocol(process.getProtocol())
                 .dataAddress(dataFlowResponse.getDataAddress())
-                .counterPartyAddress(dataRequest.getConnectorAddress())
-                .processId(dataRequest.getId())
+                .counterPartyAddress(process.getConnectorAddress())
                 .policy(policy)
                 .build();
 
-        var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
 
         entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
@@ -491,7 +498,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     @NotNull
     private Boolean checkCompletion(TransferProcess transferProcess) {
-        var checker = statusCheckerRegistry.resolve(transferProcess.getDataRequest().getDestinationType());
+        var checker = statusCheckerRegistry.resolve(transferProcess.getDataDestination().getType());
         if (checker == null) {
             monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
             return false;
@@ -516,15 +523,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processCompleting(TransferProcess process) {
-        var dataRequest = process.getDataRequest();
         var message = TransferCompletionMessage.Builder.newInstance()
-                .protocol(dataRequest.getProtocol())
-                .counterPartyAddress(dataRequest.getConnectorAddress())
-                .processId(dataRequest.getId())
-                .policy(policyArchive.findPolicyForContract(dataRequest.getContractId()))
+                .protocol(process.getProtocol())
+                .counterPartyAddress(process.getConnectorAddress())
+                .processId(process.getId())
+                .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
 
-        var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToCompleted(t))
@@ -549,15 +555,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return true;
         }
 
-        var dataRequest = process.getDataRequest();
         var message = TransferTerminationMessage.Builder.newInstance()
-                .counterPartyAddress(dataRequest.getConnectorAddress())
-                .protocol(dataRequest.getProtocol())
-                .processId(dataRequest.getId())
-                .policy(policyArchive.findPolicyForContract(dataRequest.getContractId()))
+                .counterPartyAddress(process.getConnectorAddress())
+                .protocol(process.getProtocol())
+                .processId(process.getId())
+                .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
 
-        var description = format("Send %s to %s", dataRequest.getClass().getSimpleName(), dataRequest.getConnectorAddress());
+        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> transferProcessStore.findById(id))
                 .onSuccess((t, content) -> transitionToTerminated(t))
@@ -579,9 +584,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private boolean processDeprovisioning(TransferProcess process) {
         observable.invokeForEach(l -> l.preDeprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
 
-        var dataRequest = process.getDataRequest();
-
-        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
+        var policy = policyArchive.findPolicyForContract(process.getContractId());
 
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
@@ -609,7 +612,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
                         if (dataAddressResource instanceof ProvisionedDataDestinationResource) {
                             // a data destination was provisioned by a consumer
-                            transferProcess.getDataRequest().updateDestination(dataAddress);
+                            transferProcess.updateDestination(dataAddress);
                         } else if (dataAddressResource instanceof ProvisionedContentResource) {
                             // content for the data transfer was provisioned by the provider
                             transferProcess.setContentDataAddress(dataAddress);

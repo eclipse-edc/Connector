@@ -18,18 +18,14 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
+import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -43,8 +39,8 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_TYPE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.is;
@@ -66,9 +62,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     @Test
     void get_shouldReturnTransferProcess() {
         var transferProcess = createTransferProcess().id("id").build();
-        var dto = TransferProcessDto.Builder.newInstance().id("id").createdAt(1234).build();
         var responseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
-        when(transformerRegistry.transform(any(), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
         when(service.findById(any())).thenReturn(transferProcess);
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
 
@@ -81,8 +75,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .body("id", is("id"))
                 .body("createdAt", is(1234));
         verify(service).findById("id");
-        verify(transformerRegistry).transform(transferProcess, TransferProcessDto.class);
-        verify(transformerRegistry).transform(dto, JsonObject.class);
+        verify(transformerRegistry).transform(transferProcess, JsonObject.class);
     }
 
     @Test
@@ -145,13 +138,11 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var querySpecDto = QuerySpecDto.Builder.newInstance().build();
         var expandedRequestBody = Json.createObjectBuilder().build();
         var transferProcess = createTransferProcess().id("id").build();
-        var dto = TransferProcessDto.Builder.newInstance().id("id").createdAt(1234).build();
         var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpecDto.class))).thenReturn(Result.success(querySpecDto));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
-        when(transformerRegistry.transform(any(), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -169,8 +160,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         verify(transformerRegistry).transform(expandedRequestBody, QuerySpecDto.class);
         verify(transformerRegistry).transform(querySpecDto, QuerySpec.class);
         verify(service).query(querySpec);
-        verify(transformerRegistry).transform(transferProcess, TransferProcessDto.class);
-        verify(transformerRegistry).transform(dto, JsonObject.class);
+        verify(transformerRegistry).transform(transferProcess, JsonObject.class);
     }
 
     @Test
@@ -253,7 +243,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(any(), eq(QuerySpecDto.class))).thenReturn(Result.success(querySpecDto));
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
-        when(transformerRegistry.transform(any(), eq(TransferProcessDto.class))).thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
 
         given()
@@ -269,12 +259,10 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Test
     void initiate_shouldReturnId() {
-        var dto = TransferRequestDto.Builder.newInstance().build();
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(createDataRequest()).build();
+        var transferRequest = TransferRequest.Builder.newInstance().build();
         var transferProcess = createTransferProcess().id("id").build();
         var responseBody = Json.createObjectBuilder().add(ID, "transferProcessId").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(), eq(TransferRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(transferProcess));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
@@ -289,8 +277,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .contentType(JSON)
                 .body(ID, is("transferProcessId"));
-        verify(transformerRegistry).transform(isA(JsonObject.class), eq(TransferRequestDto.class));
-        verify(transformerRegistry).transform(dto, TransferRequest.class);
+        verify(transformerRegistry).transform(isA(JsonObject.class), eq(TransferRequest.class));
         verify(service).initiateTransfer(transferRequest);
         verify(transformerRegistry).transform(isA(IdResponseDto.class), eq(JsonObject.class));
     }
@@ -309,7 +296,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .statusCode(400)
                 .contentType(JSON);
 
-        verify(validatorRegistry).validate(eq(EDC_TRANSFER_REQUEST_DTO_TYPE), any());
+        verify(validatorRegistry).validate(eq(TRANSFER_REQUEST_TYPE), any());
         verifyNoInteractions(service, transformerRegistry);
     }
 
@@ -332,10 +319,8 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Test
     void initiate_shouldReturnConflict_whenItAlreadyExists() {
-        var dto = TransferRequestDto.Builder.newInstance().build();
-        var transferRequest = TransferRequest.Builder.newInstance().dataRequest(createDataRequest()).build();
+        var transferRequest = TransferRequest.Builder.newInstance().build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(), eq(TransferRequestDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.conflict("already exists"));
         var requestBody = Json.createObjectBuilder().build();
@@ -392,9 +377,9 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     void terminate() {
         var transferProcess = createTransferProcess().build();
         var expanded = Json.createObjectBuilder().build();
-        var dto = TerminateTransferDto.Builder.newInstance().reason("anyReason").build();
+        var dto = new TerminateTransfer("anyReason");
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(), eq(TerminateTransferDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(TerminateTransfer.class))).thenReturn(Result.success(dto));
         when(service.terminate(any(), any())).thenReturn(ServiceResult.success(transferProcess));
 
         given()
@@ -404,7 +389,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .post("/v2/transferprocesses/id/terminate")
                 .then()
                 .statusCode(204);
-        verify(transformerRegistry).transform(expanded, TerminateTransferDto.class);
+        verify(transformerRegistry).transform(expanded, TerminateTransfer.class);
         verify(service).terminate("id", "anyReason");
     }
 
@@ -420,14 +405,14 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(400);
 
-        verify(validatorRegistry).validate(eq(EDC_TERMINATE_TRANSFER_TYPE), any());
+        verify(validatorRegistry).validate(eq(TERMINATE_TRANSFER_TYPE), any());
         verifyNoInteractions(service, transformerRegistry);
     }
 
     @Test
     void terminate_shouldReturnBadRequest_whenTransformFail() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(), eq(TerminateTransferDto.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(any(), eq(TerminateTransfer.class))).thenReturn(Result.failure("failure"));
 
         given()
                 .port(port)
@@ -441,9 +426,9 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Test
     void terminate_shouldReturnConflict_whenServiceReturnsConflict() {
-        var dto = TerminateTransferDto.Builder.newInstance().reason("anyReason").build();
+        var dto = new TerminateTransfer("anyReason");
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(), eq(TerminateTransferDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(any(), eq(TerminateTransfer.class))).thenReturn(Result.success(dto));
         when(service.terminate(any(), any())).thenReturn(ServiceResult.conflict("conflict"));
 
         given()
@@ -464,14 +449,4 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         return TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
     }
 
-    private DataRequest createDataRequest() {
-        return DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .dataDestination(DataAddress.Builder.newInstance()
-                        .type("type")
-                        .build())
-                .protocol("dataspace-protocol-http")
-                .processId(UUID.randomUUID().toString())
-                .build();
-    }
 }

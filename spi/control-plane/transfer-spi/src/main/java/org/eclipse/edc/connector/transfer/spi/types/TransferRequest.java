@@ -14,76 +14,113 @@
 
 package org.eclipse.edc.connector.transfer.spi.types;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
-/**
- * Represent a request of transfer. It contains the detail of the transfer in the field {@link DataRequest}
- * Eventual custom properties that are not relevant to the communication between consumer/provider should
- * go here and not in of the {@link DataRequest}
- */
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 public class TransferRequest {
 
+    public static final String TRANSFER_REQUEST_TYPE = EDC_NAMESPACE + "TransferRequest";
+    public static final String TRANSFER_REQUEST_CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
+    public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
+    public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
+    public static final String TRANSFER_REQUEST_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
+    public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String TRANSFER_REQUEST_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
+    public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
+
+    private String id;
+    private String protocol;
+    private String connectorAddress;
+    private String connectorId;
+    private String contractId;
+    private String assetId;
+    private DataAddress dataDestination;
+    private Map<String, String> properties = new HashMap<>();
+    private Map<String, String> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
-    private Map<String, String> privateProperties = new HashMap<>();
-    
-    private DataRequest dataRequest;
-
-    private TransferRequest() {
-
+    public String getConnectorAddress() {
+        return connectorAddress;
     }
 
-    /**
-     * Get the associated {@link DataRequest}
-     *
-     * @return The data request.
-     */
-    public DataRequest getDataRequest() {
-        return dataRequest;
+    public String getId() {
+        return id;
     }
 
-    /**
-     * Get the list of associated {@link CallbackAddress}
-     *
-     * @return The callbacks
-     */
-    public List<CallbackAddress> getCallbackAddresses() {
-        return callbackAddresses;
+    public String getContractId() {
+        return contractId;
     }
 
-    /**
-     * Custom private properties that are associated with this transfer request.
-     */
+    public DataAddress getDataDestination() {
+        return dataDestination;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
     public Map<String, String> getPrivateProperties() {
         return privateProperties;
     }
 
-    public static class Builder {
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public String getConnectorId() {
+        return connectorId;
+    }
+
+    public String getAssetId() {
+        return assetId;
+    }
+
+    public List<CallbackAddress> getCallbackAddresses() {
+        return callbackAddresses;
+    }
+
+    public static final class Builder {
         private final TransferRequest request;
 
         private Builder() {
             request = new TransferRequest();
         }
 
-        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder dataRequest(DataRequest dataRequest) {
-            request.dataRequest = dataRequest;
+        public Builder connectorAddress(String connectorAddress) {
+            request.connectorAddress = connectorAddress;
             return this;
         }
 
-        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
-            request.callbackAddresses = callbackAddresses;
+        public Builder id(String id) {
+            request.id = id;
+            return this;
+        }
+
+        public Builder contractId(String contractId) {
+            request.contractId = contractId;
+            return this;
+        }
+
+        public Builder dataDestination(DataAddress dataDestination) {
+            request.dataDestination = dataDestination;
+            return this;
+        }
+
+        public Builder properties(Map<String, String> properties) {
+            request.properties = properties;
             return this;
         }
 
@@ -92,8 +129,27 @@ public class TransferRequest {
             return this;
         }
 
+        public Builder protocol(String protocol) {
+            request.protocol = protocol;
+            return this;
+        }
+
+        public Builder connectorId(String connectorId) {
+            request.connectorId = connectorId;
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            request.assetId = assetId;
+            return this;
+        }
+
+        public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
+            request.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
         public TransferRequest build() {
-            Objects.requireNonNull(request.dataRequest, "DataRequest should not be null");
             return request;
         }
     }

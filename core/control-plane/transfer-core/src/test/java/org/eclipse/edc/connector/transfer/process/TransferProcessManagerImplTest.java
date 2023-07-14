@@ -184,10 +184,10 @@ class TransferProcessManagerImplTest {
     void initiateConsumerRequest() {
         when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-        var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
         var transferRequest = TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
+                .id("1")
+                .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .callbackAddresses(List.of(callback))
                 .build();
 

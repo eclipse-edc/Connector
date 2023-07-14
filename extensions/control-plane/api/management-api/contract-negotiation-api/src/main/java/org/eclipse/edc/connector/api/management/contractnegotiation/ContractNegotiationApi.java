@@ -31,11 +31,9 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchem
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
@@ -147,7 +145,7 @@ public interface ContractNegotiationApi {
             String consumerId,
             String providerId,
             ContractOfferDescriptionSchema offer,
-            List<CallbackAddressSchema> callbackAddresses) {
+            List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
         // policy example took from https://w3c.github.io/odrl/bp/
         public static final String CONTRACT_REQUEST_EXAMPLE = """
@@ -194,7 +192,7 @@ public interface ContractNegotiationApi {
             String state,
             String contractAgreementId,
             String errorDetail,
-            List<CallbackAddressSchema> callbackAddresses
+            List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
     ) {
         public static final String CONTRACT_NEGOTIATION_EXAMPLE = """
                 {
@@ -246,15 +244,4 @@ public interface ContractNegotiationApi {
 
     }
 
-    record CallbackAddressSchema(
-            @Schema(name = TYPE, example = CallbackAddress.CALLBACKADDRESS_TYPE)
-            String type,
-            String uri,
-            Set<String> events,
-            boolean transactional,
-            String authKey,
-            String authCodeId
-    ) {
-
-    }
 }

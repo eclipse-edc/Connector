@@ -21,8 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_TYPE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -42,7 +42,7 @@ class TransferProcessApiExtensionTest {
     void initialize_shouldRegisterValidators(TransferProcessApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(EDC_TRANSFER_REQUEST_DTO_TYPE), any());
-        verify(validatorRegistry).register(eq(EDC_TERMINATE_TRANSFER_TYPE), any());
+        verify(validatorRegistry).register(eq(TRANSFER_REQUEST_TYPE), any());
+        verify(validatorRegistry).register(eq(TERMINATE_TRANSFER_TYPE), any());
     }
 }

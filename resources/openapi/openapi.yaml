@@ -1310,7 +1310,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransferRequestDto'
+              $ref: '#/components/schemas/TransferRequestSchema'
       responses:
         "200":
           description: The transfer was successfully initiated. Returns the transfer
@@ -1318,7 +1318,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseDto'
+                $ref: '#/components/schemas/IdResponseSchema'
           links:
             poll-state:
               operationId: getTransferProcessState
@@ -1343,7 +1343,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpecSchema'
       responses:
         "200":
           description: The transfer processes matching the query
@@ -1353,7 +1353,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/TransferProcessDto'
+                  $ref: '#/components/schemas/TransferProcessSchema'
         "400":
           description: Request was malformed
           content:
@@ -1384,7 +1384,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferProcessDto'
+                $ref: '#/components/schemas/TransferProcessSchema'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1468,7 +1468,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferState'
+                $ref: '#/components/schemas/TransferStateSchema'
         "400":
           description: "Request was malformed, e.g. id was null"
           content:
@@ -1509,7 +1509,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TerminateTransferDto'
+              $ref: '#/components/schemas/TerminateTransferSchema'
       responses:
         "200":
           description: Request to cancel the transfer process was successfully received
@@ -1972,29 +1972,6 @@ components:
           additionalProperties:
             type: object
             example: null
-          example: null
-      example: null
-    CallbackAddress:
-      type: object
-      properties:
-        authCodeId:
-          type: string
-          example: null
-        authKey:
-          type: string
-          example: null
-        events:
-          uniqueItems: true
-          type: array
-          example: null
-          items:
-            type: string
-            example: null
-        transactional:
-          type: boolean
-          example: null
-        uri:
-          type: string
           example: null
       example: null
     CallbackAddressSchema:
@@ -2474,22 +2451,6 @@ components:
           format: url
           example: null
       example: null
-    DataRequestDto:
-      type: object
-      properties:
-        assetId:
-          type: string
-          example: null
-        connectorId:
-          type: string
-          example: null
-        contractId:
-          type: string
-          example: null
-        id:
-          type: string
-          example: null
-      example: null
     DataService:
       type: object
       properties:
@@ -2952,62 +2913,20 @@ components:
           type: string
           example: null
       example: null
-    TerminateTransferDto:
+    TerminateTransferSchema:
       type: object
       properties:
-        reason:
-          type: string
-          example: null
-      example: null
-    TransferProcessDto:
-      type: object
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
         '@type':
           type: string
-          example: null
-        callbackAddresses:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/CallbackAddress'
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-        dataDestination:
-          $ref: '#/components/schemas/DataAddressDto'
-        dataRequest:
-          $ref: '#/components/schemas/DataRequestDto'
-        errorDetail:
-          type: string
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: string
-            example: null
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/TransferState
         state:
           type: string
           example: null
-        stateTimestamp:
-          type: integer
-          format: int64
-          example: null
-        type:
-          type: string
-          example: null
-        updatedAt:
-          type: integer
-          format: int64
-          example: null
-      example: null
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/TerminateTransfer
+        reason: a reason to terminate
     TransferProcessFailStateDto:
       type: object
       properties:
@@ -3015,9 +2934,78 @@ components:
           type: string
           example: null
       example: null
-    TransferRequestDto:
+    TransferProcessSchema:
       type: object
       properties:
+        '@id':
+          type: string
+          example: null
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/TransferProcess
+        callbackAddresses:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CallbackAddressSchema'
+        contractAgreementId:
+          type: string
+          example: null
+        counterPartyAddress:
+          type: string
+          example: null
+        counterPartyId:
+          type: string
+          example: null
+        errorDetail:
+          type: string
+          example: null
+        protocol:
+          type: string
+          example: null
+        state:
+          type: string
+          example: null
+        type:
+          type: string
+          example: null
+          enum:
+          - CONSUMER
+          - PROVIDER
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/TransferProcess
+        '@id': process-id
+        correlationId: correlation-id
+        type: PROVIDER
+        state: STARTED
+        stateTimestamp: 1688465655
+        assetId: asset-id
+        connectorId: connectorId
+        contractId: contractId
+        dataDestination:
+          type: data-destination-type
+        properties:
+          key: value
+        privateProperties:
+          private-key: private-value
+        errorDetail: eventual-error-detail
+        createdAt: 1688465655
+        callbackAddresses:
+        - transactional: false
+          uri: http://callback/url
+          events:
+          - contract.negotiation
+          - transfer.process
+          authKey: auth-key
+          authCodeId: auth-code-id
+    TransferRequestSchema:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/TransferRequest
         assetId:
           type: string
           example: null
@@ -3025,7 +3013,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddress'
+            $ref: '#/components/schemas/CallbackAddressSchema'
         connectorAddress:
           type: string
           example: null
@@ -3036,10 +3024,7 @@ components:
           type: string
           example: null
         dataDestination:
-          $ref: '#/components/schemas/DataAddress'
-        id:
-          type: string
-          example: null
+          $ref: '#/components/schemas/DataAddressSchema'
         privateProperties:
           type: object
           additionalProperties:
@@ -3055,11 +3040,40 @@ components:
         protocol:
           type: string
           example: null
-      example: null
-    TransferState:
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/TransferRequest
+        protocol: dataspace-protocol-http
+        connectorAddress: http://provider-address
+        connectorId: provider-id
+        contractId: contract-id
+        assetId: asset-id
+        dataDestination:
+          type: data-destination-type
+        properties:
+          key: value
+        privateProperties:
+          private-key: private-value
+        callbackAddresses:
+        - transactional: false
+          uri: http://callback/url
+          events:
+          - contract.negotiation
+          - transfer.process
+          authKey: auth-key
+          authCodeId: auth-code-id
+    TransferStateSchema:
       type: object
       properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/TransferState
         state:
           type: string
           example: null
-      example: null
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/TransferState
+        state: STARTED

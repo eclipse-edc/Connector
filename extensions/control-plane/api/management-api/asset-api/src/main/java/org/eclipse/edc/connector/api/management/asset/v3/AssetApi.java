@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.Map;
@@ -107,7 +107,7 @@ public interface AssetApi {
             String type,
             Map<String, Object> properties,
             Map<String, Object> privateProperties,
-            DataAddressSchema dataAddress
+            ManagementApiSchema.DataAddressSchema dataAddress
     ) {
         public static final String ASSET_INPUT_EXAMPLE = """
                 {
@@ -134,7 +134,7 @@ public interface AssetApi {
             String type,
             Map<String, Object> properties,
             Map<String, Object> privateProperties,
-            DataAddressSchema dataAddress,
+            ManagementApiSchema.DataAddressSchema dataAddress,
             long createdAt
     ) {
         public static final String ASSET_OUTPUT_EXAMPLE = """
@@ -154,12 +154,5 @@ public interface AssetApi {
                 }
                 """;
     }
-
-    record DataAddressSchema(
-            @Schema(name = TYPE, example = DataAddress.EDC_DATA_ADDRESS_TYPE)
-            String type,
-            @Schema(name = "type")
-            String typeProperty
-    ) { }
 
 }

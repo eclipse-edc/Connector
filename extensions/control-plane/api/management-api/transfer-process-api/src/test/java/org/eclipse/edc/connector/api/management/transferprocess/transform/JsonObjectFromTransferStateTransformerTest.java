@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.EDC_TRANSFER_STATE_STATE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.EDC_TRANSFER_STATE_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.TRANSFER_STATE_STATE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.TRANSFER_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.Mockito.mock;
 
@@ -45,8 +45,8 @@ class JsonObjectFromTransferStateTransformerTest {
         var result = transformer.transform(input, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(TYPE)).isEqualTo(EDC_TRANSFER_STATE_TYPE);
-        assertThat(result.getString(EDC_TRANSFER_STATE_STATE)).isEqualTo("state");
+        assertThat(result.getString(TYPE)).isEqualTo(TRANSFER_STATE_TYPE);
+        assertThat(result.getString(TRANSFER_STATE_STATE)).isEqualTo("state");
     }
 
 }

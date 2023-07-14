@@ -22,8 +22,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.EDC_TRANSFER_STATE_STATE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.EDC_TRANSFER_STATE_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.TRANSFER_STATE_STATE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.TRANSFER_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromTransferStateTransformer extends AbstractJsonLdTransformer<TransferState, JsonObject> {
@@ -38,8 +38,8 @@ public class JsonObjectFromTransferStateTransformer extends AbstractJsonLdTransf
     @Override
     public @Nullable JsonObject transform(@NotNull TransferState input, @NotNull TransformerContext context) {
         var builder = builderFactory.createObjectBuilder();
-        builder.add(TYPE, EDC_TRANSFER_STATE_TYPE);
-        builder.add(EDC_TRANSFER_STATE_STATE, input.getState());
+        builder.add(TYPE, TRANSFER_STATE_TYPE);
+        builder.add(TRANSFER_STATE_STATE, input.state());
         return builder.build();
     }
 

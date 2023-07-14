@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.service.transferprocess;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
@@ -30,6 +29,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
@@ -222,15 +222,9 @@ class TransferProcessServiceImplTest {
                 .build();
     }
 
-    private DataRequest dataRequest() {
-        return DataRequest.Builder.newInstance()
-                .destinationType("type")
-                .build();
-    }
-
     private TransferRequest transferRequest() {
         return TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest())
+                .dataDestination(DataAddress.Builder.newInstance().type("type").build())
                 .build();
     }
 

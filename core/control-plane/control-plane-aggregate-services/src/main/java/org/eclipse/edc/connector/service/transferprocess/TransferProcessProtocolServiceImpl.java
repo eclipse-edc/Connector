@@ -211,7 +211,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
     
     private boolean validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {
-        return Optional.ofNullable(negotiationStore.findContractAgreement(transferProcess.getDataRequest().getContractId()))
+        return Optional.ofNullable(negotiationStore.findContractAgreement(transferProcess.getContractId()))
                 .map(agreement -> contractValidationService.validateRequest(claimToken, agreement))
                 .filter(Result::succeeded)
                 .isPresent();
