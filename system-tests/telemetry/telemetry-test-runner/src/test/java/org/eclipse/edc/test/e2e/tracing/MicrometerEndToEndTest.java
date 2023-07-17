@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -34,7 +34,7 @@ public class MicrometerEndToEndTest extends BaseTelemetryEndToEndTest {
     void testMicrometerMetrics() {
         // will request the catalog to itself, just to trigger okhttp metrics
         var requestBody = Json.createObjectBuilder()
-                .add(TYPE, EDC_CATALOG_REQUEST_TYPE)
+                .add(TYPE, CATALOG_REQUEST_TYPE)
                 .add(EDC_NAMESPACE + "providerUrl", "http://localhost:" + PROTOCOL_PORT + "/protocol")
                 .add(EDC_NAMESPACE + "protocol", "dataspace-protocol-http")
                 .build();

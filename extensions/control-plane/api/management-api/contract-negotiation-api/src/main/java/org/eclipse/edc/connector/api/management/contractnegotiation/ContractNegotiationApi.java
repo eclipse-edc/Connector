@@ -239,7 +239,7 @@ public interface ContractNegotiationApi {
             String offerId,
             String assetId,
             @Schema(description = "ODRL policy")
-            Object policy
+            ManagementApiSchema.PolicySchema policy
     ) {
 
     }

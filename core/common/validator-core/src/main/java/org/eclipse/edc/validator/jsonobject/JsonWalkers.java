@@ -33,7 +33,7 @@ public enum JsonWalkers implements JsonWalker {
         public Stream<JsonObject> extract(JsonObject object, JsonLdPath path) {
             var array = object.getJsonArray(path.last());
 
-            if (array == null) {
+            if (array == null || array.isEmpty()) {
                 return Stream.empty();
             } else {
                 return Stream.of(array.getJsonObject(0));

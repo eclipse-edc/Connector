@@ -7,109 +7,102 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogRequestDto'
+              $ref: '#/components/schemas/CatalogRequestSchema'
       responses:
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Catalog'
+                $ref: '#/components/schemas/CatalogSchema'
           description: Gets contract offers (=catalog) of a single connector
       tags:
       - Catalog
 components:
   schemas:
-    Action:
+    CatalogRequestSchema:
       type: object
-      example: null
-      properties:
-        constraint:
-          $ref: '#/components/schemas/Constraint'
-        includedIn:
-          type: string
-          example: null
-        type:
-          type: string
-          example: null
-    Catalog:
-      type: object
-      example: null
-      properties:
-        contractOffers:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/ContractOffer'
-        dataServices:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/DataService'
-        datasets:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Dataset'
-        id:
-          type: string
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-    CatalogRequestDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': CatalogRequest
+        providerUrl: http://provider-address
+        protocol: dataspace-protocol-http
+        querySpec:
+          offset: 0
+          limit: 50
+          sortOrder: DESC
+          sortField: fieldName
+          filterExpression: []
+      properties:
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/CatalogRequest
         protocol:
           type: string
           example: null
-        providerUrl:
-          type: string
-          example: null
         querySpec:
-          $ref: '#/components/schemas/QuerySpecDto'
-    Constraint:
+          $ref: '#/components/schemas/QuerySpecSchema'
+    CatalogSchema:
       type: object
-      discriminator:
-        propertyName: edctype
-      example: null
-      properties:
-        edctype:
-          type: string
-          example: null
-      required:
-      - edctype
-    ContractOffer:
-      type: object
-      example: null
-      properties:
-        assetId:
-          type: string
-          example: null
-        id:
-          type: string
-          example: null
-        policy:
-          $ref: '#/components/schemas/Policy'
-    CriterionDto:
-      type: object
-      example: null
-      properties:
+      description: DCAT catalog
+      example:
+        '@id': 7df65569-8c59-4013-b1c0-fa14f6641bf2
+        '@type': dcat:Catalog
+        dcat:dataset:
+          '@id': bcca61be-e82e-4da6-bfec-9716a56cef35
+          '@type': dcat:Dataset
+          odrl:hasPolicy:
+            '@id': OGU0ZTMzMGMtODQ2ZS00ZWMxLThmOGQtNWQxNWM0NmI2NmY4:YmNjYTYxYmUtZTgyZS00ZGE2LWJmZWMtOTcxNmE1NmNlZjM1:NDY2ZTZhMmEtNjQ1Yy00ZGQ0LWFlZDktMjdjNGJkZTU4MDNj
+            '@type': odrl:Set
+            odrl:permission:
+              odrl:target: bcca61be-e82e-4da6-bfec-9716a56cef35
+              odrl:action:
+                odrl:type: http://www.w3.org/ns/odrl/2/use
+              odrl:constraint:
+                odrl:and:
+                - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
+                  odrl:operator:
+                    '@id': odrl:gteq
+                  odrl:rightOperand: 2023-07-07T07:19:58.585601395Z
+                - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
+                  odrl:operator:
+                    '@id': odrl:lteq
+                  odrl:rightOperand: 2023-07-12T07:19:58.585601395Z
+            odrl:prohibition: []
+            odrl:obligation: []
+            odrl:target: bcca61be-e82e-4da6-bfec-9716a56cef35
+          dcat:distribution:
+          - '@type': dcat:Distribution
+            dct:format:
+              '@id': HttpData
+            dcat:accessService: 5e839777-d93e-4785-8972-1005f51cf367
+          edc:description: description
+          edc:id: bcca61be-e82e-4da6-bfec-9716a56cef35
+        dcat:service:
+          '@id': 5e839777-d93e-4785-8972-1005f51cf367
+          '@type': dcat:DataService
+          dct:terms: connector
+          dct:endpointUrl: http://localhost:16806/protocol
+        edc:participantId: urn:connector:provider
         '@context':
-          type: object
-          example: null
+          dct: https://purl.org/dc/terms/
+          edc: https://w3id.org/edc/v0.0.1/ns/
+          dcat: https://www.w3.org/ns/dcat/
+          odrl: http://www.w3.org/ns/odrl/2/
+          dspace: https://w3id.org/dspace/v0.8/
+    CriterionSchema:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': Criterion
+        operandLeft: fieldName
+        operator: =
+        operandRight: some value
+      properties:
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
         operandLeft:
           type: object
           example: null
@@ -117,75 +110,6 @@ components:
           type: object
           example: null
         operator:
-          type: string
-          example: null
-    DataService:
-      type: object
-      example: null
-      properties:
-        endpointUrl:
-          type: string
-          example: null
-        id:
-          type: string
-          example: null
-        terms:
-          type: string
-          example: null
-    Dataset:
-      type: object
-      example: null
-      properties:
-        distributions:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Distribution'
-        id:
-          type: string
-          example: null
-        offers:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Policy'
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-    Distribution:
-      type: object
-      example: null
-      properties:
-        dataService:
-          $ref: '#/components/schemas/DataService'
-        format:
-          type: string
-          example: null
-    Duty:
-      type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        consequence:
-          $ref: '#/components/schemas/Duty'
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        parentPermission:
-          $ref: '#/components/schemas/Permission'
-        target:
           type: string
           example: null
     JsonObject:
@@ -223,110 +147,26 @@ components:
           - "FALSE"
           - "NULL"
           example: null
-    Permission:
+    QuerySpecSchema:
       type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        duties:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Duty'
-        target:
-          type: string
-          example: null
-    Policy:
-      type: object
-      example: null
-      properties:
-        '@type':
-          type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
-          example: null
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-        inheritsFrom:
-          type: string
-          example: null
-        obligations:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Duty'
-        permissions:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Permission'
-        prohibitions:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Prohibition'
-        target:
-          type: string
-          example: null
-    Prohibition:
-      type: object
-      example: null
-      properties:
-        action:
-          $ref: '#/components/schemas/Action'
-        assignee:
-          type: string
-          example: null
-        assigner:
-          type: string
-          example: null
-        constraints:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/Constraint'
-        target:
-          type: string
-          example: null
-    QuerySpecDto:
-      type: object
-      example: null
-      properties:
+      example:
         '@context':
-          type: object
-          example: null
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': QuerySpec
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        filterExpression: []
+      properties:
         '@type':
           type: string
-          example: null
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionDto'
+            $ref: '#/components/schemas/CriterionSchema'
         limit:
           type: integer
           format: int32

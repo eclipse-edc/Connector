@@ -37,6 +37,7 @@ public interface ApiCoreSchema {
         public static final String CRITERION_EXAMPLE = """
                 {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "Criterion",
                     "operandLeft": "fieldName",
                     "operator": "=",
                     "operandRight": "some value"
@@ -57,11 +58,12 @@ public interface ApiCoreSchema {
         public static final String QUERY_SPEC_EXAMPLE = """
                 {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "QuerySpec",
                     "offset": 5,
                     "limit": 10,
                     "sortOrder": "DESC",
                     "sortField": "fieldName",
-                    "criterion": []
+                    "filterExpression": []
                 }
                 """;
     }

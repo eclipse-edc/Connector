@@ -256,6 +256,7 @@ components:
       example:
         '@context':
           edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': Criterion
         operandLeft: fieldName
         operator: =
         operandRight: some value
@@ -347,11 +348,12 @@ components:
       example:
         '@context':
           edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': QuerySpec
         offset: 5
         limit: 10
         sortOrder: DESC
         sortField: fieldName
-        criterion: []
+        filterExpression: []
       properties:
         '@type':
           type: string

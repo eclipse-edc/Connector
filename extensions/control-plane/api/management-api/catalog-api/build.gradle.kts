@@ -25,12 +25,12 @@ dependencies {
 
     implementation(libs.jakarta.rsApi)
 
-    testImplementation(project(":extensions:common:http"))
-    testImplementation(project(":extensions:common:iam:iam-mock"))
-
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:transform-core"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
+    testImplementation(project(":extensions:common:http"))
+    testImplementation(project(":extensions:common:iam:iam-mock"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
 }

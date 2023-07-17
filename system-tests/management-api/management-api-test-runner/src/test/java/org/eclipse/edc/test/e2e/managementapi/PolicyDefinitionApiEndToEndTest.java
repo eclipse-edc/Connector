@@ -120,7 +120,6 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .add("policy", sampleOdrlPolicy())
                 .build();
 
-
         var id = baseRequest()
                 .body(requestBody)
                 .contentType(JSON)

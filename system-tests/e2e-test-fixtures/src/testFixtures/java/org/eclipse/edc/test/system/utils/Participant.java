@@ -179,6 +179,7 @@ public class Participant {
                     .body(requestBody)
                     .post("/v2/catalog/request")
                     .then()
+                    .log().all()
                     .statusCode(200)
                     .extract().body().asString();
 

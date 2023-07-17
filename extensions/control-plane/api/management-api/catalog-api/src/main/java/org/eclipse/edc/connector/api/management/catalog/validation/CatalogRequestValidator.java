@@ -20,17 +20,17 @@ import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_PROVIDER_URL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.EDC_CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 
 public class CatalogRequestValidator {
 
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
-                .verify(EDC_CATALOG_REQUEST_PROVIDER_URL, MandatoryValue::new)
-                .verify(EDC_CATALOG_REQUEST_PROTOCOL, MandatoryValue::new)
-                .verifyObject(EDC_CATALOG_REQUEST_QUERY_SPEC, QuerySpecDtoValidator::instance)
+                .verify(CATALOG_REQUEST_PROVIDER_URL, MandatoryValue::new)
+                .verify(CATALOG_REQUEST_PROTOCOL, MandatoryValue::new)
+                .verifyObject(CATALOG_REQUEST_QUERY_SPEC, QuerySpecDtoValidator::instance)
                 .build();
     }
 }
