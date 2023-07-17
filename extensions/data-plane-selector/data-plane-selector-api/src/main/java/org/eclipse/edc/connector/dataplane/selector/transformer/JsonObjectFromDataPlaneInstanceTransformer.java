@@ -36,7 +36,7 @@ public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTr
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper mapper;
 
-    protected JsonObjectFromDataPlaneInstanceTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
+    public JsonObjectFromDataPlaneInstanceTransformer(JsonBuilderFactory jsonFactory, ObjectMapper mapper) {
         super(DataPlaneInstance.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.mapper = mapper;

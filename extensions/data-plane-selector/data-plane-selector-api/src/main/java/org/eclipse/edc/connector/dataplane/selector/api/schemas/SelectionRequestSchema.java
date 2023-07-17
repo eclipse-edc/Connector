@@ -20,8 +20,7 @@ import static org.eclipse.edc.connector.dataplane.selector.api.SelectionRequest.
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @Schema(example = SelectionRequestSchema.SELECTION_REQUEST_INPUT_EXAMPLE)
-public
-record SelectionRequestSchema(
+public record SelectionRequestSchema(
         @Schema(name = TYPE, example = SELECTION_REQUEST_TYPE)
         String type,
         String strategy,

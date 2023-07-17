@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class JsonObjectToSelectionRequestTransformer extends AbstractJsonLdTransformer<JsonObject, SelectionRequest> {
 
-    protected JsonObjectToSelectionRequestTransformer() {
+    public JsonObjectToSelectionRequestTransformer() {
         super(JsonObject.class, SelectionRequest.class);
 
     }
@@ -41,9 +41,7 @@ public class JsonObjectToSelectionRequestTransformer extends AbstractJsonLdTrans
                 case SelectionRequest.SOURCE_ADDRESS ->
                         builder.source(transformObject(jsonValue, DataAddress.class, context));
                 case SelectionRequest.STRATEGY -> builder.strategy(transformString(jsonValue, context));
-                default -> {
-                
-                }
+                default -> throw new IllegalStateException("Unexpected value: " + key);
             }
         });
 

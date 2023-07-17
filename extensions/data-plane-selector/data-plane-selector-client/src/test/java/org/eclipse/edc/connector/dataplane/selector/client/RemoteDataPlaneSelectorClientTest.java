@@ -21,6 +21,7 @@ import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
@@ -52,6 +53,7 @@ class RemoteDataPlaneSelectorClientTest {
     private static JettyConfiguration config;
     private static TypeManager typeManager;
     private RemoteDataPlaneSelectorClient client;
+    private TypeTransformerRegistry transformerRegistry;
 
     @BeforeAll
     public static void prepare() {
