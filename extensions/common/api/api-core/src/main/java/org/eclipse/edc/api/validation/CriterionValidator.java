@@ -25,12 +25,12 @@ import org.eclipse.edc.validator.spi.Violation;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_LEFT;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERAND_RIGHT;
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_OPERATOR;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
 
-public class CriterionDtoValidator {
+public class CriterionValidator {
 
     public static Validator<JsonObject> instance() {
         return instance(JsonObjectValidator.newValidator()).build();

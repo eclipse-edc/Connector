@@ -25,8 +25,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.model.QuerySpecDto;
+import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
@@ -44,6 +43,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -67,16 +67,15 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryNegotiations(JsonObject querySpecDto) {
+    public JsonArray queryNegotiations(JsonObject querySpecJson) {
         QuerySpec querySpec;
-        if (querySpecDto == null) {
+        if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
         } else {
-            validatorRegistry.validate(QuerySpecDto.EDC_QUERY_SPEC_TYPE, querySpecDto)
+            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecJson)
                     .orElseThrow(ValidationFailureException::new);
 
-            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
-                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+            querySpec = transformerRegistry.transform(querySpecJson, QuerySpec.class)
                     .orElseThrow(InvalidRequestException::new);
         }
 
@@ -136,7 +135,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         var contractNegotiation = service.initiateNegotiation(contractRequest);
 
-        var responseDto = IdResponseDto.Builder.newInstance()
+        var responseDto = IdResponse.Builder.newInstance()
                 .id(contractNegotiation.getId())
                 .createdAt(contractNegotiation.getCreatedAt())
                 .build();

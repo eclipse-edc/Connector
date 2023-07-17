@@ -35,10 +35,10 @@ public class JsonObjectFromNegotiationStateTransformer extends AbstractJsonLdTra
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull NegotiationState dto, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull NegotiationState negotiationState, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, NEGOTIATION_STATE_TYPE)
-                .add(NEGOTIATION_STATE_STATE, dto.getState())
+                .add(NEGOTIATION_STATE_STATE, negotiationState.state())
                 .build();
     }
 }

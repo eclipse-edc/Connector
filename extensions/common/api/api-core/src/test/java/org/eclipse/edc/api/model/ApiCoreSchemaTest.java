@@ -17,13 +17,19 @@ package org.eclipse.edc.api.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.transformer.JsonObjectToCriterionDtoTransformer;
-import org.eclipse.edc.api.transformer.JsonObjectToQuerySpecDtoTransformer;
-import org.eclipse.edc.api.validation.CriterionDtoValidator;
-import org.eclipse.edc.api.validation.QuerySpecDtoValidator;
+import org.eclipse.edc.api.validation.CriterionValidator;
+import org.eclipse.edc.api.validation.QuerySpecValidator;
+import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -38,11 +44,18 @@ class ApiCoreSchemaTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
+    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+
+    @BeforeEach
+    void setUp() {
+        transformer.register(new JsonObjectToQuerySpecTransformer());
+        transformer.register(new JsonObjectToCriterionTransformer());
+        transformer.register(new JsonValueToGenericTypeTransformer(objectMapper));
+    }
 
     @Test
     void criterionExample() throws JsonProcessingException {
-        var transformer = new JsonObjectToCriterionDtoTransformer();
-        var validator = CriterionDtoValidator.instance();
+        var validator = CriterionValidator.instance();
 
         var jsonObject = objectMapper.readValue(CRITERION_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -50,7 +63,7 @@ class ApiCoreSchemaTest {
         var expanded = jsonLd.expand(jsonObject);
         assertThat(expanded).isSucceeded()
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, mock()))
+                .extracting(e -> transformer.transform(e, Criterion.class).getContent())
                 .isNotNull()
                 .satisfies(transformed -> {
                     assertThat(transformed.getOperandLeft()).isNotNull();
@@ -61,8 +74,7 @@ class ApiCoreSchemaTest {
 
     @Test
     void querySpecExample() throws JsonProcessingException {
-        var transformer = new JsonObjectToQuerySpecDtoTransformer();
-        var validator = QuerySpecDtoValidator.instance();
+        var validator = QuerySpecValidator.instance();
 
         var jsonObject = objectMapper.readValue(QUERY_SPEC_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -70,7 +82,7 @@ class ApiCoreSchemaTest {
         var expanded = jsonLd.expand(jsonObject);
         assertThat(expanded).isSucceeded()
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, mock()))
+                .extracting(e -> transformer.transform(e, QuerySpec.class).getContent())
                 .isNotNull()
                 .satisfies(transformed -> {
                     assertThat(transformed.getOffset()).isGreaterThan(0);

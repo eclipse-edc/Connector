@@ -29,7 +29,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
  */
 public interface ManagementApiSchema {
 
-    @Schema(example = ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE)
+    @Schema(name = "ContractAgreement", example = ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE)
     record ContractAgreementSchema(
             @Schema(name = TYPE, example = ContractAgreement.CONTRACT_AGREEMENT_TYPE)
             String ldType,
@@ -39,7 +39,6 @@ public interface ManagementApiSchema {
             String consumerId,
             long contractSigningDate,
             String assetId,
-            @Schema(description = "ODRL policy")
             PolicySchema policy
     ) {
         public static final String CONTRACT_AGREEMENT_EXAMPLE = """
@@ -64,6 +63,7 @@ public interface ManagementApiSchema {
                 """;
     }
 
+    @Schema(name = "CallbackAddress")
     record CallbackAddressSchema(
             @Schema(name = TYPE, example = CallbackAddress.CALLBACKADDRESS_TYPE)
             String type,
@@ -76,6 +76,7 @@ public interface ManagementApiSchema {
 
     }
 
+    @Schema(name = "DataAddress")
     record DataAddressSchema(
             @Schema(name = TYPE, example = DataAddress.EDC_DATA_ADDRESS_TYPE)
             String type,
@@ -84,7 +85,7 @@ public interface ManagementApiSchema {
     ) {
     }
 
-    @Schema(description = "ODRL policy", example = PolicySchema.POLICY_EXAMPLE)
+    @Schema(name = "Policy", description = "ODRL policy", example = PolicySchema.POLICY_EXAMPLE)
     record PolicySchema() {
         public static final String POLICY_EXAMPLE = """
                 {

@@ -44,7 +44,7 @@ public interface PolicyDefinitionApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))}
     )
-    JsonArray queryPolicyDefinitions(JsonObject querySpecDto);
+    JsonArray queryPolicyDefinitions(JsonObject querySpecJson);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {
@@ -97,7 +97,7 @@ public interface PolicyDefinitionApi {
     )
     void updatePolicyDefinition(String id, JsonObject policyDefinition);
 
-    @Schema(example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
+    @Schema(name = "PolicyDefinitionInput", example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
     record PolicyDefinitionInputSchema(
             @Schema(name = ID)
             String id,
@@ -129,7 +129,7 @@ public interface PolicyDefinitionApi {
                 """;
     }
 
-    @Schema(example = PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE)
+    @Schema(name = "PolicyDefinitionOutput", example = PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE)
     record PolicyDefinitionOutputSchema(
             @Schema(name = ID)
             String id,

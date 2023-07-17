@@ -24,8 +24,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.model.QuerySpecDto;
+import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.spi.EdcException;
@@ -41,8 +40,8 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
@@ -66,15 +65,14 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @POST
     @Path("request")
     @Override
-    public JsonArray queryPolicyDefinitions(JsonObject querySpecDto) {
+    public JsonArray queryPolicyDefinitions(JsonObject querySpecJson) {
         QuerySpec querySpec;
-        if (querySpecDto == null) {
+        if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
         } else {
-            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecDto).orElseThrow(ValidationFailureException::new);
+            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecJson).orElseThrow(ValidationFailureException::new);
 
-            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
-                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+            querySpec = transformerRegistry.transform(querySpecJson, QuerySpec.class)
                     .orElseThrow(InvalidRequestException::new);
         }
 
@@ -112,7 +110,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
                 .onSuccess(d -> monitor.debug(format("Policy Definition created %s", d.getId())))
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, definition.getId()));
 
-        var responseDto = IdResponseDto.Builder.newInstance()
+        var responseDto = IdResponse.Builder.newInstance()
                 .id(createdDefinition.getId())
                 .createdAt(createdDefinition.getCreatedAt())
                 .build();

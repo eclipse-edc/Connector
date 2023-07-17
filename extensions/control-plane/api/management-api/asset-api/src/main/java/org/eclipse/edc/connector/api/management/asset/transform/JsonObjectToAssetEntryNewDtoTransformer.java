@@ -27,6 +27,7 @@ import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNew
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_ASSET;
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_DATA_ADDRESS;
 
+@Deprecated(since = "0.1.3")
 public class JsonObjectToAssetEntryNewDtoTransformer extends AbstractJsonLdTransformer<JsonObject, AssetEntryNewDto> {
 
     public JsonObjectToAssetEntryNewDtoTransformer() {

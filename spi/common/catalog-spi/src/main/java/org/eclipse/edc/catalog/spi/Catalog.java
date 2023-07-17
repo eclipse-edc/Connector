@@ -27,7 +27,7 @@ import java.util.Map;
 import static java.util.UUID.randomUUID;
 
 /**
- * DTO representing catalog containing {@link ContractOffer}s.
+ * Entity representing a Catalog
  */
 @JsonDeserialize(builder = Catalog.Builder.class)
 public class Catalog {

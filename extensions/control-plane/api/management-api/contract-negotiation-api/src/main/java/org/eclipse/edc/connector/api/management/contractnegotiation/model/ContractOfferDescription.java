@@ -46,10 +46,10 @@ public class ContractOfferDescription {
     }
 
     public static final class Builder {
-        private final ContractOfferDescription dto;
+        private final ContractOfferDescription description;
 
         private Builder() {
-            dto = new ContractOfferDescription();
+            description = new ContractOfferDescription();
         }
 
         public static ContractOfferDescription.Builder newInstance() {
@@ -57,22 +57,22 @@ public class ContractOfferDescription {
         }
 
         public ContractOfferDescription.Builder offerId(String offerId) {
-            dto.offerId = offerId;
+            description.offerId = offerId;
             return this;
         }
 
         public ContractOfferDescription.Builder assetId(String assetId) {
-            dto.assetId = assetId;
+            description.assetId = assetId;
             return this;
         }
 
         public ContractOfferDescription.Builder policy(Policy policy) {
-            dto.policy = policy;
+            description.policy = policy;
             return this;
         }
 
         public ContractOfferDescription build() {
-            return dto;
+            return description;
         }
     }
 }

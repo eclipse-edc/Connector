@@ -8,13 +8,13 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/ContractDefinitionInputSchema'
+              $ref: '#/components/schemas/ContractDefinitionInput'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseSchema'
+                $ref: '#/components/schemas/IdResponse'
           description: contract definition was created successfully. Returns the Contract
             Definition Id and created timestamp
         "400":
@@ -46,7 +46,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/ContractDefinitionInputSchema'
+              $ref: '#/components/schemas/ContractDefinitionInput'
       responses:
         "204":
           description: Contract definition was updated successfully
@@ -78,7 +78,7 @@ paths:
         content:
           '*/*':
             schema:
-              $ref: '#/components/schemas/QuerySpecSchema'
+              $ref: '#/components/schemas/QuerySpec'
       responses:
         "200":
           content:
@@ -87,7 +87,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractDefinitionOutputSchema'
+                  $ref: '#/components/schemas/ContractDefinitionOutput'
           description: The contract definitions matching the query
         "400":
           content:
@@ -152,7 +152,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractDefinitionOutputSchema'
+                $ref: '#/components/schemas/ContractDefinitionOutput'
           description: The contract definition
         "400":
           content:
@@ -192,7 +192,7 @@ components:
         type:
           type: string
           example: null
-    ContractDefinitionInputSchema:
+    ContractDefinitionInput:
       type: object
       example:
         '@context':
@@ -215,11 +215,11 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionSchema'
+            $ref: '#/components/schemas/Criterion'
         contractPolicyId:
           type: string
           example: null
-    ContractDefinitionOutputSchema:
+    ContractDefinitionOutput:
       type: object
       example:
         '@context':
@@ -243,7 +243,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionSchema'
+            $ref: '#/components/schemas/Criterion'
         contractPolicyId:
           type: string
           example: null
@@ -251,7 +251,7 @@ components:
           type: integer
           format: int64
           example: null
-    CriterionSchema:
+    Criterion:
       type: object
       example:
         '@context':
@@ -263,7 +263,7 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
         operandLeft:
           type: object
           example: null
@@ -273,7 +273,7 @@ components:
         operator:
           type: string
           example: null
-    IdResponseSchema:
+    IdResponse:
       type: object
       example:
         '@context':
@@ -343,7 +343,7 @@ components:
           - "FALSE"
           - "NULL"
           example: null
-    QuerySpecSchema:
+    QuerySpec:
       type: object
       example:
         '@context':
@@ -357,12 +357,12 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionSchema'
+            $ref: '#/components/schemas/Criterion'
         limit:
           type: integer
           format: int32

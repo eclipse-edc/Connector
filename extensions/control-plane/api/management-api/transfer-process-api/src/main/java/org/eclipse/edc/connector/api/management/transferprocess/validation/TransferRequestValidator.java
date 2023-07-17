@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.transferprocess.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.validation.DataAddressDtoValidator;
+import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
@@ -40,7 +40,7 @@ public class TransferRequestValidator {
                 .verify(TRANSFER_REQUEST_CONNECTOR_ID, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_ASSET_ID, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_DATA_DESTINATION, MandatoryObject::new)
-                .verifyObject(TRANSFER_REQUEST_DATA_DESTINATION, DataAddressDtoValidator::instance)
+                .verifyObject(TRANSFER_REQUEST_DATA_DESTINATION, DataAddressValidator::instance)
                 .build();
     }
 }

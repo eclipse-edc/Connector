@@ -24,8 +24,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.model.QuerySpecDto;
+import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.EdcException;
@@ -64,16 +63,15 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAllContractDefinitions(JsonObject querySpecDto) {
+    public JsonArray queryAllContractDefinitions(JsonObject querySpecJson) {
         QuerySpec querySpec;
-        if (querySpecDto == null) {
+        if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
         } else {
-            validatorRegistry.validate(QuerySpecDto.EDC_QUERY_SPEC_TYPE, querySpecDto)
+            validatorRegistry.validate(QuerySpec.EDC_QUERY_SPEC_TYPE, querySpecJson)
                     .orElseThrow(ValidationFailureException::new);
 
-            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
-                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+            querySpec = transformerRegistry.transform(querySpecJson, QuerySpec.class)
                     .orElseThrow(InvalidRequestException::new);
         }
 
@@ -108,7 +106,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
                 .orElseThrow(InvalidRequestException::new);
 
         var responseDto = service.create(transform)
-                .map(contractDefinition -> IdResponseDto.Builder.newInstance()
+                .map(contractDefinition -> IdResponse.Builder.newInstance()
                         .id(contractDefinition.getId())
                         .createdAt(contractDefinition.getCreatedAt())
                         .build())

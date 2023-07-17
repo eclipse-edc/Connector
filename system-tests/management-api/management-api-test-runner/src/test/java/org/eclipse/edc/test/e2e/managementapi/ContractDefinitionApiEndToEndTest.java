@@ -147,7 +147,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
 
     private static JsonObjectBuilder createCriterionBuilder(String left, String operator, String right) {
         return createObjectBuilder()
-                .add(TYPE, "CriterionDto")
+                .add(TYPE, "Criterion")
                 .add("operandLeft", left)
                 .add("operator", operator)
                 .add("operandRight", right);

@@ -22,7 +22,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
@@ -39,7 +38,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Produces({MediaType.APPLICATION_JSON})
@@ -61,15 +60,14 @@ public class ContractAgreementApiController implements ContractAgreementApi {
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAllAgreements(JsonObject querySpecDto) {
+    public JsonArray queryAllAgreements(JsonObject querySpecJson) {
         QuerySpec querySpec;
-        if (querySpecDto == null) {
+        if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
         } else {
-            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecDto).orElseThrow(ValidationFailureException::new);
+            validatorRegistry.validate(EDC_QUERY_SPEC_TYPE, querySpecJson).orElseThrow(ValidationFailureException::new);
 
-            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
-                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+            querySpec = transformerRegistry.transform(querySpecJson, QuerySpec.class)
                     .orElseThrow(InvalidRequestException::new);
         }
 

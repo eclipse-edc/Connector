@@ -48,7 +48,7 @@ public interface ContractDefinitionApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
-    JsonArray queryAllContractDefinitions(JsonObject querySpecDto);
+    JsonArray queryAllContractDefinitions(JsonObject querySpecJson);
 
     @Operation(description = "Gets an contract definition with the given ID",
             responses = {
@@ -98,7 +98,7 @@ public interface ContractDefinitionApi {
     )
     void updateContractDefinition(JsonObject updateObject);
 
-    @Schema(example = CONTRACT_DEFINITION_INPUT_EXAMPLE)
+    @Schema(name = "ContractDefinitionInput", example = CONTRACT_DEFINITION_INPUT_EXAMPLE)
     record ContractDefinitionInputSchema(
             @Schema(name = ID)
             String id,
@@ -119,7 +119,7 @@ public interface ContractDefinitionApi {
                 """;
     }
 
-    @Schema(example = CONTRACT_DEFINITION_OUTPUT_EXAMPLE)
+    @Schema(name = "ContractDefinitionOutput", example = CONTRACT_DEFINITION_OUTPUT_EXAMPLE)
     record ContractDefinitionOutputSchema(
             @Schema(name = ID)
             String id,

@@ -24,8 +24,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import org.eclipse.edc.api.model.IdResponseDto;
-import org.eclipse.edc.api.model.QuerySpecDto;
+import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.spi.EdcException;
@@ -44,8 +43,8 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.util.Optional.of;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -78,30 +77,29 @@ public class AssetApiController implements AssetApi {
         var assetEntry = transformerRegistry.transform(assetEntryDto, AssetEntryNewDto.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var dto = service.create(assetEntry.getAsset(), assetEntry.getDataAddress())
-                .map(a -> IdResponseDto.Builder.newInstance()
+        var response = service.create(assetEntry.getAsset(), assetEntry.getDataAddress())
+                .map(a -> IdResponse.Builder.newInstance()
                         .id(a.getId())
                         .createdAt(a.getCreatedAt())
                         .build())
                 .orElseThrow(exceptionMapper(Asset.class, assetEntry.getAsset().getId()));
 
-        return transformerRegistry.transform(dto, JsonObject.class)
+        return transformerRegistry.transform(response, JsonObject.class)
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
     @POST
     @Path("/request")
     @Override
-    public JsonArray requestAssets(JsonObject querySpecDto) {
+    public JsonArray requestAssets(JsonObject querySpecJson) {
         logDeprecationWarning();
         QuerySpec querySpec;
-        if (querySpecDto == null) {
+        if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
         } else {
-            validator.validate(EDC_QUERY_SPEC_TYPE, querySpecDto).orElseThrow(ValidationFailureException::new);
+            validator.validate(EDC_QUERY_SPEC_TYPE, querySpecJson).orElseThrow(ValidationFailureException::new);
 
-            querySpec = transformerRegistry.transform(querySpecDto, QuerySpecDto.class)
-                    .compose(dto -> transformerRegistry.transform(dto, QuerySpec.class))
+            querySpec = transformerRegistry.transform(querySpecJson, QuerySpec.class)
                     .orElseThrow(InvalidRequestException::new);
         }
 

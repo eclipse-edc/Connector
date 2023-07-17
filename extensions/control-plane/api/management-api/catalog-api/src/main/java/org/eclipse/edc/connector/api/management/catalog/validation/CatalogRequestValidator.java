@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.catalog.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.validation.QuerySpecDtoValidator;
+import org.eclipse.edc.api.validation.QuerySpecValidator;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
@@ -30,7 +30,7 @@ public class CatalogRequestValidator {
         return JsonObjectValidator.newValidator()
                 .verify(CATALOG_REQUEST_PROVIDER_URL, MandatoryValue::new)
                 .verify(CATALOG_REQUEST_PROTOCOL, MandatoryValue::new)
-                .verifyObject(CATALOG_REQUEST_QUERY_SPEC, QuerySpecDtoValidator::instance)
+                .verifyObject(CATALOG_REQUEST_QUERY_SPEC, QuerySpecValidator::instance)
                 .build();
     }
 }

@@ -26,15 +26,15 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_FILTER_EXPRESSION;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_LIMIT;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_OFFSET;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_SORT_FIELD;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_SORT_ORDER;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_LIMIT;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_OFFSET;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_ORDER;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
-public class QuerySpecDtoValidator {
+public class QuerySpecValidator {
 
     public static Validator<JsonObject> instance() {
         return instance(JsonObjectValidator.newValidator()).build();
@@ -46,7 +46,7 @@ public class QuerySpecDtoValidator {
                 .verify(EDC_QUERY_SPEC_LIMIT, OptionalValueGreaterZero::new)
                 .verify(EDC_QUERY_SPEC_SORT_ORDER, OptionalValueSortField::new)
                 .verify(EDC_QUERY_SPEC_SORT_FIELD, OptionalValueNotBlank::new)
-                .verifyObject(EDC_QUERY_SPEC_FILTER_EXPRESSION, CriterionDtoValidator::instance);
+                .verifyObject(EDC_QUERY_SPEC_FILTER_EXPRESSION, CriterionValidator::instance);
     }
 
     private record OptionalValueGreaterEqualZero(JsonLdPath path) implements Validator<JsonObject> {

@@ -20,6 +20,8 @@ import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.core.transform.transformer.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
@@ -45,14 +47,34 @@ class JsonObjectToCriterionTransformerTest {
         var json = Json.createObjectBuilder()
                 .add(JsonLdKeywords.TYPE, CRITERION_TYPE)
                 .add(CRITERION_OPERAND_LEFT, "foo")
-                .add(CRITERION_OPERAND_RIGHT, "bar")
                 .add(CRITERION_OPERATOR, "=")
+                .add(CRITERION_OPERAND_RIGHT, "bar")
                 .build();
 
-        var crit = transformer.transform(getExpanded(json), context);
-        assertThat(crit).isNotNull();
-        assertThat(crit.getOperator()).isEqualTo("=");
-        assertThat(crit.getOperandLeft()).isEqualTo("foo");
-        assertThat(crit.getOperandRight()).isEqualTo("bar");
+        var result = transformer.transform(getExpanded(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getOperandLeft()).isEqualTo("foo");
+        assertThat(result.getOperator()).isEqualTo("=");
+        assertThat(result.getOperandRight()).isEqualTo("bar");
+    }
+
+    @Test
+    void transform_shouldConsiderRightAsList_whenOperatorIsIn() {
+        var context = mock(TransformerContext.class);
+        when(context.transform(any(JsonValue.class), eq(Object.class))).thenAnswer(a -> genericTypeTransformer.transform(a.getArgument(0), context));
+        var json = Json.createObjectBuilder()
+                .add(JsonLdKeywords.TYPE, CRITERION_TYPE)
+                .add(CRITERION_OPERAND_LEFT, "foo")
+                .add(CRITERION_OPERATOR, "in")
+                .add(CRITERION_OPERAND_RIGHT, Json.createArrayBuilder().add("bar").add("baz"))
+                .build();
+
+        var result = transformer.transform(getExpanded(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getOperandLeft()).isEqualTo("foo");
+        assertThat(result.getOperator()).isEqualTo("in");
+        assertThat(result.getOperandRight()).isInstanceOf(List.class).asList().containsExactly("bar", "baz");
     }
 }
