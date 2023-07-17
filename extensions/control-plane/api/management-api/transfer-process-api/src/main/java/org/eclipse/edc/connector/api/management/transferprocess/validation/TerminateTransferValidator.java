@@ -19,12 +19,12 @@ import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_REASON;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_REASON;
 
-public class TerminateTransferDtoValidator {
+public class TerminateTransferValidator {
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
-                .verify(EDC_TERMINATE_TRANSFER_REASON, MandatoryValue::new)
+                .verify(TERMINATE_TRANSFER_REASON, MandatoryValue::new)
                 .build();
     }
 }

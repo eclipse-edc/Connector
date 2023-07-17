@@ -26,18 +26,18 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_REASON;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_REASON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
-class TerminateTransferDtoValidatorTest {
+class TerminateTransferValidatorTest {
 
-    private final Validator<JsonObject> validator = TerminateTransferDtoValidator.instance();
+    private final Validator<JsonObject> validator = TerminateTransferValidator.instance();
 
     @Test
     void shouldReturnSuccess_whenObjectIsValid() {
         var input = createObjectBuilder()
-                .add(EDC_TERMINATE_TRANSFER_REASON, value("any reason"))
+                .add(TERMINATE_TRANSFER_REASON, value("any reason"))
                 .build();
 
         var result = validator.validate(input);
@@ -53,7 +53,7 @@ class TerminateTransferDtoValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(EDC_TERMINATE_TRANSFER_REASON));
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TERMINATE_TRANSFER_REASON));
     }
 
     private JsonArrayBuilder value(String value) {

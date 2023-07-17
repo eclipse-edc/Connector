@@ -16,6 +16,10 @@ package org.eclipse.edc.connector.api.management.configuration;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+
+import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -60,4 +64,22 @@ public interface ManagementApiSchema {
                 """;
     }
 
+    record CallbackAddressSchema(
+            @Schema(name = TYPE, example = CallbackAddress.CALLBACKADDRESS_TYPE)
+            String type,
+            String uri,
+            Set<String> events,
+            boolean transactional,
+            String authKey,
+            String authCodeId
+    ) {
+
+    }
+
+    record DataAddressSchema(
+            @Schema(name = TYPE, example = DataAddress.EDC_DATA_ADDRESS_TYPE)
+            String type,
+            @Schema(name = "type")
+            String typeProperty
+    ) { }
 }

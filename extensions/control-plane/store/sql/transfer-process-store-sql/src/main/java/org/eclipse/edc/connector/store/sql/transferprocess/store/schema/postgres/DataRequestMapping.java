@@ -27,7 +27,7 @@ class DataRequestMapping extends TranslationMapping {
 
     private static final String FIELD_ID = "id";
     private static final String FIELD_PROCESS_ID = "processId";
-    private static final String FIELD_CONNECTOR_ADDRESS = "connectorAddress"; // TODO change to callbackAddress
+    private static final String FIELD_CONNECTOR_ADDRESS = "connectorAddress";
     private static final String FIELD_PROTOCOL = "protocol";
     private static final String FIELD_CONNECTOR_ID = "connectorId";
     private static final String FIELD_ASSET_ID = "assetId";

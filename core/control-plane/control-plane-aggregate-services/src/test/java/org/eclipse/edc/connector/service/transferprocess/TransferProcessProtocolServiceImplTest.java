@@ -112,8 +112,8 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isSucceeded().satisfies(tp -> {
             assertThat(tp.getCorrelationId()).isEqualTo("transferProcessId");
-            assertThat(tp.getDataRequest().getConnectorAddress()).isEqualTo("http://any");
-            assertThat(tp.getDataRequest().getAssetId()).isEqualTo("assetId");
+            assertThat(tp.getConnectorAddress()).isEqualTo("http://any");
+            assertThat(tp.getAssetId()).isEqualTo("assetId");
         });
         verify(listener).preCreated(any());
         verify(store).updateOrCreate(argThat(t -> t.getState() == INITIAL.code()));

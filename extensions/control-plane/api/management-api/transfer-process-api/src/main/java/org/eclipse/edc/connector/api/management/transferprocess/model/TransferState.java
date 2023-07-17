@@ -21,18 +21,9 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 /**
  * Wrapper for {@link TransferProcessStates} formatted as String. Used to format a simple string as JSON.
  */
-public class TransferState {
+public record TransferState(String state) {
 
-    public static final String EDC_TRANSFER_STATE_TYPE = EDC_NAMESPACE + "TransferState";
-    public static final String EDC_TRANSFER_STATE_STATE = EDC_NAMESPACE + "state";
+    public static final String TRANSFER_STATE_TYPE = EDC_NAMESPACE + "TransferState";
+    public static final String TRANSFER_STATE_STATE = EDC_NAMESPACE + "state";
 
-    private final String state;
-
-    public TransferState(String state) {
-        this.state = state;
-    }
-
-    public String getState() {
-        return state;
-    }
 }

@@ -24,9 +24,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponseDto;
 import org.eclipse.edc.api.model.QuerySpecDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferProcessDto;
-import org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto;
+import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -47,8 +45,8 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
 import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_TYPE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
@@ -87,8 +85,7 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(TransferProcess.class))) {
             return stream
-                    .map(transferProcess -> transformerRegistry.transform(transferProcess, TransferProcessDto.class)
-                            .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+                    .map(transferProcess -> transformerRegistry.transform(transferProcess, JsonObject.class)
                             .onFailure(f -> monitor.warning(f.getFailureDetail())))
                     .filter(Result::succeeded)
                     .map(Result::getContent)
@@ -105,8 +102,7 @@ public class TransferProcessApiController implements TransferProcessApi {
             throw new ObjectNotFoundException(TransferProcess.class, id);
         }
 
-        return transformerRegistry.transform(definition, TransferProcessDto.class)
-                .compose(dto -> transformerRegistry.transform(dto, JsonObject.class))
+        return transformerRegistry.transform(definition, JsonObject.class)
                 .onFailure(f -> monitor.warning(f.getFailureDetail()))
                 .orElseThrow(failure -> new ObjectNotFoundException(TransferProcess.class, id));
     }
@@ -127,10 +123,9 @@ public class TransferProcessApiController implements TransferProcessApi {
     @POST
     @Override
     public JsonObject initiateTransferProcess(JsonObject request) {
-        validatorRegistry.validate(EDC_TRANSFER_REQUEST_DTO_TYPE, request).orElseThrow(ValidationFailureException::new);
+        validatorRegistry.validate(TRANSFER_REQUEST_TYPE, request).orElseThrow(ValidationFailureException::new);
 
-        var transferRequest = transformerRegistry.transform(request, TransferRequestDto.class)
-                .compose(dto -> transformerRegistry.transform(dto, TransferRequest.class))
+        var transferRequest = transformerRegistry.transform(request, TransferRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
         var createdTransfer = service.initiateTransfer(transferRequest)
@@ -159,12 +154,12 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Path("/{id}/terminate")
     @Override
     public void terminateTransferProcess(@PathParam("id") String id, JsonObject requestBody) {
-        validatorRegistry.validate(EDC_TERMINATE_TRANSFER_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
+        validatorRegistry.validate(TERMINATE_TRANSFER_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 
-        var dto = transformerRegistry.transform(requestBody, TerminateTransferDto.class)
+        var terminateTransfer = transformerRegistry.transform(requestBody, TerminateTransfer.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.terminate(id, dto.getReason())
+        service.terminate(id, terminateTransfer.reason())
                 .onSuccess(tp -> monitor.debug(format("Termination requested for TransferProcess with ID %s", tp.getId())))
                 .orElseThrow(failure -> mapToException(failure, TransferProcess.class, id));
     }

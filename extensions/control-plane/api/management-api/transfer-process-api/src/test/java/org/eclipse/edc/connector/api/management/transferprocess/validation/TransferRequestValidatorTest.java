@@ -26,30 +26,30 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_ASSET_ID;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ADDRESS;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_PROTOCOL;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 
-class TransferRequestDtoValidatorTest {
+class TransferRequestValidatorTest {
 
-    private final Validator<JsonObject> validator = TransferRequestDtoValidator.instance();
+    private final Validator<JsonObject> validator = TransferRequestValidator.instance();
 
     @Test
     void shouldSucceed_whenObjectIsValid() {
         var input = Json.createObjectBuilder()
-                .add(EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ADDRESS, value("http://connector-address"))
-                .add(EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID, value("contract-id"))
-                .add(EDC_TRANSFER_REQUEST_DTO_PROTOCOL, value("protocol"))
-                .add(EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID, value("connectorId"))
-                .add(EDC_TRANSFER_REQUEST_DTO_ASSET_ID, value("assetId"))
-                .add(EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
+                .add(TRANSFER_REQUEST_CONNECTOR_ADDRESS, value("http://connector-address"))
+                .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
+                .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
+                .add(TRANSFER_REQUEST_CONNECTOR_ID, value("connectorId"))
+                .add(TRANSFER_REQUEST_ASSET_ID, value("assetId"))
+                .add(TRANSFER_REQUEST_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
                         .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("type"))
                 ))
                 .build();
@@ -81,12 +81,12 @@ class TransferRequestDtoValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ADDRESS))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(EDC_TRANSFER_REQUEST_DTO_CONTRACT_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(EDC_TRANSFER_REQUEST_DTO_PROTOCOL))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(EDC_TRANSFER_REQUEST_DTO_CONNECTOR_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(EDC_TRANSFER_REQUEST_DTO_ASSET_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(EDC_TRANSFER_REQUEST_DTO_DATA_DESTINATION));
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONNECTOR_ADDRESS))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONTRACT_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_PROTOCOL))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONNECTOR_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_ASSET_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_DATA_DESTINATION));
     }
 
     private JsonArrayBuilder value(String value) {

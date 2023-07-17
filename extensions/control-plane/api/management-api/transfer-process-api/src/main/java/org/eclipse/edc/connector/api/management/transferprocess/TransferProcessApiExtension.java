@@ -17,29 +17,23 @@ package org.eclipse.edc.connector.api.management.transferprocess;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
-import org.eclipse.edc.connector.api.management.transferprocess.transform.DataRequestToDataRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromDataRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferProcessDtoTransformer;
+import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferProcessTransformer;
 import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectFromTransferStateTransformer;
-import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTerminateTransferDtoTransformer;
-import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTransferRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.transferprocess.transform.TransferProcessToTransferProcessDtoTransformer;
-import org.eclipse.edc.connector.api.management.transferprocess.transform.TransferRequestDtoToTransferRequestTransformer;
-import org.eclipse.edc.connector.api.management.transferprocess.validation.TerminateTransferDtoValidator;
-import org.eclipse.edc.connector.api.management.transferprocess.validation.TransferRequestDtoValidator;
+import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTerminateTransferTransformer;
+import org.eclipse.edc.connector.api.management.transferprocess.transform.JsonObjectToTransferRequestTransformer;
+import org.eclipse.edc.connector.api.management.transferprocess.validation.TerminateTransferValidator;
+import org.eclipse.edc.connector.api.management.transferprocess.validation.TransferRequestValidator;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import static java.util.Collections.emptyMap;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransferDto.EDC_TERMINATE_TRANSFER_TYPE;
-import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferRequestDto.EDC_TRANSFER_REQUEST_DTO_TYPE;
-import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
+import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 
 @Extension(value = TransferProcessApiExtension.NAME)
 public class TransferProcessApiExtension implements ServiceExtension {
@@ -59,9 +53,6 @@ public class TransferProcessApiExtension implements ServiceExtension {
     private TransferProcessService service;
 
     @Inject
-    private TypeManager typeManager;
-
-    @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
 
     @Override
@@ -71,22 +62,15 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var mapper = typeManager.getMapper(JSON_LD);
-
-        transformerRegistry.register(new DataRequestToDataRequestDtoTransformer());
-        transformerRegistry.register(new TransferProcessToTransferProcessDtoTransformer());
-        transformerRegistry.register(new TransferRequestDtoToTransferRequestTransformer());
-
         var builderFactory = Json.createBuilderFactory(emptyMap());
-        transformerRegistry.register(new JsonObjectFromDataRequestDtoTransformer(builderFactory));
-        transformerRegistry.register(new JsonObjectFromTransferProcessDtoTransformer(builderFactory, mapper));
+        transformerRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
         transformerRegistry.register(new JsonObjectFromTransferStateTransformer(builderFactory));
 
-        transformerRegistry.register(new JsonObjectToTerminateTransferDtoTransformer());
-        transformerRegistry.register(new JsonObjectToTransferRequestDtoTransformer());
+        transformerRegistry.register(new JsonObjectToTerminateTransferTransformer());
+        transformerRegistry.register(new JsonObjectToTransferRequestTransformer());
 
-        validatorRegistry.register(EDC_TRANSFER_REQUEST_DTO_TYPE, TransferRequestDtoValidator.instance());
-        validatorRegistry.register(EDC_TERMINATE_TRANSFER_TYPE, TerminateTransferDtoValidator.instance());
+        validatorRegistry.register(TRANSFER_REQUEST_TYPE, TransferRequestValidator.instance());
+        validatorRegistry.register(TERMINATE_TRANSFER_TYPE, TerminateTransferValidator.instance());
 
         var newController = new TransferProcessApiController(context.getMonitor(), service, transformerRegistry, validatorRegistry);
         webService.registerResource(configuration.getContextAlias(), newController);

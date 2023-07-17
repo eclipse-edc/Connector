@@ -264,7 +264,7 @@ public class Participant {
     public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "TransferRequestDto")
+                .add(TYPE, "TransferRequest")
                 .add("dataDestination", destination)
                 .add("protocol", DSP_PROTOCOL)
                 .add("assetId", assetId)
