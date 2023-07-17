@@ -30,11 +30,21 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Representations of a data plane instance. Every DPF has an ID and a URL as well as a number, how often it was selected,
  * and a timestamp of its last selection time. In addition, there are extensible properties to hold specific properties.
  */
 public class DataPlaneInstance {
+
+    public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + "DataPlaneInstance";
+    public static final String TURNCOUNT = EDC_NAMESPACE + "turnCount";
+    public static final String LAST_ACTIVE = EDC_NAMESPACE + "lastActive";
+    public static final String URL = EDC_NAMESPACE + "url";
+    public static final String PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String ALLOWED_SOURCE_TYPES = EDC_NAMESPACE + "allowedSourceTypes";
+    public static final String ALLOWED_DEST_TYPES = EDC_NAMESPACE + "allowedDestTypes";
 
     private Map<String, Object> properties;
 

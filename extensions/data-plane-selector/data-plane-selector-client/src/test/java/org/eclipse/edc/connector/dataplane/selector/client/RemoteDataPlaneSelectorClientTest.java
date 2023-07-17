@@ -104,7 +104,7 @@ class RemoteDataPlaneSelectorClientTest {
     private JettyService startRestApi() {
         //set REST API
         serviceMock = mock(DataPlaneSelectorService.class);
-        var controller = new DataplaneSelectorApiController(serviceMock);
+        var controller = new DataplaneSelectorApiController(serviceMock, transformerRegistry);
         var jetty = new JettyService(config, monitor);
 
 

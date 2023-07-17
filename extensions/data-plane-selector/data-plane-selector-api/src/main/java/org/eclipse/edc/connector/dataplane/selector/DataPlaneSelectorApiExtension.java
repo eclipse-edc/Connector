@@ -23,6 +23,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 @Extension(value = "DataPlane selector API")
@@ -39,6 +40,8 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+    @Inject
+    private TypeTransformerRegistry transformerRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -47,7 +50,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
         typeManager.registerTypes(DataPlaneInstance.class);
 
-        var controller = new DataplaneSelectorApiController(selectionService);
+        var controller = new DataplaneSelectorApiController(selectionService, transformerRegistry);
 
         webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);
     }

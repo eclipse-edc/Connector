@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.api;
 
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -22,9 +23,13 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.List;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -33,27 +38,36 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
     private final DataPlaneSelectorService selectionService;
+    private final TypeTransformerRegistry transformerRegistry;
 
-    public DataplaneSelectorApiController(DataPlaneSelectorService selectionService) {
+    public DataplaneSelectorApiController(DataPlaneSelectorService selectionService, TypeTransformerRegistry transformerRegistry) {
         this.selectionService = selectionService;
+        this.transformerRegistry = transformerRegistry;
     }
 
+    @Override
     @POST
     @Path("select")
-    public DataPlaneInstance find(SelectionRequest request) {
-        if (request.getStrategy() != null) {
-            return selectionService.select(request.getSource(), request.getDestination(), request.getStrategy());
-        } else {
-            return selectionService.select(request.getSource(), request.getDestination());
-        }
+    public JsonObject find(JsonObject requestObject) {
+        var request = transformerRegistry.transform(requestObject, SelectionRequest.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        var dpi = ofNullable(request.getStrategy())
+                .map(strat -> selectionService.select(request.getSource(), request.getDestination(), strat))
+                .orElseGet(() -> selectionService.select(request.getSource(), request.getDestination()));
+
+        return transformerRegistry.transform(dpi, JsonObject.class)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
+    @Override
     @POST
     public void addEntry(DataPlaneInstance instance) {
         selectionService.addInstance(instance)
                 .orElseThrow(exceptionMapper(DataPlaneInstance.class, instance.getId()));
     }
 
+    @Override
     @GET
     public List<DataPlaneInstance> getAll() {
         return selectionService.getAll();

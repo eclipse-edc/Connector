@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
@@ -68,6 +69,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
     private EdcHttpClient client;
     private JettyService jetty;
     private SelectionStrategyRegistry selectionStrategyRegistry;
+    private TypeTransformerRegistry transformerRegistry;
 
     @BeforeAll
     static void prepareWebserver() {
@@ -86,7 +88,7 @@ class DataplaneSelectorApiControllerIntegrationTest {
         store = new InMemoryDataPlaneInstanceStore();
         var selector = new DataPlaneSelectorImpl(store);
         var service = new DataPlaneSelectorServiceImpl(selector, store, selectionStrategyRegistry, new NoopTransactionContext());
-        var controller = new DataplaneSelectorApiController(service);
+        var controller = new DataplaneSelectorApiController(service, transformerRegistry);
 
         jetty = new JettyService(config, monitor);
 
