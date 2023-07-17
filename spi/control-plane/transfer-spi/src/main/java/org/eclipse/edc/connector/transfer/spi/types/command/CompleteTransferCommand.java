@@ -13,14 +13,14 @@
  *
  */
 
-package org.eclipse.edc.spi.types.domain.transfer.command;
+package org.eclipse.edc.connector.transfer.spi.types.command;
 
-import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
+import org.eclipse.edc.spi.command.SingleEntityCommand;
 
 /**
  * Completes a transfer process by sending it to the COMPLETED state
  */
-public class CompleteTransferCommand extends SingleTransferProcessCommand {
+public class CompleteTransferCommand extends SingleEntityCommand {
 
     public CompleteTransferCommand(String transferProcessId) {
         super(transferProcessId);

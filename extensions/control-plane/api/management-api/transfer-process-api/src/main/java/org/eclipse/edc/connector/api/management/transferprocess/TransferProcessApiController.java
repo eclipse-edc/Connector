@@ -144,7 +144,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Override
     public void deprovisionTransferProcess(@PathParam("id") String id) {
         service.deprovision(id)
-                .onSuccess(tp -> monitor.debug(format("Deprovision requested for TransferProcess with ID %s", tp.getId())))
+                .onSuccess(tp -> monitor.debug(format("Deprovision requested for TransferProcess with ID %s", id)))
                 .orElseThrow(exceptionMapper(TransferProcess.class, id));
     }
 
@@ -158,7 +158,7 @@ public class TransferProcessApiController implements TransferProcessApi {
                 .orElseThrow(InvalidRequestException::new);
 
         service.terminate(id, terminateTransfer.reason())
-                .onSuccess(tp -> monitor.debug(format("Termination requested for TransferProcess with ID %s", tp.getId())))
+                .onSuccess(tp -> monitor.debug(format("Termination requested for TransferProcess with ID %s", id)))
                 .orElseThrow(failure -> mapToException(failure, TransferProcess.class, id));
     }
 }

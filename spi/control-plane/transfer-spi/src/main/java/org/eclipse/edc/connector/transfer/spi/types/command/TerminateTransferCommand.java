@@ -14,10 +14,12 @@
 
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
+import org.eclipse.edc.spi.command.SingleEntityCommand;
+
 /**
  * Terminates a transfer process by sending it to the TERMINATED state
  */
-public class TerminateTransferCommand extends SingleTransferProcessCommand {
+public class TerminateTransferCommand extends SingleEntityCommand {
 
     private final String reason;
 

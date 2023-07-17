@@ -207,12 +207,12 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @Override
-    protected void lockEntity(String negotiationId, String owner, Duration duration) {
+    protected void leaseEntity(String negotiationId, String owner, Duration duration) {
         getLeaseUtil().leaseEntity(negotiationId, owner, duration);
     }
 
     @Override
-    protected boolean isLockedBy(String negotiationId, String owner) {
+    protected boolean isLeasedBy(String negotiationId, String owner) {
         return getLeaseUtil().isLeased(negotiationId, owner);
     }
 

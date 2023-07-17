@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.persistence.Lease;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,7 +94,6 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
         return negotiationQueryResolver.query(store.findAll(), querySpec);
     }
 
-
     @Override
     public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
         return agreementQueryResolver.query(getAgreements(), querySpec);
@@ -102,6 +102,21 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     @Override
     public @NotNull List<ContractNegotiation> nextNotLeased(int max, Criterion... criteria) {
         return store.leaseAndGet(max, criteria);
+    }
+
+    @Override
+    public StoreResult<ContractNegotiation> findByIdAndLease(String id) {
+        return store.leaseAndGet(id);
+    }
+
+    @Override
+    public StoreResult<ContractNegotiation> findByCorrelationIdAndLease(String correlationId) {
+        var negotiation = findForCorrelationId(correlationId);
+        if (negotiation == null) {
+            return StoreResult.notFound(format("ContractNegotiation with correlationId %s not found", correlationId));
+        }
+
+        return findByIdAndLease(negotiation.getId());
     }
 
     @NotNull

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
+import org.eclipse.edc.spi.command.SingleEntityCommand;
 
 /**
  * Handles a {@link ProvisionResponse} received from an external system.
@@ -23,10 +24,8 @@ import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
  * a provisioner that delegates to an external system may receive a response on an asynchronous callback channel. The response therefore cannot be returned using the
  * provisioner's future as there is no guarantee the response from the external system will be routed to the originating EDC runtime.
  * <p>
- * To handle this case, the callback channel will receive the response and submit it via a {@link SingleTransferProcessCommand} and routing to the originating runtime is not
- * required.
  */
-public class AddProvisionedResourceCommand extends SingleTransferProcessCommand {
+public class AddProvisionedResourceCommand extends SingleEntityCommand {
     private final ProvisionResponse provisionResponse;
 
     public AddProvisionedResourceCommand(String transferProcessId, ProvisionResponse provisionedResource) {

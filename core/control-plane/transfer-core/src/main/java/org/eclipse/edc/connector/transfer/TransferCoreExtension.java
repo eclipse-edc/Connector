@@ -25,7 +25,9 @@ import org.eclipse.edc.connector.transfer.listener.TransferProcessEventListener;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.transfer.process.StatusCheckerRegistryImpl;
 import org.eclipse.edc.connector.transfer.process.TransferProcessManagerImpl;
+import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.provision.ProvisionManagerImpl;
+import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
@@ -40,7 +42,6 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
-import org.eclipse.edc.connector.transfer.spi.types.command.TransferProcessCommand;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -48,9 +49,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
-import org.eclipse.edc.spi.command.BoundedCommandQueue;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
-import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -171,7 +170,6 @@ public class TransferCoreExtension implements ServiceExtension {
         // Integration with the new DSP protocol
         eventRouter.register(TransferProcessStarted.class, endpointDataReferenceReceiverRegistry);
 
-        var commandQueue = new BoundedCommandQueue<TransferProcessCommand>(10);
         var observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);
 
@@ -180,6 +178,8 @@ public class TransferCoreExtension implements ServiceExtension {
         var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
         var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
+        var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, vault, typeManager);
+        var deprovisionResponsesHandler = new DeprovisionResponsesHandler(observable, monitor, vault);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
@@ -193,9 +193,6 @@ public class TransferCoreExtension implements ServiceExtension {
                 .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .vault(vault)
                 .clock(clock)
-                .typeManager(typeManager)
-                .commandQueue(commandQueue)
-                .commandRunner(new CommandRunner<>(registry, monitor))
                 .observable(observable)
                 .transferProcessStore(transferProcessStore)
                 .policyArchive(policyArchive)
@@ -203,12 +200,14 @@ public class TransferCoreExtension implements ServiceExtension {
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .protocolWebhook(protocolWebhook)
+                .provisionResponsesHandler(provisionResponsesHandler)
+                .deprovisionResponsesHandler(deprovisionResponsesHandler)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
 
-        registry.register(new AddProvisionedResourceCommandHandler(processManager));
-        registry.register(new DeprovisionCompleteCommandHandler(processManager));
+        registry.register(new AddProvisionedResourceCommandHandler(transferProcessStore, provisionResponsesHandler));
+        registry.register(new DeprovisionCompleteCommandHandler(transferProcessStore, deprovisionResponsesHandler));
     }
 
     @Override

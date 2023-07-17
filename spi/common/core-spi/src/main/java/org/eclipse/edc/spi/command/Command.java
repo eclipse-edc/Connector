@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.spi.command;
 
-import java.util.UUID;
-
 /**
  * Base class for all command objects. Contains basic information such as a command ID
  * and an error count, which indicates how many times a particular command has already errored out. This is useful
@@ -29,43 +27,5 @@ import java.util.UUID;
  * </ul>
  */
 public abstract class Command {
-    private final String commandId;
-    private int errorCount = 0;
 
-    /**
-     * Creates a new Command assigning a random UUID as commandId
-     */
-    protected Command() {
-        this(UUID.randomUUID().toString());
-    }
-
-    /**
-     * Creates a new Command assigning a specified String as command ID
-     */
-    protected Command(String commandId) {
-        this.commandId = commandId;
-    }
-
-    public String getCommandId() {
-        return commandId;
-    }
-
-    public void increaseErrorCount() {
-        errorCount++;
-    }
-
-
-    /**
-     * Indicates whether {@link Command#getMaxRetry()} has been reached.
-     */
-    public boolean canRetry() {
-        return errorCount < getMaxRetry();
-    }
-
-    /**
-     * Indicates the maximum amount of times a Command should be retried. Defaults to 5.
-     */
-    protected int getMaxRetry() {
-        return 5;
-    }
 }

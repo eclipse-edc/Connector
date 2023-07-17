@@ -50,12 +50,12 @@ class InMemoryTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @Override
-    protected void lockEntity(String negotiationId, String owner, Duration duration) {
+    protected void leaseEntity(String negotiationId, String owner, Duration duration) {
         leases.put(negotiationId, new Lease(owner, Clock.systemUTC().millis(), duration.toMillis()));
     }
 
     @Override
-    protected boolean isLockedBy(String negotiationId, String owner) {
+    protected boolean isLeasedBy(String negotiationId, String owner) {
         return leases.entrySet().stream().anyMatch(e -> e.getKey().equals(negotiationId) &&
                 e.getValue().getLeasedBy().equals(owner) &&
                 !isExpired(e.getValue()));

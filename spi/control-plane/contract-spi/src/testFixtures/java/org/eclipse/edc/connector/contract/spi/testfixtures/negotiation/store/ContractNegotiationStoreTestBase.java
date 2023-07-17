@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,10 @@ import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.st
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class ContractNegotiationStoreTestBase {
     protected static final String CONNECTOR_NAME = "test-connector";
@@ -67,7 +71,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var negotiation = createNegotiation(id);
         getContractNegotiationStore().save(negotiation);
 
-        lockEntity(id, CONNECTOR_NAME);
+        leaseEntity(id, CONNECTOR_NAME);
         assertThat(getContractNegotiationStore().findById(id))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation);
@@ -77,7 +81,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var negotiation2 = createNegotiation(id2);
         getContractNegotiationStore().save(negotiation2);
 
-        lockEntity(id2, "someone-else");
+        leaseEntity(id2, "someone-else");
         assertThat(getContractNegotiationStore().findById(id2))
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation2);
@@ -203,7 +207,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var negotiation = builder.build();
         getContractNegotiationStore().save(negotiation);
 
-        lockEntity(id, CONNECTOR_NAME);
+        leaseEntity(id, CONNECTOR_NAME);
 
         var newNegotiation = builder
                 .stateCount(420) //modified
@@ -214,7 +218,7 @@ public abstract class ContractNegotiationStoreTestBase {
         // update should break lease
         getContractNegotiationStore().save(newNegotiation);
 
-        assertThat(isLockedBy(id, CONNECTOR_NAME)).isFalse();
+        assertThat(isLeasedBy(id, CONNECTOR_NAME)).isFalse();
 
         var next = getContractNegotiationStore().nextNotLeased(10, hasState(800));
         assertThat(next).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt").containsOnly(newNegotiation);
@@ -228,7 +232,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var negotiation = createNegotiation(id);
         getContractNegotiationStore().save(negotiation);
 
-        lockEntity(id, "someone-else");
+        leaseEntity(id, "someone-else");
 
         var newNegotiation = ContractNegotiation.Builder.newInstance()
                 .type(ContractNegotiation.Type.CONSUMER)
@@ -242,7 +246,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .build();
 
         // update should break lease
-        assertThat(isLockedBy(id, "someone-else")).isTrue();
+        assertThat(isLeasedBy(id, "someone-else")).isTrue();
         assertThatThrownBy(() -> getContractNegotiationStore().save(newNegotiation)).isInstanceOf(IllegalStateException.class);
     }
 
@@ -348,7 +352,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var n = createNegotiation(id);
         getContractNegotiationStore().save(n);
 
-        lockEntity(id, CONNECTOR_NAME);
+        leaseEntity(id, CONNECTOR_NAME);
 
         //todo: verify returned object
         assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
@@ -361,7 +365,7 @@ public abstract class ContractNegotiationStoreTestBase {
         var n = createNegotiation(id);
         getContractNegotiationStore().save(n);
 
-        lockEntity(id, "someone-else");
+        leaseEntity(id, "someone-else");
 
         //todo: verify returned object
         assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
@@ -552,7 +556,7 @@ public abstract class ContractNegotiationStoreTestBase {
         negotiations.forEach(getContractNegotiationStore()::save);
 
         // mark them as "leased"
-        negotiations.forEach(n -> lockEntity(n.getId(), CONNECTOR_NAME, Duration.ofMillis(10)));
+        negotiations.forEach(n -> leaseEntity(n.getId(), CONNECTOR_NAME, Duration.ofMillis(10)));
 
         // let enough time pass
         Thread.sleep(50);
@@ -562,7 +566,7 @@ public abstract class ContractNegotiationStoreTestBase {
                 .hasSize(5)
                 .containsAll(negotiations);
 
-        assertThat(leasedNegotiations).allMatch(n -> isLockedBy(n.getId(), CONNECTOR_NAME));
+        assertThat(leasedNegotiations).allMatch(n -> isLeasedBy(n.getId(), CONNECTOR_NAME));
     }
 
     @Test
@@ -610,14 +614,74 @@ public abstract class ContractNegotiationStoreTestBase {
         assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
-    protected abstract ContractNegotiationStore getContractNegotiationStore();
+    @Test
+    void findByIdAndLease_shouldReturnTheEntityAndLeaseIt() {
+        var id = UUID.randomUUID().toString();
+        getContractNegotiationStore().save(createNegotiation(id));
 
-    protected abstract void lockEntity(String negotiationId, String owner, Duration duration);
+        var result = getContractNegotiationStore().findByIdAndLease(id);
 
-    protected void lockEntity(String negotiationId, String owner) {
-        lockEntity(negotiationId, owner, Duration.ofSeconds(60));
+        assertThat(result).isSucceeded();
+        assertThat(isLeasedBy(id, CONNECTOR_NAME)).isTrue();
     }
 
-    protected abstract boolean isLockedBy(String negotiationId, String owner);
+    @Test
+    void findByIdAndLease_shouldReturnNotFound_whenEntityDoesNotExist() {
+        var result = getContractNegotiationStore().findByIdAndLease("unexistent");
+
+        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void findByIdAndLease_shouldReturnAlreadyLeased_whenEntityIsAlreadyLeased() {
+        var id = UUID.randomUUID().toString();
+        getContractNegotiationStore().save(createNegotiation(id));
+        leaseEntity(id, "other owner");
+
+        var result = getContractNegotiationStore().findByIdAndLease(id);
+
+        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+    }
+
+    @Test
+    void findByCorrelationIdAndLease_shouldReturnTheEntityAndLeaseIt() {
+        var id = UUID.randomUUID().toString();
+        var correlationId = UUID.randomUUID().toString();
+        getContractNegotiationStore().save(createNegotiationBuilder(id).correlationId(correlationId).build());
+
+        var result = getContractNegotiationStore().findByCorrelationIdAndLease(correlationId);
+
+        assertThat(result).isSucceeded();
+        assertThat(isLeasedBy(id, CONNECTOR_NAME)).isTrue();
+    }
+
+    @Test
+    void findByCorrelationIdAndLease_shouldReturnNotFound_whenEntityDoesNotExist() {
+        var result = getContractNegotiationStore().findByCorrelationIdAndLease("unexistent");
+
+        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void findByCorrelationIdAndLease_shouldReturnAlreadyLeased_whenEntityIsAlreadyLeased() {
+        var id = UUID.randomUUID().toString();
+        var correlationId = UUID.randomUUID().toString();
+        getContractNegotiationStore().save(createNegotiationBuilder(id).correlationId(correlationId).build());
+        leaseEntity(id, "other owner");
+
+        var result = getContractNegotiationStore().findByCorrelationIdAndLease(correlationId);
+
+        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+    }
+
+    protected abstract ContractNegotiationStore getContractNegotiationStore();
+
+    protected abstract void leaseEntity(String negotiationId, String owner, Duration duration);
+
+    protected void leaseEntity(String negotiationId, String owner) {
+        leaseEntity(negotiationId, owner, Duration.ofSeconds(60));
+    }
+
+    protected abstract boolean isLeasedBy(String negotiationId, String owner);
 
 }

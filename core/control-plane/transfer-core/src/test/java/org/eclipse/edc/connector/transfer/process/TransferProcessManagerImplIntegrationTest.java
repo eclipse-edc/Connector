@@ -18,11 +18,9 @@ import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransf
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.TestProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.TestResourceDefinition;
-import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
+import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
-import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
@@ -31,15 +29,10 @@ import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.asset.DataAddressResolver;
-import org.eclipse.edc.spi.command.CommandQueue;
-import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.entity.StatefulEntity;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,7 +60,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class TransferProcessManagerImplIntegrationTest {
 
-    private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
+    private static final int TRANSFER_MANAGER_BATCH_SIZE = 10;
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private final TransferProcessStore store = new InMemoryTransferProcessStore();
@@ -86,28 +79,27 @@ class TransferProcessManagerImplIntegrationTest {
         var clock = Clock.systemUTC();
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
-                .dataFlowManager(mock(DataFlowManager.class))
+                .dataFlowManager(mock())
                 .waitStrategy(waitStrategy)
-                .batchSize(TRANSFER_MANAGER_BATCHSIZE)
-                .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
+                .batchSize(TRANSFER_MANAGER_BATCH_SIZE)
+                .dispatcherRegistry(mock())
                 .manifestGenerator(manifestGenerator)
                 .monitor(monitor)
                 .clock(clock)
-                .commandQueue(mock(CommandQueue.class))
-                .commandRunner(mock(CommandRunner.class))
-                .typeManager(new TypeManager())
-                .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
-                .observable(mock(TransferProcessObservable.class))
+                .statusCheckerRegistry(mock())
+                .observable(mock())
                 .transferProcessStore(store)
                 .policyArchive(policyArchive)
-                .addressResolver(mock(DataAddressResolver.class))
+                .addressResolver(mock())
+                .provisionResponsesHandler(new ProvisionResponsesHandler(mock(), mock(), mock(), mock()))
+                .deprovisionResponsesHandler(mock())
                 .build();
     }
 
     @Test
     @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
     void verifyProvision_shouldNotStarve() {
-        var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
+        var numProcesses = TRANSFER_MANAGER_BATCH_SIZE * 2;
         when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> completedFuture(List.of(
                 ProvisionResponse.Builder.newInstance()
                         .resource(new TestProvisionedDataDestinationResource("any", "1"))
@@ -119,7 +111,7 @@ class TransferProcessManagerImplIntegrationTest {
         var processes = IntStream.range(0, numProcesses)
                 .mapToObj(i -> provisionedResourceSet())
                 .map(resourceSet -> createInitialTransferProcess().resourceManifest(manifest).callbackAddresses(List.of(callback)).provisionedResourceSet(resourceSet).build())
-                .peek(store::updateOrCreate)
+                .peek(store::save)
                 .collect(Collectors.toList());
 
         transferProcessManager.start();

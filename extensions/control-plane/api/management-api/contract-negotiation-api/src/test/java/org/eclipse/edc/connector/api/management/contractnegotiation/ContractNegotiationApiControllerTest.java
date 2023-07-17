@@ -17,10 +17,12 @@
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
 import io.restassured.specification.RequestSpecification;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -46,6 +48,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
@@ -387,8 +390,71 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
+    void terminate_shouldCallService() {
+        var command = new TerminateNegotiationCommand("id", "reason");
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.success(command));
+        when(service.terminate(any())).thenReturn(ServiceResult.success());
+
+        baseRequest()
+                .body(Json.createObjectBuilder().add(ID, "id").build())
+                .contentType(JSON)
+                .post("/cn1/terminate")
+                .then()
+                .statusCode(204);
+
+        verify(service).terminate(command);
+    }
+
+    @Test
+    void terminate_shouldReturnBadRequest_whenValidationFails() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.failure("error"));
+
+        baseRequest()
+                .body(Json.createObjectBuilder().add(ID, "id").build())
+                .contentType(JSON)
+                .post("/cn1/terminate")
+                .then()
+                .statusCode(400);
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void terminate_shouldReturnError_whenServiceFails() {
+        var command = new TerminateNegotiationCommand("id", "reason");
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.success(command));
+        when(service.terminate(any())).thenReturn(ServiceResult.conflict("conflict"));
+
+        baseRequest()
+                .body(Json.createObjectBuilder().add(ID, "id").build())
+                .contentType(JSON)
+                .post("/cn1/terminate")
+                .then()
+                .statusCode(409);
+    }
+
+    @Test
+    void terminate_shouldReturnBadRequest_whenTransformationFails() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
+
+        baseRequest()
+                .body(Json.createObjectBuilder().add(ID, "id").build())
+                .contentType(JSON)
+                .post("/cn1/terminate")
+                .then()
+                .statusCode(400);
+
+        verify(validatorRegistry).validate(eq(TERMINATE_NEGOTIATION_TYPE), any());
+        verifyNoInteractions(transformerRegistry, service);
+    }
+
+    @Test
     void cancel() {
-        when(service.cancel(eq("cn1"))).thenReturn(ServiceResult.success(createContractNegotiation("cn1")));
+        when(service.terminate(any())).thenReturn(ServiceResult.success());
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/cancel")
@@ -398,7 +464,8 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void cancel_failed() {
-        when(service.cancel(eq("cn1"))).thenReturn(ServiceResult.badRequest("test-failure"));
+        when(service.terminate(any())).thenReturn(ServiceResult.badRequest("test-failure"));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/cancel")
@@ -408,7 +475,8 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void cancel_notFound() {
-        when(service.cancel(eq("cn1"))).thenReturn(ServiceResult.notFound("test-failure"));
+        when(service.terminate(any())).thenReturn(ServiceResult.notFound("test-failure"));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/cancel")
@@ -418,7 +486,8 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void cancel_conflict() {
-        when(service.cancel(eq("cn1"))).thenReturn(ServiceResult.conflict("test-failure"));
+        when(service.terminate(any())).thenReturn(ServiceResult.conflict("test-failure"));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/cancel")
@@ -428,7 +497,8 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void decline() {
-        when(service.decline(eq("cn1"))).thenReturn(ServiceResult.success(createContractNegotiation("cn1")));
+        when(service.terminate(any())).thenReturn(ServiceResult.success());
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/decline")
@@ -438,7 +508,8 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void decline_failed() {
-        when(service.decline(eq("cn1"))).thenReturn(ServiceResult.badRequest("test-failure"));
+        when(service.terminate(any())).thenReturn(ServiceResult.badRequest("test-failure"));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/decline")
@@ -448,7 +519,8 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void decline_notFound() {
-        when(service.decline(eq("cn1"))).thenReturn(ServiceResult.notFound("test-failure"));
+        when(service.terminate(any())).thenReturn(ServiceResult.notFound("test-failure"));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/decline")
@@ -458,7 +530,8 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void decline_conflict() {
-        when(service.decline(eq("cn1"))).thenReturn(ServiceResult.conflict("test-failure"));
+        when(service.terminate(any())).thenReturn(ServiceResult.conflict("test-failure"));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/cn1/decline")

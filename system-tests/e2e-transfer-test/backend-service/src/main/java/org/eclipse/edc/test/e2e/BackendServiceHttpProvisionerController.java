@@ -25,8 +25,10 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static okhttp3.MediaType.get;
 
 @Path("/provision")
@@ -66,6 +68,11 @@ public class BackendServiceHttpProvisionerController {
                 "apiKeyJwt", "unused",
                 "hasToken", false
         );
+
+        Executors.newScheduledThreadPool(1).schedule(() -> callbackRequest(completeUrl, requestBody), 5, SECONDS);
+    }
+
+    private void callbackRequest(String completeUrl, Map<String, Object> requestBody) {
         var callbackRequest = new Request.Builder()
                 .url(completeUrl)
                 .post(RequestBody.create(typeManager.writeValueAsString(requestBody), get("application/json")))
@@ -83,6 +90,5 @@ public class BackendServiceHttpProvisionerController {
         } catch (Exception e) {
             monitor.severe(format("Error in calling the provisioning callback at %s", completeUrl), e);
         }
-
     }
 }

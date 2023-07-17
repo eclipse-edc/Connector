@@ -24,6 +24,11 @@ class TestEntity extends StatefulEntity<TestEntity> {
         return this;
     }
 
+    @Override
+    public String stateAsString() {
+        return "STATE";
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends StatefulEntity.Builder<TestEntity, Builder> {
 

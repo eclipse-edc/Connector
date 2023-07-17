@@ -14,31 +14,39 @@
 
 package org.eclipse.edc.connector.transfer.command.handlers;
 
-import org.eclipse.edc.connector.transfer.process.ProvisionCallbackDelegate;
+import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
+import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
-import org.eclipse.edc.spi.command.CommandHandler;
+import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
 import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.List;
 
 /**
- * Handles a {@link DeprovisionCompleteCommand} and delegates it back to the {@link ProvisionCallbackDelegate}
+ * Handles a {@link DeprovisionCompleteCommand}.
  */
-public class DeprovisionCompleteCommandHandler implements CommandHandler<DeprovisionCompleteCommand> {
+public class DeprovisionCompleteCommandHandler extends SingleEntityCommandHandler<DeprovisionCompleteCommand, TransferProcess> {
 
-    private final ProvisionCallbackDelegate delegate;
+    private final DeprovisionResponsesHandler deprovisionResponsesHandler;
 
-    public DeprovisionCompleteCommandHandler(ProvisionCallbackDelegate delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    public void handle(DeprovisionCompleteCommand command) {
-        delegate.handleDeprovisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getResource())));
+    public DeprovisionCompleteCommandHandler(TransferProcessStore store, DeprovisionResponsesHandler deprovisionResponsesHandler) {
+        super(store);
+        this.deprovisionResponsesHandler = deprovisionResponsesHandler;
     }
 
     @Override
     public Class<DeprovisionCompleteCommand> getType() {
         return DeprovisionCompleteCommand.class;
+    }
+
+    @Override
+    protected boolean modify(TransferProcess entity, DeprovisionCompleteCommand command) {
+        return deprovisionResponsesHandler.handle(entity, List.of(StatusResult.success(command.getResource())));
+    }
+
+    @Override
+    public void postActions(TransferProcess entity, DeprovisionCompleteCommand command) {
+        deprovisionResponsesHandler.postActions(entity);
     }
 }

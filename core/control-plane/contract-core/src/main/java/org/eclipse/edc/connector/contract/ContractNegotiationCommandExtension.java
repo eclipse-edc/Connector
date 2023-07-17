@@ -14,38 +14,41 @@
 
 package org.eclipse.edc.connector.contract;
 
-import org.eclipse.edc.connector.contract.negotiation.command.handlers.CancelNegotiationCommandHandler;
-import org.eclipse.edc.connector.contract.negotiation.command.handlers.DeclineNegotiationCommandHandler;
+import org.eclipse.edc.connector.contract.negotiation.command.handlers.TerminateNegotiationCommandHandler;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import static org.eclipse.edc.connector.contract.ContractNegotiationCommandExtension.NAME;
 
 /**
  * Adds a {@link CommandHandlerRegistry} to the context and registers the
  * handlers the core provides.
  */
 @CoreExtension
-@Provides({ CommandHandlerRegistry.class })
-@Extension(value = "Contract Negotiation command handler")
+@Extension(value = NAME)
 public class ContractNegotiationCommandExtension implements ServiceExtension {
+
+    public static final String NAME = "Contract Negotiation command handlers";
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Inject
     private ContractNegotiationStore store;
 
+    @Inject
+    private CommandHandlerRegistry registry;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        CommandHandlerRegistry registry = context.getService(CommandHandlerRegistry.class);
-        registerDefaultCommandHandlers(registry);
-    }
-
-    private void registerDefaultCommandHandlers(CommandHandlerRegistry registry) {
-        registry.register(new CancelNegotiationCommandHandler(store));
-        registry.register(new DeclineNegotiationCommandHandler(store));
+        registry.register(new TerminateNegotiationCommandHandler(store));
     }
 
 }

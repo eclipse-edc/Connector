@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.persistence.Lease;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
@@ -61,11 +63,6 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void updateOrCreate(TransferProcess process) {
-        store.upsert(process);
-    }
-
-    @Override
     public void delete(String id) {
         store.delete(id);
     }
@@ -78,6 +75,26 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public @NotNull List<TransferProcess> nextNotLeased(int max, Criterion... criteria) {
         return store.leaseAndGet(max, criteria);
+    }
+
+    @Override
+    public StoreResult<TransferProcess> findByIdAndLease(String id) {
+        return store.leaseAndGet(id);
+    }
+
+    @Override
+    public StoreResult<TransferProcess> findByCorrelationIdAndLease(String correlationId) {
+        var transferProcess = findForCorrelationId(correlationId);
+        if (transferProcess == null) {
+            return StoreResult.notFound(format("TransferProcess with correlationId %s not found", correlationId));
+        }
+
+        return findByIdAndLease(transferProcess.getId());
+    }
+
+    @Override
+    public void save(TransferProcess entity) {
+        store.upsert(entity);
     }
 
 }

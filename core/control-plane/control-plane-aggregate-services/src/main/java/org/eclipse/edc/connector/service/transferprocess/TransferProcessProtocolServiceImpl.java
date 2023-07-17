@@ -204,10 +204,10 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, Function<TransferProcess, ServiceResult<TransferProcess>> action) {
-        return transactionContext.execute(() -> Optional.of(message.getProcessId())
-                .map(transferProcessStore::findForCorrelationId)
-                .map(action)
-                .orElse(ServiceResult.notFound(format("TransferProcess with DataRequest id %s not found", message.getProcessId()))));
+        return transactionContext.execute(() -> transferProcessStore
+                .findByCorrelationIdAndLease(message.getProcessId())
+                .flatMap(ServiceResult::from)
+                .compose(action));
     }
     
     private boolean validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {
@@ -218,7 +218,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     private void update(TransferProcess transferProcess) {
-        transferProcessStore.updateOrCreate(transferProcess);
+        transferProcessStore.save(transferProcess);
         monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 

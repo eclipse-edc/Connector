@@ -15,11 +15,12 @@
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
+import org.eclipse.edc.spi.command.SingleEntityCommand;
 
 /**
  * Informs the system that deprovisioning a resource has indeed completed.
  */
-public class DeprovisionCompleteCommand extends SingleTransferProcessCommand {
+public class DeprovisionCompleteCommand extends SingleEntityCommand {
     private final DeprovisionedResource resource;
 
     public DeprovisionCompleteCommand(String transferProcessId, DeprovisionedResource resource) {

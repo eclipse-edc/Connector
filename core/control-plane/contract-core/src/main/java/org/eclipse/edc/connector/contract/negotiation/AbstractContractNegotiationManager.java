@@ -17,13 +17,9 @@ package org.eclipse.edc.connector.contract.negotiation;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.command.CommandProcessor;
-import org.eclipse.edc.spi.command.CommandQueue;
-import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -48,9 +44,6 @@ public abstract class AbstractContractNegotiationManager {
     protected ContractNegotiationStore negotiationStore;
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
-    protected CommandQueue<ContractNegotiationCommand> commandQueue;
-    protected CommandRunner<ContractNegotiationCommand> commandRunner;
-    protected CommandProcessor<ContractNegotiationCommand> commandProcessor;
     protected Monitor monitor;
     protected Clock clock;
     protected Telemetry telemetry;
@@ -198,16 +191,6 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
-        public Builder<T> commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
-            manager.commandQueue = commandQueue;
-            return this;
-        }
-
-        public Builder<T> commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
-            manager.commandRunner = commandRunner;
-            return this;
-        }
-
         public Builder<T> clock(Clock clock) {
             manager.clock = clock;
             return this;
@@ -252,8 +235,6 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.participantId, "participantId");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
-            Objects.requireNonNull(manager.commandQueue, "commandQueue");
-            Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
             Objects.requireNonNull(manager.clock, "clock");
             Objects.requireNonNull(manager.telemetry, "telemetry");
@@ -261,7 +242,6 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.negotiationStore, "store");
             Objects.requireNonNull(manager.policyStore, "policyStore");
 
-            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
             manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);
 
             return manager;

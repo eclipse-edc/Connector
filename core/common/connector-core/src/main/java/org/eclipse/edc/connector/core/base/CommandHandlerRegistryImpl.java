@@ -18,9 +18,12 @@ package org.eclipse.edc.connector.core.base;
 import org.eclipse.edc.spi.command.Command;
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
+import org.eclipse.edc.spi.command.CommandResult;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.lang.String.format;
 
 /**
  * Implementation of the {@link CommandHandlerRegistry} interface.
@@ -39,7 +42,13 @@ public class CommandHandlerRegistryImpl implements CommandHandlerRegistry {
     }
 
     @Override
-    public <C extends Command> CommandHandler<C> get(Class<C> commandClass) {
-        return (CommandHandler<C>) registrations.get(commandClass);
+    public  <C extends Command> CommandResult execute(C command) {
+        var commandHandler = (CommandHandler<C>) registrations.get(command.getClass());
+
+        if (commandHandler == null) {
+            return CommandResult.notExecutable(format("Command type %s cannot be executed", command.getClass()));
+        }
+
+        return commandHandler.handle(command);
     }
 }

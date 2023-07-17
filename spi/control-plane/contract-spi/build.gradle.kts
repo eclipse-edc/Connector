@@ -29,6 +29,7 @@ dependencies {
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.mockito.core)
     testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(project(":core:common:junit"))
     testFixturesRuntimeOnly(libs.junit.jupiter.engine)
 }
 

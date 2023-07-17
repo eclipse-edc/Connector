@@ -18,11 +18,12 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
 
 /**
  * Terminates a transfer process and puts it in the {@link TransferProcessStates#TERMINATING} state.
  */
-public class TerminateTransferCommandHandler extends SingleTransferProcessCommandHandler<TerminateTransferCommand>  {
+public class TerminateTransferCommandHandler extends SingleEntityCommandHandler<TerminateTransferCommand, TransferProcess> {
 
     public TerminateTransferCommandHandler(TransferProcessStore store) {
         super(store);
@@ -43,7 +44,4 @@ public class TerminateTransferCommandHandler extends SingleTransferProcessComman
         return false;
     }
 
-    @Override
-    protected void postAction(TransferProcess process) {
-    }
 }

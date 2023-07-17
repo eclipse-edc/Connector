@@ -22,7 +22,7 @@ import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Base class for state machine persistent entities.
@@ -74,6 +74,13 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
     }
 
     public abstract T copy();
+
+    /**
+     * Return the string representation of the current state
+     *
+     * @return the string representing the state.
+     */
+    public abstract String stateAsString();
 
     protected void transitionTo(int targetState) {
         stateCount = state == targetState ? stateCount + 1 : 1;
@@ -136,7 +143,9 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
 
         protected T build() {
             super.build();
-            Objects.requireNonNull(entity.id, "id");
+            if (entity.id == null) {
+                entity.id = UUID.randomUUID().toString();
+            }
 
             if (entity.stateTimestamp == 0) {
                 entity.stateTimestamp = entity.clock.millis();

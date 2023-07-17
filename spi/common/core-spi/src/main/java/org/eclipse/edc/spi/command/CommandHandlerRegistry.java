@@ -16,7 +16,6 @@
 package org.eclipse.edc.spi.command;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Links together a Command and its handler class
@@ -30,7 +29,11 @@ public interface CommandHandlerRegistry {
     <C extends Command> void register(CommandHandler<C> handlerClass);
 
     /**
-     * Returns a handler that can process the command.
+     * Execute a command.
+     *
+     * @param command the command to be executed
+     * @return successful result if command is executed correctly, failed result otherwise
+     * @param <C> the command type
      */
-    @Nullable <C extends Command> CommandHandler<C> get(Class<C> commandClass);
+    <C extends Command> CommandResult execute(C command);
 }

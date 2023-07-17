@@ -15,6 +15,7 @@
 package org.eclipse.edc.spi.persistence;
 
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -58,30 +59,27 @@ public interface StateEntityStore<T> {
     List<T> nextNotLeased(int max, Criterion... criteria);
 
     /**
-     * Returns a list of entities that are in a specific state.
-     * <p>
-     * Implementors MUST handle these requirements: <p>
-     * <ul>
-     *     <li>
-     *         * entities should be fetched from the oldest to the newest, by a timestamp that reports the last state transition on the entity
-     *         <p><p>
-     *     </li>
-     *     <li>
-     *         * fetched entities should be leased for a configurable timeout, that will be released after the timeout expires or when the entity will be updated.
-     *         This will avoid consecutive fetches in the state machine loop
-     *         <p><p>
-     *     </li>
-     * </ul>
+     * Find the entity by the passed id and lease it.
+     * If the entity is already leased, will return a failure.
      *
-     * @param state The state that the processes of interest should be in.
-     * @param max   The maximum amount of result items.
-     * @return A list of entities (at most _max_) that are in the desired state.
-     * @deprecated please use {@link #nextNotLeased(int, Criterion...)}
+     * @param id the entity id.
+     * @return success if the entity is unleased, failure otherwise.
      */
-    @NotNull
-    @Deprecated(since = "milestone9")
-    default List<T> nextForState(int state, int max) {
-        return nextNotLeased(max, hasState(state));
-    }
+    StoreResult<T> findByIdAndLease(String id);
 
+    /**
+     * Find the entity by the passed correlation id and lease it.
+     * If the entity is already leased, will return a failure.
+     *
+     * @param correlationId the entity correlation id.
+     * @return success if the entity is unleased, failure otherwise.
+     */
+    StoreResult<T> findByCorrelationIdAndLease(String correlationId);
+
+    /**
+     * Persists the entity. This follows UPSERT semantics, so if the object didn't exit before, it's created.
+     *
+     * @param entity the entity.
+     */
+    void save(T entity);
 }

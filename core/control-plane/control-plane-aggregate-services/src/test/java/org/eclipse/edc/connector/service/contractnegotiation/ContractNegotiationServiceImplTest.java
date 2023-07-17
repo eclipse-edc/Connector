@@ -15,29 +15,27 @@
 package org.eclipse.edc.connector.service.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
-import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
-import org.eclipse.edc.connector.contract.spi.types.command.DeclineNegotiationCommand;
+import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.service.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
+import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.mockito.ArgumentMatcher;
 
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -48,23 +46,20 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class ContractNegotiationServiceImplTest {
 
-    private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
-    private final ConsumerContractNegotiationManager consumerManager = mock(ConsumerContractNegotiationManager.class);
-    private final ProviderContractNegotiationManager providerManager = mock(ProviderContractNegotiationManager.class);
+    private final ContractNegotiationStore store = mock();
+    private final ConsumerContractNegotiationManager consumerManager = mock();
+    private final CommandHandlerRegistry commandHandlerRegistry = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractNegotiationServiceImpl service = new ContractNegotiationServiceImpl(store, consumerManager, transactionContext);
+    private final ContractNegotiationServiceImpl service = new ContractNegotiationServiceImpl(store, consumerManager, transactionContext, commandHandlerRegistry);
 
     @Test
     void findById_filtersById() {
@@ -205,49 +200,26 @@ class ContractNegotiationServiceImplTest {
     }
 
     @Test
-    void cancel_shouldCancelNegotiationIfItCanBeCanceled() {
+    void terminate_shouldExecuteCommand() {
         var negotiation = createContractNegotiation("negotiationId");
         when(store.findById("negotiationId")).thenReturn(negotiation);
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+        var command = new TerminateNegotiationCommand("negotiationId", "reason");
 
-        var result = service.cancel("negotiationId");
+        var result = service.terminate(command);
 
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).matches(it -> it.getId().equals("negotiationId"));
-        verify(consumerManager).enqueueCommand(argThat(isCancelNegotiationCommandWithNegotiationId("negotiationId")));
+        assertThat(result).isSucceeded();
+        verify(commandHandlerRegistry).execute(command);
     }
 
     @Test
-    void cancel_shouldNotCancelNegationIfItDoesNotExist() {
-        when(store.findById("negotiationId")).thenReturn(null);
+    void terminate_shouldNotCancelNegationIfItDoesNotExist() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
+        var command = new TerminateNegotiationCommand("negotiationId", "reason");
 
-        var result = service.cancel("negotiationId");
+        var result = service.terminate(command);
 
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.reason()).isEqualTo(NOT_FOUND);
-        verifyNoInteractions(consumerManager);
-    }
-
-    @Test
-    void decline_shouldSucceedIfManagerIsBeingAbleToDeclineIt() {
-        var negotiation = createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build();
-        when(store.findById("negotiationId")).thenReturn(negotiation);
-
-        var result = service.decline("negotiationId");
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).matches(it -> it.getId().equals("negotiationId"));
-        verify(consumerManager).enqueueCommand(and(isA(DeclineNegotiationCommand.class), argThat(it -> "negotiationId".equals(it.getNegotiationId()))));
-    }
-
-    @Test
-    void decline_shouldNotCancelNegationIfItDoesNotExist() {
-        when(store.findById("negotiationId")).thenReturn(null);
-
-        var result = service.decline("negotiationId");
-
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.reason()).isEqualTo(NOT_FOUND);
-        verifyNoInteractions(consumerManager);
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
     }
 
     private static class InvalidFilters implements ArgumentsProvider {
@@ -270,11 +242,6 @@ class ContractNegotiationServiceImplTest {
                     arguments(criterion("contractAgreement.policy.assignee", "=", "123455"))
             );
         }
-    }
-
-    @NotNull
-    private ArgumentMatcher<ContractNegotiationCommand> isCancelNegotiationCommandWithNegotiationId(String negotiationId) {
-        return it -> ((CancelNegotiationCommand) it).getNegotiationId().equals(negotiationId);
     }
 
     private ContractNegotiation createContractNegotiation(String negotiationId) {

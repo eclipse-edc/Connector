@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.spi.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -66,19 +67,10 @@ public interface ContractNegotiationService {
     ContractNegotiation initiateNegotiation(ContractRequest request);
 
     /**
-     * Cancel a contract negotiation
+     * Terminate a contract negotiation
      *
-     * @param negotiationId the id of the contract negotiation to be canceled
-     * @return successful result if the contract negotiation is canceled correctly, failure otherwise
+     * @param command the termination command.
+     * @return successful result if the contract negotiation is terminated correctly, failure otherwise
      */
-    ServiceResult<ContractNegotiation> cancel(String negotiationId);
-
-    /**
-     * Decline a contract negotiation
-     *
-     * @param negotiationId the id of the contract negotiation to be declined
-     * @return successful result if the contract negotiation is declined correctly, failure otherwise
-     */
-    ServiceResult<ContractNegotiation> decline(String negotiationId);
-
+    ServiceResult<Void> terminate(TerminateNegotiationCommand command);
 }

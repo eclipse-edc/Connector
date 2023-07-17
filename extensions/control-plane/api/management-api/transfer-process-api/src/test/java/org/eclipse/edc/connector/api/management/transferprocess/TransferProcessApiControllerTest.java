@@ -329,8 +329,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Test
     void deprovision() {
-        var transferProcess = createTransferProcess().build();
-        when(service.deprovision(any())).thenReturn(ServiceResult.success(transferProcess));
+        when(service.deprovision(any())).thenReturn(ServiceResult.success());
 
         given()
                 .port(port)
@@ -367,12 +366,11 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
 
     @Test
     void terminate() {
-        var transferProcess = createTransferProcess().build();
         var expanded = Json.createObjectBuilder().build();
         var terminateTransfer = new TerminateTransfer("anyReason");
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(TerminateTransfer.class))).thenReturn(Result.success(terminateTransfer));
-        when(service.terminate(any(), any())).thenReturn(ServiceResult.success(transferProcess));
+        when(service.terminate(any(), any())).thenReturn(ServiceResult.success());
 
         given()
                 .port(port)

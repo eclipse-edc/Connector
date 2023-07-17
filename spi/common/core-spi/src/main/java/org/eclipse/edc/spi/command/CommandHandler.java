@@ -31,6 +31,6 @@ public interface CommandHandler<T extends Command> {
     /**
      * Processes the command.
      */
-    void handle(T command);
+    CommandResult handle(T command);
 
 }
