@@ -16,6 +16,9 @@ package org.eclipse.edc.api.model;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
+/**
+ * Represent the response of a "create" call, when a new entity is generated.
+ */
 public class IdResponse {
 
     public static final String ID_RESPONSE_TYPE = EDC_NAMESPACE + "IdResponse";
