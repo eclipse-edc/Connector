@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -32,6 +31,7 @@ import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
 
+import static jakarta.json.Json.createBuilderFactory;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = "DataPlane selector API")
@@ -60,7 +60,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
         transformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
         transformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
-        transformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(Json.createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
+        transformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
         var controller = new DataplaneSelectorApiController(selectionService, transformerRegistry);
 
         webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);

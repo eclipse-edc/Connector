@@ -21,6 +21,9 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
+import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
+import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToDataPlaneInstanceTransformer;
+import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -29,6 +32,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +54,7 @@ class DataPlaneSelectorApiExtensionTest {
     private final WebService webService = mock(WebService.class);
     private final ManagementApiConfiguration managementApiConfiguration = mock(ManagementApiConfiguration.class);
     private final Monitor monitor = mock(Monitor.class);
+    private final TypeTransformerRegistry transformerRegistry = mock();
     private DataPlaneSelectorApiExtension extension;
 
     @BeforeEach
@@ -60,6 +65,7 @@ class DataPlaneSelectorApiExtensionTest {
         context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(mock(DataPlaneSelector.class),
                 mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class), new NoopTransactionContext()));
 
+        context.registerService(TypeTransformerRegistry.class, transformerRegistry);
         extension = factory.constructInstance(DataPlaneSelectorApiExtension.class);
     }
 
@@ -69,8 +75,10 @@ class DataPlaneSelectorApiExtensionTest {
         when(managementApiConfiguration.getContextAlias()).thenReturn("management");
 
         extension.initialize(contextWithConfig(config));
-
         verify(webService).registerResource(eq("management"), isA(DataplaneSelectorApiController.class));
+        verify(transformerRegistry).register(isA(JsonObjectFromDataPlaneInstanceTransformer.class));
+        verify(transformerRegistry).register(isA(JsonObjectToDataPlaneInstanceTransformer.class));
+        verify(transformerRegistry).register(isA(JsonObjectToSelectionRequestTransformer.class));
     }
 
     @NotNull
