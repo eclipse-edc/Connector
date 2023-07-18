@@ -37,7 +37,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
-@Path("/instances")
+@Path("/v2/dataplanes")
 public class DataplaneSelectorApiController implements DataplaneSelectorApi {
 
     private final DataPlaneSelectorService selectionService;

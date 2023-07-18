@@ -161,7 +161,7 @@ public class EndToEndTransferParticipant extends Participant {
                 .contentType(JSON)
                 .body(jsonObject.toString())
                 .when()
-                .post("/instances")
+                .post("/v2/dataplanes")
                 .then()
                 .statusCode(204);
     }

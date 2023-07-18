@@ -227,7 +227,7 @@ public class DataPlaneSelectorApiControllerTest {
     protected RequestSpecification baseRequest() {
         return given()
                 .port(PORT)
-                .baseUri("http://localhost:" + PORT + "/api/instances")
+                .baseUri("http://localhost:" + PORT + "/api/v2/dataplanes")
                 .when();
     }
 

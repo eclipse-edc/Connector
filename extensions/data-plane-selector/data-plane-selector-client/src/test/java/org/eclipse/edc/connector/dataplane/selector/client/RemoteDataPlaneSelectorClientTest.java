@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class RemoteDataPlaneSelectorClientTest extends RestControllerTestBase {
 
-    private static final String BASE_URL = "http://localhost:%d/instances";
+    private static final String BASE_URL = "http://localhost:%d/v2/dataplanes";
     private static final DataPlaneSelectorService SELECTOR_SERVICE_MOCK = mock();
     private static final TypeManager TYPE_MANAGER = new TypeManager();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();

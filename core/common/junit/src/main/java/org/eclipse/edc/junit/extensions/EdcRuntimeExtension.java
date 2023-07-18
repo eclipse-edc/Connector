@@ -117,7 +117,7 @@ public class EdcRuntimeExtension extends EdcExtension {
         // Start thread and wait for EDC to start up.
         runtimeThread.start();
 
-        if (!latch.await(200, SECONDS)) {
+        if (!latch.await(20, SECONDS)) {
             throw new EdcException("Failed to start EDC runtime");
         }
 
