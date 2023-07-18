@@ -214,6 +214,7 @@ components:
       example:
         '@context':
           edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': Criterion
         operandLeft: fieldName
         operator: =
         operandRight: some value
@@ -325,6 +326,8 @@ components:
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
+        policy:
+          $ref: '#/components/schemas/PolicySchema'
     PolicyDefinitionOutputSchema:
       type: object
       example:
@@ -351,16 +354,36 @@ components:
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
+        policy:
+          $ref: '#/components/schemas/PolicySchema'
+    PolicySchema:
+      type: object
+      description: ODRL policy
+      example:
+        '@context': http://www.w3.org/ns/odrl.jsonld
+        '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
+        '@type': odrl:Set
+        permission:
+          target: http://example.com/asset:9898.movie
+          action:
+            type: http://www.w3.org/ns/odrl/2/use
+          constraint:
+            leftOperand: https://w3id.org/edc/v0.0.1/ns/left
+            operator: eq
+            rightOperand: value
+        prohibition: []
+        obligation: []
     QuerySpecSchema:
       type: object
       example:
         '@context':
           edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': QuerySpec
         offset: 5
         limit: 10
         sortOrder: DESC
         sortField: fieldName
-        criterion: []
+        filterExpression: []
       properties:
         '@type':
           type: string

@@ -40,7 +40,7 @@ public interface ManagementApiSchema {
             long contractSigningDate,
             String assetId,
             @Schema(description = "ODRL policy")
-            Object policy
+            PolicySchema policy
     ) {
         public static final String CONTRACT_AGREEMENT_EXAMPLE = """
                 {
@@ -81,5 +81,30 @@ public interface ManagementApiSchema {
             String type,
             @Schema(name = "type")
             String typeProperty
-    ) { }
+    ) {
+    }
+
+    @Schema(description = "ODRL policy", example = PolicySchema.POLICY_EXAMPLE)
+    record PolicySchema() {
+        public static final String POLICY_EXAMPLE = """
+                {
+                    "@context": "http://www.w3.org/ns/odrl.jsonld",
+                    "@id": "0949ba30-680c-44e6-bc7d-1688cbe1847e",
+                    "@type": "odrl:Set",
+                    "permission": {
+                        "target": "http://example.com/asset:9898.movie",
+                        "action": {
+                            "type": "http://www.w3.org/ns/odrl/2/use"
+                        },
+                        "constraint": {
+                            "leftOperand": "https://w3id.org/edc/v0.0.1/ns/left",
+                            "operator": "eq",
+                            "rightOperand": "value"
+                        }
+                    },
+                    "prohibition": [],
+                    "obligation": []
+                }
+                """;
+    }
 }

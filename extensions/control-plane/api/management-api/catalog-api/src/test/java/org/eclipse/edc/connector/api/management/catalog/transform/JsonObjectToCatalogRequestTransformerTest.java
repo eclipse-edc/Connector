@@ -14,46 +14,55 @@
 
 package org.eclipse.edc.connector.api.management.catalog.transform;
 
-import org.eclipse.edc.api.model.QuerySpecDto;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
-import org.eclipse.edc.connector.api.management.catalog.model.CatalogRequestDto;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CatalogRequestDtoToCatalogRequestTransformerTest {
+class JsonObjectToCatalogRequestTransformerTest {
 
-    private final CatalogRequestDtoToCatalogRequestTransformer transformer = new CatalogRequestDtoToCatalogRequestTransformer();
+    private final JsonObjectToCatalogRequestTransformer transformer = new JsonObjectToCatalogRequestTransformer();
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
     void types() {
-        assertThat(transformer.getInputType()).isEqualTo(CatalogRequestDto.class);
+        assertThat(transformer.getInputType()).isEqualTo(JsonObject.class);
         assertThat(transformer.getOutputType()).isEqualTo(CatalogRequest.class);
     }
 
     @Test
     void transform() {
-        var querySpecDto = QuerySpecDto.Builder.newInstance().build();
         var querySpec = QuerySpec.Builder.newInstance().build();
-        var dto = CatalogRequestDto.Builder.newInstance()
-                .providerUrl("http://provider/url")
-                .protocol("protocol")
-                .querySpec(querySpecDto)
-                .build();
+        var querySpecJson = Json.createObjectBuilder().build();
         when(context.transform(any(), eq(QuerySpec.class))).thenReturn(querySpec);
+        var json = Json.createObjectBuilder()
+                .add(TYPE, CATALOG_REQUEST_TYPE)
+                .add(CATALOG_REQUEST_PROTOCOL, "protocol")
+                .add(CATALOG_REQUEST_PROVIDER_URL, "http://provider/url")
+                .add(CATALOG_REQUEST_QUERY_SPEC, querySpecJson)
+                .build();
 
-        var result = transformer.transform(dto, context);
+        var result = transformer.transform(json, context);
 
         assertThat(result).isNotNull();
         assertThat(result.getProtocol()).isEqualTo("protocol");
         assertThat(result.getProviderUrl()).isEqualTo("http://provider/url");
-        assertThat(result.getQuerySpec()).isSameAs(querySpec);
+        assertThat(result.getQuerySpec()).isEqualTo(querySpec);
+        verify(context).transform(querySpecJson, QuerySpec.class);
     }
+
 }

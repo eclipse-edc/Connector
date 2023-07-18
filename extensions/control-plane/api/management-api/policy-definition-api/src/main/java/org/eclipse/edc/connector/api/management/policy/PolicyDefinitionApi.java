@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
+import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
@@ -101,7 +102,8 @@ public interface PolicyDefinitionApi {
             @Schema(name = ID)
             String id,
             @Schema(name = TYPE, example = EDC_POLICY_DEFINITION_TYPE)
-            String type) {
+            String type,
+            ManagementApiSchema.PolicySchema policy) {
 
         // policy example took from https://w3c.github.io/odrl/bp/
         public static final String POLICY_DEFINITION_INPUT_EXAMPLE = """
@@ -132,7 +134,8 @@ public interface PolicyDefinitionApi {
             @Schema(name = ID)
             String id,
             @Schema(name = TYPE, example = EDC_POLICY_DEFINITION_TYPE)
-            String type) {
+            String type,
+            ManagementApiSchema.PolicySchema policy) {
 
         // policy example took from https://w3c.github.io/odrl/bp/
         public static final String POLICY_DEFINITION_OUTPUT_EXAMPLE = """

@@ -15,8 +15,7 @@
 package org.eclipse.edc.connector.api.management.catalog;
 
 import org.eclipse.edc.catalog.spi.CatalogRequest;
-import org.eclipse.edc.connector.api.management.catalog.transform.CatalogRequestDtoToCatalogRequestTransformer;
-import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToCatalogRequestDtoTransformer;
+import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
 import org.eclipse.edc.connector.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
@@ -55,11 +54,10 @@ public class CatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        transformerRegistry.register(new CatalogRequestDtoToCatalogRequestTransformer());
-        transformerRegistry.register(new JsonObjectToCatalogRequestDtoTransformer());
+        transformerRegistry.register(new JsonObjectToCatalogRequestTransformer());
 
         webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, validatorRegistry));
 
-        validatorRegistry.register(CatalogRequest.EDC_CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance());
+        validatorRegistry.register(CatalogRequest.CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance());
     }
 }
