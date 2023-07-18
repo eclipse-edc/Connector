@@ -8,13 +8,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionInputSchema'
+              $ref: '#/components/schemas/PolicyDefinitionInput'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseSchema'
+                $ref: '#/components/schemas/IdResponse'
           description: policy definition was created successfully. Returns the Policy
             Definition Id and created timestamp
         "400":
@@ -46,7 +46,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecSchema'
+              $ref: '#/components/schemas/QuerySpec'
       responses:
         "200":
           content:
@@ -55,7 +55,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionOutputSchema'
+                  $ref: '#/components/schemas/PolicyDefinitionOutput'
           description: The policy definitions matching the query
         "400":
           content:
@@ -131,7 +131,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionOutputSchema'
+                $ref: '#/components/schemas/PolicyDefinitionOutput'
           description: The  policy definition
         "400":
           content:
@@ -168,7 +168,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionInputSchema'
+              $ref: '#/components/schemas/PolicyDefinitionInput'
       responses:
         "200":
           description: policy definition was updated successfully. Returns the Policy
@@ -209,7 +209,7 @@ components:
         type:
           type: string
           example: null
-    CriterionSchema:
+    Criterion:
       type: object
       example:
         '@context':
@@ -221,7 +221,7 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
         operandLeft:
           type: object
           example: null
@@ -231,7 +231,7 @@ components:
         operator:
           type: string
           example: null
-    IdResponseSchema:
+    IdResponse:
       type: object
       example:
         '@context':
@@ -301,7 +301,24 @@ components:
           - "FALSE"
           - "NULL"
           example: null
-    PolicyDefinitionInputSchema:
+    Policy:
+      type: object
+      description: ODRL policy
+      example:
+        '@context': http://www.w3.org/ns/odrl.jsonld
+        '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
+        '@type': odrl:Set
+        permission:
+          target: http://example.com/asset:9898.movie
+          action:
+            type: http://www.w3.org/ns/odrl/2/use
+          constraint:
+            leftOperand: https://w3id.org/edc/v0.0.1/ns/left
+            operator: eq
+            rightOperand: value
+        prohibition: []
+        obligation: []
+    PolicyDefinitionInput:
       type: object
       example:
         '@context':
@@ -327,8 +344,8 @@ components:
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
         policy:
-          $ref: '#/components/schemas/PolicySchema'
-    PolicyDefinitionOutputSchema:
+          $ref: '#/components/schemas/Policy'
+    PolicyDefinitionOutput:
       type: object
       example:
         '@context':
@@ -355,25 +372,8 @@ components:
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/PolicyDefinition
         policy:
-          $ref: '#/components/schemas/PolicySchema'
-    PolicySchema:
-      type: object
-      description: ODRL policy
-      example:
-        '@context': http://www.w3.org/ns/odrl.jsonld
-        '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
-        '@type': odrl:Set
-        permission:
-          target: http://example.com/asset:9898.movie
-          action:
-            type: http://www.w3.org/ns/odrl/2/use
-          constraint:
-            leftOperand: https://w3id.org/edc/v0.0.1/ns/left
-            operator: eq
-            rightOperand: value
-        prohibition: []
-        obligation: []
-    QuerySpecSchema:
+          $ref: '#/components/schemas/Policy'
+    QuerySpec:
       type: object
       example:
         '@context':
@@ -387,12 +387,12 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionSchema'
+            $ref: '#/components/schemas/Criterion'
         limit:
           type: integer
           format: int32

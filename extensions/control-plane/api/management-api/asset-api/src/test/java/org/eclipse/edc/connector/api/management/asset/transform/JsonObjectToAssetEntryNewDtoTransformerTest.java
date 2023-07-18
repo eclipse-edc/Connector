@@ -57,11 +57,10 @@ public class JsonObjectToAssetEntryNewDtoTransformerTest {
         when(context.transform(any(JsonValue.class), eq(Asset.class))).thenReturn(Asset.Builder.newInstance().build());
         when(context.transform(any(JsonValue.class), eq(DataAddress.class))).thenReturn(DataAddress.Builder.newInstance().type("test").build());
 
+        var result = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
-        var dto = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
-
-        assertThat(dto).isNotNull();
-        assertThat(dto.getAsset()).isNotNull();
-        assertThat(dto.getDataAddress()).isNotNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getAsset()).isNotNull();
+        assertThat(result.getDataAddress()).isNotNull();
     }
 }

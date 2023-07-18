@@ -29,9 +29,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 
-class DataAddressDtoValidatorTest {
+class DataAddressValidatorTest {
 
-    private final Validator<JsonObject> validator = DataAddressDtoValidator.instance();
+    private final Validator<JsonObject> validator = DataAddressValidator.instance();
 
     @Test
     void shouldSucceed_whenObjectIsValid() {

@@ -52,7 +52,7 @@ public interface ContractNegotiationApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    JsonArray queryNegotiations(JsonObject querySpecDto);
+    JsonArray queryNegotiations(JsonObject querySpecJson);
 
     @Operation(description = "Gets a contract negotiation with the given ID",
             responses = {
@@ -131,7 +131,7 @@ public interface ContractNegotiationApi {
     )
     void declineNegotiation(String id);
 
-    @Schema(example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
+    @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(
             @Schema(name = TYPE, example = CONTRACT_REQUEST_TYPE)
             String type,
@@ -179,7 +179,7 @@ public interface ContractNegotiationApi {
                 """;
     }
 
-    @Schema(example = ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE)
+    @Schema(name = "ContractNegotiation", example = ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE)
     record ContractNegotiationSchema(
             @Schema(name = TYPE, example = CONTRACT_NEGOTIATION_TYPE)
             String ldType,
@@ -218,7 +218,7 @@ public interface ContractNegotiationApi {
                 """;
     }
 
-    @Schema(example = NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE)
+    @Schema(name = "NegotiationState", example = NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE)
     record NegotiationStateSchema(
             @Schema(name = TYPE, example = NegotiationState.NEGOTIATION_STATE_TYPE)
             String ldType,
@@ -233,12 +233,12 @@ public interface ContractNegotiationApi {
                 """;
     }
 
+    @Schema(name = "ContractOfferDescription")
     record ContractOfferDescriptionSchema(
             @Schema(name = TYPE, example = ContractOfferDescription.CONTRACT_OFFER_DESCRIPTION_TYPE)
             String type,
             String offerId,
             String assetId,
-            @Schema(description = "ODRL policy")
             ManagementApiSchema.PolicySchema policy
     ) {
 

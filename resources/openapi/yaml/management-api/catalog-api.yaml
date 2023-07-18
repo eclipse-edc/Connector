@@ -7,42 +7,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogRequestSchema'
+              $ref: '#/components/schemas/CatalogRequest'
       responses:
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogSchema'
+                $ref: '#/components/schemas/Catalog'
           description: Gets contract offers (=catalog) of a single connector
       tags:
       - Catalog
 components:
   schemas:
-    CatalogRequestSchema:
-      type: object
-      example:
-        '@context':
-          edc: https://w3id.org/edc/v0.0.1/ns/
-        '@type': CatalogRequest
-        providerUrl: http://provider-address
-        protocol: dataspace-protocol-http
-        querySpec:
-          offset: 0
-          limit: 50
-          sortOrder: DESC
-          sortField: fieldName
-          filterExpression: []
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CatalogRequest
-        protocol:
-          type: string
-          example: null
-        querySpec:
-          $ref: '#/components/schemas/QuerySpecSchema'
-    CatalogSchema:
+    Catalog:
       type: object
       description: DCAT catalog
       example:
@@ -90,7 +67,30 @@ components:
           dcat: https://www.w3.org/ns/dcat/
           odrl: http://www.w3.org/ns/odrl/2/
           dspace: https://w3id.org/dspace/v0.8/
-    CriterionSchema:
+    CatalogRequest:
+      type: object
+      example:
+        '@context':
+          edc: https://w3id.org/edc/v0.0.1/ns/
+        '@type': CatalogRequest
+        providerUrl: http://provider-address
+        protocol: dataspace-protocol-http
+        querySpec:
+          offset: 0
+          limit: 50
+          sortOrder: DESC
+          sortField: fieldName
+          filterExpression: []
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/CatalogRequest
+        protocol:
+          type: string
+          example: null
+        querySpec:
+          $ref: '#/components/schemas/QuerySpec'
+    Criterion:
       type: object
       example:
         '@context':
@@ -102,7 +102,7 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
         operandLeft:
           type: object
           example: null
@@ -147,7 +147,7 @@ components:
           - "FALSE"
           - "NULL"
           example: null
-    QuerySpecSchema:
+    QuerySpec:
       type: object
       example:
         '@context':
@@ -161,12 +161,12 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionSchema'
+            $ref: '#/components/schemas/Criterion'
         limit:
           type: integer
           format: int32

@@ -22,7 +22,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseDto'
+                $ref: '#/components/schemas/IdResponse'
           description: Asset was created successfully. Returns the asset Id and created
             timestamp
         "400":
@@ -57,7 +57,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetUpdateRequestDto'
+              $ref: '#/components/schemas/Asset'
       responses:
         "200":
           description: Asset was updated successfully
@@ -83,7 +83,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecDto'
+              $ref: '#/components/schemas/QuerySpec'
       responses:
         "200":
           content:
@@ -92,7 +92,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/AssetResponseDto'
+                  $ref: '#/components/schemas/Asset'
           description: The assets matching the query
         "400":
           content:
@@ -121,7 +121,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetUpdateRequestDto'
+              $ref: '#/components/schemas/Asset'
       responses:
         "200":
           description: Asset was updated successfully
@@ -210,7 +210,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetResponseDto'
+                $ref: '#/components/schemas/Asset'
           description: The asset
         "400":
           content:
@@ -249,7 +249,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataAddressDto'
+                $ref: '#/components/schemas/DataAddress'
           description: The data address
         "400":
           content:
@@ -279,13 +279,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetInputSchema'
+              $ref: '#/components/schemas/AssetInput'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseSchema'
+                $ref: '#/components/schemas/IdResponse'
           description: Asset was created successfully. Returns the asset Id and created
             timestamp
         "400":
@@ -319,7 +319,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetInputSchema'
+              $ref: '#/components/schemas/AssetInput'
       responses:
         "200":
           description: Asset was updated successfully
@@ -344,7 +344,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecSchema'
+              $ref: '#/components/schemas/QuerySpec'
       responses:
         "200":
           content:
@@ -353,7 +353,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/AssetOutputSchema'
+                  $ref: '#/components/schemas/AssetOutput'
           description: The assets matching the query
         "400":
           content:
@@ -429,7 +429,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetOutputSchema'
+                $ref: '#/components/schemas/AssetOutput'
           description: The asset
         "400":
           content:
@@ -502,7 +502,7 @@ components:
           $ref: '#/components/schemas/Asset'
         dataAddress:
           $ref: '#/components/schemas/DataAddress'
-    AssetInputSchema:
+    AssetInput:
       type: object
       example:
         '@context':
@@ -522,7 +522,7 @@ components:
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/Asset
         dataAddress:
-          $ref: '#/components/schemas/DataAddressSchema'
+          $ref: '#/components/schemas/DataAddress'
         privateProperties:
           type: object
           additionalProperties:
@@ -535,7 +535,7 @@ components:
             type: object
             example: null
           example: null
-    AssetOutputSchema:
+    AssetOutput:
       type: object
       example:
         '@context':
@@ -560,7 +560,7 @@ components:
           format: int64
           example: null
         dataAddress:
-          $ref: '#/components/schemas/DataAddressSchema'
+          $ref: '#/components/schemas/DataAddress'
         privateProperties:
           type: object
           additionalProperties:
@@ -573,77 +573,7 @@ components:
             type: object
             example: null
           example: null
-    AssetResponseDto:
-      type: object
-      example: null
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: null
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-        privateProperties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-    AssetUpdateRequestDto:
-      type: object
-      example: null
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
-        privateProperties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-            example: null
-          example: null
-    CriterionDto:
-      type: object
-      example: null
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
-        operandLeft:
-          type: object
-          example: null
-        operandRight:
-          type: object
-          example: null
-        operator:
-          type: string
-          example: null
-    CriterionSchema:
+    Criterion:
       type: object
       example:
         '@context':
@@ -655,7 +585,7 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
         operandLeft:
           type: object
           example: null
@@ -669,56 +599,13 @@ components:
       type: object
       example: null
       properties:
-        properties:
-          type: object
-          additionalProperties:
-            type: string
-            example: null
-          example: null
-    DataAddressDto:
-      type: object
-      example: null
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
-        properties:
-          type: object
-          additionalProperties:
-            type: string
-            example: null
-          example: null
-    DataAddressSchema:
-      type: object
-      example: null
-      properties:
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/DataAddress
         type:
           type: string
           example: null
-    IdResponseDto:
-      type: object
-      example: null
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@id':
-          type: string
-          example: null
-        '@type':
-          type: string
-          example: null
-        createdAt:
-          type: integer
-          format: int64
-          example: null
-    IdResponseSchema:
+    IdResponse:
       type: object
       example:
         '@context':
@@ -788,39 +675,7 @@ components:
           - "FALSE"
           - "NULL"
           example: null
-    QuerySpecDto:
-      type: object
-      example: null
-      properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
-        filterExpression:
-          type: array
-          example: null
-          items:
-            $ref: '#/components/schemas/CriterionDto'
-        limit:
-          type: integer
-          format: int32
-          example: null
-        offset:
-          type: integer
-          format: int32
-          example: null
-        sortField:
-          type: string
-          example: null
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-          example: null
-    QuerySpecSchema:
+    QuerySpec:
       type: object
       example:
         '@context':
@@ -834,12 +689,12 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionSchema'
+            $ref: '#/components/schemas/Criterion'
         limit:
           type: integer
           format: int32

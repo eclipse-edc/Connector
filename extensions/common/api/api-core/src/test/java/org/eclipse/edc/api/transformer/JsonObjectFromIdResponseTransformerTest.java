@@ -16,32 +16,32 @@ package org.eclipse.edc.api.transformer;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.model.IdResponseDto;
+import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_CREATED_AT;
-import static org.eclipse.edc.api.model.IdResponseDto.EDC_ID_RESPONSE_DTO_TYPE;
+import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_CREATED_AT;
+import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.Mockito.mock;
 
-class JsonObjectFromIdResponseDtoTransformerTest {
+class JsonObjectFromIdResponseTransformerTest {
 
-    private final JsonObjectFromIdResponseDtoTransformer transformer = new JsonObjectFromIdResponseDtoTransformer(Json.createBuilderFactory(emptyMap()));
+    private final JsonObjectFromIdResponseTransformer transformer = new JsonObjectFromIdResponseTransformer(Json.createBuilderFactory(emptyMap()));
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
     void types() {
-        assertThat(transformer.getInputType()).isEqualTo(IdResponseDto.class);
+        assertThat(transformer.getInputType()).isEqualTo(IdResponse.class);
         assertThat(transformer.getOutputType()).isEqualTo(JsonObject.class);
     }
 
     @Test
     void transform() {
-        var input = IdResponseDto.Builder.newInstance()
+        var input = IdResponse.Builder.newInstance()
                 .id("id")
                 .createdAt(1234)
                 .build();
@@ -50,8 +50,8 @@ class JsonObjectFromIdResponseDtoTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getString(ID)).isEqualTo("id");
-        assertThat(result.getString(TYPE)).isEqualTo(EDC_ID_RESPONSE_DTO_TYPE);
-        assertThat(result.getInt(EDC_ID_RESPONSE_DTO_CREATED_AT)).isEqualTo(1234);
+        assertThat(result.getString(TYPE)).isEqualTo(ID_RESPONSE_TYPE);
+        assertThat(result.getInt(ID_RESPONSE_CREATED_AT)).isEqualTo(1234);
     }
 
 }

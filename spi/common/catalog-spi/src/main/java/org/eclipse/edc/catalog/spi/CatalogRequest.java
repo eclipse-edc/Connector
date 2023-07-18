@@ -60,8 +60,8 @@ public class CatalogRequest {
             return new Builder();
         }
 
-        public Builder querySpec(QuerySpec querySpecDto) {
-            instance.querySpec = querySpecDto;
+        public Builder querySpec(QuerySpec querySpec) {
+            instance.querySpec = querySpec;
             return this;
         }
 

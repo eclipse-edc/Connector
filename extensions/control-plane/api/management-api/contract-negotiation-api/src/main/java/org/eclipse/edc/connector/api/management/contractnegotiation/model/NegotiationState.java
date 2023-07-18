@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation.model;
 
-import org.eclipse.edc.api.model.BaseDto;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -22,17 +21,9 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 /**
  * Wrapper for {@link ContractNegotiationStates} formatted as String. Used to format a simple string as JSON.
  */
-public class NegotiationState extends BaseDto {
+public record NegotiationState(String state) {
 
     public static final String NEGOTIATION_STATE_TYPE = EDC_NAMESPACE + "NegotiationState";
     public static final String NEGOTIATION_STATE_STATE = EDC_NAMESPACE + "state";
-    private final String state;
 
-    public NegotiationState(String state) {
-        this.state = state;
-    }
-
-    public String getState() {
-        return state;
-    }
 }

@@ -60,7 +60,7 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
-    JsonArray requestAssets(JsonObject querySpecDto);
+    JsonArray requestAssets(JsonObject querySpecJson);
 
     @Operation(description = "Gets an asset with the given ID",
             responses = {
@@ -99,7 +99,7 @@ public interface AssetApi {
             })
     void updateAsset(JsonObject asset);
 
-    @Schema(example = AssetInputSchema.ASSET_INPUT_EXAMPLE)
+    @Schema(name = "AssetInput", example = AssetInputSchema.ASSET_INPUT_EXAMPLE)
     record AssetInputSchema(
             @Schema(name = ID)
             String id,
@@ -126,7 +126,7 @@ public interface AssetApi {
                 """;
     }
 
-    @Schema(example = AssetOutputSchema.ASSET_OUTPUT_EXAMPLE)
+    @Schema(name = "AssetOutput", example = AssetOutputSchema.ASSET_OUTPUT_EXAMPLE)
     record AssetOutputSchema(
             @Schema(name = ID)
             String id,

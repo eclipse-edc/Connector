@@ -354,7 +354,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
         var criteria = createArrayBuilder()
                 .add(createObjectBuilder()
-                        .add(TYPE, "CriterionDto")
+                        .add(TYPE, "Criterion")
                         .add("operandLeft", leftOperand)
                         .add("operator", operator)
                         .add("operandRight", rightOperand)
@@ -362,7 +362,7 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
 
         return createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "QuerySpecDto")
+                .add(TYPE, "QuerySpec")
                 .add("filterExpression", criteria)
                 .build();
     }

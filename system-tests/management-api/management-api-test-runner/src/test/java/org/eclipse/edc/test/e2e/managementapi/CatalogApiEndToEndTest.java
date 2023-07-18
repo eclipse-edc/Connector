@@ -86,7 +86,7 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
         var criteria = createArrayBuilder()
                 .add(createObjectBuilder()
-                        .add(TYPE, "CriterionDto")
+                        .add(TYPE, "Criterion")
                         .add("operandLeft", EDC_NAMESPACE + "id")
                         .add("operator", "=")
                         .add("operandRight", "id-2")
@@ -95,7 +95,7 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .build();
 
         var querySpec = createObjectBuilder()
-                .add(TYPE, "QuerySpecDto")
+                .add(TYPE, "QuerySpec")
                 .add("filterExpression", criteria)
                 .add("limit", 1);
 

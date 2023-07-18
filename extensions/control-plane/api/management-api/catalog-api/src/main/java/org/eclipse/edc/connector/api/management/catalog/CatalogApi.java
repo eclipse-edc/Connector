@@ -44,7 +44,7 @@ public interface CatalogApi {
     )
     void requestCatalog(JsonObject request, @Suspended AsyncResponse response);
 
-    @Schema(example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
+    @Schema(name = "CatalogRequest", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
     record CatalogRequestSchema(
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
             String providerUrl,
@@ -68,7 +68,7 @@ public interface CatalogApi {
                 """;
     }
 
-    @Schema(description = "DCAT catalog", example = CatalogSchema.CATALOG_EXAMPLE)
+    @Schema(name = "Catalog", description = "DCAT catalog", example = CatalogSchema.CATALOG_EXAMPLE)
     record CatalogSchema(
     ) {
         public static final String CATALOG_EXAMPLE = """

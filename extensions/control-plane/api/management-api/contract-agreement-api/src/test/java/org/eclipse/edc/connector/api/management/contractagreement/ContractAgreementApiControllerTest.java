@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.contractagreement;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.model.QuerySpecDto;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -37,6 +36,7 @@ import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,8 +60,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
     void queryAllAgreements_whenExists() {
         var expanded = Json.createObjectBuilder().build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
-        when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
         when(transformerRegistry.transform(any(ContractAgreement.class), eq(JsonObject.class))).thenReturn(Result.success(expanded));
 
@@ -73,9 +72,8 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("size()", equalTo(2));
 
-        verify(validatorRegistry).validate(eq(QuerySpecDto.EDC_QUERY_SPEC_TYPE), any());
-        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
-        verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(validatorRegistry).validate(eq(EDC_QUERY_SPEC_TYPE), any());
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
         verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
@@ -84,8 +82,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
     @Test
     void queryAllAgreements_whenNoneExists() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
-        when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of()));
 
         baseRequest()
@@ -96,8 +93,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("size()", equalTo(0));
 
-        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
-        verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
         verify(transformerRegistry, never()).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
@@ -120,8 +116,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
     @Test
     void queryAllAgreements_whenTransformationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpecDto.class))).thenReturn(Result.success(QuerySpecDto.Builder.newInstance().build()));
-        when(transformerRegistry.transform(any(QuerySpecDto.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
+        when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.none()));
         when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(createContractAgreement("id1"), createContractAgreement("id2"))));
         when(transformerRegistry.transform(any(ContractAgreement.class), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
 
@@ -133,8 +128,7 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("size()", equalTo(0));
 
-        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpecDto.class));
-        verify(transformerRegistry).transform(any(QuerySpecDto.class), eq(QuerySpec.class));
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpec.class));
         verify(service).query(any(QuerySpec.class));
         verify(transformerRegistry, times(2)).transform(any(ContractAgreement.class), eq(JsonObject.class));
         verify(monitor, times(2)).warning(eq("test-failure"));

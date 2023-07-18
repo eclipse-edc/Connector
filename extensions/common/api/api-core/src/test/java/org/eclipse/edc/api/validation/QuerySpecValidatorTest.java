@@ -25,17 +25,17 @@ import org.junit.jupiter.api.Test;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_FILTER_EXPRESSION;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_LIMIT;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_OFFSET;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_SORT_FIELD;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_SORT_ORDER;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_LIMIT;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_OFFSET;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_ORDER;
 
-class QuerySpecDtoValidatorTest {
+class QuerySpecValidatorTest {
 
-    private final Validator<JsonObject> validator = QuerySpecDtoValidator.instance();
+    private final Validator<JsonObject> validator = QuerySpecValidator.instance();
 
     @Test
     void shouldSucceed_whenObjectIsValid() {

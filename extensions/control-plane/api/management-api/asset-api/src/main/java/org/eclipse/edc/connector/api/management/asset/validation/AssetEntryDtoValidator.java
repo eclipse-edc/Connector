@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.asset.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.validation.DataAddressDtoValidator;
+import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
@@ -45,7 +45,7 @@ public class AssetEntryDtoValidator {
                         .verify(path -> new AssetPropertiesUniqueness())
                 )
                 .verify(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, MandatoryObject::new)
-                .verifyObject(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, DataAddressDtoValidator::instance)
+                .verifyObject(EDC_ASSET_ENTRY_DTO_DATA_ADDRESS, DataAddressValidator::instance)
                 .build();
     }
 

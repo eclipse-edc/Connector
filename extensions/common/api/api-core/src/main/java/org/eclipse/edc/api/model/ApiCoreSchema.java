@@ -19,14 +19,14 @@ import org.eclipse.edc.spi.query.SortOrder;
 
 import java.util.List;
 
-import static org.eclipse.edc.api.model.CriterionDto.CRITERION_TYPE;
-import static org.eclipse.edc.api.model.QuerySpecDto.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 
 public interface ApiCoreSchema {
 
-    @Schema(example = CriterionSchema.CRITERION_EXAMPLE)
+    @Schema(name = "Criterion", example = CriterionSchema.CRITERION_EXAMPLE)
     record CriterionSchema(
             @Schema(name = TYPE, example = CRITERION_TYPE)
             String type,
@@ -45,7 +45,7 @@ public interface ApiCoreSchema {
                 """;
     }
 
-    @Schema(example = QuerySpecSchema.QUERY_SPEC_EXAMPLE)
+    @Schema(name = "QuerySpec", example = QuerySpecSchema.QUERY_SPEC_EXAMPLE)
     record QuerySpecSchema(
             @Schema(name = TYPE, example = EDC_QUERY_SPEC_TYPE)
             String type,
@@ -68,7 +68,7 @@ public interface ApiCoreSchema {
                 """;
     }
 
-    @Schema(example = IdResponseSchema.ID_RESPONSE_EXAMPLE)
+    @Schema(name = "IdResponse", example = IdResponseSchema.ID_RESPONSE_EXAMPLE)
     record IdResponseSchema(
             @Schema(name = ID)
             String id,

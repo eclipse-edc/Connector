@@ -21,6 +21,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
@@ -32,21 +33,20 @@ public class JsonObjectToCriterionTransformer extends AbstractJsonLdTransformer<
     }
 
     @Override
-    public @Nullable Criterion transform(@NotNull JsonObject input, @NotNull TransformerContext context) {
+    public @Nullable Criterion transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = Criterion.Builder.newInstance();
 
-        visitProperties(input, key -> {
-            switch (key) {
-                case CRITERION_OPERAND_LEFT:
-                    return v -> builder.operandLeft(transformGenericProperty(v, context));
-                case CRITERION_OPERAND_RIGHT:
-                    return v -> builder.operandRight(transformGenericProperty(v, context));
-                case CRITERION_OPERATOR:
-                    return v -> builder.operator(transformString(v, context));
-                default:
-                    return doNothing();
-            }
-        });
+        builder.operandLeft(transformString(object.get(CRITERION_OPERAND_LEFT), context));
+
+        var operator = transformString(object.get(CRITERION_OPERATOR), context);
+        builder.operator(operator);
+
+        var operandRight = object.get(CRITERION_OPERAND_RIGHT);
+        if ("in".equals(operator)) {
+            builder.operandRight(operandRight.asJsonArray().stream().map(this::nodeValue).collect(toList()));
+        } else {
+            builder.operandRight(transformString(operandRight, context));
+        }
 
         return builder.build();
     }

@@ -51,7 +51,7 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
-    JsonArray queryTransferProcesses(JsonObject querySpecDto);
+    JsonArray queryTransferProcesses(JsonObject querySpecJson);
 
     @Operation(description = "Gets an transfer process with the given ID",
             responses = {
@@ -120,7 +120,7 @@ public interface TransferProcessApi {
             })
     void terminateTransferProcess(String id, JsonObject terminateTransfer);
 
-    @Schema(example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
+    @Schema(name = "TransferRequest", example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
     record TransferRequestSchema(
             @Schema(name = TYPE, example = TRANSFER_REQUEST_TYPE)
             String type,
@@ -163,7 +163,7 @@ public interface TransferProcessApi {
                 """;
     }
 
-    @Schema(example = TransferProcessSchema.TRANSFER_PROCESS_EXAMPLE)
+    @Schema(name = "TransferProcess", example = TransferProcessSchema.TRANSFER_PROCESS_EXAMPLE)
     record TransferProcessSchema(
             @Schema(name = TYPE, example = TRANSFER_PROCESS_TYPE)
             String ldType,
@@ -212,7 +212,7 @@ public interface TransferProcessApi {
                 """;
     }
 
-    @Schema(example = TransferStateSchema.TRANSFER_STATE_EXAMPLE)
+    @Schema(name = "TransferState", example = TransferStateSchema.TRANSFER_STATE_EXAMPLE)
     record TransferStateSchema(
             @Schema(name = TYPE, example = TransferState.TRANSFER_STATE_TYPE)
             String ldType,
@@ -227,7 +227,7 @@ public interface TransferProcessApi {
                 """;
     }
 
-    @Schema(example = TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE)
+    @Schema(name = "TerminateTransfer", example = TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE)
     record TerminateTransferSchema(
             @Schema(name = TYPE, example = TransferState.TRANSFER_STATE_TYPE)
             String ldType,

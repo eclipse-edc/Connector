@@ -11,13 +11,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContractRequestSchema'
+              $ref: '#/components/schemas/ContractRequest'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdResponseSchema'
+                $ref: '#/components/schemas/IdResponse'
           description: The negotiation was successfully initiated. Returns the contract
             negotiation ID and created timestamp
           links:
@@ -44,7 +44,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuerySpecSchema'
+              $ref: '#/components/schemas/QuerySpec'
       responses:
         "200":
           content:
@@ -53,7 +53,7 @@ paths:
                 type: array
                 example: null
                 items:
-                  $ref: '#/components/schemas/ContractNegotiationSchema'
+                  $ref: '#/components/schemas/ContractNegotiation'
           description: The contract negotiations that match the query
         "400":
           content:
@@ -82,7 +82,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractNegotiationSchema'
+                $ref: '#/components/schemas/ContractNegotiation'
           description: The contract negotiation
         "400":
           content:
@@ -121,7 +121,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractAgreementSchema'
+                $ref: '#/components/schemas/ContractAgreement'
           description: "The contract agreement that is attached to the negotiation,\
             \ or null"
         "400":
@@ -282,7 +282,7 @@ components:
         type:
           type: string
           example: null
-    CallbackAddressSchema:
+    CallbackAddress:
       type: object
       example: null
       properties:
@@ -308,7 +308,7 @@ components:
         uri:
           type: string
           example: null
-    ContractAgreementSchema:
+    ContractAgreement:
       type: object
       example:
         '@context':
@@ -344,11 +344,11 @@ components:
           format: int64
           example: null
         policy:
-          $ref: '#/components/schemas/PolicySchema'
+          $ref: '#/components/schemas/Policy'
         providerId:
           type: string
           example: null
-    ContractNegotiationSchema:
+    ContractNegotiation:
       type: object
       example:
         '@context':
@@ -382,7 +382,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddressSchema'
+            $ref: '#/components/schemas/CallbackAddress'
         contractAgreementId:
           type: string
           example: null
@@ -407,7 +407,7 @@ components:
           - CONSUMER
           - PROVIDER
           example: null
-    ContractOfferDescriptionSchema:
+    ContractOfferDescription:
       type: object
       example: null
       properties:
@@ -421,8 +421,8 @@ components:
           type: string
           example: null
         policy:
-          $ref: '#/components/schemas/PolicySchema'
-    ContractRequestSchema:
+          $ref: '#/components/schemas/Policy'
+    ContractRequest:
       type: object
       example:
         '@context':
@@ -457,7 +457,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CallbackAddressSchema'
+            $ref: '#/components/schemas/CallbackAddress'
         connectorAddress:
           type: string
           example: null
@@ -472,14 +472,14 @@ components:
           description: this field is not used anymore
           example: null
         offer:
-          $ref: '#/components/schemas/ContractOfferDescriptionSchema'
+          $ref: '#/components/schemas/ContractOfferDescription'
         protocol:
           type: string
           example: null
         providerId:
           type: string
           example: null
-    CriterionSchema:
+    Criterion:
       type: object
       example:
         '@context':
@@ -491,7 +491,7 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CriterionDto
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
         operandLeft:
           type: object
           example: null
@@ -501,7 +501,7 @@ components:
         operator:
           type: string
           example: null
-    IdResponseSchema:
+    IdResponse:
       type: object
       example:
         '@context':
@@ -575,16 +575,10 @@ components:
       type: object
       example: null
       properties:
-        '@context':
-          type: object
-          example: null
-        '@type':
-          type: string
-          example: null
         state:
           type: string
           example: null
-    PolicySchema:
+    Policy:
       type: object
       description: ODRL policy
       example:
@@ -601,7 +595,7 @@ components:
             rightOperand: value
         prohibition: []
         obligation: []
-    QuerySpecSchema:
+    QuerySpec:
       type: object
       example:
         '@context':
@@ -615,12 +609,12 @@ components:
       properties:
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpecDto
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
         filterExpression:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/CriterionSchema'
+            $ref: '#/components/schemas/Criterion'
         limit:
           type: integer
           format: int32
