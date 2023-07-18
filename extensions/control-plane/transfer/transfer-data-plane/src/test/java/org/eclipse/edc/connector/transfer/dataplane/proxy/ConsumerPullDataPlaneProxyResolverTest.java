@@ -51,6 +51,10 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
     private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, tokenExpirationDateFunction);
 
+    private static DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
+    }
+
     @Test
     void verifyToDataAddressSuccess() {
         var address = dataAddress();
@@ -99,7 +103,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
         var result = resolver.toDataAddress(dataRequest(), dataAddress(), instance);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureDetail()).isEqualTo("Missing property `publicApiUrl` in DataPlaneInstance");
+        assertThat(result.getFailureDetail()).isEqualTo("Missing property `https://w3id.org/edc/v0.0.1/ns/publicApiUrl` (deprecated: `publicApiUrl`) in DataPlaneInstance");
     }
 
     @Test
@@ -141,10 +145,6 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureDetail()).contains(errorMsg);
-    }
-
-    private static DataAddress dataAddress() {
-        return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
     }
 
     private DataRequest dataRequest() {
