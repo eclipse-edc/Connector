@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.transformer;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -33,6 +34,7 @@ import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlan
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.Builder;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURNCOUNT;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 
@@ -45,38 +47,47 @@ public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTran
     public @Nullable DataPlaneInstance transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var builder = Builder.newInstance();
         builder.id(nodeId(jsonObject));
-        visitProperties(jsonObject, (key, jsonValue) -> {
-            switch (key) {
-                case URL -> {
-                    try {
-                        builder.url(new URL(Objects.requireNonNull(transformString(jsonValue, context))));
-                    } catch (MalformedURLException e) {
-                        context.reportProblem(e.getMessage());
-                    }
-                }
-                case LAST_ACTIVE -> transformLong(context, jsonValue, builder::lastActive);
-                case TURNCOUNT -> builder.turnCount(transformInt(jsonValue, context));
-                case ALLOWED_DEST_TYPES -> {
-                    var obj = transformArray(jsonValue, Object.class, context);
-                    if (obj != null && !obj.isEmpty()) {
-                        builder.allowedDestTypes(Set.copyOf(obj.stream().map(Object::toString).toList()));
-                    }
-                }
-                case ALLOWED_SOURCE_TYPES -> {
-                    var obj = transformArray(jsonValue, Object.class, context);
-                    if (obj != null && !obj.isEmpty()) {
-                        builder.allowedSourceTypes(Set.copyOf(obj.stream().map(Object::toString).toList()));
-                    }
-                }
-                default -> throw new IllegalStateException("Unexpected value: " + key);
-            }
-        });
+        visitProperties(jsonObject, (key, jsonValue) -> transformProperties(key, jsonValue, builder, context));
 
         return builder.build();
     }
 
+    private void transformProperties(String key, JsonValue jsonValue, DataPlaneInstance.Builder builder, TransformerContext context) {
+        switch (key) {
+            case URL -> {
+                try {
+                    builder.url(new URL(Objects.requireNonNull(transformString(jsonValue, context))));
+                } catch (MalformedURLException e) {
+                    context.reportProblem(e.getMessage());
+                }
+            }
+            case LAST_ACTIVE -> transformLong(context, jsonValue, builder::lastActive);
+            case TURNCOUNT -> builder.turnCount(transformInt(jsonValue, context));
+            case ALLOWED_DEST_TYPES -> {
+                var obj = transformArray(jsonValue, Object.class, context);
+                if (obj != null && !obj.isEmpty()) {
+                    builder.allowedDestTypes(Set.copyOf(obj.stream().map(Object::toString).toList()));
+                }
+            }
+            case ALLOWED_SOURCE_TYPES -> {
+                var obj = transformArray(jsonValue, Object.class, context);
+                if (obj != null && !obj.isEmpty()) {
+                    builder.allowedSourceTypes(Set.copyOf(obj.stream().map(Object::toString).toList()));
+                }
+            }
+            case PROPERTIES -> {
+                var props = jsonValue.asJsonArray().getJsonObject(0);
+                visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
+            }
+            default -> builder.property(key, transformGenericProperty(jsonValue, context));
+        }
+    }
+
     private void transformLong(@NotNull TransformerContext context, JsonValue jsonValue, Consumer<Long> consumer) {
-        if (jsonValue instanceof JsonNumber) {
+        if (jsonValue instanceof JsonArray) {
+            jsonValue = jsonValue.asJsonArray().getJsonObject(0);
+            consumer.accept(((JsonObject) jsonValue).getJsonNumber("@value").longValue());
+        } else if (jsonValue instanceof JsonNumber) {
             consumer.accept(((JsonNumber) jsonValue).longValue());
         } else {
             context.reportProblem("Cannot convert a " + jsonValue.getValueType() + " to a long!");
