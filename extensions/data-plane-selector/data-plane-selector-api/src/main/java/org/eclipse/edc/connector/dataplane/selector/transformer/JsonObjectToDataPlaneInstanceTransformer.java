@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.selector.transformer;
 
+import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -25,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
@@ -51,7 +54,7 @@ public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTran
                         context.reportProblem(e.getMessage());
                     }
                 }
-                case LAST_ACTIVE -> builder.lastActive(transformInt(jsonValue, context));
+                case LAST_ACTIVE -> transformLong(context, jsonValue, builder::lastActive);
                 case TURNCOUNT -> builder.turnCount(transformInt(jsonValue, context));
                 case ALLOWED_DEST_TYPES -> {
                     var obj = transformArray(jsonValue, Object.class, context);
@@ -70,5 +73,13 @@ public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTran
         });
 
         return builder.build();
+    }
+
+    private void transformLong(@NotNull TransformerContext context, JsonValue jsonValue, Consumer<Long> consumer) {
+        if (jsonValue instanceof JsonNumber) {
+            consumer.accept(((JsonNumber) jsonValue).longValue());
+        } else {
+            context.reportProblem("Cannot convert a " + jsonValue.getValueType() + " to a long!");
+        }
     }
 }

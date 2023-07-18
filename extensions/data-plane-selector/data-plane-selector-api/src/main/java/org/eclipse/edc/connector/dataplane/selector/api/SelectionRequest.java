@@ -31,20 +31,8 @@ public class SelectionRequest {
     private DataAddress destination;
     private String strategy;
 
-    public SelectionRequest(DataAddress source,
-                            DataAddress destination) {
-        this(source, destination, null);
-    }
-
-    public SelectionRequest(DataAddress source, DataAddress destination, String strategy) {
-        this.source = source;
-        this.destination = destination;
-        this.strategy = strategy;
-    }
-
     private SelectionRequest() {
     }
-
 
     public DataAddress getSource() {
         return source;
