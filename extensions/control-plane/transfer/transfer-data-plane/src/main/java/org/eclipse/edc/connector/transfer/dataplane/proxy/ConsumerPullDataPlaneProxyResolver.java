@@ -28,9 +28,11 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
 import java.util.Optional;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 public class ConsumerPullDataPlaneProxyResolver {
 
-    private static final String PUBLIC_API_URL_PROPERTY = "publicApiUrl";
+    private static final String PUBLIC_API_URL_PROPERTY = EDC_NAMESPACE + "publicApiUrl";
 
     private final DataEncrypter dataEncrypter;
     private final TypeManager typeManager;
