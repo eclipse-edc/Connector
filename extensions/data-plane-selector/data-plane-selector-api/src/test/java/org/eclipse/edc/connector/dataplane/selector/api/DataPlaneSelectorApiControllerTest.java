@@ -161,7 +161,6 @@ public class DataPlaneSelectorApiControllerTest {
                 .body(equalTo(""));
     }
 
-
     @Test
     void select_selectionStrategyNotFound(DataPlaneInstanceStore store) throws IOException {
         var dpi = createInstanceBuilder("test-id")
@@ -184,7 +183,6 @@ public class DataPlaneSelectorApiControllerTest {
                 .then()
                 .statusCode(400);
     }
-
 
     @Test
     void select_withCustomStrategy(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry) throws IOException {

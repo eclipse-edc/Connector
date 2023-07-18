@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
