@@ -9,13 +9,6 @@ on:
         type: string
 
   push:
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'CODEOWNERS'
-      - 'LICENSE'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,8 +16,8 @@ concurrency:
 
 jobs:
   Publish-To-SwaggerHub:
-    # do NOT run on forks or on PRs. The Org ("edc") is unique all across SwaggerHub
-    if: github.repository == 'eclipse-edc/Connector' && github.event_name != 'pull_request'
+    # do NOT run on forks. The Org ("edc") is unique all across SwaggerHub
+    if: github.repository == 'eclipse-edc/Connector'
     runs-on: ubuntu-latest
     strategy:
       matrix:
