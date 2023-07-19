@@ -179,13 +179,11 @@ public class DataPlaneInstance {
             return this;
         }
 
-        // private to enable JSON deserialization, but not intended for direct use!
         public DataPlaneInstance.Builder allowedDestTypes(Set<String> types) {
             instance.allowedDestTypes = types;
             return this;
         }
 
-        // private to enable JSON deserialization, but not intended for direct use!
         public DataPlaneInstance.Builder allowedSourceTypes(Set<String> types) {
             if (types != null) {
                 instance.allowedSourceTypes = types;
@@ -193,7 +191,7 @@ public class DataPlaneInstance {
             return this;
         }
 
-        private DataPlaneInstance.Builder properties(Map<String, Object> properties) {
+        public DataPlaneInstance.Builder properties(Map<String, Object> properties) {
             instance.properties = properties;
             return this;
         }

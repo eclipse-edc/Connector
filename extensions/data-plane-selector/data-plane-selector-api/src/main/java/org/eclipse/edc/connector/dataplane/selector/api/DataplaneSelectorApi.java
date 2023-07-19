@@ -62,7 +62,6 @@ public interface DataplaneSelectorApi {
 
     @Operation(method = "GET",
             description = "Returns a list of all currently registered data plane instances",
-            requestBody = @RequestBody(content = @Content(array = @ArraySchema(schema = @Schema(implementation = DataPlaneInstanceSchema.class)))),
             responses = {
                     @ApiResponse(responseCode = "204", description = "A (potentially empty) list of currently registered data plane instances"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))

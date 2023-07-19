@@ -29,15 +29,15 @@ public record SelectionRequestSchema(
 ) {
     public static final String SELECTION_REQUEST_INPUT_EXAMPLE = """
             {
-                "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
-                "tpe
-                "strategy": "name-of-strategy"
                 "source": {
-                    "type": "HttpData"
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
+                    "type": "test-src1"
                 },
                 "destination": {
-                    "type": "HttpData"
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
+                    "type": "test-dst2"
                 },
+                "strategy": "you_custom_strategy"
             }
             """;
 }

@@ -35,6 +35,13 @@ public record DataPlaneInstanceSchema(@Schema(name = TYPE, example = DATAPLANE_I
                                       URL url) {
     public static final String DATAPLANE_INSTANCE_EXAMPLE = """
             {
+                "@id": "you-dataplane-id",
+                "url": "http://somewhere.com:1234/api/v1",
+                "allowedSourceTypes": [
+                    "source-type1",
+                    "source-type2"
+                ],
+                "allowedDestTypes": "your-dest-type"
             }
             """;
 }

@@ -27,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
@@ -64,16 +64,12 @@ public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTran
             case LAST_ACTIVE -> transformLong(context, jsonValue, builder::lastActive);
             case TURNCOUNT -> builder.turnCount(transformInt(jsonValue, context));
             case ALLOWED_DEST_TYPES -> {
-                var obj = transformArray(jsonValue, Object.class, context);
-                if (obj != null && !obj.isEmpty()) {
-                    builder.allowedDestTypes(Set.copyOf(obj.stream().map(Object::toString).toList()));
-                }
+                var set = jsonValue.asJsonArray().stream().map(jv -> transformString(jv, context)).collect(Collectors.toSet());
+                builder.allowedDestTypes(set);
             }
             case ALLOWED_SOURCE_TYPES -> {
-                var obj = transformArray(jsonValue, Object.class, context);
-                if (obj != null && !obj.isEmpty()) {
-                    builder.allowedSourceTypes(Set.copyOf(obj.stream().map(Object::toString).toList()));
-                }
+                var set = jsonValue.asJsonArray().stream().map(jv -> transformString(jv, context)).collect(Collectors.toSet());
+                builder.allowedSourceTypes(set);
             }
             case PROPERTIES -> {
                 var props = jsonValue.asJsonArray().getJsonObject(0);

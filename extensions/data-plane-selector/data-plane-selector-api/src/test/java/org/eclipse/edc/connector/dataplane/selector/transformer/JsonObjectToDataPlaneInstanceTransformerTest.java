@@ -53,6 +53,12 @@ class JsonObjectToDataPlaneInstanceTransformerTest {
     private final TransformerContext context = mock();
     private final TitaniumJsonLd jsonLd = new TitaniumJsonLd(mock());
 
+    @BeforeEach
+    void setUp() {
+        when(context.transform(isA(JsonValue.class), eq(Object.class))).thenAnswer(a -> ((JsonObject) a.getArgument(0)).getString(VALUE));
+        when(context.transform(isA(JsonValue.class), eq(String.class))).thenAnswer(a -> ((JsonObject) a.getArgument(0)).getString(VALUE));
+    }
+
     @Test
     void transform() {
         var json = createObjectBuilder()
@@ -102,11 +108,6 @@ class JsonObjectToDataPlaneInstanceTransformerTest {
         assertThatThrownBy(() -> transformer.transform(expand(json), context)).isInstanceOf(NullPointerException.class);
 
         verify(context).reportProblem(anyString());
-    }
-
-    @BeforeEach
-    void setUp() {
-        when(context.transform(isA(JsonValue.class), eq(Object.class))).thenAnswer(a -> ((JsonObject) a.getArgument(0)).getString(VALUE));
     }
 
     private JsonObject expand(JsonObject jsonObject) {
