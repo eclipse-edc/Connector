@@ -20,6 +20,7 @@ import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistryImpl;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -42,20 +43,16 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
  * Tells all the Management API controllers under which context alias they need to register their resources: either `default` or `management`
- *
  */
 @Provides(ManagementApiConfiguration.class)
 @Extension(value = ManagementApiConfigurationExtension.NAME)
 public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Management API configuration";
-
+    public static final String WEB_SERVICE_NAME = "Management API";
     private static final String MANAGEMENT_CONTEXT_ALIAS = "management";
     private static final int DEFAULT_MANAGEMENT_API_PORT = 8181;
     private static final String DEFAULT_MANAGEMENT_API_CONTEXT_PATH = "/api/v1/management";
-
-    public static final String WEB_SERVICE_NAME = "Management API";
-
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey("web.http." + MANAGEMENT_CONTEXT_ALIAS)
             .contextAlias(MANAGEMENT_CONTEXT_ALIAS)
@@ -109,6 +106,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         var registry = new ManagementApiTypeTransformerRegistryImpl(this.transformerRegistry);
         registry.register(new JsonObjectFromContractAgreementTransformer(factory));
+        registry.register(new JsonObjectToDataAddressTransformer());
         return registry;
     }
 }
