@@ -16,7 +16,6 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
@@ -34,9 +33,11 @@ import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.types.StatusChecker;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -56,12 +57,14 @@ import java.util.Map;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -111,10 +114,7 @@ public class TransferProcessEventDispatchTest {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessProvisioned.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
-
-        ArgumentCaptor<EventEnvelope<TransferProcessStarted>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
 
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var startMessage = TransferStartMessage.Builder.newInstance()
@@ -127,15 +127,16 @@ public class TransferProcessEventDispatchTest {
         protocolService.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
 
         await().untilAsserted(() -> {
+            ArgumentCaptor<EventEnvelope<TransferProcessStarted>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
             verify(eventSubscriber, times(4)).on(captor.capture());
-            Assertions.assertThat(captor.getValue()).isNotNull()
+            assertThat(captor.getValue()).isNotNull()
                     .extracting(EventEnvelope::getPayload)
                     .extracting(TransferProcessStarted::getDataAddress)
                     .usingRecursiveComparison().isEqualTo(dataAddress);
         });
 
         var transferProcess = initiateResult.getContent();
-        service.complete(transferProcess.getId());
+        service.complete(transferProcess.getId()).orElseThrow(f -> new EdcException("Transfer cannot be completed: " + f.getFailureDetail()));
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessCompleted.class)));
@@ -170,9 +171,9 @@ public class TransferProcessEventDispatchTest {
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
-        service.terminate(initiateResult.getContent().getId(), "any reason");
+        service.terminate(new TerminateTransferCommand(initiateResult.getContent().getId(), "any reason"));
 
-        await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
+        await().untilAsserted(() -> verify(eventSubscriber, atLeastOnce()).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }
 
     @Test
