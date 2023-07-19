@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.api.management.configuration.transform.JsonObje
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -107,6 +108,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var registry = new ManagementApiTypeTransformerRegistryImpl(this.transformerRegistry);
         registry.register(new JsonObjectFromContractAgreementTransformer(factory));
         registry.register(new JsonObjectToDataAddressTransformer());
+        transformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
         return registry;
     }
 }
