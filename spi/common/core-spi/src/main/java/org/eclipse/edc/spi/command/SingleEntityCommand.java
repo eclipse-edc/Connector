@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.spi.command;
 
-public abstract class SingleEntityCommand extends Command {
+public abstract class SingleEntityCommand {
 
     protected final String entityId;
 

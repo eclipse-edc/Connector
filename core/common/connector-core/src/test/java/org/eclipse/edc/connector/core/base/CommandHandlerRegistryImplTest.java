@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.core.base;
 
-import org.eclipse.edc.spi.command.Command;
 import org.eclipse.edc.spi.command.CommandFailure;
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.command.CommandResult;
+import org.eclipse.edc.spi.command.SingleEntityCommand;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -37,7 +37,7 @@ class CommandHandlerRegistryImplTest {
         doReturn(TestCommand.class).when(handler).getType();
         when(handler.handle(any())).thenReturn(CommandResult.success());
         registry.register(handler);
-        var command = new TestCommand();
+        var command = new TestCommand("id");
 
         var result = registry.execute(command);
 
@@ -46,14 +46,17 @@ class CommandHandlerRegistryImplTest {
 
     @Test
     void execute_shouldReturnFailure_whenCommandHandlerNotFound() {
-        var command = new TestCommand();
+        var command = new TestCommand("id");
 
         var result = registry.execute(command);
 
         assertThat(result).isFailed().extracting(CommandFailure::getReason).isEqualTo(NOT_EXECUTABLE);
     }
 
-    private static class TestCommand extends Command {
+    private static class TestCommand extends SingleEntityCommand {
 
+        TestCommand(String entityId) {
+            super(entityId);
+        }
     }
 }

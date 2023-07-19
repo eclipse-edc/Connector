@@ -24,6 +24,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
  */
 
 @ExtensionPoint
-public interface ProviderContractNegotiationManager extends ContractNegotiationManager {
+public interface ProviderContractNegotiationManager {
 
 }

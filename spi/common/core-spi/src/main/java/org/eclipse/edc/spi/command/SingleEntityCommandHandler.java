@@ -16,6 +16,7 @@ package org.eclipse.edc.spi.command;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
+import org.eclipse.edc.spi.result.StoreFailure;
 
 import static java.lang.String.format;
 
@@ -35,10 +36,11 @@ public abstract class SingleEntityCommandHandler<C extends SingleEntityCommand, 
         var entityId = command.getEntityId();
         var leaseResult = store.findByIdAndLease(entityId);
         if (leaseResult.failed()) {
-            return switch (leaseResult.reason()) {
-                case NOT_FOUND -> CommandResult.notFound(leaseResult.getFailureDetail());
-                default -> CommandResult.conflict(leaseResult.getFailureDetail());
-            };
+            if (leaseResult.reason() == StoreFailure.Reason.NOT_FOUND) {
+                return CommandResult.notFound(leaseResult.getFailureDetail());
+            } else {
+                return CommandResult.conflict(leaseResult.getFailureDetail());
+            }
         }
 
         var entity = leaseResult.getContent();

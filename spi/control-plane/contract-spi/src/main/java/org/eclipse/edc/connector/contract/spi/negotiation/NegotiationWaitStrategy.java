@@ -18,7 +18,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 
 /**
- * Implements a wait strategy for the {@link ContractNegotiationManager}.
+ * Implements a wait strategy for the contract negotiation managers.
  * <p>
  * Implementations may choose to enforce an incremental backoff period when successive errors are encountered.
  */

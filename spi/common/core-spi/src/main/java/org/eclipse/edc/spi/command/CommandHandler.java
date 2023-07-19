@@ -21,7 +21,7 @@ package org.eclipse.edc.spi.command;
  *
  * @param <T> The concrete type of {@link Command}
  */
-public interface CommandHandler<T extends Command> {
+public interface CommandHandler<T extends SingleEntityCommand> {
 
     /**
      * Returns the type of {@link Command} this handler processes.

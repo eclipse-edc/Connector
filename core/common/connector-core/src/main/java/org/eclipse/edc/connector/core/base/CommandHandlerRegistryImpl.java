@@ -15,10 +15,10 @@
 
 package org.eclipse.edc.connector.core.base;
 
-import org.eclipse.edc.spi.command.Command;
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
+import org.eclipse.edc.spi.command.SingleEntityCommand;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,19 +30,19 @@ import static java.lang.String.format;
  */
 public class CommandHandlerRegistryImpl implements CommandHandlerRegistry {
 
-    private final Map<Class<? extends Command>, CommandHandler<?>> registrations;
+    private final Map<Class<? extends SingleEntityCommand>, CommandHandler<?>> registrations;
 
     public CommandHandlerRegistryImpl() {
         this.registrations = new HashMap<>();
     }
 
     @Override
-    public <C extends Command> void register(CommandHandler<C> handler) {
+    public <C extends SingleEntityCommand> void register(CommandHandler<C> handler) {
         registrations.put(handler.getType(), handler);
     }
 
     @Override
-    public  <C extends Command> CommandResult execute(C command) {
+    public  <C extends SingleEntityCommand> CommandResult execute(C command) {
         var commandHandler = (CommandHandler<C>) registrations.get(command.getClass());
 
         if (commandHandler == null) {

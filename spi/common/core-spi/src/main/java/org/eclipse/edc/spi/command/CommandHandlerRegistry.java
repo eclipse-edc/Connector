@@ -26,7 +26,7 @@ public interface CommandHandlerRegistry {
     /**
      * Registers the handler.
      */
-    <C extends Command> void register(CommandHandler<C> handlerClass);
+    <C extends SingleEntityCommand> void register(CommandHandler<C> handlerClass);
 
     /**
      * Execute a command.
@@ -35,5 +35,5 @@ public interface CommandHandlerRegistry {
      * @return successful result if command is executed correctly, failed result otherwise
      * @param <C> the command type
      */
-    <C extends Command> CommandResult execute(C command);
+    <C extends SingleEntityCommand> CommandResult execute(C command);
 }
