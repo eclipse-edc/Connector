@@ -19,6 +19,7 @@ import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromCatalogTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDatasetTransformer;
 import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromDistributionTransformer;
@@ -27,6 +28,7 @@ import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromQuerySpecTr
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToAssetTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataServiceTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDatasetTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDistributionTransformer;
@@ -63,17 +65,17 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 @Extension(value = DspApiConfigurationExtension.NAME)
 @Provides({ DspApiConfiguration.class, ProtocolWebhook.class })
 public class DspApiConfigurationExtension implements ServiceExtension {
-    
+
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
-    
+
     public static final String CONTEXT_ALIAS = "protocol";
-    
+
     public static final String DEFAULT_DSP_CALLBACK_ADDRESS = "http://localhost:8282/api/v1/dsp";
     public static final String DSP_CALLBACK_ADDRESS = "edc.dsp.callback.address";
-    
+
     public static final int DEFAULT_PROTOCOL_PORT = 8282;
     public static final String DEFAULT_PROTOCOL_API_PATH = "/api/v1/dsp";
-    
+
     public static final WebServiceSettings SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey("web.http.protocol")
             .contextAlias(CONTEXT_ALIAS)
@@ -81,7 +83,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
             .defaultPort(DEFAULT_PROTOCOL_PORT)
             .name("Protocol API")
             .build();
-    
+
     @Inject
     private TypeManager typeManager;
 
@@ -99,12 +101,12 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
-    
+
     @Override
     public String name() {
         return NAME;
     }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var config = configurator.configure(context, webServer, SETTINGS);
@@ -112,7 +114,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
 
         context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
-        
+
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
         webService.registerResource(config.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper));
@@ -133,6 +135,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, mapper));
+        transformerRegistry.register(new JsonObjectFromDataAddressTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         transformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, mapper));
 
@@ -150,6 +153,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToAssetTransformer());
         transformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         transformerRegistry.register(new JsonObjectToCriterionTransformer());
+        transformerRegistry.register(new JsonObjectToDataAddressTransformer());
     }
 
 }

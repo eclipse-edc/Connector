@@ -15,15 +15,24 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
+import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
+import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToDataPlaneInstanceTransformer;
+import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
+
+import java.util.Map;
+
+import static jakarta.json.Json.createBuilderFactory;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = "DataPlane selector API")
 public class DataPlaneSelectorApiExtension implements ServiceExtension {
@@ -39,6 +48,8 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+    @Inject
+    private ManagementApiTypeTransformerRegistry transformerRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -47,7 +58,10 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
         typeManager.registerTypes(DataPlaneInstance.class);
 
-        var controller = new DataplaneSelectorApiController(selectionService);
+        transformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
+        transformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
+        transformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
+        var controller = new DataplaneSelectorApiController(selectionService, transformerRegistry);
 
         webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);
     }

@@ -34,9 +34,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static java.io.File.separator;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
 
 public class EndToEndTransferParticipant extends Participant {
@@ -142,19 +148,20 @@ public class EndToEndTransferParticipant extends Participant {
     }
 
     public void registerDataPlane() {
-        var body = Map.of(
-                "id", UUID.randomUUID().toString(),
-                "url", dataPlaneControl + "/transfer",
-                "allowedSourceTypes", List.of("HttpData", "HttpProvision", "Kafka"),
-                "allowedDestTypes", List.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"),
-                "properties", Map.of("publicApiUrl", dataPlanePublic.toString())
-        );
+        var jsonObject = Json.createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(ID, UUID.randomUUID().toString())
+                .add(EDC_NAMESPACE + "url", dataPlaneControl + "/transfer")
+                .add(EDC_NAMESPACE + "allowedSourceTypes", createArrayBuilder(List.of("HttpData", "HttpProvision", "Kafka")))
+                .add(EDC_NAMESPACE + "allowedDestTypes", createArrayBuilder(List.of("HttpData", "HttpProvision", "HttpProxy", "Kafka")))
+                .add(EDC_NAMESPACE + "properties", createObjectBuilder().add("publicApiUrl", dataPlanePublic.toString()))
+                .build();
 
         managementEndpoint.baseRequest()
                 .contentType(JSON)
-                .body(body)
+                .body(jsonObject.toString())
                 .when()
-                .post("/instances")
+                .post("/v2/dataplanes")
                 .then()
                 .statusCode(204);
     }

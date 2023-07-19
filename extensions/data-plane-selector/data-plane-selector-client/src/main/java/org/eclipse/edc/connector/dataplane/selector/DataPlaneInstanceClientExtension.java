@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.util.string.StringUtils;
 
 import java.util.Objects;
@@ -47,6 +48,9 @@ public class DataPlaneInstanceClientExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+    
+    @Inject
+    private TypeTransformerRegistry typeTransformerRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -61,7 +65,7 @@ public class DataPlaneInstanceClientExtension implements ServiceExtension {
             monitor.debug("Using embedded DPF selector");
         } else {
             Objects.requireNonNull(httpClient, format("If [%s] is specified, an EdcHttpClient instance must be provided", DPF_SELECTOR_URL_SETTING));
-            client = new RemoteDataPlaneSelectorClient(httpClient, url, typeManager.getMapper());
+            client = new RemoteDataPlaneSelectorClient(httpClient, url, typeManager.getMapper(), typeTransformerRegistry);
             monitor.debug("Using remote DPF selector");
         }
 

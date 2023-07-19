@@ -28,9 +28,12 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
 import java.util.Optional;
 
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
 public class ConsumerPullDataPlaneProxyResolver {
 
-    private static final String PUBLIC_API_URL_PROPERTY = "publicApiUrl";
+    private static final String PUBLIC_API_URL_PROPERTY_DEPRECATED = "publicApiUrl";
+    private static final String PUBLIC_API_URL_PROPERTY = EDC_NAMESPACE + "publicApiUrl";
 
     private final DataEncrypter dataEncrypter;
     private final TypeManager typeManager;
@@ -42,6 +45,11 @@ public class ConsumerPullDataPlaneProxyResolver {
         this.typeManager = typeManager;
         this.tokenExpirationDateFunction = tokenExpirationDateFunction;
         this.tokenGenerationService = tokenGenerationService;
+    }
+
+    private static Object getPublicApiUrl(DataPlaneInstance instance) {
+        return Optional.ofNullable(instance.getProperties().get(PUBLIC_API_URL_PROPERTY))
+                .orElseGet(() -> instance.getProperties().get(PUBLIC_API_URL_PROPERTY_DEPRECATED));
     }
 
     public Result<DataAddress> toDataAddress(DataRequest request, DataAddress address, DataPlaneInstance instance) {
@@ -57,9 +65,9 @@ public class ConsumerPullDataPlaneProxyResolver {
     }
 
     private Result<String> resolveProxyUrl(DataPlaneInstance instance) {
-        return Optional.ofNullable(instance.getProperties().get(PUBLIC_API_URL_PROPERTY))
+        return Optional.ofNullable(getPublicApiUrl(instance))
                 .map(url -> Result.success((String) url))
-                .orElse(Result.failure(String.format("Missing property `%s` in DataPlaneInstance", PUBLIC_API_URL_PROPERTY)));
+                .orElse(Result.failure(String.format("Missing property `%s` (deprecated: `%s`) in DataPlaneInstance", PUBLIC_API_URL_PROPERTY, PUBLIC_API_URL_PROPERTY_DEPRECATED)));
     }
 
     private Result<String> generateAccessToken(DataAddress source, String contractId) {
