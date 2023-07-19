@@ -26,11 +26,11 @@ public class ConfigurationFunctions {
      * <p>Naming conventions for keys are '[qualifier].[value]' in lower case. When checking for env variables, keys will be converted to uppercase and '.' replaced by '_'.</p>
      */
     public static String propOrEnv(String key, String defaultValue) {
-        String value = System.getProperty(key);
+        var value = System.getProperty(key);
         if (!StringUtils.isNullOrBlank(value)) {
             return value;
         }
-        String upperKey = key.toUpperCase().replace('.', '_');
+        var upperKey = key.toUpperCase().replace('.', '_');
         value = System.getenv(upperKey);
         if (!StringUtils.isNullOrBlank(value)) {
             return value;
