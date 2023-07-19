@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.dataplane.selector.api.SelectionRequest;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 

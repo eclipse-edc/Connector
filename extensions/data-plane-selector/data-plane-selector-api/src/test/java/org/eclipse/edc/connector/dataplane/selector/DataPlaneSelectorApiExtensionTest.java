@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;

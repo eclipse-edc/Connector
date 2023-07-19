@@ -25,9 +25,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.api.SelectionRequest.DEST_ADDRESS;
-import static org.eclipse.edc.connector.dataplane.selector.api.SelectionRequest.SOURCE_ADDRESS;
-import static org.eclipse.edc.connector.dataplane.selector.api.SelectionRequest.STRATEGY;
+import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.DEST_ADDRESS;
+import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.SOURCE_ADDRESS;
+import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.STRATEGY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;

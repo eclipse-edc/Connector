@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api;
+package org.eclipse.edc.connector.dataplane.selector.api.v2;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,8 +27,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import org.eclipse.edc.connector.dataplane.selector.api.schemas.DataPlaneInstanceSchema;
-import org.eclipse.edc.connector.dataplane.selector.api.schemas.SelectionRequestSchema;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.DataPlaneInstanceSchema;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.SelectionRequestSchema;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 @OpenAPIDefinition

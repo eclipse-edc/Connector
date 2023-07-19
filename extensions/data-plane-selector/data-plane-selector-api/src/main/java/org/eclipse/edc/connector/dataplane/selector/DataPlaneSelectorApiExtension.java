@@ -15,7 +15,8 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.dataplane.selector.api.DataplaneSelectorApiController;
+import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
@@ -26,7 +27,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
@@ -49,7 +49,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
-    private TypeTransformerRegistry transformerRegistry;
+    private ManagementApiTypeTransformerRegistry transformerRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {

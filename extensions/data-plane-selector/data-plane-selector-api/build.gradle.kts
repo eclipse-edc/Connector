@@ -33,8 +33,7 @@ dependencies {
     // for the TypeTransformerRegistryImpl
     testImplementation(project(":core:common:transform-core"))
     // for the JsonObject-To-DataAddress transformer
-    testImplementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
-    testImplementation(project(":data-protocols:dsp:dsp-api-configuration"))
+    testImplementation(project(":extensions:common:management-api-configuration"))
 
     testImplementation(libs.restAssured)
 }

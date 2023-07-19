@@ -12,12 +12,12 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api.schemas;
+package org.eclipse.edc.connector.dataplane.selector.api.v2.schemas;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 
-import static org.eclipse.edc.connector.dataplane.selector.api.SelectionRequest.SELECTION_REQUEST_TYPE;
+import static org.eclipse.edc.connector.dataplane.selector.api.v2.model.SelectionRequest.SELECTION_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @Schema(example = SelectionRequestSchema.SELECTION_REQUEST_INPUT_EXAMPLE)

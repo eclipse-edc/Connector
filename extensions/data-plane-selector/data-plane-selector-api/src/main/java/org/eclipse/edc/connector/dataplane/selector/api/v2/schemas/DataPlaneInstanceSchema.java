@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.api.schemas;
+package org.eclipse.edc.connector.dataplane.selector.api.v2.schemas;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
