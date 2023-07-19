@@ -17,11 +17,12 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":system-tests:e2e-transfer-test:control-plane"))
-    implementation(project(":extensions:control-plane:store:sql:control-plane-sql"))
-    implementation(project(":extensions:common:sql:sql-pool:sql-pool-apache-commons"))
-    implementation(project(":extensions:common:transaction:transaction-local"))
-    implementation(libs.postgres)
+    runtimeOnly(project(":system-tests:e2e-transfer-test:control-plane"))
+    runtimeOnly(project(":extensions:control-plane:store:sql:control-plane-sql"))
+    runtimeOnly(project(":extensions:common:sql:sql-pool:sql-pool-apache-commons"))
+    runtimeOnly(project(":extensions:common:transaction:transaction-local"))
+    runtimeOnly(libs.postgres)
+    runtimeOnly(project(":extensions:common:api:management-api-configuration"))
 }
 
 edcBuild {

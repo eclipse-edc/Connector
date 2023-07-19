@@ -108,7 +108,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var registry = new ManagementApiTypeTransformerRegistryImpl(this.transformerRegistry);
         registry.register(new JsonObjectFromContractAgreementTransformer(factory));
         registry.register(new JsonObjectToDataAddressTransformer());
-        transformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
+        registry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
         return registry;
     }
 }

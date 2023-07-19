@@ -28,6 +28,7 @@ import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromQuerySpecTr
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToAssetTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDataServiceTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDatasetTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToDistributionTransformer;
@@ -152,6 +153,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToAssetTransformer());
         transformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         transformerRegistry.register(new JsonObjectToCriterionTransformer());
+        transformerRegistry.register(new JsonObjectToDataAddressTransformer());
     }
 
 }
