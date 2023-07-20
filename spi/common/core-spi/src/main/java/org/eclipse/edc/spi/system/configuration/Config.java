@@ -149,21 +149,11 @@ public interface Config {
 
     /**
      * Returns the config entries relative to the current root path filtering out properties that
-     * does not start with basePath. The basePath will be included in the resulting entries.
+     * does not start with basePath.
      *
      * @return a map containing the config entries relative to the current root path filtered by basePath
      */
     Map<String, String> getRelativeEntries(String basePath);
-
-    /**
-     * Returns the config entries relative to the current root path filtering out properties that
-     * does not start with basePath.
-     *
-     * @param basePath        the base path (= prefix of the config entry)
-     * @param includeBasePath whether the base path should be included in the resulting map of entries
-     * @return a map containing the config entries relative to the current root path filtered by basePath
-     */
-    Map<String, String> getRelativeEntries(String basePath, boolean includeBasePath);
 
     /**
      * Returns the name of the current node.

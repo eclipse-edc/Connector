@@ -135,13 +135,7 @@ public class ConfigImpl implements Config {
 
     @Override
     public Map<String, String> getRelativeEntries(String basePath) {
-        return getRelativeEntries(basePath, true);
-    }
-
-    @Override
-    public Map<String, String> getRelativeEntries(String basePath, boolean includeBasePath) {
-        return getRelativeEntries().entrySet().stream().filter(entry -> entry.getKey().startsWith(basePath))
-                .map(entry -> Map.entry(includeBasePath ? entry.getKey() : removePrefix(entry.getKey(), basePath), entry.getValue())).collect(TO_MAP);
+        return getRelativeEntries().entrySet().stream().filter(entry -> entry.getKey().startsWith(basePath)).collect(TO_MAP);
     }
 
     @Override

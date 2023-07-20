@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,18 +108,18 @@ public class JsonLdExtension implements ServiceExtension {
     private void registerCachedDocumentsFromConfig(ServiceExtensionContext context, TitaniumJsonLd service) {
         Map<String, Map<String, String>> tempMappings = new HashMap<>();
 
-        context.getConfig().getRelativeEntries(EDC_JSONLD_DOCUMENT_PREFIX, false)
-                .entrySet().stream()
-                .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
-                .forEach(e -> split(tempMappings, e));
 
-        tempMappings.forEach((name, entry) -> {
-            if (entry.containsKey(CONFIG_VALUE_PATH) && entry.containsKey(CONFIG_VALUE_URL)) {
-                service.registerCachedDocument(entry.get(CONFIG_VALUE_URL), new File(entry.get(CONFIG_VALUE_PATH)).toURI());
-            } else {
-                context.getMonitor().warning(format("Expected a '%s' and a '%s' entry for '%s.%s', but found only '%s'", CONFIG_VALUE_PATH, CONFIG_VALUE_URL, EDC_JSONLD_DOCUMENT_PREFIX, name, String.join("", entry.keySet())));
-            }
-        });
+        context.getConfig()
+                .getConfig(EDC_JSONLD_DOCUMENT_PREFIX)
+                .partition()
+                .forEach(config -> {
+                    var tuple = config.getRelativeEntries();
+                    if (tuple.containsKey(CONFIG_VALUE_PATH) && tuple.containsKey(CONFIG_VALUE_URL)) {
+                        service.registerCachedDocument(tuple.get(CONFIG_VALUE_URL), new File(tuple.get(CONFIG_VALUE_PATH)).toURI());
+                    } else {
+                        context.getMonitor().warning(format("Expected a '%s' and a '%s' entry for '%s.%s', but found only '%s'", CONFIG_VALUE_PATH, CONFIG_VALUE_URL, EDC_JSONLD_DOCUMENT_PREFIX, config.currentNode(), String.join("", tuple.keySet())));
+                    }
+                });
     }
 
     /**
