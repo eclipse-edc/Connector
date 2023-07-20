@@ -172,6 +172,21 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @Test
+    void find_queryByState() {
+        var tp = createTransferProcessBuilder("testprocess1").state(800).build();
+        store.save(tp);
+
+        var query = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("state", "=", 800)))
+                .build();
+
+        var result = store.findAll(query).toList();
+        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
+
+    }
+
+
+    @Test
     void create_withoutDataRequest_throwsException() {
         var t1 = TestFunctions.createTransferProcessBuilder("id1")
                 .dataRequest(null)

@@ -77,4 +77,26 @@ class JsonObjectToCriterionTransformerTest {
         assertThat(result.getOperator()).isEqualTo("in");
         assertThat(result.getOperandRight()).isInstanceOf(List.class).asList().containsExactly("bar", "baz");
     }
+
+    @Test
+    void transform_rightOperandIsNumber() {
+        var context = mock(TransformerContext.class);
+        when(context.transform(any(JsonValue.class), eq(Object.class))).thenAnswer(a -> genericTypeTransformer.transform(a.getArgument(0), context));
+        when(context.problem()).thenReturn(mock());
+        var json = Json.createObjectBuilder()
+                .add(JsonLdKeywords.TYPE, CRITERION_TYPE)
+                .add(CRITERION_OPERAND_LEFT, "foo")
+                .add(CRITERION_OPERATOR, "=")
+                .add(CRITERION_OPERAND_RIGHT, 42)
+                .build();
+
+        var result = transformer.transform(getExpanded(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getOperandRight()).satisfies(obj -> {
+            assertThat(obj).isInstanceOf(Double.class);
+            // must cast to engage the AbstractDoubleAssert
+            assertThat((Double) obj).isEqualTo(42);
+        });
+    }
 }
