@@ -89,7 +89,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         }
 
         var destination = message.getDataDestination();
-        if (destination != null) { // NOTE: optional property according to protocol spec
+        if (destination != null) {
             var validDestination = dataAddressValidator.validate(destination);
             if (validDestination.failed()) {
                 return ServiceResult.badRequest(validDestination.getFailureMessages());
@@ -138,7 +138,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, ContractId contractId) {
         var assetId = contractId.assetIdPart();
         
-        // NOTE: if destination is missing a pull transfer is requested
         var destination = message.getDataDestination() != null ? message.getDataDestination() :
                 DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
         var dataRequest = DataRequest.Builder.newInstance()
