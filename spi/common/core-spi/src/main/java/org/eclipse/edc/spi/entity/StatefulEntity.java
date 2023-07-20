@@ -35,6 +35,7 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
     protected long stateTimestamp;
     protected Map<String, String> traceContext = new HashMap<>();
     protected String errorDetail;
+    protected boolean pending = false;
 
     protected StatefulEntity() {
     }
@@ -60,8 +61,16 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
         return errorDetail;
     }
 
+    public boolean isPending() {
+        return pending;
+    }
+
     public void setErrorDetail(String errorDetail) {
         this.errorDetail = errorDetail;
+    }
+
+    public void setPending(boolean pending) {
+        this.pending = pending;
     }
 
     /**
@@ -100,6 +109,7 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
                 .traceContext(traceContext)
                 .errorDetail(errorDetail)
                 .clock(clock)
+                .pending(pending)
                 .build();
     }
 
@@ -138,6 +148,11 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
 
         public B traceContext(Map<String, String> traceContext) {
             entity.traceContext = traceContext;
+            return self();
+        }
+
+        public B pending(boolean pending) {
+            entity.pending = pending;
             return self();
         }
 

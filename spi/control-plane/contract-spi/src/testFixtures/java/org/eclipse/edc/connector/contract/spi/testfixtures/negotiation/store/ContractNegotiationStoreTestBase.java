@@ -35,8 +35,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createCallbackAddress;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createContract;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createContractBuilder;
 import static org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
@@ -54,14 +56,17 @@ public abstract class ContractNegotiationStoreTestBase {
     @Test
     @DisplayName("Verify that an entity is found by ID")
     void find() {
-        var id = "test-cn1";
-        var negotiation = createNegotiation(id);
+        var id = UUID.randomUUID().toString();
+        var negotiation = createNegotiationBuilder(id)
+                .pending(true)
+                .build();
         getContractNegotiationStore().save(negotiation);
 
-        assertThat(getContractNegotiationStore().findById(id))
+        var result = getContractNegotiationStore().findById(id);
+
+        assertThat(result)
                 .usingRecursiveComparison()
                 .isEqualTo(negotiation);
-
     }
 
     @Test
@@ -272,21 +277,28 @@ public abstract class ContractNegotiationStoreTestBase {
     }
 
     @Test
-    @DisplayName("Should persist update the callbacks if changed")
-    void update_changeCallbacks() {
-        var negotiationId = "test-cn1";
-        var negotiation = createNegotiation(negotiationId);
-        getContractNegotiationStore().save(negotiation);
+    void update_changeFields() {
+        var negotiationId = UUID.randomUUID().toString();
+        var builder = createNegotiationBuilder(negotiationId)
+                .callbackAddresses(List.of(createCallbackAddress()))
+                .pending(false);
+        getContractNegotiationStore().save(builder.build());
 
-        // one callback
-        assertThat(Objects.requireNonNull(getContractNegotiationStore().findById(negotiationId)).getCallbackAddresses()).hasSize(1);
+        var inserted = getContractNegotiationStore().findById(negotiationId);
+        assertThat(inserted).isNotNull().satisfies(i -> {
+            assertThat(i.getCallbackAddresses()).hasSize(1);
+            assertThat(i.isPending()).isFalse();
+        });
 
-        // remove callbacks
-        var updatedNegotiation = createNegotiationBuilder(negotiationId).callbackAddresses(List.of()).build();
+        builder.callbackAddresses(emptyList()).pending(true);
 
-        getContractNegotiationStore().save(updatedNegotiation); //should perform an update + insert
+        getContractNegotiationStore().save(builder.build());
 
-        assertThat(Objects.requireNonNull(getContractNegotiationStore().findById(negotiationId)).getCallbackAddresses()).isEmpty();
+        var updated = getContractNegotiationStore().findById(negotiationId);
+        assertThat(updated).isNotNull().satisfies(u -> {
+            assertThat(u.getCallbackAddresses()).isEmpty();
+            assertThat(u.isPending()).isTrue();
+        });
     }
 
     @Test

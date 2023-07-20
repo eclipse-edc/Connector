@@ -17,13 +17,13 @@
 package org.eclipse.edc.connector.transfer.process;
 
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.transfer.TestProvisionedContentResource;
 import org.eclipse.edc.connector.transfer.TestProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.transfer.TestResourceDefinition;
 import org.eclipse.edc.connector.transfer.TokenTestProvisionResource;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
@@ -48,7 +48,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -96,6 +95,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 import static org.mockito.AdditionalMatchers.aryEq;
@@ -139,6 +139,7 @@ class TransferProcessManagerImplTest {
     private final ProvisionResponsesHandler provisionResponsesHandler = mock();
     private final DeprovisionResponsesHandler deprovisionResponsesHandler = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
+    private final TransferProcessPendingGuard pendingGuard = mock();
 
     private TransferProcessManagerImpl manager;
 
@@ -156,7 +157,7 @@ class TransferProcessManagerImplTest {
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
-                .monitor(mock(Monitor.class))
+                .monitor(mock())
                 .clock(clock)
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(observable)
@@ -168,6 +169,7 @@ class TransferProcessManagerImplTest {
                 .protocolWebhook(protocolWebhook)
                 .provisionResponsesHandler(provisionResponsesHandler)
                 .deprovisionResponsesHandler(deprovisionResponsesHandler)
+                .pendingGuard(pendingGuard)
                 .build();
     }
 
@@ -716,6 +718,23 @@ class TransferProcessManagerImplTest {
         });
     }
 
+    @Test
+    void pendingGuard_shouldSetTheTransferPending_whenPendingGuardMatches() {
+        when(pendingGuard.test(any())).thenReturn(true);
+        var process = createTransferProcessBuilder(STARTING).build();
+        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore).save(captor.capture());
+            var saved = captor.getValue();
+            assertThat(saved.getState()).isEqualTo(STARTING.code());
+            assertThat(saved.isPending()).isTrue();
+        });
+    }
+
     @ParameterizedTest
     @ArgumentsSource(DispatchFailureArguments.class)
     void dispatchFailure(TransferProcessStates starting, TransferProcessStates ending, CompletableFuture<StatusResult<Object>> result, UnaryOperator<TransferProcess.Builder> builderEnricher) {
@@ -737,18 +756,7 @@ class TransferProcessManagerImplTest {
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state) });
-    }
-
-    private TestProvisionedContentResource createTestProvisionedContentResource(String resourceDefinitionId) {
-        return TestProvisionedContentResource.Builder.newInstance()
-                .resourceName("test")
-                .id("1")
-                .transferProcessId("2")
-                .resourceDefinitionId(resourceDefinitionId)
-                .dataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .hasToken(true)
-                .build();
+        return aryEq(new Criterion[]{ hasState(state), isNotPending() });
     }
 
     private DataFlowResponse createDataFlowResponse() {

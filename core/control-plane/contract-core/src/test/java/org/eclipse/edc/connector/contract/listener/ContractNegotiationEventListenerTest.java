@@ -16,9 +16,7 @@ package org.eclipse.edc.connector.contract.listener;
 
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
-import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationDeclined;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
-import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationFinalized;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
@@ -72,7 +70,6 @@ public class ContractNegotiationEventListenerTest {
                 .build();
 
         assertEvent(eventPayload);
-
     }
 
     @Test
@@ -152,45 +149,6 @@ public class ContractNegotiationEventListenerTest {
     }
 
     @Test
-    void declined_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
-        var negotiation = getNegotiation("id");
-
-        listener.declined(negotiation);
-
-        var eventPayload = ContractNegotiationDeclined.Builder.newInstance()
-                .contractNegotiationId(negotiation.getId())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .protocol(negotiation.getProtocol())
-                .callbackAddresses(negotiation.getCallbackAddresses())
-                .counterPartyId(negotiation.getCounterPartyId())
-                .build();
-
-        assertEvent(eventPayload);
-
-    }
-
-    @Test
-    void failed_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
-        var negotiation = getNegotiation("id");
-
-        listener.failed(negotiation);
-
-        var eventPayload = ContractNegotiationFailed.Builder.newInstance()
-                .contractNegotiationId(negotiation.getId())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .protocol(negotiation.getProtocol())
-                .callbackAddresses(negotiation.getCallbackAddresses())
-                .counterPartyId(negotiation.getCounterPartyId())
-                .build();
-
-        assertEvent(eventPayload);
-
-    }
-
-
-    @Test
     void agreed_shouldDispatchEvent() {
         var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
@@ -256,7 +214,6 @@ public class ContractNegotiationEventListenerTest {
         assertEvent(eventPayload);
 
     }
-
 
     private ContractNegotiation getNegotiation(String id) {
         return getNegotiationBuilder(id).build();

@@ -20,7 +20,7 @@ package org.eclipse.edc.statemachine;
  *
  */
 @FunctionalInterface
-public interface StateProcessor {
+public interface Processor {
 
     /**
      * Process states

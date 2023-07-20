@@ -25,14 +25,9 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.statemachine.StateMachineManager;
-import org.eclipse.edc.statemachine.StateProcessorImpl;
-
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
@@ -42,7 +37,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
-import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
@@ -72,9 +66,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
     }
 
-    private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), new Criterion("type", "=", PROVIDER.name())};
-        return new StateProcessorImpl<>(() -> negotiationStore.nextNotLeased(batchSize, filter), telemetry.contextPropagationMiddleware(function));
+    @Override
+    protected ContractNegotiation.Type type() {
+        return PROVIDER;
     }
 
     /**

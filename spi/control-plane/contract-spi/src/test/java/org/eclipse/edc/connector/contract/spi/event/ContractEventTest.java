@@ -18,10 +18,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.connector.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
-import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationConfirmed;
-import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationDeclined;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
-import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationFinalized;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
@@ -76,9 +73,6 @@ class ContractEventTest {
                     ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id").build(),
                     ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id").build(),
                     baseBuilder(ContractNegotiationAccepted.Builder.newInstance()).build(),
-                    baseBuilder(ContractNegotiationConfirmed.Builder.newInstance()).build(),
-                    baseBuilder(ContractNegotiationDeclined.Builder.newInstance()).build(),
-                    baseBuilder(ContractNegotiationFailed.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationInitiated.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationOffered.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationRequested.Builder.newInstance()).build(),

@@ -20,16 +20,12 @@ import org.eclipse.edc.connector.transfer.command.handlers.AddProvisionedResourc
 import org.eclipse.edc.connector.transfer.command.handlers.DeprovisionCompleteCommandHandler;
 import org.eclipse.edc.connector.transfer.edr.DataAddressToEndpointDataReferenceTransformer;
 import org.eclipse.edc.connector.transfer.edr.EndpointDataReferenceReceiverRegistryImpl;
-import org.eclipse.edc.connector.transfer.flow.DataFlowManagerImpl;
 import org.eclipse.edc.connector.transfer.listener.TransferProcessEventListener;
-import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
-import org.eclipse.edc.connector.transfer.process.StatusCheckerRegistryImpl;
 import org.eclipse.edc.connector.transfer.process.TransferProcessManagerImpl;
 import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
-import org.eclipse.edc.connector.transfer.provision.ProvisionManagerImpl;
 import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
-import org.eclipse.edc.connector.transfer.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.transfer.spi.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
@@ -42,7 +38,6 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedContentResource;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.CoreExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -62,6 +57,7 @@ import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 
@@ -69,9 +65,7 @@ import java.time.Clock;
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
-        TransferProcessObservable.class, DataFlowManager.class, ProvisionManager.class,
-        EndpointDataReferenceReceiverRegistry.class })
+@Provides({ TransferProcessManager.class, EndpointDataReferenceReceiverRegistry.class })
 @Extension(value = TransferCoreExtension.NAME)
 public class TransferCoreExtension implements ServiceExtension {
 
@@ -98,6 +92,21 @@ public class TransferCoreExtension implements ServiceExtension {
     private TransferProcessStore transferProcessStore;
 
     @Inject
+    private DataFlowManager dataFlowManager;
+
+    @Inject
+    private StatusCheckerRegistry statusCheckerRegistry;
+
+    @Inject
+    private ResourceManifestGenerator resourceManifestGenerator;
+
+    @Inject
+    private ProvisionManager provisionManager;
+
+    @Inject
+    private TransferProcessObservable observable;
+
+    @Inject
     private PolicyArchive policyArchive;
 
     @Inject
@@ -119,9 +128,6 @@ public class TransferCoreExtension implements ServiceExtension {
     private Clock clock;
 
     @Inject
-    private PolicyEngine policyEngine;
-
-    @Inject
     private TypeManager typeManager;
 
     @Inject
@@ -132,6 +138,9 @@ public class TransferCoreExtension implements ServiceExtension {
 
     @Inject
     private ProtocolWebhook protocolWebhook;
+
+    @Inject
+    private TransferProcessPendingGuard pendingGuard;
 
     private TransferProcessManagerImpl processManager;
 
@@ -146,18 +155,6 @@ public class TransferCoreExtension implements ServiceExtension {
 
         registerTypes(typeManager);
 
-        var dataFlowManager = new DataFlowManagerImpl();
-        context.registerService(DataFlowManager.class, dataFlowManager);
-
-        var manifestGenerator = new ResourceManifestGeneratorImpl(policyEngine);
-        context.registerService(ResourceManifestGenerator.class, manifestGenerator);
-
-        var statusCheckerRegistry = new StatusCheckerRegistryImpl();
-        context.registerService(StatusCheckerRegistry.class, statusCheckerRegistry);
-
-        var provisionManager = new ProvisionManagerImpl(monitor);
-        context.registerService(ProvisionManager.class, provisionManager);
-
         var iterationWaitMillis = context.getSetting(TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
@@ -166,24 +163,17 @@ public class TransferCoreExtension implements ServiceExtension {
         var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl(typeTransformerRegistry);
         context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
 
-
-        // Integration with the new DSP protocol
         eventRouter.register(TransferProcessStarted.class, endpointDataReferenceReceiverRegistry);
-
-        var observable = new TransferProcessObservableImpl();
-        context.registerService(TransferProcessObservable.class, observable);
 
         observable.registerListener(new TransferProcessEventListener(eventRouter, clock));
 
-        var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
-        var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
-        var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
+        var entityRetryProcessConfiguration = getEntityRetryProcessConfiguration(context);
         var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, vault, typeManager);
         var deprovisionResponsesHandler = new DeprovisionResponsesHandler(observable, monitor, vault);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
-                .manifestGenerator(manifestGenerator)
+                .manifestGenerator(resourceManifestGenerator)
                 .dataFlowManager(dataFlowManager)
                 .provisionManager(provisionManager)
                 .dispatcherRegistry(dispatcherRegistry)
@@ -202,6 +192,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .protocolWebhook(protocolWebhook)
                 .provisionResponsesHandler(provisionResponsesHandler)
                 .deprovisionResponsesHandler(deprovisionResponsesHandler)
+                .pendingGuard(pendingGuard)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
@@ -220,6 +211,13 @@ public class TransferCoreExtension implements ServiceExtension {
         if (processManager != null) {
             processManager.stop();
         }
+    }
+
+    @NotNull
+    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration(ServiceExtensionContext context) {
+        var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, DEFAULT_SEND_RETRY_LIMIT);
+        var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, DEFAULT_SEND_RETRY_BASE_DELAY);
+        return new EntityRetryProcessConfiguration(retryLimit, () -> new ExponentialWaitStrategy(retryBaseDelay));
     }
 
     private void registerTypes(TypeManager typeManager) {

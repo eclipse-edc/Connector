@@ -38,7 +38,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class StateMachineManager {
 
-    private final List<StateProcessor> processors = new ArrayList<>();
+    private final List<Processor> processors = new ArrayList<>();
     private final ScheduledExecutorService executor;
     private final AtomicBoolean active = new AtomicBoolean();
     private final WaitStrategy waitStrategy;
@@ -65,7 +65,7 @@ public class StateMachineManager {
      */
     public Future<?> start() {
         active.set(true);
-        return submit(0L);
+        return scheduleNextIterationIn(0L);
     }
 
     /**
@@ -95,41 +95,37 @@ public class StateMachineManager {
         return active.get();
     }
 
-    @NotNull
-    private Future<?> submit(long delayMillis) {
-        return executor.schedule(loop(), delayMillis, MILLISECONDS);
-    }
-
     private Runnable loop() {
         return () -> {
             if (active.get()) {
-                long delay = performLogic();
-
-                // Submit next execution after delay
-                submit(delay);
+                performLogic();
             }
         };
     }
 
-    private long performLogic() {
+    private void performLogic() {
         try {
             var processed = processors.stream()
-                    .mapToLong(StateProcessor::process)
+                    .mapToLong(Processor::process)
                     .sum();
 
             waitStrategy.success();
 
-            if (processed == 0) {
-                return waitStrategy.waitForMillis();
-            }
+            var delay = processed == 0 ? waitStrategy.waitForMillis() : 0;
+
+            scheduleNextIterationIn(delay);
         } catch (Error e) {
             active.set(false);
             monitor.severe(format("StateMachineManager [%s] unrecoverable error", name), e);
         } catch (Throwable e) {
             monitor.severe(format("StateMachineManager [%s] error caught", name), e);
-            return waitStrategy.retryInMillis();
+            scheduleNextIterationIn(waitStrategy.retryInMillis());
         }
-        return 0;
+    }
+
+    @NotNull
+    private Future<?> scheduleNextIterationIn(long delayMillis) {
+        return executor.schedule(loop(), delayMillis, MILLISECONDS);
     }
 
     public static class Builder {
@@ -144,7 +140,7 @@ public class StateMachineManager {
             return new Builder(name, monitor, instrumentation, waitStrategy);
         }
 
-        public Builder processor(StateProcessor processor) {
+        public Builder processor(Processor processor) {
             loop.processors.add(processor);
             return this;
         }

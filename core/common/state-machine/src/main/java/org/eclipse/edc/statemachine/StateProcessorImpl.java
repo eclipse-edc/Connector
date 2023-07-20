@@ -29,8 +29,10 @@ import java.util.function.Supplier;
  * to apply the wait strategy or not.
  *
  * @param <T> the entity that is processed
+ * @deprecated please use {@link ProcessorImpl}
  */
-public class StateProcessorImpl<T> implements StateProcessor {
+@Deprecated(since = "0.1.3")
+public class StateProcessorImpl<T> implements Processor {
 
     private final Supplier<Collection<T>> entities;
     private final Function<T, Boolean> process;

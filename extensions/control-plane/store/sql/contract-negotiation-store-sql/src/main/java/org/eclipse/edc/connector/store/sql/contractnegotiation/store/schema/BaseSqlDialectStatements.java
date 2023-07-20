@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.BaseSqlDialect;
+import org.eclipse.edc.sql.statement.ColumnEntry;
+import org.eclipse.edc.sql.statement.SqlExecuteStatement;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
@@ -38,20 +40,41 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getUpdateNegotiationTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?%s, %s=?%s, %s=?, %s=? WHERE id = ?;",
-                getContractNegotiationTable(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
-                getErrorDetailColumn(), getContractOffersColumn(), getFormatJsonOperator(), getCallbackAddressesColumn(), getFormatJsonOperator(), getTraceContextColumn(),
-                getFormatJsonOperator(), getContractAgreementIdFkColumn(), getUpdatedAtColumn());
+        return SqlExecuteStatement.newInstance(getFormatJsonOperator())
+                .column(getStateColumn())
+                .column(getStateCountColumn())
+                .column(getStateTimestampColumn())
+                .column(getErrorDetailColumn())
+                .jsonColumn(getContractOffersColumn())
+                .jsonColumn(getCallbackAddressesColumn())
+                .jsonColumn(getTraceContextColumn())
+                .column(getContractAgreementIdFkColumn())
+                .column(getUpdatedAtColumn())
+                .column(getPendingColumn())
+                .update(getContractNegotiationTable(), ColumnEntry.standardColumn(getIdColumn()));
     }
 
     @Override
     public String getInsertNegotiationTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)\n" +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?%s, ?%s, ?%s, ?, ?); ",
-                getContractNegotiationTable(), getIdColumn(), getCorrelationIdColumn(), getCounterPartyIdColumn(), getCounterPartyAddressColumn(), getTypeColumn(), getProtocolColumn(), getStateColumn(), getStateCountColumn(),
-                getStateTimestampColumn(), getErrorDetailColumn(), getContractAgreementIdFkColumn(), getContractOffersColumn(), getCallbackAddressesColumn(), getTraceContextColumn(), getCreatedAtColumn(), getUpdatedAtColumn(),
-                getFormatJsonOperator(), getFormatJsonOperator(), getFormatJsonOperator()
-        );
+        return SqlExecuteStatement.newInstance(getFormatJsonOperator())
+                .column(getIdColumn())
+                .column(getCorrelationIdColumn())
+                .column(getCounterPartyIdColumn())
+                .column(getCounterPartyAddressColumn())
+                .column(getTypeColumn())
+                .column(getProtocolColumn())
+                .column(getStateColumn())
+                .column(getStateCountColumn())
+                .column(getStateTimestampColumn())
+                .column(getErrorDetailColumn())
+                .column(getContractAgreementIdFkColumn())
+                .jsonColumn(getContractOffersColumn())
+                .jsonColumn(getCallbackAddressesColumn())
+                .jsonColumn(getTraceContextColumn())
+                .column(getCreatedAtColumn())
+                .column(getUpdatedAtColumn())
+                .column(getPendingColumn())
+                .insertInto(getContractNegotiationTable());
     }
 
     @Override

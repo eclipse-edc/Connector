@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.contract.negotiation;
 
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
+import org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
@@ -68,6 +69,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.AdditionalMatchers.aryEq;
@@ -92,7 +94,8 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ContractNegotiationListener listener = mock();
     private final ProtocolWebhook protocolWebhook = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
-    private ConsumerContractNegotiationManagerImpl negotiationManager;
+    private final ContractNegotiationPendingGuard pendingGuard = mock();
+    private ConsumerContractNegotiationManagerImpl manager;
 
     @BeforeEach
     void setUp() {
@@ -101,7 +104,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
 
-        negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+        manager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(PARTICIPANT_ID)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
@@ -110,6 +113,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .protocolWebhook(protocolWebhook)
+                .pendingGuard(pendingGuard)
                 .build();
     }
 
@@ -127,7 +131,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         .build()))
                 .build();
 
-        var result = negotiationManager.initiate(request);
+        var result = manager.initiate(request);
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
@@ -148,7 +152,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(INITIAL.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
 
-        negotiationManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == REQUESTING.code()));
@@ -163,7 +167,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
 
-        negotiationManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
@@ -179,7 +183,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
-        negotiationManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == ACCEPTED.code()));
@@ -194,7 +198,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(AGREED.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
-        negotiationManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == VERIFYING.code()));
@@ -209,7 +213,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
 
-        negotiationManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == VERIFIED.code()));
@@ -225,12 +229,30 @@ class ConsumerContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
-        negotiationManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(dispatcherRegistry, only()).dispatch(any(), any());
             verify(listener).terminated(any());
+        });
+    }
+
+    @Test
+    void pendingGuard_shouldSetTheTransferPending_whenPendingGuardMatches() {
+        when(pendingGuard.test(any())).thenReturn(true);
+        var process = contractNegotiationBuilder().state(VERIFYING.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(VERIFYING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(pendingGuard).test(any());
+            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(captor.capture());
+            var saved = captor.getValue();
+            assertThat(saved.getState()).isEqualTo(VERIFYING.code());
+            assertThat(saved.isPending()).isTrue();
         });
     }
 
@@ -242,7 +264,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
-        negotiationManager.start();
+        manager.start();
 
         await().untilAsserted(() -> {
             var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
@@ -255,7 +277,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), new Criterion("type", "=", "CONSUMER") });
+        return aryEq(new Criterion[]{ hasState(state), isNotPending(), new Criterion("type", "=", "CONSUMER") });
     }
 
     private ContractNegotiation.Builder contractNegotiationBuilder() {

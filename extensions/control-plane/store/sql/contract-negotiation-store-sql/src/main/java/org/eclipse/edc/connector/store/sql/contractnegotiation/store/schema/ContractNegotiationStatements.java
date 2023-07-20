@@ -137,6 +137,10 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "updated_at";
     }
 
+    default String getPendingColumn() {
+        return "pending";
+    }
+
     SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);
 
     SqlQueryStatement createAgreementsQuery(QuerySpec querySpec);

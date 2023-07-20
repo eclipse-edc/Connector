@@ -16,9 +16,11 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema;
 
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres.TransferProcessMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.statement.SqlExecuteStatement;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.sql.statement.ColumnEntry.standardColumn;
 
 /**
  * Postgres-specific variants and implementations of the statements required for the TransferProcessStore
@@ -51,16 +53,24 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getInsertStatement() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?%s, ?, ?%s, ?%s, ?%s, ?, ?%s, ?%s, ?%s);",
-                // keys
-                getTransferProcessTableName(), getIdColumn(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
-                getCreatedAtColumn(), getUpdatedAtColumn(),
-                getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(),
-                getProvisionedResourceSetColumn(), getContentDataAddressColumn(), getTypeColumn(), getDeprovisionedResourcesColumn(),
-                getPrivatePropertiesColumn(), getCallbackAddressesColumn(),
-                // values
-                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(),
-                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator());
+        return SqlExecuteStatement.newInstance(getFormatAsJsonOperator())
+                .column(getIdColumn())
+                .column(getStateColumn())
+                .column(getStateCountColumn())
+                .column(getStateTimestampColumn())
+                .column(getCreatedAtColumn())
+                .column(getUpdatedAtColumn())
+                .jsonColumn(getTraceContextColumn())
+                .column(getErrorDetailColumn())
+                .jsonColumn(getResourceManifestColumn())
+                .jsonColumn(getProvisionedResourceSetColumn())
+                .jsonColumn(getContentDataAddressColumn())
+                .column(getTypeColumn())
+                .jsonColumn(getDeprovisionedResourcesColumn())
+                .jsonColumn(getPrivatePropertiesColumn())
+                .jsonColumn(getCallbackAddressesColumn())
+                .column(getPendingColumn())
+                .insertInto(getTransferProcessTableName());
     }
 
     @Override
@@ -70,12 +80,20 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
 
     @Override
     public String getUpdateTransferProcessTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=? WHERE %s=?",
-                getTransferProcessTableName(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
-                getTraceContextColumn(), getFormatAsJsonOperator(), getErrorDetailColumn(),
-                getResourceManifestColumn(), getFormatAsJsonOperator(), getProvisionedResourceSetColumn(), getFormatAsJsonOperator(),
-                getContentDataAddressColumn(), getFormatAsJsonOperator(), getDeprovisionedResourcesColumn(), getFormatAsJsonOperator(),
-                getCallbackAddressesColumn(), getFormatAsJsonOperator(), getUpdatedAtColumn(), getIdColumn());
+        return SqlExecuteStatement.newInstance(getFormatAsJsonOperator())
+                .column(getStateColumn())
+                .column(getStateCountColumn())
+                .column(getStateTimestampColumn())
+                .column(getUpdatedAtColumn())
+                .jsonColumn(getTraceContextColumn())
+                .column(getErrorDetailColumn())
+                .jsonColumn(getResourceManifestColumn())
+                .jsonColumn(getProvisionedResourceSetColumn())
+                .jsonColumn(getContentDataAddressColumn())
+                .jsonColumn(getDeprovisionedResourcesColumn())
+                .jsonColumn(getCallbackAddressesColumn())
+                .column(getPendingColumn())
+                .update(getTransferProcessTableName(), standardColumn(getIdColumn()));
     }
 
     @Override
@@ -104,4 +122,5 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this));
     }
+
 }

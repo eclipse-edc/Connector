@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.contract.negotiation;
 
+import org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
@@ -23,21 +24,27 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.telemetry.Telemetry;
+import org.eclipse.edc.statemachine.Processor;
+import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.util.Objects;
+import java.util.function.Function;
 
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_LIMIT;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 
 public abstract class AbstractContractNegotiationManager {
     protected String participantId;
@@ -54,6 +61,23 @@ public abstract class AbstractContractNegotiationManager {
     protected EntityRetryProcessFactory entityRetryProcessFactory;
     protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
     protected ProtocolWebhook protocolWebhook;
+    protected ContractNegotiationPendingGuard pendingGuard = it -> false;
+
+    abstract ContractNegotiation.Type type();
+
+    protected Processor processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
+        var filter = new Criterion[] { hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name()) };
+        return ProcessorImpl.Builder.newInstance(() -> negotiationStore.nextNotLeased(batchSize, filter))
+                .process(telemetry.contextPropagationMiddleware(function))
+                .guard(pendingGuard, this::setPending)
+                .build();
+    }
+
+    private boolean setPending(ContractNegotiation contractNegotiation) {
+        contractNegotiation.setPending(true);
+        update(contractNegotiation);
+        return true;
+    }
 
     protected void transitionToInitial(ContractNegotiation negotiation) {
         negotiation.transitionInitial();
@@ -228,6 +252,11 @@ public abstract class AbstractContractNegotiationManager {
 
         public Builder<T> protocolWebhook(ProtocolWebhook protocolWebhook) {
             manager.protocolWebhook = protocolWebhook;
+            return this;
+        }
+
+        public Builder<T> pendingGuard(ContractNegotiationPendingGuard pendingGuard) {
+            manager.pendingGuard = pendingGuard;
             return this;
         }
 

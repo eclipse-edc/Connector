@@ -15,3 +15,4 @@
 
 org.eclipse.edc.connector.contract.ContractCoreExtension
 org.eclipse.edc.connector.contract.ContractNegotiationCommandExtension
+org.eclipse.edc.connector.contract.ContractNegotiationDefaultServicesExtension

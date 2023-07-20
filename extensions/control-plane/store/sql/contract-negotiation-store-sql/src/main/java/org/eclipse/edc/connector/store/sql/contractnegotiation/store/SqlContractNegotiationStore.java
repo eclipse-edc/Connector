@@ -172,7 +172,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     @Override
     public @NotNull List<ContractNegotiation> nextNotLeased(int max, Criterion... criteria) {
         return transactionContext.execute(() -> {
-            var filter = Arrays.stream(criteria).collect(toList());
+            var filter = Arrays.stream(criteria).toList();
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
             var statement = statements.createNegotiationsQuery(querySpec);
             statement.addWhereClause(statements.getNotLeasedFilter());
@@ -269,6 +269,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 toJson(updatedValues.getTraceContext()),
                 ofNullable(updatedValues.getContractAgreement()).map(ContractAgreement::getId).orElse(null),
                 updatedValues.getUpdatedAt(),
+                updatedValues.isPending(),
                 negotiationId);
     }
 
@@ -281,7 +282,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         }
 
         var stmt = statements.getInsertNegotiationTemplate();
-        queryExecutor.execute(connection, stmt, negotiation.getId(),
+        queryExecutor.execute(connection, stmt,
+                negotiation.getId(),
                 negotiation.getCorrelationId(),
                 negotiation.getCounterPartyId(),
                 negotiation.getCounterPartyAddress(),
@@ -296,9 +298,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 toJson(negotiation.getCallbackAddresses()),
                 toJson(negotiation.getTraceContext()),
                 negotiation.getCreatedAt(),
-                negotiation.getUpdatedAt());
-
-
+                negotiation.getUpdatedAt(),
+                negotiation.isPending());
     }
 
     private void upsertAgreement(ContractAgreement contractAgreement) {
@@ -396,6 +397,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .type(ContractNegotiation.Type.valueOf(resultSet.getString(statements.getTypeColumn())))
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))
+                .pending(resultSet.getBoolean(statements.getPendingColumn()))
                 .build();
     }
 

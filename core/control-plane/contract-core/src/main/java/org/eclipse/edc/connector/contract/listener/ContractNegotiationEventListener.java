@@ -16,9 +16,7 @@ package org.eclipse.edc.connector.contract.listener;
 
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
-import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationDeclined;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
-import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationFailed;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationFinalized;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
@@ -68,18 +66,6 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     @Override
     public void terminated(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationTerminated.Builder.newInstance(), negotiation).build();
-        publish(event);
-    }
-
-    @Override
-    public void declined(ContractNegotiation negotiation) {
-        var event = baseBuilder(ContractNegotiationDeclined.Builder.newInstance(), negotiation).build();
-        publish(event);
-    }
-
-    @Override
-    public void failed(ContractNegotiation negotiation) {
-        var event = baseBuilder(ContractNegotiationFailed.Builder.newInstance(), negotiation).build();
         publish(event);
     }
 
