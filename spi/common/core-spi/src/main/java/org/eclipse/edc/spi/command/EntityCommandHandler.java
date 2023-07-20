@@ -21,13 +21,13 @@ import org.eclipse.edc.spi.result.StoreFailure;
 import static java.lang.String.format;
 
 /**
- * Abstract handler for {@link SingleEntityCommand}s.
+ * Abstract handler for {@link EntityCommand}s.
  */
-public abstract class SingleEntityCommandHandler<C extends SingleEntityCommand, E extends StatefulEntity<E>> implements CommandHandler<C> {
+public abstract class EntityCommandHandler<C extends EntityCommand, E extends StatefulEntity<E>> implements CommandHandler<C> {
 
     private final StateEntityStore<E> store;
 
-    public SingleEntityCommandHandler(StateEntityStore<E> store) {
+    public EntityCommandHandler(StateEntityStore<E> store) {
         this.store = store;
     }
 
@@ -64,7 +64,7 @@ public abstract class SingleEntityCommandHandler<C extends SingleEntityCommand, 
      * If the {@link StatefulEntity} was indeed modified, implementors should return {@code true}, otherwise {@code false}
      *
      * @param entity The {@link StatefulEntity}
-     * @param command The {@link SingleEntityCommand}
+     * @param command The {@link EntityCommand}
      * @return true if the process was actually modified, false otherwise.
      */
     protected abstract boolean modify(E entity, C command);

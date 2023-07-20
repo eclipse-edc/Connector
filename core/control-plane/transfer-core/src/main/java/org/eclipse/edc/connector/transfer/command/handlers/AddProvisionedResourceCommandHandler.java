@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
-import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Processes a {@link AddProvisionedResourceCommand}
  */
-public class AddProvisionedResourceCommandHandler extends SingleEntityCommandHandler<AddProvisionedResourceCommand, TransferProcess> {
+public class AddProvisionedResourceCommandHandler extends EntityCommandHandler<AddProvisionedResourceCommand, TransferProcess> {
 
     private final ProvisionResponsesHandler provisionResponsesHandler;
 

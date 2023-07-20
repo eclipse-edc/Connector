@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
-import org.eclipse.edc.spi.command.SingleEntityCommand;
+import org.eclipse.edc.spi.command.EntityCommand;
 
 /**
  * Handles a {@link ProvisionResponse} received from an external system.
@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.command.SingleEntityCommand;
  * provisioner's future as there is no guarantee the response from the external system will be routed to the originating EDC runtime.
  * <p>
  */
-public class AddProvisionedResourceCommand extends SingleEntityCommand {
+public class AddProvisionedResourceCommand extends EntityCommand {
     private final ProvisionResponse provisionResponse;
 
     public AddProvisionedResourceCommand(String transferProcessId, ProvisionResponse provisionedResource) {

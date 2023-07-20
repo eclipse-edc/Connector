@@ -19,12 +19,12 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
-import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
  * Transitions a transfer process to the {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING} state.
  */
-public class DeprovisionRequestCommandHandler extends SingleEntityCommandHandler<DeprovisionRequest, TransferProcess> {
+public class DeprovisionRequestCommandHandler extends EntityCommandHandler<DeprovisionRequest, TransferProcess> {
 
     public DeprovisionRequestCommandHandler(TransferProcessStore store) {
         super(store);

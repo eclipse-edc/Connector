@@ -17,12 +17,12 @@ package org.eclipse.edc.connector.contract.negotiation.command.handlers;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
  * Handler for {@link TerminateNegotiationCommand}s. Transitions the specified ContractNegotiation to the TERMINATING state.
  */
-public class TerminateNegotiationCommandHandler extends SingleEntityCommandHandler<TerminateNegotiationCommand, ContractNegotiation> {
+public class TerminateNegotiationCommandHandler extends EntityCommandHandler<TerminateNegotiationCommand, ContractNegotiation> {
 
     public TerminateNegotiationCommandHandler(ContractNegotiationStore store) {
         super(store);

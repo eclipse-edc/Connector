@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
-import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Handles a {@link DeprovisionCompleteCommand}.
  */
-public class DeprovisionCompleteCommandHandler extends SingleEntityCommandHandler<DeprovisionCompleteCommand, TransferProcess> {
+public class DeprovisionCompleteCommandHandler extends EntityCommandHandler<DeprovisionCompleteCommand, TransferProcess> {
 
     private final DeprovisionResponsesHandler deprovisionResponsesHandler;
 

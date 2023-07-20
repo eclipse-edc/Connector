@@ -34,7 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SingleEntityCommandHandlerTest {
+public class EntityCommandHandlerTest {
 
     private final StateEntityStore<TestEntity> store = mock();
     private final TestCommandHandler handler = new TestCommandHandler(store);
@@ -94,7 +94,7 @@ public class SingleEntityCommandHandlerTest {
         return clock;
     }
 
-    private static class TestCommandHandler extends SingleEntityCommandHandler<TestCommand, TestEntity> {
+    private static class TestCommandHandler extends EntityCommandHandler<TestCommand, TestEntity> {
 
         TestCommandHandler(StateEntityStore<TestEntity> store) {
             super(store);
@@ -116,7 +116,7 @@ public class SingleEntityCommandHandlerTest {
         }
     }
 
-    private static class TestCommand extends SingleEntityCommand {
+    private static class TestCommand extends EntityCommand {
 
         private final boolean willModify;
 

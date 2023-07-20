@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.spi.command;
 
-public abstract class SingleEntityCommand {
+public abstract class EntityCommand {
 
     protected final String entityId;
 
-    public SingleEntityCommand(String entityId) {
+    public EntityCommand(String entityId) {
         super();
         this.entityId = entityId;
     }

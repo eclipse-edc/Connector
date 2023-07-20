@@ -19,12 +19,12 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.CompleteTransferCommand;
-import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
  * Completes a transfer process and sends it to the {@link TransferProcessStates#COMPLETED} state.
  */
-public class CompleteTransferCommandHandler extends SingleEntityCommandHandler<CompleteTransferCommand, TransferProcess> {
+public class CompleteTransferCommandHandler extends EntityCommandHandler<CompleteTransferCommand, TransferProcess> {
 
     public CompleteTransferCommandHandler(TransferProcessStore store) {
         super(store);

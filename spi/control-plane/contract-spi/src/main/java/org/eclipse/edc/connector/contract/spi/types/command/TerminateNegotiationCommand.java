@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.contract.spi.types.command;
 
-import org.eclipse.edc.spi.command.SingleEntityCommand;
+import org.eclipse.edc.spi.command.EntityCommand;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-public class TerminateNegotiationCommand extends SingleEntityCommand {
+public class TerminateNegotiationCommand extends EntityCommand {
 
     public static final String TERMINATE_NEGOTIATION_TYPE = EDC_NAMESPACE + "TerminateNegotiation";
     public static final String TERMINATE_NEGOTIATION_REASON = EDC_NAMESPACE + "reason";

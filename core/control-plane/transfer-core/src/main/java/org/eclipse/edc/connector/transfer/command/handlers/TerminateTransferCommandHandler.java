@@ -18,12 +18,12 @@ import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
-import org.eclipse.edc.spi.command.SingleEntityCommandHandler;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
  * Terminates a transfer process and puts it in the {@link TransferProcessStates#TERMINATING} state.
  */
-public class TerminateTransferCommandHandler extends SingleEntityCommandHandler<TerminateTransferCommand, TransferProcess> {
+public class TerminateTransferCommandHandler extends EntityCommandHandler<TerminateTransferCommand, TransferProcess> {
 
     public TerminateTransferCommandHandler(TransferProcessStore store) {
         super(store);

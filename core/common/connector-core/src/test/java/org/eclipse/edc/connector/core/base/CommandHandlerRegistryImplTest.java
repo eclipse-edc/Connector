@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.core.base;
 import org.eclipse.edc.spi.command.CommandFailure;
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.command.CommandResult;
-import org.eclipse.edc.spi.command.SingleEntityCommand;
+import org.eclipse.edc.spi.command.EntityCommand;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -53,7 +53,7 @@ class CommandHandlerRegistryImplTest {
         assertThat(result).isFailed().extracting(CommandFailure::getReason).isEqualTo(NOT_EXECUTABLE);
     }
 
-    private static class TestCommand extends SingleEntityCommand {
+    private static class TestCommand extends EntityCommand {
 
         TestCommand(String entityId) {
             super(entityId);
