@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.PostgresConstants.JDBC_URL_PREFIX;
@@ -118,11 +118,13 @@ class EndToEndApiWithPostgresqlTest {
 
         CONSUMER.requestAsset(PROVIDER, assetId, Json.createObjectBuilder().build(), destination);
 
-        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
-            var result = PROVIDER.queryTransfer(STARTED);
-            assertThat(result).isNotEmpty();
-            assertThat(result.getJsonObject(0).getString("edc:state")).isEqualTo("STARTED");
-        });
+        await().pollInterval(Duration.ofSeconds(1))
+                .pollDelay(Duration.ofMillis(1))
+                .atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
+                    var result = PROVIDER.queryByState(TERMINATED);
+                    assertThat(result).isNotEmpty();
+                    assertThat(result).anySatisfy(it -> assertThat(it.asJsonObject().getString("edc:state")).isEqualTo("TERMINATED"));
+                });
     }
 
     private JsonObject httpDataAddress(String baseUrl) {

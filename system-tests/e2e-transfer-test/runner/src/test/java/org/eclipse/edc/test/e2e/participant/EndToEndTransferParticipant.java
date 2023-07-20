@@ -260,7 +260,7 @@ public class EndToEndTransferParticipant extends Participant {
         };
     }
 
-    public JsonArray queryTransfer(TransferProcessStates transferProcessStates) {
+    public JsonArray queryByState(TransferProcessStates transferProcessStates) {
 
         try {
             var content = """

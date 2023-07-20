@@ -14,15 +14,11 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.Json;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -136,38 +132,6 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .post("/v2/transferprocesses/" + id + "/deprovision")
                 .then()
                 .statusCode(204);
-    }
-
-    @Test
-    void query_byState() throws JsonProcessingException {
-        getStore().save(createTransferProcessBuilder("tp1").state(800).build());
-
-        var query = JacksonJsonLd.createObjectMapper()
-                .readValue("""
-                        {
-                            "@context": {
-                                "edc": "https://w3id.org/edc/v0.0.1/ns/"
-                            },
-                            "@type": "QuerySpec",
-                            "filterExpression": [
-                                {
-                                    "operandLeft": "state",
-                                    "operandRight": 800,
-                                    "operator": "="
-                                }
-                            ],
-                            "limit": 100,
-                            "offset": 0
-                        }
-                        """, JsonObject.class);
-
-        var result = baseRequest()
-                .contentType(JSON)
-                .body(query)
-                .post("/v2/transferprocesses/request")
-                .then()
-                .statusCode(200)
-                .extract().body().as(JsonArray.class);
     }
 
     @Test
