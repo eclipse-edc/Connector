@@ -32,6 +32,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
@@ -57,13 +60,15 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 public class JsonLdExtension implements ServiceExtension {
 
     public static final String NAME = "JSON-LD Extension";
+    public static final String EDC_JSONLD_DOCUMENT_PREFIX = "edc.jsonld.document";
+    public static final String CONFIG_VALUE_PATH = "path";
+    public static final String CONFIG_VALUE_URL = "url";
 
     private static final boolean DEFAULT_HTTP_HTTPS_RESOLUTION = false;
     @Setting(value = "If set enable http json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "")
     private static final String HTTP_ENABLE_SETTING = "edc.jsonld.http.enabled";
     @Setting(value = "If set enable https json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "")
     private static final String HTTPS_ENABLE_SETTING = "edc.jsonld.https.enabled";
-
     @Inject
     private TypeManager typeManager;
 
@@ -96,7 +101,52 @@ public class JsonLdExtension implements ServiceExtension {
                 .onSuccess(uri -> service.registerCachedDocument("http://www.w3.org/ns/odrl.jsonld", uri))
                 .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
+        registerCachedDocumentsFromConfig(context, service);
+
         return service;
+    }
+
+    private void registerCachedDocumentsFromConfig(ServiceExtensionContext context, TitaniumJsonLd service) {
+        Map<String, Map<String, String>> tempMappings = new HashMap<>();
+
+        context.getConfig().getRelativeEntries(EDC_JSONLD_DOCUMENT_PREFIX, false)
+                .entrySet().stream()
+                .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
+                .forEach(e -> split(tempMappings, e));
+
+        tempMappings.forEach((name, entry) -> {
+            if (entry.containsKey(CONFIG_VALUE_PATH) && entry.containsKey(CONFIG_VALUE_URL)) {
+                service.registerCachedDocument(entry.get(CONFIG_VALUE_URL), new File(entry.get(CONFIG_VALUE_PATH)).toURI());
+            } else {
+                context.getMonitor().warning(format("Expected a '%s' and a '%s' entry for '%s.%s', but found only '%s'", CONFIG_VALUE_PATH, CONFIG_VALUE_URL, EDC_JSONLD_DOCUMENT_PREFIX, name, String.join("", entry.keySet())));
+            }
+        });
+    }
+
+    /**
+     * converts a map entry, that looks like "something.url" -> https://foo.bar, into a map entry, that looks like
+     * "something" -> ("url" -> "https://foo.bar") and adds it to an existing map
+     */
+    private void split(Map<String, Map<String, String>> targetMap, Map.Entry<String, String> entry) {
+
+        var key = entry.getKey();
+        var value = entry.getValue();
+
+        // only <alias>.[url|path] is accepted
+        if (key.split("\\.").length != 2) {
+            return;
+        }
+
+        var lastDotIndex = key.lastIndexOf(".");
+        var keyNamePart = key.substring(0, lastDotIndex);
+        var keyComponentPart = key.substring(lastDotIndex + 1);
+
+        var map = targetMap.computeIfAbsent(keyNamePart, s -> new HashMap<>());
+        if (map.containsKey(keyComponentPart)) {
+            throw new IllegalArgumentException(String.format("An entry for %s.%s already exists, currently mapped to %s", EDC_JSONLD_DOCUMENT_PREFIX, key, map));
+        }
+        map.put(keyComponentPart, value);
+
     }
 
     @NotNull
@@ -112,5 +162,6 @@ public class JsonLdExtension implements ServiceExtension {
             return Result.failure(format("Cannot read resource %s: %s", name, e.getMessage()));
         }
     }
+
 
 }
