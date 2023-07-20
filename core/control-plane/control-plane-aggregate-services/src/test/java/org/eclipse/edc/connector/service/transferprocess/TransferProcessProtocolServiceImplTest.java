@@ -55,6 +55,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
@@ -191,6 +192,31 @@ class TransferProcessProtocolServiceImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         verify(store, never()).save(any());
         verifyNoInteractions(listener);
+    }
+    
+    @Test
+    void notifyRequested_missingDestination_shouldInitiateTransfer() {
+        var message = TransferRequestMessage.Builder.newInstance()
+                .processId("transferProcessId")
+                .protocol("protocol")
+                .contractId(ContractId.create("definitionId", "assetId").toString())
+                .callbackAddress("http://any")
+                .build();
+        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
+        
+        var result = service.notifyRequested(message, claimToken());
+        
+        assertThat(result).isSucceeded().satisfies(tp -> {
+            assertThat(tp.getCorrelationId()).isEqualTo("transferProcessId");
+            assertThat(tp.getConnectorAddress()).isEqualTo("http://any");
+            assertThat(tp.getAssetId()).isEqualTo("assetId");
+            assertThat(tp.getDataDestination().getType()).isEqualTo(HTTP_PROXY);
+        });
+        verify(listener).preCreated(any());
+        verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
+        verify(listener).initiated(any());
+        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
