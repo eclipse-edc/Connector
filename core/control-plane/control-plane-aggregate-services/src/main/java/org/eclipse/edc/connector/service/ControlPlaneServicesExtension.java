@@ -57,6 +57,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
@@ -132,6 +133,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private DatasetResolver datasetResolver;
 
+    @Inject
+    private CommandHandlerRegistry commandHandlerRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -168,7 +172,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public ContractNegotiationService contractNegotiationService() {
-        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, transactionContext);
+        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager, transactionContext, commandHandlerRegistry);
     }
 
     @Provider
@@ -188,7 +192,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessService transferProcessService() {
         return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
-                dataAddressValidator);
+                dataAddressValidator, commandHandlerRegistry);
     }
 
     @Provider

@@ -15,22 +15,22 @@
 package org.eclipse.edc.connector.contract.negotiation.command.handlers;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.types.command.CancelNegotiationCommand;
+import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
- * Handler for {@link CancelNegotiationCommand}s. Transitions the specified ContractNegotiation
- * to the error state.
+ * Handler for {@link TerminateNegotiationCommand}s. Transitions the specified ContractNegotiation to the TERMINATING state.
  */
-public class CancelNegotiationCommandHandler extends SingleContractNegotiationCommandHandler<CancelNegotiationCommand> {
+public class TerminateNegotiationCommandHandler extends EntityCommandHandler<TerminateNegotiationCommand, ContractNegotiation> {
 
-    public CancelNegotiationCommandHandler(ContractNegotiationStore store) {
+    public TerminateNegotiationCommandHandler(ContractNegotiationStore store) {
         super(store);
     }
 
     @Override
-    public Class<CancelNegotiationCommand> getType() {
-        return CancelNegotiationCommand.class;
+    public Class<TerminateNegotiationCommand> getType() {
+        return TerminateNegotiationCommand.class;
     }
 
     /**
@@ -40,8 +40,8 @@ public class CancelNegotiationCommandHandler extends SingleContractNegotiationCo
      * @return true
      */
     @Override
-    protected boolean modify(ContractNegotiation negotiation) {
-        negotiation.transitionTerminating("Cancelled");
+    protected boolean modify(ContractNegotiation negotiation, TerminateNegotiationCommand command) {
+        negotiation.transitionTerminating(command.getReason());
         return true;
     }
 

@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.Cont
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
@@ -79,7 +80,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
         return transactionContext.execute(() -> {
             // utilize the generic query api
-            var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("correlationId", "=", correlationId))).build();
+            var query = correlationIdQuerySpec(correlationId);
             try (var stream = queryNegotiations(query)) {
                 return single(stream.collect(toList()));
             }
@@ -149,8 +150,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try {
-                var statement = statements.createNegotiationsQuery(querySpec);
-                return queryExecutor.query(getConnection(), true, contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters());
+                return queryNegotiations(querySpec, getConnection());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -191,6 +191,57 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         });
     }
 
+    @Override
+    public StoreResult<ContractNegotiation> findByIdAndLease(String id) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var entity = findInternal(connection, id);
+                if (entity == null) {
+                    return StoreResult.notFound(format("ContractNegotiation %s not found", id));
+                }
+
+                leaseContext.withConnection(connection).acquireLease(id);
+                return StoreResult.success(entity);
+            } catch (IllegalStateException e) {
+                return StoreResult.alreadyLeased(format("ContractNegotiation %s is already leased", id));
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public StoreResult<ContractNegotiation> findByCorrelationIdAndLease(String correlationId) {
+        return transactionContext.execute(() -> {
+            var querySpec = correlationIdQuerySpec(correlationId);
+            try (
+                    var connection = getConnection();
+                    var stream = queryNegotiations(querySpec, connection);
+            ) {
+                var entity = stream.findFirst().orElse(null);
+                if (entity == null) {
+                    return StoreResult.notFound(format("ContractNegotiation with correlationId %s not found", correlationId));
+                }
+
+                leaseContext.withConnection(connection).acquireLease(entity.getId());
+                return StoreResult.success(entity);
+            } catch (IllegalStateException e) {
+                return StoreResult.alreadyLeased(format("ContractNegotiation with correlationId %s is already leased", correlationId));
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    private QuerySpec correlationIdQuerySpec(String correlationId) {
+        return QuerySpec.Builder.newInstance().filter(List.of(new Criterion("correlationId", "=", correlationId))).build();
+    }
+
+    private Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec, Connection connection) {
+        var statement = statements.createNegotiationsQuery(querySpec);
+        return queryExecutor.query(connection, true, contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters());
+    }
+
     private ContractAgreement findContractAgreementInternal(Connection connection, String contractId) {
         var stmt = statements.getFindContractAgreementTemplate();
         return queryExecutor.single(connection, false, this::mapContractAgreement, stmt, contractId);
@@ -222,7 +273,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     private void insert(Connection connection, ContractNegotiation negotiation) {
-        // store negotiation
         String agrId = null;
         var agreement = negotiation.getContractAgreement();
         if (agreement != null) {
@@ -302,7 +352,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
                 }))
-                //todo
                 .build();
     }
 

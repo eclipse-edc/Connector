@@ -36,6 +36,7 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -77,7 +78,6 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationProtocolServiceImplTest {
 
     private static final String CONSUMER_ID = "consumer";
-    private static final String PROVIDER_ID = "provider";
 
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
@@ -156,7 +156,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .build();
         var negotiation = createContractNegotiationRequested();
         
-        when(store.findForCorrelationId(processId)).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease(processId)).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(token, negotiation)).thenReturn(Result.success());
         
         var result = service.notifyOffered(message, token);
@@ -181,7 +181,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .processId("processId")
                 .build();
     
-        when(store.findForCorrelationId(any())).thenReturn(null);
+        when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.notFound("negotiation not found"));
         
         var result = service.notifyOffered(message, token);
         
@@ -202,7 +202,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .build();
         var negotiation = createContractNegotiationRequested();
     
-        when(store.findForCorrelationId(processId)).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease(processId)).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(token, negotiation)).thenReturn(Result.failure("error"));
         
         var result = service.notifyOffered(message, token);
@@ -216,7 +216,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var negotiationConsumerRequested = createContractNegotiationRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
-        when(store.findForCorrelationId("processId")).thenReturn(negotiationConsumerRequested);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiationConsumerRequested));
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -242,7 +242,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var negotiationConsumerRequested = createContractNegotiationRequested();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
-        when(store.findForCorrelationId("processId")).thenReturn(negotiationConsumerRequested);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiationConsumerRequested));
         when(validationService.validateConfirmed(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -262,7 +262,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyVerified_shouldTransitionToVerified() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
-        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -282,7 +282,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyVerified_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
-        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -300,7 +300,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyFinalized_shouldTransitionToFinalized() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
@@ -322,7 +322,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyFinalized_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
@@ -342,7 +342,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyTerminated_shouldTransitionToTerminated() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -364,7 +364,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyTerminated_shouldReturnBadRequest_whenValidationFails() {
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(VERIFIED.code()).build();
-        when(store.findForCorrelationId("processId")).thenReturn(negotiation);
+        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -429,7 +429,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @ParameterizedTest
     @ArgumentsSource(NotFoundArguments.class)
     <M extends RemoteMessage> void notify_shouldFail_whenTransferProcessNotFound(MethodCall<M> methodCall, M message) {
-        when(store.findById(any())).thenReturn(null);
+        when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
 
         var result = methodCall.call(service, message, claimToken());
 

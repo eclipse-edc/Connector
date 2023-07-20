@@ -18,14 +18,13 @@ package org.eclipse.edc.connector.transfer.command.handlers;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
-
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import org.eclipse.edc.connector.transfer.spi.types.command.CompleteTransferCommand;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
  * Completes a transfer process and sends it to the {@link TransferProcessStates#COMPLETED} state.
  */
-public class CompleteTransferCommandHandler extends SingleTransferProcessCommandHandler<CompleteTransferCommand> {
+public class CompleteTransferCommandHandler extends EntityCommandHandler<CompleteTransferCommand, TransferProcess> {
 
     public CompleteTransferCommandHandler(TransferProcessStore store) {
         super(store);
@@ -38,14 +37,11 @@ public class CompleteTransferCommandHandler extends SingleTransferProcessCommand
 
     @Override
     protected boolean modify(TransferProcess process, CompleteTransferCommand command) {
-        if (process.getState() == STARTED.code()) {
+        if (process.canBeCompleted()) {
             process.transitionCompleting();
             return true;
         }
         return false;
     }
 
-    @Override
-    protected void postAction(TransferProcess process) {
-    }
 }

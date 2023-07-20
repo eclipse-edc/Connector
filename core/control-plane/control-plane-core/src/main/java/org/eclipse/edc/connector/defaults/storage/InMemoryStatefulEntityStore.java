@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionConverter;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.util.concurrency.LockManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +33,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
 
@@ -72,7 +74,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
 
     public void delete(String id) {
         if (isLeased(id)) {
-            throw new IllegalStateException("ContractNegotiation is leased and cannot be deleted!");
+            throw new IllegalStateException("Entity is leased and cannot be deleted!");
         }
         entitiesById.remove(id);
     }
@@ -92,6 +94,22 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
                     .toList();
             entities.forEach(i -> acquireLease(i.getId(), lockId));
             return entities.stream().map(StatefulEntity::copy).collect(toList());
+        });
+    }
+
+    public StoreResult<T> leaseAndGet(String id) {
+        return lockManager.writeLock(() -> {
+            var entity = entitiesById.get(id);
+            if (entity == null) {
+                return StoreResult.notFound(format("Entity %s not found", id));
+            }
+
+            try {
+                acquireLease(id, lockId);
+                return StoreResult.success(entity);
+            } catch (IllegalStateException e) {
+                return StoreResult.alreadyLeased(format("Entity %s is already leased: %s", id, e.getMessage()));
+            }
         });
     }
 

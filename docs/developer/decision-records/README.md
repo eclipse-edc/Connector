@@ -43,3 +43,4 @@
 - [2023-06-02-separating_plugins_and_metamodel](2023-06-02-separating_plugins_and_metamodel)
 - [2023-06-05-validation-engine](2023-06-05-validation-engine)
 - [2023-06-30-allow-use-of-testcontainers](2023-06-30-allow-use-of-testcontainers/)
+- [2023-06-30 Sync Commands](2023-07-19-sync-commands)

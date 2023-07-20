@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
@@ -22,8 +23,11 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
-import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
+import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -38,20 +42,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
-import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -64,15 +67,14 @@ class TransferProcessServiceImplTest {
     private final TransferProcess process1 = transferProcess();
     private final TransferProcess process2 = transferProcess();
     private final QuerySpec query = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
-    private final ArgumentCaptor<SingleTransferProcessCommand> commandCaptor = ArgumentCaptor.forClass(SingleTransferProcessCommand.class);
-
-    private final TransferProcessStore store = mock(TransferProcessStore.class);
-    private final TransferProcessManager manager = mock(TransferProcessManager.class);
+    private final TransferProcessStore store = mock();
+    private final TransferProcessManager manager = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
-    private final DataAddressValidator dataAddressValidator = mock(DataAddressValidator.class);
+    private final DataAddressValidator dataAddressValidator = mock();
+    private final CommandHandlerRegistry commandHandlerRegistry = mock();
 
     private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
-            dataAddressValidator);
+            dataAddressValidator, commandHandlerRegistry);
 
     @Test
     void findById_whenFound() {
@@ -143,48 +145,51 @@ class TransferProcessServiceImplTest {
 
         var result = service.initiateTransfer(transferRequest());
 
-        assertThat(result).satisfies(ServiceResult::failed)
+        Assertions.assertThat(result).satisfies(ServiceResult::failed)
                 .extracting(ServiceResult::reason)
                 .isEqualTo(BAD_REQUEST);
         verifyNoInteractions(manager);
     }
 
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "TERMINATED" })
-    void deprovision(TransferProcessStates state) {
-        var process = transferProcess(state, id);
-        when(store.findById(id)).thenReturn(process);
+    @Test
+    void terminate_shouldExecuteCommandAndReturnResult() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+        var command = new TerminateTransferCommand("id", "reason");
 
-        var result = service.deprovision(id);
+        var result = service.terminate(command);
 
-        assertThat(result.succeeded()).isTrue();
-        verify(manager).enqueueCommand(commandCaptor.capture());
-        assertThat(commandCaptor.getValue()).isInstanceOf(DeprovisionRequest.class);
-        assertThat(commandCaptor.getValue().getTransferProcessId())
-                .isEqualTo(id);
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+        assertThat(result).isSucceeded();
+        verify(commandHandlerRegistry).execute(command);
     }
 
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "TERMINATED" })
-    void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
-        var process = transferProcess(state, id);
-        when(store.findById(id)).thenReturn(process);
+    @Test
+    void terminate_shouldFailWhenCommandHandlerFails() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
+        var command = new TerminateTransferCommand("id", "reason");
+
+        var result = service.terminate(command);
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void deprovision() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
 
         var result = service.deprovision(id);
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("Cannot DeprovisionRequest because TransferProcess " + process.getId() + " is in state " + state);
-        verifyNoInteractions(manager);
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+        assertThat(result).isSucceeded();
+        verify(commandHandlerRegistry).execute(isA(DeprovisionRequest.class));
     }
 
     @Test
     void deprovision_whenNotFound() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
+
         var result = service.deprovision(id);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("TransferProcess with id " + id + " not found");
+        assertThat(result.getFailureMessages()).containsExactly("not found");
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 

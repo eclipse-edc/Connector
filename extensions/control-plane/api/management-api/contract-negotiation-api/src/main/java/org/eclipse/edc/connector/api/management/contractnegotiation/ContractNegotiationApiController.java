@@ -27,6 +27,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
@@ -43,6 +44,8 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -127,7 +130,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @POST
     @Override
     public JsonObject initiateContractNegotiation(JsonObject requestObject) {
-        validatorRegistry.validate(ContractRequest.CONTRACT_REQUEST_TYPE, requestObject)
+        validatorRegistry.validate(CONTRACT_REQUEST_TYPE, requestObject)
                 .orElseThrow(ValidationFailureException::new);
 
         var contractRequest = transformerRegistry.transform(requestObject, ContractRequest.class)
@@ -145,17 +148,30 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     }
 
     @POST
+    @Path("/{id}/terminate")
+    @Override
+    public void terminateNegotiation(@PathParam("id") String id, JsonObject terminateNegotiation) {
+        validatorRegistry.validate(TERMINATE_NEGOTIATION_TYPE, terminateNegotiation)
+                .orElseThrow(ValidationFailureException::new);
+
+        var command = transformerRegistry.transform(terminateNegotiation, TerminateNegotiationCommand.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.terminate(command).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
+    @POST
     @Path("/{id}/cancel")
     @Override
     public void cancelNegotiation(@PathParam("id") String id) {
-        service.cancel(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+        service.terminate(new TerminateNegotiationCommand(id, "Cancelled")).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
     @POST
     @Path("/{id}/decline")
     @Override
     public void declineNegotiation(@PathParam("id") String id) {
-        service.decline(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+        service.terminate(new TerminateNegotiationCommand(id, "Declined")).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
 

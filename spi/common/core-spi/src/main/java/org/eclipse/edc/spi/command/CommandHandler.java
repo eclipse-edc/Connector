@@ -16,21 +16,21 @@
 package org.eclipse.edc.spi.command;
 
 /**
- * CommandHandlers receive a {@link Command} object and act on it. If possible, command handlers should
+ * CommandHandlers receive a Command object and act on it. If possible, command handlers should
  * not perform lengthy operations as this could block the command queue.
  *
- * @param <T> The concrete type of {@link Command}
+ * @param <T> The concrete type of Command
  */
-public interface CommandHandler<T extends Command> {
+public interface CommandHandler<T extends EntityCommand> {
 
     /**
-     * Returns the type of {@link Command} this handler processes.
+     * Returns the type of Command this handler processes.
      */
     Class<T> getType();
 
     /**
      * Processes the command.
      */
-    void handle(T command);
+    CommandResult handle(T command);
 
 }

@@ -15,31 +15,40 @@
 
 package org.eclipse.edc.connector.core.base;
 
-import org.eclipse.edc.spi.command.Command;
 import org.eclipse.edc.spi.command.CommandHandler;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
+import org.eclipse.edc.spi.command.CommandResult;
+import org.eclipse.edc.spi.command.EntityCommand;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.lang.String.format;
 
 /**
  * Implementation of the {@link CommandHandlerRegistry} interface.
  */
 public class CommandHandlerRegistryImpl implements CommandHandlerRegistry {
 
-    private final Map<Class<? extends Command>, CommandHandler<?>> registrations;
+    private final Map<Class<? extends EntityCommand>, CommandHandler<?>> registrations;
 
     public CommandHandlerRegistryImpl() {
         this.registrations = new HashMap<>();
     }
 
     @Override
-    public <C extends Command> void register(CommandHandler<C> handler) {
+    public <C extends EntityCommand> void register(CommandHandler<C> handler) {
         registrations.put(handler.getType(), handler);
     }
 
     @Override
-    public <C extends Command> CommandHandler<C> get(Class<C> commandClass) {
-        return (CommandHandler<C>) registrations.get(commandClass);
+    public  <C extends EntityCommand> CommandResult execute(C command) {
+        var commandHandler = (CommandHandler<C>) registrations.get(command.getClass());
+
+        if (commandHandler == null) {
+            return CommandResult.notExecutable(format("Command type %s cannot be executed", command.getClass()));
+        }
+
+        return commandHandler.handle(command);
     }
 }

@@ -26,7 +26,7 @@ import org.eclipse.edc.spi.response.StatusResult;
  * All operations are idempotent.
  */
 @ExtensionPoint
-public interface ConsumerContractNegotiationManager extends ContractNegotiationManager {
+public interface ConsumerContractNegotiationManager {
 
     /**
      * Initiates a contract negotiation for the given provider offer. The offer will have been obtained from a previous contract offer request sent to the provider.

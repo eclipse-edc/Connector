@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegoti
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
-import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
@@ -66,7 +65,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .processor(processNegotiationsInState(AGREED, this::processAgreed))
                 .processor(processNegotiationsInState(VERIFYING, this::processVerifying))
                 .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
-                .processor(onCommands(this::processCommand))
                 .build();
 
         stateMachineManager.start();
@@ -104,11 +102,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         transitionToInitial(negotiation);
 
         return StatusResult.success(negotiation);
-    }
-
-    @Override
-    public void enqueueCommand(ContractNegotiationCommand command) {
-        commandQueue.enqueue(command);
     }
 
     /**
@@ -264,14 +257,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
         var filter = new Criterion[]{ hasState(state.code()), new Criterion("type", "=", CONSUMER.name()) };
         return new StateProcessorImpl<>(() -> negotiationStore.nextNotLeased(batchSize, filter), telemetry.contextPropagationMiddleware(function));
-    }
-
-    private StateProcessorImpl<ContractNegotiationCommand> onCommands(Function<ContractNegotiationCommand, Boolean> process) {
-        return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
-    }
-
-    private boolean processCommand(ContractNegotiationCommand command) {
-        return commandProcessor.processCommandQueue(command);
     }
 
     /**

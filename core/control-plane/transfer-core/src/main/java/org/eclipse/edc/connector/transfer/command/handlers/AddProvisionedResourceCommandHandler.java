@@ -14,29 +14,25 @@
 
 package org.eclipse.edc.connector.transfer.command.handlers;
 
-import org.eclipse.edc.connector.transfer.process.ProvisionCallbackDelegate;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
+import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
-import org.eclipse.edc.spi.command.CommandHandler;
+import org.eclipse.edc.spi.command.EntityCommandHandler;
 import org.eclipse.edc.spi.response.StatusResult;
 
 import java.util.List;
 
 /**
- * Processes a {@link AddProvisionedResourceCommand} by delegating it to the {@link TransferProcessManager}.
- * <p>
- * This class exists to avoid coupling the TPM to the command handler registry.
+ * Processes a {@link AddProvisionedResourceCommand}
  */
-public class AddProvisionedResourceCommandHandler implements CommandHandler<AddProvisionedResourceCommand> {
-    private final ProvisionCallbackDelegate delegate;
+public class AddProvisionedResourceCommandHandler extends EntityCommandHandler<AddProvisionedResourceCommand, TransferProcess> {
 
-    public AddProvisionedResourceCommandHandler(ProvisionCallbackDelegate delegate) {
-        this.delegate = delegate;
-    }
+    private final ProvisionResponsesHandler provisionResponsesHandler;
 
-    @Override
-    public void handle(AddProvisionedResourceCommand command) {
-        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getProvisionResponse())));
+    public AddProvisionedResourceCommandHandler(TransferProcessStore store, ProvisionResponsesHandler provisionResponsesHandler) {
+        super(store);
+        this.provisionResponsesHandler = provisionResponsesHandler;
     }
 
     @Override
@@ -44,4 +40,13 @@ public class AddProvisionedResourceCommandHandler implements CommandHandler<AddP
         return AddProvisionedResourceCommand.class;
     }
 
+    @Override
+    protected boolean modify(TransferProcess entity, AddProvisionedResourceCommand command) {
+        return provisionResponsesHandler.handle(entity, List.of(StatusResult.success(command.getProvisionResponse())));
+    }
+
+    @Override
+    public void postActions(TransferProcess entity, AddProvisionedResourceCommand command) {
+        provisionResponsesHandler.postActions(entity);
+    }
 }

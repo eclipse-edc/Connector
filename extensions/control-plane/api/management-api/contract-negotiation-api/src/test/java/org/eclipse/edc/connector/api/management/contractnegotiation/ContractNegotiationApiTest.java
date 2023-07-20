@@ -20,7 +20,10 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
+import org.eclipse.edc.connector.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
+import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
@@ -35,6 +38,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.NegotiationStateSchema.NEGOTIATION_STATE_EXAMPLE;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi.TerminateNegotiationSchema.TERMINATE_NEGOTIATION_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_AGREEMENT_ID;
@@ -64,6 +68,7 @@ class ContractNegotiationApiTest {
         transformer.register(new JsonObjectToContractRequestTransformer());
         transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
+        transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         OdrlTransformersFactory.jsonObjectToOdrlTransformers().forEach(transformer::register);
     }
 
@@ -105,6 +110,24 @@ class ContractNegotiationApiTest {
     }
 
     @Test
+    void terminateNegotiationExample() throws JsonProcessingException {
+        var validator = TerminateNegotiationValidator.instance();
+
+        var jsonObject = objectMapper.readValue(TERMINATE_NEGOTIATION_EXAMPLE, JsonObject.class);
+        assertThat(jsonObject).isNotNull();
+
+        var expanded = jsonLd.expand(jsonObject);
+        assertThat(expanded).isSucceeded()
+                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
+                .extracting(e -> transformer.transform(e, TerminateNegotiationCommand.class))
+                .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
+                        .satisfies(transformed -> {
+                            assertThat(transformed.getEntityId()).isNotBlank();
+                            assertThat(transformed.getReason()).isNotBlank();
+                        }));
+    }
+
+    @Test
     void negotiationStateExample() throws JsonProcessingException {
         var jsonObject = objectMapper.readValue(NEGOTIATION_STATE_EXAMPLE, JsonObject.class);
         var expanded = jsonLd.expand(jsonObject);
@@ -114,4 +137,5 @@ class ContractNegotiationApiTest {
             assertThat(content.getJsonArray(NEGOTIATION_STATE_STATE).getJsonObject(0).getString(VALUE)).isNotBlank();
         });
     }
+
 }

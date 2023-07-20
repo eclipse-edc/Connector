@@ -16,70 +16,40 @@ package org.eclipse.edc.connector.transfer.command.handlers;
 
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
+import org.eclipse.edc.connector.transfer.spi.types.command.CompleteTransferCommand;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 class CompleteTransferCommandHandlerTest {
 
-    private final TransferProcessStore store = mock(TransferProcessStore.class);
-
-    private final CompleteTransferCommandHandler handler = new CompleteTransferCommandHandler(store);
+    private final CompleteTransferCommandHandler handler = new CompleteTransferCommandHandler(mock(TransferProcessStore.class));
 
     @Test
-    void handle() {
+    void shouldModify_whenItIsCompletable() {
         var command = new CompleteTransferCommand("test-id");
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(STARTED.code())
-                .updatedAt(124123) //some invalid time
-                .type(TransferProcess.Type.CONSUMER).build();
-        var originalDate = tp.getUpdatedAt();
-        when(store.findById(anyString())).thenReturn(tp);
+        var entity = TransferProcess.Builder.newInstance().state(STARTED.code()).build();
 
-        handler.handle(command);
+        var result = handler.modify(entity, command);
 
-        assertThat(tp.getState()).isEqualTo(COMPLETING.code());
-        assertThat(tp.getErrorDetail()).isNull();
-        assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
-        verify(store).findById(anyString());
-        verify(store).updateOrCreate(tp);
-        verifyNoMoreInteractions(store);
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "TERMINATED" })
-    void handle_illegalState(TransferProcessStates targetState) {
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
-                .type(TransferProcess.Type.CONSUMER).build();
-        var originalDate = tp.getUpdatedAt();
-        var command = new CompleteTransferCommand("test-id");
-        when(store.findById(anyString())).thenReturn(tp);
-
-        handler.handle(command);
-
-        assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
-        verify(store).findById(anyString());
-        verifyNoMoreInteractions(store);
+        assertThat(result).isTrue();
+        assertThat(entity.getState()).isEqualTo(COMPLETING.code());
+        assertThat(entity.getErrorDetail()).isNull();
     }
 
     @Test
-    void handle_notFound() {
+    void shouldNotModify_whenItIsNotCompletable() {
         var command = new CompleteTransferCommand("test-id");
-        when(store.findById(anyString())).thenReturn(null);
+        var entity = TransferProcess.Builder.newInstance().state(TERMINATED.code()).build();
 
-        assertThatThrownBy(() -> handler.handle(command)).isInstanceOf(EdcException.class).hasMessageStartingWith("Could not find TransferProcess with ID [test-id]");
+        var result = handler.modify(entity, command);
+
+        assertThat(result).isFalse();
+        assertThat(entity.getState()).isEqualTo(TERMINATED.code());
     }
 
     @Test

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.service.spi.result;
 
+import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
@@ -63,8 +64,20 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
 
         return switch (storeResult.reason()) {
             case NOT_FOUND -> notFound(storeResult.getFailureDetail());
-            case ALREADY_EXISTS -> conflict(storeResult.getFailureDetail());
+            case ALREADY_EXISTS, ALREADY_LEASED -> conflict(storeResult.getFailureDetail());
             default -> badRequest(storeResult.getFailureDetail());
+        };
+    }
+
+    public static <T> ServiceResult<T> from(CommandResult commandResult) {
+        if (commandResult.succeeded()) {
+            return success();
+        }
+
+        return switch (commandResult.reason()) {
+            case NOT_FOUND -> notFound(commandResult.getFailureDetail());
+            case CONFLICT -> conflict(commandResult.getFailureDetail());
+            case NOT_EXECUTABLE -> badRequest(commandResult.getFailureDetail());
         };
     }
 

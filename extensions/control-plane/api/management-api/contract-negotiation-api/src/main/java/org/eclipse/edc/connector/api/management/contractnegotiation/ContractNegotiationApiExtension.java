@@ -22,8 +22,9 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.transform.Js
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -33,6 +34,9 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
+
+import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 
 @Extension(value = ContractNegotiationApiExtension.NAME)
 public class ContractNegotiationApiExtension implements ServiceExtension {
@@ -62,12 +66,14 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var factory = Json.createBuilderFactory(Map.of());
-        transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         transformerRegistry.register(new JsonObjectToContractRequestTransformer());
-        transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
         transformerRegistry.register(new JsonObjectToContractOfferDescriptionTransformer());
+        transformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
+        transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
+        transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
 
-        validatorRegistry.register(ContractRequest.CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
+        validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
+        validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
 
         var monitor = context.getMonitor();
 

@@ -31,7 +31,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.validation.ContractExpiryCheckFunction;
@@ -48,10 +47,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.command.BoundedCommandQueue;
-import org.eclipse.edc.spi.command.CommandHandlerRegistry;
-import org.eclipse.edc.spi.command.CommandQueue;
-import org.eclipse.edc.spi.command.CommandRunner;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -119,9 +114,6 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-
-    @Inject
-    private CommandHandlerRegistry commandHandlerRegistry;
 
     @Inject
     private ContractNegotiationStore store;
@@ -205,9 +197,6 @@ public class ContractCoreExtension implements ServiceExtension {
         var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
-        CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
-        var commandRunner = new CommandRunner<ContractNegotiationCommand>(commandHandlerRegistry, monitor);
-
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(new ContractNegotiationEventListener(eventRouter, clock));
 
@@ -219,8 +208,6 @@ public class ContractCoreExtension implements ServiceExtension {
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
-                .commandQueue(commandQueue)
-                .commandRunner(commandRunner)
                 .observable(observable)
                 .clock(clock)
                 .telemetry(telemetry)
@@ -237,8 +224,6 @@ public class ContractCoreExtension implements ServiceExtension {
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
-                .commandQueue(commandQueue)
-                .commandRunner(commandRunner)
                 .observable(observable)
                 .clock(clock)
                 .telemetry(telemetry)

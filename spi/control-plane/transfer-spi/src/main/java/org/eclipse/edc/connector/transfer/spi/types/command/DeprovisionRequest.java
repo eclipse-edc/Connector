@@ -16,12 +16,13 @@
 package org.eclipse.edc.connector.transfer.spi.types.command;
 
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.spi.command.EntityCommand;
 
 /**
  * Issues a request to start deprovisioning a transfer process by setting its state to
  * {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING}.
  */
-public class DeprovisionRequest extends SingleTransferProcessCommand {
+public class DeprovisionRequest extends EntityCommand {
 
     public DeprovisionRequest(String transferProcessId) {
         super(transferProcessId);

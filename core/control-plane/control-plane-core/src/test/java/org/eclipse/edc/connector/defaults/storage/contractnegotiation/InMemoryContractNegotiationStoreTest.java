@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.defaults.storage.contractnegotiation;
 
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.testfixtures.negotiation.store.ContractNegotiationStoreTestBase;
@@ -427,7 +426,7 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
         var result = getContractNegotiationStore().queryNegotiations(querySpec).collect(Collectors.toList());
 
-        Assertions.assertThat(result).hasSize(10)
+        assertThat(result).hasSize(10)
                 .extracting(ContractNegotiation::getId)
                 .isSorted();
     }
@@ -438,12 +437,12 @@ class InMemoryContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     }
 
     @Override
-    protected void lockEntity(String negotiationId, String owner, Duration duration) {
+    protected void leaseEntity(String negotiationId, String owner, Duration duration) {
         leases.put(negotiationId, new Lease(owner, Clock.systemUTC().millis(), duration.toMillis()));
     }
 
     @Override
-    protected boolean isLockedBy(String negotiationId, String owner) {
+    protected boolean isLeasedBy(String negotiationId, String owner) {
         return leases.entrySet().stream().anyMatch(e -> e.getKey().equals(negotiationId) &&
                 e.getValue().getLeasedBy().equals(owner) &&
                 !isExpired(e.getValue()));

@@ -51,12 +51,6 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     ContractAgreement findContractAgreement(String contractId);
 
     /**
-     * Persists a contract negotiation. This follows UPSERT semantics, so if the object didn't exit before, it's
-     * created.
-     */
-    void save(ContractNegotiation negotiation);
-
-    /**
      * Removes a contract negotiation for the given id.
      */
     void delete(String negotiationId);

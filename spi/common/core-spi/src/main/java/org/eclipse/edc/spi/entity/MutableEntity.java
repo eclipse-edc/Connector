@@ -35,7 +35,6 @@ public abstract class MutableEntity extends Entity {
         setUpdatedAt(clock.millis());
     }
 
-
     protected abstract static class Builder<T extends MutableEntity, B extends Builder<T, B>> extends Entity.Builder<T, B> {
 
         protected Builder(T entity) {

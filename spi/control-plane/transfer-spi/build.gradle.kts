@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi:common:policy-model"))
     api(project(":spi:common:policy-engine-spi"))
 
+    testFixturesImplementation(project(":core:common:junit"))
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.assertj)
     testFixturesImplementation(libs.awaitility)

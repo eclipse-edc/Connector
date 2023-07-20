@@ -117,7 +117,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public static final String TRANSFER_PROCESS_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_PROCESS_TYPE_TYPE = EDC_NAMESPACE + "type";
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
-    public static final String TRANSFER_PROCESS_DATA_REQUEST = EDC_NAMESPACE + "dataRequest";
     public static final String TRANSFER_PROCESS_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_PROCESS_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
     private Type type = CONSUMER;
@@ -322,6 +321,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(TERMINATING, state -> canBeTerminated());
     }
 
+    public void transitionTerminated(String message) {
+        this.errorDetail = message;
+        transitionTerminated();
+    }
+
     public void transitionTerminated() {
         transition(TERMINATED, state -> canBeTerminated());
     }
@@ -387,6 +391,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .callbackAddresses(callbackAddresses)
                 .type(type);
         return copy(builder);
+    }
+
+    @Override
+    public String stateAsString() {
+        return TransferProcessStates.from(state).name();
     }
 
     public Builder toBuilder() {

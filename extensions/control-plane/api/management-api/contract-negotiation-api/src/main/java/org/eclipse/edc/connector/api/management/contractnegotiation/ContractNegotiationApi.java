@@ -35,6 +35,7 @@ import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
 
+import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -106,6 +107,19 @@ public interface ContractNegotiationApi {
             })
     JsonObject initiateContractNegotiation(JsonObject requestDto);
 
+    @Operation(description = "Terminates the contract negotiation.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TerminateNegotiationSchema.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "ContractNegotiation is terminating",
+                            links = @Link(name = "poll-state", operationId = "getNegotiationState")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            }
+    )
+    void terminateNegotiation(String id, JsonObject terminateNegotiation);
+
     @Operation(description = "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
             "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
             responses = {
@@ -116,6 +130,7 @@ public interface ContractNegotiationApi {
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
+    @Deprecated(since = "0.1.3")
     void cancelNegotiation(String id);
 
     @Operation(description = "Requests cancelling the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
@@ -129,6 +144,7 @@ public interface ContractNegotiationApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
+    @Deprecated(since = "0.1.3")
     void declineNegotiation(String id);
 
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
@@ -242,6 +258,24 @@ public interface ContractNegotiationApi {
             ManagementApiSchema.PolicySchema policy
     ) {
 
+    }
+
+    @Schema(example = TerminateNegotiationSchema.TERMINATE_NEGOTIATION_EXAMPLE)
+    record TerminateNegotiationSchema(
+            @Schema(name = TYPE, example = TERMINATE_NEGOTIATION_TYPE)
+            String ldType,
+            @Schema(name = ID)
+            String id,
+            String reason
+    ) {
+        public static final String TERMINATE_NEGOTIATION_EXAMPLE = """
+                {
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/TerminateNegotiation",
+                    "@id": "negotiation-id",
+                    "reason": "a reason to terminate"
+                }
+                """;
     }
 
 }

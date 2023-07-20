@@ -226,13 +226,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     private ServiceResult<ContractNegotiation> getNegotiation(ContractRemoteMessage message) {
-        var processId = message.getProcessId();
-        var negotiation = store.findForCorrelationId(processId);
-        if (negotiation == null) {
-            return ServiceResult.notFound(format("ContractNegotiation with processId %s not found", processId));
-        } else {
-            return ServiceResult.success(negotiation);
-        }
+        return store.findByCorrelationIdAndLease(message.getProcessId()).flatMap(ServiceResult::from);
     }
 
     private void update(ContractNegotiation negotiation) {

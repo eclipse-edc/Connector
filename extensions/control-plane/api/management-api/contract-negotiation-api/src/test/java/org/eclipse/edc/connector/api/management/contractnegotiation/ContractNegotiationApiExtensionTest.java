@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.contractnegotiation;
 
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -22,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -38,9 +39,10 @@ class ContractNegotiationApiExtensionTest {
     }
 
     @Test
-    void initiate_shouldRegisterValidator(ServiceExtensionContext context, ContractNegotiationApiExtension extension) {
+    void initiate_shouldRegisterValidators(ServiceExtensionContext context, ContractNegotiationApiExtension extension) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(ContractRequest.CONTRACT_REQUEST_TYPE), any());
+        verify(validatorRegistry).register(eq(CONTRACT_REQUEST_TYPE), any());
+        verify(validatorRegistry).register(eq(TERMINATE_NEGOTIATION_TYPE), any());
     }
 }

@@ -43,8 +43,13 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
     /**
      * Persists a transfer process. This follows UPSERT semantics, so if the object didn't exit before, it's
      * created.
+     *
+     * @deprecated please use {@link #save(Object)}
      */
-    void updateOrCreate(TransferProcess process);
+    @Deprecated(since = "0.1.3")
+    default void updateOrCreate(TransferProcess process) {
+        save(process);
+    }
 
 
     /**

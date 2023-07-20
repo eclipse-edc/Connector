@@ -29,16 +29,15 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResourceCommand;
+import org.eclipse.edc.connector.transfer.spi.types.command.CompleteTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
-import org.eclipse.edc.connector.transfer.spi.types.command.SingleTransferProcessCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -57,14 +55,16 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
     private final DataAddressValidator dataAddressValidator;
+    private final CommandHandlerRegistry commandHandlerRegistry;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
-                                      TransactionContext transactionContext,
-                                      DataAddressValidator dataAddressValidator) {
+                                      TransactionContext transactionContext, DataAddressValidator dataAddressValidator,
+                                      CommandHandlerRegistry commandHandlerRegistry) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
         this.dataAddressValidator = dataAddressValidator;
+        this.commandHandlerRegistry = commandHandlerRegistry;
         queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
 
@@ -92,18 +92,20 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull ServiceResult<TransferProcess> terminate(String transferProcessId, String reason) {
-        return transactionContext.execute(() -> runAsync(new TerminateTransferCommand(transferProcessId, reason)));
+    public @NotNull ServiceResult<Void> complete(String transferProcessId) {
+        var command = new CompleteTransferCommand(transferProcessId);
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 
     @Override
-    public @NotNull ServiceResult<TransferProcess> complete(String transferProcessId) {
-        return transactionContext.execute(() -> runAsync(new CompleteTransferCommand(transferProcessId)));
+    public @NotNull ServiceResult<Void> terminate(TerminateTransferCommand command) {
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 
     @Override
-    public @NotNull ServiceResult<TransferProcess> deprovision(String transferProcessId) {
-        return transactionContext.execute(() -> runAsync(new DeprovisionRequest(transferProcessId)));
+    public @NotNull ServiceResult<Void> deprovision(String transferProcessId) {
+        var command = new DeprovisionRequest(transferProcessId);
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 
     @Override
@@ -124,29 +126,15 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public ServiceResult<TransferProcess> completeDeprovision(String transferProcessId, DeprovisionedResource resource) {
-        return transactionContext.execute(() -> runAsync(new DeprovisionCompleteCommand(transferProcessId, resource)));
+    public ServiceResult<Void> completeDeprovision(String transferProcessId, DeprovisionedResource resource) {
+        var command = new DeprovisionCompleteCommand(transferProcessId, resource);
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 
     @Override
-    public ServiceResult<TransferProcess> addProvisionedResource(String transferProcessId, ProvisionResponse response) {
-        return transactionContext.execute(() -> runAsync(new AddProvisionedResourceCommand(transferProcessId, response)));
-    }
-
-    private ServiceResult<TransferProcess> runAsync(SingleTransferProcessCommand command) {
-        return Optional.of(command.getTransferProcessId())
-                .map(transferProcessStore::findById)
-                .map(transferProcess -> {
-                    var validator = asyncCommandValidators.get(command.getClass());
-                    var validationResult = validator.apply(command, transferProcess);
-                    if (validationResult.failed()) {
-                        return ServiceResult.<TransferProcess>conflict(format("Cannot %s because %s", command.getClass().getSimpleName(), validationResult.getFailureDetail()));
-                    }
-
-                    manager.enqueueCommand(command);
-                    return ServiceResult.success(transferProcess);
-                })
-                .orElse(ServiceResult.notFound(format("TransferProcess with id %s not found", command.getTransferProcessId())));
+    public ServiceResult<Void> addProvisionedResource(String transferProcessId, ProvisionResponse response) {
+        var command = new AddProvisionedResourceCommand(transferProcessId, response);
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 
     private Map<Class<?>, List<Class<?>>> getSubtypes() {
@@ -156,26 +144,4 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         );
     }
 
-    private final Map<Class<? extends SingleTransferProcessCommand>, CommandValidator> asyncCommandValidators = Map.of(
-            TerminateTransferCommand.class,
-            (command, transferProcess) -> transferProcess.canBeTerminated()
-                    ? Result.success()
-                    : Result.failure(format("TransferProcess %s is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState()))),
-
-            org.eclipse.edc.spi.types.domain.transfer.command.CompleteTransferCommand.class,
-            (command, transferProcess) -> transferProcess.canBeCompleted()
-                    ? Result.success()
-                    : Result.failure(format("TransferProcess %s is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState()))),
-
-            DeprovisionRequest.class,
-            (command, transferProcess) -> transferProcess.canBeDeprovisioned()
-                    ? Result.success()
-                    : Result.failure(format("TransferProcess %s is in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState()))),
-
-            DeprovisionCompleteCommand.class, (command, transferProcess) -> Result.success(),
-
-            AddProvisionedResourceCommand.class, (command, transferProcess) -> Result.success()
-    );
-
-    private interface CommandValidator extends BiFunction<SingleTransferProcessCommand, TransferProcess, Result<Void>> {}
 }

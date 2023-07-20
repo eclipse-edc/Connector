@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegoti
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
-import org.eclipse.edc.connector.contract.spi.types.command.ContractNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
@@ -62,7 +61,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .processor(processNegotiationsInState(VERIFIED, this::processVerified))
                 .processor(processNegotiationsInState(FINALIZING, this::processFinalizing))
                 .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
-                .processor(onCommands(this::processCommand))
                 .build();
 
         stateMachineManager.start();
@@ -74,22 +72,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
     }
 
-    @Override
-    public void enqueueCommand(ContractNegotiationCommand command) {
-        commandQueue.enqueue(command);
-    }
-
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
         var filter = new Criterion[]{hasState(state.code()), new Criterion("type", "=", PROVIDER.name())};
         return new StateProcessorImpl<>(() -> negotiationStore.nextNotLeased(batchSize, filter), telemetry.contextPropagationMiddleware(function));
-    }
-
-    private StateProcessorImpl<ContractNegotiationCommand> onCommands(Function<ContractNegotiationCommand, Boolean> process) {
-        return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
-    }
-
-    private boolean processCommand(ContractNegotiationCommand command) {
-        return commandProcessor.processCommandQueue(command);
     }
 
     /**

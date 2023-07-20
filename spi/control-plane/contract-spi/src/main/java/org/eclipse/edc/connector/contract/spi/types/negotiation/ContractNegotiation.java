@@ -350,6 +350,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     @Override
+    public String stateAsString() {
+        return ContractNegotiationStates.from(state).name();
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(id, correlationId, counterPartyId, clock, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
     }

@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
@@ -58,21 +59,6 @@ public interface TransferProcessService {
     String getState(String transferProcessId);
 
     /**
-     * Asynchronously requests cancellation of the transfer process.
-     * <p>
-     * The return result status only reflects the successful submission of the command.
-     *
-     * @param transferProcessId id of the transferProcess
-     * @return a result that is successful if the transfer process was found and is in a state that can be canceled
-     * @deprecated use {@link #terminate} instead
-     */
-    @Deprecated(since = "milestone9")
-    @NotNull
-    default ServiceResult<TransferProcess> cancel(String transferProcessId) {
-        return terminate(transferProcessId, "transfer cancelled");
-    }
-
-    /**
      * Asynchronously requests termination of the transfer process.
      * <p>
      * The return result status only reflects the successful submission of the command.
@@ -80,9 +66,13 @@ public interface TransferProcessService {
      * @param transferProcessId id of the transferProcess
      * @param reason reason for the termination
      * @return a result that is successful if the transfer process was found and is in a state that can be terminated
+     * @deprecated please use {@link #terminate(TerminateTransferCommand)}
      */
     @NotNull
-    ServiceResult<TransferProcess> terminate(String transferProcessId, String reason);
+    @Deprecated(since = "0.1.3")
+    default ServiceResult<Void> terminate(String transferProcessId, String reason) {
+        return terminate(new TerminateTransferCommand(transferProcessId, reason));
+    }
 
     /**
      * Asynchronously requests completion of the transfer process.
@@ -93,23 +83,16 @@ public interface TransferProcessService {
      * @return a result that is successful if the transfer process was found and is in a state that can be completed
      */
     @NotNull
-    ServiceResult<TransferProcess> complete(String transferProcessId);
+    ServiceResult<Void> complete(String transferProcessId);
 
     /**
-     * Asynchronously requests failure of the transfer process.
-     * <p>
-     * The return result status only reflects the successful submission of the command.
+     * Terminate Transfer Process.
      *
-     * @param transferProcessId id of the transferProcess
-     * @param errorDetail the reason of the failure
-     * @return a result that is successful if the transfer process was found and is in a state that can be failed
-     * @deprecated please use {@link #terminate(String, String)}
+     * @param command the Command
+     * @return success if the Transfer has been terminated, failure otherwise
      */
     @NotNull
-    @Deprecated(since = "milestone9")
-    default ServiceResult<TransferProcess> fail(String transferProcessId, String errorDetail) {
-        return terminate(transferProcessId, errorDetail);
-    }
+    ServiceResult<Void> terminate(TerminateTransferCommand command);
 
     /**
      * Asynchronously requests deprovisioning of the transfer process.
@@ -121,7 +104,7 @@ public interface TransferProcessService {
      *         deprovisioned
      */
     @NotNull
-    ServiceResult<TransferProcess> deprovision(String transferProcessId);
+    ServiceResult<Void> deprovision(String transferProcessId);
 
     /**
      * Initiate transfer request for type consumer.
@@ -139,7 +122,7 @@ public interface TransferProcessService {
      * @param resource The {@link DeprovisionedResource} to deprovision
      * @return a result that is successful if the transfer process was found
      */
-    ServiceResult<TransferProcess> completeDeprovision(String transferProcessId, DeprovisionedResource resource);
+    ServiceResult<Void> completeDeprovision(String transferProcessId, DeprovisionedResource resource);
 
     /**
      * Asynchronously handles a {@link ProvisionResponse} received from an external system
@@ -148,6 +131,6 @@ public interface TransferProcessService {
      * @param response The {@link ProvisionResponse} to handle
      * @return a result that is successful if the transfer process was found
      */
-    ServiceResult<TransferProcess> addProvisionedResource(String transferProcessId, ProvisionResponse response);
+    ServiceResult<Void> addProvisionedResource(String transferProcessId, ProvisionResponse response);
 
 }
