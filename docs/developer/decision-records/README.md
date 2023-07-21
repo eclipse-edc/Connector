@@ -44,3 +44,4 @@
 - [2023-06-05-validation-engine](2023-06-05-validation-engine)
 - [2023-06-30-allow-use-of-testcontainers](2023-06-30-allow-use-of-testcontainers/)
 - [2023-06-30 Sync Commands](2023-07-19-sync-commands)
+- [2023-06-30 State Machine guards](2023-07-20-state-machine-guards)
