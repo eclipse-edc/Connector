@@ -1,28 +1,28 @@
-# State Machine manual interactions
+# State Machine guards
 
 ## Decision
 
-The EDC will provide a way to permit manual interactions over automatic ones in the state machine processes.
+The EDC will provide a way to permit external interactions over internal (automatic) ones in the state machine processes through guards.
 
 ## Rationale
 
 In the EDC domain, the state machine is currently a completely automatic engine, every state transition is pre-defined
 and they are following completely automatic logic.
 
-With the introduction of the so-called "counter offer" feature, there's the need to permit to avoid the state machine to
+With the upcoming introduction of the so-called "counter offer" feature, there's the need to permit to avoid the state machine to
 pick up certain states and having the user interacting with it through commands in the Management API.
 
-This will permitted in the most generic way possible, giving to every state machine the possibility to "interrupt" the
+This will be permitted in the most generic way possible, giving to every state machine the possibility to "interrupt" the
 automatic flow and let the user act on it.
 
 ## Approach
 
 This implementation is based on two pillars:
-- adding a generic hook functionality to the state machine
-- add a flag that permits to recognize entities that are waiting for manual interactions
+- adding a generic guard functionality to the state machine
+- add a flag that permits to recognize entities that are `pending` (waiting for external interactions)
 
 The first one will be implemented in the `StateProcessorImpl`, that's the component that executes the state machine logic.
-In the new implementation, there will be the possibility to add a `Hook`, that's a tuple of a `Predicate` and a `Function`.
+In the new implementation, there will be the possibility to add a `Guard`, that's a tuple of a `Predicate` and a `Function`.
 The new `StateProcessorImpl` flow will be:
 ```java
 entities.get().stream()
@@ -37,32 +37,32 @@ entities.get().stream()
     .count()
 ```
 
-so the `Hook` will take over in the case its predicate matches the entity.
+so the `Guard` will take over in the case its predicate matches the entity.
 
 This way it will be possible to control the flow, and every `*Manager` (`ContractNegotiation`, `TransferProcess`, ...) 
-can then register their own `ManualInteractionPredicate` on the state machine configuration.
-In particular, the default hook function implementation will set the "waiting for manual interaction" flag on the entity,
+can then register their own `PendingGuard` on the state machine configuration.
+In particular, the default hook function implementation will set the "pending" flag on the entity,
 like: 
 ```
 Function<Entity> hookFunction = entity -> {
-    entity.setWaitingForManualInteraction(true);
+    entity.setPending(true);
     update(entity);
     return true;
 ```
 
 The flag will be then used as an additional filter passed to the `store.nextNotLeased` method used by the state machine
-to filter out such entities. This way they will just stay still in the database waiting for a manual interaction.
+to filter out such entities. This way they will just stand still in the database, pending.
 
 The hook predicate will be completely extensible and will permit the implementors to decide if a specific entity state needs
-manual interaction based on the input, like:
+external interaction based on the input, like:
 ```java
-class EntityManualInteractionPredicate implements ManualInteractionPredicate<Entity> {
+class EntityPendingGuard implements PendingGuard<Entity> {
     
     // custom collaborators as other services
     
     boolean test(Entity entity) {
         // custom condition
-        return entity.getState() = SPECIFIC_STATE.code() && otherCondition;
+        return entity.getState() = SPECIFIC_STATE.code() && otherCondition; // if true, the entity will be pending
     }
     
 }
