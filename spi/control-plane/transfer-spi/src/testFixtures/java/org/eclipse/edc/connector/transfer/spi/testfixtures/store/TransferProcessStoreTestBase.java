@@ -69,6 +69,20 @@ public abstract class TransferProcessStoreTestBase {
     }
 
     @Test
+    void find_queryByState() {
+        var tp = createTransferProcessBuilder("testprocess1").state(800).build();
+        getTransferProcessStore().save(tp);
+
+        var query = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("state", "=", 800)))
+                .build();
+
+        var result = getTransferProcessStore().findAll(query).toList();
+        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
+
+    }
+
+    @Test
     void create() {
         var transferProcess = createTransferProcessBuilder("test-id")
                 .dataRequest(createDataRequestBuilder().id("data-request-id").build())
@@ -908,15 +922,6 @@ public abstract class TransferProcessStoreTestBase {
     }
 
     @Test
-    protected void findAll_verifySorting_invalidProperty() {
-        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
-
-        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-
-        assertThat(getTransferProcessStore().findAll(query).collect(Collectors.toList())).isEmpty();
-    }
-
-    @Test
     void findByIdAndLease_shouldReturnTheEntityAndLeaseIt() {
         var id = UUID.randomUUID().toString();
         getTransferProcessStore().updateOrCreate(createTransferProcess(id));
@@ -978,13 +983,13 @@ public abstract class TransferProcessStoreTestBase {
         assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
     }
 
-    private void delayByTenMillis(TransferProcess t) {
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException ignored) {
-            // noop
-        }
-        t.updateStateTimestamp();
+    @Test
+    protected void findAll_verifySorting_invalidProperty() {
+        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        assertThat(getTransferProcessStore().findAll(query).collect(Collectors.toList())).isEmpty();
     }
 
     protected abstract boolean supportsCollectionQuery();
@@ -1000,5 +1005,14 @@ public abstract class TransferProcessStoreTestBase {
     }
 
     protected abstract boolean isLeasedBy(String negotiationId, String owner);
+
+    private void delayByTenMillis(TransferProcess t) {
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException ignored) {
+            // noop
+        }
+        t.updateStateTimestamp();
+    }
 
 }

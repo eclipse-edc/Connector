@@ -15,13 +15,9 @@
 package org.eclipse.edc.test.e2e.participant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.common.mapper.TypeRef;
 import jakarta.json.Json;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.test.e2e.PostgresConstants;
 import org.eclipse.edc.test.system.utils.Participant;
@@ -41,7 +37,6 @@ import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.io.File.separator;
-import static java.lang.String.format;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -258,42 +253,6 @@ public class EndToEndTransferParticipant extends Participant {
                 put("edc.dataplane.token.validation.endpoint", controlPlaneControl + "/token");
             }
         };
-    }
-
-    public JsonArray queryByState(TransferProcessStates transferProcessStates) {
-
-        try {
-            var content = """
-                    {
-                        "@context": {
-                            "edc": "https://w3id.org/edc/v0.0.1/ns/"
-                        },
-                        "@type": "QuerySpec",
-                        "filterExpression": [
-                            {
-                                "operandLeft": "state",
-                                "operandRight": %d,
-                                "operator": "="
-                            }
-                        ],
-                        "limit": 100,
-                        "offset": 0
-                    }
-                    """;
-            content = format(content, transferProcessStates.code());
-            JsonObject query = JacksonJsonLd.createObjectMapper()
-                    .readValue(content, JsonObject.class);
-            var result = managementEndpoint.baseRequest()
-                    .contentType(JSON)
-                    .body(query)
-                    .post("/v2/transferprocesses/request")
-                    .then()
-                    .statusCode(200)
-                    .extract().body().as(JsonArray.class);
-            return result;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @NotNull

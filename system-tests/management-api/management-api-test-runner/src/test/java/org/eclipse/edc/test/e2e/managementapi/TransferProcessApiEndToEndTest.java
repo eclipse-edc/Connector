@@ -14,11 +14,15 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.Json;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -29,9 +33,11 @@ import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
+import static java.lang.String.format;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -150,6 +156,49 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .then()
                 .log().ifError()
                 .statusCode(204);
+    }
+
+    @Test
+    void query_byState() throws JsonProcessingException {
+
+        var state = DEPROVISIONED;
+        var tp = createTransferProcessBuilder("test-tp")
+                .state(state.code())
+                .build();
+        getStore().save(tp);
+
+
+        var content = """
+                {
+                    "@context": {
+                        "edc": "https://w3id.org/edc/v0.0.1/ns/"
+                    },
+                    "@type": "QuerySpec",
+                    "filterExpression": [
+                        {
+                            "operandLeft": "state",
+                            "operandRight": %d,
+                            "operator": "="
+                        }
+                    ],
+                    "limit": 100,
+                    "offset": 0
+                }
+                """;
+        content = format(content, state.code());
+        JsonObject query = JacksonJsonLd.createObjectMapper()
+                .readValue(content, JsonObject.class);
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(query)
+                .post("/v2/transferprocesses/request")
+                .then()
+                .statusCode(200)
+                .extract().body().as(JsonArray.class);
+
+        assertThat(result).isNotEmpty();
+        assertThat(result).anySatisfy(it -> assertThat(it.asJsonObject().getString("edc:state")).isEqualTo(state.toString()));
     }
 
     private TransferProcessStore getStore() {
