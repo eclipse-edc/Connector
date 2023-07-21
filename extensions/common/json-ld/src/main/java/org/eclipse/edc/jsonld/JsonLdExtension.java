@@ -32,8 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
@@ -106,9 +104,6 @@ public class JsonLdExtension implements ServiceExtension {
     }
 
     private void registerCachedDocumentsFromConfig(ServiceExtensionContext context, TitaniumJsonLd service) {
-        Map<String, Map<String, String>> tempMappings = new HashMap<>();
-
-
         context.getConfig()
                 .getConfig(EDC_JSONLD_DOCUMENT_PREFIX)
                 .partition()
@@ -120,32 +115,6 @@ public class JsonLdExtension implements ServiceExtension {
                         context.getMonitor().warning(format("Expected a '%s' and a '%s' entry for '%s.%s', but found only '%s'", CONFIG_VALUE_PATH, CONFIG_VALUE_URL, EDC_JSONLD_DOCUMENT_PREFIX, config.currentNode(), String.join("", tuple.keySet())));
                     }
                 });
-    }
-
-    /**
-     * converts a map entry, that looks like "something.url" -> https://foo.bar, into a map entry, that looks like
-     * "something" -> ("url" -> "https://foo.bar") and adds it to an existing map
-     */
-    private void split(Map<String, Map<String, String>> targetMap, Map.Entry<String, String> entry) {
-
-        var key = entry.getKey();
-        var value = entry.getValue();
-
-        // only <alias>.[url|path] is accepted
-        if (key.split("\\.").length != 2) {
-            return;
-        }
-
-        var lastDotIndex = key.lastIndexOf(".");
-        var keyNamePart = key.substring(0, lastDotIndex);
-        var keyComponentPart = key.substring(lastDotIndex + 1);
-
-        var map = targetMap.computeIfAbsent(keyNamePart, s -> new HashMap<>());
-        if (map.containsKey(keyComponentPart)) {
-            throw new IllegalArgumentException(String.format("An entry for %s.%s already exists, currently mapped to %s", EDC_JSONLD_DOCUMENT_PREFIX, key, map));
-        }
-        map.put(keyComponentPart, value);
-
     }
 
     @NotNull
