@@ -63,6 +63,19 @@ class BaseCriterionToPredicateConverterTest {
                 .rejects(new TestObject("any", ENTRY1), new TestObject("any", null));
     }
 
+    @Test
+    void convertEqual_integerAndDouble() {
+        var predicate = converter.convert(new Criterion("intValue", "=", 42));
+
+        assertThat(predicate)
+                .rejects(new TestObject("any", ENTRY2), new TestObject(-1))
+                .accepts(new TestObject(42));
+    }
+
+    public enum TestEnum {
+        ENTRY1, ENTRY2
+    }
+
     private static class TestCriterionToPredicateConverter extends BaseCriterionToPredicateConverter<TestObject> {
 
         @Override
@@ -72,27 +85,22 @@ class BaseCriterionToPredicateConverterTest {
     }
 
     private static class TestObject {
-        private final String value;
-        private final TestEnum enumValue;
+        private String value;
+        private TestEnum enumValue;
+        private Integer intValue;
 
         private TestObject(String value) {
-            this(value, TestEnum.ENTRY1);
+            this(value, null);
+        }
+
+        private TestObject(int value) {
+            this.intValue = value;
         }
 
         private TestObject(String value, TestEnum enumValue) {
             this.value = value;
             this.enumValue = enumValue;
-        }
 
-        @Override
-        public String toString() {
-            return "TestObject{" +
-                    "value='" + value + '\'' +
-                    '}';
         }
-    }
-
-    public enum TestEnum {
-        ENTRY1, ENTRY2;
     }
 }

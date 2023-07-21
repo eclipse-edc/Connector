@@ -45,7 +45,7 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
     /**
      * Method to extract an object's field's value
      *
-     * @param key Then name of the field
+     * @param key    Then name of the field
      * @param object The target object
      */
     protected abstract Object property(String key, Object object);
@@ -63,6 +63,11 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
                 return Objects.equals(enumProperty.name(), criterion.getOperandRight());
             }
 
+            if (property instanceof Number c1 && criterion.getOperandRight() instanceof Number c2) {
+                // interpret as double to not lose any precision
+                return Double.compare(c1.doubleValue(), c2.doubleValue()) == 0;
+            }
+
             return Objects.equals(property, criterion.getOperandRight());
         };
     }
@@ -74,8 +79,7 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
 
             var rightOp = criterion.getOperandRight();
 
-            if (rightOp instanceof Iterable) {
-                var iterable = (Iterable<?>) rightOp;
+            if (rightOp instanceof Iterable<?> iterable) {
                 for (var value : iterable) {
                     if (value.equals(property)) {
                         return true;

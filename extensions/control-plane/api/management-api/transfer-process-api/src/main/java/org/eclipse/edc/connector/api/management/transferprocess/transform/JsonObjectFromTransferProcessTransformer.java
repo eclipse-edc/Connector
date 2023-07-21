@@ -66,11 +66,11 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
                 .add(TRANSFER_PROCESS_STATE_TIMESTAMP, input.getStateTimestamp())
                 .add(TRANSFER_PROCESS_TYPE_TYPE, input.getType().name())
                 .add(TRANSFER_PROCESS_ASSET_ID, input.getAssetId())
-                .add(TRANSFER_PROCESS_CONNECTOR_ID, input.getConnectorId())
                 .add(TRANSFER_PROCESS_CONTRACT_ID, input.getContractId())
                 .add(TRANSFER_PROCESS_CALLBACK_ADDRESSES, callbackAddresses)
                 .add(TRANSFER_PROCESS_DATA_DESTINATION, dataDestination);
 
+        Optional.ofNullable(input.getConnectorId()).ifPresent(it -> builder.add(TRANSFER_PROCESS_CONNECTOR_ID, it));
         Optional.ofNullable(input.getErrorDetail()).ifPresent(it -> builder.add(TRANSFER_PROCESS_ERROR_DETAIL, it));
 
         return builder.build();

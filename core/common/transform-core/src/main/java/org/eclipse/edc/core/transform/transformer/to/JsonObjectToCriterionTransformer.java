@@ -45,7 +45,7 @@ public class JsonObjectToCriterionTransformer extends AbstractJsonLdTransformer<
         if ("in".equals(operator)) {
             builder.operandRight(operandRight.asJsonArray().stream().map(this::nodeValue).collect(toList()));
         } else {
-            builder.operandRight(transformString(operandRight, context));
+            builder.operandRight(transformGenericProperty(operandRight, context));
         }
 
         return builder.build();
