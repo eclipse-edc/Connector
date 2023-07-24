@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
+import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetPredicateConverter;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -42,7 +42,7 @@ import static java.lang.String.format;
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
-    private final AssetPredicateConverter predicateConverter = new AssetPredicateConverter();
+    private final CriterionToAssetPredicateConverterImpl predicateConverter = new CriterionToAssetPredicateConverterImpl();
     private final ReentrantReadWriteLock lock;
 
     public InMemoryAssetIndex() {
@@ -84,11 +84,6 @@ public class InMemoryAssetIndex implements AssetIndex {
     public StoreResult<Void> create(Asset asset) {
         lock.writeLock().lock();
         try {
-            if (asset.hasDuplicatePropertyKeys()) {
-                var msg = format(DUPLICATE_PROPERTY_KEYS_TEMPLATE);
-                return StoreResult.duplicateKeys(msg);
-            }
-
             var id = asset.getId();
             if (cache.containsKey(id)) {
                 return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, id));

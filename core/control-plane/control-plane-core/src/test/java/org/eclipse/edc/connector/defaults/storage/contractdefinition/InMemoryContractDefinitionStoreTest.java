@@ -26,14 +26,4 @@ class InMemoryContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
         return store;
     }
 
-    @Override
-    protected boolean supportsCollectionQuery() {
-        return false;
-    }
-
-    @Override
-    protected boolean supportsCollectionIndexQuery() {
-        return true;
-    }
-
 }

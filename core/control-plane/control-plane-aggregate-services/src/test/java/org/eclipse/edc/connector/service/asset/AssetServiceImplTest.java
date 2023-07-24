@@ -172,6 +172,22 @@ class AssetServiceImplTest {
     }
 
     @Test
+    void createAsset_shouldFail_whenPropertiesAreDuplicated() {
+        var asset = createAssetBuilder("assetId")
+                .property("property", "value")
+                .privateProperty("property", "other-value")
+                .build();
+        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+
+        var result = service.create(asset);
+
+        assertThat(result).isFailed()
+                .extracting(ServiceFailure::getReason)
+                .isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(index);
+    }
+
+    @Test
     @Deprecated(since = "0.1.2")
     void createAssetDeprecated_shouldCreateAssetIfItDoesNotAlreadyExist() {
         when(dataAddressValidator.validate(any())).thenReturn(Result.success());
@@ -275,7 +291,6 @@ class AssetServiceImplTest {
                 argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
     }
 
-
     @Test
     void updateAsset_shouldUpdateWhenExists() {
         var assetId = "assetId";
@@ -303,6 +318,21 @@ class AssetServiceImplTest {
         verify(index, times(1)).updateAsset(asset);
         verifyNoMoreInteractions(index);
         verify(observable, never()).invokeForEach(any());
+    }
+
+    @Test
+    void updateAsset_shouldFail_whenPropertiesAreDuplicated() {
+        var asset = createAssetBuilder("assetId")
+                .property("property", "value")
+                .privateProperty("property", "other-value")
+                .build();
+
+        var result = service.update(asset);
+
+        assertThat(result).isFailed()
+                .extracting(ServiceFailure::getReason)
+                .isEqualTo(BAD_REQUEST);
+        verifyNoInteractions(index);
     }
 
     @Test
@@ -351,6 +381,10 @@ class AssetServiceImplTest {
     }
 
     private Asset createAsset(String assetId) {
-        return Asset.Builder.newInstance().id(assetId).dataAddress(DataAddress.Builder.newInstance().type("any").build()).build();
+        return createAssetBuilder(assetId).build();
+    }
+
+    private Asset.Builder createAssetBuilder(String assetId) {
+        return Asset.Builder.newInstance().id(assetId).dataAddress(DataAddress.Builder.newInstance().type("any").build());
     }
 }

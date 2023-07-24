@@ -34,7 +34,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 class ReflectionBasedQueryResolverTest {
 
-    private QueryResolver<FakeItem> queryResolver = new ReflectionBasedQueryResolver<>(FakeItem.class);
+    private final QueryResolver<FakeItem> queryResolver = new ReflectionBasedQueryResolver<>(FakeItem.class);
 
     @Test
     void verifyQuery_noFilters() {
@@ -86,7 +86,8 @@ class ReflectionBasedQueryResolverTest {
         var stream = IntStream.range(0, 10).mapToObj(FakeItem::new);
 
         var spec = QuerySpec.Builder.newInstance().sortField("xyz").sortOrder(SortOrder.ASC).build();
-        assertThat(queryResolver.query(stream, spec)).isEmpty();
+
+        assertThatThrownBy(() -> queryResolver.query(stream, spec)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

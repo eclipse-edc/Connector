@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.catalog;
 
 import org.eclipse.edc.catalog.spi.DatasetResolver;
-import org.eclipse.edc.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.defaults.storage.assetindex.InMemoryAssetIndex;
@@ -59,11 +59,12 @@ import static org.mockito.Mockito.when;
  */
 class DatasetResolverImplIntegrationTest {
 
-    private final ContractDefinitionResolver contractDefinitionResolver = mock(ContractDefinitionResolver.class);
-    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
+    private final ContractDefinitionResolver contractDefinitionResolver = mock();
+    private final PolicyDefinitionStore policyStore = mock();
     private final AssetIndex assetIndex = new InMemoryAssetIndex();
 
-    private final DatasetResolver resolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore, mock(DistributionResolver.class));
+    private final DatasetResolver resolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore,
+            mock(), new CriterionToAssetPredicateConverterImpl());
 
     @BeforeEach
     void setUp() {
@@ -71,7 +72,7 @@ class DatasetResolverImplIntegrationTest {
     }
 
     @Test
-    void shouldLimitResult_withHeterogenousChunks() {
+    void shouldLimitResult_withHeterogeneousChunks() {
         var assets1 = range(10, 24).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
         var assets2 = range(24, 113).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
         var assets3 = range(113, 178).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());

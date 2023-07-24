@@ -511,12 +511,14 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         public TransferProcess build() {
             super.build();
 
-            if (entity.resourceManifest != null) {
-                entity.resourceManifest.setTransferProcessId(entity.id);
+            if (entity.dataRequest == null) {
+                entity.dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
             }
 
-            if (entity.dataRequest != null) {
-                entity.dataRequest.associateWithProcessId(entity.id);
+            entity.dataRequest.associateWithProcessId(entity.id);
+
+            if (entity.resourceManifest != null) {
+                entity.resourceManifest.setTransferProcessId(entity.id);
             }
 
             if (entity.state == 0) {

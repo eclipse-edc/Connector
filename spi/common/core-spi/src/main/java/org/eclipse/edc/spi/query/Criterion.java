@@ -70,6 +70,10 @@ public class Criterion {
         return operandRight;
     }
 
+    public Criterion withLeftOperand(String operandLeft) {
+        return new Criterion(operandLeft, operator, getOperandRight());
+    }
+
     public Criterion withLeftOperand(Function<Object, Object> function) {
         return new Criterion(function.apply(operandLeft), operator, getOperandRight());
     }

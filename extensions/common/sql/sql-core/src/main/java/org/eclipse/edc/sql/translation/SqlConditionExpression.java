@@ -45,6 +45,15 @@ public class SqlConditionExpression {
     }
 
     /**
+     * Returns condition expression SQL representation.
+     *
+     * @return sql representation.
+     */
+    public String toSql() {
+        return format("%s %s %s", criterion.getOperandLeft(), criterion.getOperator(), toValuePlaceholder());
+    }
+
+    /**
      * Checks whether the given {@link Criterion} is valid or not, i.e. if its {@linkplain Criterion#getOperator()} is
      * in the list of supported operators, and whether the {@linkplain Criterion#getOperandRight()} has the correct
      * type.
@@ -68,8 +77,8 @@ public class SqlConditionExpression {
      */
     public String toValuePlaceholder() {
         var operandRight = criterion.getOperandRight();
-        if (operandRight instanceof Iterable) {
-            var size = StreamSupport.stream(((Iterable) operandRight).spliterator(), false).count();
+        if (operandRight instanceof Iterable<?> iterable) {
+            var size = StreamSupport.stream(iterable.spliterator(), false).count();
             return format("(%s)", String.join(",", Collections.nCopies((int) size, PREPARED_STATEMENT_PLACEHOLDER)));
         }
         return PREPARED_STATEMENT_PLACEHOLDER;
@@ -86,8 +95,7 @@ public class SqlConditionExpression {
         result.add(criterion.getOperandLeft().toString());
 
         var operandRight = criterion.getOperandRight();
-        if (operandRight instanceof Iterable) {
-            var iterable = (Iterable<?>) operandRight;
+        if (operandRight instanceof Iterable<?> iterable) {
             iterable.forEach(result::add);
         } else {
             result.add(operandRight);

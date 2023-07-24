@@ -21,6 +21,7 @@ import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
+import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -67,7 +68,8 @@ class DatasetResolverImplTest {
 
     @BeforeEach
     void setUp() {
-        datasetResolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore, distributionResolver);
+        datasetResolver = new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyStore, distributionResolver,
+                new CriterionToAssetPredicateConverterImpl());
     }
 
     @Test

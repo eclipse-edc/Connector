@@ -36,7 +36,7 @@ public abstract class TranslationMapping {
      *
      * @throws IllegalArgumentException if the canonical property name was not found.
      */
-    public String getStatement(String canonicalPropertyName) {
+    public String getStatement(String canonicalPropertyName, Class<?> type) {
         if (canonicalPropertyName == null) {
             throw new IllegalArgumentException(format("Translation failed for Model '%s' input canonicalPropertyName is null", getClass().getName()));
         }
@@ -45,13 +45,12 @@ public abstract class TranslationMapping {
 
         var entry = fieldMap.get(key);
         if (entry == null) {
-            throw new IllegalArgumentException(format("Translation failed for Model '%s' at token '%s'", getClass().getName(), key));
+            return null;
         }
-        if (entry instanceof TranslationMapping) {
-            var mappingEntry = (TranslationMapping) entry;
+        if (entry instanceof TranslationMapping mappingEntry) {
             var nextToken = leftHandTokens.length < 2 ? null : leftHandTokens[1];
             //recursively descend into the metamodel tree
-            return mappingEntry.getStatement(nextToken);
+            return mappingEntry.getStatement(nextToken, type);
         }
 
         return entry.toString();

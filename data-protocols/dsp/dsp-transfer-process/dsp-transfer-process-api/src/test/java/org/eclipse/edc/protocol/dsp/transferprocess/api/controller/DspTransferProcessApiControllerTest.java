@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
@@ -34,6 +35,7 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
@@ -433,7 +435,12 @@ class DspTransferProcessApiControllerTest extends RestControllerTestBase {
     }
 
     private TransferProcess transferProcess() {
-        return TransferProcess.Builder.newInstance().id("id").build();
+        return TransferProcess.Builder.newInstance()
+                .id("id")
+                .dataRequest(DataRequest.Builder.newInstance()
+                        .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                        .build())
+                .build();
     }
 
     private static class ControllerMethodArguments implements ArgumentsProvider {

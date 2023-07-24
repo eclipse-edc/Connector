@@ -244,7 +244,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyStarted_shouldReturnConflict_whenStatusIsNotValid() {
-        var transferProcess = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(COMPLETED.code()).build();
+        var transferProcess = transferProcess(COMPLETED, UUID.randomUUID().toString());
         when(store.findByCorrelationIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         var message = TransferStartMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -279,7 +279,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyCompleted_shouldReturnConflict_whenStatusIsNotValid() {
-        var transferProcess = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(REQUESTED.code()).build();
+        var transferProcess = transferProcess(REQUESTED, UUID.randomUUID().toString());
         when(store.findByCorrelationIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol("protocol")
@@ -316,7 +316,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyTerminated_shouldReturnConflict_whenStatusIsNotValid() {
-        var transferProcess = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TERMINATED.code()).build();
+        var transferProcess = transferProcess(TERMINATED, UUID.randomUUID().toString());
         when(store.findByCorrelationIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
         var message = TransferTerminationMessage.Builder.newInstance()
                 .protocol("protocol")

@@ -17,10 +17,11 @@ package org.eclipse.edc.sql.translation;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -91,8 +92,7 @@ public class SqlQueryStatement {
      * @return an array of parameters that can be used for prepared statements
      */
     public Object[] getParameters() {
-        var params = new ArrayList<>();
-        params.addAll(parameters);
+        var params = new ArrayList<>(parameters);
         if (fromQuerySpec) {
             params.add(limit);
             params.add(offset);
@@ -122,7 +122,14 @@ public class SqlQueryStatement {
         whereClauses.clear();
         parameters.clear();
 
-        query.getFilterExpression().forEach(e -> parseExpression(e, rootModel));
+        query.getFilterExpression().stream()
+                .map(criterion -> parseExpression(criterion, rootModel))
+                .forEach(conditionExpression -> {
+                    whereClauses.add(conditionExpression.toSql());
+
+                    var params = conditionExpression.toStatementParameter().skip(1).toList();
+                    parameters.addAll(params);
+                });
 
         limit = query.getLimit();
         offset = query.getOffset();
@@ -135,37 +142,28 @@ public class SqlQueryStatement {
             return orderByClause;
         } else {
             var order = query.getSortOrder() == SortOrder.ASC ? "ASC" : "DESC";
-            var sortField = rootModel.getStatement(query.getSortField());
+            var sortField = rootModel.getStatement(query.getSortField(), String.class);
+            if (sortField == null) {
+                throw new IllegalArgumentException(format("Cannot sort by %s because the field does not exist", query.getSortField()));
+            }
             return String.format(ORDER_BY_TOKEN + " ", sortField, order);
         }
     }
 
-    /**
-     * Parses a single {@link Criterion} into a {@code WHERE} or an {@code AND} clause, and puts them onto the statement
-     * stack.
-     *
-     * @param criterion One single query clause
-     * @param rootModel The root mapping model for the query
-     */
-    private void parseExpression(Criterion criterion, TranslationMapping rootModel) {
-        var columnName = rootModel.getStatement(criterion.getOperandLeft().toString());
+    @NotNull
+    private SqlConditionExpression parseExpression(Criterion criterion, TranslationMapping rootModel) {
+        var newCriterion = Optional.ofNullable(criterion.getOperandLeft())
+                .map(Object::toString)
+                .map(it -> rootModel.getStatement(it, criterion.getOperandRight().getClass()))
+                .map(criterion::withLeftOperand)
+                .orElseGet(() -> Criterion.criterion("0", "=", 1));
 
-        if (columnName == null) {
-            throw new IllegalArgumentException(format("Operand \"%s\" cannot be mapped to SQL Schema", criterion.getOperandLeft()));
-        }
-        var newCriterion = new Criterion(columnName, criterion.getOperator(), criterion.getOperandRight());
+        var conditionExpression = new SqlConditionExpression(newCriterion);
 
-        var conditionExpr = new SqlConditionExpression(newCriterion);
+        conditionExpression.isValidExpression()
+                .orElseThrow(f -> new IllegalArgumentException("This expression is not valid: " + f.getFailureDetail()));
 
-        var validExpression = conditionExpr.isValidExpression();
-        if (validExpression.failed()) {
-            throw new IllegalArgumentException("This expression is not valid: " + String.join(", ", validExpression.getFailureMessages()));
-        }
-
-        var clause = format("%s %s %s", columnName, newCriterion.getOperator(), conditionExpr.toValuePlaceholder());
-        whereClauses.add(clause);
-        var params = conditionExpr.toStatementParameter().skip(1).collect(Collectors.toList());
-        parameters.addAll(params);
+        return conditionExpression;
     }
 
 }

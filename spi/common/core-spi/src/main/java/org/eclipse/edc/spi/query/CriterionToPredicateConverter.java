@@ -14,22 +14,19 @@
 
 package org.eclipse.edc.spi.query;
 
-import org.eclipse.edc.spi.asset.AssetIndex;
+import java.util.function.Predicate;
 
 /**
- * Converts a {@link Criterion} into whatever statement a specific {@link AssetIndex} implementation
+ * Converts a {@link Criterion} into a {@link Predicate} that a specific store implementation
  * requires in order to perform queries against its backend.
- * For example, an AssetIndex backed by SQL an SQL-conformant query string, thus a {@code CriterionConverter}
- * must convert the Criterion into a String.
- *
- * @param <T> The type of object which the {@link AssetIndex} requires to perform its query.
  */
 @FunctionalInterface
-public interface CriterionConverter<T> {
+public interface CriterionToPredicateConverter {
     /**
      * converts a {@link Criterion} into an AssetIndex-specific query object.
      *
+     * @param <T> The type of object which the store requires to perform its query.
      * @throws IllegalArgumentException if the criterion cannot be converted.
      */
-    T convert(Criterion criterion);
+    <T> Predicate<T> convert(Criterion criterion);
 }

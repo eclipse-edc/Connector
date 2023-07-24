@@ -126,11 +126,6 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     return StoreResult.alreadyExists(msg);
                 }
 
-                if (asset.hasDuplicatePropertyKeys()) {
-                    var msg = format(DUPLICATE_PROPERTY_KEYS_TEMPLATE);
-                    return StoreResult.duplicateKeys(msg);
-                }
-
                 queryExecutor.execute(connection, assetStatements.getInsertAssetTemplate(), assetId, asset.getCreatedAt());
                 var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
                 queryExecutor.execute(connection, insertDataAddressTemplate, assetId, toJson(dataAddress.getProperties()));
@@ -181,11 +176,6 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     public StoreResult<Asset> updateAsset(Asset asset) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                if (asset.hasDuplicatePropertyKeys()) {
-                    var msg = format(DUPLICATE_PROPERTY_KEYS_TEMPLATE);
-                    return StoreResult.duplicateKeys(msg);
-                }
-
                 var assetId = asset.getId();
                 if (existsById(assetId, connection)) {
                     queryExecutor.execute(connection, assetStatements.getDeletePropertyByIdTemplate(), assetId);

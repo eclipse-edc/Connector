@@ -54,11 +54,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
     @Override
     public Stream<PolicyDefinition> findAll(QuerySpec spec) {
-        try {
-            return lockManager.readLock(() -> queryResolver.query(policiesById.values().stream(), spec));
-        } catch (Exception e) {
-            throw new EdcPersistenceException(format("Finding policy stream by query spec %s failed", spec), e);
-        }
+        return lockManager.readLock(() -> queryResolver.query(policiesById.values().stream(), spec));
     }
 
     @Override

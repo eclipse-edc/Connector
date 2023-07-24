@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.defaults.storage;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.persistence.Lease;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.query.CriterionConverter;
+import org.eclipse.edc.spi.query.CriterionToPredicateConverter;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -49,7 +49,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> {
     private final String lockId;
     private final Clock clock;
     private final Map<String, Lease> leases;
-    private final CriterionConverter<Predicate<T>> criterionConverter = new DefaultCriterionToPredicateConverter<>();
+    private final CriterionToPredicateConverter criterionConverter = new CriterionToPredicateConverterImpl();
 
     public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, Map<String, Lease> leases) {
         queryResolver = new ReflectionBasedQueryResolver<>(clazz);

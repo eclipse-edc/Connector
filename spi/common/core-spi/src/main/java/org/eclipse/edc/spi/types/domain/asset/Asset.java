@@ -47,12 +47,10 @@ public class Asset extends Entity {
     public static final String EDC_ASSET_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
 
     private DataAddress dataAddress;
-    private final Map<String, Object> properties;
-    private final Map<String, Object> privateProperties;
+    private final Map<String, Object> properties = new HashMap<>();
+    private final Map<String, Object> privateProperties = new HashMap<>();
 
-    protected Asset() {
-        properties = new HashMap<>();
-        privateProperties = new HashMap<>();
+    private Asset() {
     }
 
     @Override

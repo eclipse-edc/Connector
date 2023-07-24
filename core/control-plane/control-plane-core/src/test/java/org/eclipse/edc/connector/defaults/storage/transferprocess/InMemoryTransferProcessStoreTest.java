@@ -25,23 +25,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 class InMemoryTransferProcessStoreTest extends TransferProcessStoreTestBase {
+
     private final Map<String, Lease> leases = new HashMap<>();
     private InMemoryTransferProcessStore store;
 
     @BeforeEach
     void setUp() {
         store = new InMemoryTransferProcessStore(CONNECTOR_NAME, Clock.systemUTC(), leases);
-    }
-
-
-    @Override
-    protected boolean supportsCollectionQuery() {
-        return false;
-    }
-
-    @Override
-    protected boolean supportsLikeOperator() {
-        return false;
     }
 
     @Override

@@ -51,9 +51,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     @Test
     void getAssetById() {
-        //insert one asset into the index
-        controlPlane.getContext().getService(AssetIndex.class)
-                .create(createAsset().dataAddress(createDataAddress().type("addressType").build()).build());
+        getAssetIndex().create(createAsset().dataAddress(createDataAddress().type("addressType").build()).build());
 
         var body = baseRequest()
                 .get("/v3/assets/" + TEST_ASSET_ID)
@@ -94,10 +92,9 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .log().ifError()
                 .statusCode(200)
                 .body(ID, is("test-asset-id"));
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
 
-        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
-        assertThat(assetIndex.findById("test-asset-id")).isNotNull();
+        assertThat(getAssetIndex().countAssets(List.of())).isEqualTo(1);
+        assertThat(getAssetIndex().findById("test-asset-id")).isNotNull();
     }
 
     @Test
@@ -117,9 +114,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .log().ifError()
                 .statusCode(400);
 
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-
-        assertThat(assetIndex.countAssets(emptyList())).isEqualTo(0);
+        assertThat(getAssetIndex().countAssets(emptyList())).isEqualTo(0);
     }
 
     @Test
@@ -145,17 +140,16 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .log().ifError()
                 .statusCode(200)
                 .body(ID, is("test-asset-id"));
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
 
-        assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
-        var asset = assetIndex.findById("test-asset-id");
+        assertThat(getAssetIndex().countAssets(List.of())).isEqualTo(1);
+        var asset = getAssetIndex().findById("test-asset-id");
         assertThat(asset).isNotNull();
         //make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
         assertThat(asset.getProperties().keySet())
                 .hasSize(6)
                 .allMatch(key -> key.startsWith(EDC_NAMESPACE));
 
-        var dataAddress = assetIndex.resolveForAsset(asset.getId());
+        var dataAddress = getAssetIndex().resolveForAsset(asset.getId());
         assertThat(dataAddress).isNotNull();
         assertThat(dataAddress.getProperties().keySet())
                 .hasSize(2)
@@ -167,8 +161,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     void queryAsset_byContentType() {
         //insert one asset into the index
         var asset = Asset.Builder.newInstance().id("test-asset").contentType("application/octet-stream").dataAddress(createDataAddress().build()).build();
-        controlPlane.getContext().getService(AssetIndex.class)
-                .create(asset);
+        getAssetIndex().create(asset);
 
         var query = createObjectBuilder()
                         .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
@@ -192,8 +185,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     @Test
     void queryAsset_byCustomStringProperty() {
         //insert one asset into the index
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.create(Asset.Builder.newInstance()
+        getAssetIndex().create(Asset.Builder.newInstance()
                 .id("test-asset")
                 .contentType("application/octet-stream")
                 .property("myProp", "myVal")
@@ -215,8 +207,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     @Test
     void queryAsset_byCustomComplexProperty_whenJsonPathQuery_expectNoResult() {
         //insert one asset into the index
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.create(Asset.Builder.newInstance()
+        getAssetIndex().create(Asset.Builder.newInstance()
                 .id("test-asset")
                 .contentType("application/octet-stream")
                 // use a custom, complex object type
@@ -238,34 +229,9 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     }
 
     @Test
-    void queryAsset_byCustomComplexProperty_whenLikeOperator_expectException() {
-        //insert one asset into the index
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.create(Asset.Builder.newInstance()
-                .id("test-asset")
-                .contentType("application/octet-stream")
-                // use a custom, complex object type
-                .property("myProp", new TestObject("test desc", 42))
-                .dataAddress(createDataAddress().build())
-                .build());
-
-        var query = createSingleFilterQuery("myProp", "LIKE", "test desc");
-
-        // querying custom complex types in "json-path" style is expected not to work.
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(query)
-                .post("/v3/assets/request")
-                .then()
-                .log().ifError()
-                .statusCode(500);
-    }
-
-    @Test
     void updateAsset() {
         var asset = createAsset();
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.create(asset.build());
+        getAssetIndex().create(asset.build());
 
         var assetJson = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
@@ -286,10 +252,14 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .statusCode(204)
                 .body(notNullValue());
 
-        var dbAsset = assetIndex.findById(TEST_ASSET_ID);
+        var dbAsset = getAssetIndex().findById(TEST_ASSET_ID);
         assertThat(dbAsset).isNotNull();
         assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
         assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
+    }
+
+    private AssetIndex getAssetIndex() {
+        return controlPlane.getContext().getService(AssetIndex.class);
     }
 
     private DataAddress.Builder createDataAddress() {

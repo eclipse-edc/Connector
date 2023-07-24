@@ -14,15 +14,18 @@
 
 package org.eclipse.edc.connector.defaults.storage;
 
+import org.eclipse.edc.spi.query.CriterionToPredicateConverter;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.util.reflection.ReflectionUtil;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.util.reflection.ReflectionUtil.propertyComparator;
+import static java.lang.String.format;
 
 /**
  * Default implementation of {@link QueryResolver} that applies query on a stream. Uses reflection to fetch object fields. Used in stores implementations.
@@ -32,7 +35,7 @@ import static org.eclipse.edc.util.reflection.ReflectionUtil.propertyComparator;
 public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
     private final Class<T> typeParameterClass;
-    private final DefaultCriterionToPredicateConverter<T> predicateConverter = new DefaultCriterionToPredicateConverter<T>();
+    private final CriterionToPredicateConverter predicateConverter = new CriterionToPredicateConverterImpl();
 
     /**
      * Constructor for StreamQueryResolver
@@ -59,15 +62,14 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
                 .map(predicateConverter::convert)
                 .reduce(x -> true, Predicate::and);
 
-        Stream<T> filteredStream  = stream.filter(andPredicate);
+        var filteredStream  = stream.filter(andPredicate);
 
         // sort
         var sortField = spec.getSortField();
 
         if (sortField != null) {
-            // if the sort field doesn't exist on the object -> return empty
             if (ReflectionUtil.getFieldRecursive(typeParameterClass, sortField) == null) {
-                return Stream.empty();
+                throw new IllegalArgumentException(format("Cannot sort by %s, the field does not exist in %s", sortField, typeParameterClass));
             }
             var comparator = propertyComparator(spec.getSortOrder() == SortOrder.ASC, sortField);
             filteredStream = filteredStream.sorted(comparator);
@@ -75,6 +77,25 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
         // limit
         return filteredStream.skip(spec.getOffset()).limit(spec.getLimit());
+    }
+
+    @NotNull
+    private Comparator<T> propertyComparator(boolean isAscending, String property) {
+        return (obj1, obj2) -> {
+            var o1 = ReflectionUtil.getFieldValue(property, obj1);
+            var o2 = ReflectionUtil.getFieldValue(property, obj2);
+
+            if (o1 == null || o2 == null) {
+                return 0;
+            }
+
+            if (!(o1 instanceof Comparable)) {
+                throw new IllegalArgumentException("A property '" + property + "' is not comparable!");
+            }
+            var comp1 = (Comparable) o1;
+            var comp2 = (Comparable) o2;
+            return isAscending ? comp1.compareTo(comp2) : comp2.compareTo(comp1);
+        };
     }
 
 }
