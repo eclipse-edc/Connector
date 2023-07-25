@@ -88,7 +88,7 @@ public class JerseyRestService implements WebService {
         // Register controller (JAX-RS resources) with Jersey. Instances instead of classes are used so extensions may inject them with dependencies and manage their lifecycle.
         // In order to use instances with Jersey, the controller types must be registered along with an {@link AbstractBinder} that maps those types to the instances.
         resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
-        resourceConfig.registerInstances(new Binder());
+        resourceConfig.registerInstances(new Binder(controllers));
         resourceConfig.registerInstances(new ObjectMapperProvider(typeManager.getMapper()));
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
@@ -109,11 +109,17 @@ public class JerseyRestService implements WebService {
     /**
      * Maps (JAX-RS resource) instances to types.
      */
-    private class Binder extends AbstractBinder {
+    private static class Binder extends AbstractBinder {
+
+        private final List<Object> controllers;
+
+        Binder(List<Object> controllers) {
+            this.controllers = controllers;
+        }
 
         @Override
         protected void configure() {
-            controllers.forEach((key, value) -> value.forEach(c -> bind(c).to((Class<? super Object>) c.getClass())));
+            controllers.forEach(c -> bind(c).to((Class<? super Object>) c.getClass()));
         }
     }
 

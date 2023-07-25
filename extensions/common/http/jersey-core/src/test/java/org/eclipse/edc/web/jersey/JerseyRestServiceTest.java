@@ -27,7 +27,6 @@ import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.PortMapping;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -50,11 +50,11 @@ public class JerseyRestServiceTest {
     private final int httpPort = getFreePort();
     private JerseyRestService jerseyRestService;
     private JettyService jettyService;
-    private Monitor monitorMock;
+    private final Monitor monitor = mock(Monitor.class);
 
-    @BeforeEach
-    void setup() {
-        monitorMock = mock(Monitor.class);
+    @AfterEach
+    void teardown() {
+        jettyService.shutdown();
     }
 
     @Test
@@ -79,8 +79,10 @@ public class JerseyRestServiceTest {
                 PortMapping.getDefault(httpPort),
                 new PortMapping("path", anotherPort, "/path")
         );
-        jerseyRestService.registerResource("path", new TestController());
-        jerseyRestService.registerResource(new TestController());
+        var pathController = spy(new TestController());
+        var defaultController = spy(new TestController());
+        jerseyRestService.registerResource("path", pathController);
+        jerseyRestService.registerResource(defaultController);
         jerseyRestService.start();
 
         given()
@@ -89,11 +91,17 @@ public class JerseyRestServiceTest {
                 .statusCode(200)
                 .body(is("exists"));
 
+        verify(pathController).foo();
+        verifyNoInteractions(defaultController);
+
         given()
                 .get("http://localhost:" + httpPort + "/api/test/resource")
                 .then()
                 .statusCode(200)
                 .body(is("exists"));
+
+        verifyNoMoreInteractions(pathController);
+        verify(defaultController).foo();
     }
 
     @Test
@@ -106,7 +114,9 @@ public class JerseyRestServiceTest {
 
         jerseyRestService.registerResource("path1", new TestController());
         jerseyRestService.registerResource("path2", new TestController());
-        assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(IllegalStateException.class);
+
+        assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class)
+                .hasRootCauseInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -197,6 +207,7 @@ public class JerseyRestServiceTest {
 
         jerseyRestService.registerResource("another", new TestController());
         jerseyRestService.registerResource("yet-another", new TestController());
+
         assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class)
                 .hasRootCauseInstanceOf(IllegalStateException.class);
     }
@@ -211,20 +222,16 @@ public class JerseyRestServiceTest {
         );
 
         jerseyRestService.registerResource("not-exists", new TestController());
+
         assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class)
                 .hasRootCauseInstanceOf(IllegalArgumentException.class);
     }
 
-    @AfterEach
-    void teardown() {
-        jettyService.shutdown();
-    }
-
     private void startJetty(PortMapping... mapping) {
-        JettyConfiguration config = new JettyConfiguration(null, null);
+        var config = new JettyConfiguration(null, null);
         Arrays.stream(mapping).forEach(config::portMapping);
-        jettyService = new JettyService(config, monitorMock);
-        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.none(), monitorMock);
+        jettyService = new JettyService(config, monitor);
+        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.none(), monitor);
         jettyService.start();
     }
 
