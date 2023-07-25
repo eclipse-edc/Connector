@@ -31,6 +31,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+/**
+ * Contract Negotiation Default Services Extension
+ */
 @Extension(value = ContractNegotiationDefaultServicesExtension.NAME)
 public class ContractNegotiationDefaultServicesExtension implements ServiceExtension {
 

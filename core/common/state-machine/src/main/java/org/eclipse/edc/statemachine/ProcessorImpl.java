@@ -46,13 +46,9 @@ public class ProcessorImpl<E> implements Processor {
     @Override
     public Long process() {
         return entities.get().stream()
-                .map(entity -> {
-                    if (guard.predicate().test(entity)) {
-                        return guard.process().apply(entity);
-                    } else {
-                        return process.apply(entity);
-                    }
-                })
+                .map(entity -> guard.predicate().test(entity)
+                        ? guard.process().apply(entity) :
+                        process.apply(entity))
                 .filter(isEqual(true))
                 .count();
     }

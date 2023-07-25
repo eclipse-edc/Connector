@@ -66,8 +66,8 @@ public class EntityManager {
 ```
 
 ### Guards
-On a state machine `Processor` can be specified a `Guard`, that's a way to have a custom flow based on a predicate that can
-be extended, for example, to enable "external interactions" in the state machine, as user interactions, a `Guard` predicate
+On a state machine `Processor` a `Guard` can be specified. that's a way to have a custom flow based on a predicate that can
+be extended, for example, to enable "external interactions" in the state machine, as user interactions. A `Guard` predicate
 can be set on the processor with a specific process to be executed. This way when the predicate matches the entity can be 
 set to pending, making it "invisible" for the state machine, but still accessible and modifiable by users or external systems.
 
