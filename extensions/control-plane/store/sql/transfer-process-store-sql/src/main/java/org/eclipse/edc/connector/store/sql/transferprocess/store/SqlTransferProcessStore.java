@@ -242,9 +242,11 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
 
     private void update(Connection conn, TransferProcess process, String existingDataRequestId) {
         var updateStmt = statements.getUpdateTransferProcessTemplate();
-        queryExecutor.execute(conn, updateStmt, process.getState(),
+        queryExecutor.execute(conn, updateStmt,
+                process.getState(),
                 process.getStateCount(),
                 process.getStateTimestamp(),
+                process.getUpdatedAt(),
                 toJson(process.getTraceContext()),
                 process.getErrorDetail(),
                 toJson(process.getResourceManifest()),
@@ -252,7 +254,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getContentDataAddress()),
                 toJson(process.getDeprovisionedResources()),
                 toJson(process.getCallbackAddresses()),
-                process.getUpdatedAt(),
+                process.isPending(),
                 process.getId());
 
         var newDr = process.getDataRequest();
@@ -307,7 +309,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 process.getType().toString(),
                 toJson(process.getDeprovisionedResources()),
                 toJson(process.getPrivateProperties()),
-                toJson(process.getCallbackAddresses()));
+                toJson(process.getCallbackAddresses()),
+                process.isPending());
 
         //insert DataRequest
         var dr = process.getDataRequest();
@@ -350,6 +353,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .callbackAddresses(fromJson(resultSet.getString(statements.getCallbackAddressesColumn()), new TypeReference<>() {
                 }))
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), getTypeRef()))
+                .pending(resultSet.getBoolean(statements.getPendingColumn()))
                 .build();
     }
 

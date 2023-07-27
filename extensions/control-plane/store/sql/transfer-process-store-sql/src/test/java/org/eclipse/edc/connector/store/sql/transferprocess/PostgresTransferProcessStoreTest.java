@@ -87,8 +87,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var tp = createTransferProcessBuilder("testprocess1")
                 .dataRequest(da)
                 .build();
-        store.updateOrCreate(tp);
-        store.updateOrCreate(createTransferProcess("testprocess2"));
+        store.save(tp);
+        store.save(createTransferProcess("testprocess2"));
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("dataRequest.notexist", "=", "somevalue")))
@@ -106,8 +106,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var tp = createTransferProcessBuilder("testprocess1")
                 .resourceManifest(rm)
                 .build();
-        store.updateOrCreate(tp);
-        store.updateOrCreate(createTransferProcess("testprocess2"));
+        store.save(tp);
+        store.save(createTransferProcess("testprocess2"));
 
         // throws exception when an explicit mapping exists
         var query = QuerySpec.Builder.newInstance()
@@ -139,8 +139,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var tp = createTransferProcessBuilder("testprocess1")
                 .provisionedResourceSet(prs)
                 .build();
-        store.updateOrCreate(tp);
-        store.updateOrCreate(createTransferProcess("testprocess2"));
+        store.save(tp);
+        store.save(createTransferProcess("testprocess2"));
 
         // throws exception when an explicit mapping exists
         var query = QuerySpec.Builder.newInstance()
@@ -160,7 +160,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
     @Test
     void find_queryByLease() {
-        store.updateOrCreate(createTransferProcess("testprocess1"));
+        store.save(createTransferProcess("testprocess1"));
 
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("lease.leasedBy", "=", "foobar")))
@@ -177,13 +177,13 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var t1 = TestFunctions.createTransferProcessBuilder("id1")
                 .dataRequest(null)
                 .build();
-        assertThatIllegalArgumentException().isThrownBy(() -> getTransferProcessStore().updateOrCreate(t1));
+        assertThatIllegalArgumentException().isThrownBy(() -> getTransferProcessStore().save(t1));
     }
 
     @Override
     @Test
     protected void findAll_verifySorting_invalidProperty() {
-        range(0, 10).forEach(i -> getTransferProcessStore().updateOrCreate(createTransferProcess("test-neg-" + i)));
+        range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 

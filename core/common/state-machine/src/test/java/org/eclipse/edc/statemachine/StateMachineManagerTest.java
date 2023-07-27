@@ -46,7 +46,7 @@ class StateMachineManagerTest {
 
     @Test
     void shouldExecuteProcessorsAsyncAndCanBeStopped() throws InterruptedException {
-        var processor = mock(StateProcessor.class);
+        var processor = mock(Processor.class);
         when(processor.process()).thenAnswer(i -> {
             Thread.sleep(100L);
             return 1L;
@@ -68,7 +68,7 @@ class StateMachineManagerTest {
 
     @Test
     void shouldNotWaitForSomeTimeIfTheresAtLeastOneProcessedEntity() throws InterruptedException {
-        var processor = mock(StateProcessor.class);
+        var processor = mock(Processor.class);
         when(processor.process()).thenReturn(1L);
         doAnswer(i -> {
             return 1L;
@@ -87,7 +87,7 @@ class StateMachineManagerTest {
 
     @Test
     void shouldWaitForSomeTimeIfNoEntityIsProcessed() throws InterruptedException {
-        var processor = mock(StateProcessor.class);
+        var processor = mock(Processor.class);
         when(processor.process()).thenReturn(0L);
         var waitStrategy = mock(WaitStrategy.class);
         doAnswer(i -> {
@@ -107,7 +107,7 @@ class StateMachineManagerTest {
 
     @Test
     void shouldExitWithAnExceptionIfProcessorExitsWithAnUnrecoverableError() {
-        var processor = mock(StateProcessor.class);
+        var processor = mock(Processor.class);
         when(processor.process()).thenThrow(new Error("unrecoverable"));
         var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
@@ -119,7 +119,7 @@ class StateMachineManagerTest {
 
     @Test
     void shouldWaitRetryTimeWhenAnExceptionIsThrownByAnProcessor() throws InterruptedException {
-        var processor = mock(StateProcessor.class);
+        var processor = mock(Processor.class);
         when(processor.process()).thenThrow(new EdcException("exception")).thenReturn(0L);
         when(waitStrategy.retryInMillis()).thenAnswer(i -> {
             return 1L;

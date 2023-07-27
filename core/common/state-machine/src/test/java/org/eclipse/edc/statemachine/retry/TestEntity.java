@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 
-class TestEntity extends StatefulEntity<TestEntity> {
+public class TestEntity extends StatefulEntity<TestEntity> {
     @Override
     public TestEntity copy() {
         return this;
@@ -47,7 +47,7 @@ class TestEntity extends StatefulEntity<TestEntity> {
         }
 
         @Override
-        protected TestEntity build() {
+        public TestEntity build() {
             return super.build();
         }
     }

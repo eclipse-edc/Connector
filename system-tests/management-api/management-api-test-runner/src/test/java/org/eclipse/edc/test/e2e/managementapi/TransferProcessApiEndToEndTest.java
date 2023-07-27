@@ -56,8 +56,8 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
 
     @Test
     void getAll() {
-        getStore().updateOrCreate(createTransferProcess("tp1"));
-        getStore().updateOrCreate(createTransferProcess("tp2"));
+        getStore().save(createTransferProcess("tp1"));
+        getStore().save(createTransferProcess("tp2"));
 
         baseRequest()
                 .contentType(JSON)
@@ -71,8 +71,8 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
 
     @Test
     void getById() {
-        getStore().updateOrCreate(createTransferProcess("tp1"));
-        getStore().updateOrCreate(createTransferProcess("tp2"));
+        getStore().save(createTransferProcess("tp1"));
+        getStore().save(createTransferProcess("tp2"));
 
         baseRequest()
                 .get("/v2/transferprocesses/tp2")
@@ -84,7 +84,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
 
     @Test
     void getState() {
-        getStore().updateOrCreate(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
+        getStore().save(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
 
         baseRequest()
                 .get("/v2/transferprocesses/tp2/state")
@@ -131,7 +131,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
     @Test
     void deprovision() {
         var id = UUID.randomUUID().toString();
-        getStore().updateOrCreate(createTransferProcessBuilder(id).state(COMPLETED.code()).build());
+        getStore().save(createTransferProcessBuilder(id).state(COMPLETED.code()).build());
 
         baseRequest()
                 .contentType(JSON)
@@ -143,7 +143,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
     @Test
     void terminate() {
         var id = UUID.randomUUID().toString();
-        getStore().updateOrCreate(createTransferProcessBuilder(id).state(REQUESTED.code()).build());
+        getStore().save(createTransferProcessBuilder(id).state(REQUESTED.code()).build());
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add("reason", "any")

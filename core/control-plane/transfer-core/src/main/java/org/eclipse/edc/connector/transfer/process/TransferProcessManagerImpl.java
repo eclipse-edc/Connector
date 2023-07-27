@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
@@ -45,6 +46,7 @@ import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
@@ -52,8 +54,9 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.statemachine.Processor;
+import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
-import org.eclipse.edc.statemachine.StateProcessorImpl;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +86,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 
 /**
@@ -129,6 +133,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private ProtocolWebhook protocolWebhook;
     private ProvisionResponsesHandler provisionResponsesHandler;
     private DeprovisionResponsesHandler deprovisionResponsesHandler;
+    private TransferProcessPendingGuard pendingGuard = tp -> false;
 
     private TransferProcessManagerImpl() {
     }
@@ -520,9 +525,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .execute("deprovisioning");
     }
 
-    private StateProcessorImpl<TransferProcess> processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var functionWithTraceContext = telemetry.contextPropagationMiddleware(function);
-        return new StateProcessorImpl<>(() -> transferProcessStore.nextNotLeased(batchSize, hasState(state.code())), functionWithTraceContext);
+    private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+        var filter = new Criterion[] { hasState(state.code()), isNotPending() };
+        return ProcessorImpl.Builder.newInstance(() -> transferProcessStore.nextNotLeased(batchSize, filter))
+                .process(telemetry.contextPropagationMiddleware(function))
+                .guard(pendingGuard, this::setPending)
+                .build();
+    }
+
+    private boolean setPending(TransferProcess transferProcess) {
+        transferProcess.setPending(true);
+        update(transferProcess);
+        return true;
     }
 
     private void transitionToProvisioning(TransferProcess process) {
@@ -729,6 +743,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         public Builder deprovisionResponsesHandler(DeprovisionResponsesHandler deprovisionResponsesHandler) {
             manager.deprovisionResponsesHandler = deprovisionResponsesHandler;
+            return this;
+        }
+
+        public Builder pendingGuard(TransferProcessPendingGuard pendingGuard) {
+            manager.pendingGuard = pendingGuard;
             return this;
         }
 

@@ -20,22 +20,18 @@ package org.eclipse.edc.connector.contract;
 import org.eclipse.edc.connector.contract.listener.ContractNegotiationEventListener;
 import org.eclipse.edc.connector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.contract.negotiation.ProviderContractNegotiationManagerImpl;
-import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.edc.connector.contract.offer.ContractDefinitionResolverImpl;
-import org.eclipse.edc.connector.contract.policy.PolicyArchiveImpl;
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrategy;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
-import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.validation.ContractExpiryCheckFunction;
 import org.eclipse.edc.connector.contract.validation.ContractValidationServiceImpl;
-import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
@@ -67,8 +63,8 @@ import static org.eclipse.edc.connector.contract.validation.ContractExpiryCheckF
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 
 @Provides({
-        ContractValidationService.class, ConsumerContractNegotiationManager.class, PolicyArchive.class,
-        ProviderContractNegotiationManager.class, ContractNegotiationObservable.class, ContractDefinitionResolver.class
+        ContractValidationService.class, ConsumerContractNegotiationManager.class,
+        ProviderContractNegotiationManager.class
 })
 @CoreExtension
 @Extension(value = ContractCoreExtension.NAME)
@@ -110,9 +106,6 @@ public class ContractCoreExtension implements ServiceExtension {
     private AssetIndex assetIndex;
 
     @Inject
-    private ContractDefinitionStore contractDefinitionStore;
-
-    @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     @Inject
@@ -148,6 +141,18 @@ public class ContractCoreExtension implements ServiceExtension {
     @Inject
     private ProtocolWebhook protocolWebhook;
 
+    @Inject
+    private ContractDefinitionResolver contractDefinitionResolver;
+
+    @Inject
+    private ContractNegotiationObservable observable;
+
+    @Inject
+    private ContractNegotiationPendingGuard pendingGuard;
+
+    @Inject
+    private ExecutorInstrumentation executorInstrumentation;
+
     @Override
     public String name() {
         return NAME;
@@ -177,13 +182,10 @@ public class ContractCoreExtension implements ServiceExtension {
     }
 
     private void registerServices(ServiceExtensionContext context) {
-        var definitionService = new ContractDefinitionResolverImpl(monitor, contractDefinitionStore, policyEngine, policyStore);
-        context.registerService(ContractDefinitionResolver.class, definitionService);
-
         var participantId = context.getParticipantId();
 
         var policyEquality = new PolicyEquality(typeManager);
-        var validationService = new ContractValidationServiceImpl(participantId, agentService, definitionService, assetIndex, policyStore, policyEngine, policyEquality);
+        var validationService = new ContractValidationServiceImpl(participantId, agentService, contractDefinitionResolver, assetIndex, policyStore, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
         // bind/register rule to evaluate contract expiry
@@ -193,15 +195,10 @@ public class ContractCoreExtension implements ServiceExtension {
         var function = new ContractExpiryCheckFunction();
         policyEngine.registerFunction(TRANSFER_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, function);
 
-
         var iterationWaitMillis = context.getSetting(NEGOTIATION_STATE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(iterationWaitMillis);
 
-        var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(new ContractNegotiationEventListener(eventRouter, clock));
-
-        context.registerService(ContractNegotiationObservable.class, observable);
-        context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(participantId)
@@ -211,12 +208,13 @@ public class ContractCoreExtension implements ServiceExtension {
                 .observable(observable)
                 .clock(clock)
                 .telemetry(telemetry)
-                .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
+                .executorInstrumentation(executorInstrumentation)
                 .store(store)
                 .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .entityRetryProcessConfiguration(consumerEntityRetryProcessConfiguration(context))
                 .protocolWebhook(protocolWebhook)
+                .pendingGuard(pendingGuard)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -227,12 +225,13 @@ public class ContractCoreExtension implements ServiceExtension {
                 .observable(observable)
                 .clock(clock)
                 .telemetry(telemetry)
-                .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
+                .executorInstrumentation(executorInstrumentation)
                 .store(store)
                 .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .entityRetryProcessConfiguration(providerEntityRetryProcessConfiguration(context))
                 .protocolWebhook(protocolWebhook)
+                .pendingGuard(pendingGuard)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);

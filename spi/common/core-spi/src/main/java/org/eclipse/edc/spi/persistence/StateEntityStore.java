@@ -35,6 +35,10 @@ public interface StateEntityStore<T> {
         return new Criterion("state", "=", stateCode);
     }
 
+    static Criterion isNotPending() {
+        return new Criterion("pending", "=", false);
+    }
+
     /**
      * Returns a list of not leased entities that satisfy the filter criteria.
      * <p>

@@ -40,6 +40,7 @@ public class TransferProcessMapping extends TranslationMapping {
     private static final String FIELD_DEPROVISIONED_RESOURCES = "deprovisionedResources";
 
     private static final String FIELD_PRIVATE_PROPERTIES = "privateProperties";
+    private static final String FIELD_PENDING = "pending";
 
 
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
@@ -57,5 +58,6 @@ public class TransferProcessMapping extends TranslationMapping {
         add(FIELD_PROVISIONED_RESOURCE_SET, new ProvisionedResourceSetMapping());
         // using the alias instead of the actual column name to avoid name clashes.
         add(FIELD_DEPROVISIONED_RESOURCES, new JsonFieldMapping(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));
+        add(FIELD_PENDING, statements.getPendingColumn());
     }
 }

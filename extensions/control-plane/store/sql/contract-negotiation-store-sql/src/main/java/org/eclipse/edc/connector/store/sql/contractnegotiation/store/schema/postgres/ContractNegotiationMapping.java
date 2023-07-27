@@ -35,6 +35,7 @@ class ContractNegotiationMapping extends TranslationMapping {
     private static final String FIELD_ERRORDETAIL = "errorDetail";
     private static final String FIELD_CONTRACT_AGREEMENT = "contractAgreement";
     private static final String FIELD_TRACECONTEXT = "traceContext";
+    private static final String FIELD_PENDING = "pending";
 
 
     ContractNegotiationMapping(ContractNegotiationStatements statements) {
@@ -47,9 +48,9 @@ class ContractNegotiationMapping extends TranslationMapping {
         add(FIELD_TYPE, statements.getTypeColumn());
         add(FIELD_STATE, statements.getStateColumn());
         add(FIELD_STATECOUNT, statements.getStateCountColumn());
-
         add(FIELD_STATETIMESTAMP, statements.getStateTimestampColumn());
         add(FIELD_ERRORDETAIL, statements.getErrorDetailColumn());
+        add(FIELD_PENDING, statements.getPendingColumn());
 
         fieldMap.put(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
         add(FIELD_TRACECONTEXT, statements.getTraceContextColumn());

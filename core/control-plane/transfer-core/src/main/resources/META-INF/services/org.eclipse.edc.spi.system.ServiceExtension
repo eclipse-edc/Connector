@@ -14,4 +14,5 @@
 
 org.eclipse.edc.connector.transfer.TransferCoreExtension
 org.eclipse.edc.connector.transfer.TransferProcessCommandExtension
+org.eclipse.edc.connector.transfer.TransferProcessDefaultServicesExtension
 

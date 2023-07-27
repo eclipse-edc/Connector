@@ -73,28 +73,6 @@ public interface ContractNegotiationListener {
     }
 
     /**
-     * Called after a {@link ContractNegotiation} was declined.
-     *
-     * @param negotiation the contract negotiation that has been declined.
-     * @deprecated please use {@link #terminated(ContractNegotiation)}
-     */
-    @Deprecated(since = "milestone9")
-    default void declined(ContractNegotiation negotiation) {
-        terminated(negotiation);
-    }
-
-    /**
-     * Called after a {@link ContractNegotiation} failed.
-     *
-     * @param negotiation the contract negotiation that failed.
-     * @deprecated please use {@link #terminated(ContractNegotiation)}
-     */
-    @Deprecated(since = "milestone9")
-    default void failed(ContractNegotiation negotiation) {
-        terminated(negotiation);
-    }
-
-    /**
      * Called after a {@link ContractNegotiation} was agreed by the provider.
      *
      * @param negotiation the contract negotiation that has been confirmed.

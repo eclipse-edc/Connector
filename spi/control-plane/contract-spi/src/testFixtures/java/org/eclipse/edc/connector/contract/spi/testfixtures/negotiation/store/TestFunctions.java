@@ -72,11 +72,15 @@ public class TestFunctions {
                 .state(ContractNegotiationStates.REQUESTED.code())
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .events(Set.of("contract.negotiation.initiated"))
-                        .build()))
+                .callbackAddresses(List.of(createCallbackAddress()))
                 .protocol("protocol");
+    }
+
+    public static CallbackAddress createCallbackAddress() {
+        return CallbackAddress.Builder.newInstance()
+                .uri("local://test")
+                .events(Set.of("contract.negotiation.initiated"))
+                .build();
     }
 
     public static Policy createPolicy() {

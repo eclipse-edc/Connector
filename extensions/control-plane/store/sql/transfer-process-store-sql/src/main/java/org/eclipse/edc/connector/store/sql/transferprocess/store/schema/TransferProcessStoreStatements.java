@@ -142,6 +142,10 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "callback_addresses";
     }
 
+    default String getPendingColumn() {
+        return "pending";
+    }
+
     default String getFormatAsJsonOperator() {
         return BaseSqlDialect.getJsonCastOperator();
     }
