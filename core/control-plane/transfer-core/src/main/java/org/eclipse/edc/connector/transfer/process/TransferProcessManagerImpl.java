@@ -416,6 +416,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     @WithSpan
     private boolean processStarted(TransferProcess transferProcess) {
         if (transferProcess.getType() != CONSUMER) {
+            breakLease(transferProcess);
             return false;
         }
 
@@ -526,7 +527,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[] { hasState(state.code()), isNotPending() };
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending() };
         return ProcessorImpl.Builder.newInstance(() -> transferProcessStore.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
