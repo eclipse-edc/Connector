@@ -140,7 +140,7 @@ maven/mavencentral/io.swagger.core.v3/swagger-core/2.2.8, Apache-2.0, approved, 
 maven/mavencentral/io.swagger.core.v3/swagger-integration-jakarta/2.2.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-integration/2.2.10, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-jaxrs2-jakarta/2.2.2, Apache-2.0, approved, clearlydefined
-maven/mavencentral/io.swagger.core.v3/swagger-jaxrs2/2.2.10, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.swagger.core.v3/swagger-jaxrs2/2.2.10, Apache-2.0, approved, #9814
 maven/mavencentral/io.swagger.core.v3/swagger-models-jakarta/2.2.2, Apache-2.0, approved, #5919
 maven/mavencentral/io.swagger.core.v3/swagger-models/2.2.10, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-models/2.2.8, Apache-2.0, approved, clearlydefined
