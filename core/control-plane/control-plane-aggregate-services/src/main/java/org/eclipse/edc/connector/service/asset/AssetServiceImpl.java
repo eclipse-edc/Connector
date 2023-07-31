@@ -33,7 +33,9 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 
 public class AssetServiceImpl implements AssetService {
+
     private static final String ASSET_ID_QUERY = "contractAgreement.assetId";
+    private static final String DUPLICATED_KEYS_MESSAGE = "Duplicate keys in properties and private properties are not allowed";
     private final AssetIndex index;
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
@@ -75,6 +77,10 @@ public class AssetServiceImpl implements AssetService {
 
     @Override
     public ServiceResult<Asset> create(Asset asset) {
+        if (asset.hasDuplicatePropertyKeys()) {
+            return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
+        }
+
         var validDataAddress = dataAddressValidator.validate(asset.getDataAddress());
         if (validDataAddress.failed()) {
             return ServiceResult.badRequest(validDataAddress.getFailureMessages());
@@ -112,6 +118,10 @@ public class AssetServiceImpl implements AssetService {
 
     @Override
     public ServiceResult<Asset> update(Asset asset) {
+        if (asset.hasDuplicatePropertyKeys()) {
+            return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
+        }
+
         return transactionContext.execute(() -> {
             var updatedAsset = index.updateAsset(asset);
             updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));

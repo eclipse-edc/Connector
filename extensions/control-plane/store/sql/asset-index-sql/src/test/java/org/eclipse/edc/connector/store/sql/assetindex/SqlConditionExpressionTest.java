@@ -17,9 +17,11 @@ package org.eclipse.edc.connector.store.sql.assetindex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.sql.translation.SqlConditionExpression;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -28,41 +30,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SqlConditionExpressionTest {
 
-
-    public static Stream<Arguments> validArgs() {
-        return Stream.of(
-                Arguments.of("something", "=", List.of("foo")),
-                Arguments.of("something", "=", 123),
-                Arguments.of("something", "=", "other"),
-                Arguments.of("something", "like", "other"),
-                Arguments.of("something", "like", "%other"),
-                Arguments.of("something", "like", List.of()),
-                Arguments.of("something", "like", ""),
-                Arguments.of("something", "like", null),
-                Arguments.of("something", "in", List.of("first", "second")),
-                Arguments.of("something", "in", List.of("first")),
-                Arguments.of("something", "in", List.of())
-        );
-    }
-
-    public static Stream<Arguments> invalidArgs() {
-        return Stream.of(
-                Arguments.of("something", "contains", "value"),
-                Arguments.of("something", "in", "(item1, item2)"),
-                Arguments.of("something", "in", "list"),
-                Arguments.of("something", "in", null)
-        );
-    }
-
     @ParameterizedTest
-    @MethodSource("validArgs")
+    @ArgumentsSource(ValidArgs.class)
     void isValidExpression_whenValid(String left, String op, Object right) {
         var e = new SqlConditionExpression(new Criterion(left, op, right));
         assertThat(e.isValidExpression().succeeded()).isTrue();
     }
 
     @ParameterizedTest
-    @MethodSource("invalidArgs")
+    @ArgumentsSource(InvalidArgs.class)
     void isValidExpression_whenInvalid(String left, String op, Object right) {
         var e = new SqlConditionExpression(new Criterion(left, op, right));
         assertThat(e.isValidExpression().succeeded()).isFalse();
@@ -91,5 +67,45 @@ class SqlConditionExpressionTest {
         var e = new SqlConditionExpression(new Criterion("key", "=", 3));
 
         assertThat(e.toStatementParameter()).containsExactly("key", 3);
+    }
+
+    @Test
+    void toSql_shouldReturnSqlRepresentation() {
+        var e = new SqlConditionExpression(new Criterion("key", "=", 3));
+
+        assertThat(e.toSql()).isEqualTo("key = ?");
+    }
+
+    private static class ValidArgs implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of("something", "=", List.of("foo")),
+                    Arguments.of("something", "=", 123),
+                    Arguments.of("something", "=", "other"),
+                    Arguments.of("something", "like", "other"),
+                    Arguments.of("something", "like", "%other"),
+                    Arguments.of("something", "like", List.of()),
+                    Arguments.of("something", "like", ""),
+                    Arguments.of("something", "like", null),
+                    Arguments.of("something", "in", List.of("first", "second")),
+                    Arguments.of("something", "in", List.of("first")),
+                    Arguments.of("something", "in", List.of())
+            );
+        }
+    }
+
+    private static class InvalidArgs implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of("something", "contains", "value"),
+                    Arguments.of("something", "in", "(item1, item2)"),
+                    Arguments.of("something", "in", "list"),
+                    Arguments.of("something", "in", null)
+            );
+        }
     }
 }

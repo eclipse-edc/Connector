@@ -30,10 +30,6 @@ class ContractNegotiationSqlQueryStatementTest {
     private final ContractNegotiationStatements postresStatements = new PostgresDialectStatements();
 
     @Test
-    void toTargetDsl() {
-    }
-
-    @Test
     void singleExpression_equalsOperator() {
         var criterion = new Criterion("counterPartyId", "=", "testid1");
         var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements));

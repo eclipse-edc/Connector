@@ -50,7 +50,7 @@ class UnexpectedExceptionMapperTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(new IllegalArgumentException("foo"), 500),
+                    Arguments.of(new IllegalArgumentException("foo"), 400),
                     Arguments.of(new NullPointerException("foo"), 500),
                     Arguments.of(new UnsupportedOperationException("foo"), 501),
                     Arguments.of(new IllegalStateException("foo"), 500)

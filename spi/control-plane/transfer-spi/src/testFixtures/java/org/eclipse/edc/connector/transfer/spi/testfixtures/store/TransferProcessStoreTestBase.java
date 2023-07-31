@@ -26,8 +26,8 @@ import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.time.Duration;
 import java.util.Comparator;
@@ -55,948 +55,941 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 public abstract class TransferProcessStoreTestBase {
+
     protected static final String CONNECTOR_NAME = "test-connector";
 
-    public TransferProcessStoreTestBase() {
-        System.setProperty("transferprocessstore.supports.operator.like", String.valueOf(supportsLikeOperator()));
-        System.setProperty("transferprocessstore.supports.collectionQuery", String.valueOf(supportsCollectionQuery()));
-    }
+    @Nested
+    class Create {
+        @Test
+        void shouldCreateTheEntity() {
+            var transferProcess = createTransferProcessBuilder("test-id")
+                    .dataRequest(createDataRequestBuilder().id("data-request-id").build())
+                    .privateProperties(Map.of("key", "value")).build();
+            getTransferProcessStore().save(transferProcess);
 
-    @Test
-    void find_queryByState() {
-        var tp = createTransferProcessBuilder("testprocess1").state(800).build();
-        getTransferProcessStore().save(tp);
+            var retrieved = getTransferProcessStore().findById("test-id");
 
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("state", "=", 800)))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query).toList();
-        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
-
-    }
-
-    @Test
-    void create() {
-        var transferProcess = createTransferProcessBuilder("test-id")
-                .dataRequest(createDataRequestBuilder().id("data-request-id").build())
-                .pending(true)
-                .privateProperties(Map.of("key", "value")).build();
-        getTransferProcessStore().save(transferProcess);
-
-        var retrieved = getTransferProcessStore().findById("test-id");
-
-        assertThat(retrieved).isNotNull().usingRecursiveComparison().isEqualTo(transferProcess);
-        assertThat(retrieved.getCreatedAt()).isNotEqualTo(0L);
-    }
-
-    @Test
-    void create_verifyCallbacks() {
-
-        var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
-
-        var t = createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).callbackAddresses(callbacks).build();
-        getTransferProcessStore().save(t);
-
-        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        assertThat(all).containsExactly(t);
-        assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
-        assertThat(all.get(0).getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
-    }
-
-    @Test
-    void create_withSameIdExists_shouldReplace() {
-        var t = createTransferProcess("id1", INITIAL);
-        getTransferProcessStore().save(t);
-
-        var t2 = createTransferProcess("id1", PROVISIONING);
-        getTransferProcessStore().save(t2);
-
-        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
-    }
-
-    @Test
-    void nextNotLeased() {
-        var state = STARTED;
-        var all = range(0, 10)
-                .mapToObj(i -> createTransferProcess("id" + i, state))
-                .peek(getTransferProcessStore()::save)
-                .toList();
-
-        assertThat(getTransferProcessStore().nextNotLeased(5, hasState(state.code())))
-                .hasSize(5)
-                .extracting(TransferProcess::getId)
-                .isSubsetOf(all.stream().map(TransferProcess::getId).collect(Collectors.toList()))
-                .allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
-    }
-
-    @Test
-    void nextNotLeased_shouldOnlyReturnFreeItems() {
-        var state = STARTED;
-        var all = range(0, 10)
-                .mapToObj(i -> createTransferProcess("id" + i, state))
-                .peek(getTransferProcessStore()::save)
-                .collect(Collectors.toList());
-
-        // lease a few
-        var leasedTp = all.stream().skip(5).peek(tp -> leaseEntity(tp.getId(), CONNECTOR_NAME)).toList();
-
-        // should not contain leased TPs
-        assertThat(getTransferProcessStore().nextNotLeased(10, hasState(state.code())))
-                .hasSize(5)
-                .isSubsetOf(all)
-                .doesNotContainAnyElementsOf(leasedTp);
-    }
-
-    @Test
-    void nextNotLeased_noFreeItem_shouldReturnEmpty() {
-        var state = STARTED;
-        range(0, 3)
-                .mapToObj(i -> createTransferProcess("id" + i, state))
-                .forEach(getTransferProcessStore()::save);
-
-        // first time works
-        assertThat(getTransferProcessStore().nextNotLeased(10, hasState(state.code()))).hasSize(3);
-        // second time returns empty list
-        assertThat(getTransferProcessStore().nextNotLeased(10, hasState(state.code()))).isEmpty();
-    }
-
-    @Test
-    void nextNotLeased_noneInDesiredState() {
-        range(0, 3)
-                .mapToObj(i -> createTransferProcess("id" + i, STARTED))
-                .forEach(getTransferProcessStore()::save);
-
-        var nextNotLeased = getTransferProcessStore().nextNotLeased(10, hasState(TERMINATED.code()));
-
-        assertThat(nextNotLeased).isEmpty();
-    }
-
-    @Test
-    void nextNotLeased_batchSizeLimits() {
-        var state = STARTED;
-        range(0, 10)
-                .mapToObj(i -> createTransferProcess("id" + i, state))
-                .forEach(getTransferProcessStore()::save);
-
-        // first time works
-        var result = getTransferProcessStore().nextNotLeased(3, hasState(state.code()));
-        assertThat(result).hasSize(3);
-    }
-
-    @Test
-    void nextNotLeased_verifyTemporalOrdering() {
-        var state = STARTED;
-        range(0, 10)
-                .mapToObj(i -> createTransferProcess(String.valueOf(i), state))
-                .peek(this::delayByTenMillis)
-                .forEach(getTransferProcessStore()::save);
-
-        assertThat(getTransferProcessStore().nextNotLeased(20, hasState(state.code())))
-                .extracting(TransferProcess::getId)
-                .map(Integer::parseInt)
-                .isSortedAccordingTo(Integer::compareTo);
-    }
-
-    @Test
-    void nextNotLeased_verifyMostRecentlyUpdatedIsLast() throws InterruptedException {
-        var all = range(0, 10)
-                .mapToObj(i -> createTransferProcess("id" + i, STARTED))
-                .peek(getTransferProcessStore()::save)
-                .toList();
-
-        Thread.sleep(100);
-
-        var fourth = all.get(3);
-        fourth.updateStateTimestamp();
-        getTransferProcessStore().save(fourth);
-
-        var next = getTransferProcessStore().nextNotLeased(20, hasState(STARTED.code()));
-        assertThat(next.indexOf(fourth)).isEqualTo(9);
-    }
-
-    @Test
-    @DisplayName("Verifies that calling nextNotLeased locks the TP for any subsequent calls")
-    void nextNotLeased_locksEntity() {
-        var t = createTransferProcess("id1", INITIAL);
-        getTransferProcessStore().save(t);
-
-        getTransferProcessStore().nextNotLeased(100, hasState(INITIAL.code()));
-
-        assertThat(isLeasedBy(t.getId(), CONNECTOR_NAME)).isTrue();
-    }
-
-    @Test
-    void nextNotLeased_expiredLease() {
-        var t = createTransferProcess("id1", INITIAL);
-        getTransferProcessStore().save(t);
-
-        leaseEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
-
-        Awaitility.await().atLeast(Duration.ofMillis(100))
-                .atMost(Duration.ofMillis(500))
-                .until(() -> getTransferProcessStore().nextNotLeased(10, hasState(INITIAL.code())), hasSize(1));
-    }
-
-    @Test
-    void nextNotLeased_shouldLeaseEntityUntilUpdate() {
-        var initialTransferProcess = initialTransferProcess();
-        getTransferProcessStore().save(initialTransferProcess);
-
-        var firstQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
-        assertThat(firstQueryResult).hasSize(1);
-
-        var secondQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
-        assertThat(secondQueryResult).hasSize(0);
-
-        var retrieved = firstQueryResult.get(0);
-        getTransferProcessStore().save(retrieved);
-
-        var thirdQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
-        assertThat(thirdQueryResult).hasSize(1);
-    }
-
-    @Test
-    void nextNotLeased_avoidsStarvation() throws InterruptedException {
-        for (int i = 0; i < 10; i++) {
-            var process = createTransferProcess("test-process-" + i);
-            getTransferProcessStore().save(process);
+            assertThat(retrieved).isNotNull().usingRecursiveComparison().isEqualTo(transferProcess);
+            assertThat(retrieved.getCreatedAt()).isNotEqualTo(0L);
         }
 
-        var list1 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
-        Thread.sleep(50); //simulate a short delay to generate different timestamps
-        list1.forEach(tp -> {
-            tp.updateStateTimestamp();
+        @Test
+        void verifyCallbacks() {
+
+            var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
+
+            var t = createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).callbackAddresses(callbacks).build();
+            getTransferProcessStore().save(t);
+
+            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(all).containsExactly(t);
+            assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
+            assertThat(all.get(0).getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
+        }
+
+        @Test
+        void withSameIdExists_shouldReplace() {
+            var t = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(t);
+
+            var t2 = createTransferProcess("id1", PROVISIONING);
+            getTransferProcessStore().save(t2);
+
+            assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
+        }
+    }
+
+    @Nested
+    class NextNotLeased {
+        @Test
+        void shouldReturnNotLeasedItems() {
+            var state = STARTED;
+            var all = range(0, 10)
+                    .mapToObj(i -> createTransferProcess("id" + i, state))
+                    .peek(getTransferProcessStore()::save)
+                    .toList();
+
+            assertThat(getTransferProcessStore().nextNotLeased(5, hasState(state.code())))
+                    .hasSize(5)
+                    .extracting(TransferProcess::getId)
+                    .isSubsetOf(all.stream().map(TransferProcess::getId).collect(Collectors.toList()))
+                    .allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
+        }
+
+        @Test
+        void shouldOnlyReturnFreeItems() {
+            var state = STARTED;
+            var all = range(0, 10)
+                    .mapToObj(i -> createTransferProcess("id" + i, state))
+                    .peek(getTransferProcessStore()::save)
+                    .collect(Collectors.toList());
+
+            // lease a few
+            var leasedTp = all.stream().skip(5).peek(tp -> leaseEntity(tp.getId(), CONNECTOR_NAME)).toList();
+
+            // should not contain leased TPs
+            assertThat(getTransferProcessStore().nextNotLeased(10, hasState(state.code())))
+                    .hasSize(5)
+                    .isSubsetOf(all)
+                    .doesNotContainAnyElementsOf(leasedTp);
+        }
+
+        @Test
+        void noFreeItem_shouldReturnEmpty() {
+            var state = STARTED;
+            range(0, 3)
+                    .mapToObj(i -> createTransferProcess("id" + i, state))
+                    .forEach(getTransferProcessStore()::save);
+
+            // first time works
+            assertThat(getTransferProcessStore().nextNotLeased(10, hasState(state.code()))).hasSize(3);
+            // second time returns empty list
+            assertThat(getTransferProcessStore().nextNotLeased(10, hasState(state.code()))).isEmpty();
+        }
+
+        @Test
+        void noneInDesiredState() {
+            range(0, 3)
+                    .mapToObj(i -> createTransferProcess("id" + i, STARTED))
+                    .forEach(getTransferProcessStore()::save);
+
+            var nextNotLeased = getTransferProcessStore().nextNotLeased(10, hasState(TERMINATED.code()));
+
+            assertThat(nextNotLeased).isEmpty();
+        }
+
+        @Test
+        void batchSizeLimits() {
+            var state = STARTED;
+            range(0, 10)
+                    .mapToObj(i -> createTransferProcess("id" + i, state))
+                    .forEach(getTransferProcessStore()::save);
+
+            // first time works
+            var result = getTransferProcessStore().nextNotLeased(3, hasState(state.code()));
+            assertThat(result).hasSize(3);
+        }
+
+        @Test
+        void verifyTemporalOrdering() {
+            var state = STARTED;
+            range(0, 10)
+                    .mapToObj(i -> createTransferProcess(String.valueOf(i), state))
+                    .peek(this::delayByTenMillis)
+                    .forEach(getTransferProcessStore()::save);
+
+            assertThat(getTransferProcessStore().nextNotLeased(20, hasState(state.code())))
+                    .extracting(TransferProcess::getId)
+                    .map(Integer::parseInt)
+                    .isSortedAccordingTo(Integer::compareTo);
+        }
+
+        @Test
+        void verifyMostRecentlyUpdatedIsLast() throws InterruptedException {
+            var all = range(0, 10)
+                    .mapToObj(i -> createTransferProcess("id" + i, STARTED))
+                    .peek(getTransferProcessStore()::save)
+                    .toList();
+
+            Thread.sleep(100);
+
+            var fourth = all.get(3);
+            fourth.updateStateTimestamp();
+            getTransferProcessStore().save(fourth);
+
+            var next = getTransferProcessStore().nextNotLeased(20, hasState(STARTED.code()));
+            assertThat(next.indexOf(fourth)).isEqualTo(9);
+        }
+
+        @Test
+        @DisplayName("Verifies that calling nextNotLeased locks the TP for any subsequent calls")
+        void locksEntity() {
+            var t = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(t);
+
+            getTransferProcessStore().nextNotLeased(100, hasState(INITIAL.code()));
+
+            assertThat(isLeasedBy(t.getId(), CONNECTOR_NAME)).isTrue();
+        }
+
+        @Test
+        void expiredLease() {
+            var t = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(t);
+
+            leaseEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
+
+            Awaitility.await().atLeast(Duration.ofMillis(100))
+                    .atMost(Duration.ofMillis(500))
+                    .until(() -> getTransferProcessStore().nextNotLeased(10, hasState(INITIAL.code())), hasSize(1));
+        }
+
+        @Test
+        void shouldLeaseEntityUntilUpdate() {
+            var initialTransferProcess = initialTransferProcess();
+            getTransferProcessStore().save(initialTransferProcess);
+
+            var firstQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
+            assertThat(firstQueryResult).hasSize(1);
+
+            var secondQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
+            assertThat(secondQueryResult).hasSize(0);
+
+            var retrieved = firstQueryResult.get(0);
+            getTransferProcessStore().save(retrieved);
+
+            var thirdQueryResult = getTransferProcessStore().nextNotLeased(1, hasState(INITIAL.code()));
+            assertThat(thirdQueryResult).hasSize(1);
+        }
+
+        @Test
+        void avoidsStarvation() throws InterruptedException {
+            for (int i = 0; i < 10; i++) {
+                var process = createTransferProcess("test-process-" + i);
+                getTransferProcessStore().save(process);
+            }
+
+            var list1 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
+            Thread.sleep(50); //simulate a short delay to generate different timestamps
+            list1.forEach(tp -> {
+                tp.updateStateTimestamp();
+                getTransferProcessStore().save(tp);
+            });
+            var list2 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
+            assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
+        }
+
+        private void delayByTenMillis(TransferProcess t) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ignored) {
+                // noop
+            }
+            t.updateStateTimestamp();
+        }
+    }
+
+    @Nested
+    class FindById {
+        @Test
+        void shouldFindEntityById() {
+            var t = createTransferProcess("id1");
+            getTransferProcessStore().save(t);
+
+            var result = getTransferProcessStore().findById("id1");
+
+            assertThat(result).usingRecursiveComparison().isEqualTo(t);
+        }
+
+        @Test
+        void notExist() {
+            var result = getTransferProcessStore().findById("not-exist");
+
+            assertThat(result).isNull();
+        }
+    }
+
+    @Nested
+    class FindForCorrelationId {
+        @Test
+        void shouldFindEntityByCorrelationId() {
+            var dataRequest = createDataRequestBuilder().id("correlationId").build();
+            var transferProcess = createTransferProcessBuilder("id1").dataRequest(dataRequest).build();
+            getTransferProcessStore().save(transferProcess);
+
+            var res = getTransferProcessStore().findForCorrelationId("correlationId");
+
+            assertThat(res).usingRecursiveComparison().isEqualTo(transferProcess);
+        }
+
+        @Test
+        void notExist() {
+            assertThat(getTransferProcessStore().findForCorrelationId("not-exist")).isNull();
+        }
+    }
+
+    @Nested
+    class Update {
+        @Test
+        void exists_shouldUpdate() {
+            var t1 = createTransferProcess("id1", STARTED);
+            getTransferProcessStore().save(t1);
+
+            t1.transitionCompleted(); //modify
+            getTransferProcessStore().save(t1);
+
+            assertThat(getTransferProcessStore().findAll(QuerySpec.none()))
+                    .hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(t1);
+        }
+
+        @Test
+        void notExist_shouldCreate() {
+            var t1 = createTransferProcess("id1", STARTED);
+
+            t1.transitionCompleted(); //modify
+            getTransferProcessStore().save(t1);
+
+            var result = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(result)
+                    .hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(t1);
+        }
+
+        @Test
+        @DisplayName("Verify that the lease on a TP is cleared by an update")
+        void shouldBreakLease() {
+            var t1 = createTransferProcess("id1");
+            getTransferProcessStore().save(t1);
+            // acquire lease
+            leaseEntity(t1.getId(), CONNECTOR_NAME);
+
+            t1.transitionProvisioning(ResourceManifest.Builder.newInstance().build()); //modify
+            getTransferProcessStore().save(t1);
+
+            // lease should be broken
+            var notLeased = getTransferProcessStore().nextNotLeased(10, hasState(PROVISIONING.code()));
+
+            assertThat(notLeased).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
+        }
+
+        @Test
+        void leasedByOther_shouldThrowException() {
+            var tpId = "id1";
+            var t1 = createTransferProcess(tpId);
+            getTransferProcessStore().save(t1);
+            leaseEntity(tpId, "someone");
+
+            t1.transitionProvisioning(ResourceManifest.Builder.newInstance().build()); //modify
+
+            // leased by someone else -> throw exception
+            assertThatThrownBy(() -> getTransferProcessStore().save(t1)).isInstanceOf(IllegalStateException.class);
+        }
+
+        @Test
+        void dataRequestWithNewId_replacesOld() {
+            var bldr = createTransferProcessBuilder("id1").state(STARTED.code());
+            var t1 = bldr.build();
+            getTransferProcessStore().save(t1);
+
+            var t2 = bldr
+                    .dataRequest(TestFunctions.createDataRequestBuilder()
+                            .id("new-dr-id")
+                            .assetId("new-asset")
+                            .contractId("new-contract")
+                            .protocol("test-protocol")
+                            .connectorId("new-connector")
+                            .build())
+                    .build();
+            getTransferProcessStore().save(t2);
+
+            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(all)
+                    .hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(t2);
+
+
+            var drs = all.stream().map(TransferProcess::getDataRequest).collect(Collectors.toList());
+            assertThat(drs).hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(t2.getDataRequest());
+        }
+    }
+
+    @Nested
+    class Delete {
+        @Test
+        void shouldDeleteTheEntityById() {
+            var t1 = createTransferProcess("id1");
+            getTransferProcessStore().save(t1);
+
+            getTransferProcessStore().delete("id1");
+            assertThat(getTransferProcessStore().findAll(QuerySpec.none())).isEmpty();
+        }
+
+        @Test
+        void isLeasedBySelf_shouldThrowException() {
+            var t1 = createTransferProcess("id1");
+            getTransferProcessStore().save(t1);
+            leaseEntity(t1.getId(), CONNECTOR_NAME);
+
+
+            assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
+        }
+
+        @Test
+        void isLeasedByOther_shouldThrowException() {
+            var t1 = createTransferProcess("id1");
+            getTransferProcessStore().save(t1);
+
+            leaseEntity(t1.getId(), "someone-else");
+
+            assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
+        }
+
+        @Test
+        void notExist() {
+            getTransferProcessStore().delete("not-exist");
+            //no exception should be raised
+        }
+    }
+
+    @Nested
+    class FindAll {
+        @Test
+        void noQuerySpec() {
+            var all = range(0, 10)
+                    .mapToObj(i -> createTransferProcess("id" + i))
+                    .peek(getTransferProcessStore()::save)
+                    .collect(Collectors.toList());
+
+            assertThat(getTransferProcessStore().findAll(QuerySpec.none())).containsExactlyInAnyOrderElementsOf(all);
+        }
+
+        @Test
+        void verifyFiltering() {
+            range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
+            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", "test-neg-3")).build();
+
+            var result = getTransferProcessStore().findAll(querySpec);
+
+            assertThat(result).extracting(TransferProcess::getId).containsOnly("test-neg-3");
+        }
+
+        @Test
+        void shouldThrowException_whenInvalidOperator() {
+            range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
+            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "foobar", "other")).build();
+
+            assertThatThrownBy(() -> getTransferProcessStore().findAll(querySpec).toList()).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void queryByState() {
+            var tp = createTransferProcessBuilder("testprocess1").state(800).build();
             getTransferProcessStore().save(tp);
-        });
-        var list2 = getTransferProcessStore().nextNotLeased(5, hasState(INITIAL.code()));
-        assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("state", "=", 800)))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query).toList();
+            assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
+        }
+
+        @Test
+        void verifySorting() {
+            range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
+
+            assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
+            assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        }
+
+        @Test
+        void verifyPaging() {
+            range(0, 10)
+                    .mapToObj(i -> createTransferProcess(String.valueOf(i)))
+                    .forEach(getTransferProcessStore()::save);
+
+            var qs = QuerySpec.Builder.newInstance().limit(5).offset(3).build();
+            assertThat(getTransferProcessStore().findAll(qs)).hasSize(5)
+                    .extracting(TransferProcess::getId)
+                    .map(Integer::parseInt)
+                    .allMatch(id -> id >= 3 && id < 8);
+        }
+
+        @Test
+        void verifyPaging_pageSizeLargerThanCollection() {
+
+            range(0, 10)
+                    .mapToObj(i -> createTransferProcess(String.valueOf(i)))
+                    .forEach(getTransferProcessStore()::save);
+
+            var qs = QuerySpec.Builder.newInstance().limit(20).offset(3).build();
+            assertThat(getTransferProcessStore().findAll(qs))
+                    .hasSize(7)
+                    .extracting(TransferProcess::getId)
+                    .map(Integer::parseInt)
+                    .allMatch(id -> id >= 3 && id < 10);
+        }
+
+        @Test
+        void verifyPaging_pageSizeOutsideCollection() {
+
+            range(0, 10)
+                    .mapToObj(i -> createTransferProcess(String.valueOf(i)))
+                    .forEach(getTransferProcessStore()::save);
+
+            var qs = QuerySpec.Builder.newInstance().limit(10).offset(12).build();
+            assertThat(getTransferProcessStore().findAll(qs)).isEmpty();
+
+        }
+
+        @Test
+        void queryByDataAddressProperty() {
+            var da = createDataAddressBuilder("test-type")
+                    .property("key", "value")
+                    .build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .contentDataAddress(da)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "value")))
+                    .build();
+
+            assertThat(getTransferProcessStore().findAll(query))
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(tp);
+        }
+
+        @Test
+        void queryByDataAddress_propNotExist() {
+            var da = createDataAddressBuilder("test-type")
+                    .property("key", "value")
+                    .build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .contentDataAddress(da)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("contentDataAddress.properties.notexist", "=", "value")))
+                    .build();
+
+            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        }
+
+        @Test
+        void queryByDataAddress_invalidKey_valueNotExist() {
+            var da = createDataAddressBuilder("test-type")
+                    .property("key", "value")
+                    .build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .contentDataAddress(da)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "notexist")))
+                    .build();
+
+            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        }
+
+        @Test
+        void queryByDataRequestProperty_processId() {
+            var da = createDataRequest();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .dataRequest(da)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("dataRequest.processId", "=", "testprocess1")))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query);
+
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        }
+
+        @Test
+        void queryByDataRequestProperty_id() {
+            var da = createDataRequest();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .dataRequest(da)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("dataRequest.id", "=", da.getId())))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query);
+
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        }
+
+        @Test
+        void queryByDataRequestProperty_protocol() {
+            var da = createDataRequestBuilder().protocol("%/protocol").build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .dataRequest(da)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("dataRequest.protocol", "like", "%/protocol")))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query);
+
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        }
+
+        @Test
+        void queryByDataRequest_valueNotExist() {
+            var da = createDataRequest();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .dataRequest(da)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("dataRequest.id", "=", "notexist")))
+                    .build();
+
+            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        }
+
+        @Test
+        void queryByResourceManifestProperty() {
+            var rm = ResourceManifest.Builder.newInstance()
+                    .definitions(List.of(TestFunctions.TestResourceDef.Builder.newInstance().id("rd-id").transferProcessId("testprocess1").build())).build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .resourceManifest(rm)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("resourceManifest.definitions.id", "=", "rd-id")))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query);
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        }
+
+        @Test
+        void queryByResourceManifest_valueNotExist() {
+            var rm = ResourceManifest.Builder.newInstance()
+                    .definitions(List.of(TestFunctions.TestResourceDef.Builder.newInstance().id("rd-id").transferProcessId("testprocess1").build())).build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .resourceManifest(rm)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            // throws exception when an explicit mapping exists
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("resourceManifest.definitions.id", "=", "someval")))
+                    .build();
+            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        }
+
+        @Test
+        void queryByProvisionedResourceSetProperty() {
+            var resource = TestFunctions.TestProvisionedResource.Builder.newInstance()
+                    .resourceDefinitionId("rd-id")
+                    .transferProcessId("testprocess1")
+                    .id("pr-id")
+                    .build();
+            var prs = ProvisionedResourceSet.Builder.newInstance()
+                    .resources(List.of(resource))
+                    .build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .provisionedResourceSet(prs)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("provisionedResourceSet.resources.transferProcessId", "=", "testprocess1")))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query);
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
+        }
+
+        @Test
+        void queryByProvisionedResourceSet_valueNotExist() {
+            var resource = TestFunctions.TestProvisionedResource.Builder.newInstance()
+                    .resourceDefinitionId("rd-id")
+                    .transferProcessId("testprocess1")
+                    .id("pr-id")
+                    .build();
+            var prs = ProvisionedResourceSet.Builder.newInstance()
+                    .resources(List.of(resource))
+                    .build();
+            var tp = createTransferProcessBuilder("testprocess1")
+                    .provisionedResourceSet(prs)
+                    .build();
+            getTransferProcessStore().save(tp);
+            getTransferProcessStore().save(createTransferProcess("testprocess2"));
+
+
+            // returns empty when the invalid value is embedded in JSON
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("provisionedResourceSet.resources.id", "=", "someval")))
+                    .build();
+
+            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        }
+
+        @Test
+        void queryByDeprovisionedResourcesProperty() {
+            var dp1 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid1")
+                    .inProcess(true)
+                    .build();
+            var dp2 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid2")
+                    .inProcess(false)
+                    .build();
+            var dp3 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid3")
+                    .inProcess(false)
+                    .build();
+
+            var process1 = createTransferProcessBuilder("test-pid1")
+                    .deprovisionedResources(List.of(dp1, dp2))
+                    .build();
+            var process2 = createTransferProcessBuilder("test-pid2")
+                    .deprovisionedResources(List.of(dp3))
+                    .build();
+
+            getTransferProcessStore().save(process1);
+            getTransferProcessStore().save(process2);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", true))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query);
+
+            assertThat(result).hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(process1);
+        }
+
+        @Test
+        void queryByDeprovisionedResourcesProperty_multipleCriteria() {
+            var dp1 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid1")
+                    .inProcess(true)
+                    .build();
+            var dp2 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid2")
+                    .inProcess(false)
+                    .build();
+            var dp3 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid3")
+                    .inProcess(false)
+                    .build();
+
+            var process1 = createTransferProcessBuilder("test-pid1")
+                    .deprovisionedResources(List.of(dp1, dp2))
+                    .build();
+            var process2 = createTransferProcessBuilder("test-pid2")
+                    .deprovisionedResources(List.of(dp3))
+                    .build();
+
+            getTransferProcessStore().save(process1);
+            getTransferProcessStore().save(process2);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(
+                            new Criterion("deprovisionedResources.inProcess", "=", false),
+                            new Criterion("id", "=", "test-pid1")
+                    ))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
+
+            assertThat(result).hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(process1);
+        }
+
+        @Test
+        void queryByDeprovisionedResourcesProperty_multipleResults() {
+            var dp1 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid1")
+                    .inProcess(true)
+                    .build();
+            var dp2 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid2")
+                    .inProcess(false)
+                    .build();
+            var dp3 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid3")
+                    .inProcess(false)
+                    .build();
+
+            var process1 = createTransferProcessBuilder("test-pid1")
+                    .deprovisionedResources(List.of(dp1, dp2))
+                    .build();
+            var process2 = createTransferProcessBuilder("test-pid2")
+                    .deprovisionedResources(List.of(dp3))
+                    .build();
+
+            getTransferProcessStore().save(process1);
+            getTransferProcessStore().save(process2);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", false))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
+
+            assertThat(result).hasSize(2)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactlyInAnyOrder(process1, process2);
+        }
+
+        @Test
+        void queryByDeprovisionedResources_propNotExist() {
+            var dp1 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid1")
+                    .inProcess(true)
+                    .build();
+            var dp2 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid2")
+                    .inProcess(false)
+                    .build();
+
+            var process1 = createTransferProcessBuilder("test-pid1")
+                    .deprovisionedResources(List.of(dp1, dp2))
+                    .build();
+            getTransferProcessStore().save(process1);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(Criterion.criterion("deprovisionedResources.foobar", "=", "barbaz"))
+                    .build();
+
+            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        }
+
+        @Test
+        void queryByDeprovisionedResources_valueNotExist() {
+            var dp1 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid1")
+                    .inProcess(true)
+                    .errorMessage("not enough resources")
+                    .build();
+            var dp2 = DeprovisionedResource.Builder.newInstance()
+                    .provisionedResourceId("test-rid2")
+                    .inProcess(false)
+                    .errorMessage("undefined error")
+                    .build();
+
+            var process1 = createTransferProcessBuilder("test-pid1")
+                    .deprovisionedResources(List.of(dp1, dp2))
+                    .build();
+            getTransferProcessStore().save(process1);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(Criterion.criterion("deprovisionedResources.errorMessage", "=", "notexist"))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void queryByLease() {
+            getTransferProcessStore().save(createTransferProcess("testprocess1"));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("lease.leasedBy", "=", "foobar")))
+                    .build();
+
+            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
+        }
+
+        @Test
+        void shouldThrowException_whenSortingByNotExistentField() {
+            range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
+
+            var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+            assertThatThrownBy(() -> getTransferProcessStore().findAll(query).toList())
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 
-    @Test
-    void findById() {
-        var t = createTransferProcess("id1");
-        getTransferProcessStore().save(t);
+    @Nested
+    class FindByIdAndLease {
+        @Test
+        void shouldReturnTheEntityAndLeaseIt() {
+            var id = UUID.randomUUID().toString();
+            getTransferProcessStore().save(createTransferProcess(id));
 
-        var result = getTransferProcessStore().findById("id1");
+            var result = getTransferProcessStore().findByIdAndLease(id);
 
-        assertThat(result).usingRecursiveComparison().isEqualTo(t);
+            assertThat(result).isSucceeded();
+            assertThat(isLeasedBy(id, CONNECTOR_NAME)).isTrue();
+        }
+
+        @Test
+        void shouldReturnNotFound_whenEntityDoesNotExist() {
+            var result = getTransferProcessStore().findByIdAndLease("unexistent");
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+        @Test
+        void shouldReturnAlreadyLeased_whenEntityIsAlreadyLeased() {
+            var id = UUID.randomUUID().toString();
+            getTransferProcessStore().save(createTransferProcess(id));
+            leaseEntity(id, "other owner");
+
+            var result = getTransferProcessStore().findByIdAndLease(id);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+        }
     }
 
-    @Test
-    void findById_notExist() {
-        var result = getTransferProcessStore().findById("not-exist");
+    @Nested
+    class FindByCorrelationIdAndLease {
+        @Test
+        void shouldReturnTheEntityAndLeaseIt() {
+            var id = UUID.randomUUID().toString();
+            var correlationId = UUID.randomUUID().toString();
+            var dataRequest = createDataRequestBuilder().id(correlationId).build();
+            getTransferProcessStore().save(createTransferProcessBuilder(id).dataRequest(dataRequest).build());
 
-        assertThat(result).isNull();
+            var result = getTransferProcessStore().findByCorrelationIdAndLease(correlationId);
+
+            assertThat(result).isSucceeded();
+            assertThat(isLeasedBy(id, CONNECTOR_NAME)).isTrue();
+        }
+
+        @Test
+        void shouldReturnNotFound_whenEntityDoesNotExist() {
+            var result = getTransferProcessStore().findByCorrelationIdAndLease("unexistent");
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+        @Test
+        void shouldReturnAlreadyLeased_whenEntityIsAlreadyLeased() {
+            var id = UUID.randomUUID().toString();
+            var correlationId = UUID.randomUUID().toString();
+            var dataRequest = createDataRequestBuilder().id(correlationId).build();
+            getTransferProcessStore().save(createTransferProcessBuilder(id).dataRequest(dataRequest).build());
+            leaseEntity(id, "other owner");
+
+            var result = getTransferProcessStore().findByCorrelationIdAndLease(correlationId);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+        }
     }
-
-    @Test
-    void findForCorrelationId() {
-        var dataRequest = createDataRequestBuilder().id("correlationId").build();
-        var transferProcess = createTransferProcessBuilder("id1").dataRequest(dataRequest).build();
-        getTransferProcessStore().save(transferProcess);
-
-        var res = getTransferProcessStore().findForCorrelationId("correlationId");
-
-        assertThat(res).usingRecursiveComparison().isEqualTo(transferProcess);
-    }
-
-    @Test
-    void findForCorrelationId_notExist() {
-        assertThat(getTransferProcessStore().findForCorrelationId("not-exist")).isNull();
-    }
-
-    @Test
-    void update_exists_shouldUpdate() {
-        var t1 = createTransferProcess("id1", STARTED);
-        getTransferProcessStore().save(t1);
-
-        t1.transitionCompleted(); //modify
-        t1.setPending(true);
-        getTransferProcessStore().save(t1);
-
-        assertThat(getTransferProcessStore().findAll(QuerySpec.none()))
-                .hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(t1);
-    }
-
-    @Test
-    void update_notExist_shouldCreate() {
-        var t1 = createTransferProcess("id1", STARTED);
-
-        t1.transitionCompleted(); //modify
-        getTransferProcessStore().save(t1);
-
-        var result = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        assertThat(result)
-                .hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(t1);
-    }
-
-    @Test
-    @DisplayName("Verify that the lease on a TP is cleared by an update")
-    void update_shouldBreakLease() {
-        var t1 = createTransferProcess("id1");
-        getTransferProcessStore().save(t1);
-        // acquire lease
-        leaseEntity(t1.getId(), CONNECTOR_NAME);
-
-        t1.transitionProvisioning(ResourceManifest.Builder.newInstance().build()); //modify
-        getTransferProcessStore().save(t1);
-
-        // lease should be broken
-        var notLeased = getTransferProcessStore().nextNotLeased(10, hasState(PROVISIONING.code()));
-
-        assertThat(notLeased).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
-    }
-
-    @Test
-    void update_leasedByOther_shouldThrowException() {
-        var tpId = "id1";
-        var t1 = createTransferProcess(tpId);
-        getTransferProcessStore().save(t1);
-        leaseEntity(tpId, "someone");
-
-        t1.transitionProvisioning(ResourceManifest.Builder.newInstance().build()); //modify
-
-        // leased by someone else -> throw exception
-        assertThatThrownBy(() -> getTransferProcessStore().save(t1)).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void delete() {
-        var t1 = createTransferProcess("id1");
-        getTransferProcessStore().save(t1);
-
-        getTransferProcessStore().delete("id1");
-        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).isEmpty();
-    }
-
-    @Test
-    void delete_isLeasedBySelf_shouldThrowException() {
-        var t1 = createTransferProcess("id1");
-        getTransferProcessStore().save(t1);
-        leaseEntity(t1.getId(), CONNECTOR_NAME);
-
-
-        assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void delete_isLeasedByOther_shouldThrowException() {
-        var t1 = createTransferProcess("id1");
-        getTransferProcessStore().save(t1);
-
-        leaseEntity(t1.getId(), "someone-else");
-
-        assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void delete_notExist() {
-        getTransferProcessStore().delete("not-exist");
-        //no exception should be raised
-    }
-
-    @Test
-    void findAll_noQuerySpec() {
-        var all = range(0, 10)
-                .mapToObj(i -> createTransferProcess("id" + i))
-                .peek(getTransferProcessStore()::save)
-                .collect(Collectors.toList());
-
-        assertThat(getTransferProcessStore().findAll(QuerySpec.none())).containsExactlyInAnyOrderElementsOf(all);
-    }
-
-    @Test
-    void findAll_verifyPaging() {
-        range(0, 10)
-                .mapToObj(i -> createTransferProcess(String.valueOf(i)))
-                .forEach(getTransferProcessStore()::save);
-
-        var qs = QuerySpec.Builder.newInstance().limit(5).offset(3).build();
-        assertThat(getTransferProcessStore().findAll(qs)).hasSize(5)
-                .extracting(TransferProcess::getId)
-                .map(Integer::parseInt)
-                .allMatch(id -> id >= 3 && id < 8);
-    }
-
-    @Test
-    void findAll_verifyPaging_pageSizeLargerThanCollection() {
-
-        range(0, 10)
-                .mapToObj(i -> createTransferProcess(String.valueOf(i)))
-                .forEach(getTransferProcessStore()::save);
-
-        var qs = QuerySpec.Builder.newInstance().limit(20).offset(3).build();
-        assertThat(getTransferProcessStore().findAll(qs))
-                .hasSize(7)
-                .extracting(TransferProcess::getId)
-                .map(Integer::parseInt)
-                .allMatch(id -> id >= 3 && id < 10);
-    }
-
-    @Test
-    void findAll_verifyPaging_pageSizeOutsideCollection() {
-
-        range(0, 10)
-                .mapToObj(i -> createTransferProcess(String.valueOf(i)))
-                .forEach(getTransferProcessStore()::save);
-
-        var qs = QuerySpec.Builder.newInstance().limit(10).offset(12).build();
-        assertThat(getTransferProcessStore().findAll(qs)).isEmpty();
-
-    }
-
-    @Test
-    void update_dataRequestWithNewId_replacesOld() {
-        var bldr = createTransferProcessBuilder("id1").state(STARTED.code());
-        var t1 = bldr.build();
-        getTransferProcessStore().save(t1);
-
-        var t2 = bldr
-                .dataRequest(TestFunctions.createDataRequestBuilder()
-                        .id("new-dr-id")
-                        .assetId("new-asset")
-                        .contractId("new-contract")
-                        .protocol("test-protocol")
-                        .connectorId("new-connector")
-                        .build())
-                .build();
-        getTransferProcessStore().save(t2);
-
-        var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-        assertThat(all)
-                .hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(t2);
-
-
-        var drs = all.stream().map(TransferProcess::getDataRequest).collect(Collectors.toList());
-        assertThat(drs).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsOnly(t2.getDataRequest());
-    }
-
-    @Test
-    void find_queryByDataAddressProperty() {
-        var da = createDataAddressBuilder("test-type")
-                .property("key", "value")
-                .build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .contentDataAddress(da)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "value")))
-                .build();
-
-        assertThat(getTransferProcessStore().findAll(query))
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(tp);
-
-    }
-
-    @Test
-    void find_queryByDataAddress_propNotExist() {
-        var da = createDataAddressBuilder("test-type")
-                .property("key", "value")
-                .build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .contentDataAddress(da)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("contentDataAddress.properties.notexist", "=", "value")))
-                .build();
-
-        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-
-    }
-
-    @Test
-    void find_queryByDataAddress_invalidKey_valueNotExist() {
-        var da = createDataAddressBuilder("test-type")
-                .property("key", "value")
-                .build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .contentDataAddress(da)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "notexist")))
-                .build();
-
-        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-    }
-
-    @Test
-    void find_queryByDataRequestProperty_processId() {
-        var da = createDataRequest();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .dataRequest(da)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("dataRequest.processId", "=", "testprocess1")))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query);
-
-        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
-    }
-
-    @Test
-    void find_queryByDataRequestProperty_id() {
-        var da = createDataRequest();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .dataRequest(da)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("dataRequest.id", "=", da.getId())))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query);
-
-        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.operator.like", matches = "true", disabledReason = "This test only runs if the LIKE operator is supported")
-    void find_queryByDataRequestProperty_protocol() {
-        var da = createDataRequestBuilder().protocol("%/protocol").build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .dataRequest(da)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("dataRequest.protocol", "like", "%/protocol")))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query);
-
-        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
-    }
-
-    @Test
-    void find_queryByDataRequest_valueNotExist() {
-        var da = createDataRequest();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .dataRequest(da)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("dataRequest.id", "=", "notexist")))
-                .build();
-
-        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByResourceManifestProperty() {
-        var rm = ResourceManifest.Builder.newInstance()
-                .definitions(List.of(TestFunctions.TestResourceDef.Builder.newInstance().id("rd-id").transferProcessId("testprocess1").build())).build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .resourceManifest(rm)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("resourceManifest.definitions.id", "=", "rd-id")))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query);
-        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByResourceManifest_valueNotExist() {
-        var rm = ResourceManifest.Builder.newInstance()
-                .definitions(List.of(TestFunctions.TestResourceDef.Builder.newInstance().id("rd-id").transferProcessId("testprocess1").build())).build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .resourceManifest(rm)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        // throws exception when an explicit mapping exists
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("resourceManifest.definitions.id", "=", "someval")))
-                .build();
-        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByProvisionedResourceSetProperty() {
-        var resource = TestFunctions.TestProvisionedResource.Builder.newInstance()
-                .resourceDefinitionId("rd-id")
-                .transferProcessId("testprocess1")
-                .id("pr-id")
-                .build();
-        var prs = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(resource))
-                .build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .provisionedResourceSet(prs)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("provisionedResourceSet.resources.transferProcessId", "=", "testprocess1")))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query);
-        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByProvisionedResourceSet_valueNotExist() {
-        var resource = TestFunctions.TestProvisionedResource.Builder.newInstance()
-                .resourceDefinitionId("rd-id")
-                .transferProcessId("testprocess1")
-                .id("pr-id")
-                .build();
-        var prs = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(resource))
-                .build();
-        var tp = createTransferProcessBuilder("testprocess1")
-                .provisionedResourceSet(prs)
-                .build();
-        getTransferProcessStore().save(tp);
-        getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-
-        // returns empty when the invalid value is embedded in JSON
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("provisionedResourceSet.resources.id", "=", "someval")))
-                .build();
-
-        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByDeprovisionedResourcesProperty() {
-        var dp1 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid1")
-                .inProcess(true)
-                .build();
-        var dp2 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid2")
-                .inProcess(false)
-                .build();
-        var dp3 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid3")
-                .inProcess(false)
-                .build();
-
-        var process1 = createTransferProcessBuilder("test-pid1")
-                .deprovisionedResources(List.of(dp1, dp2))
-                .build();
-        var process2 = createTransferProcessBuilder("test-pid2")
-                .deprovisionedResources(List.of(dp3))
-                .build();
-
-        getTransferProcessStore().save(process1);
-        getTransferProcessStore().save(process2);
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", "true"))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
-
-        assertThat(result).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(process1);
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByDeprovisionedResourcesProperty_multipleCriteria() {
-        var dp1 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid1")
-                .inProcess(true)
-                .build();
-        var dp2 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid2")
-                .inProcess(false)
-                .build();
-        var dp3 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid3")
-                .inProcess(false)
-                .build();
-
-        var process1 = createTransferProcessBuilder("test-pid1")
-                .deprovisionedResources(List.of(dp1, dp2))
-                .build();
-        var process2 = createTransferProcessBuilder("test-pid2")
-                .deprovisionedResources(List.of(dp3))
-                .build();
-
-        getTransferProcessStore().save(process1);
-        getTransferProcessStore().save(process2);
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(
-                        new Criterion("deprovisionedResources.inProcess", "=", "false"),
-                        new Criterion("id", "=", "test-pid1")
-                ))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
-
-        assertThat(result).hasSize(1)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(process1);
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByDeprovisionedResourcesProperty_multipleResults() {
-        var dp1 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid1")
-                .inProcess(true)
-                .build();
-        var dp2 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid2")
-                .inProcess(false)
-                .build();
-        var dp3 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid3")
-                .inProcess(false)
-                .build();
-
-        var process1 = createTransferProcessBuilder("test-pid1")
-                .deprovisionedResources(List.of(dp1, dp2))
-                .build();
-        var process2 = createTransferProcessBuilder("test-pid2")
-                .deprovisionedResources(List.of(dp3))
-                .build();
-
-        getTransferProcessStore().save(process1);
-        getTransferProcessStore().save(process2);
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("deprovisionedResources.inProcess", "=", "false"))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
-
-        assertThat(result).hasSize(2)
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactlyInAnyOrder(process1, process2);
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByDeprovisionedResources_propNotExist() {
-        var dp1 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid1")
-                .inProcess(true)
-                .build();
-        var dp2 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid2")
-                .inProcess(false)
-                .build();
-
-        var process1 = createTransferProcessBuilder("test-pid1")
-                .deprovisionedResources(List.of(dp1, dp2))
-                .build();
-        getTransferProcessStore().save(process1);
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("deprovisionedResources.foobar", "=", "barbaz"))
-                .build();
-
-        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "transferprocessstore.supports.collectionQuery", matches = "true", disabledReason = "This test only runs if querying collection fields is supported")
-    void find_queryByDeprovisionedResources_valueNotExist() {
-        var dp1 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid1")
-                .inProcess(true)
-                .errorMessage("not enough resources")
-                .build();
-        var dp2 = DeprovisionedResource.Builder.newInstance()
-                .provisionedResourceId("test-rid2")
-                .inProcess(false)
-                .errorMessage("undefined error")
-                .build();
-
-        var process1 = createTransferProcessBuilder("test-pid1")
-                .deprovisionedResources(List.of(dp1, dp2))
-                .build();
-        getTransferProcessStore().save(process1);
-
-        var query = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("deprovisionedResources.errorMessage", "=", "notexist"))
-                .build();
-
-        var result = getTransferProcessStore().findAll(query).collect(Collectors.toList());
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void verifyCreateUpdateDelete() {
-        var id = UUID.randomUUID().toString();
-        var transferProcess = createTransferProcess(id, createDataRequestBuilder().id("correlationId").build());
-        getTransferProcessStore().save(transferProcess);
-
-        var found = getTransferProcessStore().findById(id);
-
-        assertNotNull(found);
-        assertNotSame(found, transferProcess); // enforce by-value
-
-        assertNotNull(getTransferProcessStore().findForCorrelationId("correlationId"));
-
-        assertEquals(INITIAL.code(), found.getState());
-
-        transferProcess.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-
-        getTransferProcessStore().save(transferProcess);
-
-        found = getTransferProcessStore().findById(id);
-        assertNotNull(found);
-        assertEquals(PROVISIONING.code(), found.getState());
-
-        getTransferProcessStore().delete(id);
-        assertNull(getTransferProcessStore().findById(id));
-        assertNull(getTransferProcessStore().findForCorrelationId("correlationId"));
-    }
-
-    @Test
-    void findAll_verifyFiltering() {
-        range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
-        var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", "test-neg-3")).build();
-
-        var result = getTransferProcessStore().findAll(querySpec);
-
-        assertThat(result).extracting(TransferProcess::getId).containsOnly("test-neg-3");
-    }
-
-    @Test
-    void findAll_verifyFiltering_invalidFilterExpression() {
-        range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
-        var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("something", "foobar", "other")).build();
-
-        assertThatThrownBy(() -> getTransferProcessStore().findAll(querySpec)).isInstanceOfAny(IllegalArgumentException.class);
-    }
-
-    @Test
-    void findAll_verifySorting() {
-        range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
-
-        assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
-        assertThat(getTransferProcessStore().findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
-    }
-
-    @Test
-    protected void findAll_verifySorting_invalidProperty() {
-        range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
-
-        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-
-        assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-    }
-
-    @Test
-    void findByIdAndLease_shouldReturnTheEntityAndLeaseIt() {
-        var id = UUID.randomUUID().toString();
-        getTransferProcessStore().save(createTransferProcess(id));
-
-        var result = getTransferProcessStore().findByIdAndLease(id);
-
-        assertThat(result).isSucceeded();
-        assertThat(isLeasedBy(id, CONNECTOR_NAME)).isTrue();
-    }
-
-    @Test
-    void findByIdAndLease_shouldReturnNotFound_whenEntityDoesNotExist() {
-        var result = getTransferProcessStore().findByIdAndLease("unexistent");
-
-        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
-    }
-
-    @Test
-    void findByIdAndLease_shouldReturnAlreadyLeased_whenEntityIsAlreadyLeased() {
-        var id = UUID.randomUUID().toString();
-        getTransferProcessStore().save(createTransferProcess(id));
-        leaseEntity(id, "other owner");
-
-        var result = getTransferProcessStore().findByIdAndLease(id);
-
-        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
-    }
-
-    @Test
-    void findByCorrelationIdAndLease_shouldReturnTheEntityAndLeaseIt() {
-        var id = UUID.randomUUID().toString();
-        var correlationId = UUID.randomUUID().toString();
-        var dataRequest = createDataRequestBuilder().id(correlationId).build();
-        getTransferProcessStore().save(createTransferProcessBuilder(id).dataRequest(dataRequest).build());
-
-        var result = getTransferProcessStore().findByCorrelationIdAndLease(correlationId);
-
-        assertThat(result).isSucceeded();
-        assertThat(isLeasedBy(id, CONNECTOR_NAME)).isTrue();
-    }
-
-    @Test
-    void findByCorrelationIdAndLease_shouldReturnNotFound_whenEntityDoesNotExist() {
-        var result = getTransferProcessStore().findByCorrelationIdAndLease("unexistent");
-
-        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
-    }
-
-    @Test
-    void findByCorrelationIdAndLease_shouldReturnAlreadyLeased_whenEntityIsAlreadyLeased() {
-        var id = UUID.randomUUID().toString();
-        var correlationId = UUID.randomUUID().toString();
-        var dataRequest = createDataRequestBuilder().id(correlationId).build();
-        getTransferProcessStore().save(createTransferProcessBuilder(id).dataRequest(dataRequest).build());
-        leaseEntity(id, "other owner");
-
-        var result = getTransferProcessStore().findByCorrelationIdAndLease(correlationId);
-
-        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
-    }
-
-    protected abstract boolean supportsCollectionQuery();
-
-    protected abstract boolean supportsLikeOperator();
 
     protected abstract TransferProcessStore getTransferProcessStore();
 
@@ -1007,14 +1000,5 @@ public abstract class TransferProcessStoreTestBase {
     }
 
     protected abstract boolean isLeasedBy(String negotiationId, String owner);
-
-    private void delayByTenMillis(TransferProcess t) {
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException ignored) {
-            // noop
-        }
-        t.updateStateTimestamp();
-    }
 
 }

@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.sql.translation;
 
+import static java.lang.String.format;
+
 public class JsonFieldMapping extends TranslationMapping {
     protected final String columnName;
 
@@ -22,19 +24,25 @@ public class JsonFieldMapping extends TranslationMapping {
     }
 
     @Override
-    public String getStatement(String canonicalPropertyName) {
+    public String getStatement(String canonicalPropertyName, Class<?> type) {
         var tokens = canonicalPropertyName.split("\\.");
 
         var statementBuilder = new StringBuilder(columnName);
-        int length = tokens.length;
-        for (int i = 0; i < length - 1; i++) {
+        var length = tokens.length;
+        for (var i = 0; i < length - 1; i++) {
             statementBuilder.append(" -> ");
             statementBuilder.append("'").append(tokens[i]).append("'");
         }
 
         statementBuilder.append(" ->> ");
         statementBuilder.append("'").append(tokens[length - 1]).append("'");
-        return statementBuilder.toString();
+        var statement = statementBuilder.toString();
+
+        if (type.equals(Boolean.class)) {
+            return format("(%s)::boolean", statement);
+        }
+
+        return statement;
     }
 
 

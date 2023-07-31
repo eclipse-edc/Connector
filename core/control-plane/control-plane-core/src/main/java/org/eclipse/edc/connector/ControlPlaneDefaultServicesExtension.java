@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector;
 
+import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.defaults.callback.CallbackRegistryImpl;
@@ -29,6 +30,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
+import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.util.concurrency.LockManager;
 
@@ -82,6 +84,11 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public CallbackRegistry defaultCallbackRegistry() {
         return new CallbackRegistryImpl();
+    }
+
+    @Provider
+    public CriterionToAssetPredicateConverter criterionToAssetPredicateConverter() {
+        return new CriterionToAssetPredicateConverterImpl();
     }
 
     private ContractDefinitionStore getContractDefinitionStore() {

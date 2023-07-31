@@ -38,6 +38,15 @@ class SqlQueryStatementTest {
     }
 
     @Test
+    void singleExpression_notExistentColumn() {
+        var criterion = new Criterion("not-existent", "=", "testid1");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE 0 = ? LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsOnly(1, 50, 0);
+    }
+
+    @Test
     void singleExpression_inOperator() {
         var criterion = new Criterion("field1", "in", List.of("id1", "id2", "id3"));
         var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
@@ -60,7 +69,7 @@ class SqlQueryStatementTest {
     @Test
     void singleExpression_orderByDesc() {
         var criterion = new Criterion("field1", "=", "testid1");
-        QuerySpec.Builder builder = queryBuilder(criterion).sortField("description");
+        var builder = queryBuilder(criterion).sortField("description");
         var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.DESC).build(), new TestMapping());
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description DESC LIMIT ? OFFSET ?;");
@@ -69,7 +78,7 @@ class SqlQueryStatementTest {
     @Test
     void singleExpression_orderByAsc() {
         var criterion = new Criterion("field1", "=", "testid1");
-        QuerySpec.Builder builder = queryBuilder(criterion).sortField("description");
+        var builder = queryBuilder(criterion).sortField("description");
         var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
@@ -77,7 +86,7 @@ class SqlQueryStatementTest {
 
     @Test
     void singleExpression_orderBy_WithNoCondition() {
-        QuerySpec.Builder builder = queryBuilder().sortField("description");
+        var builder = queryBuilder().sortField("description");
         var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
@@ -85,16 +94,16 @@ class SqlQueryStatementTest {
 
     @Test
     void singleExpression_orderBy_WithNonExistentProperty() {
-        QuerySpec.Builder builder = queryBuilder().sortField("notexist");
+        var builder = queryBuilder().sortField("notexist");
 
         assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Translation failed for Model");
+                .hasMessageStartingWith("Cannot sort by");
     }
 
     @Test
     void singleExpression_orderBy_WithNestedProperty() {
-        QuerySpec.Builder builder = queryBuilder().sortField("complex");
+        var builder = queryBuilder().sortField("complex");
 
         assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
                 .isInstanceOf(IllegalArgumentException.class)

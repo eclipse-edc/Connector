@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.asset.AssetPredicateConverter;
+import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -41,14 +41,16 @@ public class DatasetResolverImpl implements DatasetResolver {
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final DistributionResolver distributionResolver;
-    private final AssetPredicateConverter predicateConverter = new AssetPredicateConverter();
+    private final CriterionToAssetPredicateConverter criterionToPredicateConverter;
 
     public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex,
-                               PolicyDefinitionStore policyDefinitionStore, DistributionResolver distributionResolver) {
+                               PolicyDefinitionStore policyDefinitionStore, DistributionResolver distributionResolver,
+                               CriterionToAssetPredicateConverter criterionToPredicateConverter) {
         this.contractDefinitionResolver = contractDefinitionResolver;
         this.assetIndex = assetIndex;
         this.policyDefinitionStore = policyDefinitionStore;
         this.distributionResolver = distributionResolver;
+        this.criterionToPredicateConverter = criterionToPredicateConverter;
     }
 
     @Override
@@ -82,7 +84,7 @@ public class DatasetResolverImpl implements DatasetResolver {
 
         contractDefinitions.stream()
                 .filter(definition -> definition.getAssetsSelector().stream()
-                        .map(predicateConverter::convert)
+                        .map(criterionToPredicateConverter::convert)
                         .reduce(x -> true, Predicate::and)
                         .test(asset)
                 )

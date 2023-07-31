@@ -21,7 +21,7 @@ import java.util.List;
  * Default implementation for TransactionContext, to be used only for testing/sampling purposes
  */
 public class NoopTransactionContext implements TransactionContext {
-    private ThreadLocal<List<TransactionSynchronization>> synchronizations = ThreadLocal.withInitial(ArrayList::new);
+    private final ThreadLocal<List<TransactionSynchronization>> synchronizations = ThreadLocal.withInitial(ArrayList::new);
 
     @Override
     public void execute(TransactionBlock block) {

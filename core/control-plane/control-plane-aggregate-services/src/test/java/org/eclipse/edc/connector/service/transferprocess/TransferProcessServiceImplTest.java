@@ -19,6 +19,7 @@ import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
@@ -224,6 +225,7 @@ class TransferProcessServiceImplTest {
         return TransferProcess.Builder.newInstance()
                 .state(state.code())
                 .id(id)
+                .dataRequest(DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().type("any").build()).build())
                 .build();
     }
 

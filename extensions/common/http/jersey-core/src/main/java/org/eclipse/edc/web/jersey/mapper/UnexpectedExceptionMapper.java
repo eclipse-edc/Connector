@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Map;
 
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
 
@@ -33,7 +34,8 @@ public class UnexpectedExceptionMapper implements ExceptionMapper<Throwable> {
 
     private final Monitor monitor;
     private final Map<Class<? extends Throwable>, Response.Status> exceptionMap = Map.of(
-            UnsupportedOperationException.class, NOT_IMPLEMENTED
+            UnsupportedOperationException.class, NOT_IMPLEMENTED,
+            IllegalArgumentException.class, BAD_REQUEST
     );
 
     public UnexpectedExceptionMapper(Monitor monitor) {

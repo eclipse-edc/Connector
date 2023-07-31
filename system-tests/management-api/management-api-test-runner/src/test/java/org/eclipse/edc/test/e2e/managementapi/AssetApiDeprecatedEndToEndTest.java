@@ -187,7 +187,6 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
         assertThat(dataAddress.getProperties().keySet())
                 .hasSize(2)
                 .allMatch(key -> key.startsWith(EDC_NAMESPACE));
-
     }
 
     @Test
@@ -262,30 +261,6 @@ public class AssetApiDeprecatedEndToEndTest extends BaseManagementApiEndToEndTes
                 .log().ifError()
                 .statusCode(200)
                 .body("size()", is(0));
-    }
-
-    @Test
-    void queryAsset_byCustomComplexProperty_whenLikeOperator_expectException() {
-        //insert one asset into the index
-        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
-        assetIndex.create(new AssetEntry(Asset.Builder.newInstance()
-                .id("test-asset")
-                .contentType("application/octet-stream")
-                // use a custom, complex object type
-                .property("myProp", new TestObject("test desc", 42))
-                .build(),
-                createDataAddress().build()));
-
-        var query = createSingleFilterQuery("myProp", "LIKE", "test desc");
-
-        // querying custom complex types in "json-path" style is expected not to work.
-        baseRequest()
-                .contentType(ContentType.JSON)
-                .body(query)
-                .post("/v2/assets/request")
-                .then()
-                .log().ifError()
-                .statusCode(500);
     }
 
     @Test

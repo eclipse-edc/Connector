@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - Initial implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.spi.asset;
+package org.eclipse.edc.connector.asset;
 
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -23,9 +23,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class AssetPredicateConverterTest {
+class CriterionToAssetPredicateConverterImplTest {
 
-    private final AssetPredicateConverter converter = new AssetPredicateConverter();
+    private final CriterionToAssetPredicateConverterImpl converter = new CriterionToAssetPredicateConverterImpl();
 
     @Test
     void convert_nameEquals() {
@@ -118,5 +118,12 @@ class AssetPredicateConverterTest {
 
         assertThatThrownBy(() -> converter.convert(criterion)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Operator [GREATER_THAN] is not supported by this converter!");
+    }
+
+    @Test
+    void convert_shouldReturnFalsePredicate_whenPropertyDoesNotExist() {
+        var predicate = converter.convert(new Criterion("not-existent", "in", List.of("any")));
+
+        assertThat(predicate).rejects(Asset.Builder.newInstance().build());
     }
 }
