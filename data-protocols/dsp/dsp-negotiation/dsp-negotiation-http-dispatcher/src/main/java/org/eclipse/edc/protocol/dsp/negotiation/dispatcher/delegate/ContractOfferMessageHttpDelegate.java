@@ -41,7 +41,7 @@ public class ContractOfferMessageHttpDelegate extends DspHttpDispatcherDelegate<
     
     @Override
     public Request buildRequest(ContractOfferMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_OFFER);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_OFFER);
     }
     
     @Override

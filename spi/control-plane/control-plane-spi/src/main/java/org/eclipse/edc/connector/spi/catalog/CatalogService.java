@@ -29,5 +29,15 @@ public interface CatalogService {
      * @param querySpec the {@link QuerySpec} object.
      * @return the provider's catalog
      */
-    CompletableFuture<StatusResult<byte[]>> request(String providerUrl, String protocol, QuerySpec querySpec);
+    CompletableFuture<StatusResult<byte[]>> requestCatalog(String providerUrl, String protocol, QuerySpec querySpec);
+
+    /**
+     * Return the dataset
+     *
+     * @param id the dataset id.
+     * @param counterPartyAddress the url of the provider.
+     * @param protocol the protocol.
+     * @return the provider dataset.
+     */
+    CompletableFuture<StatusResult<byte[]>> requestDataset(String id, String counterPartyAddress, String protocol);
 }

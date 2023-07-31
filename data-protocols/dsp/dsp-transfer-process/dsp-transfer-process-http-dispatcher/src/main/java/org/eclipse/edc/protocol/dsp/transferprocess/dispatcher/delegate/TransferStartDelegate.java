@@ -39,7 +39,7 @@ public class TransferStartDelegate extends DspHttpDispatcherDelegate<TransferSta
 
     @Override
     public Request buildRequest(TransferStartMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_START);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_START);
     }
 
     @Override

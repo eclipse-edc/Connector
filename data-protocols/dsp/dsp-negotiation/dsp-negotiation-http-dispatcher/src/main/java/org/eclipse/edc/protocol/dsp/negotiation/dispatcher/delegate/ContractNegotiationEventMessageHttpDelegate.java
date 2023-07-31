@@ -49,7 +49,7 @@ public class ContractNegotiationEventMessageHttpDelegate extends DspHttpDispatch
      */
     @Override
     public Request buildRequest(ContractNegotiationEventMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + EVENT);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + EVENT);
     }
 
     /**

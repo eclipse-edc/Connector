@@ -39,7 +39,7 @@ public class TransferRequestDelegate extends DspHttpDispatcherDelegate<TransferR
 
     @Override
     public Request buildRequest(TransferRequestMessage message) {
-        return buildRequest(message, BASE_PATH + TRANSFER_INITIAL_REQUEST);
+        return buildPostRequest(message, BASE_PATH + TRANSFER_INITIAL_REQUEST);
     }
 
     @Override

@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.service.catalog;
 
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -32,11 +33,22 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public CompletableFuture<StatusResult<byte[]>> request(String providerUrl, String protocol, QuerySpec querySpec) {
+    public CompletableFuture<StatusResult<byte[]>> requestCatalog(String providerUrl, String protocol, QuerySpec querySpec) {
         var request = CatalogRequestMessage.Builder.newInstance()
                 .protocol(protocol)
                 .counterPartyAddress(providerUrl)
                 .querySpec(querySpec)
+                .build();
+
+        return dispatcher.dispatch(byte[].class, request);
+    }
+
+    @Override
+    public CompletableFuture<StatusResult<byte[]>> requestDataset(String id, String counterPartyAddress, String protocol) {
+        var request = DatasetRequestMessage.Builder.newInstance()
+                .datasetId(id)
+                .protocol(protocol)
+                .counterPartyAddress(counterPartyAddress)
                 .build();
 
         return dispatcher.dispatch(byte[].class, request);

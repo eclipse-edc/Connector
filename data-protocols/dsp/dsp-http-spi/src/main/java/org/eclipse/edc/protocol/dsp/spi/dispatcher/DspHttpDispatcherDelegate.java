@@ -93,7 +93,7 @@ public abstract class DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
      */
     protected abstract Function<Response, R> parseResponse();
 
-    protected Request buildRequest(M message, String path) {
+    protected Request buildPostRequest(M message, String path) {
         var body = serializer.serialize(message);
         var requestBody = RequestBody.create(body, MediaType.get(APPLICATION_JSON));
 

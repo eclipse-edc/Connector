@@ -50,7 +50,7 @@ public class ContractAgreementVerificationMessageHttpDelegate extends DspHttpDis
      */
     @Override
     public Request buildRequest(ContractAgreementVerificationMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT + VERIFICATION);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT + VERIFICATION);
     }
 
     /**

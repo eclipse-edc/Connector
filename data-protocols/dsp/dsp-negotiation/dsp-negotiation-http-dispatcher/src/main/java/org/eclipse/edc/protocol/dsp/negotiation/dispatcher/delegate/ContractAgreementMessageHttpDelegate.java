@@ -48,7 +48,7 @@ public class ContractAgreementMessageHttpDelegate extends DspHttpDispatcherDeleg
      */
     @Override
     public Request buildRequest(ContractAgreementMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT);
     }
 
     /**

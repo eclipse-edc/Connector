@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.catalog.dispatcher;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.CatalogRequestHttpDelegate;
 import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.CatalogRequestHttpRawDelegate;
+import org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate.DatasetRequestHttpRawDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -58,6 +59,7 @@ public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
         var mapper = typeManager.getMapper(JSON_LD);
         messageDispatcher.registerDelegate(new CatalogRequestHttpDelegate(remoteMessageSerializer, mapper, transformerRegistry, jsonLdService));
         messageDispatcher.registerDelegate(new CatalogRequestHttpRawDelegate(remoteMessageSerializer));
+        messageDispatcher.registerDelegate(new DatasetRequestHttpRawDelegate(remoteMessageSerializer));
     }
 
 }

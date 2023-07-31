@@ -49,7 +49,7 @@ public class ContractNegotiationTerminationMessageHttpDelegate extends DspHttpDi
      */
     @Override
     public Request buildRequest(ContractNegotiationTerminationMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + TERMINATION);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + TERMINATION);
     }
 
     /**

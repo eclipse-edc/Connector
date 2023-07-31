@@ -39,7 +39,7 @@ public class TransferCompletionDelegate extends DspHttpDispatcherDelegate<Transf
 
     @Override
     public Request buildRequest(TransferCompletionMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_COMPLETION);
     }
 
     @Override

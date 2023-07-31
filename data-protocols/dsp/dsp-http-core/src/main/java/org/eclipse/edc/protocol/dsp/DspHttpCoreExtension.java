@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp;
 
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
@@ -137,6 +138,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     private void registerCatalogPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(CatalogRequestMessage.class, CATALOGING_REQUEST_SCOPE, CatalogRequestMessage::getPolicy);
+        dispatcher.registerPolicyScope(DatasetRequestMessage.class, CATALOGING_REQUEST_SCOPE, DatasetRequestMessage::getPolicy);
     }
 
 }

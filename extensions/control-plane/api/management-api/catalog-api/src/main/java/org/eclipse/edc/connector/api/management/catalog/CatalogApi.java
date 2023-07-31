@@ -44,6 +44,17 @@ public interface CatalogApi {
     )
     void requestCatalog(JsonObject request, @Suspended AsyncResponse response);
 
+    @Operation(
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DatasetRequestSchema.class))),
+            responses = { @ApiResponse(
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = DatasetSchema.class)
+                    ),
+                    description = "Gets single dataset from a connector") }
+    )
+    void getDataset(JsonObject request, @Suspended AsyncResponse response);
+
     @Schema(name = "CatalogRequest", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
     record CatalogRequestSchema(
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
@@ -64,6 +75,24 @@ public interface CatalogApi {
                         "sortField": "fieldName",
                         "filterExpression": []
                     }
+                }
+                """;
+    }
+
+    @Schema(name = "DatasetRequest", example = DatasetRequestSchema.DATASET_REQUEST_EXAMPLE)
+    record DatasetRequestSchema(
+            @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
+            String providerUrl,
+            String protocol,
+            ApiCoreSchema.QuerySpecSchema querySpec) {
+
+        public static final String DATASET_REQUEST_EXAMPLE = """
+                {
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "DatasetRequest",
+                    "@id": "dataset-id",
+                    "counterPartyAddress": "http://counter-party-address",
+                    "protocol": "dataspace-protocol-http"
                 }
                 """;
     }
@@ -128,6 +157,66 @@ public interface CatalogApi {
                         "dct:endpointUrl": "http://localhost:16806/protocol"
                     },
                     "edc:participantId": "urn:connector:provider",
+                    "@context": {
+                        "dct": "https://purl.org/dc/terms/",
+                        "edc": "https://w3id.org/edc/v0.0.1/ns/",
+                        "dcat": "https://www.w3.org/ns/dcat/",
+                        "odrl": "http://www.w3.org/ns/odrl/2/",
+                        "dspace": "https://w3id.org/dspace/v0.8/"
+                    }
+                }
+                """;
+    }
+
+    @Schema(name = "Dataset", description = "DCAT dataset", example = DatasetSchema.DATASET_EXAMPLE)
+    record DatasetSchema(
+    ) {
+        public static final String DATASET_EXAMPLE = """
+                {
+                    "@id": "bcca61be-e82e-4da6-bfec-9716a56cef35",
+                    "@type": "dcat:Dataset",
+                    "odrl:hasPolicy": {
+                        "@id": "OGU0ZTMzMGMtODQ2ZS00ZWMxLThmOGQtNWQxNWM0NmI2NmY4:YmNjYTYxYmUtZTgyZS00ZGE2LWJmZWMtOTcxNmE1NmNlZjM1:NDY2ZTZhMmEtNjQ1Yy00ZGQ0LWFlZDktMjdjNGJkZTU4MDNj",
+                        "@type": "odrl:Set",
+                        "odrl:permission": {
+                            "odrl:target": "bcca61be-e82e-4da6-bfec-9716a56cef35",
+                            "odrl:action": {
+                                "odrl:type": "http://www.w3.org/ns/odrl/2/use"
+                            },
+                            "odrl:constraint": {
+                                "odrl:and": [
+                                    {
+                                        "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/inForceDate",
+                                        "odrl:operator": {
+                                            "@id": "odrl:gteq"
+                                        },
+                                        "odrl:rightOperand": "2023-07-07T07:19:58.585601395Z"
+                                    },
+                                    {
+                                        "odrl:leftOperand": "https://w3id.org/edc/v0.0.1/ns/inForceDate",
+                                        "odrl:operator": {
+                                            "@id": "odrl:lteq"
+                                        },
+                                        "odrl:rightOperand": "2023-07-12T07:19:58.585601395Z"
+                                    }
+                                ]
+                            }
+                        },
+                        "odrl:prohibition": [],
+                        "odrl:obligation": [],
+                        "odrl:target": "bcca61be-e82e-4da6-bfec-9716a56cef35"
+                    },
+                    "dcat:distribution": [
+                        {
+                            "@type": "dcat:Distribution",
+                            "dct:format": {
+                                "@id": "HttpData"
+                            },
+                            "dcat:accessService": "5e839777-d93e-4785-8972-1005f51cf367"
+                        }
+                    ],
+                    "edc:description": "description",
+                    "edc:id": "bcca61be-e82e-4da6-bfec-9716a56cef35",
                     "@context": {
                         "dct": "https://purl.org/dc/terms/",
                         "edc": "https://w3id.org/edc/v0.0.1/ns/",

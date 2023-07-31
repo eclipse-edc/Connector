@@ -61,9 +61,9 @@ public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegat
     @Override
     public Request buildRequest(ContractRequestMessage message) {
         if (message.getType() == ContractRequestMessage.Type.INITIAL) {
-            return buildRequest(message, BASE_PATH + INITIAL_CONTRACT_REQUEST);
+            return buildPostRequest(message, BASE_PATH + INITIAL_CONTRACT_REQUEST);
         } else {
-            return buildRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_REQUEST);
+            return buildPostRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_REQUEST);
         }
     }
 

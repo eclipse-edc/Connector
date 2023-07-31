@@ -39,7 +39,7 @@ public class TransferTerminationDelegate extends DspHttpDispatcherDelegate<Trans
 
     @Override
     public Request buildRequest(TransferTerminationMessage message) {
-        return buildRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION);
+        return buildPostRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION);
     }
 
     @Override

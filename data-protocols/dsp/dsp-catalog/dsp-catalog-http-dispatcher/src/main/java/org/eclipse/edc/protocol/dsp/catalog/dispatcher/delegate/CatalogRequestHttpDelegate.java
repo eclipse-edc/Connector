@@ -65,7 +65,7 @@ public class CatalogRequestHttpDelegate extends DspHttpDispatcherDelegate<Catalo
      */
     @Override
     public Request buildRequest(CatalogRequestMessage message) {
-        return buildRequest(message, BASE_PATH + CATALOG_REQUEST);
+        return buildPostRequest(message, BASE_PATH + CATALOG_REQUEST);
     }
 
     /**

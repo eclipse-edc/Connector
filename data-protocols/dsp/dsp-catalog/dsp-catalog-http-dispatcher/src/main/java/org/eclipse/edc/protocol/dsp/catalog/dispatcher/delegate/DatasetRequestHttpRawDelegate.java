@@ -15,9 +15,10 @@
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
 import jakarta.json.JsonObject;
+import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
@@ -26,21 +27,21 @@ import java.io.IOException;
 import java.util.function.Function;
 
 import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.CATALOG_REQUEST;
+import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.DATASET_REQUEST;
 
 /**
  * Delegate for dispatching catalog requests as defined in the
  * <a href="https://docs.internationaldataspaces.org/dataspace-protocol/catalog/catalog.binding.https">dataspace protocol specification</a>
  */
-public class CatalogRequestHttpRawDelegate extends DspHttpDispatcherDelegate<CatalogRequestMessage, byte[]> {
+public class DatasetRequestHttpRawDelegate extends DspHttpDispatcherDelegate<DatasetRequestMessage, byte[]> {
 
-    public CatalogRequestHttpRawDelegate(JsonLdRemoteMessageSerializer serializer) {
+    public DatasetRequestHttpRawDelegate(JsonLdRemoteMessageSerializer serializer) {
         super(serializer);
     }
 
     @Override
-    public Class<CatalogRequestMessage> getMessageType() {
-        return CatalogRequestMessage.class;
+    public Class<DatasetRequestMessage> getMessageType() {
+        return DatasetRequestMessage.class;
     }
 
     /**
@@ -52,8 +53,13 @@ public class CatalogRequestHttpRawDelegate extends DspHttpDispatcherDelegate<Cat
      * @return the built okhttp request
      */
     @Override
-    public Request buildRequest(CatalogRequestMessage message) {
-        return buildPostRequest(message, BASE_PATH + CATALOG_REQUEST);
+    public Request buildRequest(DatasetRequestMessage message) {
+        var url = HttpUrl.get(message.getCounterPartyAddress() + BASE_PATH + DATASET_REQUEST + "/" + message.getDatasetId());
+
+        return new Request.Builder()
+                .url(url)
+                .get()
+                .build();
     }
 
     /**
