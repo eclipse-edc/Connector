@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.query.QuerySpec;
 
-import static java.util.Objects.requireNonNull;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class CatalogRequest {

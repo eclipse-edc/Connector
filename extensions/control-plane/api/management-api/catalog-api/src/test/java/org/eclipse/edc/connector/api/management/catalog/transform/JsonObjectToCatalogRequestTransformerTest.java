@@ -34,6 +34,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToCatalogRequestTransformerTest {
@@ -89,6 +90,21 @@ class JsonObjectToCatalogRequestTransformerTest {
         assertThat(result.getQuerySpec()).isEqualTo(querySpec);
         verify(context).transform(querySpecJson, QuerySpec.class);
         verify(monitor).warning(anyString());
+    }
+
+    @Test
+    void transform_shouldHandleEmptyQuerySpec() {
+        var json = Json.createObjectBuilder()
+                .add(TYPE, CATALOG_REQUEST_TYPE)
+                .add(CATALOG_REQUEST_PROTOCOL, "protocol")
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, "http://provider/url")
+                .build();
+
+        var result = transformer.transform(json, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getQuerySpec()).isEqualTo(null);
+        verifyNoInteractions(context);
     }
 
 }

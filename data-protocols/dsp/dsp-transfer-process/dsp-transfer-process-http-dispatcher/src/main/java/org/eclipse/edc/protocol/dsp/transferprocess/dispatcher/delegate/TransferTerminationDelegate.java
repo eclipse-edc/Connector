@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -23,23 +22,10 @@ import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSeriali
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_TERMINATION;
-
 public class TransferTerminationDelegate extends DspHttpDispatcherDelegate<TransferTerminationMessage, JsonObject> {
 
     public TransferTerminationDelegate(JsonLdRemoteMessageSerializer serializer) {
-        super(serializer);
-    }
-
-    @Override
-    public Class<TransferTerminationMessage> getMessageType() {
-        return TransferTerminationMessage.class;
-    }
-
-    @Override
-    public Request buildRequest(TransferTerminationMessage message) {
-        return buildPostRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION);
+        super();
     }
 
     @Override

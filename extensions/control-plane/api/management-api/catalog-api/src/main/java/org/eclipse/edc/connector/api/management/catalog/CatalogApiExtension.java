@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.catalog;
 
-import org.eclipse.edc.catalog.spi.CatalogRequest;
-import org.eclipse.edc.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
 import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.connector.api.management.catalog.validation.CatalogRequestValidator;
@@ -29,6 +27,9 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 
 @Extension(value = CatalogApiExtension.NAME)
 public class CatalogApiExtension implements ServiceExtension {
@@ -62,7 +63,7 @@ public class CatalogApiExtension implements ServiceExtension {
 
         webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, validatorRegistry));
 
-        validatorRegistry.register(CatalogRequest.CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance());
-        validatorRegistry.register(DatasetRequest.DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
+        validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance());
+        validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
     }
 }

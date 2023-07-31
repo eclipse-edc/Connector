@@ -20,12 +20,6 @@ import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatche
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_TERMINATION;
-
 class TransferTerminationDelegateTest extends DspHttpDispatcherDelegateTestBase<TransferTerminationMessage> {
 
     private TransferTerminationDelegate delegate;
@@ -36,32 +30,8 @@ class TransferTerminationDelegateTest extends DspHttpDispatcherDelegateTestBase<
     }
 
     @Test
-    void getMessageType() {
-        assertThat(delegate.getMessageType()).isEqualTo(TransferTerminationMessage.class);
-    }
-
-    @Test
-    void buildRequest() throws IOException {
-        var message = message();
-        testBuildRequest_shouldReturnRequest(message, BASE_PATH + message.getProcessId() + TRANSFER_TERMINATION);
-    }
-
-    @Test
-    void buildRequest_serializationFails_throwException() {
-        testBuildRequest_shouldThrowException_whenSerializationFails(message());
-    }
-
-    @Test
     void parseResponse_returnNull() {
         testParseResponse_shouldReturnNullFunction_whenResponseBodyNotProcessed();
-    }
-
-    private TransferTerminationMessage message() {
-        return TransferTerminationMessage.Builder.newInstance()
-                .processId("testId")
-                .protocol("dataspace-protocol")
-                .counterPartyAddress("http://test-connector-address")
-                .build();
     }
 
     @Override

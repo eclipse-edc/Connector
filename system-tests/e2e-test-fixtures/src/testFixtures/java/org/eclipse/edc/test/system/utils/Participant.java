@@ -217,7 +217,7 @@ public class Participant {
                     .contentType(JSON)
                     .when()
                     .body(requestBody)
-                    .post("/v2/catalog/request")
+                    .post("/v2/catalog/dataset/request")
                     .then()
                     .log().all()
                     .statusCode(200)

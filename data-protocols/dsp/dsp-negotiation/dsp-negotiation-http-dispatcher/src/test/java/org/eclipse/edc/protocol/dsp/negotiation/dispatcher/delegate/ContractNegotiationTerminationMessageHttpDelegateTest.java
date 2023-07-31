@@ -20,12 +20,6 @@ import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatche
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.TERMINATION;
-
 class ContractNegotiationTerminationMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractNegotiationTerminationMessage> {
     
     private ContractNegotiationTerminationMessageHttpDelegate delegate;
@@ -36,36 +30,10 @@ class ContractNegotiationTerminationMessageHttpDelegateTest extends DspHttpDispa
     }
 
     @Test
-    void getMessageType() {
-        assertThat(delegate.getMessageType()).isEqualTo(ContractNegotiationTerminationMessage.class);
-    }
-
-    @Test
-    void buildRequest() throws IOException {
-        var message = message();
-        testBuildRequest_shouldReturnRequest(message, BASE_PATH + message.getProcessId() + TERMINATION);
-    }
-
-    @Test
-    void buildRequest_serializationFails_throwException() {
-        testBuildRequest_shouldThrowException_whenSerializationFails(message());
-    }
-    
-    @Test
     void parseResponse_returnNull() {
         testParseResponse_shouldReturnNullFunction_whenResponseBodyNotProcessed();
     }
 
-    private ContractNegotiationTerminationMessage message() {
-        var value = "example";
-        return ContractNegotiationTerminationMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .counterPartyAddress("http://connector")
-                .rejectionReason(value)
-                .build();
-    }
-    
     @Override
     protected DspHttpDispatcherDelegate<ContractNegotiationTerminationMessage, ?> delegate() {
         return delegate;

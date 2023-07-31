@@ -25,8 +25,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.DATASET_REQUEST;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -36,22 +34,7 @@ class DatasetRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
 
     @BeforeEach
     void setUp() {
-        delegate = new DatasetRequestHttpRawDelegate(serializer);
-    }
-
-    @Test
-    void getMessageType_returnDatasetRequest() {
-        assertThat(delegate.getMessageType()).isEqualTo(DatasetRequestMessage.class);
-    }
-
-    @Test
-    void buildRequest_returnRequest() {
-        var message = message();
-
-        var httpRequest = delegate().buildRequest(message);
-
-        assertThat(httpRequest.method()).isEqualTo("GET");
-        assertThat(httpRequest.url().url()).hasToString(message.getCounterPartyAddress() + BASE_PATH + DATASET_REQUEST + "/" + message.getDatasetId());
+        delegate = new DatasetRequestHttpRawDelegate();
     }
 
     @Test

@@ -57,6 +57,7 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .body(requestBody)
                 .post("/v2/catalog/request")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .contentType(JSON)
                 .body(TYPE, is("dcat:Catalog"));

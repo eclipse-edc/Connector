@@ -37,8 +37,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -58,39 +56,6 @@ public abstract class DspHttpDispatcherDelegateTestBase<M extends RemoteMessage>
      * @return the delegate
      */
     protected abstract DspHttpDispatcherDelegate<M, ?> delegate();
-
-    /**
-     * Checks that a delegate, given a message, builds the expected HTTP request. The message should
-     * be serialized and added as the request body. Validates that the delegate sets the expected
-     * request path. Relevant for all delegates.
-     *
-     * @param message the message
-     * @param path    the expected path
-     */
-    protected void testBuildRequest_shouldReturnRequest(M message, String path) throws IOException {
-        var serializedBody = "serialized";
-
-        when(serializer.serialize(eq(message))).thenReturn(serializedBody);
-
-        var httpRequest = delegate().buildRequest(message);
-
-        assertThat(httpRequest.url().url()).hasToString(message.getCounterPartyAddress() + path);
-        assertThat(readRequestBody(httpRequest)).isEqualTo(serializedBody);
-
-        verify(serializer, times(1)).serialize(eq(message));
-    }
-
-    /**
-     * Checks that a delegate throws an exception if serialization of the message to send fails.
-     * Relevant for all delegates.
-     *
-     * @param message the message
-     */
-    protected void testBuildRequest_shouldThrowException_whenSerializationFails(M message) {
-        when(serializer.serialize(eq(message))).thenThrow(EdcException.class);
-
-        assertThatThrownBy(() -> delegate().buildRequest(message)).isInstanceOf(EdcException.class);
-    }
 
     /**
      * Checks that a delegate throws an exception when the response body is missing. Only relevant

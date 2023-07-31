@@ -14,23 +14,16 @@
 
 package org.eclipse.edc.protocol.dsp;
 
-import okhttp3.Request;
-import okhttp3.Response;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenDecorator;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -41,78 +34,39 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class DspHttpCoreExtensionTest {
 
+    private final IdentityService identityService = mock();
     private DspHttpCoreExtension extension;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(RemoteMessageDispatcherRegistry.class, mock(RemoteMessageDispatcherRegistry.class));
-
+        context.registerService(IdentityService.class, identityService);
     }
 
     @Test
     @DisplayName("Assert usage of the default (noop) token decorator")
     void createDispatcher_noTokenDecorator_shouldUseNoop(ServiceExtensionContext context, ObjectFactory factory) {
-        var isMock = mock(IdentityService.class);
-        when(isMock.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
-        context.registerService(IdentityService.class, isMock);
+        when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
         context.registerService(TokenDecorator.class, null);
-
 
         extension = factory.constructInstance(DspHttpCoreExtension.class);
         var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
-        dispatcher.registerDelegate(new TestMessageDelegate());
-        dispatcher.dispatch(String.class, new TestMessage());
+        dispatcher.registerMessage(TestMessage.class, mock(), mock());
+        dispatcher.dispatch(String.class, new TestMessage("protocol", "address"));
 
-        verify(isMock).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope() == null));
+        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope() == null));
     }
 
     @Test
     @DisplayName("Assert usage of an injected TokenDecorator")
     void createDispatcher_withTokenDecorator_shouldUse(ServiceExtensionContext context, ObjectFactory factory) {
-        var isMock = mock(IdentityService.class);
-        when(isMock.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
-        context.registerService(IdentityService.class, isMock);
+        when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
         context.registerService(TokenDecorator.class, (td) -> td.scope("test-scope"));
-
 
         extension = factory.constructInstance(DspHttpCoreExtension.class);
         var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
-        dispatcher.registerDelegate(new TestMessageDelegate());
-        dispatcher.dispatch(String.class, new TestMessage());
+        dispatcher.registerMessage(TestMessage.class, mock(), mock());
+        dispatcher.dispatch(String.class, new TestMessage("protocol", "address"));
 
-        verify(isMock).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope().equals("test-scope")));
-    }
-
-    private static class TestMessage implements RemoteMessage {
-        @Override
-        public String getProtocol() {
-            return null;
-        }
-
-        @Override
-        public String getCounterPartyAddress() {
-            return "http://connector";
-        }
-    }
-
-    private static class TestMessageDelegate extends DspHttpDispatcherDelegate<TestMessage, String> {
-        protected TestMessageDelegate() {
-            super(null);
-        }
-
-        @Override
-        public Class<TestMessage> getMessageType() {
-            return TestMessage.class;
-        }
-
-        @Override
-        public Request buildRequest(TestMessage message) {
-            return null;
-        }
-
-        @Override
-        public Function<Response, String> parseResponse() {
-            return null;
-        }
+        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope().equals("test-scope")));
     }
 }

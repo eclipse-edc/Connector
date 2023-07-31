@@ -18,7 +18,6 @@ import okhttp3.ResponseBody;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,8 +25,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.CATALOG_REQUEST;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,22 +34,7 @@ class CatalogRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
 
     @BeforeEach
     void setUp() {
-        delegate = new CatalogRequestHttpRawDelegate(serializer);
-    }
-
-    @Test
-    void getMessageType_returnCatalogRequest() {
-        assertThat(delegate.getMessageType()).isEqualTo(CatalogRequestMessage.class);
-    }
-
-    @Test
-    void buildRequest_returnRequest() throws IOException {
-        testBuildRequest_shouldReturnRequest(message(), BASE_PATH + CATALOG_REQUEST);
-    }
-
-    @Test
-    void buildRequest_serializationFails_throwException() {
-        testBuildRequest_shouldThrowException_whenSerializationFails(message());
+        delegate = new CatalogRequestHttpRawDelegate();
     }
 
     @Test
@@ -79,11 +61,4 @@ class CatalogRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
         return delegate;
     }
 
-    private CatalogRequestMessage message() {
-        return CatalogRequestMessage.Builder.newInstance()
-                .counterPartyAddress("http://connector")
-                .protocol("protocol")
-                .querySpec(QuerySpec.max())
-                .build();
-    }
 }

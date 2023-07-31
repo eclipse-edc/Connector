@@ -15,18 +15,13 @@
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
-import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
 import java.util.function.Function;
-
-import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.CATALOG_REQUEST;
 
 /**
  * Delegate for dispatching catalog requests as defined in the
@@ -34,26 +29,8 @@ import static org.eclipse.edc.protocol.dsp.catalog.dispatcher.CatalogApiPaths.CA
  */
 public class CatalogRequestHttpRawDelegate extends DspHttpDispatcherDelegate<CatalogRequestMessage, byte[]> {
 
-    public CatalogRequestHttpRawDelegate(JsonLdRemoteMessageSerializer serializer) {
-        super(serializer);
-    }
-
-    @Override
-    public Class<CatalogRequestMessage> getMessageType() {
-        return CatalogRequestMessage.class;
-    }
-
-    /**
-     * Sends a catalog request. The request body is constructed as defined in the dataspace protocol
-     * implementation. The request is sent to the remote component using the path from the
-     * specification.
-     *
-     * @param message the message
-     * @return the built okhttp request
-     */
-    @Override
-    public Request buildRequest(CatalogRequestMessage message) {
-        return buildPostRequest(message, BASE_PATH + CATALOG_REQUEST);
+    public CatalogRequestHttpRawDelegate() {
+        super();
     }
 
     /**

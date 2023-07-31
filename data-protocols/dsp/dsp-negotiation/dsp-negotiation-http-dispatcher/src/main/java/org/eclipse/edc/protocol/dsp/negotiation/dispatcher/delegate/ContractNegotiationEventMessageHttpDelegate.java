@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
-import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -22,34 +21,13 @@ import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSeriali
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.EVENT;
-
 /**
  * Delegate for dispatching contract negotiation event message as defined in the dataspace protocol specification.
  */
 public class ContractNegotiationEventMessageHttpDelegate extends DspHttpDispatcherDelegate<ContractNegotiationEventMessage, Object> {
 
     public ContractNegotiationEventMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer) {
-        super(serializer);
-    }
-
-    @Override
-    public Class<ContractNegotiationEventMessage> getMessageType() {
-        return ContractNegotiationEventMessage.class;
-    }
-
-    /**
-     * Sends a contract negotiation event message. The request body is constructed as defined in the
-     * dataspace protocol. The request is sent to the remote component using the path from the http
-     * binding.
-     *
-     * @param message the message.
-     * @return the built okhttp request.
-     */
-    @Override
-    public Request buildRequest(ContractNegotiationEventMessage message) {
-        return buildPostRequest(message, BASE_PATH + message.getProcessId() + EVENT);
+        super();
     }
 
     /**

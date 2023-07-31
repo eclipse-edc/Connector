@@ -20,13 +20,6 @@ import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatche
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.VERIFICATION;
-
 class ContractAgreementVerificationMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractAgreementVerificationMessage> {
     
     private ContractAgreementVerificationMessageHttpDelegate delegate;
@@ -37,35 +30,10 @@ class ContractAgreementVerificationMessageHttpDelegateTest extends DspHttpDispat
     }
 
     @Test
-    void getMessageType() {
-        assertThat(delegate.getMessageType()).isEqualTo(ContractAgreementVerificationMessage.class);
-    }
-
-    @Test
-    void buildRequest() throws IOException {
-        var message = message();
-        testBuildRequest_shouldReturnRequest(message, BASE_PATH + message.getProcessId() + AGREEMENT + VERIFICATION);
-    }
-
-    @Test
-    void buildRequest_serializationFails_throwException() {
-        testBuildRequest_shouldThrowException_whenSerializationFails(message());
-    }
-
-    @Test
     void parseResponse_returnNull() {
         testParseResponse_shouldReturnNullFunction_whenResponseBodyNotProcessed();
     }
 
-    private ContractAgreementVerificationMessage message() {
-        var value = "example";
-        return ContractAgreementVerificationMessage.Builder.newInstance()
-                .protocol(value)
-                .processId(value)
-                .counterPartyAddress("http://connector")
-                .build();
-    }
-    
     @Override
     protected DspHttpDispatcherDelegate<ContractAgreementVerificationMessage, ?> delegate() {
         return delegate;

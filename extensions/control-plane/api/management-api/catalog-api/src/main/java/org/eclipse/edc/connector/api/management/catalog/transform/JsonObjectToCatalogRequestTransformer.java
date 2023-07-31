@@ -51,10 +51,15 @@ public class JsonObjectToCatalogRequestTransformer extends AbstractJsonLdTransfo
                     return object.get(CATALOG_REQUEST_PROVIDER_URL);
                 });
 
+        var querySpec = Optional.of(object)
+                .map(it -> it.get(CATALOG_REQUEST_QUERY_SPEC))
+                .map(it -> transformObject(it, QuerySpec.class, context))
+                .orElse(null);
+
         return CatalogRequest.Builder.newInstance()
                 .protocol(transformString(object.get(CATALOG_REQUEST_PROTOCOL), context))
-                .querySpec(transformObject(object.get(CATALOG_REQUEST_QUERY_SPEC), QuerySpec.class, context))
                 .counterPartyAddress(transformString(counterPartyAddress, context))
+                .querySpec(querySpec)
                 .build();
     }
 
