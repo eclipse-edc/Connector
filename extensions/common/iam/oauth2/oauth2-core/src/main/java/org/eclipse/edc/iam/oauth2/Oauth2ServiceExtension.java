@@ -46,8 +46,6 @@ import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
-
 /**
  * Provides OAuth2 client credentials flow support.
  */
@@ -64,9 +62,6 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     @Setting(value = "incoming tokens 'aud' claim required value, by default it's the provider audience value")
     private static final String ENDPOINT_AUDIENCE = "edc.oauth.endpoint.audience";
 
-    @Deprecated(since = "milestone8")
-    @Setting
-    private static final String DEPRECATED_PUBLIC_KEY_ALIAS = "edc.oauth.public.key.alias";
     @Setting
     private static final String PUBLIC_CERTIFICATE_ALIAS = "edc.oauth.certificate.alias";
     @Setting
@@ -157,7 +152,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         var providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getConnectorId());
         var endpointAudience = context.getSetting(ENDPOINT_AUDIENCE, providerAudience);
         var tokenUrl = context.getConfig().getString(TOKEN_URL);
-        var publicCertificateAlias = getPublicCertificateAlias(context);
+        var publicCertificateAlias = context.getConfig().getString(PUBLIC_CERTIFICATE_ALIAS);
         var privateKeyAlias = context.getConfig().getString(PRIVATE_KEY_ALIAS);
         var clientId = context.getConfig().getString(CLIENT_ID);
         var tokenExpiration = context.getSetting(TOKEN_EXPIRATION, DEFAULT_TOKEN_EXPIRATION);
@@ -176,14 +171,4 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 .build();
     }
 
-    private String getPublicCertificateAlias(ServiceExtensionContext context) {
-        if (context.getConfig().hasPath(DEPRECATED_PUBLIC_KEY_ALIAS)) {
-            context.getMonitor().warning(
-                    format("Deprecated settings %s is being used for public certificate alias, please switch to the new settings %s",
-                            DEPRECATED_PUBLIC_KEY_ALIAS, PUBLIC_CERTIFICATE_ALIAS));
-            return context.getConfig().getString(DEPRECATED_PUBLIC_KEY_ALIAS);
-        } else {
-            return context.getConfig().getString(PUBLIC_CERTIFICATE_ALIAS);
-        }
-    }
 }

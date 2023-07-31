@@ -51,11 +51,6 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public @NotNull Result<Boolean> validate(DataFlowRequest request) {
-        return validateRequest(request).map(it -> true);
-    }
-
-    @Override
     public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         try {
             createSource(request);

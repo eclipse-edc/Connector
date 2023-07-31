@@ -83,11 +83,6 @@ public class EndToEndTest {
         }
 
         @Override
-        public @NotNull Result<Boolean> validate(DataFlowRequest request) {
-            return VALID;
-        }
-
-        @Override
         public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
             return Result.success();
         }

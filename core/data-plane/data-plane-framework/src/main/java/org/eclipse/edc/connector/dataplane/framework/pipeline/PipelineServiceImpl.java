@@ -60,7 +60,7 @@ public class PipelineServiceImpl implements PipelineService {
             return Result.failure("Data source not supported for: " + request.getId());
         }
 
-        var sourceValidation = sourceFactory.validate(request);
+        var sourceValidation = sourceFactory.validateRequest(request);
         if (sourceValidation.failed()) {
             return Result.failure(sourceValidation.getFailureMessages());
         }
@@ -71,7 +71,7 @@ public class PipelineServiceImpl implements PipelineService {
             return Result.failure("Data sink not supported for: " + request.getId());
         }
 
-        var sinkValidation = sinkFactory.validate(request);
+        var sinkValidation = sinkFactory.validateRequest(request);
         if (sinkValidation.failed()) {
             return Result.failure(sinkValidation.getFailureMessages());
         }

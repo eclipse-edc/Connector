@@ -51,14 +51,14 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
     }
 
     @Override
-    public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var destination = request.getDestinationDataAddress();
-        return validation.apply(destination).map(it -> true);
+        return validation.apply(destination);
     }
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        var validationResult = validate(request);
+        var validationResult = validateRequest(request);
         if (validationResult.failed()) {
             throw new EdcException(validationResult.getFailureDetail());
         }

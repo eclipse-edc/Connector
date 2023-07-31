@@ -41,15 +41,12 @@ import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.SCOPE;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.VALIDITY;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -82,28 +79,6 @@ class Oauth2CredentialsRequestFactoryTest {
                     assertThat(request.getScope()).isEqualTo("scope");
                 });
         verifyNoInteractions(privateKeyResolver);
-    }
-
-    @Test
-    void shouldCreateSharedSecretRequest_whenPrivateKeyNameIsAbsentAndSecret_deprecated() {
-        var address = defaultAddress()
-                .property(CLIENT_SECRET, "clientSecret")
-                .property(SCOPE, "scope")
-                .build();
-
-        var result = factory.create(address);
-
-        assertThat(result).matches(Result::succeeded).extracting(Result::getContent)
-                .asInstanceOf(type(SharedSecretOauth2CredentialsRequest.class))
-                .satisfies(request -> {
-                    assertThat(request.getGrantType()).isEqualTo("client_credentials");
-                    assertThat(request.getClientId()).isEqualTo("clientId");
-                    assertThat(request.getClientSecret()).isEqualTo("clientSecret");
-                    assertThat(request.getUrl()).isEqualTo("http://oauth2-server.com/token");
-                    assertThat(request.getScope()).isEqualTo("scope");
-                });
-        verifyNoInteractions(privateKeyResolver);
-        verify(monitor).warning(anyString());
     }
 
     @Test

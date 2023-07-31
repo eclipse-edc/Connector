@@ -58,7 +58,7 @@ class KafkaDataSourceFactoryTest {
         when(propertiesFactory.getConsumerProperties(request.getSourceDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
         assertThat(result.succeeded()).isTrue();
     }
 
@@ -69,7 +69,7 @@ class KafkaDataSourceFactoryTest {
         when(propertiesFactory.getConsumerProperties(request.getSourceDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureDetail()).contains("topic");
     }
@@ -82,7 +82,7 @@ class KafkaDataSourceFactoryTest {
         when(propertiesFactory.getConsumerProperties(request.getSourceDataAddress().getProperties()))
                 .thenReturn(Result.failure(errorMsg));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureDetail()).contains(errorMsg);
     }

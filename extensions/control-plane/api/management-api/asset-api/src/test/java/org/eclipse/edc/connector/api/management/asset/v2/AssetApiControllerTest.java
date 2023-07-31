@@ -72,7 +72,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-@Deprecated
+@Deprecated(since = "0.1.3")
 class AssetApiControllerTest extends RestControllerTestBase {
 
     private static final String TEST_ASSET_ID = "test-asset-id";

@@ -58,7 +58,8 @@ class KafkaDataSinkFactoryTest {
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
+
         assertThat(result.succeeded()).isTrue();
     }
 
@@ -69,7 +70,8 @@ class KafkaDataSinkFactoryTest {
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
+
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureDetail()).contains("topic");
     }
@@ -82,7 +84,8 @@ class KafkaDataSinkFactoryTest {
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.failure(errorMsg));
 
-        var result = factory.validate(request);
+        var result = factory.validateRequest(request);
+
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureDetail()).contains(errorMsg);
     }
