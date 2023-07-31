@@ -34,7 +34,7 @@ rsApi = "3.1.0"
 slf4j = "2.0.7"
 swagger-annotations-jakarta = "2.2.15"
 titanium = "1.3.2"
-kafkaClients = "3.5.0"
+kafkaClients = "3.5.1"
 testcontainers = "1.18.3"
 
 
