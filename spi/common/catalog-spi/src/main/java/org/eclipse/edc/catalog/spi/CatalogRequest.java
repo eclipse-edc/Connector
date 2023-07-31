@@ -25,18 +25,20 @@ public class CatalogRequest {
 
     public static final String CATALOG_REQUEST_TYPE = EDC_NAMESPACE + "CatalogRequest";
     public static final String CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String CATALOG_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
+    @Deprecated(since = "0.2.0")
     public static final String CATALOG_REQUEST_PROVIDER_URL = EDC_NAMESPACE + "providerUrl";
     public static final String CATALOG_REQUEST_QUERY_SPEC = EDC_NAMESPACE + "querySpec";
 
     private QuerySpec querySpec;
-    private String providerUrl;
+    private String counterPartyAddress;
     private String protocol;
 
     private CatalogRequest() {
     }
 
-    public String getProviderUrl() {
-        return providerUrl;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     public QuerySpec getQuerySpec() {
@@ -65,8 +67,8 @@ public class CatalogRequest {
             return this;
         }
 
-        public Builder providerUrl(String providerUrl) {
-            instance.providerUrl = providerUrl;
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            instance.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
@@ -76,7 +78,6 @@ public class CatalogRequest {
         }
 
         public CatalogRequest build() {
-            requireNonNull(instance.providerUrl, "providerUrl");
             return instance;
         }
     }

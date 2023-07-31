@@ -57,7 +57,7 @@ public abstract class AbstractEndToEndTransfer {
             .build();
 
     @Test
-    void httpPullDataTransfer() {
+    void httpPull_dataTransfer() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());

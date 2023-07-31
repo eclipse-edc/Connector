@@ -45,6 +45,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class CatalogApiTest {
 
@@ -54,7 +55,7 @@ class CatalogApiTest {
 
     @BeforeEach
     void setUp() {
-        transformer.register(new JsonObjectToCatalogRequestTransformer());
+        transformer.register(new JsonObjectToCatalogRequestTransformer(mock()));
         transformer.register(new JsonObjectToDatasetRequestTransformer());
         transformer.register(new JsonObjectToQuerySpecTransformer());
     }
@@ -73,7 +74,7 @@ class CatalogApiTest {
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
                             assertThat(transformed.getProtocol()).isNotBlank();
-                            assertThat(transformed.getProviderUrl()).isNotBlank();
+                            assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                             assertThat(transformed.getQuerySpec()).isNotNull();
                         }));
     }

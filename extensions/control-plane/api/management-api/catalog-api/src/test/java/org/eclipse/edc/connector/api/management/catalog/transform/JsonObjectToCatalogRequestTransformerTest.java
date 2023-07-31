@@ -17,17 +17,20 @@ package org.eclipse.edc.connector.api.management.catalog.transform;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,8 +38,9 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToCatalogRequestTransformerTest {
 
-    private final JsonObjectToCatalogRequestTransformer transformer = new JsonObjectToCatalogRequestTransformer();
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
+    private final Monitor monitor = mock();
+    private final JsonObjectToCatalogRequestTransformer transformer = new JsonObjectToCatalogRequestTransformer(monitor);
 
     @Test
     void types() {
@@ -52,6 +56,27 @@ class JsonObjectToCatalogRequestTransformerTest {
         var json = Json.createObjectBuilder()
                 .add(TYPE, CATALOG_REQUEST_TYPE)
                 .add(CATALOG_REQUEST_PROTOCOL, "protocol")
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, "http://provider/url")
+                .add(CATALOG_REQUEST_QUERY_SPEC, querySpecJson)
+                .build();
+
+        var result = transformer.transform(json, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getProtocol()).isEqualTo("protocol");
+        assertThat(result.getCounterPartyAddress()).isEqualTo("http://provider/url");
+        assertThat(result.getQuerySpec()).isEqualTo(querySpec);
+        verify(context).transform(querySpecJson, QuerySpec.class);
+    }
+
+    @Test
+    void transform_shouldUseProviderId_whenCounterPartyAddressIsMissing() {
+        var querySpec = QuerySpec.Builder.newInstance().build();
+        var querySpecJson = Json.createObjectBuilder().build();
+        when(context.transform(any(), eq(QuerySpec.class))).thenReturn(querySpec);
+        var json = Json.createObjectBuilder()
+                .add(TYPE, CATALOG_REQUEST_TYPE)
+                .add(CATALOG_REQUEST_PROTOCOL, "protocol")
                 .add(CATALOG_REQUEST_PROVIDER_URL, "http://provider/url")
                 .add(CATALOG_REQUEST_QUERY_SPEC, querySpecJson)
                 .build();
@@ -60,9 +85,10 @@ class JsonObjectToCatalogRequestTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getProtocol()).isEqualTo("protocol");
-        assertThat(result.getProviderUrl()).isEqualTo("http://provider/url");
+        assertThat(result.getCounterPartyAddress()).isEqualTo("http://provider/url");
         assertThat(result.getQuerySpec()).isEqualTo(querySpec);
         verify(context).transform(querySpecJson, QuerySpec.class);
+        verify(monitor).warning(anyString());
     }
 
 }

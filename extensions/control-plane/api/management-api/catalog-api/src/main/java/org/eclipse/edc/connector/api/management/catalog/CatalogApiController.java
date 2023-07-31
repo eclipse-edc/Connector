@@ -61,7 +61,7 @@ public class CatalogApiController implements CatalogApi {
         var request = transformerRegistry.transform(requestBody, CatalogRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.requestCatalog(request.getProviderUrl(), request.getProtocol(), request.getQuerySpec())
+        service.requestCatalog(request.getCounterPartyAddress(), request.getProtocol(), request.getQuerySpec())
                 .whenComplete((result, throwable) -> {
                     try {
                         response.resume(toResponse(result, throwable));

@@ -48,7 +48,7 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
-                .add("providerUrl", providerUrl)
+                .add("counterPartyAddress", providerUrl)
                 .add("protocol", "dataspace-protocol-http")
                 .build();
 
@@ -103,7 +103,7 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
-                .add("providerUrl", providerUrl)
+                .add("counterPartyAddress", providerUrl)
                 .add("protocol", "dataspace-protocol-http")
                 .add("querySpec", querySpec)
                 .build();

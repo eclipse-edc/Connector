@@ -59,7 +59,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestCatalog() {
-        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.requestCatalog(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
@@ -110,7 +110,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestCatalog_shouldReturnBadGateway_whenServiceFails() {
-        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.requestCatalog(any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
@@ -128,7 +128,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestCatalog_shouldReturnBadGateway_whenServiceThrowsException() {
-        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.requestCatalog(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));

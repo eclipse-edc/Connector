@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -168,7 +167,7 @@ public class Participant {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
-                .add("providerUrl", provider.protocolEndpoint.url.toString())
+                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", DSP_PROTOCOL)
                 .build();
 
@@ -204,12 +203,34 @@ public class Participant {
      * @return dataset.
      */
     public JsonObject getDatasetForAsset(Participant provider, String assetId) {
-        var datasets = getCatalogDatasets(provider);
-        return datasets.stream()
-                .map(JsonValue::asJsonObject)
-                .filter(it -> assetId.equals(extractContractDefinitionId(it).assetIdPart()))
-                .findFirst()
-                .orElseThrow(() -> new EdcException(format("No dataset for asset %s in the catalog", assetId)));
+        var datasetReference = new AtomicReference<JsonObject>();
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "DatasetRequest")
+                .add(ID, assetId)
+                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
+                .add("protocol", DSP_PROTOCOL)
+                .build();
+
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            var response = managementEndpoint.baseRequest()
+                    .contentType(JSON)
+                    .when()
+                    .body(requestBody)
+                    .post("/v2/catalog/request")
+                    .then()
+                    .log().all()
+                    .statusCode(200)
+                    .extract().body().asString();
+
+            var compacted = objectMapper.readValue(response, JsonObject.class);
+
+            var dataset = jsonLd.expand(compacted).orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
+            datasetReference.set(dataset);
+        });
+
+        return datasetReference.get();
     }
 
     /**

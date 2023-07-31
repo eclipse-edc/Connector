@@ -58,7 +58,11 @@ public interface CatalogApi {
     @Schema(name = "CatalogRequest", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
     record CatalogRequestSchema(
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
+            String type,
+            @Deprecated(since = "0.2.0")
+            @Schema(deprecated = true, description = "please use counterPartyAddress instead")
             String providerUrl,
+            String counterPartyAddress,
             String protocol,
             ApiCoreSchema.QuerySpecSchema querySpec) {
 
@@ -66,7 +70,7 @@ public interface CatalogApi {
                 {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "CatalogRequest",
-                    "providerUrl": "http://provider-address",
+                    "counterPartyAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
                     "querySpec": {
                         "offset": 0,
@@ -82,7 +86,8 @@ public interface CatalogApi {
     @Schema(name = "DatasetRequest", example = DatasetRequestSchema.DATASET_REQUEST_EXAMPLE)
     record DatasetRequestSchema(
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
-            String providerUrl,
+            String type,
+            String counterPartyAddress,
             String protocol,
             ApiCoreSchema.QuerySpecSchema querySpec) {
 
