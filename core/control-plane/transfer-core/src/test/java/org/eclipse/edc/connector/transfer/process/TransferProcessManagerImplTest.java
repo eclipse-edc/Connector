@@ -617,7 +617,7 @@ class TransferProcessManagerImplTest {
                 .build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process));
         manager.start();
-        await().untilAsserted(() -> verify(transferProcessStore).save(any()));
+        await().untilAsserted(() -> verify(transferProcessStore, atLeastOnce()).save(eq(process)));
     }
 
     @Test

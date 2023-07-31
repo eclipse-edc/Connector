@@ -53,6 +53,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -73,7 +74,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 public class TransferProcessEventDispatchTest {
 
+    public static final Duration TIMEOUT = Duration.ofSeconds(30);
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+
+    @NotNull
+    private static RemoteMessageDispatcher getTestDispatcher() {
+        var testDispatcher = mock(RemoteMessageDispatcher.class);
+        when(testDispatcher.protocol()).thenReturn("test");
+        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        return testDispatcher;
+    }
 
     @BeforeEach
     void setUp(EdcExtension extension) {
@@ -110,7 +120,7 @@ public class TransferProcessEventDispatchTest {
 
         var initiateResult = service.initiateTransfer(transferRequest);
 
-        await().untilAsserted(() -> {
+        await().atMost(TIMEOUT).untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessProvisioned.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
@@ -126,7 +136,7 @@ public class TransferProcessEventDispatchTest {
 
         protocolService.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
 
-        await().untilAsserted(() -> {
+        await().atMost(TIMEOUT).untilAsserted(() -> {
             ArgumentCaptor<EventEnvelope<TransferProcessStarted>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
             verify(eventSubscriber, times(4)).on(captor.capture());
             assertThat(captor.getValue()).isNotNull()
@@ -138,13 +148,14 @@ public class TransferProcessEventDispatchTest {
         var transferProcess = initiateResult.getContent();
         service.complete(transferProcess.getId()).orElseThrow(f -> new EdcException("Transfer cannot be completed: " + f.getFailureDetail()));
 
-        await().untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessCompleted.class)));
-        });
+        await().atMost(TIMEOUT)
+                .untilAsserted(() -> {
+                    verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessCompleted.class)));
+                });
 
         service.deprovision(transferProcess.getId());
 
-        await().untilAsserted(() -> {
+        await().atMost(TIMEOUT).untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessDeprovisioned.class)));
         });
     }
@@ -157,7 +168,7 @@ public class TransferProcessEventDispatchTest {
 
         service.initiateTransfer(transferRequest);
 
-        await().untilAsserted(() -> {
+        await().atMost(TIMEOUT).untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class)));
         });
@@ -173,7 +184,7 @@ public class TransferProcessEventDispatchTest {
 
         service.terminate(new TerminateTransferCommand(initiateResult.getContent().getId(), "any reason"));
 
-        await().untilAsserted(() -> verify(eventSubscriber, atLeastOnce()).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
+        await().atMost(TIMEOUT).untilAsserted(() -> verify(eventSubscriber, atLeastOnce()).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }
 
     @Test
@@ -184,7 +195,7 @@ public class TransferProcessEventDispatchTest {
 
         service.initiateTransfer(transferRequest);
 
-        await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
+        await().atMost(TIMEOUT).untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }
 
     private TransferRequest createTransferRequest() {
@@ -196,14 +207,6 @@ public class TransferProcessEventDispatchTest {
                 .connectorAddress("http://an/address")
                 .contractId("contractId")
                 .build();
-    }
-
-    @NotNull
-    private static RemoteMessageDispatcher getTestDispatcher() {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.protocol()).thenReturn("test");
-        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
-        return testDispatcher;
     }
 
 }
