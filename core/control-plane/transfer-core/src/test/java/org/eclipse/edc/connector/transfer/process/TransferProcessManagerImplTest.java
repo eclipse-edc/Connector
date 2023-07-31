@@ -611,6 +611,16 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
+    void started_shouldBreakLeaseIfNotConsumer() {
+        var process = createTransferProcessBuilder(STARTED)
+                .type(PROVIDER)
+                .build();
+        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process));
+        manager.start();
+        await().untilAsserted(() -> verify(transferProcessStore).save(any()));
+    }
+
+    @Test
     void completing_shouldTransitionToCompleted_whenSendingMessageSucceed() {
         var process = createTransferProcess(COMPLETING);
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
