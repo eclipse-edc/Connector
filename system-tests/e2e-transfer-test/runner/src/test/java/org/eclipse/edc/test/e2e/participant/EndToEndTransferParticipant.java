@@ -233,6 +233,21 @@ public class EndToEndTransferParticipant extends Participant {
         return baseConfiguration;
     }
 
+    public Map<String, String> controlPlanePostgresDefaultConfiguration() {
+        var baseConfiguration = controlPlaneConfiguration();
+
+        var postgresConfiguration = new HashMap<String, String>() {
+            {
+                put("edc.datasource.default.url", jdbcUrl());
+                put("edc.datasource.default.user", PostgresConstants.USER);
+                put("edc.datasource.default.password", PostgresConstants.PASSWORD);
+            }
+        };
+        baseConfiguration.putAll(postgresConfiguration);
+
+        return baseConfiguration;
+    }
+
     @NotNull
     public String jdbcUrl() {
         return PostgresConstants.JDBC_URL_PREFIX + getName();

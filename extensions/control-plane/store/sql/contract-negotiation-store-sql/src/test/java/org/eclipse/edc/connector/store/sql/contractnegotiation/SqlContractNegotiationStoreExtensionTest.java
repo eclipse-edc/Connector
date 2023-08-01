@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.Base
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.injection.EdcInjectionException;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -31,7 +32,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.connector.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension.DATASOURCE_NAME_SETTING;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class SqlContractNegotiationStoreExtensionTest {
@@ -40,6 +45,11 @@ class SqlContractNegotiationStoreExtensionTest {
 
     @Test
     void initialize(ServiceExtensionContext context, ObjectFactory factory) {
+        var ctx = spy(context);
+        var config = mock(Config.class);
+        when(ctx.getConfig()).thenReturn(config);
+        when(config.getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE)).thenReturn("test");
+
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
         context.registerService(ContractNegotiationStatements.class, null);
@@ -47,11 +57,13 @@ class SqlContractNegotiationStoreExtensionTest {
 
         extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
 
-        extension.initialize(context);
+        extension.initialize(ctx);
 
-        var service = context.getService(ContractNegotiationStore.class);
+        var service = ctx.getService(ContractNegotiationStore.class);
         assertThat(service).isInstanceOf(SqlContractNegotiationStore.class);
         assertThat(service).extracting("statements").isInstanceOf(BaseSqlDialectStatements.class);
+        verify(config).getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
+
     }
 
     @Test

@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.store.sql;
+package org.eclipse.edc.connector.store.sql.policydefinition;
 
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.store.sql.policydefinition.store.SqlPolicyDefinitionStore;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.store.sql.SqlDataPlaneInstanceStoreExtension.DATASOURCE_SETTING_NAME;
+import static org.eclipse.edc.connector.store.sql.policydefinition.SqlPolicyStoreExtension.DATASOURCE_SETTING_NAME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -33,27 +34,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-public class SqlDataPlaneInstanceStoreExtensionTest {
+public class SqlPolicyDefinitionStoreExtensionTest {
 
-    SqlDataPlaneInstanceStoreExtension extension;
     ServiceExtensionContext context;
 
-
     @BeforeEach
-    void setUp(ObjectFactory factory, ServiceExtensionContext context) {
+    void setUp(ServiceExtensionContext context) {
         this.context = spy(context);
         context.registerService(TypeManager.class, new TypeManager());
-        extension = factory.constructInstance(SqlDataPlaneInstanceStoreExtension.class);
     }
 
     @Test
-    void shouldInitializeTheStore() {
+    void shouldInitializeTheStore(SqlPolicyStoreExtension extension) {
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
         when(config.getString(any(), any())).thenReturn("test");
 
-        var store = extension.dataPlaneInstanceStore(context);
-        assertThat(store).isInstanceOf(SqlDataPlaneInstanceStore.class);
+        extension.initialize(context);
+
+        var service = context.getService(PolicyDefinitionStore.class);
+        assertThat(service).isInstanceOf(SqlPolicyDefinitionStore.class);
 
         verify(config).getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
     }

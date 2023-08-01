@@ -50,7 +50,7 @@ public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
+        var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
 
         var sqlAssetLoader = new SqlAssetIndex(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), getDialect(), queryExecutor);
 

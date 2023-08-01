@@ -36,8 +36,7 @@ import java.time.Clock;
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
     @Setting
-    private static final String DATASOURCE_NAME_SETTING = "edc.datasource.transferprocess.name";
-    private static final String DEFAULT_DATASOURCE_NAME = "transferprocess";
+    public static final String DATASOURCE_NAME_SETTING = "edc.datasource.transferprocess.name";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -70,6 +69,6 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_NAME_SETTING, DEFAULT_DATASOURCE_NAME);
+        return context.getConfig().getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
     }
 }

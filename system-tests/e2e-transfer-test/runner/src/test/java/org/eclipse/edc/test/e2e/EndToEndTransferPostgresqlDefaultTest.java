@@ -26,13 +26,13 @@ import java.util.HashMap;
 import static org.eclipse.edc.test.e2e.PostgresUtil.createDatabase;
 
 @PostgresqlDbIntegrationTest
-class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
+class EndToEndTransferPostgresqlDefaultTest extends AbstractEndToEndTransfer {
 
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane-postgresql",
             "consumer-control-plane",
-            CONSUMER.controlPlanePostgresConfiguration()
+            CONSUMER.controlPlanePostgresDefaultConfiguration()
     );
 
     @RegisterExtension
@@ -64,7 +64,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
     static EdcRuntimeExtension providerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane-postgresql",
             "provider-control-plane",
-            PROVIDER.controlPlanePostgresConfiguration()
+            PROVIDER.controlPlanePostgresDefaultConfiguration()
     );
 
     @RegisterExtension
@@ -83,5 +83,4 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
         createDatabase(CONSUMER);
         createDatabase(PROVIDER);
     }
-
 }
