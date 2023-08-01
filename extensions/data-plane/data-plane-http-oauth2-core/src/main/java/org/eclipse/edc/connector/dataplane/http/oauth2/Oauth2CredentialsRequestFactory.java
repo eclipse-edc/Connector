@@ -34,7 +34,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.SCOPE;
@@ -89,12 +88,7 @@ public class Oauth2CredentialsRequestFactory {
         var clientSecret = Optional.of(dataAddress)
                 .map(a -> a.getProperty(CLIENT_SECRET_KEY))
                 .map(vault::resolveSecret)
-                .orElseGet(() -> {
-                    monitor.warning("data-plane-http-oauth2: storing the client_secret into the DataAddress " +
-                            "oauth2:clientSecret property has been deprecated, please store it in the Vault and use the " +
-                            "oauth2:clientSecretKey property to reference it");
-                    return dataAddress.getProperty(CLIENT_SECRET);
-                });
+                .orElse(null);
 
         if (clientSecret == null) {
             return Result.failure("Cannot resolve client secret from the vault: " + dataAddress.getProperty(CLIENT_SECRET_KEY));

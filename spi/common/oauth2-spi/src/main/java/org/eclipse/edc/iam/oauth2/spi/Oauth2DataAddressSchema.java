@@ -21,13 +21,4 @@ public interface Oauth2DataAddressSchema {
     String VALIDITY = "oauth2:validity";
     String PRIVATE_KEY_NAME = "oauth2:privateKeyName";
     String SCOPE = "oauth2:scope";
-
-    /**
-     * The client secret shouldn't be stored in the data address anymore, please store the key and then put the value
-     * into the Vault
-     *
-     * @deprecated use CLIENT_SECRET_KEY instead
-     */
-    @Deprecated(since = "milestone8")
-    String CLIENT_SECRET = "oauth2:clientSecret";
 }

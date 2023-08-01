@@ -24,22 +24,9 @@ import org.jetbrains.annotations.NotNull;
 public interface DataSourceFactory {
 
     /**
-     * A successful validation result.
-     */
-    Result<Boolean> VALID = Result.success(true);
-
-    /**
      * Returns true if this factory can create a {@link DataSource} for the request.
      */
     boolean canHandle(DataFlowRequest request);
-
-    /**
-     * Returns true if the request is valid.
-     *
-     * @deprecated use {@link #validateRequest(DataFlowRequest)} instead.
-     */
-    @Deprecated(since = "milestone9")
-    @NotNull Result<Boolean> validate(DataFlowRequest request);
 
     /**
      * Creates a source to access data to be sent.
@@ -49,8 +36,6 @@ public interface DataSourceFactory {
     /**
      * Returns a Result object of the validation result.
      */
-    default @NotNull Result<Void> validateRequest(DataFlowRequest request) {
-        return validate(request).mapTo();
-    }
+    @NotNull Result<Void> validateRequest(DataFlowRequest request);
 
 }

@@ -137,8 +137,6 @@ include(":extensions:control-plane:transfer:transfer-data-plane")
 include(":extensions:control-plane:transfer:transfer-pull-http-receiver")
 include(":extensions:control-plane:transfer:transfer-pull-http-dynamic-receiver")
 include(":extensions:control-plane:provision:provision-http")
-include(":extensions:control-plane:provision:provision-oauth2:provision-oauth2-core")
-include(":extensions:control-plane:provision:provision-oauth2:provision-oauth2")
 
 include(":extensions:control-plane:store:sql:asset-index-sql")
 include(":extensions:control-plane:store:sql:contract-definition-store-sql")

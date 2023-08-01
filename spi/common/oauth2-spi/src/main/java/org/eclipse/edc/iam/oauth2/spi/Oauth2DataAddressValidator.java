@@ -19,7 +19,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import java.util.function.Predicate;
 
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_ID;
-import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.CLIENT_SECRET_KEY;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.PRIVATE_KEY_NAME;
 import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
@@ -31,11 +30,10 @@ public class Oauth2DataAddressValidator implements Predicate<DataAddress> {
 
     private final Predicate<DataAddress> isHttpDataType = dataAddress -> "HttpData".equals(dataAddress.getType());
     private final Predicate<DataAddress> hasClientId = dataAddress -> dataAddress.hasProperty(CLIENT_ID);
-    private final Predicate<DataAddress> hasClientSecret = dataAddress -> dataAddress.hasProperty(CLIENT_SECRET);
     private final Predicate<DataAddress> hasClientSecretKey = dataAddress -> dataAddress.hasProperty(CLIENT_SECRET_KEY);
     private final Predicate<DataAddress> hasPrivateKeySecretName = dataAddress -> dataAddress.hasProperty(PRIVATE_KEY_NAME);
     private final Predicate<DataAddress> hasTokenUrl = dataAddress -> dataAddress.hasProperty(TOKEN_URL);
-    private final Predicate<DataAddress> hasSecretInfo = hasClientSecretKey.or(hasClientSecret).or(hasPrivateKeySecretName);
+    private final Predicate<DataAddress> hasSecretInfo = hasClientSecretKey.or(hasPrivateKeySecretName);
 
     @Override
     public boolean test(DataAddress dataAddress) {

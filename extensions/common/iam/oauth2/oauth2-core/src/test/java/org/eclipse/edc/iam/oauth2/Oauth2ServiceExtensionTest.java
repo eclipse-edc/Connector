@@ -14,17 +14,11 @@
 
 package org.eclipse.edc.iam.oauth2;
 
-import dev.failsafe.RetryPolicy;
-import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
-import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +28,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -44,70 +39,34 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class Oauth2ServiceExtensionTest {
 
-    private ServiceExtensionContext context;
-    private Oauth2ServiceExtension extension;
-    private CertificateResolver certificateResolver;
-    private PrivateKeyResolver privateKeyResolver;
+    private final CertificateResolver certificateResolver = mock();
+    private final PrivateKeyResolver privateKeyResolver = mock();
 
     @BeforeEach
-    void setup(ServiceExtensionContext context, ObjectFactory factory) {
-        certificateResolver = mock(CertificateResolver.class);
-        privateKeyResolver = mock(PrivateKeyResolver.class);
-        context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
+    void setup(ServiceExtensionContext context) {
         context.registerService(CertificateResolver.class, certificateResolver);
-        context.registerService(Oauth2Client.class, mock(Oauth2Client.class));
-        context.registerService(CredentialsRequestAdditionalParametersProvider.class, mock(CredentialsRequestAdditionalParametersProvider.class));
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
-        context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
-        extension = factory.constructInstance(Oauth2ServiceExtension.class);
-        this.context = spy(context);
     }
 
     @Test
-    void verifyExtensionWithPublicKeyDeprecatedAlias() throws CertificateEncodingException {
-
-        var config = spy(ConfigFactory.fromMap(Map.of(
-                "edc.oauth.client.id", "id",
-                "edc.oauth.token.url", "url",
-                "edc.oauth.public.key.alias", "alias",
-                "edc.oauth.private.key.alias", "p_alias")));
-
-        setupMocks(config);
-
-        extension.initialize(context);
-
-        verify(config, times(1)).getString("edc.oauth.public.key.alias");
-        verify(config, never()).getString("edc.oauth.certificate.alias");
-
-    }
-
-    @Test
-    void verifyExtensionWithCertificateAlias() throws CertificateEncodingException {
-
+    void verifyExtensionWithCertificateAlias(Oauth2ServiceExtension extension, ServiceExtensionContext context) throws CertificateEncodingException {
         var config = spy(ConfigFactory.fromMap(Map.of(
                 "edc.oauth.client.id", "id",
                 "edc.oauth.token.url", "url",
                 "edc.oauth.certificate.alias", "alias",
                 "edc.oauth.private.key.alias", "p_alias")));
-
-        setupMocks(config);
+        when(context.getConfig(any())).thenReturn(config);
+        var certificate = mock(X509Certificate.class);
+        var privateKey = mock(PrivateKey.class);
+        when(privateKey.getAlgorithm()).thenReturn("RSA");
+        when(certificate.getEncoded()).thenReturn(new byte[] {});
+        when(certificateResolver.resolveCertificate("alias")).thenReturn(certificate);
+        when(privateKeyResolver.resolvePrivateKey("p_alias", PrivateKey.class)).thenReturn(privateKey);
 
         extension.initialize(context);
 
         verify(config, times(1)).getString("edc.oauth.certificate.alias");
         verify(config, never()).getString("edc.oauth.public.key.alias");
-
     }
 
-    private void setupMocks(Config config) throws CertificateEncodingException {
-        when(context.getConfig()).thenReturn(config);
-
-        var certificate = mock(X509Certificate.class);
-        var privateKey = mock(PrivateKey.class);
-
-        when(privateKey.getAlgorithm()).thenReturn("RSA");
-        when(certificate.getEncoded()).thenReturn(new byte[] {});
-        when(certificateResolver.resolveCertificate("alias")).thenReturn(certificate);
-        when(privateKeyResolver.resolvePrivateKey("p_alias", PrivateKey.class)).thenReturn(privateKey);
-    }
 }

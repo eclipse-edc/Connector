@@ -60,14 +60,14 @@ public class KafkaDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+    public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var source = request.getSourceDataAddress();
-        return validation.apply(source).map(it -> true);
+        return validation.apply(source);
     }
 
     @Override
     public DataSource createSource(DataFlowRequest request) {
-        var validationResult = validate(request);
+        var validationResult = validateRequest(request);
         if (validationResult.failed()) {
             throw new EdcException(validationResult.getFailureDetail());
         }
