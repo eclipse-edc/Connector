@@ -27,7 +27,7 @@ The following values are supported for the time unit:
 | h     | hours        |
 | d     | days         |
 
-A duration is defined in a `ContractDefinition` using the following policy and lef-hand
+A duration is defined in a `ContractDefinition` using the following policy and left-hand
 operands `https://w3id.org/edc/v0.0.1/ns/inForceDate`:
 
 ```json
