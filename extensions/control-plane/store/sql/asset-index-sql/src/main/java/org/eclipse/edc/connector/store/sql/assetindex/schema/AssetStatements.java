@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.store.sql.assetindex.schema;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.List;
  * Defines queries used by the SqlAssetIndexServiceExtension.
  */
 @ExtensionPoint
-public interface AssetStatements {
+public interface AssetStatements extends SqlStatements {
 
     /**
      * The asset table name.
@@ -163,12 +164,6 @@ public interface AssetStatements {
      * {@link QuerySpec} queries.
      */
     String getQuerySubSelectTemplate();
-
-    /**
-     * Operator to format an incoming string as JSON. Should return an empty string if the database does not support
-     * this.
-     */
-    String getFormatAsJsonOperator();
 
     /**
      * Generates a SQL query using sub-select statements out of the query spec.

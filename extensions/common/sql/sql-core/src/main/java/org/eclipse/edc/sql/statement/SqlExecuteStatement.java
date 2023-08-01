@@ -14,11 +14,15 @@
 
 package org.eclipse.edc.sql.statement;
 
+import org.eclipse.edc.spi.query.Criterion;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.sql.statement.ColumnEntry.standardColumn;
 
 /**
@@ -44,14 +48,23 @@ public class SqlExecuteStatement {
     }
 
     /**
-     * Add a new columnEntry
+     * Utility criterion to describe an equality condition in a SQL prepared statement.
      *
-     * @param columnEntry the columnEntry.
-     * @return the {@link SqlExecuteStatement}.
+     * @param columnName the column name.
+     * @return the criterion.
      */
-    public SqlExecuteStatement add(ColumnEntry columnEntry) {
-        columnEntries.add(columnEntry);
-        return this;
+    public static Criterion equalTo(String columnName) {
+        return criterion(columnName, "=", "?");
+    }
+
+    /**
+     * Utility criterion to describe an "is null" condition in a SQL prepared statement.
+     *
+     * @param columnName the column name.
+     * @return the criterion.
+     */
+    public static Criterion isNull(String columnName) {
+        return criterion(columnName, "is", "null");
     }
 
     /**
@@ -83,24 +96,68 @@ public class SqlExecuteStatement {
      * @return sql insert statement.
      */
     public String insertInto(String tableName) {
+        if (columnEntries.isEmpty()) {
+            throw new IllegalArgumentException(format("Cannot create INSERT statement on %s because no columns are registered", tableName));
+        }
+
         var columnValues = columnEntries.stream().reduce(ColumnEntry::append).orElseThrow();
 
         return format("INSERT INTO %s (%s) VALUES (%s);", tableName, columnValues.columnName(), columnValues.value());
     }
 
+    /**
+     * Gives a SQL update statement.
+     *
+     * @param tableName the table name.
+     * @param whereColumn the column that will be used for the where condition
+     * @return sql update statement.
+     */
+    public String update(String tableName, String whereColumn) {
+        return update(tableName, criterion(whereColumn, "=", "?"));
+    }
 
     /**
      * Gives a SQL update statement.
      *
      * @param tableName the table name.
-     * @param where the update field condition
+     * @param where the update field criterion
      * @return sql update statement.
      */
-    public String update(String tableName, ColumnEntry where) {
-        var statement = columnEntries.stream()
-                .map(it -> it.columnName() + "=" + it.value())
-                .collect(joining(","));
+    public String update(String tableName, Criterion where) {
+        if (columnEntries.isEmpty()) {
+            throw new IllegalArgumentException(format("Cannot create UPDATE statement on %s because no columns are registered", tableName));
+        }
 
-        return format("UPDATE %s SET %s WHERE %s=%s", tableName, statement, where.columnName(), where.value());
+        var statement = columnEntries.stream()
+                .map(ColumnEntry::asString)
+                .collect(joining(", "));
+
+        return format("UPDATE %s SET %s WHERE %s;", tableName, statement, where);
+    }
+
+    /**
+     * Gives a SQL delete statement.
+     *
+     * @param tableName the table name.
+     * @param whereColumn the column that will be used for the where condition
+     * @return sql delete statement.
+     */
+    public String delete(String tableName, String whereColumn) {
+        return delete(tableName, criterion(whereColumn, "=", "?"));
+    }
+
+    /**
+     * Gives a SQL delete statement. The where criteria is joined with AND operator.
+     *
+     * @param tableName the table name.
+     * @param whereCriteria the delete field condition
+     * @return sql delete statement.
+     */
+    public String delete(String tableName, Criterion... whereCriteria) {
+        var where = Arrays.stream(whereCriteria)
+                .map(Criterion::toString)
+                .collect(joining(" AND "));
+
+        return format("DELETE FROM %s WHERE %s;", tableName, where);
     }
 }

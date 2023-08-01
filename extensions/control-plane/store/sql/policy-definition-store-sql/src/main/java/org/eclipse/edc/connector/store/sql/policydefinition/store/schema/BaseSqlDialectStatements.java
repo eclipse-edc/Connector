@@ -28,45 +28,40 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
 
     @Override
     public String getInsertTemplate() {
-        return String.format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?%s, ?%s, ?%s, ?%s, ?, ?, ?, ?, ?, ?)",
-                getPolicyTable(),
-                // keys
-                getPolicyIdColumn(),
-                getPermissionsColumn(),
-                getProhibitionsColumn(),
-                getDutiesColumn(),
-                getExtensiblePropertiesColumn(),
-                getInheritsFromColumn(),
-                getAssignerColumn(),
-                getAssigneeColumn(),
-                getTargetColumn(),
-                getTypeColumn(),
-                getCreatedAtColumn(),
-                getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator()
-        );
+        return executeStatement()
+                .column(getPolicyIdColumn())
+                .jsonColumn(getPermissionsColumn())
+                .jsonColumn(getProhibitionsColumn())
+                .jsonColumn(getDutiesColumn())
+                .jsonColumn(getExtensiblePropertiesColumn())
+                .column(getInheritsFromColumn())
+                .column(getAssignerColumn())
+                .column(getAssigneeColumn())
+                .column(getTargetColumn())
+                .column(getTypeColumn())
+                .column(getCreatedAtColumn())
+                .insertInto(getPolicyTable());
     }
 
     @Override
     public String getUpdateTemplate() {
-        return String.format("UPDATE %s SET %s=?%s, %s=?%s, %s=?%s, %s=?%s, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s=?",
-                getPolicyTable(),
-                getPermissionsColumn(), getFormatAsJsonOperator(),
-                getProhibitionsColumn(), getFormatAsJsonOperator(),
-                getDutiesColumn(), getFormatAsJsonOperator(),
-                getExtensiblePropertiesColumn(), getFormatAsJsonOperator(),
-                getInheritsFromColumn(),
-                getAssignerColumn(),
-                getAssigneeColumn(),
-                getTargetColumn(),
-                getTypeColumn(),
-                getPolicyIdColumn());
+        return executeStatement()
+                .jsonColumn(getPermissionsColumn())
+                .jsonColumn(getProhibitionsColumn())
+                .jsonColumn(getDutiesColumn())
+                .jsonColumn(getExtensiblePropertiesColumn())
+                .column(getInheritsFromColumn())
+                .column(getAssignerColumn())
+                .column(getAssigneeColumn())
+                .column(getTargetColumn())
+                .column(getTypeColumn())
+                .update(getPolicyTable(), getPolicyIdColumn());
+
     }
 
     @Override
     public String getDeleteTemplate() {
-        return String.format("DELETE FROM %s WHERE %s = ?",
-                getPolicyTable(),
-                getPolicyIdColumn());
+        return executeStatement().delete(getPolicyTable(), getPolicyIdColumn());
     }
 
     @Override

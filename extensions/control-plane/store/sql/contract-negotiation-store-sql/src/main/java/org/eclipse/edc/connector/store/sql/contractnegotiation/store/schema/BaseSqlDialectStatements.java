@@ -15,12 +15,11 @@
 package org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.dialect.BaseSqlDialect;
-import org.eclipse.edc.sql.statement.ColumnEntry;
-import org.eclipse.edc.sql.statement.SqlExecuteStatement;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
+import static org.eclipse.edc.sql.statement.SqlExecuteStatement.isNull;
 
 /**
  * Provides statements required by the ContractNegotiationStore in generic SQL, that is not specific to a particular
@@ -40,7 +39,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getUpdateNegotiationTemplate() {
-        return SqlExecuteStatement.newInstance(getFormatJsonOperator())
+        return executeStatement()
                 .column(getStateColumn())
                 .column(getStateCountColumn())
                 .column(getStateTimestampColumn())
@@ -51,12 +50,12 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .column(getContractAgreementIdFkColumn())
                 .column(getUpdatedAtColumn())
                 .column(getPendingColumn())
-                .update(getContractNegotiationTable(), ColumnEntry.standardColumn(getIdColumn()));
+                .update(getContractNegotiationTable(), getIdColumn());
     }
 
     @Override
     public String getInsertNegotiationTemplate() {
-        return SqlExecuteStatement.newInstance(getFormatJsonOperator())
+        return executeStatement()
                 .column(getIdColumn())
                 .column(getCorrelationIdColumn())
                 .column(getCounterPartyIdColumn())
@@ -79,7 +78,8 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getDeleteTemplate() {
-        return format("DELETE FROM %s WHERE %s = ? AND %s IS NULL;", getContractNegotiationTable(), getIdColumn(), getContractAgreementIdFkColumn());
+        return executeStatement()
+                .delete(getContractNegotiationTable(), equalTo(getIdColumn()), isNull(getContractAgreementIdFkColumn()));
     }
 
     @Override
@@ -90,16 +90,26 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getInsertAgreementTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?%s);",
-                getContractAgreementTable(), getContractAgreementIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
-                getSigningDateColumn(), getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator());
+        return executeStatement()
+                .column(getContractAgreementIdColumn())
+                .column(getProviderAgentColumn())
+                .column(getConsumerAgentColumn())
+                .column(getSigningDateColumn())
+                .column(getAssetIdColumn())
+                .jsonColumn(getPolicyColumn())
+                .insertInto(getContractAgreementTable());
     }
 
     @Override
     public String getUpdateAgreementTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?%s WHERE %s =?",
-                getContractAgreementTable(), getProviderAgentColumn(), getConsumerAgentColumn(), getSigningDateColumn(),
-                getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator(), getContractAgreementIdColumn());
+        return executeStatement()
+                .column(getProviderAgentColumn())
+                .column(getConsumerAgentColumn())
+                .column(getSigningDateColumn())
+                .column(getAssetIdColumn())
+                .jsonColumn(getPolicyColumn())
+                .update(getContractAgreementTable(), getContractAgreementIdColumn());
+
     }
 
     @Override
@@ -129,31 +139,31 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getDeleteLeaseTemplate() {
-        return format("DELETE FROM %s WHERE %s=?", getLeaseTableName(), getLeaseIdColumn());
+        return executeStatement()
+                .delete(getLeaseTableName(), getLeaseIdColumn());
     }
 
     @Override
     public String getInsertLeaseTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?);",
-                getLeaseTableName(), getLeaseIdColumn(), getLeasedByColumn(), getLeasedAtColumn(), getLeaseDurationColumn());
+        return executeStatement()
+                .column(getLeaseIdColumn())
+                .column(getLeasedByColumn())
+                .column(getLeasedAtColumn())
+                .column(getLeaseDurationColumn())
+                .insertInto(getLeaseTableName());
     }
 
     @Override
     public String getUpdateLeaseTemplate() {
-        return format("UPDATE %s SET %s=? WHERE %s = ?;", getContractNegotiationTable(), getLeaseIdColumn(), getIdColumn());
+        return executeStatement()
+                .column(getLeaseIdColumn())
+                .update(getContractNegotiationTable(), getIdColumn());
     }
 
     @Override
     public String getFindLeaseByEntityTemplate() {
         return format("SELECT * FROM %s  WHERE %s = (SELECT lease_id FROM %s WHERE %s=? )",
                 getLeaseTableName(), getLeaseIdColumn(), getContractNegotiationTable(), getIdColumn());
-    }
-
-    /**
-     * Overridable operator to convert strings to JSON. For postgres, this is the "::json" operator
-     */
-    protected String getFormatJsonOperator() {
-        return BaseSqlDialect.getJsonCastOperator();
     }
 
 }

@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.sql.statement;
 
+import static java.lang.String.format;
+
 /**
  * Represent a column and its value into a JDBC prepared statement.
  *
@@ -32,5 +34,9 @@ public record ColumnEntry(String columnName, String value) {
 
     public ColumnEntry append(ColumnEntry other) {
         return new ColumnEntry(columnName + ", " + other.columnName, value + ", " + other.value);
+    }
+
+    public String asString() {
+        return format("%s = %s", columnName, value);
     }
 }

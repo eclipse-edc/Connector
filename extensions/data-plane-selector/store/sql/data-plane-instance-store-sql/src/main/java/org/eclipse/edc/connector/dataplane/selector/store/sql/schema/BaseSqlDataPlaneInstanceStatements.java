@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.dataplane.selector.store.sql.schema;
 
 public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStatements {
 
-
     @Override
     public String getFindByIdTemplate() {
         return String.format("SELECT * FROM %s WHERE %s = ?", getDataPlaneInstanceTable(), getIdColumn());
@@ -29,20 +28,16 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
 
     @Override
     public String getInsertTemplate() {
-        return String.format("INSERT INTO %s (%s, %s) VALUES (?, ?%s)",
-                getDataPlaneInstanceTable(),
-                getIdColumn(),
-                getDataColumn(),
-                getFormatAsJsonOperator()
-        );
+        return executeStatement()
+                .column(getIdColumn())
+                .jsonColumn(getDataColumn())
+                .insertInto(getDataPlaneInstanceTable());
     }
 
     @Override
     public String getUpdateTemplate() {
-        return String.format("UPDATE %s SET %s = ?%s WHERE %s = ?",
-                getDataPlaneInstanceTable(),
-                getDataColumn(),
-                getFormatAsJsonOperator(),
-                getIdColumn());
+        return executeStatement()
+                .jsonColumn(getDataColumn())
+                .update(getDataPlaneInstanceTable(), getIdColumn());
     }
 }

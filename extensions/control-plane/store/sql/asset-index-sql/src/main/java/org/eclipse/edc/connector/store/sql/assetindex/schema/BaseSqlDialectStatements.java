@@ -19,7 +19,6 @@ package org.eclipse.edc.connector.store.sql.assetindex.schema;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.sql.dialect.BaseSqlDialect;
 import org.eclipse.edc.sql.translation.SqlConditionExpression;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
@@ -32,27 +31,29 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getInsertAssetTemplate() {
-        return format("INSERT INTO %s (%s, %s) VALUES (?,?)", getAssetTable(), getAssetIdColumn(), getCreatedAtColumn());
+        return executeStatement()
+                .column(getAssetIdColumn())
+                .column(getCreatedAtColumn())
+                .insertInto(getAssetTable());
     }
 
     @Override
     public String getInsertDataAddressTemplate() {
-        return format("INSERT INTO %s (%s, %s) VALUES (?, ?%s)",
-                getDataAddressTable(),
-                getDataAddressAssetIdFkColumn(),
-                getDataAddressPropertiesColumn(),
-                getFormatAsJsonOperator());
+        return executeStatement()
+                .column(getDataAddressAssetIdFkColumn())
+                .jsonColumn(getDataAddressPropertiesColumn())
+                .insertInto(getDataAddressTable());
     }
 
     @Override
     public String getInsertPropertyTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?)",
-                getAssetPropertyTable(),
-                getPropertyAssetIdFkColumn(),
-                getAssetPropertyNameColumn(),
-                getAssetPropertyValueColumn(),
-                getAssetPropertyTypeColumn(),
-                getAssetPropertyIsPrivateColumn());
+        return executeStatement()
+                .column(getPropertyAssetIdFkColumn())
+                .column(getAssetPropertyNameColumn())
+                .column(getAssetPropertyValueColumn())
+                .column(getAssetPropertyTypeColumn())
+                .column(getAssetPropertyIsPrivateColumn())
+                .insertInto(getAssetPropertyTable());
     }
 
     @Override
@@ -84,20 +85,21 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getDeleteAssetByIdTemplate() {
-        return format("DELETE FROM %s WHERE %s = ?", getAssetTable(), getAssetIdColumn());
+        return executeStatement()
+                .delete(getAssetTable(), getAssetIdColumn());
     }
 
     @Override
     public String getUpdateDataAddressTemplate() {
-        return format("UPDATE %s SET %s = ?%s WHERE %s = ?", getDataAddressTable(),
-                getDataAddressPropertiesColumn(),
-                getFormatAsJsonOperator(),
-                getDataAddressAssetIdFkColumn());
+        return executeStatement()
+                .jsonColumn(getDataAddressPropertiesColumn())
+                .update(getDataAddressTable(), getDataAddressAssetIdFkColumn());
     }
 
     @Override
     public String getDeletePropertyByIdTemplate() {
-        return format("DELETE FROM %s WHERE %s = ?", getAssetPropertyTable(), getPropertyAssetIdFkColumn());
+        return executeStatement()
+                .delete(getAssetPropertyTable(), getPropertyAssetIdFkColumn());
     }
 
     @Override
@@ -113,11 +115,6 @@ public class BaseSqlDialectStatements implements AssetStatements {
                 getAssetIdColumn(),
                 getAssetPropertyNameColumn(),
                 getAssetPropertyValueColumn());
-    }
-
-    @Override
-    public String getFormatAsJsonOperator() {
-        return BaseSqlDialect.getJsonCastOperator();
     }
 
     @Override

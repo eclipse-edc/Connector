@@ -21,11 +21,10 @@ import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import static java.lang.String.format;
 
 public class BaseSqlDialectStatements implements ContractDefinitionStatements {
+
     @Override
     public String getDeleteByIdTemplate() {
-        return format("DELETE FROM %s WHERE %s = ?",
-                getContractDefinitionTable(),
-                getIdColumn());
+        return executeStatement().delete(getContractDefinitionTable(), getIdColumn());
     }
 
     @Override
@@ -35,15 +34,13 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 
     @Override
     public String getInsertTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?%s, ?)",
-                getContractDefinitionTable(),
-                getIdColumn(),
-                getAccessPolicyIdColumn(),
-                getContractPolicyIdColumn(),
-                getAssetsSelectorColumn(),
-                getCreatedAtColumn(),
-                getFormatAsJsonOperator()
-        );
+        return executeStatement()
+                .column(getIdColumn())
+                .column(getAccessPolicyIdColumn())
+                .column(getContractPolicyIdColumn())
+                .jsonColumn(getAssetsSelectorColumn())
+                .column(getCreatedAtColumn())
+                .insertInto(getContractDefinitionTable());
     }
 
     @Override
@@ -57,15 +54,14 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 
     @Override
     public String getUpdateTemplate() {
-        return format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?%s,  %s = ? WHERE %s = ?",
-                getContractDefinitionTable(),
-                getIdColumn(),
-                getAccessPolicyIdColumn(),
-                getContractPolicyIdColumn(),
-                getAssetsSelectorColumn(),
-                getFormatAsJsonOperator(),
-                getCreatedAtColumn(),
-                getIdColumn());
+        return executeStatement()
+                .column(getIdColumn())
+                .column(getAccessPolicyIdColumn())
+                .column(getContractPolicyIdColumn())
+                .jsonColumn(getAssetsSelectorColumn())
+                .column(getCreatedAtColumn())
+                .update(getContractDefinitionTable(), getIdColumn());
+
     }
 
     @Override
