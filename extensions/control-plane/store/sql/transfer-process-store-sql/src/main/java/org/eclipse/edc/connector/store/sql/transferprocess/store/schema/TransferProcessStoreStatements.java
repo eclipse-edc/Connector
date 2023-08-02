@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.dialect.BaseSqlDialect;
 import org.eclipse.edc.sql.lease.LeaseStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
@@ -144,10 +143,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     default String getPendingColumn() {
         return "pending";
-    }
-
-    default String getFormatAsJsonOperator() {
-        return BaseSqlDialect.getJsonCastOperator();
     }
 
     SqlQueryStatement createQuery(QuerySpec querySpec);

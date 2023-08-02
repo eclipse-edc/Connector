@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.store.sql.contractdefinition.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.dialect.BaseSqlDialect;
+import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Defines all statements that are needed for the ContractDefinition store
  */
-public interface ContractDefinitionStatements {
+public interface ContractDefinitionStatements extends SqlStatements {
     default String getContractPolicyIdColumn() {
         return "contract_policy_id";
     }
@@ -61,9 +61,5 @@ public interface ContractDefinitionStatements {
     String getUpdateTemplate();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);
-
-    default String getFormatAsJsonOperator() {
-        return BaseSqlDialect.getJsonCastOperator();
-    }
 
 }

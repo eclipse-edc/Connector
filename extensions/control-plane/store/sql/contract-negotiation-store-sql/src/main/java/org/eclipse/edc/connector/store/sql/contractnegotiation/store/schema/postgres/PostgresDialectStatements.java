@@ -46,7 +46,7 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
      * Overridable operator to convert strings to JSON. For postgres, this is the "::json" operator
      */
     @Override
-    protected String getFormatJsonOperator() {
+    public String getFormatAsJsonOperator() {
         return PostgresDialect.getJsonCastOperator();
     }
 }

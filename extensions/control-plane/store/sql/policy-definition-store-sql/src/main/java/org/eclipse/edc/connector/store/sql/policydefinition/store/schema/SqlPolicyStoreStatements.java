@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.store.sql.policydefinition.store.schema;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.dialect.BaseSqlDialect;
+import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Statement templates and SQL table+column names required for the PolicyStore.
  */
 @ExtensionPoint
-public interface SqlPolicyStoreStatements {
+public interface SqlPolicyStoreStatements extends SqlStatements {
 
     /**
      * SELECT all statement for policies.
@@ -92,10 +92,6 @@ public interface SqlPolicyStoreStatements {
 
     default String getCreatedAtColumn() {
         return "created_at";
-    }
-
-    default String getFormatAsJsonOperator() {
-        return BaseSqlDialect.getJsonCastOperator();
     }
 
     SqlQueryStatement createQuery(QuerySpec querySpec);

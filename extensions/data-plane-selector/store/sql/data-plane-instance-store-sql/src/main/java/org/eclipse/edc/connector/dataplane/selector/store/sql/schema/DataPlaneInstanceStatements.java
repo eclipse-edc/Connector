@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql.schema;
 
-import org.eclipse.edc.sql.dialect.BaseSqlDialect;
+import org.eclipse.edc.sql.statement.SqlStatements;
 
-public interface DataPlaneInstanceStatements {
+public interface DataPlaneInstanceStatements extends SqlStatements {
 
 
     default String getDataPlaneInstanceTable() {
@@ -38,11 +38,6 @@ public interface DataPlaneInstanceStatements {
     String getInsertTemplate();
 
     String getUpdateTemplate();
-
-
-    default String getFormatAsJsonOperator() {
-        return BaseSqlDialect.getJsonCastOperator();
-    }
 
 }
 

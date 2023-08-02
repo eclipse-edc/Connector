@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.sql.lease;
 
+import org.eclipse.edc.sql.statement.SqlStatements;
+
 import static java.lang.String.format;
 
 /**
  * Encapsulates statements and table/column names to manipulate lease entities.
  */
-public interface LeaseStatements {
+public interface LeaseStatements extends SqlStatements {
     String getDeleteLeaseTemplate();
 
     String getInsertLeaseTemplate();

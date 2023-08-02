@@ -224,17 +224,24 @@ class PostgresLeaseContextTest {
 
         @Override
         public String getDeleteLeaseTemplate() {
-            return "DELETE FROM edc_lease WHERE lease_id=?;";
+            return executeStatement().delete(getLeaseTableName(), getLeaseIdColumn());
         }
 
         @Override
         public String getInsertLeaseTemplate() {
-            return "INSERT INTO edc_lease (lease_id, leased_by, leased_at, lease_duration) VALUES (?, ?, ?, ?);";
+            return executeStatement()
+                    .column(getLeaseIdColumn())
+                    .column(getLeasedByColumn())
+                    .column(getLeasedAtColumn())
+                    .column(getLeaseDurationColumn())
+                    .insertInto(getLeaseTableName());
         }
 
         @Override
         public String getUpdateLeaseTemplate() {
-            return "UPDATE " + getEntityTableName() + " SET lease_id=? WHERE id = ?;";
+            return executeStatement()
+                    .column(getLeaseIdColumn())
+                    .update(getEntityTableName(), "id");
         }
 
         @Override
