@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
@@ -58,7 +58,7 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
         }
 
         if (requestMessage.getContractOffer() != null) {
-            builder.add(DSPACE_PROPERTY_DATA_SET, requestMessage.getContractOffer().getAssetId());
+            builder.add(DSPACE_PROPERTY_DATASET, requestMessage.getContractOffer().getAssetId());
             var policy = context.transform(requestMessage.getContractOffer().getPolicy(), JsonObject.class);
             if (policy == null) {
                 context.problem()
@@ -76,8 +76,8 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
 
         } else {
             builder.add(DSPACE_PROPERTY_OFFER_ID, requestMessage.getContractOfferId());
-            if (requestMessage.getDataSet() != null) {
-                builder.add(DSPACE_PROPERTY_DATA_SET, requestMessage.getDataSet());
+            if (requestMessage.getDataset() != null) {
+                builder.add(DSPACE_PROPERTY_DATASET, requestMessage.getDataset());
             }
         }
 

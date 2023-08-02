@@ -39,7 +39,7 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     private String processId;
     private ContractOffer contractOffer;
     private String contractOfferId;
-    private String dataSet;
+    private String dataset;
 
     @NotNull
     @Override
@@ -83,8 +83,8 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         return contractOfferId;
     }
 
-    public String getDataSet() {
-        return dataSet;
+    public String getDataset() {
+        return dataset;
     }
 
     public String getCallbackAddress() {
@@ -102,10 +102,10 @@ public class ContractRequestMessage implements ContractRemoteMessage {
     }
 
     public static class Builder {
-        private final ContractRequestMessage contractRequestMessage;
+        private final ContractRequestMessage message;
 
         private Builder() {
-            contractRequestMessage = new ContractRequestMessage();
+            message = new ContractRequestMessage();
         }
 
         public static Builder newInstance() {
@@ -113,61 +113,61 @@ public class ContractRequestMessage implements ContractRemoteMessage {
         }
 
         public Builder id(String id) {
-            this.contractRequestMessage.id = id;
+            this.message.id = id;
             return this;
         }
 
         public Builder protocol(String protocol) {
-            contractRequestMessage.protocol = protocol;
+            message.protocol = protocol;
             return this;
         }
 
         public Builder callbackAddress(String callbackAddress) {
-            contractRequestMessage.callbackAddress = callbackAddress;
+            message.callbackAddress = callbackAddress;
             return this;
         }
 
         public Builder counterPartyAddress(String counterPartyAddress) {
-            contractRequestMessage.counterPartyAddress = counterPartyAddress;
+            message.counterPartyAddress = counterPartyAddress;
             return this;
         }
 
         public Builder processId(String processId) {
-            contractRequestMessage.processId = processId;
+            message.processId = processId;
             return this;
         }
 
         public Builder contractOffer(ContractOffer contractOffer) {
-            contractRequestMessage.contractOffer = contractOffer;
+            message.contractOffer = contractOffer;
             return this;
         }
 
         public Builder contractOfferId(String id) {
-            contractRequestMessage.contractOfferId = id;
+            message.contractOfferId = id;
             return this;
         }
 
         public Builder type(Type type) {
-            contractRequestMessage.type = type;
+            message.type = type;
             return this;
         }
 
-        public Builder dataSet(String dataSet) {
-            contractRequestMessage.dataSet = dataSet;
+        public Builder dataset(String dataset) {
+            message.dataset = dataset;
             return this;
         }
 
         public ContractRequestMessage build() {
-            if (contractRequestMessage.id == null) {
-                contractRequestMessage.id = randomUUID().toString();
+            if (message.id == null) {
+                message.id = randomUUID().toString();
             }
-            requireNonNull(contractRequestMessage.processId, "processId");
-            if (contractRequestMessage.contractOfferId == null) {
-                requireNonNull(contractRequestMessage.contractOffer, "contractOffer");
+            requireNonNull(message.processId, "processId");
+            if (message.contractOfferId == null) {
+                requireNonNull(message.contractOffer, "contractOffer");
             } else {
-                requireNonNull(contractRequestMessage.contractOfferId, "contractOfferId");
+                requireNonNull(message.contractOfferId, "contractOfferId");
             }
-            return contractRequestMessage;
+            return message;
         }
     }
 }
