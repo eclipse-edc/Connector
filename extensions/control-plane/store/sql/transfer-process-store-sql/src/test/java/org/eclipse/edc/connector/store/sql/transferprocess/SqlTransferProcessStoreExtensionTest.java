@@ -29,23 +29,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.store.sql.transferprocess.SqlTransferProcessStoreExtension.DATASOURCE_NAME_SETTING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class SqlTransferProcessStoreExtensionTest {
-
-    ServiceExtensionContext context;
-
+    
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        this.context = spy(context);
         context.registerService(TypeManager.class, new TypeManager());
     }
 
     @Test
-    void shouldInitializeTheStore(SqlTransferProcessStoreExtension extension) {
+    void shouldInitializeTheStore(SqlTransferProcessStoreExtension extension, ServiceExtensionContext context) {
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
         when(config.getString(any(), any())).thenReturn("test");

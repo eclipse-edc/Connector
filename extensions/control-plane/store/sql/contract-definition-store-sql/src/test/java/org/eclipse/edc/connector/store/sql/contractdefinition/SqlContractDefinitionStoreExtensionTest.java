@@ -28,23 +28,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.store.sql.contractdefinition.SqlContractDefinitionStoreExtension.DATASOURCE_SETTING_NAME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class SqlContractDefinitionStoreExtensionTest {
 
-    ServiceExtensionContext context;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        this.context = spy(context);
         context.registerService(TypeManager.class, new TypeManager());
     }
 
     @Test
-    void shouldInitializeTheStore(SqlContractDefinitionStoreExtension extension) {
+    void shouldInitializeTheStore(SqlContractDefinitionStoreExtension extension, ServiceExtensionContext context) {
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
         when(config.getString(any(), any())).thenReturn("test");

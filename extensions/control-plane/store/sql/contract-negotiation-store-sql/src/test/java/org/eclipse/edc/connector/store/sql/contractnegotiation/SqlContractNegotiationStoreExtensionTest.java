@@ -34,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension.DATASOURCE_NAME_SETTING;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,9 +44,8 @@ class SqlContractNegotiationStoreExtensionTest {
 
     @Test
     void initialize(ServiceExtensionContext context, ObjectFactory factory) {
-        var ctx = spy(context);
         var config = mock(Config.class);
-        when(ctx.getConfig()).thenReturn(config);
+        when(context.getConfig()).thenReturn(config);
         when(config.getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE)).thenReturn("test");
 
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
@@ -57,9 +55,9 @@ class SqlContractNegotiationStoreExtensionTest {
 
         extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
 
-        extension.initialize(ctx);
+        extension.initialize(context);
 
-        var service = ctx.getService(ContractNegotiationStore.class);
+        var service = context.getService(ContractNegotiationStore.class);
         assertThat(service).isInstanceOf(SqlContractNegotiationStore.class);
         assertThat(service).extracting("statements").isInstanceOf(BaseSqlDialectStatements.class);
         verify(config).getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
