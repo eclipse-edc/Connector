@@ -23,6 +23,11 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.RequestPathProvider;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
+/**
+ * Creates a POST request through the Dataspace Protocol
+ *
+ * @param <M> the message class.
+ */
 public class PostDspHttpRequestFactory<M extends RemoteMessage> implements DspHttpRequestFactory<M> {
 
     public static final String APPLICATION_JSON = "application/json";

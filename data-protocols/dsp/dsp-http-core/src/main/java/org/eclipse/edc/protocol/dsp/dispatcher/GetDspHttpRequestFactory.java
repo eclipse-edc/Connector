@@ -20,6 +20,11 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.RequestPathProvider;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
+/**
+ * Creates a GET request through the Dataspace Protocol
+ *
+ * @param <M> the message class.
+ */
 public class GetDspHttpRequestFactory<M extends RemoteMessage> implements DspHttpRequestFactory<M> {
     private final RequestPathProvider<M> pathProvider;
 
