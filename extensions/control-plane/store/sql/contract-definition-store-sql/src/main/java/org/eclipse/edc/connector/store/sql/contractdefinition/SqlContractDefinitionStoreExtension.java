@@ -38,7 +38,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
      * Name of the datasource to use for accessing contract definitions.
      */
     @Setting(required = true)
-    private static final String DATASOURCE_SETTING_NAME = "edc.datasource.contractdefinition.name";
+    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.contractdefinition.name";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -57,7 +57,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME);
+        var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
 
         var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext,
                 getStatementImpl(), typeManager.getMapper(), queryExecutor);

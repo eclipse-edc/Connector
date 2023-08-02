@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.store.sql;
+package org.eclipse.edc.connector.store.sql.transferprocess;
 
+import org.eclipse.edc.connector.store.sql.transferprocess.store.SqlTransferProcessStore;
+import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,36 +26,31 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.store.sql.SqlDataPlaneInstanceStoreExtension.DATASOURCE_SETTING_NAME;
+import static org.eclipse.edc.connector.store.sql.transferprocess.SqlTransferProcessStoreExtension.DATASOURCE_NAME_SETTING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-public class SqlDataPlaneInstanceStoreExtensionTest {
-
-    SqlDataPlaneInstanceStoreExtension extension;
-    ServiceExtensionContext context;
-
-
+public class SqlTransferProcessStoreExtensionTest {
+    
     @BeforeEach
-    void setUp(ObjectFactory factory, ServiceExtensionContext context) {
-        this.context = spy(context);
+    void setUp(ServiceExtensionContext context) {
         context.registerService(TypeManager.class, new TypeManager());
-        extension = factory.constructInstance(SqlDataPlaneInstanceStoreExtension.class);
     }
 
     @Test
-    void shouldInitializeTheStore() {
+    void shouldInitializeTheStore(SqlTransferProcessStoreExtension extension, ServiceExtensionContext context) {
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
         when(config.getString(any(), any())).thenReturn("test");
 
-        var store = extension.dataPlaneInstanceStore(context);
-        assertThat(store).isInstanceOf(SqlDataPlaneInstanceStore.class);
+        extension.initialize(context);
 
-        verify(config).getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
+        var service = context.getService(TransferProcessStore.class);
+        assertThat(service).isInstanceOf(SqlTransferProcessStore.class);
+
+        verify(config).getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
     }
 }

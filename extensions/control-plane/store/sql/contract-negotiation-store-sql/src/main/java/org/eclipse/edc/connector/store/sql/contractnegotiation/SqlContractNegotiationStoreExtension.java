@@ -34,8 +34,7 @@ import java.time.Clock;
 @Extension(value = "SQL contract negotiation store")
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
-    private static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
-    private static final String DEFAULT_DATASOURCE_NAME = "contractnegotiation";
+    public static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -70,6 +69,6 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_NAME_SETTING, DEFAULT_DATASOURCE_NAME);
+        return context.getConfig().getString(DATASOURCE_NAME_SETTING, DataSourceRegistry.DEFAULT_DATASOURCE);
     }
 }

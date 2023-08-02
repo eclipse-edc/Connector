@@ -34,7 +34,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 public class SqlPolicyStoreExtension implements ServiceExtension {
 
     @Setting(required = true)
-    private static final String DATASOURCE_SETTING_NAME = "edc.datasource.policy.name";
+    public static final String DATASOURCE_SETTING_NAME = "edc.datasource.policy.name";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -67,6 +67,6 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_SETTING_NAME);
+        return context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
     }
 }

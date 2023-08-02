@@ -200,32 +200,15 @@ public class EndToEndTransferParticipant extends Participant {
             }
         };
     }
-
+    
     public Map<String, String> controlPlanePostgresConfiguration() {
         var baseConfiguration = controlPlaneConfiguration();
 
         var postgresConfiguration = new HashMap<String, String>() {
             {
-                put("edc.datasource.asset.name", "asset");
-                put("edc.datasource.asset.url", jdbcUrl());
-                put("edc.datasource.asset.user", PostgresConstants.USER);
-                put("edc.datasource.asset.password", PostgresConstants.PASSWORD);
-                put("edc.datasource.contractdefinition.name", "contractdefinition");
-                put("edc.datasource.contractdefinition.url", jdbcUrl());
-                put("edc.datasource.contractdefinition.user", PostgresConstants.USER);
-                put("edc.datasource.contractdefinition.password", PostgresConstants.PASSWORD);
-                put("edc.datasource.contractnegotiation.name", "contractnegotiation");
-                put("edc.datasource.contractnegotiation.url", jdbcUrl());
-                put("edc.datasource.contractnegotiation.user", PostgresConstants.USER);
-                put("edc.datasource.contractnegotiation.password", PostgresConstants.PASSWORD);
-                put("edc.datasource.policy.name", "policy");
-                put("edc.datasource.policy.url", jdbcUrl());
-                put("edc.datasource.policy.user", PostgresConstants.USER);
-                put("edc.datasource.policy.password", PostgresConstants.PASSWORD);
-                put("edc.datasource.transferprocess.name", "transferprocess");
-                put("edc.datasource.transferprocess.url", jdbcUrl());
-                put("edc.datasource.transferprocess.user", PostgresConstants.USER);
-                put("edc.datasource.transferprocess.password", PostgresConstants.PASSWORD);
+                put("edc.datasource.default.url", jdbcUrl());
+                put("edc.datasource.default.user", PostgresConstants.USER);
+                put("edc.datasource.default.password", PostgresConstants.PASSWORD);
             }
         };
         baseConfiguration.putAll(postgresConfiguration);

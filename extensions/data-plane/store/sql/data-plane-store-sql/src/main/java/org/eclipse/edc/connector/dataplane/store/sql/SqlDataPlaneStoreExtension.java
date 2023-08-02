@@ -40,7 +40,6 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
 
     @Setting(value = "Name of the datasource to use for accessing data plane store")
     private static final String DATASOURCE_SETTING_NAME = "edc.datasource.dataplane.name";
-    private static final String DEFAULT_DATASOURCE_NAME = "dataplane";
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -79,6 +78,6 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {
-        return context.getConfig().getString(DATASOURCE_SETTING_NAME, DEFAULT_DATASOURCE_NAME);
+        return context.getConfig().getString(DATASOURCE_SETTING_NAME, DataSourceRegistry.DEFAULT_DATASOURCE);
     }
 }
