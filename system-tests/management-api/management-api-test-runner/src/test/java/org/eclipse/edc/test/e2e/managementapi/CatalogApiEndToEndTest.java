@@ -31,6 +31,7 @@ import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
@@ -43,11 +44,11 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
     private final String providerUrl = "http://localhost:" + PROTOCOL_PORT + "/protocol";
 
     @Test
-    void shouldReturnCatalog_withoutQuerySpec() {
+    void requestCatalog_shouldReturnCatalog_withoutQuerySpec() {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
-                .add("providerUrl", providerUrl)
+                .add("counterPartyAddress", providerUrl)
                 .add("protocol", "dataspace-protocol-http")
                 .build();
 
@@ -56,13 +57,14 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .body(requestBody)
                 .post("/v2/catalog/request")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .contentType(JSON)
                 .body(TYPE, is("dcat:Catalog"));
     }
 
     @Test
-    void shouldReturnCatalog_withQuerySpec() {
+    void requestCatalog_shouldReturnCatalog_withQuerySpec() {
         var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
         var policyDefinitionStore = controlPlane.getContext().getService(PolicyDefinitionStore.class);
         var contractDefinitionStore = controlPlane.getContext().getService(ContractDefinitionStore.class);
@@ -102,7 +104,7 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "CatalogRequest")
-                .add("providerUrl", providerUrl)
+                .add("counterPartyAddress", providerUrl)
                 .add("protocol", "dataspace-protocol-http")
                 .add("querySpec", querySpec)
                 .build();
@@ -116,6 +118,29 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .contentType(JSON)
                 .body(TYPE, is("dcat:Catalog"))
                 .body("'dcat:dataset'.'edc:id'", is("id-2"));
+    }
+
+    @Test
+    void getDataset_shouldReturnDataset() {
+        var assetIndex = controlPlane.getContext().getService(AssetIndex.class);
+        assetIndex.create(createAsset("asset-id").build());
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "DatasetRequest")
+                .add(ID, "asset-id")
+                .add("counterPartyAddress", providerUrl)
+                .add("protocol", "dataspace-protocol-http")
+                .build();
+
+        baseRequest()
+                .contentType(JSON)
+                .body(requestBody)
+                .post("/v2/catalog/dataset/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body(ID, is("asset-id"))
+                .body(TYPE, is("dcat:Dataset"));
     }
 
     private Asset.Builder createAsset(String id) {

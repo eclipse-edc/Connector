@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.service.catalog;
 
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -38,14 +39,26 @@ class CatalogServiceImplTest {
     private final CatalogService service = new CatalogServiceImpl(dispatcher);
 
     @Test
-    void request_shouldDispatchRequestAndReturnResult() {
+    void requestCatalog_shouldDispatchRequestAndReturnResult() {
         when(dispatcher.dispatch(eq(byte[].class), any())).thenReturn(completedFuture(StatusResult.success("content".getBytes())));
 
-        var result = service.request("http://provider/url", "protocol", QuerySpec.none());
+        var result = service.requestCatalog("http://provider/url", "protocol", QuerySpec.none());
 
         assertThat(result).succeedsWithin(5, SECONDS).satisfies(statusResult -> {
             assertThat(statusResult).isSucceeded().isEqualTo("content".getBytes());
         });
         verify(dispatcher).dispatch(eq(byte[].class), isA(CatalogRequestMessage.class));
+    }
+
+    @Test
+    void requestDataset_shouldDispatchRequestAndReturnResult() {
+        when(dispatcher.dispatch(eq(byte[].class), any())).thenReturn(completedFuture(StatusResult.success("content".getBytes())));
+
+        var result = service.requestDataset("datasetId", "http://provider/url", "protocol");
+
+        assertThat(result).succeedsWithin(5, SECONDS).satisfies(statusResult -> {
+            assertThat(statusResult).isSucceeded().isEqualTo("content".getBytes());
+        });
+        verify(dispatcher).dispatch(eq(byte[].class), isA(DatasetRequestMessage.class));
     }
 }

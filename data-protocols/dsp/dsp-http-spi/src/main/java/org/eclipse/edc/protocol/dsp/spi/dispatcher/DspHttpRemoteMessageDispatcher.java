@@ -24,15 +24,17 @@ import java.util.function.Function;
  * {@link RemoteMessageDispatcher} for sending dataspace protocol messages.
  */
 public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher {
-    
+
     /**
-     * Registers a {@link DspHttpDispatcherDelegate} for supporting a specific type of remote message.
+     * Registers a message request factory and response parser
      *
-     * @param delegate the delegate
+     * @param clazz the message class.
+     * @param requestFactory the request factory.
+     * @param delegate the response parser delegate.
      * @param <M> the type of message
      * @param <R> the response type
      */
-    <M extends RemoteMessage, R> void registerDelegate(DspHttpDispatcherDelegate<M, R> delegate);
+    <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<M, R> delegate);
 
     /**
      * Registers a {@link Policy} scope to be evaluated for certain types of messages

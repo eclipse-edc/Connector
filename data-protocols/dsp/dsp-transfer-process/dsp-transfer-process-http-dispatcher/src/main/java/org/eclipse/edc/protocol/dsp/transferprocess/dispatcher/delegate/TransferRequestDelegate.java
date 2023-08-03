@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
@@ -23,23 +22,10 @@ import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSeriali
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
-
 public class TransferRequestDelegate extends DspHttpDispatcherDelegate<TransferRequestMessage, JsonObject> {
 
     public TransferRequestDelegate(JsonLdRemoteMessageSerializer serializer) {
-        super(serializer);
-    }
-
-    @Override
-    public Class<TransferRequestMessage> getMessageType() {
-        return TransferRequestMessage.class;
-    }
-
-    @Override
-    public Request buildRequest(TransferRequestMessage message) {
-        return buildRequest(message, BASE_PATH + TRANSFER_INITIAL_REQUEST);
+        super();
     }
 
     @Override

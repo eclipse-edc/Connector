@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -26,10 +25,6 @@ import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
 import java.util.function.Function;
-
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.CONTRACT_REQUEST;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 
 /**
  * Delegate for dispatching contract request message as defined in the dataspace protocol specification.
@@ -41,30 +36,9 @@ public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegat
 
 
     public ContractRequestMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer, ObjectMapper mapper, JsonLd jsonLdService) {
-        super(serializer);
+        super();
         this.mapper = mapper;
         this.jsonLdService = jsonLdService;
-    }
-
-    @Override
-    public Class<ContractRequestMessage> getMessageType() {
-        return ContractRequestMessage.class;
-    }
-
-    /**
-     * Sends a contract request message. The request body is constructed as defined in the dataspace
-     * protocol. The request is sent to the remote component using the path from the http binding.
-     *
-     * @param message the message.
-     * @return the built okhttp request.
-     */
-    @Override
-    public Request buildRequest(ContractRequestMessage message) {
-        if (message.getType() == ContractRequestMessage.Type.INITIAL) {
-            return buildRequest(message, BASE_PATH + INITIAL_CONTRACT_REQUEST);
-        } else {
-            return buildRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_REQUEST);
-        }
     }
 
     @Override

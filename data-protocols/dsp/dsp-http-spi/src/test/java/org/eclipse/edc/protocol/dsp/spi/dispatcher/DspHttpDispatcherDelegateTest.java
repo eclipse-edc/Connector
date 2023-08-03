@@ -91,17 +91,7 @@ class DspHttpDispatcherDelegateTest {
     private class TestDspHttpDispatcherDelegate extends DspHttpDispatcherDelegate<RemoteMessage, Object> {
 
         TestDspHttpDispatcherDelegate() {
-            super(DspHttpDispatcherDelegateTest.this.serializer);
-        }
-
-        @Override
-        public Class<RemoteMessage> getMessageType() {
-            return null;
-        }
-
-        @Override
-        public Request buildRequest(RemoteMessage message) {
-            return null;
+            super();
         }
 
         @Override

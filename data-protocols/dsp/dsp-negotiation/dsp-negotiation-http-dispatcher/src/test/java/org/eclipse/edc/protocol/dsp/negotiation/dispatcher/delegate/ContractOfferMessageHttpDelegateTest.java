@@ -15,19 +15,10 @@
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
-import static java.util.UUID.randomUUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.negotiation.dispatcher.NegotiationApiPaths.CONTRACT_OFFER;
 
 class ContractOfferMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractOfferMessage> {
     
@@ -37,23 +28,7 @@ class ContractOfferMessageHttpDelegateTest extends DspHttpDispatcherDelegateTest
     void setUp() {
         delegate = new ContractOfferMessageHttpDelegate(serializer);
     }
-    
-    @Test
-    void getMessageType() {
-        assertThat(delegate.getMessageType()).isEqualTo(ContractOfferMessage.class);
-    }
 
-    @Test
-    void buildRequest() throws IOException {
-        var message = message();
-        testBuildRequest_shouldReturnRequest(message, BASE_PATH + message.getProcessId() + CONTRACT_OFFER);
-    }
-    
-    @Test
-    void buildRequest_serializationFails_throwException() {
-        testBuildRequest_shouldThrowException_whenSerializationFails(message());
-    }
-    
     @Test
     void parseResponse_shouldReturnNullFunction() {
         testParseResponse_shouldReturnNullFunction_whenResponseBodyNotProcessed();
@@ -63,22 +38,5 @@ class ContractOfferMessageHttpDelegateTest extends DspHttpDispatcherDelegateTest
     protected DspHttpDispatcherDelegate<ContractOfferMessage, ?> delegate() {
         return delegate;
     }
-    
-    private ContractOfferMessage message() {
-        return ContractOfferMessage.Builder.newInstance()
-                .protocol("dsp")
-                .processId("processId")
-                .counterPartyAddress("http://connector")
-                .contractOffer(contractOffer())
-                .callbackAddress("http://callback")
-                .build();
-    }
-    
-    private ContractOffer contractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(randomUUID().toString())
-                .assetId("assetId")
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
+
 }

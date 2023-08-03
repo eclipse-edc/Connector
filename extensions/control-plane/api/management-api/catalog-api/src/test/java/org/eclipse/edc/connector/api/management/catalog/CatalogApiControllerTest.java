@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.management.catalog;
 
 import jakarta.json.Json;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.EdcException;
@@ -28,10 +29,14 @@ import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.CompletableFuture;
+
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,10 +59,10 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestCatalog() {
-        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.request(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
+        when(service.requestCatalog(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -72,7 +77,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void catalogRequest_shouldReturnBadRequest_whenValidationFails() {
+    void requestCatalog_shouldReturnBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("error", "path")));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
@@ -88,7 +93,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void catalogRequest_shouldReturnBadRequest_whenTransformFails() {
+    void requestCatalog_shouldReturnBadRequest_whenTransformFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
@@ -105,10 +110,10 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestCatalog_shouldReturnBadGateway_whenServiceFails() {
-        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.request(any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
+        when(service.requestCatalog(any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
 
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
@@ -123,10 +128,10 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestCatalog_shouldReturnBadGateway_whenServiceThrowsException() {
-        var request = CatalogRequest.Builder.newInstance().providerUrl("http://url").build();
+        var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.request(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(service.requestCatalog(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -134,6 +139,98 @@ class CatalogApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body(requestBody)
                 .post("/v2/catalog/request")
+                .then()
+                .statusCode(502);
+    }
+
+    @Test
+    void requestDataset_shouldCallService() {
+        var request = DatasetRequest.Builder.newInstance()
+                .id("dataset-id")
+                .protocol("protocol")
+                .counterPartyAddress("http://provider-url")
+                .build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(request));
+        when(service.requestDataset(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestBody)
+                .post("/v2/catalog/dataset/request")
+                .then()
+                .statusCode(200);
+
+        verify(validatorRegistry).validate(eq(DATASET_REQUEST_TYPE), any());
+        verify(transformerRegistry).transform(any(), eq(DatasetRequest.class));
+        verify(service).requestDataset("dataset-id", "http://provider-url", "protocol");
+    }
+
+    @Test
+    void requestDataset_shouldReturnBadRequest_whenValidationFails() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("error", "path")));
+        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestBody)
+                .post("/v2/catalog/dataset/request")
+                .then()
+                .statusCode(400);
+        verify(validatorRegistry).validate(eq(DATASET_REQUEST_TYPE), any());
+        verifyNoInteractions(transformerRegistry, service);
+    }
+
+    @Test
+    void requestDataset_shouldReturnBadRequest_whenTransformFails() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.failure("error"));
+        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestBody)
+                .post("/v2/catalog/dataset/request")
+                .then()
+                .statusCode(400);
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void requestDataset_shouldReturnBadGateway_whenServiceFails() {
+        var request = DatasetRequest.Builder.newInstance().counterPartyAddress("http://url").build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
+        when(service.requestDataset(any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
+
+        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestBody)
+                .post("/v2/catalog/dataset/request")
+                .then()
+                .statusCode(502);
+    }
+
+    @Test
+    void requestDataset_shouldReturnBadGateway_whenServiceThrowsException() {
+        var request = DatasetRequest.Builder.newInstance().counterPartyAddress("http://url").build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
+        when(service.requestDataset(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestBody)
+                .post("/v2/catalog/dataset/request")
                 .then()
                 .statusCode(502);
     }

@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.catalog.dispatcher.delegate;
 
 import okhttp3.ResponseBody;
-import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.testfixtures.dispatcher.DspHttpDispatcherDelegateTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,17 +28,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class CatalogRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBase<CatalogRequestMessage> {
+class DatasetRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBase<DatasetRequestMessage> {
 
-    private CatalogRequestHttpRawDelegate delegate;
+    private DatasetRequestHttpRawDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        delegate = new CatalogRequestHttpRawDelegate();
+        delegate = new DatasetRequestHttpRawDelegate();
     }
 
     @Test
-    void parseResponse_returnCatalog() throws IOException {
+    void parseResponse_returnDataset() throws IOException {
         var responseBody = mock(ResponseBody.class);
         var response = dummyResponseBuilder(200).body(responseBody).build();
         var bytes = "test".getBytes();
@@ -57,8 +57,15 @@ class CatalogRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<CatalogRequestMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<DatasetRequestMessage, ?> delegate() {
         return delegate;
     }
 
+    private DatasetRequestMessage message() {
+        return DatasetRequestMessage.Builder.newInstance()
+                .datasetId("dataset-id")
+                .counterPartyAddress("http://connector")
+                .protocol("protocol")
+                .build();
+    }
 }

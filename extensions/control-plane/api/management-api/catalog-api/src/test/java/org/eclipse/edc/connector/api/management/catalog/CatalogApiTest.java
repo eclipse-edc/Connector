@@ -18,8 +18,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
+import org.eclipse.edc.connector.api.management.catalog.transform.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.connector.api.management.catalog.validation.CatalogRequestValidator;
+import org.eclipse.edc.connector.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.jsonld.JsonLdExtension;
@@ -32,12 +35,17 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.connector.api.management.catalog.CatalogApi.CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.catalog.CatalogApi.CatalogSchema.CATALOG_EXAMPLE;
+import static org.eclipse.edc.connector.api.management.catalog.CatalogApi.DatasetRequestSchema.DATASET_REQUEST_EXAMPLE;
+import static org.eclipse.edc.connector.api.management.catalog.CatalogApi.DatasetSchema.DATASET_EXAMPLE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class CatalogApiTest {
 
@@ -47,7 +55,8 @@ class CatalogApiTest {
 
     @BeforeEach
     void setUp() {
-        transformer.register(new JsonObjectToCatalogRequestTransformer());
+        transformer.register(new JsonObjectToCatalogRequestTransformer(mock()));
+        transformer.register(new JsonObjectToDatasetRequestTransformer());
         transformer.register(new JsonObjectToQuerySpecTransformer());
     }
 
@@ -65,8 +74,26 @@ class CatalogApiTest {
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
                             assertThat(transformed.getProtocol()).isNotBlank();
-                            assertThat(transformed.getProviderUrl()).isNotBlank();
+                            assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                             assertThat(transformed.getQuerySpec()).isNotNull();
+                        }));
+    }
+
+    @Test
+    void datasetRequestExample() throws JsonProcessingException {
+        var validator = DatasetRequestValidator.instance();
+
+        var jsonObject = objectMapper.readValue(DATASET_REQUEST_EXAMPLE, JsonObject.class);
+        assertThat(jsonObject).isNotNull();
+
+        var expanded = jsonLd.expand(jsonObject);
+        assertThat(expanded).isSucceeded()
+                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
+                .extracting(e -> transformer.transform(e, DatasetRequest.class))
+                .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
+                        .satisfies(transformed -> {
+                            assertThat(transformed.getProtocol()).isNotBlank();
+                            assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                         }));
     }
 
@@ -79,6 +106,18 @@ class CatalogApiTest {
             assertThat(content.getString(ID)).isNotBlank();
             assertThat(content.getJsonArray(TYPE).getString(0)).isEqualTo(DCAT_CATALOG_TYPE);
             assertThat(content.getJsonArray(DCAT_DATASET_ATTRIBUTE).size()).isGreaterThan(0);
+        });
+    }
+
+    @Test
+    void datasetExample() throws JsonProcessingException {
+        var jsonObject = objectMapper.readValue(DATASET_EXAMPLE, JsonObject.class);
+        var expanded = jsonLd.expand(jsonObject);
+
+        assertThat(expanded).isSucceeded().satisfies(content -> {
+            assertThat(content.getString(ID)).isNotBlank();
+            assertThat(content.getJsonArray(TYPE).getString(0)).isEqualTo(DCAT_DATASET_TYPE);
+            assertThat(content.getJsonArray(ODRL_POLICY_ATTRIBUTE).size()).isGreaterThan(0);
         });
     }
 }

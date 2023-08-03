@@ -21,6 +21,7 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
+import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRequestFactory;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -54,21 +55,20 @@ import static org.mockito.Mockito.when;
 
 class DspHttpRemoteMessageDispatcherImplTest {
 
-    private final EdcHttpClient httpClient = mock(EdcHttpClient.class);
-    private final IdentityService identityService = mock(IdentityService.class);
+    private final EdcHttpClient httpClient = mock();
+    private final IdentityService identityService = mock();
+    private final PolicyEngine policyEngine = mock();
+    private final TokenDecorator tokenDecorator = mock();
+    private final DspHttpRequestFactory<TestMessage> requestFactory = mock();
     private final DspHttpDispatcherDelegate<TestMessage, String> delegate = mock();
-    private final PolicyEngine policyEngine = mock(PolicyEngine.class);
     private final Duration timeout = Duration.of(5, SECONDS);
 
     private DspHttpRemoteMessageDispatcher dispatcher;
-    private TokenDecorator tokenDecoratorMock;
 
     @BeforeEach
     void setUp() {
-        tokenDecoratorMock = mock(TokenDecorator.class);
-        when(tokenDecoratorMock.decorate(any())).thenAnswer(a -> a.getArgument(0));
-        dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecoratorMock, policyEngine);
-        when(delegate.getMessageType()).thenReturn(TestMessage.class);
+        when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0));
+        dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine);
     }
 
     @Test
@@ -82,20 +82,20 @@ class DspHttpRemoteMessageDispatcherImplTest {
         Function<Response, StatusResult<String>> responseFunction = response -> StatusResult.success(responseBody);
         var authToken = "token";
 
-        when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
+        when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(delegate.handleResponse()).thenReturn(responseFunction);
         when(httpClient.executeAsync(any(), any(), any())).thenReturn(completedFuture(responseBody));
         when(identityService.obtainClientCredentials(any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
-        dispatcher.registerDelegate(delegate);
+        dispatcher.registerMessage(TestMessage.class, requestFactory, delegate);
 
         var message = new TestMessage();
         var result = dispatcher.dispatch(String.class, message);
 
         assertThat(result).succeedsWithin(timeout).isEqualTo(responseBody);
 
-        verify(delegate).buildRequest(message);
+        verify(requestFactory).createRequest(message);
         verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCounterPartyAddress())));
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
     }
@@ -108,14 +108,14 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
         Map<String, Object> additional = Map.of("foo", "bar");
 
-        when(tokenDecoratorMock.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).scope("test-scope").additional(additional));
-        when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
+        when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).scope("test-scope").additional(additional));
+        when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(delegate.handleResponse()).thenReturn(responseFunction);
         when(httpClient.executeAsync(any(), any(), any())).thenReturn(completedFuture(responseBody));
         when(identityService.obtainClientCredentials(any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
-        dispatcher.registerDelegate(delegate);
+        dispatcher.registerMessage(TestMessage.class, requestFactory, delegate);
 
         var message = new TestMessage();
         var result = dispatcher.dispatch(String.class, message);
@@ -123,8 +123,6 @@ class DspHttpRemoteMessageDispatcherImplTest {
         assertThat(result).succeedsWithin(timeout);
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
-
-        verify(delegate).buildRequest(message);
         verify(identityService).obtainClientCredentials(captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
 
@@ -146,8 +144,8 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     @Test
     void dispatch_failedToObtainToken_throwException() {
-        dispatcher.registerDelegate(delegate);
-        when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
+        dispatcher.registerMessage(TestMessage.class, requestFactory, delegate);
+        when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
 
         assertThat(dispatcher.dispatch(String.class, new TestMessage())).failsWithin(timeout)
@@ -158,12 +156,12 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     @Test
     void dispatch_shouldNotEvaluatePolicy_whenItIsNotRegistered() {
-        when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
+        when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(delegate.handleResponse()).thenReturn(response -> null);
         when(httpClient.executeAsync(any(), any(), any())).thenReturn(completedFuture(null));
         when(identityService.obtainClientCredentials(any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("any").build()));
-        dispatcher.registerDelegate(delegate);
+        dispatcher.registerMessage(TestMessage.class, requestFactory, delegate);
 
         var result = dispatcher.dispatch(String.class, new TestMessage());
 
@@ -173,12 +171,12 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     @Test
     void dispatch_shouldEvaluatePolicy() {
-        when(delegate.buildRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
+        when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(delegate.handleResponse()).thenReturn(response -> null);
         when(httpClient.executeAsync(any(), any(), any())).thenReturn(completedFuture(null));
         when(identityService.obtainClientCredentials(any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("any").build()));
-        dispatcher.registerDelegate(delegate);
+        dispatcher.registerMessage(TestMessage.class, requestFactory, delegate);
         var policy = Policy.Builder.newInstance().build();
         dispatcher.registerPolicyScope(TestMessage.class, "test.message", m -> policy);
 

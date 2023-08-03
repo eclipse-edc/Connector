@@ -22,8 +22,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
+import org.eclipse.edc.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
@@ -32,6 +34,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 
 @Path("/v2/catalog")
 @Consumes(APPLICATION_JSON)
@@ -58,22 +61,49 @@ public class CatalogApiController implements CatalogApi {
         var request = transformerRegistry.transform(requestBody, CatalogRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.request(request.getProviderUrl(), request.getProtocol(), request.getQuerySpec())
+        service.requestCatalog(request.getCounterPartyAddress(), request.getProtocol(), request.getQuerySpec())
                 .whenComplete((result, throwable) -> {
-                    if (throwable == null) {
-                        if (result.succeeded()) {
-                            response.resume(result.getContent());
-                        } else {
-                            response.resume(new BadGatewayException(result.getFailureDetail()));
-                        }
-                    } else {
-                        if (throwable instanceof EdcException || throwable.getCause() instanceof EdcException) {
-                            response.resume(new BadGatewayException(throwable.getMessage()));
-                        } else {
-                            response.resume(throwable);
-                        }
+                    try {
+                        response.resume(toResponse(result, throwable));
+                    } catch (Throwable mapped) {
+                        response.resume(mapped);
                     }
                 });
+    }
+
+    @Override
+    @POST
+    @Path("dataset/request")
+    public void getDataset(JsonObject requestBody, @Suspended AsyncResponse response) {
+        validatorRegistry.validate(DATASET_REQUEST_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
+
+        var request = transformerRegistry.transform(requestBody, DatasetRequest.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.requestDataset(request.getId(), request.getCounterPartyAddress(), request.getProtocol())
+                .whenComplete((result, throwable) -> {
+                    try {
+                        response.resume(toResponse(result, throwable));
+                    } catch (Throwable mapped) {
+                        response.resume(mapped);
+                    }
+                });
+    }
+
+    private byte[] toResponse(StatusResult<byte[]> result, Throwable throwable) throws Throwable {
+        if (throwable == null) {
+            if (result.succeeded()) {
+                return result.getContent();
+            } else {
+                throw new BadGatewayException(result.getFailureDetail());
+            }
+        } else {
+            if (throwable instanceof EdcException || throwable.getCause() instanceof EdcException) {
+                throw new BadGatewayException(throwable.getMessage());
+            } else {
+                throw throwable;
+            }
+        }
     }
 
 }
