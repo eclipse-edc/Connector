@@ -33,6 +33,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
@@ -56,7 +57,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
     private static final String CONTRACT_OFFER_ID = "contractOfferId";
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
     private JsonObjectToContractRequestMessageTransformer transformer;
 
@@ -72,7 +73,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
                 .add(JsonLdKeywords.ID, OBJECT_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_PROPERTY_DATA_SET, DATASET_ID)
+                .add(DSPACE_PROPERTY_DATASET, DATASET_ID)
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
                 .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();
@@ -85,7 +86,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
         assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
         assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK);
-        assertThat(result.getDataSet()).isEqualTo(DATASET_ID);
+        assertThat(result.getDataset()).isEqualTo(DATASET_ID);
 
         var contractOffer = result.getContractOffer();
         assertThat(contractOffer).isNotNull();
@@ -97,12 +98,31 @@ class JsonObjectToContractRequestMessageTransformerTest {
     }
 
     @Test
-    void verify_usingOfferId() {
+    void shouldDeserialize_whenDatasetIsWrittenWithTheWrongCase_deprecated() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, OBJECT_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
                 .add(DSPACE_PROPERTY_DATA_SET, DATASET_ID)
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
+                .add(DSPACE_PROPERTY_OFFER, contractOffer())
+                .build();
+
+        when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
+
+        var result = transformer.transform(getExpanded(message), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getDataset()).isEqualTo(DATASET_ID);
+    }
+
+    @Test
+    void verify_usingOfferId() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, OBJECT_ID)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_DATASET, DATASET_ID)
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
                 .add(DSPACE_PROPERTY_OFFER_ID, CONTRACT_OFFER_ID)
                 .build();
@@ -113,7 +133,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
         assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
         assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK);
-        assertThat(result.getDataSet()).isEqualTo(DATASET_ID);
+        assertThat(result.getDataset()).isEqualTo(DATASET_ID);
 
         assertThat(result.getContractOfferId()).isNotNull();
 
@@ -165,7 +185,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
                 .add(JsonLdKeywords.ID, OBJECT_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
-                .add(DSPACE_PROPERTY_DATA_SET, DATASET_ID)
+                .add(DSPACE_PROPERTY_DATASET, DATASET_ID)
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK)
                 .add(DSPACE_PROPERTY_OFFER, contractOffer())
                 .build();

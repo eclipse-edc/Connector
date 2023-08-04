@@ -124,7 +124,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
                 .processId("testId")
                 .counterPartyAddress("http://connector")
                 .callbackAddress("http://connector")
-                .dataSet("dataSet")
+                .dataset("dataset")
                 .contractOffer(contractOffer())
                 .build();
     }

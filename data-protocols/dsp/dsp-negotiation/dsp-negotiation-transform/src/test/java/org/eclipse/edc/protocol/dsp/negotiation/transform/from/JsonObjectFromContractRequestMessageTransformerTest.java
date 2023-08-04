@@ -30,7 +30,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATA_SET;
+import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
@@ -76,7 +76,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
         assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_DATA_SET).getString()).isEqualTo(DATASET_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_DATASET).getString()).isEqualTo(DATASET_ID);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
         assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER)).isNotNull();
         assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
@@ -90,7 +90,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
                 .protocol(PROTOCOL)
                 .processId(PROCESS_ID)
                 .callbackAddress(CALLBACK_ADDRESS)
-                .dataSet(DATASET_ID)
+                .dataset(DATASET_ID)
                 .contractOfferId(CONTRACT_OFFER_ID)
                 .build();
 
@@ -100,7 +100,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
         assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_DATA_SET).getString()).isEqualTo(DATASET_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_DATASET).getString()).isEqualTo(DATASET_ID);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
         assertThat(result.getJsonString(DSPACE_PROPERTY_OFFER_ID)).isNotNull();
 
@@ -123,7 +123,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
                 .protocol(PROTOCOL)
                 .processId(PROCESS_ID)
                 .callbackAddress(CALLBACK_ADDRESS)
-                .dataSet(DATASET_ID)
+                .dataset(DATASET_ID)
                 .contractOffer(contractOffer())
                 .build();
     }

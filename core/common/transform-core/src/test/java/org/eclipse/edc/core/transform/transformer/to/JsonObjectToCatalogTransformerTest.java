@@ -100,7 +100,7 @@ class JsonObjectToCatalogTransformerTest {
 
     @Test
     void transform_filledCatalog_returnCatalog() {
-        var dataSetJson = getJsonObject("dataset");
+        var datasetJson = getJsonObject("dataset");
         var dataServiceJson = getJsonObject("dataService");
 
         var dataset = Dataset.Builder.newInstance()
@@ -120,7 +120,7 @@ class JsonObjectToCatalogTransformerTest {
         var catalog = jsonFactory.createObjectBuilder()
                 .add(ID, CATALOG_ID)
                 .add(TYPE, DCAT_CATALOG_TYPE)
-                .add(DCAT_DATASET_ATTRIBUTE, dataSetJson)
+                .add(DCAT_DATASET_ATTRIBUTE, datasetJson)
                 .add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServiceJson)
                 .build();
 

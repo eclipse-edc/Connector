@@ -26,7 +26,7 @@ class ContractRequestMessageTest {
     public static final String CALLBACK_ADDRESS = "http://test.com";
     public static final String OFFER_ID = "offerId";
     public static final String PROCESS_ID = "123";
-    public static final String DATA_SET = "dataset1";
+    public static final String DATASET = "dataset1";
     public static final String ID = "id1";
     public static final String ASSET_ID = "asset1";
     public static final String PROTOCOL = "DPS";
@@ -38,7 +38,7 @@ class ContractRequestMessageTest {
                 .processId(PROCESS_ID)
                 .protocol(PROTOCOL)
                 .contractOfferId(OFFER_ID)
-                .dataSet(DATA_SET)
+                .dataset(DATASET)
                 .build();
     }
 
@@ -47,7 +47,7 @@ class ContractRequestMessageTest {
         assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
                 .protocol(PROTOCOL)
-                .dataSet(DATA_SET)
+                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
 
@@ -56,7 +56,7 @@ class ContractRequestMessageTest {
                 .type(COUNTER_OFFER)
                 .protocol(PROTOCOL)
                 .contractOfferId(OFFER_ID)
-                .dataSet(DATA_SET)
+                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
     }
@@ -68,7 +68,7 @@ class ContractRequestMessageTest {
                 .processId(PROCESS_ID)
                 .protocol(PROTOCOL)
                 .contractOfferId(OFFER_ID)
-                .dataSet(DATA_SET)
+                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
@@ -81,7 +81,7 @@ class ContractRequestMessageTest {
                         .assetId(ASSET_ID)
                         .policy(Policy.Builder.newInstance().build())
                         .build())
-                .dataSet(DATA_SET)
+                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build();
 
@@ -90,7 +90,7 @@ class ContractRequestMessageTest {
                 .type(INITIAL)
                 .processId(PROCESS_ID)
                 .protocol(PROTOCOL)
-                .dataSet(DATA_SET)
+                .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)
                 .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("contractOffer");
 
