@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Failure;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -43,9 +44,17 @@ public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCh
     }
 
     @JsonProperty("isHealthy")
+
     @Override
     public @NotNull Boolean getContent() {
         return super.getContent();
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    @Override
+    protected <R1 extends AbstractResult<C1, Failure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable Failure failure) {
+        return (R1) new HealthCheckResult(failure == null, failure);
     }
 
     public String getComponent() {

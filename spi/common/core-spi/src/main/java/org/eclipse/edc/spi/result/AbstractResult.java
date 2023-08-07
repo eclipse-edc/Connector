@@ -127,34 +127,17 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
      *
      * @return this instance.
      */
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     public R self() {
         return (R) this;
-    }
-
-    /**
-     * Returns a new result instance.
-     * This default implementation exists only to avoid breaking changes, in a future this should become an abstract
-     * method.
-     * If this {@link UnsupportedOperationException} was thrown, please override this method with a proper behavior.
-     *
-     * @param content the content.
-     * @param failure the failure.
-     * @param <R1> the new result type.
-     * @param <C1> the new content type.
-     * @return a new result instance
-     */
-    @NotNull
-    protected <R1 extends AbstractResult<C1, F, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable F failure) {
-        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
     /**
      * Map the content into another, applying the mapping function.
      *
      * @param mapFunction a function that converts the content into another.
-     * @param <T2> the new content type.
-     * @param <R2> the new result type.
+     * @param <T2>        the new content type.
+     * @param <R2>        the new result type.
      * @return a new result with a mapped content if succeeded, a new failed one otherwise.
      */
     public <T2, R2 extends AbstractResult<T2, F, R2>> R2 map(Function<T, T2> mapFunction) {
@@ -188,4 +171,19 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
             return newInstance(null, getFailure());
         }
     }
+
+    /**
+     * Returns a new result instance.
+     * This default implementation exists only to avoid breaking changes, in a future this should become an abstract
+     * method.
+     * If this {@link UnsupportedOperationException} was thrown, please override this method with a proper behavior.
+     *
+     * @param content the content.
+     * @param failure the failure.
+     * @param <R1>    the new result type.
+     * @param <C1>    the new content type.
+     * @return a new result instance
+     */
+    @NotNull
+    protected abstract <R1 extends AbstractResult<C1, F, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable F failure);
 }
