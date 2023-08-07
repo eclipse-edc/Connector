@@ -1,0 +1,21 @@
+{
+  "issuanceDate": "2023-06-12T13:13:30Z",
+  "credentialSubject": {
+    "number": "member0123456789",
+    "id": "did:web:localhost:member0123456789",
+    "type": "https://org.eclipse.edc/linkedCredentialData#MembershipCredential"
+  },
+  "id": "https://org.eclipse.edc/testcases/t0001",
+  "type": [
+    "VerifiableCredential",
+    "MembershipCredential"
+  ],
+  "issuer": "did:web:localhost:member0123456789",
+  "expirationDate": "2024-12-31T23:00:00Z",
+  "@context": [
+    "https://org.eclipse.edc/linkedCredentialData",
+    "https://www.w3.org/ns/did/v1",
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1"
+  ]
+}

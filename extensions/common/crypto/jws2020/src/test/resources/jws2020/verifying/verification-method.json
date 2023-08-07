@@ -1,0 +1,14 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/jws-2020/v1"
+  ],
+  "type": "JsonWebKey2020",
+  "id": "https://org.eclipse.edc/verification-keys.json",
+  "publicKeyJwk": {
+    "kty": "EC",
+    "crv": "P-384",
+    "x": "AqMfyYAh2SMf8bMoLbE6mOCbVyz8hukpBqrVheAFP4Anz2_cfzLEKKROD5EaAxSo",
+    "y": "P4KceKXv31JasLqvBPZWA9t1S2cMiHIQQ8ttAl5cFX3xBuzIPlgTRWPOVaNPWNFl"
+  }
+}

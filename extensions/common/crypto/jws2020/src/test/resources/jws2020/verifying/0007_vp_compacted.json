@@ -1,0 +1,39 @@
+{
+  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fcaba3903c5",
+  "type": "VerifiablePresentation",
+  "verifiableCredential": {
+    "issuanceDate": "2023-06-12T13:13:30Z",
+    "credentialSubject": {
+      "http://schema.org/identifier": "member0123456789",
+      "id": "did:web:localhost:member0123456789",
+      "type": "https://org.eclipse.edc/linkedCredentialData#MembershipCredential"
+    },
+    "id": "https://org.eclipse.edc/testcases/t0001",
+    "type": [
+      "VerifiableCredential",
+      "MembershipCredential"
+    ],
+    "issuer": "did:web:localhost:member0123456789",
+    "expirationDate": "2024-12-31T23:00:00Z",
+    "sec:proof": {
+      "type": "JsonWebSignature2020",
+      "created": "2022-12-31T23:00:00Z",
+      "proofPurpose": "assertionMethod",
+      "verificationMethod": "https://org.eclipse.edc/verification-method",
+      "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..SwEkR4duA97jHy_WSVKIHLJqd8i2IidedmlMpUKyeV0YlPNz0pjPEKM9p7PqBb7oRIKG3-5qCxpzNhbsIEZZMzEMjWE1adckJ9SMiNr_G1wiAh3Op0cZHDgZBevIPElG"
+    }
+  },
+  "sec:proof": {
+    "type": "JsonWebSignature2020",
+    "created": "2022-12-31T23:00:00Z",
+    "proofPurpose": "assertionMethod",
+    "verificationMethod": "https://org.eclipse.edc/verification-method",
+    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..eadcijhno0JUZ2yl2QrlQBD_1rrGFS1qjYeGYV8O-XN1P-28HneLnHkvUH9IDTiTTAwnCQjdr0Tq3NEgpbz-sji0X9fT-chM86OQfqylm0Dt6_jLIj-32JHtetFU3QXS"
+  },
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+    "https://www.w3.org/ns/did/v1"
+  ]
+}
