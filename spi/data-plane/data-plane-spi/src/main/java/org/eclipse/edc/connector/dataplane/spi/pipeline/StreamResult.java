@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -61,5 +63,12 @@ public class StreamResult<T> extends AbstractResult<T, StreamFailure, StreamResu
 
     public StreamFailure.Reason reason() {
         return getFailure().getReason();
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    @Override
+    protected <R1 extends AbstractResult<C1, StreamFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable StreamFailure failure) {
+        return (R1) new StreamResult<>(content, failure);
     }
 }

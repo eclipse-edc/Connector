@@ -15,6 +15,8 @@
 package org.eclipse.edc.spi.response;
 
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +25,10 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 
 public class StatusResult<T> extends AbstractResult<T, ResponseFailure, StatusResult<T>> {
+
+    private StatusResult(T content, ResponseFailure failure) {
+        super(content, failure);
+    }
 
     public static StatusResult<Void> success() {
         return new StatusResult<>(null, null);
@@ -40,11 +46,14 @@ public class StatusResult<T> extends AbstractResult<T, ResponseFailure, StatusRe
         return new StatusResult<>(null, new ResponseFailure(status, List.of(error)));
     }
 
-    private StatusResult(T content, ResponseFailure failure) {
-        super(content, failure);
-    }
-
     public boolean fatalError() {
         return failed() && getFailure().status() == FATAL_ERROR;
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    @Override
+    protected <R1 extends AbstractResult<C1, ResponseFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable ResponseFailure failure) {
+        return (R1) new StatusResult<>(content, failure);
     }
 }

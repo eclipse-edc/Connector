@@ -15,6 +15,9 @@
 
 package org.eclipse.edc.spi.result;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
@@ -59,5 +62,12 @@ public class StoreResult<T> extends AbstractResult<T, StoreFailure, StoreResult<
 
     public StoreFailure.Reason reason() {
         return getFailure().getReason();
+    }
+
+    @NotNull
+    @Override
+    @SuppressWarnings("unchecked")
+    protected <R1 extends AbstractResult<C1, StoreFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable StoreFailure failure) {
+        return (R1) new StoreResult<>(content, failure);
     }
 }
