@@ -30,13 +30,11 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
 
 import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -49,7 +47,7 @@ public interface ContractNegotiationApi {
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiations that match the query",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
@@ -58,7 +56,7 @@ public interface ContractNegotiationApi {
     @Operation(description = "Gets a contract negotiation with the given ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
-                            content = @Content(schema = @Schema(implementation = ContractNegotiationSchema.class))),
+                            content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
@@ -184,45 +182,6 @@ public interface ContractNegotiationApi {
                             }]
                         }
                     },
-                    "callbackAddresses": [{
-                        "transactional": false,
-                        "uri": "http://callback/url",
-                        "events": ["contract.negotiation", "transfer.process"],
-                        "authKey": "auth-key",
-                        "authCodeId": "auth-code-id"
-                    }]
-                }
-                """;
-    }
-
-    @Schema(name = "ContractNegotiation", example = ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE)
-    record ContractNegotiationSchema(
-            @Schema(name = TYPE, example = CONTRACT_NEGOTIATION_TYPE)
-            String ldType,
-            @Schema(name = ID)
-            String id,
-            ContractNegotiation.Type type,
-            String protocol,
-            String counterPartyId,
-            String counterPartyAddress,
-            String state,
-            String contractAgreementId,
-            String errorDetail,
-            List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
-    ) {
-        public static final String CONTRACT_NEGOTIATION_EXAMPLE = """
-                {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/ContractNegotiation",
-                    "@id": "negotiation-id",
-                    "type": "PROVIDER",
-                    "protocol": "dataspace-protocol-http",
-                    "counterPartyId": "counter-party-id",
-                    "counterPartyAddress": "http://counter/party/address",
-                    "state": "VERIFIED",
-                    "contractAgreementId": "contract:agreement:id",
-                    "errorDetail": "eventual-error-detail",
-                    "createdAt": 1688465655,
                     "callbackAddresses": [{
                         "transactional": false,
                         "uri": "http://callback/url",

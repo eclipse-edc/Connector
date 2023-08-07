@@ -16,18 +16,26 @@ package org.eclipse.edc.connector.service.contractagreement;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractAgreementServiceImplTest {
@@ -66,6 +74,27 @@ class ContractAgreementServiceImplTest {
         assertThat(result.getContent()).hasSize(1).first().matches(it -> it.getId().equals("agreementId"));
     }
 
+    @Test
+    void findNegotiation_shouldReturnNegotiationFilteredByAgreementId() {
+        var negotiation = createContractNegotiation("negotiationId");
+        when(store.queryNegotiations(any())).thenReturn(Stream.of(negotiation));
+
+        var result = service.findNegotiation("agreementId");
+
+        assertThat(result).isEqualTo(negotiation);
+        var expectedCriterion = criterion("contractAgreement.id", "=", "agreementId");
+        verify(store).queryNegotiations(argThat(q -> q.getFilterExpression().contains(expectedCriterion)));
+    }
+
+    @Test
+    void findNegotiation_shouldReturnNull_whenAgreementOrNegotiationDoesNotExist() {
+        when(store.queryNegotiations(any())).thenReturn(Stream.empty());
+
+        var result = service.findNegotiation("agreementId");
+
+        assertThat(result).isNull();
+    }
+
     private ContractAgreement createContractAgreement(String agreementId) {
         return ContractAgreement.Builder.newInstance()
                 .id(agreementId)
@@ -73,6 +102,18 @@ class ContractAgreementServiceImplTest {
                 .consumerId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
+    private ContractNegotiation createContractNegotiation(String negotiationId) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(negotiationId)
+                .counterPartyId(randomUUID().toString())
+                .counterPartyAddress("address")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
+                .protocol("protocol")
                 .build();
     }
 }

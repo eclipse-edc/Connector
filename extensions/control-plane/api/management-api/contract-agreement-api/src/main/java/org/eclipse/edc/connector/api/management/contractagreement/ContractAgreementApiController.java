@@ -92,5 +92,15 @@ public class ContractAgreementApiController implements ContractAgreementApi {
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }
 
+    @GET
+    @Path("{id}/negotiation")
+    @Override
+    public JsonObject getNegotiationByAgreementId(@PathParam("id") String id) {
+        return Optional.of(id)
+                .map(service::findNegotiation)
+                .map(it -> transformerRegistry.transform(it, JsonObject.class)
+                        .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
+                .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
+    }
 
 }
