@@ -41,7 +41,7 @@ tink = "1.10.0"
 
 
 [libraries]
-apicatalog-iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "iron-vc" }
+iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "iron-vc" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }

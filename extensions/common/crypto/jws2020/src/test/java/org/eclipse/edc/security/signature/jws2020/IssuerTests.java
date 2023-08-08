@@ -42,9 +42,9 @@ import java.util.Date;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.createKeyPair;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResourceAsJson;
-import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResourceAsString;
 
 class IssuerTests {
 
@@ -56,7 +56,7 @@ class IssuerTests {
     @Test
     void signSimpleCredential_ecKey() throws SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
-        var keypair = createKeyPair(KeyFactory.create(readResourceAsString("jws2020/issuing/private-key.json")));
+        var keypair = createKeyPair(KeyFactory.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
@@ -69,7 +69,7 @@ class IssuerTests {
         var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
 
         // would throw an exception
-        var compacted = IssuerCompat.compact(issuer, "https://www.w3.org/ns/did/v1");
+        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
         var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
 
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
@@ -105,7 +105,7 @@ class IssuerTests {
         var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
 
         // would throw an exception
-        var compacted = IssuerCompat.compact(issuer, "https://www.w3.org/ns/did/v1");
+        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
         var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
 
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
@@ -131,7 +131,7 @@ class IssuerTests {
         var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
 
         // would throw an exception
-        var compacted = IssuerCompat.compact(issuer, "https://www.w3.org/ns/did/v1");
+        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
         var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
 
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
@@ -148,7 +148,7 @@ class IssuerTests {
     @Test
     void signEmbeddedVerificationMethod() throws SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
-        var keypair = createKeyPair(KeyFactory.create(readResourceAsString("jws2020/issuing/private-key.json")));
+        var keypair = createKeyPair(KeyFactory.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
 
         var proofOptions = jws2020suite.createOptions()
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
@@ -159,7 +159,7 @@ class IssuerTests {
         var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
 
         // would throw an exception
-        var compacted = IssuerCompat.compact(issuer, "https://www.w3.org/ns/did/v1");
+        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
         var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
 
         assertThat(verificationMethod).describedAs("Expected an Object!").isInstanceOf(JsonObject.class);
@@ -201,7 +201,7 @@ class IssuerTests {
         var issuer = Vc.sign(vc, keypair, proofOptions).loader(loader);
 
         // would throw an exception
-        var compacted = IssuerCompat.compact(issuer, "https://www.w3.org/ns/did/v1");
+        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
         var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
 
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
@@ -214,7 +214,7 @@ class IssuerTests {
     void signCompactedPresentation() throws SigningError, DocumentError {
         var vp = readResourceAsJson("jws2020/issuing/0005_vp_compacted_signed.json");
 
-        var keypair = createKeyPair(KeyFactory.create(readResourceAsString("jws2020/issuing/private-key.json")));
+        var keypair = createKeyPair(KeyFactory.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
@@ -227,7 +227,7 @@ class IssuerTests {
         var issuer = Vc.sign(vp, keypair, proofOptions).loader(loader);
 
         // would throw an exception
-        var compacted = IssuerCompat.compact(issuer, "https://www.w3.org/ns/did/v1");
+        var compacted = IssuerCompatibility.compact(issuer, "https://www.w3.org/ns/did/v1");
         var verificationMethod = compacted.getJsonObject("sec:proof").get("verificationMethod");
 
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);

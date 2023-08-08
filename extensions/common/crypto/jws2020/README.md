@@ -19,31 +19,31 @@ check the `IssuerTests` and the `VerifierTests` for more comprehensive explanati
 ### Sign a VC
 
 ```java
-JwsSignature2020Suite suite = new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
-JsonObject vc = createVcAsJsonLd();
-JWK keyPair = createKeyPairAsJwk();
-JwkMethod signKeys = new JwkMethod(id,type,controller,keyPair);
+JwsSignature2020Suite suite=new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
+JsonObject vc=createVcAsJsonLd();
+JWK keyPair=createKeyPairAsJwk();
+JwkMethod signKeys=new JwkMethod(id,type,controller,keyPair);
 
-var options = suite.createOptions()
+var options=suite.createOptions()
         .created(Instant.now())
         .verificationMethod(signKeys) // embeds the proof
         .purpose(URI.create("https://w3id.org/security#assertionMethod"));
 
-Issuer signedVc = Vc.sign(vc, signKeys, options);
+Issuer signedVc=Vc.sign(vc,signKeys,options);
 
-JsonObject compacted = IssuerCompat.compact(signedVc);
+JsonObject compacted=IssuerCompat.compact(signedVc);
 ```
 
 ### Verify a VC
 
 ```java
-JwsSignature2020Suite suite = new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
-JsonObject vc = readSignedVc();
-Verifier result = Vc.verify(vc, suite);
+JwsSignature2020Suite suite=new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
+JsonObject vc=readSignedVc();
+Verifier result=Vc.verify(vc,suite);
 
-try {
+try{
     result.isValid();
-} catch(VerificationError error) {
+}catch(VerificationError error){
     //handle    
 }
 ```
@@ -65,6 +65,7 @@ a [hard-coded context](https://github.com/filip26/iron-verifiable-credentials/bl
 added to the compacted JSON-LD, which is incorrect. It doesn't negatively impact the resulting JSON-LD, other than
 possibly affecting processing times, but unfortunately it also makes it impossible to add more contexts, such
 as https://w3id.org/security/suites/jws-2020/v1. We mitigated this with
-the [`IssuerCompat.java`](./src/main/java/org/eclipse/edc/security/signature/jws2020/IssuerCompat.java), which should be
+the [`IssuerCompatibilty.java`](./src/main/java/org/eclipse/edc/security/signature/jws2020/IssuerCompatibility.java),
+which should be
 used
 for compaction.

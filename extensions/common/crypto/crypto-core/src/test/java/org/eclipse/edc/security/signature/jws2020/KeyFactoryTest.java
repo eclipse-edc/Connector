@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResourceAsString;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 
 class KeyFactoryTest {
 
@@ -71,7 +71,7 @@ class KeyFactoryTest {
     @Test
     void create_rsa() throws JsonProcessingException {
         // the RSA key would violate the Checkstyle line length constraint
-        var json = readResourceAsString("rsakey.json");
+        var json = getResourceFileContentAsString("rsakey.json");
 
         assertThat(KeyFactory.create(json)).isInstanceOf(RSAKey.class).extracting(JWK::isPrivate).isEqualTo(true);
         var map = new ObjectMapper().readValue(json, Map.class);

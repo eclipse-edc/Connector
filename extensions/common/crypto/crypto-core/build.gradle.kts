@@ -20,5 +20,6 @@ dependencies {
     implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
-
+    
+    testImplementation(testFixtures(project(":core:common:junit")))
 }

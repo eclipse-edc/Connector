@@ -26,7 +26,9 @@ dependencies {
     runtimeOnly(libs.tink)
     implementation(libs.jakartaJson)
 
-    implementation(libs.apicatalog.iron.vc) {
+    implementation(libs.iron.vc) {
         exclude("com.github.multiformats")
     }
+
+    testImplementation(testFixtures(project(":core:common:junit")))
 }

@@ -22,8 +22,9 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Objects;
 import java.util.UUID;
+
+import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 
 class TestFunctions {
 
@@ -37,15 +38,7 @@ class TestFunctions {
 
     static JsonObject readResourceAsJson(String name) {
         try {
-            return MAPPER.readValue(Thread.currentThread().getContextClassLoader().getResourceAsStream(name), JsonObject.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static String readResourceAsString(String name) {
-        try (var stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(name)) {
-            return new String(Objects.requireNonNull(stream).readAllBytes());
+            return MAPPER.readValue(getResourceFileContentAsString(name), JsonObject.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

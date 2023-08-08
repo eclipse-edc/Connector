@@ -32,9 +32,9 @@ import java.util.Arrays;
 /**
  * The {@link Issuer} adds the context, but currently that adds hard-coded {@code "https://w3id.org/security/suites/ed25519-2020/v1"}.
  * For the Jwk2020 suite we need that to be {@code "https://w3id.org/security/suites/jws-2020/v1"}, so as a temporary workaround we do <em>not</em>
- * use {@link Issuer#getCompacted()}, but rather use {@link IssuerCompat#compact(Issuer, String...)}.
+ * use {@link Issuer#getCompacted()}, but rather use {@link IssuerCompatibility#compact(Issuer, String...)}.
  */
-public class IssuerCompat {
+public class IssuerCompatibility {
     /**
      * Compacts the JSON structure represented  by the {@link Issuer} by delegating to {@link JsonLd#compact(Document, URI)}. Note that before compacting, the JSON-LD is expanded, signed, all additional contexts are added
      * and then compacted.
@@ -43,6 +43,7 @@ public class IssuerCompat {
      * <ul>
      *     <li>https://www.w3.org/2018/credentials/v1</li>
      *     <li>https://w3id.org/security/suites/jws-2020/v1</li>
+     *     <li>https://www.w3.org/ns/did/v1</li>
      * </ul>
      *
      * @param issuer             The {@link Issuer}
