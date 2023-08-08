@@ -73,7 +73,7 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
                 throw new UnsupportedOperationException("Cannot deserialize key pair, expected JWK format");
             }
             // Create and sign JWS
-            JWSHeader header = new JWSHeader.Builder(from(keyPair))
+            var header = new JWSHeader.Builder(from(keyPair))
                     .base64URLEncodePayload(false)
                     .criticalParams(Collections.singleton("b64"))
                     .build();
@@ -82,8 +82,8 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
             var jwsObject = new JWSObject(header, detachedPayload);
             jwsObject.sign(KeyFactory.createSigner(keyPair));
 
-            boolean isDetached = true;
-            String jws = jwsObject.serialize(isDetached);
+            var isDetached = true;
+            var jws = jwsObject.serialize(isDetached);
             return jws.getBytes();
 
         } catch (JOSEException e) {
@@ -117,9 +117,9 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
     }
 
     private JWK deserialize(byte[] privateKey) {
-        ByteArrayInputStream bis = new ByteArrayInputStream(privateKey);
+        var bis = new ByteArrayInputStream(privateKey);
         try {
-            ObjectInputStream in = new ObjectInputStream(bis);
+            var in = new ObjectInputStream(bis);
             return (JWK) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             return null;
