@@ -1,0 +1,37 @@
+{
+  "issuanceDate": "2023-06-12T13:13:30Z",
+  "credentialSubject": {
+    "http://schema.org/identifier": "member0123456789",
+    "id": "did:web:localhost:member0123456789",
+    "type": "https://org.eclipse.edc/linkedCredentialData#MembershipCredential"
+  },
+  "id": "7f6c11b4-d2b9-43c3-8411-53f6089b5d2b",
+  "type": [
+    "VerifiableCredential",
+    "https://org.eclipse.edc/linkedCredentialData#MembershipCredential"
+  ],
+  "issuer": "did:web:localhost:member0123456789",
+  "expirationDate": "2024-12-31T23:00:00Z",
+  "sec:proof": {
+    "type": "JsonWebSignature2020",
+    "created": "2022-12-31T23:00:00Z",
+    "proofPurpose": "assertionMethod",
+    "verificationMethod": {
+      "type": "JsonWebKey2020",
+      "publicKeyJwk": {
+        "kty": "EC",
+        "crv": "P-384",
+        "x": "AqMfyYAh2SMf8bMoLbE6mOCbVyz8hukpBqrVheAFP4Anz2_cfzLEKKROD5EaAxSo",
+        "y": "P4KceKXv31JasLqvBPZWA9t1S2cMiHIQQ8ttAl5cFX3xBuzIPlgTRWPOVaNPWNFl"
+      },
+      "id": "https://org.eclipse.edc/keys/99159241-bbf7-4bcd-8851-c31f186d348d"
+    },
+    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFUzM4NCJ9..fhdTmvoci7jqs-Qvlq74abkn2DWQuLHM_KPVk0tAXAVujjPRhs7BB-5uNakehNhrJm1q6sU_vfUwJ2UxO6SaWTP9twp9cTRWhN1hnY_cV1eMht_BLUv7Ld9cuUIJyqrN"
+  },
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+    "https://www.w3.org/ns/did/v1"
+  ]
+}

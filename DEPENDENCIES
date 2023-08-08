@@ -1,3 +1,7 @@
+maven/mavencentral/com.apicatalog/carbon-did/0.0.2, Apache-2.0, approved, #9239
+maven/mavencentral/com.apicatalog/iron-verifiable-credentials/0.8.1, Apache-2.0, approved, #9234
+maven/mavencentral/com.apicatalog/titanium-json-ld/1.0.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/com.apicatalog/titanium-json-ld/1.3.1, Apache-2.0, approved, #8912
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.3.2, Apache-2.0, approved, #8912
 maven/mavencentral/com.atomikos/atomikos-util/6.0.0, Apache-2.0, approved, #9326
 maven/mavencentral/com.atomikos/transactions-api/6.0.0, NOASSERTION, restricted, clearlydefined
@@ -53,7 +57,10 @@ maven/mavencentral/com.github.luben/zstd-jni/1.5.5-1, BSD-2-Clause, approved, cl
 maven/mavencentral/com.github.stephenc.jcip/jcip-annotations/1.0-1, Apache-2.0, approved, CQ21949
 maven/mavencentral/com.google.code.findbugs/jsr305/2.0.1, BSD-3-Clause AND CC-BY-2.5 AND LGPL-2.1+, approved, CQ13390
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0, approved, #20
+maven/mavencentral/com.google.code.gson/gson/2.10.1, Apache-2.0, approved, #6159
+maven/mavencentral/com.google.crypto.tink/tink/1.10.0, Apache-2.0, approved, #9845
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.11.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/com.google.errorprone/error_prone_annotations/2.18.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.7.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.google.guava/failureaccess/1.0.1, Apache-2.0, approved, CQ22654
 maven/mavencentral/com.google.guava/guava/28.1-android, Apache-2.0, approved, clearlydefined
@@ -63,6 +70,7 @@ maven/mavencentral/com.google.guava/guava/31.0.1-jre, Apache-2.0, approved, clea
 maven/mavencentral/com.google.guava/guava/31.1-jre, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava, Apache-2.0, approved, CQ22657
 maven/mavencentral/com.google.j2objc/j2objc-annotations/1.3, Apache-2.0, approved, CQ21195
+maven/mavencentral/com.google.protobuf/protobuf-java/3.19.6, BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/com.google.protobuf/protobuf-java/3.23.4, BSD-3-Clause, approved, #8634
 maven/mavencentral/com.googlecode.libphonenumber/libphonenumber/8.11.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.h2database/h2/2.2.220, (EPL-1.0 OR MPL-2.0) AND (LGPL-3.0-or-later OR EPL-1.0 OR MPL-2.0), approved, #9322
@@ -130,6 +138,7 @@ maven/mavencentral/io.rest-assured/json-path/5.3.1, Apache-2.0, approved, #9261
 maven/mavencentral/io.rest-assured/rest-assured-common/5.3.1, Apache-2.0, approved, #9264
 maven/mavencentral/io.rest-assured/rest-assured/5.3.1, Apache-2.0, approved, #9262
 maven/mavencentral/io.rest-assured/xml-path/5.3.1, Apache-2.0, approved, #9267
+maven/mavencentral/io.setl/rdf-urdna/1.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.15, Apache-2.0, approved, #5947
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.2, Apache-2.0, approved, #5947
 maven/mavencentral/io.swagger.core.v3/swagger-annotations/2.2.10, Apache-2.0, approved, clearlydefined
