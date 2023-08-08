@@ -82,7 +82,7 @@ class IssuerTests {
     void signSimpleCredential_rsaKey(int keysize) throws SigningError, DocumentError, NoSuchAlgorithmException {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
 
-        KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
+        var gen = KeyPairGenerator.getInstance("RSA");
         gen.initialize(keysize);
         var keyPair = gen.generateKeyPair();
 
