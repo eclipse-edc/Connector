@@ -16,17 +16,9 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:common:jwt-spi"))
-    implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":extensions:common:json-ld"))
     implementation(project(":core:common:util"))
-    implementation(project(":extensions:common:crypto:crypto-core"))
     implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
-    implementation(libs.jakartaJson)
 
-    implementation(libs.apicatalog.iron.vc) {
-        exclude("com.github.multiformats")
-    }
 }
