@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -37,14 +36,13 @@ import static org.mockito.Mockito.when;
 class JsonObjectToCatalogRequestMessageTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final ObjectMapper mapper = mock(ObjectMapper.class);
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
     private JsonObjectToCatalogRequestMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToCatalogRequestMessageTransformer(mapper);
+        transformer = new JsonObjectToCatalogRequestMessageTransformer();
     }
 
     @Test

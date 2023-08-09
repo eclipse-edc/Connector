@@ -30,6 +30,7 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -38,7 +39,6 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.Response.status;
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.DATASET_REQUEST;
@@ -59,15 +59,17 @@ public class DspCatalogApiController {
     private final TypeTransformerRegistry transformerRegistry;
     private final String dspCallbackAddress;
     private final CatalogProtocolService service;
+    private final JsonObjectValidatorRegistry validatorRegistry;
 
     public DspCatalogApiController(Monitor monitor, IdentityService identityService,
                                    TypeTransformerRegistry transformerRegistry, String dspCallbackAddress,
-                                   CatalogProtocolService service) {
+                                   CatalogProtocolService service, JsonObjectValidatorRegistry validatorRegistry) {
         this.monitor = monitor;
         this.identityService = identityService;
         this.transformerRegistry = transformerRegistry;
         this.dspCallbackAddress = dspCallbackAddress;
         this.service = service;
+        this.validatorRegistry = validatorRegistry;
     }
 
     @POST
@@ -85,7 +87,8 @@ public class DspCatalogApiController {
             return error().unauthorized();
         }
 
-        if (!isOfExpectedType(jsonObject, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)) {
+        var validation = validatorRegistry.validate(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, jsonObject);
+        if (validation.failed()) {
             monitor.debug(format("Bad Request, %s", verificationResult.getFailureMessages()));
             return error().badRequest();
         }

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.api.validation;
+package org.eclipse.edc.validator.jsonobject.validators.model;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;

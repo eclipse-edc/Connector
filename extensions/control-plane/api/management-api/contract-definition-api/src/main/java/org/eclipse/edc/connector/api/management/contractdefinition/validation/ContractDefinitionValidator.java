@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition.validation;
 
-import org.eclipse.edc.api.validation.CriterionValidator;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
+import org.eclipse.edc.validator.jsonobject.validators.model.CriterionValidator;
 
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;

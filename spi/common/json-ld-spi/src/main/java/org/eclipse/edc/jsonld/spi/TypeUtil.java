@@ -86,7 +86,9 @@ public class TypeUtil {
      * @param object a JSON object.
      * @param expected type that is expected.
      * @return true if types match, false if not.
+     * @deprecated should be replaced by a validator rule.
      */
+    @Deprecated(since = "0.2.0")
     public static boolean isOfExpectedType(JsonObject object, String expected) {
         var actual = nodeType(object);
 

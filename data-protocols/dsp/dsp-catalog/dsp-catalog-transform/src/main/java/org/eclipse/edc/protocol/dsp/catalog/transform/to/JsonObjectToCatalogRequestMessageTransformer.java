@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -23,6 +22,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
 
 /**
@@ -30,31 +31,20 @@ import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.D
  */
 public class JsonObjectToCatalogRequestMessageTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequestMessage> {
 
-    private final ObjectMapper mapper;
-
-    public JsonObjectToCatalogRequestMessageTransformer(ObjectMapper mapper) {
+    public JsonObjectToCatalogRequestMessageTransformer() {
         super(JsonObject.class, CatalogRequestMessage.class);
-        this.mapper = mapper;
     }
 
     @Override
     public @Nullable CatalogRequestMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = CatalogRequestMessage.Builder.newInstance();
 
-        var querySpec = transformQuerySpec(object, context);
-        if (querySpec != null) {
-            builder.querySpec(querySpec);
-        }
+        Optional.of(object)
+                .map(it -> it.get(DSPACE_PROPERTY_FILTER))
+                .map(it -> transformObject(it, QuerySpec.class, context))
+                .ifPresent(builder::querySpec);
 
         return builder.build();
     }
 
-    @Nullable
-    private QuerySpec transformQuerySpec(JsonObject object, TransformerContext context) {
-        var value = object.get(DSPACE_PROPERTY_FILTER);
-        if (value == null) {
-            return null;
-        }
-        return transformObject(value, QuerySpec.class, context);
-    }
 }

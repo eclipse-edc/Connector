@@ -25,6 +25,8 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:http"))
 
+    implementation(project(":core:common:validator-core"))
+
     implementation(libs.jakarta.rsApi)
 
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
