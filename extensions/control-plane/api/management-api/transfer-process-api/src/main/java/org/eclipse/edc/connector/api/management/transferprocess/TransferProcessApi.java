@@ -130,6 +130,7 @@ public interface TransferProcessApi {
             String contractId,
             String assetId,
             ManagementApiSchema.DataAddressSchema dataDestination,
+            @Schema(deprecated = true, description = "Deprecated as this field is not used anymore, please use privateProperties instead")
             Map<String, String> properties,
             Map<String, String> privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
@@ -145,9 +146,6 @@ public interface TransferProcessApi {
                     "assetId": "asset-id",
                     "dataDestination": {
                         "type": "data-destination-type"
-                    },
-                    "properties": {
-                        "key": "value"
                     },
                     "privateProperties": {
                         "private-key": "private-value"
@@ -176,6 +174,10 @@ public interface TransferProcessApi {
             String state,
             String contractAgreementId,
             String errorDetail,
+            @Deprecated(since = "0.2.0")
+            @Schema(deprecated = true)
+            Map<String, String> properties,
+            Map<String, Object> privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
     ) {
         public static final String TRANSFER_PROCESS_EXAMPLE = """
@@ -192,9 +194,6 @@ public interface TransferProcessApi {
                     "contractId": "contractId",
                     "dataDestination": {
                         "type": "data-destination-type"
-                    },
-                    "properties": {
-                        "key": "value"
                     },
                     "privateProperties": {
                         "private-key": "private-value"

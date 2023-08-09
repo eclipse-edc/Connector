@@ -48,10 +48,10 @@ class DataAddressToEndpointDataReferenceTransformerTest {
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(EndpointDataReference.Builder.newInstance()
-                        .endpoint(address.getProperty(EndpointDataReference.ENDPOINT))
-                        .authKey(address.getProperty(EndpointDataReference.AUTH_KEY))
-                        .authCode(address.getProperty(EndpointDataReference.AUTH_CODE))
-                        .id(address.getProperty(EndpointDataReference.ID))
+                        .endpoint(address.getStringProperty(EndpointDataReference.ENDPOINT))
+                        .authKey(address.getStringProperty(EndpointDataReference.AUTH_KEY))
+                        .authCode(address.getStringProperty(EndpointDataReference.AUTH_CODE))
+                        .id(address.getStringProperty(EndpointDataReference.ID))
                         .build());
     }
 

@@ -63,10 +63,10 @@ public class DataAddressToEndpointDataReferenceTransformer implements TypeTransf
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return EndpointDataReference.Builder.newInstance()
-                .id(address.getProperty(ID))
-                .authCode(address.getProperty(AUTH_CODE))
-                .authKey(address.getProperty(AUTH_KEY))
-                .endpoint(address.getProperty(ENDPOINT))
+                .id(address.getStringProperty(ID))
+                .authCode(address.getStringProperty(AUTH_CODE))
+                .authKey(address.getStringProperty(AUTH_KEY))
+                .endpoint(address.getStringProperty(ENDPOINT))
                 .properties(properties)
                 .build();
     }

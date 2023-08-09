@@ -35,7 +35,7 @@ public class KafkaPropertiesFactory {
 
     private static final String BOOTSTRAP_SERVERS_CONFIG = "bootstrap.servers";
 
-    public Result<Properties> getConsumerProperties(Map<String, String> properties) {
+    public Result<Properties> getConsumerProperties(Map<String, Object> properties) {
         return getCommonProperties(properties)
                 .map(props -> {
                     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -44,7 +44,7 @@ public class KafkaPropertiesFactory {
                 });
     }
 
-    public Result<Properties> getProducerProperties(Map<String, String> properties) {
+    public Result<Properties> getProducerProperties(Map<String, Object> properties) {
         return getCommonProperties(properties)
                 .map(props -> {
                     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -53,7 +53,7 @@ public class KafkaPropertiesFactory {
                 });
     }
 
-    private Result<Properties> getCommonProperties(Map<String, String> properties) {
+    private Result<Properties> getCommonProperties(Map<String, Object> properties) {
         // TODO applied quick fix to handle json-ld edc namespace. to be fixed with https://github.com/eclipse-edc/Connector/issues/3005
         var props = new Properties();
         properties.entrySet().stream()

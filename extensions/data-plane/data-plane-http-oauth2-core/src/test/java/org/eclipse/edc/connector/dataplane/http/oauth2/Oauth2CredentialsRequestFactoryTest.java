@@ -122,7 +122,7 @@ class Oauth2CredentialsRequestFactoryTest {
                     assertThat(assertionToken.getJWTClaimsSet().getClaims())
                             .hasFieldOrPropertyWithValue("sub", "clientId")
                             .hasFieldOrPropertyWithValue("iss", "clientId")
-                            .hasFieldOrPropertyWithValue("aud", List.of(address.getProperty(TOKEN_URL)))
+                            .hasFieldOrPropertyWithValue("aud", List.of(address.getStringProperty(TOKEN_URL)))
                             .hasFieldOrProperty("jti")
                             .hasFieldOrPropertyWithValue("iat", Date.from(now))
                             .hasFieldOrPropertyWithValue("exp", Date.from(now.plusSeconds(600)));

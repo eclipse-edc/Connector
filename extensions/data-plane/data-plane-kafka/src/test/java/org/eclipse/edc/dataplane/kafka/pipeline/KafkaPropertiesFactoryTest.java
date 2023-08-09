@@ -27,7 +27,7 @@ class KafkaPropertiesFactoryTest {
 
     @Test
     void verifyGetConsumerProperties() {
-        var properties = Map.of(
+        var properties = Map.<String, Object>of(
                 "kafka.bootstrap.servers", "kafka:9092",
                 "kafka.foo.bar", "value1",
                 "kafka.hello.world", "value2",
@@ -48,7 +48,7 @@ class KafkaPropertiesFactoryTest {
 
     @Test
     void verifyGetProducerProperties() {
-        var properties = Map.of(
+        var properties = Map.<String, Object>of(
                 "kafka.bootstrap.servers", "kafka:9092",
                 "kafka.foo.bar", "value1",
                 "kafka.hello.world", "value2",
@@ -69,7 +69,7 @@ class KafkaPropertiesFactoryTest {
 
     @Test
     void verifyFromFailsIfMissingBootstrapServers() {
-        var properties = Map.of(
+        var properties = Map.<String, Object>of(
                 "kafka.foo.bar", "value1",
                 "kafka.hello.world", "value2"
         );

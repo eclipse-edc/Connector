@@ -454,7 +454,7 @@ class TransferProcessManagerImplTest {
             verify(listener).requested(process);
             var requestMessage = captor.getValue();
             assertThat(requestMessage.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
-            assertThat(requestMessage.getDataDestination().getProperty(EDC_DATA_ADDRESS_SECRET)).isNull();
+            assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isNull();
         });
     }
 
@@ -476,7 +476,7 @@ class TransferProcessManagerImplTest {
             verify(listener).requested(process);
             verify(vault).resolveSecret("keyName");
             var requestMessage = captor.getValue();
-            assertThat(requestMessage.getDataDestination().getProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
+            assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
         });
     }
 
