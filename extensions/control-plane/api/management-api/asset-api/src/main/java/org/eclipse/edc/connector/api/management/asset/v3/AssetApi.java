@@ -112,7 +112,7 @@ public interface AssetApi {
         public static final String ASSET_INPUT_EXAMPLE = """
                 {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@id": "definition-id",
+                    "@id": "asset-id",
                     "properties": {
                         "key": "value"
                     },
@@ -140,7 +140,7 @@ public interface AssetApi {
         public static final String ASSET_OUTPUT_EXAMPLE = """
                 {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@id": "definition-id",
+                    "@id": "asset-id",
                     "edc:properties": {
                         "edc:key": "value"
                     },

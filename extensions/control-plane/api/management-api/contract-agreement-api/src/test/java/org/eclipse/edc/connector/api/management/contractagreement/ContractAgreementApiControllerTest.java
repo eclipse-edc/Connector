@@ -18,12 +18,14 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -31,16 +33,19 @@ import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -183,6 +188,55 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
         verifyNoMoreInteractions(service, transformerRegistry);
     }
 
+
+    @Test
+    void getContractNegotiation() {
+        when(service.findNegotiation(any())).thenReturn(createContractNegotiationBuilder("negotiation-id").build());
+        when(transformerRegistry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+
+        baseRequest()
+                .contentType(JSON)
+                .get("/agreement-id/negotiation")
+                .then()
+                .statusCode(200)
+                .body(notNullValue());
+
+        verify(service).findNegotiation(eq("agreement-id"));
+        verify(transformerRegistry).transform(any(ContractNegotiation.class), eq(JsonObject.class));
+        verifyNoMoreInteractions(service, transformerRegistry);
+    }
+
+    @Test
+    void getContractNegotiation_notFound() {
+        when(service.findNegotiation(any())).thenReturn(null);
+
+        baseRequest()
+                .contentType(JSON)
+                .get("/agreement-id/negotiation")
+                .then()
+                .statusCode(404)
+                .body(notNullValue());
+
+        verify(service).findNegotiation("agreement-id");
+        verifyNoMoreInteractions(service, transformerRegistry);
+    }
+
+    @Test
+    void getContractNegotiation_transformationFails() {
+        when(service.findNegotiation(any())).thenReturn(createContractNegotiationBuilder("agreement-id").build());
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("test-failure"));
+
+        baseRequest()
+                .contentType(JSON)
+                .get("/agreement-id/negotiation")
+                .then()
+                .statusCode(500);
+
+        verify(service).findNegotiation("agreement-id");
+        verify(transformerRegistry).transform(isA(ContractNegotiation.class), eq(JsonObject.class));
+        verifyNoMoreInteractions(service, transformerRegistry);
+    }
+
     @Override
     protected Object controller() {
         return new ContractAgreementApiController(service, transformerRegistry, monitor, validatorRegistry);
@@ -194,7 +248,6 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .when();
     }
 
-
     private ContractAgreement createContractAgreement(String negotiationId) {
         return ContractAgreement.Builder.newInstance()
                 .id(negotiationId)
@@ -203,6 +256,17 @@ class ContractAgreementApiControllerTest extends RestControllerTestBase {
                 .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();
+    }
+
+    private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(negotiationId)
+                .counterPartyId(randomUUID().toString())
+                .counterPartyAddress("address")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
+                .protocol("protocol");
     }
 
 }

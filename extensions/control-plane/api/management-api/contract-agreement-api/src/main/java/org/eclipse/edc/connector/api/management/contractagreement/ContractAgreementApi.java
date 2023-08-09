@@ -55,4 +55,17 @@ public interface ContractAgreementApi {
     )
     JsonObject getAgreementById(String id);
 
+
+    @Operation(description = "Gets a contract negotiation with the given contract agreement ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "The contract negotiation",
+                            content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            }
+    )
+    JsonObject getNegotiationByAgreementId(String id);
+
 }

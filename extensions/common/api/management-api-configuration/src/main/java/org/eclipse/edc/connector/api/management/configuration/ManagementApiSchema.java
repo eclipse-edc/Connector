@@ -16,11 +16,14 @@ package org.eclipse.edc.connector.api.management.configuration;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
+import java.util.List;
 import java.util.Set;
 
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -76,13 +79,21 @@ public interface ManagementApiSchema {
 
     }
 
-    @Schema(name = "DataAddress")
+    @Schema(name = "DataAddress", additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
     record DataAddressSchema(
             @Schema(name = TYPE, example = DataAddress.EDC_DATA_ADDRESS_TYPE)
             String type,
             @Schema(name = "type")
             String typeProperty
     ) {
+        public static final String DATA_ADDRESS_EXAMPLE = """
+                {
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
+                    "type": "HttpData",
+                    "baseUrl": "http://example.com"
+                }
+                """;
     }
 
     @Schema(name = "Policy", description = "ODRL policy", example = PolicySchema.POLICY_EXAMPLE)
@@ -105,6 +116,45 @@ public interface ManagementApiSchema {
                     },
                     "prohibition": [],
                     "obligation": []
+                }
+                """;
+    }
+
+    @Schema(name = "ContractNegotiation", example = ContractNegotiationSchema.CONTRACT_NEGOTIATION_EXAMPLE)
+    record ContractNegotiationSchema(
+            @Schema(name = TYPE, example = CONTRACT_NEGOTIATION_TYPE)
+            String ldType,
+            @Schema(name = ID)
+            String id,
+            ContractNegotiation.Type type,
+            String protocol,
+            String counterPartyId,
+            String counterPartyAddress,
+            String state,
+            String contractAgreementId,
+            String errorDetail,
+            List<CallbackAddressSchema> callbackAddresses
+    ) {
+        public static final String CONTRACT_NEGOTIATION_EXAMPLE = """
+                {
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/ContractNegotiation",
+                    "@id": "negotiation-id",
+                    "type": "PROVIDER",
+                    "protocol": "dataspace-protocol-http",
+                    "counterPartyId": "counter-party-id",
+                    "counterPartyAddress": "http://counter/party/address",
+                    "state": "VERIFIED",
+                    "contractAgreementId": "contract:agreement:id",
+                    "errorDetail": "eventual-error-detail",
+                    "createdAt": 1688465655,
+                    "callbackAddresses": [{
+                        "transactional": false,
+                        "uri": "http://callback/url",
+                        "events": ["contract.negotiation", "transfer.process"],
+                        "authKey": "auth-key",
+                        "authCodeId": "auth-code-id"
+                    }]
                 }
                 """;
     }

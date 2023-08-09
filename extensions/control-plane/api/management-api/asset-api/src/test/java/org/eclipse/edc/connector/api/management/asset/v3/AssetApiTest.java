@@ -46,7 +46,6 @@ class AssetApiTest {
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
 
-
     @BeforeEach
     void setUp() {
         transformer.register(new JsonObjectToAssetTransformer());

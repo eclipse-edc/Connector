@@ -74,6 +74,24 @@ public class ContractAgreementApiEndToEndTest extends BaseManagementApiEndToEndT
         assertThat(json.getString("'edc:assetId'")).isNotNull();
     }
 
+    @Test
+    void getNegotiationByAgreementId() {
+        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
+        store.save(createContractNegotiationBuilder("negotiation-id")
+                .contractAgreement(createContractAgreement("agreement-id"))
+                .build());
+
+        var json = baseRequest()
+                .contentType(JSON)
+                .get("/v2/contractagreements/agreement-id/negotiation")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().jsonPath();
+
+        assertThat(json.getString("@id")).isEqualTo("negotiation-id");
+    }
+
     private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
         return ContractNegotiation.Builder.newInstance()
                 .id(negotiationId)
