@@ -42,7 +42,7 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
             }
     )
-    void get(ContainerRequestContext context, AsyncResponse response);
+    void get(ContainerRequestContext context, AsyncResponse response, String pathExtension);
 
     @Operation(description = "Send `POST` data query to the Data Plane.",
             responses = {
@@ -51,7 +51,7 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
             }
     )
-    void post(ContainerRequestContext context, AsyncResponse response);
+    void post(ContainerRequestContext context, AsyncResponse response, String pathExtension);
 
     @Operation(description = "Send `PUT` data query to the Data Plane.",
             responses = {
@@ -60,7 +60,7 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
             }
     )
-    void put(ContainerRequestContext context, AsyncResponse response);
+    void put(ContainerRequestContext context, AsyncResponse response, String pathExtension);
 
     @Operation(description = "Send `DELETE` data query to the Data Plane.",
             responses = {
@@ -69,7 +69,7 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
             }
     )
-    void delete(ContainerRequestContext context, AsyncResponse response);
+    void delete(ContainerRequestContext context, AsyncResponse response,String pathExtension);
 
     @Operation(description = "Send `PATCH` data query to the Data Plane.",
             responses = {
@@ -78,5 +78,5 @@ public interface DataPlanePublicApi {
                     @ApiResponse(responseCode = "500", description = "Failed to transfer data")
             }
     )
-    void patch(ContainerRequestContext context, AsyncResponse response);
+    void patch(ContainerRequestContext context, AsyncResponse response, String pathExtension);
 }

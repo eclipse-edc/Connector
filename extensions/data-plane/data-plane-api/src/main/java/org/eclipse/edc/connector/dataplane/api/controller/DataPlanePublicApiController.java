@@ -15,13 +15,7 @@
 
 package org.eclipse.edc.connector.dataplane.api.controller;
 
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PATCH;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.Suspended;
@@ -68,7 +62,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
 
     @GET
     @Override
-    public void get(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+    public void get(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response, @PathParam("any") String pathExtension) {
         handle(requestContext, response);
     }
 
@@ -80,7 +74,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
      */
     @DELETE
     @Override
-    public void delete(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+    public void delete(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response, @PathParam("any") String pathExtension) {
         handle(requestContext, response);
     }
 
@@ -92,7 +86,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
      */
     @PATCH
     @Override
-    public void patch(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+    public void patch(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response, @PathParam("any") String pathExtension) {
         handle(requestContext, response);
     }
 
@@ -104,7 +98,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
      */
     @PUT
     @Override
-    public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+    public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response, @PathParam("any") String pathExtension) {
         handle(requestContext, response);
     }
 
@@ -116,7 +110,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
      */
     @POST
     @Override
-    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response, @PathParam("any") String pathExtension) {
         handle(requestContext, response);
     }
 
