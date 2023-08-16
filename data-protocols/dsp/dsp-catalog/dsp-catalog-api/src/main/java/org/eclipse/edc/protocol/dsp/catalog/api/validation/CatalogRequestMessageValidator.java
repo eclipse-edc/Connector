@@ -23,6 +23,9 @@ import org.eclipse.edc.validator.spi.Validator;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
 
+/**
+ * Validator for {@link CatalogRequestMessageValidator} Json-LD representation
+ */
 public class CatalogRequestMessageValidator {
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
