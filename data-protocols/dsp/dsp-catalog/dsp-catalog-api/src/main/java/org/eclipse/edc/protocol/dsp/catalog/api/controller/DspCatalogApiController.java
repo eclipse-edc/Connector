@@ -89,7 +89,7 @@ public class DspCatalogApiController {
 
         var validation = validatorRegistry.validate(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, jsonObject);
         if (validation.failed()) {
-            monitor.debug(format("Bad Request, %s", verificationResult.getFailureMessages()));
+            monitor.debug(format("Bad Request, %s", validation.getFailureMessages()));
             return error().badRequest();
         }
 
