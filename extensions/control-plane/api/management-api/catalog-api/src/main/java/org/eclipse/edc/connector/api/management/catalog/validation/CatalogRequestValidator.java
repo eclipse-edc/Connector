@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.api.management.catalog.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.validation.QuerySpecValidator;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
+import org.eclipse.edc.validator.jsonobject.validators.model.QuerySpecValidator;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 

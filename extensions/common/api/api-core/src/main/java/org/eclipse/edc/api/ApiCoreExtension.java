@@ -18,12 +18,12 @@ import jakarta.json.Json;
 import org.eclipse.edc.api.transformer.JsonObjectFromCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
-import org.eclipse.edc.api.validation.QuerySpecValidator;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.jsonobject.validators.model.QuerySpecValidator;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import java.util.Map;

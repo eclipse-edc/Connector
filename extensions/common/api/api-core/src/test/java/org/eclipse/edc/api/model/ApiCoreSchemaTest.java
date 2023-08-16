@@ -17,8 +17,6 @@ package org.eclipse.edc.api.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.validation.CriterionValidator;
-import org.eclipse.edc.api.validation.QuerySpecValidator;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
@@ -29,6 +27,8 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.jsonobject.validators.model.CriterionValidator;
+import org.eclipse.edc.validator.jsonobject.validators.model.QuerySpecValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
