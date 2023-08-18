@@ -124,10 +124,10 @@ maven/mavencentral/io.netty/netty-tcnative-boringssl-static/2.0.56.Final, Apache
 maven/mavencentral/io.netty/netty-tcnative-classes/2.0.56.Final, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.netty/netty-transport-native-unix-common/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
 maven/mavencentral/io.netty/netty-transport/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
-maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/1.28.0, Apache-2.0, approved, #9662
+maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/1.29.0, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.0.0-alpha, Apache-2.0, approved, #10044
-maven/mavencentral/io.opentelemetry/opentelemetry-api/1.28.0, Apache-2.0, approved, #9661
-maven/mavencentral/io.opentelemetry/opentelemetry-context/1.28.0, Apache-2.0, approved, #9663
+maven/mavencentral/io.opentelemetry/opentelemetry-api/1.29.0, , restricted, clearlydefined
+maven/mavencentral/io.opentelemetry/opentelemetry-context/1.29.0, , restricted, clearlydefined
 maven/mavencentral/io.prometheus/simpleclient/0.16.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.prometheus/simpleclient_common/0.16.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.prometheus/simpleclient_httpserver/0.16.0, Apache-2.0, approved, clearlydefined
