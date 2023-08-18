@@ -70,7 +70,7 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
 
         if (endpoint != null) {
             monitor.debug(format("Sending EDR to %s", endpoint));
-            return completedFuture(sendEdr(edr, endpoint));
+            return completedFuture(sendEdr(edr, endpoint.toString()));
         } else {
             monitor.debug(format("Missing %s property in the transfer process properties or fallback endpoint in configuration", HTTP_RECEIVER_ENDPOINT));
             return completedFuture(Result.success());

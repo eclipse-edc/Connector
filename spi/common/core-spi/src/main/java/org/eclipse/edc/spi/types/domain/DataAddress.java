@@ -47,14 +47,14 @@ public class DataAddress {
     public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + "keyName";
     public static final String EDC_DATA_ADDRESS_SECRET = EDC_NAMESPACE + "secret";
 
-    protected final Map<String, String> properties = new HashMap<>();
+    protected final Map<String, Object> properties = new HashMap<>();
 
     protected DataAddress() {
     }
 
     @NotNull
     public String getType() {
-        return getProperty(EDC_DATA_ADDRESS_TYPE_PROPERTY);
+        return getStringProperty(EDC_DATA_ADDRESS_TYPE_PROPERTY);
     }
 
     @JsonIgnore
@@ -64,25 +64,25 @@ public class DataAddress {
     }
 
     @Nullable
-    public String getProperty(String key) {
-        return getProperty(key, null);
+    public String getStringProperty(String key) {
+        return getStringProperty(key, null);
     }
 
     @Nullable
-    public String getProperty(String key, String defaultValue) {
+    public String getStringProperty(String key, String defaultValue) {
         var value = Optional.ofNullable(properties.get(EDC_NAMESPACE + key)).orElseGet(() -> properties.get(key));
         if (value != null) {
-            return value;
+            return (String) value;
         }
         return defaultValue;
     }
 
-    public Map<String, String> getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 
     public String getKeyName() {
-        return getProperty(EDC_DATA_ADDRESS_KEY_NAME);
+        return getStringProperty(EDC_DATA_ADDRESS_KEY_NAME);
     }
 
     @JsonIgnore
@@ -99,7 +99,7 @@ public class DataAddress {
      */
     @JsonIgnore
     public boolean hasProperty(String key) {
-        return getProperty(key) != null;
+        return getStringProperty(key) != null;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -120,18 +120,17 @@ public class DataAddress {
             return self();
         }
 
-        public B property(String key, String value) {
+        public B property(String key, Object value) {
             Objects.requireNonNull(key, "Property key null.");
-            if (SIMPLE_TYPE.equals(key)) {
-                key = EDC_DATA_ADDRESS_TYPE_PROPERTY;
-            } else if (SIMPLE_KEY_NAME.equals(key)) {
-                key = EDC_DATA_ADDRESS_KEY_NAME;
+            switch (key) {
+                case SIMPLE_TYPE -> address.properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, value);
+                case SIMPLE_KEY_NAME -> address.properties.put(EDC_DATA_ADDRESS_KEY_NAME, value);
+                default -> address.properties.put(key, value);
             }
-            address.properties.put(key, value);
             return self();
         }
 
-        public B properties(Map<String, String> properties) {
+        public B properties(Map<String, Object> properties) {
             properties.forEach(this::property);
             return self();
         }

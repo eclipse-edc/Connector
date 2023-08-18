@@ -36,8 +36,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class EndpointDataReference {
 
     public static final String EDR_SIMPLE_TYPE = "EDR";
-    public static final String EDR_TYPE = EDC_NAMESPACE + EDR_SIMPLE_TYPE;
-    
+
     public static final String ID = EDC_NAMESPACE + "id";
     public static final String AUTH_CODE = EDC_NAMESPACE + "authCode";
     public static final String AUTH_KEY = EDC_NAMESPACE + "authKey";
@@ -46,9 +45,9 @@ public class EndpointDataReference {
     private final String endpoint;
     private final String authKey;
     private final String authCode;
-    private final Map<String, String> properties;
+    private final Map<String, Object> properties;
 
-    private EndpointDataReference(String id, String endpoint, String authKey, String authCode, Map<String, String> properties) {
+    private EndpointDataReference(String id, String endpoint, String authKey, String authCode, Map<String, Object> properties) {
         this.id = id;
         this.endpoint = endpoint;
         this.authKey = authKey;
@@ -77,13 +76,13 @@ public class EndpointDataReference {
     }
 
     @NotNull
-    public Map<String, String> getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private final Map<String, String> properties = new HashMap<>();
+        private final Map<String, Object> properties = new HashMap<>();
         private String id = UUID.randomUUID().toString();
         private String endpoint;
         private String authKey;
@@ -117,7 +116,7 @@ public class EndpointDataReference {
             return this;
         }
 
-        public EndpointDataReference.Builder properties(Map<String, String> properties) {
+        public EndpointDataReference.Builder properties(Map<String, Object> properties) {
             this.properties.putAll(properties);
             return this;
         }

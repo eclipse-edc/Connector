@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -46,9 +47,9 @@ class KafkaDataSinkFactoryTest {
 
     @Test
     void verifyCanHandle() {
-        assertThat(factory.canHandle(createRequest("kafka", Map.of()))).isTrue();
-        assertThat(factory.canHandle(createRequest("KaFka", Map.of()))).isTrue();
-        assertThat(factory.canHandle(createRequest("kafkax", Map.of()))).isFalse();
+        assertThat(factory.canHandle(createRequest("kafka", emptyMap()))).isTrue();
+        assertThat(factory.canHandle(createRequest("KaFka", emptyMap()))).isTrue();
+        assertThat(factory.canHandle(createRequest("kafkax", emptyMap()))).isFalse();
     }
 
     @Test
@@ -65,7 +66,7 @@ class KafkaDataSinkFactoryTest {
 
     @Test
     void verifyValidateReturnsFailedResult_ifMissingTopicProperty() {
-        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, Map.of());
+        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, emptyMap());
 
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
@@ -92,7 +93,7 @@ class KafkaDataSinkFactoryTest {
 
     @Test
     void verifyCreateSinkThrows_ifMissingTopicProperty() {
-        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, Map.of());
+        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, emptyMap());
 
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
@@ -111,7 +112,7 @@ class KafkaDataSinkFactoryTest {
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> factory.createSink(request));
     }
 
-    private static DataFlowRequest createRequest(String destinationType, Map<String, String> destinationProperties) {
+    private DataFlowRequest createRequest(String destinationType, Map<String, Object> destinationProperties) {
         return DataFlowRequest.Builder.newInstance()
                 .id("id")
                 .processId("processId")
