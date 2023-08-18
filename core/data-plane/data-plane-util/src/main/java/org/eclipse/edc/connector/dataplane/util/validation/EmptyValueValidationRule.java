@@ -15,13 +15,10 @@
 package org.eclipse.edc.connector.dataplane.util.validation;
 
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.util.string.StringUtils;
 
-import java.util.Map;
-
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-
-public class EmptyValueValidationRule implements ValidationRule<Map<String, String>> {
+public class EmptyValueValidationRule implements ValidationRule<DataAddress> {
 
     private final String keyName;
 
@@ -30,9 +27,8 @@ public class EmptyValueValidationRule implements ValidationRule<Map<String, Stri
     }
 
     @Override
-    public Result<Void> apply(Map<String, String> map) {
-        // TODO applied quick fix to handle json-ld edc namespace. to be fixed with https://github.com/eclipse-edc/Connector/issues/3005
-        return StringUtils.isNullOrBlank(map.getOrDefault(keyName, map.get(EDC_NAMESPACE + keyName)))
+    public Result<Void> apply(DataAddress dataAddress) {
+        return StringUtils.isNullOrBlank(dataAddress.getStringProperty(keyName))
                 ? Result.failure("Missing or invalid value for key " + keyName)
                 : Result.success();
     }

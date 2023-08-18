@@ -43,7 +43,7 @@ class DataAddressTest {
         assertThat(deserialized).isNotNull();
 
         assertThat(deserialized.getType()).isEqualTo("test");
-        assertThat(deserialized.getProperty("foo")).isEqualTo("bar");
+        assertThat(deserialized.getStringProperty("foo")).isEqualTo("bar");
     }
 
     @Test
@@ -72,7 +72,7 @@ class DataAddressTest {
 
     @Test
     void verifyGetDefaultPropertyValue() {
-        assertThat(DataAddress.Builder.newInstance().type("sometype").build().getProperty("missing", "defaultValue"))
+        assertThat(DataAddress.Builder.newInstance().type("sometype").build().getStringProperty("missing", "defaultValue"))
                 .isEqualTo("defaultValue");
     }
 
@@ -84,8 +84,8 @@ class DataAddressTest {
                 .property(EDC_NAMESPACE + "anotherExisting", "anotherValue")
                 .build();
 
-        assertThat(address.getProperty("existing", "defaultValue")).isEqualTo("aValue");
-        assertThat(address.getProperty("anotherExisting", "defaultValue")).isEqualTo("anotherValue");
+        assertThat(address.getStringProperty("existing", "defaultValue")).isEqualTo("aValue");
+        assertThat(address.getStringProperty("anotherExisting", "defaultValue")).isEqualTo("anotherValue");
     }
 
     @Test

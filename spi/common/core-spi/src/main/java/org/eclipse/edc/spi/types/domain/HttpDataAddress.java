@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * This is a wrapper class for the {@link DataAddress} object, which has typed accessors for properties specific to
@@ -64,81 +64,81 @@ public class HttpDataAddress extends DataAddress {
 
     @JsonIgnore
     public String getName() {
-        return getProperty(NAME);
+        return getStringProperty(NAME);
     }
 
     @JsonIgnore
     public String getBaseUrl() {
-        return getProperty(BASE_URL);
+        return getStringProperty(BASE_URL);
     }
 
     @JsonIgnore
     public String getPath() {
-        return getProperty(PATH);
+        return getStringProperty(PATH);
     }
 
     @JsonIgnore
     public String getQueryParams() {
-        return getProperty(QUERY_PARAMS);
+        return getStringProperty(QUERY_PARAMS);
     }
 
     @JsonIgnore
     public String getMethod() {
-        return getProperty(METHOD);
+        return getStringProperty(METHOD);
     }
 
     @JsonIgnore
     public String getAuthKey() {
-        return getProperty(AUTH_KEY);
+        return getStringProperty(AUTH_KEY);
     }
 
     @JsonIgnore
     public String getAuthCode() {
-        return getProperty(AUTH_CODE);
+        return getStringProperty(AUTH_CODE);
     }
 
     @JsonIgnore
     public String getSecretName() {
-        return getProperty(SECRET_NAME);
+        return getStringProperty(SECRET_NAME);
     }
 
     @JsonIgnore
     public String getProxyBody() {
-        return getProperty(PROXY_BODY);
+        return getStringProperty(PROXY_BODY);
     }
 
     @JsonIgnore
     public String getProxyPath() {
-        return getProperty(PROXY_PATH);
+        return getStringProperty(PROXY_PATH);
     }
 
     @JsonIgnore
     public String getProxyQueryParams() {
-        return getProperty(PROXY_QUERY_PARAMS);
+        return getStringProperty(PROXY_QUERY_PARAMS);
     }
 
     @JsonIgnore
     public String getProxyMethod() {
-        return getProperty(PROXY_METHOD);
+        return getStringProperty(PROXY_METHOD);
     }
 
     @JsonIgnore
     public String getContentType() {
-        return getProperty(CONTENT_TYPE, OCTET_STREAM);
+        return getStringProperty(CONTENT_TYPE, OCTET_STREAM);
     }
 
     @JsonIgnore
     public Map<String, String> getAdditionalHeaders() {
         return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(Collectors.toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), Map.Entry::getValue));
+                .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> (String) it.getValue()));
 
     }
 
     @JsonIgnore
     public boolean getNonChunkedTransfer() {
         return Optional.of(NON_CHUNKED_TRANSFER)
-                .map(this::getProperty)
+                .map(this::getStringProperty)
                 .map(Boolean::parseBoolean)
                 .orElse(false);
     }

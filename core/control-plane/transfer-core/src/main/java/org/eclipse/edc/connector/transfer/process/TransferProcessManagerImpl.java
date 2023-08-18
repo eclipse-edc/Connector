@@ -255,7 +255,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             process.setContentDataAddress(dataAddress);
 
             var dataDestination = process.getDataDestination();
-            var secret = dataDestination.getProperty(EDC_DATA_ADDRESS_SECRET);
+            var secret = dataDestination.getStringProperty(EDC_DATA_ADDRESS_SECRET);
             if (secret != null) {
                 vault.storeSecret(dataDestination.getKeyName(), secret);
             }
