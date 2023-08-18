@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.connector.dataplane.util.validation.ValidationRule;
 import org.eclipse.edc.dataplane.kafka.config.KafkaPropertiesFactory;
-import org.eclipse.edc.dataplane.kafka.pipeline.validation.KafkaSourceDataAddressValidationRule;
+import org.eclipse.edc.dataplane.kafka.pipeline.validation.KafkaSourceDataAddressValidation;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -50,7 +50,7 @@ public class KafkaDataSourceFactory implements DataSourceFactory {
     public KafkaDataSourceFactory(Monitor monitor, KafkaPropertiesFactory propertiesFactory, Clock clock) {
         this.monitor = monitor;
         this.propertiesFactory = propertiesFactory;
-        this.validation = new KafkaSourceDataAddressValidationRule(propertiesFactory);
+        this.validation = new KafkaSourceDataAddressValidation(propertiesFactory);
         this.clock = clock;
     }
 
@@ -79,16 +79,16 @@ public class KafkaDataSourceFactory implements DataSourceFactory {
                 .orElseThrow(failure -> new IllegalArgumentException(failure.getFailureDetail()));
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
 
-        var topic = Optional.ofNullable(source.getProperty(TOPIC))
+        var topic = Optional.ofNullable(source.getStringProperty(TOPIC))
                 .orElseThrow(() -> new IllegalArgumentException(format("Missing `%s` config", TOPIC)));
 
-        var name = source.getProperties().get(NAME);
+        var name = source.getStringProperty(NAME);
 
-        var maxDuration = Optional.ofNullable(source.getProperty(MAX_DURATION))
+        var maxDuration = Optional.ofNullable(source.getStringProperty(MAX_DURATION))
                 .map(Duration::parse)
                 .orElse(null);
 
-        var pollDuration = Optional.ofNullable(source.getProperty(POLL_DURATION))
+        var pollDuration = Optional.ofNullable(source.getStringProperty(POLL_DURATION))
                 .map(Duration::parse)
                 .orElse(DEFAULT_POLL_DURATION);
 

@@ -42,6 +42,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +53,6 @@ import java.util.function.Function;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.api.NegotiationApiPaths.CONTRACT_OFFER;
@@ -82,6 +82,7 @@ public class DspNegotiationApiController {
 
     private final IdentityService identityService;
     private final TypeTransformerRegistry transformerRegistry;
+    private final JsonObjectValidatorRegistry validatorRegistry;
     private final String callbackAddress;
     private final Monitor monitor;
     private final ContractNegotiationProtocolService protocolService;
@@ -90,12 +91,14 @@ public class DspNegotiationApiController {
                                        IdentityService identityService,
                                        TypeTransformerRegistry transformerRegistry,
                                        ContractNegotiationProtocolService protocolService,
-                                       Monitor monitor) {
+                                       Monitor monitor,
+                                       JsonObjectValidatorRegistry validatorRegistry) {
         this.callbackAddress = callbackAddress;
         this.identityService = identityService;
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.transformerRegistry = transformerRegistry;
+        this.validatorRegistry = validatorRegistry;
     }
 
     /**
@@ -129,19 +132,14 @@ public class DspNegotiationApiController {
     @Path(INITIAL_CONTRACT_REQUEST)
     public Response initiateNegotiation(JsonObject jsonObject,
                                         @HeaderParam(AUTHORIZATION) String token) {
-        var negotiationResult = handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
+        return handleMessage(MessageSpec.Builder.newInstance(ContractRequestMessage.class)
                 .expectedMessageType(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(this::validateAndProcessRequest)
-                .build());
-
-        if (negotiationResult.failed()) {
-            return error()
-                    .from(negotiationResult.getFailure());
-        }
-    
-        return createNegotiationResponse(negotiationResult.getContent());
+                .build())
+                .map(this::createNegotiationResponse)
+                .orElse(f -> error().from(f));
     }
 
     /**
@@ -300,7 +298,9 @@ public class DspNegotiationApiController {
             return ServiceResult.unauthorized(claimToken.getFailureMessages());
         }
 
-        if (!isOfExpectedType(messageSpec.getMessage(), messageSpec.getExpectedMessageType())) {
+        var validation = validatorRegistry.validate(messageSpec.getExpectedMessageType(), messageSpec.getMessage());
+        if (validation.failed()) {
+            monitor.debug(format("Bad Request, %s", validation.getFailureMessages()));
             return ServiceResult.badRequest(format("Request body was not of expected type: %s", messageSpec.getExpectedMessageType()));
         }
 
@@ -361,5 +361,4 @@ public class DspNegotiationApiController {
     private DspErrorResponse error() {
         return DspErrorResponse.type(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
     }
-
 }

@@ -66,7 +66,7 @@ public class Oauth2CredentialsRequestFactory {
      * @return a {@link Result} containing the {@link Oauth2CredentialsRequest} object
      */
     public Result<Oauth2CredentialsRequest> create(DataAddress dataAddress) {
-        var keySecret = dataAddress.getProperty(PRIVATE_KEY_NAME);
+        var keySecret = dataAddress.getStringProperty(PRIVATE_KEY_NAME);
         return keySecret != null
                 ? createPrivateKeyBasedRequest(keySecret, dataAddress)
                 : createSharedSecretRequest(dataAddress);
@@ -77,29 +77,29 @@ public class Oauth2CredentialsRequestFactory {
         return createAssertion(pkSecret, dataAddress)
                 .map(assertion -> PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
                         .clientAssertion(assertion.getToken())
-                        .url(dataAddress.getProperty(TOKEN_URL))
+                        .url(dataAddress.getStringProperty(TOKEN_URL))
                         .grantType(GRANT_CLIENT_CREDENTIALS)
-                        .scope(dataAddress.getProperty(SCOPE))
+                        .scope(dataAddress.getStringProperty(SCOPE))
                         .build());
     }
 
     @NotNull
     private Result<Oauth2CredentialsRequest> createSharedSecretRequest(DataAddress dataAddress) {
         var clientSecret = Optional.of(dataAddress)
-                .map(a -> a.getProperty(CLIENT_SECRET_KEY))
+                .map(a -> a.getStringProperty(CLIENT_SECRET_KEY))
                 .map(vault::resolveSecret)
                 .orElse(null);
 
         if (clientSecret == null) {
-            return Result.failure("Cannot resolve client secret from the vault: " + dataAddress.getProperty(CLIENT_SECRET_KEY));
+            return Result.failure("Cannot resolve client secret from the vault: " + dataAddress.getStringProperty(CLIENT_SECRET_KEY));
         }
 
         return Result.success(SharedSecretOauth2CredentialsRequest.Builder.newInstance()
-                .url(dataAddress.getProperty(TOKEN_URL))
+                .url(dataAddress.getStringProperty(TOKEN_URL))
                 .grantType(GRANT_CLIENT_CREDENTIALS)
-                .clientId(dataAddress.getProperty(CLIENT_ID))
+                .clientId(dataAddress.getStringProperty(CLIENT_ID))
                 .clientSecret(clientSecret)
-                .scope(dataAddress.getProperty(SCOPE))
+                .scope(dataAddress.getStringProperty(SCOPE))
                 .build());
     }
 
@@ -110,10 +110,10 @@ public class Oauth2CredentialsRequestFactory {
             return Result.failure("Failed to resolve private key with alias: " + pkSecret);
         }
 
-        var validity = Optional.ofNullable(dataAddress.getProperty(VALIDITY))
+        var validity = Optional.ofNullable(dataAddress.getStringProperty(VALIDITY))
                 .map(this::parseLong)
                 .orElse(DEFAULT_TOKEN_VALIDITY);
-        var decorator = new Oauth2AssertionDecorator(dataAddress.getProperty(TOKEN_URL), dataAddress.getProperty(CLIENT_ID), clock, validity);
+        var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
         var service = new TokenGenerationServiceImpl(privateKey);
         return service.generate(decorator);
     }

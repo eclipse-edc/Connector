@@ -40,7 +40,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.receiver.http.dynamic.HttpDynamicEndpointDataReferenceReceiver.HTTP_RECEIVER_ENDPOINT;
 import static org.eclipse.edc.connector.receiver.http.dynamic.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.receiver.http.dynamic.TestFunctions.transferProperties;
-import static org.eclipse.edc.connector.receiver.http.dynamic.TestFunctions.transferPropertiesWithAuth;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.any;
@@ -120,8 +119,9 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
                 .monitor(monitor)
                 .build();
 
+        String url = receiverUrl();
         when(transferProcessStore.findForCorrelationId(any()))
-                .thenReturn(createTransferProcess(TRANSFER_ID, transferPropertiesWithAuth(receiverUrl(), authKey, authToken)));
+                .thenReturn(createTransferProcess(TRANSFER_ID, transferProperties(url)));
 
         var edr = createEndpointDataReferenceBuilder().build();
 

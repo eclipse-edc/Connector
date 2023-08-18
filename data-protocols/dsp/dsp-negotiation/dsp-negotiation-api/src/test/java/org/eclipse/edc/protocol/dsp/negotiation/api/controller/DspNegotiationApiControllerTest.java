@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.negotiation.api.controller;
 
 import io.restassured.specification.RequestSpecification;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -41,9 +40,10 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -57,6 +57,7 @@ import java.time.Instant;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
+import static jakarta.json.Json.createObjectBuilder;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
@@ -80,23 +81,26 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
 class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
-    private final IdentityService identityService = mock(IdentityService.class);
-    private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
-    private final ContractNegotiationProtocolService protocolService = mock(ContractNegotiationProtocolService.class);
+    private final IdentityService identityService = mock();
+    private final TypeTransformerRegistry transformerRegistry = mock();
+    private final ContractNegotiationProtocolService protocolService = mock();
+    private final JsonObjectValidatorRegistry validatorRegistry = mock();
 
     private final String callbackAddress = "http://callback";
-    private final JsonObject request = Json.createObjectBuilder()
+    private final JsonObject request = createObjectBuilder()
             .add("http://schema/key", "value")
             .build();
 
@@ -198,11 +202,11 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var token = token();
         var id = "negotiationId";
         var negotiation = contractNegotiation();
-        var json = Json.createObjectBuilder().build();
+        var json = createObjectBuilder().build();
 
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
         when(protocolService.findById(id, token)).thenReturn(ServiceResult.success(negotiation));
-        when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
+        when(transformerRegistry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
         
         var result = baseRequest()
                 .get(BASE_PATH + id)
@@ -244,13 +248,13 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         var token = token();
         var message = contractRequestMessage();
         var process = contractNegotiation();
-        var json = Json.createObjectBuilder().build();
-        var request = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
-
+        var json = createObjectBuilder().build();
+        var request = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(JsonObject.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(message));
+        when(transformerRegistry.transform(any(JsonObject.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
-        when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
+        when(transformerRegistry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.success(json));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -266,16 +270,40 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
+    void initiateNegotiation_shouldReturnBadRequest_whenMessageIsNotValid() {
+        var token = token();
+        var request = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
+
+        var result = baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(BASE_PATH + INITIAL_CONTRACT_REQUEST)
+                .then()
+                .contentType(MediaType.APPLICATION_JSON)
+                .statusCode(400)
+                .extract().as(JsonObject.class);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
+        assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
+        verify(validatorRegistry).validate(eq(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE), any());
+        verifyNoInteractions(transformerRegistry, protocolService);
+    }
+
+    @Test
     void initiateNegotiation_shouldReturnInternalServerError_whenContractNegotiationTransformationFails() {
         var token = token();
         var message = contractRequestMessage();
         var process = contractNegotiation();
-        var request = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
-
+        var request = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(JsonObject.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(message));
+        when(transformerRegistry.transform(any(JsonObject.class), eq(ContractRequestMessage.class))).thenReturn(Result.success(message));
         when(protocolService.notifyRequested(message, token)).thenReturn(ServiceResult.success(process));
-        when(registry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(any(ContractNegotiation.class), eq(JsonObject.class))).thenReturn(Result.failure("error"));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -301,6 +329,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     @ParameterizedTest
     @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnUnauthorized_whenNotAuthorized(String path) {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.failure("error"));
 
         var result = baseRequest()
@@ -322,6 +351,33 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
         }
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(ControllerMethodArguments.class)
+    void callEndpoint_shouldReturnBadRequest_whenValidationFails(String path) {
+        var token = token();
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
+        when(transformerRegistry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.failure("error"));
+
+        var result = baseRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .post(path)
+                .then()
+                .statusCode(400)
+                .extract().as(JsonObject.class);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR);
+        assertThat(result.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
+        assertThat(result.get(DSPACE_PROPERTY_REASON)).isNotNull();
+
+        if (!path.equals(BASE_PATH + INITIAL_CONTRACT_REQUEST)) {
+            assertThat(result.get(DSPACE_PROPERTY_PROCESS_ID)).isNotNull();
+        }
+        verifyNoInteractions(transformerRegistry, protocolService);
+    }
+
     /**
      * Verifies that an endpoint returns 400 if the incoming message cannot be transformed.
      *
@@ -331,9 +387,9 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArguments.class)
     void callEndpoint_shouldReturnBadRequest_whenRequestTransformationFails(String path) {
         var token = token();
-
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.failure("error"));
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.failure("error"));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -367,10 +423,9 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArgumentsForServiceCall.class)
     void callEndpoint_shouldCallService_whenValidRequest(String path, ContractRemoteMessage message, JsonObject request, Method serviceMethod) throws Exception {
         var token = token();
-
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
-
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
         when(protocolService.notifyRequested(any(ContractRequestMessage.class), eq(token))).thenReturn(ServiceResult.success(contractNegotiation()));
         when(protocolService.notifyFinalized(any(ContractNegotiationEventMessage.class), eq(token))).thenReturn(ServiceResult.success(contractNegotiation()));
         when(protocolService.notifyAccepted(any(ContractNegotiationEventMessage.class), eq(token))).thenReturn(ServiceResult.success(contractNegotiation()));
@@ -407,10 +462,9 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     @ArgumentsSource(ControllerMethodArgumentsForServiceError.class)
     void callEndpoint_shouldReturnInternalServerError_whenServiceResultConflict(String path, ContractRemoteMessage message, JsonObject request, Method serviceMethod) throws Exception {
         var token = token();
-
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
-
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
         when(protocolService.notifyRequested(any(ContractRequestMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyFinalized(any(ContractNegotiationEventMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
         when(protocolService.notifyAccepted(any(ContractNegotiationEventMessage.class), eq(token))).thenReturn(ServiceResult.conflict("error"));
@@ -447,11 +501,11 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
      */
     @ParameterizedTest
     @ArgumentsSource(ControllerMethodArgumentsForIdValidationFails.class)
-    void callEndpoint_shouldReturnBadRequest_whenValidationFails(String path, ContractRemoteMessage message, JsonObject request) throws Exception {
+    void callEndpoint_shouldReturnBadRequest_whenValidationFails(String path, ContractRemoteMessage message, JsonObject request) {
         var token = token();
-
         when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-        when(registry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), argThat(ContractRemoteMessage.class::isAssignableFrom))).thenReturn(Result.success(message));
 
         var result = baseRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -473,7 +527,7 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspNegotiationApiController(callbackAddress, identityService, registry, protocolService, mock(Monitor.class));
+        return new DspNegotiationApiController(callbackAddress, identityService, transformerRegistry, protocolService, mock(), validatorRegistry);
     }
 
     private RequestSpecification baseRequest() {
@@ -514,12 +568,12 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     private static class ControllerMethodArgumentsForServiceCall implements ArgumentsProvider {
-        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
-        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
-        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
-        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
-        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
-        JsonObject contractOffer = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE).build();
+        JsonObject contractRequest = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
+        JsonObject contractOffer = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE).build();
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
@@ -543,12 +597,12 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     private static class ControllerMethodArgumentsForServiceError implements ArgumentsProvider {
-        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
-        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
-        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
-        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
-        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
-        JsonObject contractOffer = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE).build();
+        JsonObject contractRequest = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
+        JsonObject contractOffer = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_OFFER_MESSAGE).build();
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
@@ -574,14 +628,14 @@ class DspNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     private static class ControllerMethodArgumentsForIdValidationFails implements ArgumentsProvider {
-        JsonObject contractRequest = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
-        JsonObject negotiationEvent = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
-        JsonObject agreementVerification = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
-        JsonObject negotiationTermination = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
-        JsonObject contractAgreement = Json.createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
+        JsonObject contractRequest = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE).build();
+        JsonObject negotiationEvent = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE).build();
+        JsonObject agreementVerification = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE).build();
+        JsonObject negotiationTermination = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE).build();
+        JsonObject contractAgreement = createObjectBuilder().add("@type", DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE).build();
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
                     Arguments.of(BASE_PATH + "invalidId" + CONTRACT_REQUEST, contractRequestMessage(), contractRequest),
                     Arguments.of(BASE_PATH + "invalidId" + EVENT, contractNegotiationEventMessage_accepted(), negotiationEvent),

@@ -30,6 +30,7 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
+    @Deprecated(since = "0.2.0")
     public static final String TRANSFER_REQUEST_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
@@ -44,8 +45,9 @@ public class TransferRequest {
     private String contractId;
     private String assetId;
     private DataAddress dataDestination;
+    @Deprecated(since = "0.2.0")
     private Map<String, String> properties = new HashMap<>();
-    private Map<String, String> privateProperties = new HashMap<>();
+    private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     public String getConnectorAddress() {
@@ -64,11 +66,12 @@ public class TransferRequest {
         return dataDestination;
     }
 
+    @Deprecated(since = "0.2.0")
     public Map<String, String> getProperties() {
         return properties;
     }
 
-    public Map<String, String> getPrivateProperties() {
+    public Map<String, Object> getPrivateProperties() {
         return privateProperties;
     }
 
@@ -119,12 +122,13 @@ public class TransferRequest {
             return this;
         }
 
+        @Deprecated(since = "0.2.0")
         public Builder properties(Map<String, String> properties) {
             request.properties = properties;
             return this;
         }
 
-        public Builder privateProperties(Map<String, String> privateProperties) {
+        public Builder privateProperties(Map<String, Object> privateProperties) {
             request.privateProperties = privateProperties;
             return this;
         }

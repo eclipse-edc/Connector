@@ -28,8 +28,8 @@ public interface ValidationRule<T> extends Function<T, Result<Void>> {
 
     default ValidationRule<T> and(ValidationRule<T> other) {
         return t -> {
-            Result<Void> thisResult = this.apply(t);
-            Result<Void> otherResult = other.apply(t);
+            var thisResult = this.apply(t);
+            var otherResult = other.apply(t);
 
             var thisFailureMessages = thisResult.failed() ? thisResult.getFailureMessages().stream() : Stream.<String>empty();
             var otherFailureMessages = otherResult.failed() ? otherResult.getFailureMessages().stream() : Stream.<String>empty();

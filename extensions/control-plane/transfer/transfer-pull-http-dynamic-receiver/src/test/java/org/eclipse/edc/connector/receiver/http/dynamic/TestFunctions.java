@@ -26,7 +26,7 @@ import static org.eclipse.edc.connector.receiver.http.dynamic.HttpDynamicEndpoin
 
 public class TestFunctions {
 
-    public static TransferProcess createTransferProcess(String id, Map<String, String> properties) {
+    public static TransferProcess createTransferProcess(String id, Map<String, Object> properties) {
         return TransferProcess.Builder.newInstance()
                 .id(id)
                 .state(TransferProcessStates.STARTED.code())
@@ -45,12 +45,8 @@ public class TestFunctions {
         return createTransferProcess(id, new HashMap<>());
     }
 
-
-    public static Map<String, String> transferProperties(String url) {
+    public static Map<String, Object> transferProperties(String url) {
         return new HashMap<>(Map.of(HTTP_RECEIVER_ENDPOINT, url));
     }
 
-    public static Map<String, String> transferPropertiesWithAuth(String url, String key, String token) {
-        return new HashMap<>(Map.of(HTTP_RECEIVER_ENDPOINT, url));
-    }
 }

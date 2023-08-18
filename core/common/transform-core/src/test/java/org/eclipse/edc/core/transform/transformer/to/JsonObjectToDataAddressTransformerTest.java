@@ -84,7 +84,7 @@ class JsonObjectToDataAddressTransformerTest {
         var dataAddress = transformer.transform(json, transformerContext);
         assertThat(dataAddress).isNotNull();
         assertThat(dataAddress.getType()).isEqualTo(TEST_TYPE);
-        assertThat(dataAddress.getProperty(EDC_NAMESPACE + "my-test-prop")).isEqualTo("some-test-value");
+        assertThat(dataAddress.getStringProperty(EDC_NAMESPACE + "my-test-prop")).isEqualTo("some-test-value");
     }
 
     @Test

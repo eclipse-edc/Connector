@@ -40,7 +40,7 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
 
         builder.add(TYPE, EDC_NAMESPACE + "DataAddress");
 
-        dataAddress.getProperties().forEach(builder::add);
+        dataAddress.getProperties().forEach((key, value) -> builder.add(key, (String) value)); // TODO: handle different types
 
         return builder.build();
     }

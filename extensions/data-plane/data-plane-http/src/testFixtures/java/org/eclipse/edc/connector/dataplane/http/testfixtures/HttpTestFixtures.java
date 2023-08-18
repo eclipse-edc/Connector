@@ -26,10 +26,10 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Collections.emptyMap;
 import static okhttp3.Protocol.HTTP_2;
 
 public class HttpTestFixtures {
@@ -41,8 +41,8 @@ public class HttpTestFixtures {
     public static DataFlowRequest.Builder createRequest(String type) {
         return createRequest(
                 Map.of(DataFlowRequestSchema.METHOD, "GET"),
-                createDataAddress(type, Collections.emptyMap()).build(),
-                createDataAddress(type, Collections.emptyMap()).build()
+                createDataAddress(type, emptyMap()).build(),
+                createDataAddress(type, emptyMap()).build()
         );
     }
 
@@ -56,7 +56,7 @@ public class HttpTestFixtures {
                 .trackable(true);
     }
 
-    public static DataAddress.Builder createDataAddress(String type, Map<String, String> properties) {
+    public static DataAddress.Builder createDataAddress(String type, Map<String, Object> properties) {
         return DataAddress.Builder.newInstance()
                 .type(type)
                 .properties(properties);

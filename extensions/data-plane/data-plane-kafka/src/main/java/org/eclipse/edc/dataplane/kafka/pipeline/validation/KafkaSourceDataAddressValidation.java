@@ -22,15 +22,14 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.eclipse.edc.dataplane.kafka.schema.KafkaDataAddressSchema.TOPIC;
 
-public class KafkaSourceDataAddressValidationRule implements ValidationRule<DataAddress> {
+public class KafkaSourceDataAddressValidation implements ValidationRule<DataAddress> {
 
-    private final CompositeValidationRule<Map<String, String>> validationRule;
+    private final CompositeValidationRule<DataAddress> validationRule;
 
-    public KafkaSourceDataAddressValidationRule(KafkaPropertiesFactory propertiesFactory) {
+    public KafkaSourceDataAddressValidation(KafkaPropertiesFactory propertiesFactory) {
         this.validationRule = new CompositeValidationRule<>(
                 List.of(
                         new EmptyValueValidationRule(TOPIC),
@@ -41,21 +40,15 @@ public class KafkaSourceDataAddressValidationRule implements ValidationRule<Data
 
     @Override
     public Result<Void> apply(DataAddress dataAddress) {
-        return validationRule.apply(dataAddress.getProperties());
+        return validationRule.apply(dataAddress);
     }
 
-    private static final class ConsumerPropertiesValidationRule implements ValidationRule<Map<String, String>> {
-
-        private final KafkaPropertiesFactory propertiesFactory;
-
-        private ConsumerPropertiesValidationRule(KafkaPropertiesFactory propertiesFactory) {
-            this.propertiesFactory = propertiesFactory;
-        }
+    private record ConsumerPropertiesValidationRule(
+            KafkaPropertiesFactory propertiesFactory) implements ValidationRule<DataAddress> {
 
         @Override
-        public Result<Void> apply(Map<String, String> properties) {
-            return propertiesFactory.getConsumerProperties(properties)
-                    .compose(p -> Result.success());
+        public Result<Void> apply(DataAddress dataAddress) {
+            return propertiesFactory.getConsumerProperties(dataAddress.getProperties()).compose(p -> Result.success());
         }
     }
 }

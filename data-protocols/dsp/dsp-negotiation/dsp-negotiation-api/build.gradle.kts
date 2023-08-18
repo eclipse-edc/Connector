@@ -26,6 +26,8 @@ dependencies {
     api(project(":extensions:common:http"))
     api(project(":extensions:common:json-ld"))
 
+    implementation(project(":core:common:validator-core"))
+
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))

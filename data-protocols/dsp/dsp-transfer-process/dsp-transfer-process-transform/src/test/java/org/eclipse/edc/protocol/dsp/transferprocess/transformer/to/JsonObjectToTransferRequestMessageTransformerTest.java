@@ -90,8 +90,8 @@ class JsonObjectToTransferRequestMessageTransformerTest {
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getDataDestination().getType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
-        assertThat(result.getDataDestination().getProperty("accessKeyId")).isEqualTo("TESTID");
-        assertThat(result.getDataDestination().getProperty("region")).isEqualTo("eu-central-1");
+        assertThat(result.getDataDestination().getStringProperty("accessKeyId")).isEqualTo("TESTID");
+        assertThat(result.getDataDestination().getStringProperty("region")).isEqualTo("eu-central-1");
 
         verify(context, never()).reportProblem(anyString());
     }
