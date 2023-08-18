@@ -17,275 +17,95 @@ package org.eclipse.edc.protocol.dsp.catalog.api.controller;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
-import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
+import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
+import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
-import static java.lang.String.format;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_TYPE;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.CATALOG_REQUEST;
 import static org.eclipse.edc.protocol.dsp.catalog.api.CatalogApiPaths.DATASET_REQUEST;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR;
 import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
-import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
-import static org.eclipse.edc.service.spi.result.ServiceResult.badRequest;
-import static org.eclipse.edc.validator.spi.Violation.violation;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-//@ApiTest
+@ApiTest
 class DspCatalogApiControllerTest extends RestControllerTestBase {
 
-    private final Monitor monitor = mock();
-    private final IdentityService identityService = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
     private final CatalogProtocolService service = mock();
-    private final String callbackAddress = "http://callback";
-    private final JsonObjectValidatorRegistry validatorRegistry = mock();
+    private final MessageSpecHandler messageSpecHandler = mock();
 
-    @Nested
-    class RequestCatalog {
+    @Test
+    void requestCatalog_shouldCreateResource() {
+        var request = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
+        var catalog = createObjectBuilder().add(JsonLdKeywords.TYPE, "catalog").build();
 
-        private final JsonObject request = createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE)
-                .build();
+        when(transformerRegistry.transform(any(Catalog.class), eq(JsonObject.class))).thenReturn(Result.success(catalog));
+        when(messageSpecHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
-        private final CatalogRequestMessage requestMessage = CatalogRequestMessage.Builder.newInstance()
-                .protocol("protocol")
-                .build();
+        baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post(CATALOG_REQUEST)
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
 
-        @Test
-        void returnCatalog() {
-            var catalog = createObjectBuilder().add(JsonLdKeywords.TYPE, "catalog").build();
-
-            var token = createToken();
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class))).thenReturn(Result.success(requestMessage));
-            when(transformerRegistry.transform(any(Catalog.class), eq(JsonObject.class))).thenReturn(Result.success(catalog));
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress))).thenReturn(Result.success(token));
-            when(service.getCatalog(any(), any())).thenReturn(ServiceResult.success(Catalog.Builder.newInstance().build()));
-
-            baseRequest()
-                    .contentType(JSON)
-                    .body(request)
-                    .post(CATALOG_REQUEST)
-                    .then()
-                    .statusCode(200)
-                    .contentType(JSON)
-                    .body(TYPE, is("catalog"));
-
-            verify(service).getCatalog(requestMessage, token);
-
-            // verify that the message protocol was set to the DSP protocol by the controller
-            assertThat(requestMessage.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
-        }
-
-        @Test
-        void shouldReturnBadRequest_whenRequestBodyIsNotValid() {
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("not valid", "path")));
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
-                    .thenReturn(Result.success(createToken()));
-
-            var invalidRequest = createObjectBuilder()
-                    .add(TYPE, "not-a-catalog-request")
-                    .build();
-
-            baseRequest()
-                    .contentType(JSON)
-                    .body(invalidRequest)
-                    .post(CATALOG_REQUEST)
-                    .then()
-                    .statusCode(400)
-                    .contentType(JSON)
-                    .body(TYPE, is(DSPACE_TYPE_CATALOG_ERROR))
-                    .body(format("'%s'", DSPACE_PROPERTY_CODE), is("400"))
-                    .body(format("'%s'", DSPACE_PROPERTY_REASON), notNullValue());
-
-            verify(validatorRegistry).validate(eq(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE), isA(JsonObject.class));
-        }
-
-        @Test
-        void transformingRequestFails_throwException() {
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
-                    .thenReturn(Result.success(createToken()));
-            when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
-                    .thenReturn(Result.failure("error"));
-
-            baseRequest()
-                    .contentType(JSON)
-                    .body(request)
-                    .post(CATALOG_REQUEST)
-                    .then()
-                    .statusCode(400)
-                    .contentType(JSON)
-                    .body(TYPE, is(DSPACE_TYPE_CATALOG_ERROR))
-                    .body(format("'%s'", DSPACE_PROPERTY_CODE), is("400"))
-                    .body(format("'%s'", DSPACE_PROPERTY_REASON), notNullValue());
-        }
-
-        @Test
-        void authenticationFails_throwException() {
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
-                    .thenReturn(Result.failure("error"));
-
-            baseRequest()
-                    .contentType(JSON)
-                    .body(request)
-                    .post(CATALOG_REQUEST)
-                    .then()
-                    .statusCode(401)
-                    .contentType(JSON)
-                    .body(TYPE, is(DSPACE_TYPE_CATALOG_ERROR))
-                    .body(format("'%s'", DSPACE_PROPERTY_CODE), is("401"))
-                    .body(format("'%s'", DSPACE_PROPERTY_REASON), notNullValue());
-        }
-
-        @Test
-        void shouldForwardServiceError_whenServiceCallFails() {
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(service.getCatalog(any(), any())).thenReturn(badRequest("error"));
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), eq(callbackAddress)))
-                    .thenReturn(Result.success(createToken()));
-            when(transformerRegistry.transform(isA(JsonObject.class), eq(CatalogRequestMessage.class)))
-                    .thenReturn(Result.success(requestMessage));
-
-            baseRequest()
-                    .contentType(JSON)
-                    .body(request)
-                    .post(CATALOG_REQUEST)
-                    .then()
-                    .statusCode(400)
-                    .contentType(JSON)
-                    .body(TYPE, is(DSPACE_TYPE_CATALOG_ERROR))
-                    .body(format("'%s'", DSPACE_PROPERTY_CODE), is("400"))
-                    .body(format("'%s'", DSPACE_PROPERTY_REASON), notNullValue());
-
-            verify(service).getCatalog(any(), any());
-        }
+        var captor = ArgumentCaptor.forClass(PostDspRequest.class);
+        verify(messageSpecHandler).createResource(captor.capture());
+        var messageSpec = captor.getValue();
+        assertThat(messageSpec.getInputClass()).isEqualTo(CatalogRequestMessage.class);
+        assertThat(messageSpec.getResultClass()).isEqualTo(Catalog.class);
+        assertThat(messageSpec.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE);
+        assertThat(messageSpec.getProcessId()).isNull();
+        assertThat(messageSpec.getToken()).isEqualTo("auth");
+        assertThat(messageSpec.getMessage()).isEqualTo(request);
     }
 
-    @Nested
-    class GetDataset {
-        @Test
-        void shouldGetDataset() {
-            var claimToken = createToken();
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), any()))
-                    .thenReturn(Result.success(claimToken));
-            var dataset = createDataset();
-            when(service.getDataset(any(), any())).thenReturn(ServiceResult.success(dataset));
-            var responseBody = createObjectBuilder().add(TYPE, DCAT_DATASET_TYPE).build();
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(responseBody));
+    @Test
+    void getDataset_shouldGetResource() {
+        when(messageSpecHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON).build());
 
-            baseRequest()
-                    .get(DATASET_REQUEST + "/datasetId")
-                    .then()
-                    .statusCode(200)
-                    .contentType(JSON)
-                    .body(TYPE, is(DCAT_DATASET_TYPE));
+        baseRequest()
+                .get(DATASET_REQUEST + "/datasetId")
+                .then()
+                .statusCode(200)
+                .contentType(JSON);
 
-            verify(identityService).verifyJwtToken(argThat(it -> it.getToken().equals("auth")), eq(callbackAddress));
-            verify(service).getDataset("datasetId", claimToken);
-            verify(transformerRegistry).transform(dataset, JsonObject.class);
-        }
-
-        @Test
-        void shouldReturnUnauthorized_whenAuthorizationFails() {
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), any())).thenReturn(Result.failure("unauthorized"));
-
-            baseRequest()
-                    .get(DATASET_REQUEST + "/datasetId")
-                    .then()
-                    .statusCode(401)
-                    .contentType(JSON)
-                    .body(TYPE, is(DSPACE_TYPE_CATALOG_ERROR))
-                    .body(format("'%s'", DSPACE_PROPERTY_CODE), is("401"))
-                    .body(format("'%s'", DSPACE_PROPERTY_REASON), notNullValue());
-
-            verifyNoInteractions(service, transformerRegistry);
-        }
-
-        @Test
-        void shouldReturnNotFound_whenServiceReturnsNotFound() {
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), any()))
-                    .thenReturn(Result.success(createToken()));
-            when(service.getDataset(any(), any())).thenReturn(ServiceResult.notFound("not found"));
-
-            baseRequest()
-                    .get(DATASET_REQUEST + "/datasetId")
-                    .then()
-                    .statusCode(404)
-                    .contentType(JSON)
-                    .body(TYPE, is(DSPACE_TYPE_CATALOG_ERROR))
-                    .body(format("'%s'", DSPACE_PROPERTY_CODE), is("404"))
-                    .body(format("'%s'", DSPACE_PROPERTY_REASON), notNullValue());
-
-            verifyNoInteractions(transformerRegistry);
-        }
-
-        @Test
-        void shouldReturnInternalServerError_whenTransformationFails() {
-            var claimToken = createToken();
-            when(identityService.verifyJwtToken(any(TokenRepresentation.class), any()))
-                    .thenReturn(Result.success(claimToken));
-            var dataset = createDataset();
-            when(service.getDataset(any(), any())).thenReturn(ServiceResult.success(dataset));
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-
-            baseRequest()
-                    .get(DATASET_REQUEST + "/datasetId")
-                    .then()
-                    .statusCode(500)
-                    .contentType(JSON)
-                    .body(TYPE, is(DSPACE_TYPE_CATALOG_ERROR))
-                    .body(format("'%s'", DSPACE_PROPERTY_CODE), is("500"))
-                    .body(format("'%s'", DSPACE_PROPERTY_REASON), notNullValue());
-        }
-
-        private Dataset createDataset() {
-            var dataService = DataService.Builder.newInstance().build();
-            var distribution = Distribution.Builder.newInstance().dataService(dataService).format("format").build();
-            return Dataset.Builder.newInstance().distribution(distribution).offer("offerId", Policy.Builder.newInstance().build()).build();
-        }
-
+        var captor = ArgumentCaptor.forClass(GetDspRequest.class);
+        verify(messageSpecHandler).getResource(captor.capture());
+        var messageSpec = captor.getValue();
+        assertThat(messageSpec.getToken()).isEqualTo("auth");
+        assertThat(messageSpec.getResultClass()).isEqualTo(Dataset.class);
+        assertThat(messageSpec.getId()).isEqualTo("datasetId");
+        assertThat(messageSpec.getErrorType()).isNotNull();
     }
 
     @Override
     protected Object controller() {
-        return new DspCatalogApiController(monitor, identityService, transformerRegistry, callbackAddress, service, validatorRegistry);
+        return new DspCatalogApiController(service, messageSpecHandler);
     }
 
     private RequestSpecification baseRequest() {
@@ -296,7 +116,4 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
                 .when();
     }
 
-    private ClaimToken createToken() {
-        return ClaimToken.Builder.newInstance().build();
-    }
 }

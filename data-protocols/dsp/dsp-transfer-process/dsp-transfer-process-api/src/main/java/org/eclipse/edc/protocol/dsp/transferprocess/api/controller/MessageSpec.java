@@ -25,7 +25,7 @@ import java.util.function.BiFunction;
 /**
  * Defines an incoming DSP message as a remote message type.
  */
-class MessageSpec<M extends TransferRemoteMessage> {
+public class MessageSpec<M extends TransferRemoteMessage> {
     private JsonObject message;
     private String processId;
     private String token;

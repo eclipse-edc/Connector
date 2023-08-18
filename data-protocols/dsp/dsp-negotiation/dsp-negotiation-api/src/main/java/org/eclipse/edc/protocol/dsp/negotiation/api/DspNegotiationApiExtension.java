@@ -23,9 +23,9 @@ import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractNegotiati
 import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractNegotiationTerminationMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractOfferMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractRequestMessageValidator;
+import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -51,8 +51,6 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
     @Inject
-    private IdentityService identityService;
-    @Inject
     private DspApiConfiguration apiConfiguration;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -62,6 +60,8 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     private ContractNegotiationProtocolService protocolService;
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
+    @Inject
+    private MessageSpecHandler messageSpecHandler;
 
     @Override
     public String name() {
@@ -77,10 +77,8 @@ public class DspNegotiationApiExtension implements ServiceExtension {
         validatorRegistry.register(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE, ContractAgreementVerificationMessageValidator.instance());
         validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, ContractNegotiationTerminationMessageValidator.instance());
 
-        var callbackAddress = apiConfiguration.getDspCallbackAddress();
-
-        var controller = new DspNegotiationApiController(callbackAddress, identityService, transformerRegistry,
-                protocolService, monitor, validatorRegistry);
+        var controller = new DspNegotiationApiController(transformerRegistry,
+                protocolService, monitor, messageSpecHandler);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }

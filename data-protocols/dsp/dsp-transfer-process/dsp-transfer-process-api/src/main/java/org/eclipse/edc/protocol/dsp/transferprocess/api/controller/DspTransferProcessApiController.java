@@ -27,28 +27,16 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.protocol.dsp.api.configuration.error.DspErrorResponse;
-import org.eclipse.edc.service.spi.result.ServiceFailure;
-import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
+import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
+import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-import java.util.function.Function;
-
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.TypeUtil.isOfExpectedType;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_COMPLETION;
 import static org.eclipse.edc.protocol.dsp.transferprocess.api.TransferProcessApiPaths.TRANSFER_INITIAL_REQUEST;
@@ -70,22 +58,12 @@ import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTyp
 @Path(BASE_PATH)
 public class DspTransferProcessApiController {
 
-    private final Monitor monitor;
-    private final TypeTransformerRegistry registry;
     private final TransferProcessProtocolService protocolService;
-    private final IdentityService identityService;
-    private final String dspCallbackAddress;
+    private final MessageSpecHandler messageSpecHandler;
 
-    public DspTransferProcessApiController(Monitor monitor,
-                                           TypeTransformerRegistry registry,
-                                           TransferProcessProtocolService protocolService,
-                                           IdentityService identityService,
-                                           String dspCallbackAddress) {
-        this.monitor = monitor;
+    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, MessageSpecHandler messageSpecHandler) {
         this.protocolService = protocolService;
-        this.registry = registry;
-        this.identityService = identityService;
-        this.dspCallbackAddress = dspCallbackAddress;
+        this.messageSpecHandler = messageSpecHandler;
     }
 
     /**
@@ -97,14 +75,12 @@ public class DspTransferProcessApiController {
     @GET
     @Path("/{id}")
     public Response getTransferProcess(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var claimTokenResult = checkAuthToken(token);
-        if (claimTokenResult.failed()) {
-            return error().processId(id).unauthorized();
-        }
-    
-        return protocolService.findById(id, claimTokenResult.getContent())
-                .map(this::createTransferProcessResponse)
-                .orElse(createErrorResponse(id));
+        var request = GetDspRequest.Builder.newInstance(TransferProcess.class)
+                .id(id).token(token).errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .serviceCall(protocolService::findById)
+                .build();
+
+        return messageSpecHandler.getResource(request);
     }
 
     /**
@@ -117,18 +93,15 @@ public class DspTransferProcessApiController {
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
     public Response initiateTransferProcess(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var transferProcessResult = handleMessage(MessageSpec.Builder.newInstance(TransferRequestMessage.class)
-                .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
+        var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class)
                 .message(jsonObject)
                 .token(token)
+                .expectedMessageType(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE)
                 .serviceCall(protocolService::notifyRequested)
-                .build());
+                .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .build();
 
-        if (transferProcessResult.failed()) {
-            return error().from(transferProcessResult.getFailure());
-        }
-        
-        return createTransferProcessResponse(transferProcessResult.getContent());
+        return messageSpecHandler.createResource(request);
     }
 
     /**
@@ -142,15 +115,16 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_START)
     public Response transferProcessStart(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        return handleMessage(MessageSpec.Builder.newInstance(TransferStartMessage.class)
+        var request = PostDspRequest.Builder.newInstance(TransferStartMessage.class, TransferProcess.class)
                 .processId(id)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_START_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyStarted)
-                .build())
-                .map(tp -> Response.ok().build())
-                .orElse(createErrorResponse(id));
+                .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .build();
+
+        return messageSpecHandler.updateResource(request);
     }
 
     /**
@@ -164,15 +138,16 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
     public Response transferProcessCompletion(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        return handleMessage(MessageSpec.Builder.newInstance(TransferCompletionMessage.class)
+        var request = PostDspRequest.Builder.newInstance(TransferCompletionMessage.class, TransferProcess.class)
                 .processId(id)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyCompleted)
-                .build())
-                .map(tp -> Response.ok().build())
-                .orElse(createErrorResponse(id));
+                .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .build();
+
+        return messageSpecHandler.updateResource(request);
     }
 
     /**
@@ -186,15 +161,16 @@ public class DspTransferProcessApiController {
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
     public Response transferProcessTermination(@PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        return handleMessage(MessageSpec.Builder.newInstance(TransferTerminationMessage.class)
+        var request = PostDspRequest.Builder.newInstance(TransferTerminationMessage.class, TransferProcess.class)
                 .processId(id)
                 .expectedMessageType(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyTerminated)
-                .build())
-                .map(tp -> Response.ok().build())
-                .orElse(createErrorResponse(id));
+                .errorType(DSPACE_TYPE_TRANSFER_ERROR)
+                .build();
+
+        return messageSpecHandler.updateResource(request);
     }
 
     /**
@@ -207,78 +183,6 @@ public class DspTransferProcessApiController {
     @Path("{id}" + TRANSFER_SUSPENSION)
     public Response transferProcessSuspension(@PathParam("id") String id) {
         return error().processId(id).notImplemented();
-    }
-
-    @NotNull
-    private Function<ServiceFailure, Response> createErrorResponse(String id) {
-        return failure -> error().processId(id).from(failure);
-    }
-
-    /**
-     * Handles an incoming message. Validates the identity token. Then verifies that the JSON-LD
-     * message has the expected type, before transforming it to a respective message class instance.
-     * If the process ID was part of the request's path, verifies that the ID in the message matches
-     * the one from the path. Then calls the service method with message and claim token. Will throw
-     * an exception if any of the operations fail.
-     *
-     * @param messageSpec the message spec
-     * @return the transfer process returned by the service call
-     */
-    private <M extends TransferRemoteMessage> ServiceResult<TransferProcess> handleMessage(MessageSpec<M> messageSpec) {
-        monitor.debug(() -> format("DSP: Incoming %s for transfer process%s",
-                messageSpec.getMessageClass().getSimpleName(), messageSpec.getProcessId() != null ? ": " + messageSpec.getProcessId() : ""));
-
-        var claimToken = checkAuthToken(messageSpec.getToken());
-        if (claimToken.failed()) {
-            return ServiceResult.unauthorized(claimToken.getFailureMessages());
-        }
-
-        if (!isOfExpectedType(messageSpec.getMessage(), messageSpec.getExpectedMessageType())) {
-            return ServiceResult.badRequest(format("Request body was not of expected type: %s", messageSpec.getExpectedMessageType()));
-        }
-
-        var ingressResult = registry.transform(messageSpec.getMessage(), messageSpec.getMessageClass())
-                .compose(m -> {
-                    // set the remote protocol used
-                    m.setProtocol(DATASPACE_PROTOCOL_HTTP);
-                    return validateProcessId(messageSpec, m);
-                });
-
-        if (ingressResult.failed()) {
-            return ServiceResult.badRequest(format("Failed to read request body: %s", ingressResult.getFailureDetail()));
-        }
-
-        return messageSpec.getServiceCall().apply(ingressResult.getContent(), claimToken.getContent());
-    }
-
-    private Result<ClaimToken> checkAuthToken(String token) {
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
-
-        return identityService.verifyJwtToken(tokenRepresentation, dspCallbackAddress);
-    }
-
-    /**
-     * Ensures that a process id specified in an endpoint url matches the process id in the incoming DSP Json-Ld message.
-     */
-    private <M extends TransferRemoteMessage> Result<M> validateProcessId(MessageSpec<?> messageSpec, M message) {
-        var expected = messageSpec.getProcessId();
-        if (expected != null) {
-            var actual = message.getProcessId();
-            if (!expected.equals(actual)) {
-                return Result.failure(format("Invalid process ID. Expected: %s, actual: %s", expected, actual));
-            }
-        }
-        return Result.success(message);
-    }
-    
-    private Response createTransferProcessResponse(TransferProcess transferProcess) {
-        return registry.transform(transferProcess, JsonObject.class)
-                .map(transformedJson -> Response.ok().type(MediaType.APPLICATION_JSON).entity(transformedJson).build())
-                .orElse(failure -> {
-                    var errorCode = UUID.randomUUID();
-                    monitor.warning(String.format("Error transforming transfer process, error id %s: %s", errorCode, failure.getFailureDetail()));
-                    return error().processId(transferProcess.getCorrelationId()).message(String.format("Error code %s", errorCode)).internalServerError();
-                });
     }
 
     @NotNull
