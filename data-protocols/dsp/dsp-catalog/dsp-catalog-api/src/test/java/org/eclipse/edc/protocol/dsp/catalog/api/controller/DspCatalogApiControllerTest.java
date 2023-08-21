@@ -24,8 +24,8 @@ import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -55,38 +55,38 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
 
     private final TypeTransformerRegistry transformerRegistry = mock();
     private final CatalogProtocolService service = mock();
-    private final MessageSpecHandler messageSpecHandler = mock();
+    private final DspRequestHandler dspRequestHandler = mock();
 
     @Test
     void requestCatalog_shouldCreateResource() {
-        var request = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
+        var requestBody = createObjectBuilder().add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE).build();
         var catalog = createObjectBuilder().add(JsonLdKeywords.TYPE, "catalog").build();
 
         when(transformerRegistry.transform(any(Catalog.class), eq(JsonObject.class))).thenReturn(Result.success(catalog));
-        when(messageSpecHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
+        when(dspRequestHandler.createResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
 
         baseRequest()
                 .contentType(JSON)
-                .body(request)
+                .body(requestBody)
                 .post(CATALOG_REQUEST)
                 .then()
                 .statusCode(200)
                 .contentType(JSON);
 
         var captor = ArgumentCaptor.forClass(PostDspRequest.class);
-        verify(messageSpecHandler).createResource(captor.capture());
-        var messageSpec = captor.getValue();
-        assertThat(messageSpec.getInputClass()).isEqualTo(CatalogRequestMessage.class);
-        assertThat(messageSpec.getResultClass()).isEqualTo(Catalog.class);
-        assertThat(messageSpec.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE);
-        assertThat(messageSpec.getProcessId()).isNull();
-        assertThat(messageSpec.getToken()).isEqualTo("auth");
-        assertThat(messageSpec.getMessage()).isEqualTo(request);
+        verify(dspRequestHandler).createResource(captor.capture());
+        var request = captor.getValue();
+        assertThat(request.getInputClass()).isEqualTo(CatalogRequestMessage.class);
+        assertThat(request.getResultClass()).isEqualTo(Catalog.class);
+        assertThat(request.getExpectedMessageType()).isEqualTo(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE);
+        assertThat(request.getProcessId()).isNull();
+        assertThat(request.getToken()).isEqualTo("auth");
+        assertThat(request.getMessage()).isEqualTo(requestBody);
     }
 
     @Test
     void getDataset_shouldGetResource() {
-        when(messageSpecHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON).build());
+        when(dspRequestHandler.getResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON).build());
 
         baseRequest()
                 .get(DATASET_REQUEST + "/datasetId")
@@ -95,17 +95,17 @@ class DspCatalogApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON);
 
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
-        verify(messageSpecHandler).getResource(captor.capture());
-        var messageSpec = captor.getValue();
-        assertThat(messageSpec.getToken()).isEqualTo("auth");
-        assertThat(messageSpec.getResultClass()).isEqualTo(Dataset.class);
-        assertThat(messageSpec.getId()).isEqualTo("datasetId");
-        assertThat(messageSpec.getErrorType()).isNotNull();
+        verify(dspRequestHandler).getResource(captor.capture());
+        var request = captor.getValue();
+        assertThat(request.getToken()).isEqualTo("auth");
+        assertThat(request.getResultClass()).isEqualTo(Dataset.class);
+        assertThat(request.getId()).isEqualTo("datasetId");
+        assertThat(request.getErrorType()).isNotNull();
     }
 
     @Override
     protected Object controller() {
-        return new DspCatalogApiController(service, messageSpecHandler);
+        return new DspCatalogApiController(service, dspRequestHandler);
     }
 
     private RequestSpecification baseRequest() {

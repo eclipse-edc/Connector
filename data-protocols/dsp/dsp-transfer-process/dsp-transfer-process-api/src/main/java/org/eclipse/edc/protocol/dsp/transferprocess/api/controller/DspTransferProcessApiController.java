@@ -31,8 +31,8 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.protocol.dsp.api.configuration.error.DspErrorResponse;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,11 +59,11 @@ import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTyp
 public class DspTransferProcessApiController {
 
     private final TransferProcessProtocolService protocolService;
-    private final MessageSpecHandler messageSpecHandler;
+    private final DspRequestHandler dspRequestHandler;
 
-    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, MessageSpecHandler messageSpecHandler) {
+    public DspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler) {
         this.protocolService = protocolService;
-        this.messageSpecHandler = messageSpecHandler;
+        this.dspRequestHandler = dspRequestHandler;
     }
 
     /**
@@ -80,7 +80,7 @@ public class DspTransferProcessApiController {
                 .serviceCall(protocolService::findById)
                 .build();
 
-        return messageSpecHandler.getResource(request);
+        return dspRequestHandler.getResource(request);
     }
 
     /**
@@ -101,7 +101,7 @@ public class DspTransferProcessApiController {
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
                 .build();
 
-        return messageSpecHandler.createResource(request);
+        return dspRequestHandler.createResource(request);
     }
 
     /**
@@ -124,7 +124,7 @@ public class DspTransferProcessApiController {
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**
@@ -147,7 +147,7 @@ public class DspTransferProcessApiController {
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**
@@ -170,7 +170,7 @@ public class DspTransferProcessApiController {
                 .errorType(DSPACE_TYPE_TRANSFER_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**

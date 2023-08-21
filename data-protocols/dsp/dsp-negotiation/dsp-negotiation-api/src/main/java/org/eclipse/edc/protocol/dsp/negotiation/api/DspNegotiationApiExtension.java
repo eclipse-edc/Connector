@@ -23,7 +23,7 @@ import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractNegotiati
 import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractNegotiationTerminationMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractOfferMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.api.validation.ContractRequestMessageValidator;
-import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -61,7 +61,7 @@ public class DspNegotiationApiExtension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
     @Inject
-    private MessageSpecHandler messageSpecHandler;
+    private DspRequestHandler dspRequestHandler;
 
     @Override
     public String name() {
@@ -78,7 +78,7 @@ public class DspNegotiationApiExtension implements ServiceExtension {
         validatorRegistry.register(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE, ContractNegotiationTerminationMessageValidator.instance());
 
         var controller = new DspNegotiationApiController(transformerRegistry,
-                protocolService, monitor, messageSpecHandler);
+                protocolService, monitor, dspRequestHandler);
 
         webService.registerResource(apiConfiguration.getContextAlias(), controller);
     }

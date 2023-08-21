@@ -37,11 +37,10 @@ import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTrans
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.protocol.dsp.api.configuration.message.MessageSpecHandlerImpl;
-import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
+import org.eclipse.edc.protocol.dsp.api.configuration.message.DspRequestHandlerImpl;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -68,7 +67,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
  * parameters.
  */
 @Extension(value = DspApiConfigurationExtension.NAME)
-@Provides({ DspApiConfiguration.class, ProtocolWebhook.class, MessageSpecHandler.class })
+@Provides({ DspApiConfiguration.class, ProtocolWebhook.class, DspRequestHandler.class })
 public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
@@ -124,7 +123,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS);
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
         context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
-        context.registerService(MessageSpecHandler.class, new MessageSpecHandlerImpl(context.getMonitor(), dspWebhookAddress, identityService, validatorRegistry, transformerRegistry));
+        context.registerService(DspRequestHandler.class, new DspRequestHandlerImpl(context.getMonitor(), dspWebhookAddress, identityService, validatorRegistry, transformerRegistry));
 
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));

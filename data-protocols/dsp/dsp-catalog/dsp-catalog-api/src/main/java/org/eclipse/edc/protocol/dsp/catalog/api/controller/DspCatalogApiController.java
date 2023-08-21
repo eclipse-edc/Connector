@@ -27,8 +27,8 @@ import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
@@ -48,11 +48,11 @@ import static org.eclipse.edc.protocol.dsp.type.DspCatalogPropertyAndTypeNames.D
 public class DspCatalogApiController {
 
     private final CatalogProtocolService service;
-    private final MessageSpecHandler messageSpecHandler;
+    private final DspRequestHandler dspRequestHandler;
 
-    public DspCatalogApiController(CatalogProtocolService service, MessageSpecHandler messageSpecHandler) {
+    public DspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler) {
         this.service = service;
-        this.messageSpecHandler = messageSpecHandler;
+        this.dspRequestHandler = dspRequestHandler;
     }
 
     @POST
@@ -66,7 +66,7 @@ public class DspCatalogApiController {
                 .errorType(DSPACE_TYPE_CATALOG_ERROR)
                 .build();
 
-        return messageSpecHandler.createResource(request);
+        return dspRequestHandler.createResource(request);
     }
 
     @GET
@@ -79,7 +79,7 @@ public class DspCatalogApiController {
                 .errorType(DSPACE_TYPE_CATALOG_ERROR)
                 .build();
 
-        return messageSpecHandler.getResource(request);
+        return dspRequestHandler.getResource(request);
     }
 
 }

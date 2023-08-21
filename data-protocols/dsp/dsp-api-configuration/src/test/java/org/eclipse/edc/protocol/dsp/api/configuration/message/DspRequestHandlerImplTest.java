@@ -49,14 +49,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class MessageSpecHandlerImplTest {
+class DspRequestHandlerImplTest {
 
     private final String callbackAddress = "http://any";
     private final IdentityService identityService = mock();
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
-    private final MessageSpecHandlerImpl handler = new MessageSpecHandlerImpl(mock(), callbackAddress,
-            identityService, validatorRegistry, transformerRegistry);
+    private final DspRequestHandlerImpl handler = new DspRequestHandlerImpl(mock(), callbackAddress, identityService,
+            validatorRegistry, transformerRegistry);
 
     @Nested
     class GetResource {
@@ -69,14 +69,14 @@ class MessageSpecHandlerImplTest {
             BiFunction<String, ClaimToken, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(resourceJson));
-            var messageSpec = GetDspRequest.Builder.newInstance(Object.class)
+            var request = GetDspRequest.Builder.newInstance(Object.class)
                     .token("token")
                     .id("id")
                     .serviceCall(serviceCall)
                     .errorType("errorType")
                     .build();
 
-            var result = handler.getResource(messageSpec);
+            var result = handler.getResource(request);
 
             assertThat(result.getStatus()).isEqualTo(200);
             verify(identityService).verifyJwtToken(argThat(t -> t.getToken().equals("token")), eq(callbackAddress));
@@ -86,9 +86,9 @@ class MessageSpecHandlerImplTest {
         @Test
         void shouldFail_whenTokenIsNotValid() {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("error"));
-            var messageSpec = getDspRequestBuilder().errorType("errorType").build();
+            var request = getDspRequestBuilder().errorType("errorType").build();
 
-            var result = handler.getResource(messageSpec);
+            var result = handler.getResource(request);
 
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
@@ -103,11 +103,11 @@ class MessageSpecHandlerImplTest {
             var claimToken = claimToken();
             BiFunction<String, ClaimToken, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.notFound("error");
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
-            var messageSpec = getDspRequestBuilder()
+            var request = getDspRequestBuilder()
                     .serviceCall(serviceCall)
                     .build();
 
-            var result = handler.getResource(messageSpec);
+            var result = handler.getResource(request);
 
             assertThat(result.getStatus()).isEqualTo(404);
         }
@@ -117,9 +117,9 @@ class MessageSpecHandlerImplTest {
             var claimToken = claimToken();
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            var messageSpec = getDspRequestBuilder().build();
+            var request = getDspRequestBuilder().build();
 
-            var result = handler.getResource(messageSpec);
+            var result = handler.getResource(request);
 
             assertThat(result.getStatus()).isEqualTo(500);
         }
@@ -147,7 +147,7 @@ class MessageSpecHandlerImplTest {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseJson));
-            var messageSpec = PostDspRequest.Builder.newInstance(TestMessage.class, Object.class)
+            var request = PostDspRequest.Builder.newInstance(TestMessage.class, Object.class)
                     .token("token")
                     .expectedMessageType("expected-message-type")
                     .message(jsonMessage)
@@ -155,7 +155,7 @@ class MessageSpecHandlerImplTest {
                     .errorType("errorType")
                     .build();
 
-            var result = handler.createResource(messageSpec);
+            var result = handler.createResource(request);
 
             assertThat(result.getStatus()).isEqualTo(200);
             assertThat(result.getEntity()).isEqualTo(responseJson);
@@ -170,9 +170,9 @@ class MessageSpecHandlerImplTest {
         @Test
         void shouldFail_whenTokenIsNotValid() {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("error"));
-            var messageSpec = postDspRequestBuilder().errorType("errorType").build();
+            var request = postDspRequestBuilder().errorType("errorType").build();
 
-            var result = handler.createResource(messageSpec);
+            var result = handler.createResource(request);
 
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
@@ -186,9 +186,9 @@ class MessageSpecHandlerImplTest {
         void shouldFail_whenValidationFails() {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken()));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
-            var messageSpec = postDspRequestBuilder().build();
+            var request = postDspRequestBuilder().build();
 
-            var result = handler.createResource(messageSpec);
+            var result = handler.createResource(request);
 
             assertThat(result.getStatus()).isEqualTo(400);
         }
@@ -198,24 +198,9 @@ class MessageSpecHandlerImplTest {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken()));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            var messageSpec = postDspRequestBuilder().build();
+            var request = postDspRequestBuilder().build();
 
-            var result = handler.createResource(messageSpec);
-
-            assertThat(result.getStatus()).isEqualTo(400);
-        }
-
-        @Test
-        void shouldFail_whenIdIsNotValid() {
-            var claimToken = claimToken();
-            var message = mock(TestMessage.class);
-            when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
-            when(message.getProcessId()).thenReturn("processId");
-            var messageSpec = postDspRequestBuilder().processId("differentId").build();
-
-            var result = handler.createResource(messageSpec);
+            var result = handler.createResource(request);
 
             assertThat(result.getStatus()).isEqualTo(400);
         }
@@ -228,9 +213,9 @@ class MessageSpecHandlerImplTest {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
-            var messageSpec = postDspRequestBuilder().serviceCall(serviceCall).build();
+            var request = postDspRequestBuilder().serviceCall(serviceCall).build();
 
-            var result = handler.createResource(messageSpec);
+            var result = handler.createResource(request);
 
             assertThat(result.getStatus()).isEqualTo(409);
         }
@@ -243,9 +228,9 @@ class MessageSpecHandlerImplTest {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-            var messageSpec = postDspRequestBuilder().build();
+            var request = postDspRequestBuilder().build();
 
-            var result = handler.createResource(messageSpec);
+            var result = handler.createResource(request);
 
             assertThat(result.getStatus()).isEqualTo(500);
         }
@@ -272,7 +257,7 @@ class MessageSpecHandlerImplTest {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestMessage.class))).thenReturn(Result.success(message));
-            var messageSpec = PostDspRequest.Builder.newInstance(TestMessage.class, Object.class)
+            var request = PostDspRequest.Builder.newInstance(TestMessage.class, Object.class)
                     .token("token")
                     .expectedMessageType("expected-message-type")
                     .message(jsonMessage)
@@ -280,7 +265,7 @@ class MessageSpecHandlerImplTest {
                     .errorType("errorType")
                     .build();
 
-            var result = handler.updateResource(messageSpec);
+            var result = handler.updateResource(request);
 
             assertThat(result.getStatus()).isEqualTo(200);
             assertThat(result.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
@@ -293,9 +278,9 @@ class MessageSpecHandlerImplTest {
         @Test
         void shouldFail_whenTokenIsNotValid() {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("error"));
-            var messageSpec = postDspRequestBuilder().processId("processId").errorType("errorType").build();
+            var request = postDspRequestBuilder().processId("processId").errorType("errorType").build();
 
-            var result = handler.updateResource(messageSpec);
+            var result = handler.updateResource(request);
 
             assertThat(result.getStatus()).isEqualTo(401);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
@@ -310,9 +295,9 @@ class MessageSpecHandlerImplTest {
         void shouldFail_whenValidationFails() {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken()));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
-            var messageSpec = postDspRequestBuilder().processId("processId").errorType("errorType").build();
+            var request = postDspRequestBuilder().processId("processId").errorType("errorType").build();
 
-            var result = handler.updateResource(messageSpec);
+            var result = handler.updateResource(request);
 
             assertThat(result.getStatus()).isEqualTo(400);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
@@ -328,9 +313,9 @@ class MessageSpecHandlerImplTest {
             when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken()));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            var messageSpec = postDspRequestBuilder().processId("processId").errorType("errorType").build();
+            var request = postDspRequestBuilder().processId("processId").errorType("errorType").build();
 
-            var result = handler.updateResource(messageSpec);
+            var result = handler.updateResource(request);
 
             assertThat(result.getStatus()).isEqualTo(400);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
@@ -349,9 +334,9 @@ class MessageSpecHandlerImplTest {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(message.getProcessId()).thenReturn("processId");
-            var messageSpec = postDspRequestBuilder().processId("differentId").errorType("errorType").build();
+            var request = postDspRequestBuilder().processId("differentId").errorType("errorType").build();
 
-            var result = handler.updateResource(messageSpec);
+            var result = handler.updateResource(request);
 
             assertThat(result.getStatus()).isEqualTo(400);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
@@ -371,9 +356,9 @@ class MessageSpecHandlerImplTest {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(message.getProcessId()).thenReturn("processId");
-            var messageSpec = postDspRequestBuilder().processId("processId").serviceCall(serviceCall).build();
+            var request = postDspRequestBuilder().processId("processId").serviceCall(serviceCall).build();
 
-            var result = handler.updateResource(messageSpec);
+            var result = handler.updateResource(request);
 
             assertThat(result.getStatus()).isEqualTo(409);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {

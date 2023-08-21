@@ -32,8 +32,8 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
-import org.eclipse.edc.protocol.dsp.spi.message.MessageSpecHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -71,18 +71,18 @@ import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_P
 public class DspNegotiationApiController {
 
     private final TypeTransformerRegistry transformerRegistry;
-    private final MessageSpecHandler messageSpecHandler;
+    private final DspRequestHandler dspRequestHandler;
     private final Monitor monitor;
     private final ContractNegotiationProtocolService protocolService;
 
     public DspNegotiationApiController(TypeTransformerRegistry transformerRegistry,
                                        ContractNegotiationProtocolService protocolService,
                                        Monitor monitor,
-                                       MessageSpecHandler messageSpecHandler) {
+                                       DspRequestHandler dspRequestHandler) {
         this.monitor = monitor;
         this.protocolService = protocolService;
         this.transformerRegistry = transformerRegistry;
-        this.messageSpecHandler = messageSpecHandler;
+        this.dspRequestHandler = dspRequestHandler;
     }
 
     /**
@@ -100,7 +100,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.getResource(request);
+        return dspRequestHandler.getResource(request);
     }
 
     /**
@@ -122,7 +122,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.createResource(request);
+        return dspRequestHandler.createResource(request);
     }
 
     /**
@@ -147,7 +147,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**
@@ -175,7 +175,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**
@@ -200,7 +200,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**
@@ -225,7 +225,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**
@@ -250,7 +250,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     /**
@@ -275,7 +275,7 @@ public class DspNegotiationApiController {
                 .errorType(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR)
                 .build();
 
-        return messageSpecHandler.updateResource(request);
+        return dspRequestHandler.updateResource(request);
     }
 
     @NotNull
