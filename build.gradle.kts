@@ -55,6 +55,7 @@ allprojects {
             outputFilename.set(project.name)
             outputDirectory.set(file("${rootProject.projectDir.path}/resources/openapi/yaml"))
         }
+        javaLanguageVersion.set(JavaLanguageVersion.of(javaVersion))
     }
 
     configure<CheckstyleExtension> {
