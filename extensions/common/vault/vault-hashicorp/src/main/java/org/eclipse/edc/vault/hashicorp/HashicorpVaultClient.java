@@ -183,7 +183,7 @@ public class HashicorpVaultClient {
     }
 
     private HttpUrl getSecretUrl(String key, String entryType) {
-        key = URLEncoder.encode(key, StandardCharsets.UTF_8);
+        // key = URLEncoder.encode(key, StandardCharsets.UTF_8);
 
         // restore '/' characters to allow sub-directories
         key = key.replace("%2F", "/");
