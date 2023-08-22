@@ -60,6 +60,7 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.event.EventRouter;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -136,6 +137,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private CommandHandlerRegistry commandHandlerRegistry;
 
+    @Inject
+    private IdentityService identityService;
+
     @Override
     public String name() {
         return NAME;
@@ -155,7 +159,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public CatalogProtocolService catalogProtocolService(ServiceExtensionContext context) {
-        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, context.getParticipantId());
+        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, identityService);
     }
 
     @Provider

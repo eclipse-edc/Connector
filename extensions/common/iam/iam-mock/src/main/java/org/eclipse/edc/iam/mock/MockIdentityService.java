@@ -91,4 +91,9 @@ public class MockIdentityService implements IdentityService {
             this.clientId = clientId;
         }
     }
+
+    @Override
+    public String getParticipantId() {
+        return "hub";
+    }
 }

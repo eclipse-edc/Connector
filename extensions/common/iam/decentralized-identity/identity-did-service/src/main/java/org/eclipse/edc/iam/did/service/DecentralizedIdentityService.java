@@ -124,4 +124,9 @@ public class DecentralizedIdentityService implements IdentityService {
                 .filter(vm -> DidConstants.ALLOWED_VERIFICATION_TYPES.contains(vm.getType()))
                 .findFirst();
     }
+
+    @Override
+    public String getParticipantId() {
+        return "hub";
+    }
 }

@@ -42,4 +42,6 @@ public interface IdentityService {
      * @return Result of the validation.
      */
     Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience);
+
+    String getParticipantId();
 }

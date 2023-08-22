@@ -98,4 +98,8 @@ public class Oauth2ServiceImpl implements IdentityService {
                 .build();
     }
 
+    @Override
+    public String getParticipantId() {
+        return "hub";
+    }
 }

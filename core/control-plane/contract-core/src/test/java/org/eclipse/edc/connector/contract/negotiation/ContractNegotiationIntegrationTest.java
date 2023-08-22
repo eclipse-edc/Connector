@@ -40,6 +40,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -87,6 +88,8 @@ class ContractNegotiationIntegrationTest {
     private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
     private String consumerNegotiationId;
 
+    private final IdentityService identityService = mock(IdentityService.class);
+
     private ProviderContractNegotiationManagerImpl providerManager;
     private ConsumerContractNegotiationManagerImpl consumerManager;
     private ContractNegotiationProtocolService consumerService;
@@ -97,7 +100,7 @@ class ContractNegotiationIntegrationTest {
         var monitor = new ConsoleMonitor();
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(PROVIDER_ID)
+                .identityService(identityService)
                 .dispatcherRegistry(providerDispatcherRegistry)
                 .monitor(monitor)
                 .waitStrategy(() -> 1000)
@@ -108,7 +111,7 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(CONSUMER_ID)
+                .identityService(identityService)
                 .dispatcherRegistry(consumerDispatcherRegistry)
                 .monitor(monitor).waitStrategy(() -> 1000)
                 .observable(new ContractNegotiationObservableImpl())

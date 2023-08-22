@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
@@ -95,12 +96,14 @@ class ProviderContractNegotiationManagerImplTest {
     private final ContractNegotiationPendingGuard pendingGuard = mock();
     private ProviderContractNegotiationManagerImpl manager;
 
+    private final IdentityService identityService = mock(IdentityService.class);
+
     @BeforeEach
     void setUp() {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         manager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(PROVIDER_ID)
+                .identityService(identityService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .observable(observable)

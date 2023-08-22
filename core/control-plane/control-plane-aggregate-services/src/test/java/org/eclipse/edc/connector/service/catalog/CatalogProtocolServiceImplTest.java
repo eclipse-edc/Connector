@@ -25,6 +25,7 @@ import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +49,9 @@ class CatalogProtocolServiceImplTest {
     private final ParticipantAgentService participantAgentService = mock(ParticipantAgentService.class);
     private final DataServiceRegistry dataServiceRegistry = mock(DataServiceRegistry.class);
 
-    private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, "participantId");
+    private final IdentityService identityService = mock(IdentityService.class);
+
+    private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, identityService);
 
     @Test
     void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {

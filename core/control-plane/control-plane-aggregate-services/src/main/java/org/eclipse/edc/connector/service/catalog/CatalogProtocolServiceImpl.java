@@ -20,9 +20,11 @@ import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
@@ -36,15 +38,15 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     private final DatasetResolver datasetResolver;
     private final ParticipantAgentService participantAgentService;
     private final DataServiceRegistry dataServiceRegistry;
-    private final String participantId;
+    private final IdentityService identityService;
 
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       ParticipantAgentService participantAgentService,
-                                      DataServiceRegistry dataServiceRegistry, String participantId) {
+                                      DataServiceRegistry dataServiceRegistry, IdentityService identityService) {
         this.datasetResolver = datasetResolver;
         this.participantAgentService = participantAgentService;
         this.dataServiceRegistry = dataServiceRegistry;
-        this.participantId = participantId;
+        this.identityService = identityService;
     }
 
     @Override
@@ -58,7 +60,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
             var catalog = Catalog.Builder.newInstance()
                     .dataServices(dataServices)
                     .datasets(datasets.collect(toList()))
-                    .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
+                    .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, identityService.getParticipantId())
                     .build();
 
             return ServiceResult.success(catalog);

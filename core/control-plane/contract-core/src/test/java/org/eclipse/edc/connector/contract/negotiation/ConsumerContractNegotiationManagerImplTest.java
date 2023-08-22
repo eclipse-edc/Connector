@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -97,6 +98,8 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ContractNegotiationPendingGuard pendingGuard = mock();
     private ConsumerContractNegotiationManagerImpl manager;
 
+    private final IdentityService identityService = mock(IdentityService.class);
+
     @BeforeEach
     void setUp() {
         when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
@@ -105,7 +108,7 @@ class ConsumerContractNegotiationManagerImplTest {
         observable.registerListener(listener);
 
         manager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(PARTICIPANT_ID)
+                .identityService(identityService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .observable(observable)

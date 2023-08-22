@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
@@ -38,8 +39,8 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 
 public abstract class AbstractContractNegotiationManager extends AbstractStateEntityManager<ContractNegotiation, ContractNegotiationStore> {
-
-    protected String participantId;
+    protected IdentityService identityService;
+    protected ContractNegotiationStore negotiationStore;
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
     protected PolicyDefinitionStore policyStore;
@@ -195,8 +196,8 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
             return this;
         }
 
-        public Builder<T> participantId(String id) {
-            manager.participantId = id;
+        public Builder<T> identityService(IdentityService identityService) {
+            manager.identityService = identityService;
             return this;
         }
 
@@ -228,7 +229,8 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         @Override
         public T build() {
             super.build();
-            Objects.requireNonNull(manager.participantId, "participantId");
+            Objects.requireNonNull(manager.identityService, "identityService");
+            Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.observable, "observable");
 
