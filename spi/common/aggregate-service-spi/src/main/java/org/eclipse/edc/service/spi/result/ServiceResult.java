@@ -93,8 +93,8 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
         };
     }
 
-    public static <T> ServiceResult<T> unauthorized(List<String> failureMessages) {
-        return new ServiceResult<>(null, new ServiceFailure(failureMessages, UNAUTHORIZED));
+    public static <T> ServiceResult<T> unauthorized(String message) {
+        return new ServiceResult<>(null, new ServiceFailure(List.of(message), UNAUTHORIZED));
     }
 
     public ServiceFailure.Reason reason() {

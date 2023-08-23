@@ -410,7 +410,7 @@ class ContractNegotiationProtocolServiceImplTest {
     }
     
     @Test
-    void findById_shouldReturnNotFound_whenCounterPartyUnauthorized() {
+    void findById_shouldReturnBadRequest_whenCounterPartyUnauthorized() {
         var id = "negotiationId";
         var token = ClaimToken.Builder.newInstance().build();
         var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).state(VERIFIED.code()).build();
@@ -423,7 +423,7 @@ class ContractNegotiationProtocolServiceImplTest {
         assertThat(result)
                 .isFailed()
                 .extracting(ServiceFailure::getReason)
-                .isEqualTo(NOT_FOUND);
+                .isEqualTo(BAD_REQUEST);
     }
 
     @ParameterizedTest
