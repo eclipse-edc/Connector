@@ -455,7 +455,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol(process.getProtocol())
                 .counterPartyAddress(process.getConnectorAddress())
-                .processId(process.getId())
+                .processId(process.getCorrelationId())
                 .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
 
@@ -487,7 +487,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var message = TransferTerminationMessage.Builder.newInstance()
                 .counterPartyAddress(process.getConnectorAddress())
                 .protocol(process.getProtocol())
-                .processId(process.getId())
+                .processId(process.getCorrelationId())
                 .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
 
