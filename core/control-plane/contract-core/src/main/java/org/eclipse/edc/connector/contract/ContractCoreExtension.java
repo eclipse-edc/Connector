@@ -185,7 +185,7 @@ public class ContractCoreExtension implements ServiceExtension {
         var participantId = context.getParticipantId();
 
         var policyEquality = new PolicyEquality(typeManager);
-        var validationService = new ContractValidationServiceImpl(participantId, agentService, contractDefinitionResolver, assetIndex, policyStore, policyEngine, policyEquality);
+        var validationService = new ContractValidationServiceImpl(agentService, contractDefinitionResolver, assetIndex, policyStore, policyEngine, policyEquality);
         context.registerService(ContractValidationService.class, validationService);
 
         // bind/register rule to evaluate contract expiry

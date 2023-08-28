@@ -51,7 +51,6 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class ContractValidationServiceImpl implements ContractValidationService {
 
-    private final String participantId;
     private final ParticipantAgentService agentService;
     private final ContractDefinitionResolver contractDefinitionResolver;
     private final AssetIndex assetIndex;
@@ -59,14 +58,12 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final PolicyEngine policyEngine;
     private final PolicyEquality policyEquality;
 
-    public ContractValidationServiceImpl(String participantId,
-                                         ParticipantAgentService agentService,
+    public ContractValidationServiceImpl(ParticipantAgentService agentService,
                                          ContractDefinitionResolver contractDefinitionResolver,
                                          AssetIndex assetIndex,
                                          PolicyDefinitionStore policyStore,
                                          PolicyEngine policyEngine,
                                          PolicyEquality policyEquality) {
-        this.participantId = participantId;
         this.agentService = agentService;
         this.contractDefinitionResolver = contractDefinitionResolver;
         this.assetIndex = assetIndex;

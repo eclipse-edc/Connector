@@ -95,7 +95,7 @@ class ContractValidationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        validationService = new ContractValidationServiceImpl(PROVIDER_ID, agentService, definitionResolver, assetIndex, policyStore, policyEngine, policyEquality);
+        validationService = new ContractValidationServiceImpl(agentService, definitionResolver, assetIndex, policyStore, policyEngine, policyEquality);
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
     }
 

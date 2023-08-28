@@ -191,7 +191,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
-            transition(REQUESTED, INITIAL);
+            transition(REQUESTED, OFFERED, INITIAL);
         } else {
             transition(REQUESTED, REQUESTED, REQUESTING);
         }
@@ -367,7 +367,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ContractNegotiation that = (ContractNegotiation) o;
+        var that = (ContractNegotiation) o;
         return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
                 Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) &&
                 Objects.equals(clock, that.clock) &&

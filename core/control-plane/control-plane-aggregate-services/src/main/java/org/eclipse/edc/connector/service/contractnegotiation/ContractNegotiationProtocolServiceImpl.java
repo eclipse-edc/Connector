@@ -67,7 +67,10 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @NotNull
     public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ClaimToken claimToken) {
         return transactionContext.execute(() -> validateOffer(message, claimToken)
-                    .compose(validatedOffer -> createNegotiation(message, validatedOffer))
+                    .compose(validatedOffer -> getNegotiation(message)
+                            .recover(f -> createNegotiation(message, validatedOffer))
+                            .onSuccess(n -> n.addContractOffer(validatedOffer.getOffer()))
+                    )
                     .onSuccess(negotiation -> {
                         negotiation.transitionRequested();
                         update(negotiation);
@@ -174,7 +177,6 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .protocol(message.getProtocol())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(PROVIDER)
-                .contractOffer(validatedOffer.getOffer())
                 .build();
 
         return ServiceResult.success(negotiation);

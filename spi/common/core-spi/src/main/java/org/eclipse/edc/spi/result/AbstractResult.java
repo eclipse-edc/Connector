@@ -173,10 +173,23 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
     }
 
     /**
+     * If the result is failed maps the content into a result applying the mapping function, otherwise do nothing.
+     *
+     * @param mappingFunction a function converting this result into another when it's failed.
+     * @return the result of the mapping function
+     */
+    public R recover(Function<F, R> mappingFunction) {
+        if (succeeded()) {
+            return newInstance(getContent(), null);
+        } else {
+            return mappingFunction.apply(getFailure());
+        }
+    }
+
+    /**
      * Returns a new result instance.
      * This default implementation exists only to avoid breaking changes, in a future this should become an abstract
      * method.
-     * If this {@link UnsupportedOperationException} was thrown, please override this method with a proper behavior.
      *
      * @param content the content.
      * @param failure the failure.
