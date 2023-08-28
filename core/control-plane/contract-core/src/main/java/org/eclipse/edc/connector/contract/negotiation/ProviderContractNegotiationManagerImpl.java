@@ -31,6 +31,7 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
@@ -51,6 +52,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(OFFERING, this::processOffering))
                 .processor(processNegotiationsInState(REQUESTED, this::processRequested))
+                .processor(processNegotiationsInState(ACCEPTED, this::processAccepted))
                 .processor(processNegotiationsInState(AGREEING, this::processAgreeing))
                 .processor(processNegotiationsInState(VERIFIED, this::processVerified))
                 .processor(processNegotiationsInState(FINALIZING, this::processFinalizing))
@@ -133,6 +135,17 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processRequested(ContractNegotiation negotiation) {
+        transitionToAgreeing(negotiation);
+        return true;
+    }
+
+    /**
+     * Processes {@link ContractNegotiation} in state ACCEPTED. It transitions to AGREEING.
+     *
+     * @return true if processed, false otherwise
+     */
+    @WithSpan
+    private boolean processAccepted(ContractNegotiation negotiation) {
         transitionToAgreeing(negotiation);
         return true;
     }

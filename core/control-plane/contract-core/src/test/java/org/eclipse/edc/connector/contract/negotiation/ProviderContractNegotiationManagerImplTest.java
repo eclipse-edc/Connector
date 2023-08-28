@@ -58,6 +58,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
@@ -130,6 +131,20 @@ class ProviderContractNegotiationManagerImplTest {
     void requested_shouldTransitionToAgreeing() {
         var negotiation = contractNegotiationBuilder().state(REQUESTED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTED.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == AGREEING.code()));
+            verifyNoInteractions(dispatcherRegistry);
+        });
+    }
+
+    @Test
+    void accepted_shouldTransitionToAgreeing() {
+        var negotiation = contractNegotiationBuilder().state(ACCEPTED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(ACCEPTED.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         manager.start();
