@@ -430,6 +430,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var checker = statusCheckerRegistry.resolve(transferProcess.getDataDestination().getType());
         if (checker == null) {
             monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
+            breakLease(transferProcess);
             return false;
         } else {
             var resources = transferProcess.getProvisionedResources();

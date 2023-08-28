@@ -606,7 +606,9 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, never()).save(any());
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore).save(captor.capture());
+            assertThat(captor.getValue().getState()).isEqualTo(STARTED.code());
         });
     }
 
