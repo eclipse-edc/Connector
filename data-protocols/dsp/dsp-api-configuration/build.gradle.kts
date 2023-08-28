@@ -20,6 +20,7 @@ dependencies {
     api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:core-spi"))
     api(project(":data-protocols:dsp:dsp-spi"))
+    api(project(":data-protocols:dsp:dsp-http-spi"))
     implementation(project(":core:common:jersey-providers"))
     implementation(project(":core:common:transform-core"))
     implementation(project(":extensions:common:http"))

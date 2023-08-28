@@ -20,12 +20,11 @@ import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
 import org.eclipse.edc.protocol.dsp.catalog.api.controller.DspCatalogApiController;
 import org.eclipse.edc.protocol.dsp.catalog.api.validation.CatalogRequestMessageValidator;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
@@ -42,17 +41,15 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
     @Inject
-    private IdentityService identityService;
-    @Inject
     private DspApiConfiguration apiConfiguration;
-    @Inject
-    private TypeTransformerRegistry transformerRegistry;
     @Inject
     private CatalogProtocolService service;
     @Inject
     private DataServiceRegistry dataServiceRegistry;
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
+    @Inject
+    private DspRequestHandler dspRequestHandler;
 
     @Override
     public String name() {
@@ -62,9 +59,8 @@ public class DspCatalogApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         validatorRegistry.register(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE, CatalogRequestMessageValidator.instance());
-        var dspCallbackAddress = apiConfiguration.getDspCallbackAddress();
-        var catalogController = new DspCatalogApiController(context.getMonitor(), identityService, transformerRegistry,
-                dspCallbackAddress, service, validatorRegistry);
+
+        var catalogController = new DspCatalogApiController(service, dspRequestHandler);
         webService.registerResource(apiConfiguration.getContextAlias(), catalogController);
 
         dataServiceRegistry.register(DataService.Builder.newInstance()

@@ -15,6 +15,8 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.protocol.dsp.api.configuration.message.DspRequestHandlerImpl;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -102,5 +104,12 @@ class DspApiConfigurationExtensionTest {
 
         verify(webService).registerResource(eq(CONTEXT_ALIAS), isA(ObjectMapperProvider.class));
         verify(webService).registerResource(eq(CONTEXT_ALIAS), isA(JerseyJsonLdInterceptor.class));
+    }
+
+    @Test
+    void initialize_shouldProvideServices(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
+
+        verify(context).registerService(eq(DspRequestHandler.class), isA(DspRequestHandlerImpl.class));
     }
 }

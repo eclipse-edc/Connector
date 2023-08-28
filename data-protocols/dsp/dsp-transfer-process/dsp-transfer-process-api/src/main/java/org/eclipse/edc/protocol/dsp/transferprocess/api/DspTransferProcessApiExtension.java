@@ -16,15 +16,23 @@ package org.eclipse.edc.protocol.dsp.transferprocess.api;
 
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.protocol.dsp.api.configuration.DspApiConfiguration;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.transferprocess.api.controller.DspTransferProcessApiController;
+import org.eclipse.edc.protocol.dsp.transferprocess.api.validation.TransferCompletionMessageValidator;
+import org.eclipse.edc.protocol.dsp.transferprocess.api.validation.TransferRequestMessageValidator;
+import org.eclipse.edc.protocol.dsp.transferprocess.api.validation.TransferStartMessageValidator;
+import org.eclipse.edc.protocol.dsp.transferprocess.api.validation.TransferTerminationMessageValidator;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
+
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 
 /**
  * Creates and registers the controller for dataspace protocol transfer process requests.
@@ -36,19 +44,22 @@ public class DspTransferProcessApiExtension implements ServiceExtension {
     @Inject
     private DspApiConfiguration config;
     @Inject
-    private Monitor monitor;
-    @Inject
     private WebService webService;
     @Inject
     private TransferProcessProtocolService transferProcessProtocolService;
     @Inject
-    private TypeTransformerRegistry registry;
+    private DspRequestHandler dspRequestHandler;
     @Inject
-    private IdentityService identityService;
+    private JsonObjectValidatorRegistry validatorRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var controller = new DspTransferProcessApiController(monitor, registry, transferProcessProtocolService, identityService, config.getDspCallbackAddress());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE, TransferRequestMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_START_MESSAGE, TransferStartMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE, TransferCompletionMessageValidator.instance());
+        validatorRegistry.register(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE, TransferTerminationMessageValidator.instance());
+
+        var controller = new DspTransferProcessApiController(transferProcessProtocolService, dspRequestHandler);
 
         webService.registerResource(config.getContextAlias(), controller);
     }
