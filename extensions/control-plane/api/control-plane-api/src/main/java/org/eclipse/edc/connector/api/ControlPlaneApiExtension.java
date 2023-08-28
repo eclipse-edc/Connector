@@ -18,20 +18,13 @@ import org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurati
 import org.eclipse.edc.connector.api.transferprocess.TransferProcessControlApiController;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
-import org.jetbrains.annotations.NotNull;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * {@link ControlPlaneApiExtension } exposes HTTP endpoints for internal interaction with the Control Plane
@@ -66,23 +59,6 @@ public class ControlPlaneApiExtension implements ServiceExtension {
         typeManager.registerTypes(TransferProcessFailStateDto.class);
 
         webService.registerResource(controlApiConfiguration.getContextAlias(), new TransferProcessControlApiController(transferProcessService));
-    }
-
-    @Provider
-    public ControlPlaneApiUrl controlPlaneApiUrl(ServiceExtensionContext context) {
-        var s = getApiUrl();
-        try {
-            var url = new URL(s);
-            return () -> url;
-        } catch (MalformedURLException e) {
-            context.getMonitor().severe("Error creating callback endpoint", e);
-            throw new EdcException(e);
-        }
-    }
-
-    @NotNull
-    private String getApiUrl() {
-        return String.format("http://%s:%s%s", hostname.get(), controlApiConfiguration.getPort(), controlApiConfiguration.getPath());
     }
 
 }

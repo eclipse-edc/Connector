@@ -23,6 +23,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -58,7 +59,7 @@ public class TransferProcessControlApiController implements TransferProcessContr
     public void fail(@PathParam("processId") String processId, TransferProcessFailStateDto request) {
         validator.validate(request).orElseThrow(ValidationFailureException::new);
 
-        transferProcessService.terminate(processId, request.getErrorMessage()).orElseThrow(exceptionMapper(TransferProcess.class, processId));
+        transferProcessService.terminate(new TerminateTransferCommand(processId, request.getErrorMessage())).orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 
     private static class TransferProcessFailStateDtoValidator implements Validator<TransferProcessFailStateDto> {

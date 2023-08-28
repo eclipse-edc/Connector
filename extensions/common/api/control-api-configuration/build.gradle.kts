@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:api:api-core"))
+    api(project(":spi:control-plane:transfer-spi"))
 
     testImplementation(project(":core:common:junit"))
 }
