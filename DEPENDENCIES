@@ -201,7 +201,7 @@ maven/mavencentral/org.apache.commons/commons-pool2/2.11.1, Apache-2.0, approved
 maven/mavencentral/org.apache.commons/commons-text/1.10.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.groovy/groovy-bom/4.0.11, Apache-2.0, approved, #9266
 maven/mavencentral/org.apache.groovy/groovy-json/4.0.11, Apache-2.0, approved, #7411
-maven/mavencentral/org.apache.groovy/groovy-xml/4.0.11, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.groovy/groovy-xml/4.0.11, Apache-2.0, approved, #10179
 maven/mavencentral/org.apache.groovy/groovy/4.0.11, Apache-2.0 AND BSD-3-Clause AND MIT, approved, #1742
 maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0 AND LicenseRef-Public-Domain, approved, CQ23527
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.13, Apache-2.0, approved, CQ23528
