@@ -15,6 +15,9 @@
 package org.eclipse.edc.junit.testfixtures;
 
 import dev.failsafe.RetryPolicy;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
@@ -211,4 +214,10 @@ public class TestUtils {
         return null;
     }
 
+    /**
+     * Utility method to add filters to log http requests and respoinses handled by rest-assured.
+     */
+    public static void addRestAssuredLoggingFilters() {
+        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+    }
 }

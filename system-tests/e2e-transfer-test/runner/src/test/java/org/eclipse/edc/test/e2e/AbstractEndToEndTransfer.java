@@ -16,8 +16,10 @@ package org.eclipse.edc.test.e2e;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -55,6 +57,11 @@ public abstract class AbstractEndToEndTransfer {
             .name("provider")
             .id("urn:connector:provider")
             .build();
+
+    @BeforeAll
+    static void init() {
+        TestUtils.addRestAssuredLoggingFilters();
+    }
 
     @Test
     void httpPull_dataTransfer() {
