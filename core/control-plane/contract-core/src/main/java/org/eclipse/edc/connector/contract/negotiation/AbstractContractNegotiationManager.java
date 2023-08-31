@@ -70,6 +70,7 @@ public abstract class AbstractContractNegotiationManager {
         return ProcessorImpl.Builder.newInstance(() -> negotiationStore.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
+                .onNotProcessed(this::breakLease)
                 .build();
     }
 

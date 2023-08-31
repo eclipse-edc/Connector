@@ -16,6 +16,7 @@ package org.eclipse.edc.statemachine;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -29,7 +30,9 @@ import static java.util.function.Predicate.isEqual;
  * The run method returns the processed state count, this is used by the state machine to decide
  * to apply the wait strategy or not.
  * <p>
- * An {@link Guard} can be registered, if its predicate is verified, the guard processor is executed instead of the standard one.
+ * Additional features:
+ * - An {@link Guard} can be registered, if its predicate is verified, the guard processor is executed instead of the standard one.
+ * - A onNotProcessed listener can be registered, that will be called on every entity that has not been processed.
  *
  * @param <E> the entity that is processed
  */
@@ -38,6 +41,7 @@ public class ProcessorImpl<E> implements Processor {
     private final Supplier<Collection<E>> entities;
     private Function<E, Boolean> process;
     private Guard<E> guard = Guard.noop();
+    private Consumer<E> onNotProcessed = e -> {};
 
     private ProcessorImpl(Supplier<Collection<E>> entitiesSupplier) {
         entities = entitiesSupplier;
@@ -46,9 +50,14 @@ public class ProcessorImpl<E> implements Processor {
     @Override
     public Long process() {
         return entities.get().stream()
-                .map(entity -> guard.predicate().test(entity)
-                        ? guard.process().apply(entity) :
-                        process.apply(entity))
+                .map(entity -> {
+                    var actualProcess = guard.predicate().test(entity) ? guard.process() : process;
+                    var hasBeenProcessed = actualProcess.apply(entity);
+                    if (!hasBeenProcessed) {
+                        onNotProcessed.accept(entity);
+                    }
+                    return hasBeenProcessed;
+                })
                 .filter(isEqual(true))
                 .count();
     }
@@ -72,6 +81,17 @@ public class ProcessorImpl<E> implements Processor {
 
         public Builder<E> guard(Predicate<E> predicate, Function<E, Boolean> process) {
             processor.guard = new Guard<>(predicate, process);
+            return this;
+        }
+
+        /**
+         * Defines a listener that will invoke for every entity that won't be processed.
+         *
+         * @param onNotProcessed the listener.
+         * @return the builder.
+         */
+        public Builder<E> onNotProcessed(Consumer<E> onNotProcessed) {
+            processor.onNotProcessed = onNotProcessed;
             return this;
         }
 

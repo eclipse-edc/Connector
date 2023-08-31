@@ -18,6 +18,7 @@ import org.eclipse.edc.statemachine.retry.TestEntity;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,5 +88,33 @@ class ProcessorImplTest {
         assertThat(count).isEqualTo(1);
         verify(process).apply(entity);
         verifyNoInteractions(guardProcess);
+    }
+
+    @Test
+    void shouldExecuteOnNotProcessed_whenEntityProcessed() {
+        var entity = TestEntity.Builder.newInstance().id("id").build();
+        Consumer<TestEntity> onNotProcessed = mock();
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(entity))
+                .process(e -> false)
+                .onNotProcessed(onNotProcessed)
+                .build();
+
+        processor.process();
+
+        verify(onNotProcessed).accept(entity);
+    }
+
+    @Test
+    void shouldNotExecuteOnNotProcessed_whenEntityProcessed() {
+        var entity = TestEntity.Builder.newInstance().id("id").build();
+        Consumer<TestEntity> onNotProcessed = mock();
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(entity))
+                .process(e -> true)
+                .onNotProcessed(onNotProcessed)
+                .build();
+
+        processor.process();
+
+        verifyNoInteractions(onNotProcessed);
     }
 }
