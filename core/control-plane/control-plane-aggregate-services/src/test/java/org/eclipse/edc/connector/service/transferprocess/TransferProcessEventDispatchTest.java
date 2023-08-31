@@ -16,6 +16,8 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
@@ -38,6 +40,8 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessag
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -100,6 +104,8 @@ public class TransferProcessEventDispatchTest {
         extension.registerServiceMock(ProtocolWebhook.class, () -> "http://dummy");
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(PolicyArchive.class, mock(PolicyArchive.class));
+        extension.registerServiceMock(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
+        extension.registerServiceMock(ParticipantAgentService.class, mock(ParticipantAgentService.class));
     }
 
     @Test
@@ -108,9 +114,23 @@ public class TransferProcessEventDispatchTest {
                                                            EventRouter eventRouter,
                                                            RemoteMessageDispatcherRegistry dispatcherRegistry,
                                                            StatusCheckerRegistry statusCheckerRegistry,
-                                                           PolicyArchive policyArchive) {
+                                                           PolicyArchive policyArchive,
+                                                           ContractNegotiationStore negotiationStore,
+                                                           ParticipantAgentService agentService) {
+
+        var token = ClaimToken.Builder.newInstance().build();
+        var agent = mock(ParticipantAgent.class);
+        var agreement = mock(ContractAgreement.class);
+        var providerId = "ProviderId";
+
+        when(agreement.getProviderId()).thenReturn(providerId);
+        when(agent.getIdentity()).thenReturn(providerId);
+
+
         dispatcherRegistry.register(getTestDispatcher());
         when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
+        when(negotiationStore.findContractAgreement("contractId")).thenReturn(agreement);
+        when(agentService.createFor(token)).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var statusCheck = mock(StatusChecker.class);
 
@@ -134,7 +154,7 @@ public class TransferProcessEventDispatchTest {
                 .dataAddress(dataAddress)
                 .build();
 
-        protocolService.notifyStarted(startMessage, ClaimToken.Builder.newInstance().build());
+        protocolService.notifyStarted(startMessage, token);
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             ArgumentCaptor<EventEnvelope<TransferProcessStarted>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
