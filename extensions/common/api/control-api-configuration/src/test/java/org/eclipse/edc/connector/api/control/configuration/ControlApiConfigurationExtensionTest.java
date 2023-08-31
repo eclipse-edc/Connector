@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.control.configuration;
 
-import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
+import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
@@ -66,7 +66,7 @@ public class ControlApiConfigurationExtensionTest {
         assertThat(config.getPath()).isEqualTo(webServiceConfiguration.getPath());
         assertThat(config.getPort()).isEqualTo(webServiceConfiguration.getPort());
 
-        var url = context.getService(ControlPlaneApiUrl.class);
+        var url = context.getService(ControlApiUrl.class);
         assertThat(url.get().toString()).isEqualTo(format("http://localhost:%s%s", config.getPort(), config.getPath()));
     }
 
@@ -83,7 +83,7 @@ public class ControlApiConfigurationExtensionTest {
         assertThat(config.getPath()).isEqualTo(webServiceConfiguration.getPath());
         assertThat(config.getPort()).isEqualTo(webServiceConfiguration.getPort());
 
-        var url = context.getService(ControlPlaneApiUrl.class);
+        var url = context.getService(ControlApiUrl.class);
         assertThat(url.get().toString()).isEqualTo(endpoint);
     }
 

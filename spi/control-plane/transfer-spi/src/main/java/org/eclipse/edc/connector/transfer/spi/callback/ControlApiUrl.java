@@ -18,7 +18,7 @@ package org.eclipse.edc.connector.transfer.spi.callback;
 import java.net.URL;
 
 @FunctionalInterface
-public interface ControlPlaneApiUrl {
+public interface ControlApiUrl {
 
     /**
      * gets the URL which the HTTP Control Plane API provides for out-of-process systems to call back into.

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.api.control.configuration;
 
-import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
+import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -38,13 +38,13 @@ import static java.lang.String.format;
  * `default` or `control`
  */
 @Extension(value = ControlApiConfigurationExtension.NAME)
-@Provides({ ControlApiConfiguration.class, ControlPlaneApiUrl.class })
+@Provides({ ControlApiConfiguration.class, ControlApiUrl.class })
 public class ControlApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Control API configuration";
 
-    @Setting(value = "Configures endpoint for reaching the Control API. If it's missing it default to the hostname configuration.")
-    public static final String CONTROL_API_ENDPOINT = "edc.controlplane.control.endpoint";
+    @Setting(value = "Configures endpoint for reaching the Control API. If it's missing it defaults to the hostname configuration.")
+    public static final String CONTROL_API_ENDPOINT = "edc.control.endpoint";
     public static final String CONTROL_CONTEXT_ALIAS = "control";
     private static final String WEB_SERVICE_NAME = "Control API";
     private static final int DEFAULT_CONTROL_API_PORT = 9191;
@@ -76,17 +76,17 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         var callbackAddress = controlPlaneApiUrl(context, config);
 
         context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(config));
-        context.registerService(ControlPlaneApiUrl.class, callbackAddress);
+        context.registerService(ControlApiUrl.class, callbackAddress);
 
     }
 
-    private ControlPlaneApiUrl controlPlaneApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
+    private ControlApiUrl controlPlaneApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
         var callbackAddress = context.getSetting(CONTROL_API_ENDPOINT, format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
         try {
             var url = new URL(callbackAddress);
             return () -> url;
         } catch (MalformedURLException e) {
-            context.getMonitor().severe("Error creating callback endpoint", e);
+            context.getMonitor().severe("Error creating control plane endpoint url", e);
             throw new EdcException(e);
         }
     }
