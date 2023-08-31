@@ -213,7 +213,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return transactionContext.execute(() -> transferProcessStore
                 .findByCorrelationIdAndLease(message.getProcessId())
                 .flatMap(ServiceResult::from)
-                .compose(transferProcess -> validateCounterParty(claimToken, transferProcess))
+                .compose(transferProcess -> validateCounterParty(claimToken, transferProcess)
+                        .onFailure(f -> breakLease(transferProcess)))
                 .compose(action));
     }
 
@@ -228,6 +229,10 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     private ServiceResult<TransferProcess> notFound(String transferProcessId) {
         return ServiceResult.notFound(format("No transfer process with id %s found", transferProcessId));
+    }
+
+    private void breakLease(TransferProcess process) {
+        transferProcessStore.save(process);
     }
 
     private void update(TransferProcess transferProcess) {

@@ -71,6 +71,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -293,6 +294,9 @@ class TransferProcessProtocolServiceImplTest {
                 .isFailed()
                 .extracting(ServiceFailure::getReason)
                 .isEqualTo(NOT_FOUND);
+
+        verify(store, times(1)).save(any());
+
     }
 
     @Test
@@ -363,6 +367,8 @@ class TransferProcessProtocolServiceImplTest {
                 .isFailed()
                 .extracting(ServiceFailure::getReason)
                 .isEqualTo(NOT_FOUND);
+
+        verify(store, times(1)).save(any());
 
     }
 
@@ -440,6 +446,9 @@ class TransferProcessProtocolServiceImplTest {
                 .isFailed()
                 .extracting(ServiceFailure::getReason)
                 .isEqualTo(NOT_FOUND);
+
+        verify(store, times(1)).save(any());
+
     }
 
     @Test
