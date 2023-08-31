@@ -430,6 +430,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var checker = statusCheckerRegistry.resolve(transferProcess.getDataDestination().getType());
         if (checker == null) {
             monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
+            breakLease(transferProcess);
             return false;
         } else {
             var resources = transferProcess.getProvisionedResources();
@@ -455,7 +456,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var message = TransferCompletionMessage.Builder.newInstance()
                 .protocol(process.getProtocol())
                 .counterPartyAddress(process.getConnectorAddress())
-                .processId(process.getId())
+                .processId(process.getCorrelationId())
                 .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
 
@@ -487,7 +488,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var message = TransferTerminationMessage.Builder.newInstance()
                 .counterPartyAddress(process.getConnectorAddress())
                 .protocol(process.getProtocol())
-                .processId(process.getId())
+                .processId(process.getCorrelationId())
                 .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
 

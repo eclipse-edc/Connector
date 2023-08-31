@@ -606,7 +606,9 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(transferProcessStore, never()).save(any());
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(transferProcessStore).save(captor.capture());
+            assertThat(captor.getValue().getState()).isEqualTo(STARTED.code());
         });
     }
 
@@ -622,7 +624,7 @@ class TransferProcessManagerImplTest {
 
     @Test
     void completing_shouldTransitionToCompleted_whenSendingMessageSucceed() {
-        var process = createTransferProcess(COMPLETING);
+        var process = createTransferProcessBuilder(COMPLETING).dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
         when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -630,7 +632,10 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).dispatch(any(), isA(TransferCompletionMessage.class));
+            var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
+            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+            var message = captor.getValue();
+            assertThat(message.getProcessId()).isEqualTo("correlationId");
             verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == COMPLETED.code()));
             verify(listener).completed(process);
         });
@@ -638,7 +643,8 @@ class TransferProcessManagerImplTest {
 
     @Test
     void terminating_shouldTransitionToTerminated_whenMessageSentCorrectly() {
-        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).build();
+        var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER)
+                .dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
         when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -646,7 +652,10 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         await().untilAsserted(() -> {
-            verify(dispatcherRegistry).dispatch(any(), isA(TransferTerminationMessage.class));
+            var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
+            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+            var message = captor.getValue();
+            assertThat(message.getProcessId()).isEqualTo("correlationId");
             verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);
         });
@@ -785,7 +794,6 @@ class TransferProcessManagerImplTest {
         var processId = UUID.randomUUID().toString();
         var dataRequest = createDataRequestBuilder()
                 .processId(processId)
-                .protocol("protocol")
                 .connectorAddress("http://an/address")
                 .build();
 
@@ -802,7 +810,8 @@ class TransferProcessManagerImplTest {
                 .id(UUID.randomUUID().toString())
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .destinationType(DESTINATION_TYPE);
+                .destinationType(DESTINATION_TYPE)
+                .protocol("protocol");
     }
 
     private ProvisionedDataDestinationResource provisionedDataDestinationResource() {

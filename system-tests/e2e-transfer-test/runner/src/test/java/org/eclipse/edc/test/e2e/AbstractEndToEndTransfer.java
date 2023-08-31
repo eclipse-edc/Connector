@@ -32,6 +32,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -147,7 +148,7 @@ public abstract class AbstractEndToEndTransfer {
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(STARTED.name());
+            assertThat(state).isEqualTo(COMPLETED.name());
 
             given()
                     .baseUri(CONSUMER.backendService().toString())
@@ -170,7 +171,7 @@ public abstract class AbstractEndToEndTransfer {
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(STARTED.name());
+            assertThat(state).isEqualTo(COMPLETED.name());
 
             given()
                     .baseUri(CONSUMER.backendService().toString())

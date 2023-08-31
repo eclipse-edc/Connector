@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     implementation(project(":core:data-plane:data-plane-core"))
+    implementation(project(":extensions:control-plane:api:control-plane-api-client"))
     implementation(project(":extensions:data-plane:data-plane-http"))
     implementation(project(":extensions:data-plane:data-plane-kafka"))
     implementation(project(":extensions:data-plane:data-plane-http-oauth2"))
