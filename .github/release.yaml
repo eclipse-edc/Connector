@@ -4,15 +4,19 @@ changelog:
   exclude:
     labels:
       - no-changelog
-    authors:
-      - dependabot[bot]
   categories:
     - title: Bugfixes
       labels:
         - bug
     - title: New Features & Improvements
       labels:
-        - "*"
+        - enhancement
+    - title: Dependencies
+      labels:
+        - dependencies
     - title: Documentation
       labels:
         - documentation
+    - title: Other Changes
+      labels:
+        - "*"
