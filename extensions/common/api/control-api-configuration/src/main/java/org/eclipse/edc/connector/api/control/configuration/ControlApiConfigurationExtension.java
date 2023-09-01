@@ -73,14 +73,14 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var config = configurator.configure(context, webServer, SETTINGS);
-        var callbackAddress = controlPlaneApiUrl(context, config);
+        var callbackAddress = controlApiUrl(context, config);
 
         context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(config));
         context.registerService(ControlApiUrl.class, callbackAddress);
 
     }
 
-    private ControlApiUrl controlPlaneApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
+    private ControlApiUrl controlApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
         var callbackAddress = context.getSetting(CONTROL_API_ENDPOINT, format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
         try {
             var url = new URL(callbackAddress);

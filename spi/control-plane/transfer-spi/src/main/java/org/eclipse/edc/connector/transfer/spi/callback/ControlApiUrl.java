@@ -21,7 +21,7 @@ import java.net.URL;
 public interface ControlApiUrl {
 
     /**
-     * gets the URL which the HTTP Control Plane API provides for out-of-process systems to call back into.
+     * gets the URL which the HTTP Control API provides for out-of-process systems to call back into.
      */
     URL get();
 }
