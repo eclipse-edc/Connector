@@ -19,7 +19,6 @@
 package org.eclipse.edc.connector.contract.negotiation;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
@@ -163,16 +162,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         if (retrievedAgreement == null) {
             var lastOffer = negotiation.getLastContractOffer();
 
-            var contractIdResult = ContractId.parseId(lastOffer.getId());
-            if (contractIdResult.failed()) {
-                monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted: " + contractIdResult.getFailureDetail());
-                return false;
-            }
-
-            var contractId = contractIdResult.getContent();
-
             agreement = ContractAgreement.Builder.newInstance()
-                    .id(contractId.derive().toString())
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())

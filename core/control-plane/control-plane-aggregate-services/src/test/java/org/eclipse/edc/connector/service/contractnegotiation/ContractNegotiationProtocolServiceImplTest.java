@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.service.contractnegotiation;
 
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
@@ -476,7 +476,7 @@ class ContractNegotiationProtocolServiceImplTest {
     interface TestFunctions {
         static ContractOffer contractOffer() {
             return ContractOffer.Builder.newInstance()
-                    .id(ContractId.create("1", "test-asset-id").toString())
+                    .id(ContractOfferId.create("1", "test-asset-id").toString())
                     .policy(createPolicy())
                     .assetId("assetId")
                     .build();

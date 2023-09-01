@@ -22,7 +22,7 @@ import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -89,7 +89,7 @@ class DatasetResolverImplTest {
             assertThat(dataset.getId()).isEqualTo("assetId");
             assertThat(dataset.getDistributions()).hasSize(1).first().isEqualTo(distribution);
             assertThat(dataset.getOffers()).hasSize(1).allSatisfy((id, policy) -> {
-                assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).asString().isEqualTo("definitionId");
+                assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).asString().isEqualTo("definitionId");
                 assertThat(policy.getTarget()).isEqualTo("assetId");
             });
             assertThat(dataset.getProperties()).contains(entry("key", "value"));
@@ -126,11 +126,11 @@ class DatasetResolverImplTest {
             assertThat(dataset.getId()).isEqualTo("assetId");
             assertThat(dataset.getOffers()).hasSize(2)
                     .anySatisfy((id, policy) -> {
-                        assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).asString().isEqualTo("definition1");
+                        assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).asString().isEqualTo("definition1");
                         assertThat(policy.getType()).isEqualTo(SET);
                     })
                     .anySatisfy((id, policy) -> {
-                        assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).asString().isEqualTo("definition2");
+                        assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).asString().isEqualTo("definition2");
                         assertThat(policy.getType()).isEqualTo(OFFER);
                     });
         });
@@ -238,11 +238,11 @@ class DatasetResolverImplTest {
         assertThat(dataset.getId()).isEqualTo("datasetId");
         assertThat(dataset.getOffers()).hasSize(2)
                 .anySatisfy((id, policy) -> {
-                    assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).isEqualTo("definition1");
+                    assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).isEqualTo("definition1");
                     assertThat(policy.getType()).isEqualTo(SET);
                 })
                 .anySatisfy((id, policy) -> {
-                    assertThat(ContractId.parseId(id)).isSucceeded().extracting(ContractId::definitionPart).isEqualTo("definition2");
+                    assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).isEqualTo("definition2");
                     assertThat(policy.getType()).isEqualTo(OFFER);
                 });
         verify(assetIndex).findById("datasetId");

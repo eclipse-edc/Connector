@@ -19,7 +19,7 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -322,7 +322,7 @@ public class Participant {
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
         var dataset = getDatasetForAsset(provider, assetId);
         var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var contractDefinitionId = ContractId.parseId(policy.getString(ID))
+        var contractDefinitionId = ContractOfferId.parseId(policy.getString(ID))
                 .orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
         var contractAgreementId = negotiateContract(provider, contractDefinitionId.toString(), assetId, policy);
         var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination);
@@ -346,9 +346,9 @@ public class Participant {
                 .extract().body().jsonPath().getString("'edc:state'");
     }
 
-    private ContractId extractContractDefinitionId(JsonObject dataset) {
+    private ContractOfferId extractContractDefinitionId(JsonObject dataset) {
         var contractId = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject().getString(ID);
-        return ContractId.parseId(contractId).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
+        return ContractOfferId.parseId(contractId).orElseThrow(f -> new RuntimeException(f.getFailureDetail()));
     }
 
     private String getContractNegotiationState(String id) {

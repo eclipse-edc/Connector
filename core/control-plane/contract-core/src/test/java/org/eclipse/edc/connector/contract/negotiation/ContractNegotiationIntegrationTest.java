@@ -16,7 +16,7 @@
 package org.eclipse.edc.connector.contract.negotiation;
 
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
@@ -325,7 +325,7 @@ class ContractNegotiationIntegrationTest {
      */
     private ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.create("1", "test-asset-id").toString())
+                .id(ContractOfferId.create("1", "test-asset-id").toString())
                 .assetId(randomUUID().toString())
                 .policy(Policy.Builder.newInstance()
                         .type(PolicyType.CONTRACT)

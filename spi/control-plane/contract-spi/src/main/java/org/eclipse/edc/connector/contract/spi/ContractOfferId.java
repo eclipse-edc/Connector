@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.contract.spi;
 
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Base64;
 import java.util.UUID;
@@ -23,14 +22,11 @@ import java.util.UUID;
 import static java.lang.String.format;
 
 /**
- * Handles contract ID generation for contract offers and agreement originating in an EDC runtime.
+ * Handles contract ID generation for contract offers originating in an EDC runtime.
  * Ids are architected to allow the contract definition which generated the contract to be de-referenced.
  * The id format follows the following scheme: <code>[definition-id]:[asset-id]:[UUID]</code>
- *
- * @deprecated please use {@link ContractOfferId}.
  */
-@Deprecated(since = "0.2.1", forRemoval = true)
-public final class ContractId {
+public final class ContractOfferId {
 
     private static final String DELIMITER = ":";
     private static final int DEFINITION_ID_PART = 0;
@@ -40,38 +36,24 @@ public final class ContractId {
     private final String assetId;
     private final String uuid;
 
-    private ContractId(String definitionId, String assetId, String uuid) {
+    private ContractOfferId(String definitionId, String assetId, String uuid) {
         this.definitionId = definitionId;
         this.assetId = assetId;
         this.uuid = uuid;
     }
 
-    public static ContractId create(String definitionId, String assetId) {
-        return new ContractId(definitionId, assetId, UUID.randomUUID().toString());
+    public static ContractOfferId create(String definitionId, String assetId) {
+        return new ContractOfferId(definitionId, assetId, UUID.randomUUID().toString());
     }
 
     /**
-     * Returns a new id given the definition part
-     *
-     * @param definitionPart the part that will be used as prefix of the id
-     * @param assetId        The ID of the asset that is contained in the offer
-     * @return a {@link String} that represent the contract id
-     * @deprecated please use {@link #create(String, String)}
-     */
-    @NotNull
-    @Deprecated(since = "0.1.2", forRemoval = true)
-    public static String createContractId(String definitionPart, String assetId) {
-        return create(definitionPart, assetId).toString();
-    }
-
-    /**
-     * Return a {@link ContractId} instance parsed from the passed string, that should be in the
+     * Return a {@link ContractOfferId} instance parsed from the passed string, that should be in the
      * <code>[definition-id]:[asset-id]:[UUID]</code> format
      *
      * @param id the string representation of the id
-     * @return the {@link ContractId} instance that represent the id
+     * @return the {@link ContractOfferId} instance that represent the id
      */
-    public static Result<ContractId> parseId(String id) {
+    public static Result<ContractOfferId> parseId(String id) {
         if (id == null) {
             return Result.failure("id cannot be null");
         }
@@ -90,23 +72,10 @@ public final class ContractId {
         var uuid = decodeSafely(uuidPart);
 
         var contractId = (definitionId == null || assetId == null || uuid == null)
-                ? new ContractId(definitionIdPart, assetIdPart, uuidPart)
-                : new ContractId(definitionId, assetId, uuid);
+                ? new ContractOfferId(definitionIdPart, assetIdPart, uuidPart)
+                : new ContractOfferId(definitionId, assetId, uuid);
 
         return Result.success(contractId);
-    }
-
-    /**
-     * Return a {@link ContractId} instance parsed from the passed string, that should be in the
-     * <code>[definition-id]:UUID</code> format
-     *
-     * @param id the string representation of the id
-     * @return the {@link ContractId} instance that represent the id
-     * @deprecated please use {@link #parseId(String)}
-     */
-    @Deprecated(since = "0.1.2", forRemoval = true)
-    public static ContractId parse(String id) {
-        return parseId(id).getContent();
     }
 
     private static String decodeSafely(String base64string) {
@@ -115,17 +84,6 @@ public final class ContractId {
         } catch (IllegalArgumentException exception) {
             return null;
         }
-    }
-
-    /**
-     * The id is valid if it follows the following scheme: [definition-id]:UUID
-     *
-     * @return true if it is valid, false otherwise
-     * @deprecated an instantiated {@link ContractId} object is always valid
-     */
-    @Deprecated(since = "0.1.2", forRemoval = true)
-    public boolean isValid() {
-        return true;
     }
 
     /**
@@ -154,15 +112,6 @@ public final class ContractId {
                 encoder.encodeToString(assetId.getBytes()) +
                 DELIMITER +
                 encoder.encodeToString(uuid.getBytes());
-    }
-
-    /**
-     * Create a new {@link ContractId} with the same definitionId and assetId but a new random UUID part.
-     *
-     * @return new {@link ContractId} instance.
-     */
-    public ContractId derive() {
-        return create(definitionId, assetId);
     }
 
 }

@@ -18,7 +18,7 @@
 package org.eclipse.edc.connector.contract.validation;
 
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -66,7 +66,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -290,18 +289,6 @@ class ContractValidationServiceImplTest {
     }
 
     @Test
-    void validateAgreement_failsIfIdIsNotValid() {
-        var token = ClaimToken.Builder.newInstance().build();
-        var agreement = createContractAgreement().id("not a valid ID").build();
-
-        var result = validationService.validateAgreement(token, agreement);
-
-        assertThat(result.failed()).isTrue();
-
-        verify(agentService, times(0)).createFor(eq(token));
-    }
-
-    @Test
     void validateConfirmed_succeed() {
         var agreement = createContractAgreement().id("any").build();
         var offer = createContractOffer();
@@ -473,7 +460,7 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
-                .id(ContractId.create("1", "2").toString())
+                .id(ContractOfferId.create("1", "2").toString())
                 .contractSigningDate(Instant.now().toEpochMilli())
                 .build();
 
@@ -488,7 +475,7 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement()
-                .id(ContractId.create("1", "2").toString())
+                .id(ContractOfferId.create("1", "2").toString())
                 .contractSigningDate(signingDate)
                 .build();
 
@@ -497,7 +484,7 @@ class ContractValidationServiceImplTest {
 
     private ContractOffer createContractOffer(Asset asset, Policy policy) {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.create("1", asset.getId()).toString())
+                .id(ContractOfferId.create("1", asset.getId()).toString())
                 .assetId(asset.getId())
                 .policy(policy)
                 .build();
@@ -514,7 +501,7 @@ class ContractValidationServiceImplTest {
     }
 
     private ContractAgreement.Builder createContractAgreement() {
-        return ContractAgreement.Builder.newInstance().id(ContractId.create("1", "2").toString())
+        return ContractAgreement.Builder.newInstance()
                 .providerId(PROVIDER_ID)
                 .consumerId(CONSUMER_ID)
                 .policy(Policy.Builder.newInstance().build())

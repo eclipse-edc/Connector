@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.contract.spi.types;
 
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.junit.jupiter.api.Test;
 
 import java.util.Base64;
@@ -24,7 +24,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
-class ContractIdTest {
+class ContractOfferIdTest {
 
     private final Base64.Encoder base64encoder = Base64.getEncoder();
 
@@ -32,7 +32,7 @@ class ContractIdTest {
     void parseId_shouldSucceedWhenItsValid() {
         var base64representation = encodedContractId("definitionId", "assetId", "uuid");
 
-        var result = ContractId.parseId(base64representation);
+        var result = ContractOfferId.parseId(base64representation);
 
         assertThat(result).isSucceeded().satisfies(it -> {
             assertThat(it.definitionPart()).isEqualTo("definitionId");
@@ -43,7 +43,7 @@ class ContractIdTest {
 
     @Test
     void parseId_shouldNotDecodePartsIfTheyArentBase64() {
-        var result = ContractId.parseId("not:base64:" + UUID.randomUUID());
+        var result = ContractOfferId.parseId("not:base64:" + UUID.randomUUID());
 
         assertThat(result).isSucceeded().satisfies(it -> {
             assertThat(it.definitionPart()).isEqualTo("not");
@@ -53,36 +53,23 @@ class ContractIdTest {
 
     @Test
     void shouldNotParse_whenInputIsNull() {
-        var result = ContractId.parseId(null);
+        var result = ContractOfferId.parseId(null);
 
         assertThat(result).isFailed();
     }
 
     @Test
     void shouldNotParse_whenTooFewParts() {
-        var result = ContractId.parseId("this:isinvalid");
+        var result = ContractOfferId.parseId("this:isinvalid");
 
         assertThat(result).isFailed();
     }
 
     @Test
     void shouldNotParse_whenTooManyParts() {
-        var result = ContractId.parseId("this:is:not:valid");
+        var result = ContractOfferId.parseId("this:is:not:valid");
 
         assertThat(result).isFailed();
-    }
-
-    @Test
-    void derive_shouldCreateNewContractWithSameDefinitionAndAssetPartsAndDifferentUuid() {
-        var base64representation = encodedContractId("definitionId", "assetId", "uuid");
-
-        var first = ContractId.parseId(base64representation).getContent();
-
-        var result = first.derive();
-
-        assertThat(result.definitionPart()).isEqualTo("definitionId");
-        assertThat(result.assetIdPart()).isEqualTo("assetId");
-        assertThat(result.toString()).isNotEqualTo(first.toString());
     }
 
     private String encodedContractId(String definitionId, String assetId, String uuid) {

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.service.contractnegotiation;
 
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
@@ -110,7 +110,7 @@ class ContractNegotiationEventDispatchTest {
 
     private ContractRequestMessage createContractOfferRequest(Policy policy, String assetId) {
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id(ContractId.create("contractDefinitionId", assetId).toString())
+                .id(ContractOfferId.create("contractDefinitionId", assetId).toString())
                 .assetId("assetId")
                 .policy(policy)
                 .build();

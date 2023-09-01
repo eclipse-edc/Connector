@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -91,7 +91,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                 .forEach(contractDefinition -> {
                     var policyDefinition = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
                     if (policyDefinition != null) {
-                        var contractId = ContractId.create(contractDefinition.getId(), asset.getId());
+                        var contractId = ContractOfferId.create(contractDefinition.getId(), asset.getId());
                         datasetBuilder.offer(contractId.toString(), policyDefinition.getPolicy().withTarget(asset.getId()));
                     }
                 });
