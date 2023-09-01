@@ -214,8 +214,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .findByCorrelationIdAndLease(message.getProcessId())
                 .flatMap(ServiceResult::from)
                 .compose(transferProcess -> validateCounterParty(claimToken, transferProcess)
-                        .onFailure(f -> breakLease(transferProcess)))
-                .compose(action));
+                        .compose(action)
+                        .onFailure(f -> breakLease(transferProcess))));
     }
 
     private ServiceResult<TransferProcess> validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {

@@ -268,7 +268,8 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyStarted(message, token);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        // state didn't change
+        verify(store, times(1)).save(argThat(tp -> tp.getState() == COMPLETED.code()));
         verifyNoInteractions(listener);
     }
 
@@ -342,7 +343,8 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyCompleted(message, token);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        // state didn't change
+        verify(store, times(1)).save(argThat(tp -> tp.getState() == REQUESTED.code()));
         verifyNoInteractions(listener);
     }
 
@@ -418,7 +420,8 @@ class TransferProcessProtocolServiceImplTest {
         var result = service.notifyTerminated(message, token);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
+        // state didn't change
+        verify(store, times(1)).save(argThat(tp -> tp.getState() == TERMINATED.code()));
         verifyNoInteractions(listener);
     }
 
