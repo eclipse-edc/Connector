@@ -22,6 +22,7 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -93,7 +94,7 @@ class ResultTest {
     @Test
     void onSuccess_whenSucceeded() {
         var result = Result.success("foo");
-        Consumer<String> consumer = mock(Consumer.class);
+        Consumer<String> consumer = mock();
 
         assertThat(result.onSuccess(consumer)).isEqualTo(result);
         verify(consumer).accept(eq("foo"));
@@ -101,7 +102,7 @@ class ResultTest {
 
     @Test
     void onSuccess_whenFailed() {
-        Consumer<String> consumer = mock(Consumer.class);
+        Consumer<String> consumer = mock();
 
         Result<String> result = Result.failure("bar");
         assertThat(result.onSuccess(consumer)).isEqualTo(result);
@@ -111,7 +112,7 @@ class ResultTest {
     @Test
     void onFailure_whenSucceeded() {
         var result = Result.success("foo");
-        Consumer<Failure> consumer = mock(Consumer.class);
+        Consumer<Failure> consumer = mock();
 
         assertThat(result.onFailure(consumer)).isEqualTo(result);
         verifyNoInteractions(consumer);
@@ -119,7 +120,7 @@ class ResultTest {
 
     @Test
     void onFailure_whenFailed() {
-        Consumer<Failure> consumer = mock(Consumer.class);
+        Consumer<Failure> consumer = mock();
 
         Result<String> result = Result.failure("bar");
         assertThat(result.onFailure(consumer)).isEqualTo(result);
@@ -224,18 +225,35 @@ class ResultTest {
                 ? Result.success("the content was good")
                 : Result.failure("the content was not good");
 
-        assertThat(Result.success("right content").compose(mappingFunction)).matches(AbstractResult::succeeded)
-                .extracting(AbstractResult::getContent).isEqualTo("the content was good");
+        assertThat(Result.success("right content").compose(mappingFunction)).isSucceeded()
+                .isEqualTo("the content was good");
 
-        assertThat(Result.success("not right content").compose(mappingFunction)).matches(AbstractResult::failed)
-                .extracting(AbstractResult::getFailureMessages).asList().contains("the content was not good");
+        assertThat(Result.success("not right content").compose(mappingFunction)).isFailed()
+                .extracting(Failure::getMessages).asList().contains("the content was not good");
     }
 
     @Test
     void compose_doNothingIfFailed() {
         var result = Result.failure("error").compose(it -> Result.success());
 
-        assertThat(result).matches(AbstractResult::failed)
-                .extracting(AbstractResult::getFailureMessages).asList().contains("error");
+        assertThat(result).isFailed().extracting(Failure::getMessages).asList().contains("error");
+    }
+
+    @Test
+    void recover_shouldApplyMappingFunction_whenFailed() {
+        var failedResult = Result.<String>failure("failure");
+        Function<Failure, Result<String>> successfulRecoverFunction = f -> Result.success("ok");
+        Function<Failure, Result<String>> failingRecoverFunction = f -> Result.failure("error");
+
+        assertThat(failedResult.recover(successfulRecoverFunction)).isSucceeded().isEqualTo("ok");
+        assertThat(failedResult.recover(failingRecoverFunction)).isFailed().extracting(Failure::getMessages).asList().contains("error");
+    }
+
+    @Test
+    void recover_shouldDoNothing_whenSucceeded() {
+        var succeededResult = Result.success("ok");
+        Function<Failure, Result<String>> failingRecoverFunction = f -> Result.failure("error");
+
+        assertThat(succeededResult.recover(failingRecoverFunction)).isSucceeded();
     }
 }
