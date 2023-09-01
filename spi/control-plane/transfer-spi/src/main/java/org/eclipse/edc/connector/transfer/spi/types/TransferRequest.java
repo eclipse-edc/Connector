@@ -34,14 +34,12 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
-    public static final String TRANSFER_REQUEST_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 
     private String id;
     private String protocol;
     private String connectorAddress;
-    private String connectorId;
     private String contractId;
     private String assetId;
     private DataAddress dataDestination;
@@ -77,10 +75,6 @@ public class TransferRequest {
 
     public String getProtocol() {
         return protocol;
-    }
-
-    public String getConnectorId() {
-        return connectorId;
     }
 
     public String getAssetId() {
@@ -135,11 +129,6 @@ public class TransferRequest {
 
         public Builder protocol(String protocol) {
             request.protocol = protocol;
-            return this;
-        }
-
-        public Builder connectorId(String connectorId) {
-            request.connectorId = connectorId;
             return this;
         }
 
