@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api;
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.api.transferprocess.TransferProcessControlApiController;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.web.spi.WebService;
@@ -45,7 +44,6 @@ class ControlPlaneApiExtensionTest {
                 .port(8888)
                 .build();
         context.registerService(WebService.class, webService);
-        context.registerService(Hostname.class, () -> "localhost");
         context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(webServiceConfiguration));
     }
 

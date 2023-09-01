@@ -28,7 +28,7 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.dataplane.validation.ContractValidationRule;
 import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateValidationRule;
-import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
+import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.jwt.TokenValidationRulesRegistryImpl;
@@ -91,7 +91,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction;
 
     @Inject(required = false)
-    private ControlPlaneApiUrl callbackUrl;
+    private ControlApiUrl callbackUrl;
 
     @Inject
     private TypeManager typeManager;

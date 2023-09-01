@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
-import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
+import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -45,7 +45,7 @@ class ProviderPushTransferDataFlowControllerTest {
 
     @BeforeEach
     void setUp() throws MalformedURLException {
-        var callbackUrlMock = mock(ControlPlaneApiUrl.class);
+        var callbackUrlMock = mock(ControlApiUrl.class);
         var url = new URL("http://localhost");
         when(callbackUrlMock.get()).thenReturn(url);
         dataPlaneClientMock = mock(DataPlaneClient.class);

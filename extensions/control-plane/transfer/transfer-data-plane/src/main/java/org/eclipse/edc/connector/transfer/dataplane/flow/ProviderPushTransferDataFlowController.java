@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
-import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
+import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -32,10 +32,10 @@ import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlane
 
 public class ProviderPushTransferDataFlowController implements DataFlowController {
 
-    private final ControlPlaneApiUrl callbackUrl;
+    private final ControlApiUrl callbackUrl;
     private final DataPlaneClient dataPlaneClient;
 
-    public ProviderPushTransferDataFlowController(ControlPlaneApiUrl callbackUrl, DataPlaneClient dataPlaneClient) {
+    public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneClient dataPlaneClient) {
         this.callbackUrl = callbackUrl;
         this.dataPlaneClient = dataPlaneClient;
     }

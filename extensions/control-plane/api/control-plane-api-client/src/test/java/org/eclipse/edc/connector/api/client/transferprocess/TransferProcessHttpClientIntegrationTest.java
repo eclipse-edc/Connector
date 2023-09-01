@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
-import org.eclipse.edc.connector.transfer.spi.callback.ControlPlaneApiUrl;
+import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -80,7 +80,7 @@ public class TransferProcessHttpClientIntegrationTest {
     }
 
     @Test
-    void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
+    void shouldCallTransferProcessApiWithComplete(TransferProcessStore store, DataPlaneManager manager, ControlApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
         var id = "tp-id";
         store.save(createTransferProcess(id));
@@ -96,7 +96,7 @@ public class TransferProcessHttpClientIntegrationTest {
     }
 
     @Test
-    void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
+    void shouldCallTransferProcessApiWithFailed(TransferProcessStore store, DataPlaneManager manager, ControlApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(completedFuture(StreamResult.error("error")));
         var id = "tp-id";
         store.save(createTransferProcess(id));
@@ -114,7 +114,7 @@ public class TransferProcessHttpClientIntegrationTest {
     }
 
     @Test
-    void shouldCallTransferProcessApiWithException(TransferProcessStore store, DataPlaneManager manager, ControlPlaneApiUrl callbackUrl) {
+    void shouldCallTransferProcessApiWithException(TransferProcessStore store, DataPlaneManager manager, ControlApiUrl callbackUrl) {
         when(service.transfer(any())).thenReturn(failedFuture(new EdcException("error")));
         var id = "tp-id";
         store.save(createTransferProcess(id));
