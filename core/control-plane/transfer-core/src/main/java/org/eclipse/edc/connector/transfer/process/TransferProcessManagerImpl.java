@@ -297,7 +297,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                         transitionToTerminated(t, format("Error during provisioning: %s", throwable.getMessage()));
                     }
                 })
-                .onDelay(this::breakLease)
                 .execute("Provisioning");
     }
 
@@ -352,7 +351,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onDelay(this::breakLease)
                 .execute(description);
     }
 
@@ -380,7 +378,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitionToStarting(t))
                 .onRetryExhausted((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
-                .onDelay(this::breakLease)
                 .execute(description);
     }
 
@@ -402,7 +399,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .onDelay(this::breakLease)
                 .execute(description);
     }
 
@@ -416,12 +412,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     @WithSpan
     private boolean processStarted(TransferProcess transferProcess) {
         if (transferProcess.getType() != CONSUMER) {
-            breakLease(transferProcess);
             return false;
         }
 
         return entityRetryProcessFactory.doSimpleProcess(transferProcess, () -> checkCompletion(transferProcess))
-                .onDelay(this::breakLease)
                 .execute("Check completion");
     }
 
@@ -430,7 +424,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var checker = statusCheckerRegistry.resolve(transferProcess.getDataDestination().getType());
         if (checker == null) {
             monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
-            breakLease(transferProcess);
             return false;
         } else {
             var resources = transferProcess.getProvisionedResources();
@@ -439,7 +432,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 return true;
             } else {
                 monitor.debug(format("Transfer process %s not COMPLETED yet. The process will stay in STARTED.", transferProcess.getId()));
-                breakLease(transferProcess);
                 return false;
             }
         }
@@ -467,7 +459,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .onDelay(this::breakLease)
                 .execute(description);
     }
 
@@ -499,7 +490,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted(this::transitionToTerminated)
-                .onDelay(this::breakLease)
                 .execute(description);
     }
 
@@ -520,7 +510,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
                 .entityRetrieve(transferProcessStore::findById)
-                .onDelay(this::breakLease)
                 .onSuccess(this::handleDeprovisionResult)
                 .onFailure((t, throwable) -> transitionToDeprovisioning(t))
                 .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
@@ -532,6 +521,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return ProcessorImpl.Builder.newInstance(() -> transferProcessStore.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
+                .onNotProcessed(this::breakLease)
                 .build();
     }
 

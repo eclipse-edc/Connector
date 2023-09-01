@@ -136,7 +136,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
                 .entityRetrieve(negotiationStore::findById)
-                .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitionToRequested(n))
                 .onFailure((n, throwable) -> transitionToRequesting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -182,7 +181,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
                 .entityRetrieve(negotiationStore::findById)
-                .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitionToAccepted(n))
                 .onFailure((n, throwable) -> transitionToAccepting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -219,7 +217,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(negotiationStore::findById)
-                .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitionToVerified(n))
                 .onFailure((n, throwable) -> transitionToVerifying(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -246,7 +243,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, rejection))
                 .entityRetrieve(negotiationStore::findById)
-                .onDelay(this::breakLease)
                 .onSuccess((n, result) -> transitionToTerminated(n))
                 .onFailure((n, throwable) -> transitionToTerminating(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
