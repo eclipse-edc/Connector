@@ -17,7 +17,7 @@
 package org.eclipse.edc.connector.contract.validation;
 
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -80,7 +80,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ClaimToken token, String offerId) {
-        return ContractId.parseId(offerId)
+        return ContractOfferId.parseId(offerId)
                 .compose(contractId -> {
                     var agent = agentService.createFor(token);
 
@@ -96,26 +96,22 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     @Override
     @NotNull
     public Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement) {
-        return ContractId.parseId(agreement.getId())
-                .compose(contractId -> {
-                    var agent = agentService.createFor(token);
-                    var consumerIdentity = agent.getIdentity();
-                    if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerId())) {
-                        return failure("Invalid provider credentials");
-                    }
+        var agent = agentService.createFor(token);
+        var consumerIdentity = agent.getIdentity();
+        if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerId())) {
+            return failure("Invalid provider credentials");
+        }
 
-                    var policyContext = PolicyContextImpl.Builder.newInstance()
-                            .additional(ParticipantAgent.class, agent)
-                            .additional(ContractAgreement.class, agreement)
-                            .additional(Instant.class, Instant.now())
-                            .build();
-                    var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), policyContext);
-                    if (!policyResult.succeeded()) {
-                        return failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));
-                    }
-                    return success(agreement);
-                });
-
+        var policyContext = PolicyContextImpl.Builder.newInstance()
+                .additional(ParticipantAgent.class, agent)
+                .additional(ContractAgreement.class, agreement)
+                .additional(Instant.class, Instant.now())
+                .build();
+        var policyResult = policyEngine.evaluate(TRANSFER_SCOPE, agreement.getPolicy(), policyContext);
+        if (!policyResult.succeeded()) {
+            return failure(format("Policy does not fulfill the agreement %s, policy evaluation %s", agreement.getId(), policyResult.getFailureDetail()));
+        }
+        return success(agreement);
     }
     
     @Override
@@ -158,26 +154,26 @@ public class ContractValidationServiceImpl implements ContractValidationService 
      * Validates an initial contract offer, ensuring that the referenced asset exists, is selected by the corresponding policy definition and the agent fulfills the contract policy.
      * A sanitized policy definition is returned to avoid clients injecting manipulated policies.
      */
-    private Result<Policy> validateInitialOffer(ContractId contractId, ParticipantAgent agent) {
+    private Result<Policy> validateInitialOffer(ContractOfferId contractOfferId, ParticipantAgent agent) {
         var consumerIdentity = agent.getIdentity();
         if (consumerIdentity == null) {
             return failure("Invalid consumer identity");
         }
 
-        var contractDefinition = contractDefinitionResolver.definitionFor(agent, contractId.definitionPart());
+        var contractDefinition = contractDefinitionResolver.definitionFor(agent, contractOfferId.definitionPart());
         if (contractDefinition == null) {
             return failure("The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
 
         // verify the target asset exists
-        var targetAsset = assetIndex.findById(contractId.assetIdPart());
+        var targetAsset = assetIndex.findById(contractOfferId.assetIdPart());
         if (targetAsset == null) {
-            return failure("Invalid target: " + contractId.assetIdPart());
+            return failure("Invalid target: " + contractOfferId.assetIdPart());
         }
 
         // verify that the asset in the offer is actually in the contract definition
         var testCriteria = new ArrayList<>(contractDefinition.getAssetsSelector());
-        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", contractId.assetIdPart()));
+        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", contractOfferId.assetIdPart()));
         if (assetIndex.countAssets(testCriteria) <= 0) {
             return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");
         }
@@ -187,7 +183,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
         }
 
-        var policy = policyDefinition.getPolicy().withTarget(contractId.assetIdPart());
+        var policy = policyDefinition.getPolicy().withTarget(contractOfferId.assetIdPart());
         var policyContext = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
         var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, policy, policyContext);
         if (policyResult.failed()) {
@@ -197,11 +193,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @NotNull
-    private ContractOffer createContractOffer(Policy policy, ContractId contractId) {
+    private ContractOffer createContractOffer(Policy policy, ContractOfferId contractOfferId) {
         return ContractOffer.Builder.newInstance()
-                .id(contractId.toString())
+                .id(contractOfferId.toString())
                 .policy(policy)
-                .assetId(contractId.assetIdPart())
+                .assetId(contractOfferId.assetIdPart())
                 .build();
     }
 

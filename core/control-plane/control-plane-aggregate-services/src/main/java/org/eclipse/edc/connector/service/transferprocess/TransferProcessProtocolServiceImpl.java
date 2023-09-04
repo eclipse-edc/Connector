@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
@@ -83,11 +82,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
-        var contractIdResult = ContractId.parseId(message.getContractId());
-        if (contractIdResult.failed()) {
-            return ServiceResult.badRequest("ContractId is not valid: " + contractIdResult.getFailureDetail());
-        }
-
         var destination = message.getDataDestination();
         if (destination != null) {
             var validDestination = dataAddressValidator.validate(destination);
@@ -99,7 +93,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return transactionContext.execute(() ->
                 Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
                         .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
-                        .map(agreement -> requestedAction(message, contractIdResult.getContent()))
+                        .map(agreement -> requestedAction(message, agreement.getAssetId()))
                         .orElse(ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"))));
     }
 
@@ -134,9 +128,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     @NotNull
-    private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, ContractId contractId) {
-        var assetId = contractId.assetIdPart();
-
+    private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, String assetId) {
         var destination = message.getDataDestination() != null ? message.getDataDestination() :
                 DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
         var dataRequest = DataRequest.Builder.newInstance()

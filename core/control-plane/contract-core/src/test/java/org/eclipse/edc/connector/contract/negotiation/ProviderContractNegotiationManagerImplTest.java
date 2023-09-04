@@ -16,7 +16,7 @@
 package org.eclipse.edc.connector.contract.negotiation;
 
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.edc.connector.contract.spi.ContractId;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -274,7 +274,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     private ContractAgreement.Builder contractAgreementBuilder() {
         return ContractAgreement.Builder.newInstance()
-                .id(ContractId.create(UUID.randomUUID().toString(), "test-asset-id").toString())
+                .id(ContractOfferId.create(UUID.randomUUID().toString(), "test-asset-id").toString())
                 .providerId("any")
                 .consumerId("any")
                 .assetId("default")
@@ -283,7 +283,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(ContractId.create("1", "test-asset-id").toString())
+                .id(ContractOfferId.create("1", "test-asset-id").toString())
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("assetId")
                 .build();

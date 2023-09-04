@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.policy.model;
 
-import java.security.Policy;
 import java.util.List;
 
 /**

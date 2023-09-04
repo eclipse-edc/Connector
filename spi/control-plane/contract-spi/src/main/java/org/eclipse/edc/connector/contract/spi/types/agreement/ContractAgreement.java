@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -176,7 +177,9 @@ public class ContractAgreement {
         }
 
         public ContractAgreement build() {
-            requireNonNull(instance.id, "id cannot be null");
+            if (instance.id == null) {
+                instance.id = UUID.randomUUID().toString();
+            }
             requireNonNull(instance.providerId, "providerId cannot be null");
             requireNonNull(instance.consumerId, "consumerId cannot be null");
             requireNonNull(instance.assetId, "assetId cannot be null");

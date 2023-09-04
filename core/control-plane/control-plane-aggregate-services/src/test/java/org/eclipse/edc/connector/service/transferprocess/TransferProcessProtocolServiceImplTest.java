@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.service.transferprocess;
 
-import org.eclipse.edc.connector.contract.spi.ContractId;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
@@ -99,7 +98,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_validAgreement_shouldInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("transferProcessId")
-                .contractId(ContractId.create("definitionId", "assetId").toString())
+                .contractId("agreementId")
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -125,7 +124,7 @@ class TransferProcessProtocolServiceImplTest {
     void notifyRequested_doNothingIfProcessAlreadyExist() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("correlationId")
-                .contractId(ContractId.create("definitionId", "assetId").toString())
+                .contractId("agreementId")
                 .protocol("protocol")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
@@ -143,28 +142,11 @@ class TransferProcessProtocolServiceImplTest {
     }
 
     @Test
-    void notifyRequested_invalidContractId_shouldNotInitiateTransfer() {
-        var message = TransferRequestMessage.Builder.newInstance()
-                .protocol("protocol")
-                .contractId("notvalidcontractid")
-                .callbackAddress("http://any")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-
-        var result = service.notifyRequested(message, claimToken());
-
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener, store, negotiationStore, validationService);
-    }
-
-    @Test
     void notifyRequested_invalidAgreement_shouldNotInitiateTransfer() {
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .callbackAddress("http://any")
-                .contractId(ContractId.create("definitionId", "assetId").toString())
+                .contractId("agreementId")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -183,7 +165,7 @@ class TransferProcessProtocolServiceImplTest {
         when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
-                .contractId(ContractId.create("definitionId", "assetId").toString())
+                .contractId("agreementId")
                 .callbackAddress("http://any")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
@@ -200,7 +182,7 @@ class TransferProcessProtocolServiceImplTest {
         var message = TransferRequestMessage.Builder.newInstance()
                 .processId("transferProcessId")
                 .protocol("protocol")
-                .contractId(ContractId.create("definitionId", "assetId").toString())
+                .contractId("agreementId")
                 .callbackAddress("http://any")
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
@@ -534,7 +516,7 @@ class TransferProcessProtocolServiceImplTest {
                 .id("agreementId")
                 .providerId("provider")
                 .consumerId("consumer")
-                .assetId("asset")
+                .assetId("assetId")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }
