@@ -357,10 +357,4 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .build();
     }
 
-    @NotNull
-    private <T> TypeReference<T> getTypeRef() {
-        return new TypeReference<>() {
-        };
-    }
-
 }

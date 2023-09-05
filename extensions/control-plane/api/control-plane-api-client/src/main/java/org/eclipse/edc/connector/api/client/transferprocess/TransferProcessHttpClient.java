@@ -27,7 +27,6 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
@@ -66,7 +65,9 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
                 var request = createRequest(buildUrl(dataFlowRequest, action), body);
                 try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNot(200)))) {
                     if (!response.isSuccessful()) {
-                        monitor.severe(String.format("Failed to send callback request: received %s from the TransferProcess API", response.code()));
+                        var message = "Failed to send callback request: received %s from the TransferProcess API"
+                                .formatted(response.code());
+                        monitor.severe(message);
                     }
                 }
 
@@ -79,8 +80,9 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
     }
 
     @NotNull
-    private String buildUrl(DataFlowRequest dataFlowRequest, String action) throws URISyntaxException {
-        var url = new URI(dataFlowRequest.getCallbackAddress().toString() + "/").resolve(String.format("./transferprocess/%s/%s", dataFlowRequest.getProcessId(), action)).normalize();
+    private String buildUrl(DataFlowRequest dataFlowRequest, String action) {
+        var callbackAddress = dataFlowRequest.getCallbackAddress();
+        var url = URI.create(callbackAddress + "/").resolve(String.format("./transferprocess/%s/%s", dataFlowRequest.getProcessId(), action)).normalize();
         return url.toString();
     }
 

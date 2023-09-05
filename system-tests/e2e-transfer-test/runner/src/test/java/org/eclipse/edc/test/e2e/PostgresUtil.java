@@ -37,16 +37,20 @@ public class PostgresUtil {
         var helper = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, consumer.getName());
         helper.createDatabase(consumer.getName());
 
-        var scripts = Stream.of(
+        var controlPlaneScripts = Stream.of(
                         "asset-index-sql",
                         "contract-definition-store-sql",
                         "contract-negotiation-store-sql",
                         "policy-definition-store-sql",
                         "transfer-process-store-sql")
                 .map(module -> "../../../extensions/control-plane/store/sql/" + module + "/docs/schema.sql")
-                .map(Paths::get)
-                .toList();
+                .map(Paths::get);
 
+        var dataPlaneScripts = Stream.of("data-plane-store-sql")
+                .map(module -> "../../../extensions/data-plane/store/sql/" + module + "/docs/schema.sql")
+                .map(Paths::get);
+
+        var scripts = Stream.concat(controlPlaneScripts, dataPlaneScripts).toList();
 
         try (var connection = DriverManager.getConnection(consumer.jdbcUrl(), USER, PASSWORD)) {
             for (var script : scripts) {

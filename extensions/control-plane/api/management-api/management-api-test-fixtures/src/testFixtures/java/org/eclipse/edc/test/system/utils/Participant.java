@@ -178,7 +178,7 @@ public class Participant {
                     .body(requestBody)
                     .post("/v2/catalog/request")
                     .then()
-                    .log().all()
+                    .log().ifError()
                     .statusCode(200)
                     .extract().body().asString();
 
@@ -219,7 +219,7 @@ public class Participant {
                     .body(requestBody)
                     .post("/v2/catalog/dataset/request")
                     .then()
-                    .log().all()
+                    .log().ifError()
                     .statusCode(200)
                     .extract().body().asString();
 

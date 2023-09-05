@@ -37,11 +37,6 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
                     CONSUMER.controlPlanePostgresConfiguration()
             ),
             new EdcRuntimeExtension(
-                    ":system-tests:e2e-transfer-test:data-plane",
-                    "consumer-data-plane",
-                    CONSUMER.dataPlaneConfiguration()
-            ),
-            new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:backend-service",
                     "consumer-backend-service",
                     new HashMap<>() {

@@ -22,6 +22,7 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -109,7 +110,14 @@ public abstract class AbstractSqlStore {
         }
     }
 
+    @NotNull
+    protected <T> TypeReference<T> getTypeRef() {
+        return new TypeReference<>() {
+        };
+    }
+
     private DataSource getDataSource() {
         return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), format("DataSource %s could not be resolved", dataSourceName));
     }
+
 }

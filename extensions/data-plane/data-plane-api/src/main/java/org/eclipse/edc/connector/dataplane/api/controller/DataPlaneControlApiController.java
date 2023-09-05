@@ -24,8 +24,8 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 import static java.lang.String.format;
@@ -48,7 +48,7 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
         // TODO token authentication
         var result = dataPlaneManager.validate(request);
         if (result.succeeded()) {
-            dataPlaneManager.initiateTransfer(request);
+            dataPlaneManager.initiate(request);
             response.resume(Response.ok().build());
         } else {
             var resp = result.getFailureMessages().isEmpty() ?
@@ -61,7 +61,7 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
     @GET
     @Override
     @Path("/{processId}")
-    public DataPlaneStore.State getTransferState(@PathParam("processId") String processId) {
+    public DataFlowStates getTransferState(@PathParam("processId") String processId) {
         return dataPlaneManager.transferState(processId);
     }
 }

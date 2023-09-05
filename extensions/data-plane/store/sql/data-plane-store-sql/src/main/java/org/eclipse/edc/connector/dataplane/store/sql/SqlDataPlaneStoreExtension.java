@@ -66,8 +66,8 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneStore dataPlaneStore(ServiceExtensionContext context) {
-        return new SqlDataPlaneStore(dataSourceRegistry, getDataSourceName(context), transactionContext, getStatementImpl(),
-                typeManager.getMapper(), clock, queryExecutor);
+        return new SqlDataPlaneStore(dataSourceRegistry, getDataSourceName(context), transactionContext,
+                getStatementImpl(), typeManager.getMapper(), clock, queryExecutor, context.getConnectorId());
     }
 
     /**

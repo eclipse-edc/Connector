@@ -60,7 +60,6 @@ include(":core:control-plane:transfer-core")
 
 include(":core:data-plane:data-plane-util")
 include(":core:data-plane:data-plane-core")
-include(":core:data-plane:data-plane-framework")
 
 include(":core:data-plane-selector:data-plane-selector-core")
 
@@ -207,6 +206,7 @@ include(":system-tests:e2e-transfer-test:backend-service")
 include(":system-tests:e2e-transfer-test:control-plane")
 include(":system-tests:e2e-transfer-test:control-plane-postgresql")
 include(":system-tests:e2e-transfer-test:data-plane")
+include(":system-tests:e2e-transfer-test:data-plane-postgresql")
 include(":system-tests:e2e-transfer-test:runner")
 include(":system-tests:management-api:management-api-test-runner")
 include(":system-tests:management-api:management-api-test-runtime")

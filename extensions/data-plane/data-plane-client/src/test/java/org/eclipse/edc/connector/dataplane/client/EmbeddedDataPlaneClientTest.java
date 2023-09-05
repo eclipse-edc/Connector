@@ -52,12 +52,12 @@ class EmbeddedDataPlaneClientTest {
         var errorMsg = "error";
         var request = createDataFlowRequest();
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.failure(errorMsg));
-        doNothing().when(dataPlaneManagerMock).initiateTransfer(any());
+        doNothing().when(dataPlaneManagerMock).initiate(any());
 
         var result = client.transfer(request);
 
         verify(dataPlaneManagerMock).validate(request);
-        verify(dataPlaneManagerMock, never()).initiateTransfer(any());
+        verify(dataPlaneManagerMock, never()).initiate(any());
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages())
@@ -69,12 +69,12 @@ class EmbeddedDataPlaneClientTest {
     void verifyTransferSuccess() {
         var request = createDataFlowRequest();
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
-        doNothing().when(dataPlaneManagerMock).initiateTransfer(any());
+        doNothing().when(dataPlaneManagerMock).initiate(any());
 
         var result = client.transfer(request);
 
         verify(dataPlaneManagerMock).validate(request);
-        verify(dataPlaneManagerMock).initiateTransfer(request);
+        verify(dataPlaneManagerMock).initiate(request);
 
         assertThat(result.succeeded()).isTrue();
     }

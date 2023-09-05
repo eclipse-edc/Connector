@@ -142,6 +142,9 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private TransferProcessPendingGuard pendingGuard;
 
+    @Inject
+    private ExecutorInstrumentation executorInstrumentation;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -180,7 +183,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .monitor(monitor)
                 .telemetry(telemetry)
-                .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
+                .executorInstrumentation(executorInstrumentation)
                 .vault(vault)
                 .clock(clock)
                 .observable(observable)

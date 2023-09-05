@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,12 +32,6 @@ import java.util.stream.Stream;
  */
 @ExtensionPoint
 public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
-
-    /**
-     * Finds the contract negotiation for the id or null.
-     */
-    @Nullable
-    ContractNegotiation findById(String negotiationId);
 
     /**
      * Returns the contract negotiation for the correlation id provided by the consumer or null.
@@ -81,4 +76,13 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      */
     @NotNull
     Stream<ContractAgreement> queryAgreements(QuerySpec querySpec);
+
+    /**
+     * Find the entity by the passed correlation id and lease it.
+     * If the entity is already leased, will return a failure.
+     *
+     * @param correlationId the entity correlation id.
+     * @return success if the entity is unleased, failure otherwise.
+     */
+    StoreResult<ContractNegotiation> findByCorrelationIdAndLease(String correlationId);
 }

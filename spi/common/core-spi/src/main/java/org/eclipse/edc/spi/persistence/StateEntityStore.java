@@ -17,6 +17,7 @@ package org.eclipse.edc.spi.persistence;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -38,6 +39,15 @@ public interface StateEntityStore<T> {
     static Criterion isNotPending() {
         return new Criterion("pending", "=", false);
     }
+
+    /**
+     * Finds the entity for the id or null.
+     *
+     * @param id the id.
+     * @return the entity if found, null otherwise.
+     */
+    @Nullable
+    T findById(String id);
 
     /**
      * Returns a list of not leased entities that satisfy the filter criteria.
@@ -70,15 +80,6 @@ public interface StateEntityStore<T> {
      * @return success if the entity is unleased, failure otherwise.
      */
     StoreResult<T> findByIdAndLease(String id);
-
-    /**
-     * Find the entity by the passed correlation id and lease it.
-     * If the entity is already leased, will return a failure.
-     *
-     * @param correlationId the entity correlation id.
-     * @return success if the entity is unleased, failure otherwise.
-     */
-    StoreResult<T> findByCorrelationIdAndLease(String correlationId);
 
     /**
      * Persists the entity. This follows UPSERT semantics, so if the object didn't exit before, it's created.

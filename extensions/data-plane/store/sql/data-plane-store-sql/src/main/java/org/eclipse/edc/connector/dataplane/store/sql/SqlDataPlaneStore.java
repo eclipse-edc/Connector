@@ -15,97 +15,186 @@
 package org.eclipse.edc.connector.dataplane.store.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Clock;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * SQL implementation of {@link DataPlaneStore}
  */
 public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStore {
 
-
     private final DataPlaneStatements statements;
-
+    private final SqlLeaseContextBuilder leaseContext;
     private final Clock clock;
+    private final String leaseHolderName;
 
     public SqlDataPlaneStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                             DataPlaneStatements statements, ObjectMapper objectMapper, Clock clock, QueryExecutor queryExecutor) {
+                             DataPlaneStatements statements, ObjectMapper objectMapper, Clock clock, QueryExecutor queryExecutor,
+                             String leaseHolderName) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
         this.clock = clock;
+        this.leaseHolderName = leaseHolderName;
+        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock, queryExecutor);
     }
 
     @Override
-    public void received(String processId) {
-        transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                upsert(connection, processId, State.RECEIVED);
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
-    }
-
-    @Override
-    public void completed(String processId) {
-        transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                upsert(connection, processId, State.COMPLETED);
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
-    }
-
-    @Override
-    public State getState(String processId) {
+    public @Nullable DataFlow findById(String id) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var state = stateById(connection, processId);
-                return state != null ? state : State.NOT_TRACKED;
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
+                return findByIdInternal(connection, id);
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
             }
         });
-
     }
 
-    public State mapToState(ResultSet resultSet) throws Exception {
-        var stateCode = resultSet.getInt(statements.getStateColumn());
-        return State.from(stateCode);
+    @Override
+    public @NotNull List<DataFlow> nextNotLeased(int max, Criterion... criteria) {
+        return transactionContext.execute(() -> {
+            var filter = Arrays.stream(criteria).collect(toList());
+            var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
+            var statement = statements.createQuery(querySpec);
+            statement.addWhereClause(statements.getNotLeasedFilter());
+            statement.addParameter(clock.millis());
+
+            try (
+                    var connection = getConnection();
+                    var stream = queryExecutor.query(connection, true, this::mapDataFlow, statement.getQueryAsString(), statement.getParameters())
+            ) {
+                var transferProcesses = stream.collect(Collectors.toList());
+                transferProcesses.forEach(transferProcess -> leaseContext.withConnection(connection).acquireLease(transferProcess.getId()));
+                return transferProcesses;
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
     }
 
-    private void upsert(Connection connection, String processId, State state) {
-        if (stateById(connection, processId) == null) {
-            insert(connection, processId, state);
-        } else {
-            update(connection, processId, state);
-        }
+    @Override
+    public StoreResult<DataFlow> findByIdAndLease(String id) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var entity = findByIdInternal(connection, id);
+                if (entity == null) {
+                    return StoreResult.notFound(format("TransferProcess %s not found", id));
+                }
+
+                leaseContext.withConnection(connection).acquireLease(entity.getId());
+                return StoreResult.success(entity);
+            } catch (IllegalStateException e) {
+                return StoreResult.alreadyLeased(format("TransferProcess %s is already leased", id));
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
     }
 
-    private State stateById(Connection connection, String processId) {
-        var sql = statements.getFindByIdTemplate();
-        return queryExecutor.single(connection, false, this::mapToState, sql, processId);
+    @Override
+    public void save(DataFlow entity) {
+        transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var existing = findByIdInternal(connection, entity.getId());
+                if (existing != null) {
+                    leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
+                    update(connection, entity);
+                } else {
+                    insert(connection, entity);
+                }
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
     }
 
-    private void insert(Connection connection, String processId, State state) {
+    private void insert(Connection connection, DataFlow dataFlow) {
         var sql = statements.getInsertTemplate();
-        var createdAt = clock.millis();
-        queryExecutor.execute(connection, sql, processId, state.getCode(), createdAt, createdAt);
+        queryExecutor.execute(connection, sql,
+                dataFlow.getId(),
+                dataFlow.getState(),
+                dataFlow.getCreatedAt(),
+                dataFlow.getUpdatedAt(),
+                dataFlow.getStateCount(),
+                dataFlow.getStateTimestamp(),
+                toJson(dataFlow.getTraceContext()),
+                dataFlow.getErrorDetail(),
+                Optional.ofNullable(dataFlow.getCallbackAddress()).map(URI::toString).orElse(null),
+                dataFlow.isTrackable(),
+                toJson(dataFlow.getSource()),
+                toJson(dataFlow.getDestination()),
+                toJson(dataFlow.getProperties())
+        );
     }
 
-    private void update(Connection connection, String processId, State state) {
+    private void update(Connection connection, DataFlow dataFlow) {
         var sql = statements.getUpdateTemplate();
-        var updatedAt = clock.millis();
-        queryExecutor.execute(connection, sql, state.getCode(), updatedAt, processId);
+        queryExecutor.execute(connection, sql,
+                dataFlow.getState(),
+                dataFlow.getUpdatedAt(),
+                dataFlow.getStateCount(),
+                dataFlow.getStateTimestamp(),
+                toJson(dataFlow.getTraceContext()),
+                dataFlow.getErrorDetail(),
+                Optional.ofNullable(dataFlow.getCallbackAddress()).map(URI::toString).orElse(null),
+                dataFlow.isTrackable(),
+                toJson(dataFlow.getSource()),
+                toJson(dataFlow.getDestination()),
+                toJson(dataFlow.getProperties()),
+                dataFlow.getId());
     }
+
+    private DataFlow mapDataFlow(ResultSet resultSet) throws SQLException {
+        return DataFlow.Builder.newInstance()
+                .id(resultSet.getString(statements.getIdColumn()))
+                .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
+                .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))
+                .state(resultSet.getInt(statements.getStateColumn()))
+                .stateTimestamp(resultSet.getLong(statements.getStateTimestampColumn()))
+                .stateCount(resultSet.getInt(statements.getStateCountColumn()))
+                .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), getTypeRef()))
+                .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
+                .callbackAddress(Optional.ofNullable(resultSet.getString(statements.getCallbackAddressColumn())).map(URI::create).orElse(null))
+                .trackable(resultSet.getBoolean(statements.getTrackableColumn()))
+                .source(fromJson(resultSet.getString(statements.getSourceColumn()), DataAddress.class))
+                .destination(fromJson(resultSet.getString(statements.getDestinationColumn()), DataAddress.class))
+                .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
+                .build();
+    }
+
+    private @Nullable DataFlow findByIdInternal(Connection conn, String id) {
+        return transactionContext.execute(() -> {
+            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", id)).build();
+            var statement = statements.createQuery(querySpec);
+            return queryExecutor.query(conn, true, this::mapDataFlow, statement.getQueryAsString(), statement.getParameters())
+                    .findFirst().orElse(null);
+        });
+    }
+
 }

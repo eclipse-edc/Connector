@@ -128,7 +128,7 @@ class DataPlaneApiIntegrationTest {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode());
 
-        verify(dataPlaneManager).initiateTransfer(isA(DataFlowRequest.class));
+        verify(dataPlaneManager).initiate(isA(DataFlowRequest.class));
     }
 
     @Test
@@ -152,7 +152,7 @@ class DataPlaneApiIntegrationTest {
                 .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .body("errors", CoreMatchers.equalTo(List.of(errorMsg)));
 
-        verify(dataPlaneManager, never()).initiateTransfer(any());
+        verify(dataPlaneManager, never()).initiate(any());
     }
 
     @Test

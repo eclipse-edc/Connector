@@ -18,6 +18,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.time.Clock;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -48,7 +49,9 @@ public class CompletableFutureRetryProcess<E extends StatefulEntity<E>, C, SELF 
         monitor.debug(format("%s: ID %s. %s", entity.getClass().getSimpleName(), entity.getId(), description));
         process.get()
                 .whenComplete((result, throwable) -> {
-                    var reloadedEntity = entityRetrieve != null ? entityRetrieve.apply(entity.getId()) : entity;
+                    var reloadedEntity = Optional.ofNullable(entityRetrieve)
+                            .map(it -> it.apply(entity.getId()))
+                            .orElse(entity);
 
                     if (throwable == null) {
                         onSuccessHandler.accept(reloadedEntity, result);

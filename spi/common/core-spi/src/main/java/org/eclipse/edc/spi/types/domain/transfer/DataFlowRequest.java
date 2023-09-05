@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.telemetry.TraceCarrier;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.Polymorphic;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -39,11 +39,11 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
 
-    private URL callbackAddress;
+    private URI callbackAddress;
     private boolean trackable;
 
     private Map<String, String> properties = Map.of();
-    private Map<String, String> traceContext = Map.of();
+    private Map<String, String> traceContext = Map.of(); // TODO: should this stay in the DataFlow class?
 
     private DataFlowRequest() {
     }
@@ -101,7 +101,7 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
     /**
      * Callback address for this request once it has completed
      */
-    public URL getCallbackAddress() {
+    public URI getCallbackAddress() { // TODO: this could be a URI
         return callbackAddress;
     }
 
@@ -173,7 +173,7 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
             return this;
         }
 
-        public Builder callbackAddress(URL callbackAddress) {
+        public Builder callbackAddress(URI callbackAddress) {
             request.callbackAddress = callbackAddress;
             return this;
         }

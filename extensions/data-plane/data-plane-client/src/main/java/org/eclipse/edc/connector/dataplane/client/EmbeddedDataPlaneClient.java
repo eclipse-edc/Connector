@@ -42,7 +42,7 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
         if (result.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, String.join(", ", result.getFailureMessages()));
         }
-        dataPlaneManager.initiateTransfer(request);
+        dataPlaneManager.initiate(request);
         return StatusResult.success();
     }
 }

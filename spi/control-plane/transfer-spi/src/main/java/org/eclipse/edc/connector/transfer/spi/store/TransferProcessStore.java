@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
@@ -27,12 +28,6 @@ import java.util.stream.Stream;
  */
 @ExtensionPoint
 public interface TransferProcessStore extends StateEntityStore<TransferProcess> {
-
-    /**
-     * Returns the transfer process for the id or null if not found.
-     */
-    @Nullable
-    TransferProcess findById(String id);
 
     /**
      * Returns the transfer process for the correlation id or null if not found.
@@ -65,4 +60,12 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
      */
     Stream<TransferProcess> findAll(QuerySpec querySpec);
 
+    /**
+     * Find the entity by the passed correlation id and lease it.
+     * If the entity is already leased, will return a failure.
+     *
+     * @param correlationId the entity correlation id.
+     * @return success if the entity is unleased, failure otherwise.
+     */
+    StoreResult<TransferProcess> findByCorrelationIdAndLease(String correlationId);
 }
