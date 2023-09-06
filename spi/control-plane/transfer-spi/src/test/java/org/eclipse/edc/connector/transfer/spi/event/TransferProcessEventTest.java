@@ -63,7 +63,6 @@ class TransferProcessEventTest {
                     TransferProcessCompleted.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
                     TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
                     TransferProcessTerminated.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).reason("any reason").build(),
-                    TransferProcessFailed.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
                     TransferProcessInitiated.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
                     TransferProcessProvisioned.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build(),
                     TransferProcessRequested.Builder.newInstance().transferProcessId("id").callbackAddresses(callbacks).build()
