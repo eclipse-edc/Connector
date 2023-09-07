@@ -197,13 +197,5 @@ public interface TransferProcessListener {
     default void deprovisioned(TransferProcess process) {
 
     }
-
-    /**
-     * Called after a {@link TransferProcess} was failed.
-     *
-     * @param process the transfer process that has been failed.
-     */
-    default void failed(TransferProcess process) {
-
-    }
+    
 }

@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessDeprovisioned;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessDeprovisioningRequested;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessEvent;
-import org.eclipse.edc.connector.transfer.spi.event.TransferProcessFailed;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioned;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessProvisioningRequested;
@@ -130,16 +129,6 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void deprovisioned(TransferProcess process) {
         var event = TransferProcessDeprovisioned.Builder.newInstance()
-                .transferProcessId(process.getId())
-                .callbackAddresses(process.getCallbackAddresses())
-                .build();
-
-        publish(event);
-    }
-
-    @Override
-    public void failed(TransferProcess process) {
-        var event = TransferProcessFailed.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .callbackAddresses(process.getCallbackAddresses())
                 .build();
