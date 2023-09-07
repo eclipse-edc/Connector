@@ -30,7 +30,6 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.connector.api.management.transferprocess.model.TransferState;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.List;
 import java.util.Map;
@@ -49,7 +48,7 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "200", description = "The transfer processes matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = TransferProcessSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
     JsonArray queryTransferProcesses(JsonObject querySpecJson);
 
@@ -58,9 +57,9 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "200", description = "The transfer process",
                             content = @Content(schema = @Schema(implementation = TransferProcessSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     JsonObject getTransferProcess(String id);
@@ -71,9 +70,9 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "200", description = "The  transfer process's state",
                             content = @Content(schema = @Schema(implementation = TransferStateSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An  transfer process with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     JsonObject getTransferProcessState(String id);
@@ -89,7 +88,7 @@ public interface TransferProcessApi {
                             })
                     ),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
             })
     JsonObject initiateTransferProcess(JsonObject transferRequest);
 
@@ -99,9 +98,9 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "200", description = "Request to deprovision the transfer process was successfully received",
                             links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     void deprovisionTransferProcess(String id);
 
@@ -112,11 +111,11 @@ public interface TransferProcessApi {
                     @ApiResponse(responseCode = "200", description = "Request to cancel the transfer process was successfully received",
                             links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not terminate transfer process, because it is already completed or terminated.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     void terminateTransferProcess(String id, JsonObject terminateTransfer);
 
