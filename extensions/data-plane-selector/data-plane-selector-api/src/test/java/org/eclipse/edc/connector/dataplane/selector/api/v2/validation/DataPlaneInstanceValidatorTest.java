@@ -18,6 +18,7 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.validator.spi.Validator;
+import org.eclipse.edc.validator.spi.Violation;
 import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createArrayBuilder;
@@ -50,6 +51,8 @@ public class DataPlaneInstanceValidatorTest {
         var input = createObjectBuilder()
                 .add(ID, " ")
                 .add(URL, value("http://myurl"))
+                .add(ALLOWED_DEST_TYPES, createArrayBuilder().add("test"))
+                .add(ALLOWED_SOURCE_TYPES, createArrayBuilder().add("test"))
                 .build();
 
         var result = validator.validate(input);
@@ -65,6 +68,8 @@ public class DataPlaneInstanceValidatorTest {
     void shouldFail_whenUrlIsMissing() {
         var input = createObjectBuilder()
                 .add(ID, "my_id")
+                .add(ALLOWED_DEST_TYPES, createArrayBuilder().add("test"))
+                .add(ALLOWED_SOURCE_TYPES, createArrayBuilder().add("test"))
                 .build();
 
         var result = validator.validate(input);
@@ -73,6 +78,24 @@ public class DataPlaneInstanceValidatorTest {
             Assertions.assertThat(failure.getViolations()).hasSize(1).anySatisfy(v -> {
                 Assertions.assertThat(v.path()).isEqualTo(URL);
             });
+        });
+    }
+
+    @Test
+    void shouldFail_whenAllowDestAndSourceAreEmpty() {
+        var input = createObjectBuilder()
+                .add(ID, "my_id")
+                .add(URL, value("http://myurl"))
+                .add(ALLOWED_DEST_TYPES, createArrayBuilder())
+                .add(ALLOWED_SOURCE_TYPES, createArrayBuilder())
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().satisfies(failure -> {
+            Assertions.assertThat(failure.getViolations()).hasSize(2)
+                    .map(Violation::path)
+                    .contains(ALLOWED_DEST_TYPES, ALLOWED_SOURCE_TYPES);
         });
     }
 
