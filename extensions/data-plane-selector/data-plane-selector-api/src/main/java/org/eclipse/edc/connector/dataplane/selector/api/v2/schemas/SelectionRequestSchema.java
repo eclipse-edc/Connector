@@ -30,6 +30,9 @@ public record SelectionRequestSchema(
 ) {
     public static final String SELECTION_REQUEST_INPUT_EXAMPLE = """
             {
+                "@context": {
+                    "edc": "https://w3id.org/edc/v0.0.1/ns/"
+                },
                 "source": {
                     "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
                     "type": "test-src1"
