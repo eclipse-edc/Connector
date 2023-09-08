@@ -367,13 +367,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return false;
         }
 
-        var contentAddress = process.getContentDataAddress();
-
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
         var description = "Initiate data flow";
 
-        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(process.getDataRequest(), contentAddress, policy))
+        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.initiate(process, policy))
                 .onSuccess((p, dataFlowResponse) -> sendTransferStartMessage(p, dataFlowResponse, policy))
                 .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
                 .onFailure((t, failure) -> transitionToStarting(t))

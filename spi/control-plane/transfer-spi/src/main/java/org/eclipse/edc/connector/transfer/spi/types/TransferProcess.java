@@ -113,7 +113,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public static final String TRANSFER_PROCESS_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_PROCESS_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_PROCESS_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
-    public static final String TRANSFER_PROCESS_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String TRANSFER_PROCESS_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_PROCESS_TYPE_TYPE = EDC_NAMESPACE + "type";
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
@@ -377,6 +376,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     @JsonIgnore
     public String getConnectorId() {
         return dataRequest.getConnectorId();
+    }
+
+    @JsonIgnore
+    public String getDestinationType() {
+        return dataRequest.getDestinationType();
     }
 
     @Override
