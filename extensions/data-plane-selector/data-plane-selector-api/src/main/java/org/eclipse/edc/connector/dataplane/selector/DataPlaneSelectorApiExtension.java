@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.validation.DataPlaneInstanceValidator;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.transformer.JsonObjectFromDataPlaneInstanceTransformer;
@@ -27,11 +28,13 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
 
 import static jakarta.json.Json.createBuilderFactory;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = "DataPlane selector API")
@@ -51,17 +54,18 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
     @Inject
     private ManagementApiTypeTransformerRegistry transformerRegistry;
 
+    @Inject
+    private JsonObjectValidatorRegistry validatorRegistry;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        //todo: add authentication
-        //var filter = new AuthenticationRequestFilter();
-
         typeManager.registerTypes(DataPlaneInstance.class);
 
+        validatorRegistry.register(DATAPLANE_INSTANCE_TYPE, DataPlaneInstanceValidator.instance());
         transformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
         transformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         transformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
-        var controller = new DataplaneSelectorApiController(selectionService, transformerRegistry);
+        var controller = new DataplaneSelectorApiController(selectionService, transformerRegistry, validatorRegistry);
 
         webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);
     }

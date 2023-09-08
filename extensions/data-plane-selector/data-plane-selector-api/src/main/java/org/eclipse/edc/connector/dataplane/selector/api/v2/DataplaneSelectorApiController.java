@@ -28,12 +28,15 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import java.util.function.Supplier;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -44,9 +47,13 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
     private final DataPlaneSelectorService selectionService;
     private final TypeTransformerRegistry transformerRegistry;
 
-    public DataplaneSelectorApiController(DataPlaneSelectorService selectionService, TypeTransformerRegistry transformerRegistry) {
+    private final JsonObjectValidatorRegistry validatorRegistry;
+
+
+    public DataplaneSelectorApiController(DataPlaneSelectorService selectionService, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry) {
         this.selectionService = selectionService;
         this.transformerRegistry = transformerRegistry;
+        this.validatorRegistry = validatorRegistry;
     }
 
     @Override
@@ -70,6 +77,8 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
     @Override
     @POST
     public void addEntry(JsonObject jsonObject) {
+        validatorRegistry.validate(DATAPLANE_INSTANCE_TYPE, jsonObject).orElseThrow(ValidationFailureException::new);
+
         var instance = transformerRegistry.transform(jsonObject, DataPlaneInstance.class)
                 .orElseThrow(InvalidRequestException::new);
 

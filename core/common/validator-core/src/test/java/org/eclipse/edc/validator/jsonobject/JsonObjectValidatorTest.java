@@ -15,6 +15,7 @@
 package org.eclipse.edc.validator.jsonobject;
 
 import jakarta.json.JsonArrayBuilder;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
@@ -76,7 +77,7 @@ class JsonObjectValidatorTest {
 
         assertThat(result).isFailed();
     }
-    
+
     @Test
     void shouldValidateNestedObject_whenMandatoryObject_success() {
         var input = createObjectBuilder()
@@ -163,6 +164,42 @@ class JsonObjectValidatorTest {
         assertThat(result).isFailed().satisfies(failure -> {
             assertThat(failure.getViolations()).anySatisfy(violation -> {
                 assertThat(violation.path()).contains("arrayProperty/subProperty");
+            });
+        });
+    }
+
+    @Test
+    void shouldValidateMandatoryArrayMinSize_failure() {
+        var input = createObjectBuilder()
+                .add("arrayProperty", createArrayBuilder()
+                        .add(createObjectBuilder().add("subProperty", value("value1")))
+                        .add(createObjectBuilder().add("subProperty", value(" ")))
+                );
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("arrayProperty", MandatoryArray.min(3))
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.getViolations()).anySatisfy(violation -> {
+                assertThat(violation.path()).contains("arrayProperty");
+            });
+        });
+    }
+
+    @Test
+    void shouldValidateMandatoryArray_failure() {
+        var input = createObjectBuilder();
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("arrayProperty", MandatoryArray::new)
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().satisfies(failure -> {
+            assertThat(failure.getViolations()).anySatisfy(violation -> {
+                assertThat(violation.path()).contains("arrayProperty");
             });
         });
     }

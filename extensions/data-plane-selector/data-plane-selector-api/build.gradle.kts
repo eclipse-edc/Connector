@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":extensions:common:api:management-api-configuration"))
     implementation(project(":extensions:common:api:api-core")) //for the exception mapper
+    implementation(project(":core:common:validator-core"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
