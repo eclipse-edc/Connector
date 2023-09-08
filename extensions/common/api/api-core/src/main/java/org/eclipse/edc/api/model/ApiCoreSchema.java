@@ -82,4 +82,21 @@ public interface ApiCoreSchema {
                 }
                 """;
     }
+
+    @Schema(name = "ApiErrorDetail", example = ApiErrorDetailSchema.API_ERROR_EXAMPLE)
+    record ApiErrorDetailSchema(
+            String message,
+            String type,
+            String path,
+            String invalidValue
+    ) {
+        public static final String API_ERROR_EXAMPLE = """
+                {
+                    "message": "error message",
+                    "type": "ErrorType",
+                    "path": "object.error.path",
+                    "invalidValue": "this value is not valid"
+                }
+                """;
+    }
 }

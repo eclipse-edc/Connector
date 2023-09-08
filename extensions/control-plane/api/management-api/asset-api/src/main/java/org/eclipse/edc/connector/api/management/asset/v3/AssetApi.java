@@ -27,7 +27,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
-import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 import java.util.Map;
 
@@ -35,8 +34,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 
-@OpenAPIDefinition(info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will become the standard API once the Dataspace Protocol is stable. " +
-        "The new Asset API is prefixed with /v2, and the old endpoints have been deprecated. At that time of switching, the old API will be removed, and this API will be available without the /v2 prefix.", title = "Asset API"))
+@OpenAPIDefinition(
+        info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will " +
+                "become the standard API once the Dataspace Protocol is stable.", title = "Asset API"))
 @Tag(name = "Asset")
 public interface AssetApi {
 
@@ -46,19 +46,21 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
     )
     JsonObject createAsset(JsonObject asset);
 
-    @Operation(description = " all assets according to a particular query",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
+    @Operation(description = "Request all assets according to a particular query",
+            requestBody = @RequestBody(
+                    content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))
+            ),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The assets matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = AssetOutputSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     JsonArray requestAssets(JsonObject querySpecJson);
 
@@ -67,9 +69,9 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "200", description = "The asset",
                             content = @Content(schema = @Schema(implementation = AssetOutputSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     JsonObject getAsset(String id);
@@ -80,11 +82,11 @@ public interface AssetApi {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Asset was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "409", description = "The asset cannot be deleted, because it is referenced by a contract agreement",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     void removeAsset(String id);
 
@@ -95,7 +97,7 @@ public interface AssetApi {
                     @ApiResponse(responseCode = "200", description = "Asset was updated successfully"),
                     @ApiResponse(responseCode = "404", description = "Asset could not be updated, because it does not exist."),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
             })
     void updateAsset(JsonObject asset);
 
@@ -126,6 +128,7 @@ public interface AssetApi {
                 """;
     }
 
+    @ArraySchema()
     @Schema(name = "AssetOutput", example = AssetOutputSchema.ASSET_OUTPUT_EXAMPLE)
     record AssetOutputSchema(
             @Schema(name = ID)

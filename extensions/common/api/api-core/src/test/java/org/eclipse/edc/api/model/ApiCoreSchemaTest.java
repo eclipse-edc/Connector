@@ -100,4 +100,14 @@ class ApiCoreSchemaTest {
         assertThat(idResponse.getString(ID)).isNotBlank();
         assertThat(idResponse.getJsonNumber("createdAt").longValue()).isGreaterThan(0);
     }
+
+    @Test
+    void apiErrorDetailExample() throws JsonProcessingException {
+        var apiErrorDetail = objectMapper.readValue(ApiCoreSchema.ApiErrorDetailSchema.API_ERROR_EXAMPLE, JsonObject.class);
+
+        assertThat(apiErrorDetail.getString("message")).isNotBlank();
+        assertThat(apiErrorDetail.getString("type")).isNotBlank();
+        assertThat(apiErrorDetail.getString("path")).isNotBlank();
+        assertThat(apiErrorDetail.getString("invalidValue")).isNotBlank();
+    }
 }

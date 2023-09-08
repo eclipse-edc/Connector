@@ -26,7 +26,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
-import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Agreement")
@@ -38,7 +37,7 @@ public interface ContractAgreementApi {
                     @ApiResponse(responseCode = "200", description = "The contract agreements matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     JsonArray queryAllAgreements(JsonObject querySpecJson);
@@ -48,9 +47,9 @@ public interface ContractAgreementApi {
                     @ApiResponse(responseCode = "200", description = "The contract agreement",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractAgreementSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     JsonObject getAgreementById(String id);
@@ -61,9 +60,9 @@ public interface ContractAgreementApi {
                     @ApiResponse(responseCode = "200", description = "The contract negotiation",
                             content = @Content(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     JsonObject getNegotiationByAgreementId(String id);
