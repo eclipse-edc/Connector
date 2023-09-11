@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelector
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -27,8 +28,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,21 +42,23 @@ class ConsumerPullTransferDataFlowControllerTest {
 
     @Test
     void verifyCanHandle() {
-        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType(HTTP_PROXY).build(), null)).isTrue();
-        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType("not-http-proxy").build(), null)).isFalse();
+        assertThat(flowController.canHandle(transferProcess(HTTP_PROXY))).isTrue();
+        assertThat(flowController.canHandle(transferProcess("not-http-proxy"))).isFalse();
     }
 
     @Test
     void verifyInitiateFlowSuccess() {
-        var request = dataRequest();
         var proxyAddress = dataAddress();
-        var contentAddress = dataAddress();
         var instance = mock(DataPlaneInstance.class);
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(dataRequest())
+                .contentDataAddress(dataAddress())
+                .build();
 
-        when(selectorClient.find(eq(contentAddress), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
-        when(resolver.toDataAddress(request, contentAddress, instance)).thenReturn(Result.success(proxyAddress));
+        when(selectorClient.find(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
+        when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.success(proxyAddress));
 
-        var result = flowController.initiateFlow(request, contentAddress, null);
+        var result = flowController.initiateFlow(transferProcess, null);
 
         assertThat(result.succeeded()).isTrue();
         var response = result.getContent();
@@ -64,30 +67,40 @@ class ConsumerPullTransferDataFlowControllerTest {
 
     @Test
     void verifyInitiateFlowReturnsFailureIfNoDataPlaneInstance() {
-        var request = dataRequest();
-        var contentAddress = dataAddress();
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(dataRequest())
+                .contentDataAddress(dataAddress())
+                .build();
 
-        var result = flowController.initiateFlow(request, contentAddress, null);
+        var result = flowController.initiateFlow(transferProcess, null);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureDetail())
-                .isEqualTo(String.format("Failed to find DataPlaneInstance for source/destination: %s/%s", contentAddress.getType(), HTTP_PROXY));
+                .isEqualTo(String.format("Failed to find DataPlaneInstance for source/destination: %s/%s", transferProcess.getContentDataAddress().getType(), HTTP_PROXY));
     }
 
     @Test
     void verifyInitiateFlowReturnsFailureIfAddressResolutionFails() {
-        var request = dataRequest();
-        var contentAddress = dataAddress();
         var errorMsg = "Test Error Message";
         var instance = mock(DataPlaneInstance.class);
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(dataRequest())
+                .contentDataAddress(dataAddress())
+                .build();
 
-        when(selectorClient.find(eq(contentAddress), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
-        when(resolver.toDataAddress(request, contentAddress, instance)).thenReturn(Result.failure(errorMsg));
+        when(selectorClient.find(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
+        when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.failure(errorMsg));
 
-        var result = flowController.initiateFlow(request, contentAddress, Policy.Builder.newInstance().build());
+        var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureDetail()).contains(errorMsg);
+    }
+
+    private TransferProcess transferProcess(String destinationType) {
+        return TransferProcess.Builder.newInstance()
+                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
+                .build();
     }
 
     private DataAddress dataAddress() {

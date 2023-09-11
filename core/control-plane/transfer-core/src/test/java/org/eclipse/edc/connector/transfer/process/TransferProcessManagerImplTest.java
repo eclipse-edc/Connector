@@ -146,7 +146,7 @@ class TransferProcessManagerImplTest {
     @BeforeEach
     void setup() {
         when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
+        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
@@ -487,7 +487,7 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
         when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
         manager.start();
@@ -505,7 +505,7 @@ class TransferProcessManagerImplTest {
     @Test
     void starting_onFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
+        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
 
@@ -521,7 +521,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
         manager.start();
 
@@ -533,7 +533,7 @@ class TransferProcessManagerImplTest {
     @Test
     void starting_onFailureAndRetriesExhausted_transitToTerminating() {
         var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
+        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
@@ -547,7 +547,7 @@ class TransferProcessManagerImplTest {
     @Test
     void starting_whenShouldWait_updatesStateCount() {
         var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(2).stateTimestamp(clock.millis() + 1000L).build();
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
+        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
         when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
 

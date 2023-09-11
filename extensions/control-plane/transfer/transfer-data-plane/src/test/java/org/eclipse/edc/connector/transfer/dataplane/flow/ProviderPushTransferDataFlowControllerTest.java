@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.transfer.dataplane.flow;
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -28,7 +29,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 
 class ProviderPushTransferDataFlowControllerTest {
 
-    private DataPlaneClient dataPlaneClientMock;
+    private final DataPlaneClient dataPlaneClient = mock();
     private ProviderPushTransferDataFlowController flowController;
 
     @BeforeEach
@@ -48,26 +48,28 @@ class ProviderPushTransferDataFlowControllerTest {
         var callbackUrlMock = mock(ControlApiUrl.class);
         var url = new URL("http://localhost");
         when(callbackUrlMock.get()).thenReturn(url);
-        dataPlaneClientMock = mock(DataPlaneClient.class);
-        flowController = new ProviderPushTransferDataFlowController(callbackUrlMock, dataPlaneClientMock);
+        flowController = new ProviderPushTransferDataFlowController(callbackUrlMock, dataPlaneClient);
     }
 
     @Test
     void verifyCanHandle() {
-        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType(HTTP_PROXY).build(), null)).isFalse();
-        assertThat(flowController.canHandle(DataRequest.Builder.newInstance().destinationType("not-http-proxy").build(), null)).isTrue();
+        assertThat(flowController.canHandle(transferProcess(HTTP_PROXY))).isFalse();
+        assertThat(flowController.canHandle(transferProcess("not-http-proxy"))).isTrue();
     }
 
     @Test
     void verifyReturnFailedResultIfTransferFails() {
         var errorMsg = "error";
-        var request = createDataRequest();
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(createDataRequest())
+                .contentDataAddress(testDataAddress())
+                .build();
 
-        when(dataPlaneClientMock.transfer(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
+        when(dataPlaneClient.transfer(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
 
-        var result = flowController.initiateFlow(request, testDataAddress(), Policy.Builder.newInstance().build());
+        var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
 
-        verify(dataPlaneClientMock).transfer(any());
+        verify(dataPlaneClient).transfer(any());
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
@@ -77,17 +79,21 @@ class ProviderPushTransferDataFlowControllerTest {
     void verifyTransferSuccess() {
         var request = createDataRequest();
         var source = testDataAddress();
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(createDataRequest())
+                .contentDataAddress(testDataAddress())
+                .build();
 
-        when(dataPlaneClientMock.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
+        when(dataPlaneClient.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
 
-        var result = flowController.initiateFlow(request, source, Policy.Builder.newInstance().build());
+        var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
 
         assertThat(result.succeeded()).isTrue();
         var captor = ArgumentCaptor.forClass(DataFlowRequest.class);
-        verify(dataPlaneClientMock).transfer(captor.capture());
+        verify(dataPlaneClient).transfer(captor.capture());
         var captured = captor.getValue();
         assertThat(captured.isTrackable()).isTrue();
-        assertThat(captured.getProcessId()).isEqualTo(request.getProcessId());
+        assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
         assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
         assertThat(captured.getProperties()).isEmpty();
@@ -96,20 +102,23 @@ class ProviderPushTransferDataFlowControllerTest {
 
     @Test
     void verifyTransferSuccessWithAdditionalProperties() {
-        var properties = Map.of("foo", "bar", "hello", "world");
         var request = createDataRequest("test");
         var source = testDataAddress();
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(createDataRequest())
+                .contentDataAddress(testDataAddress())
+                .build();
 
-        when(dataPlaneClientMock.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
+        when(dataPlaneClient.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
 
-        var result = flowController.initiateFlow(request, source, Policy.Builder.newInstance().build());
+        var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
 
         assertThat(result.succeeded()).isTrue();
         var captor = ArgumentCaptor.forClass(DataFlowRequest.class);
-        verify(dataPlaneClientMock).transfer(captor.capture());
+        verify(dataPlaneClient).transfer(captor.capture());
         var captured = captor.getValue();
         assertThat(captured.isTrackable()).isTrue();
-        assertThat(captured.getProcessId()).isEqualTo(request.getProcessId());
+        assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
         assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
         assertThat(captured.getCallbackAddress()).isNotNull();
@@ -132,6 +141,12 @@ class ProviderPushTransferDataFlowControllerTest {
                 .connectorAddress("test.connector.address")
                 .processId(UUID.randomUUID().toString())
                 .destinationType(destinationType)
+                .build();
+    }
+
+    private TransferProcess transferProcess(String destinationType) {
+        return TransferProcess.Builder.newInstance()
+                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
                 .build();
     }
 }

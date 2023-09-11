@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelector
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -42,12 +42,14 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     }
 
     @Override
-    public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
-        return HTTP_PROXY.equals(dataRequest.getDestinationType());
+    public boolean canHandle(TransferProcess transferProcess) {
+        return HTTP_PROXY.equals(transferProcess.getDestinationType());
     }
 
     @Override
-    public @NotNull StatusResult<DataFlowResponse> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy) {
+        var contentAddress = transferProcess.getContentDataAddress();
+        var dataRequest = transferProcess.getDataRequest();
         return Optional.ofNullable(selectorClient.find(contentAddress, dataRequest.getDataDestination()))
                 .map(instance -> resolver.toDataAddress(dataRequest, contentAddress, instance)
                         .map(this::toResponse)
