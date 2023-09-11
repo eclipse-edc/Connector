@@ -96,9 +96,11 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 import static org.mockito.AdditionalMatchers.aryEq;
+import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -441,7 +443,7 @@ class TransferProcessManagerImplTest {
     void requesting_shouldSendMessageAndTransitionToRequested() {
         var process = createTransferProcess(REQUESTING);
         when(dispatcherRegistry.dispatch(eq(Object.class), any())).thenReturn(completedFuture(StatusResult.success("any")));
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
         when(vault.resolveSecret(any())).thenReturn(null);
 
@@ -463,7 +465,7 @@ class TransferProcessManagerImplTest {
         var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
         var process = createTransferProcessBuilder(REQUESTING).dataRequest(createDataRequestBuilder().dataDestination(destination).build()).build();
         when(dispatcherRegistry.dispatch(eq(Object.class), any())).thenReturn(completedFuture(StatusResult.success("any")));
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
         when(vault.resolveSecret(any())).thenReturn("secret");
 
@@ -485,7 +487,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         var dataFlowResponse = createDataFlowResponse();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
         when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
         when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
@@ -506,7 +508,7 @@ class TransferProcessManagerImplTest {
     void starting_onFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
 
         manager.start();
@@ -520,7 +522,7 @@ class TransferProcessManagerImplTest {
     void starting_shouldTransitionToTerminatingIfFatalFailure() {
         var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
         manager.start();
@@ -534,7 +536,7 @@ class TransferProcessManagerImplTest {
     void starting_onFailureAndRetriesExhausted_transitToTerminating() {
         var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
         when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process);
 
         manager.start();
@@ -548,7 +550,7 @@ class TransferProcessManagerImplTest {
     void starting_whenShouldWait_updatesStateCount() {
         var process = createTransferProcessBuilder(STARTING).type(PROVIDER).stateCount(2).stateTimestamp(clock.millis() + 1000L).build();
         when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY));
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(STARTING.code()).build());
 
         manager.start();
@@ -567,7 +569,7 @@ class TransferProcessManagerImplTest {
                         .build())
                 .build();
 
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
 
         manager.start();
@@ -584,7 +586,7 @@ class TransferProcessManagerImplTest {
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
 
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> false);
 
         manager.start();
@@ -599,7 +601,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(STARTED);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process));
+        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(transferProcessStore).save(process);
 
@@ -617,7 +619,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcessBuilder(STARTED)
                 .type(PROVIDER)
                 .build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(process));
+        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process));
         manager.start();
         await().untilAsserted(() -> verify(transferProcessStore, atLeastOnce()).save(eq(process)));
     }
@@ -741,7 +743,7 @@ class TransferProcessManagerImplTest {
     void pendingGuard_shouldSetTheTransferPending_whenPendingGuardMatches() {
         when(pendingGuard.test(any())).thenReturn(true);
         var process = createTransferProcessBuilder(STARTING).build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
 
         manager.start();
 
@@ -758,7 +760,8 @@ class TransferProcessManagerImplTest {
     @ArgumentsSource(DispatchFailureArguments.class)
     void dispatchFailure(TransferProcessStates starting, TransferProcessStates ending, CompletableFuture<StatusResult<Object>> result, UnaryOperator<TransferProcess.Builder> builderEnricher) {
         var transferProcess = builderEnricher.apply(createTransferProcessBuilder(starting).state(starting.code())).build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+        when(transferProcessStore.nextNotLeased(anyInt(), or(stateIs(starting.code()), or(consumerStateIs(starting.code()), providerStateIs(starting.code())))))
+                .thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
 
@@ -772,6 +775,14 @@ class TransferProcessManagerImplTest {
             });
             verify(dispatcherRegistry, only()).dispatch(any(), any());
         });
+    }
+
+    private Criterion[] consumerStateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name()) });
+    }
+
+    private Criterion[] providerStateIs(int state) {
+        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name()) });
     }
 
     private Criterion[] stateIs(int state) {
