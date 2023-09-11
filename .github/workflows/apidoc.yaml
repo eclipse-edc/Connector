@@ -30,7 +30,7 @@ jobs:
       SWAGGERHUB_USER: ${{ secrets.SWAGGERHUB_USER }}
       VERSION: ${{ github.event.inputs.version || inputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build
       - uses: actions/setup-node@v3
 
