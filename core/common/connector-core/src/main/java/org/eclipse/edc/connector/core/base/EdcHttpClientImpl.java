@@ -48,8 +48,15 @@ public class EdcHttpClientImpl implements EdcHttpClient {
 
     @Override
     public Response execute(Request request) throws IOException {
+        return execute(request, emptyList());
+    }
+
+    @Override
+    public Response execute(Request request, List<FallbackFactory> fallbacks) throws IOException {
         var call = okHttpClient.newCall(request);
-        return with(retryPolicy).compose(call).execute();
+        var builder = with(retryPolicy);
+        fallbacks.stream().map(it -> it.create(request)).forEach(builder::compose);
+        return builder.compose(call).execute();
     }
 
     @Override
@@ -59,11 +66,7 @@ public class EdcHttpClientImpl implements EdcHttpClient {
 
     @Override
     public <T> Result<T> execute(Request request, List<FallbackFactory> fallbacks, Function<Response, Result<T>> mappingFunction) {
-        var call = okHttpClient.newCall(request);
-        var builder = with(retryPolicy);
-        fallbacks.stream().map(it -> it.create(request)).forEach(builder::compose);
-
-        try (var response = builder.compose(call).execute()) {
+        try (var response = execute(request, fallbacks)) {
             return mappingFunction.apply(response);
         } catch (Throwable e) {
             monitor.severe("HTTP client exception caught for request " + request, e);

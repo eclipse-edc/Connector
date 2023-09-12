@@ -38,6 +38,17 @@ public interface EdcHttpClient {
     Response execute(Request request) throws IOException;
 
     /**
+     * Executes the specified request synchronously.
+     * Accepts a list of {@link FallbackFactories} that could apply retry in particular occasions.
+     *
+     * @param request the {@link Request}.
+     * @param fallbacks a list of fallbacks to be applied.
+     * @return a {@link Response}, must be closed explicitly after consumption
+     * @throws IOException on connection error.
+     */
+    Response execute(Request request, List<FallbackFactory> fallbacks) throws IOException;
+
+    /**
      * Executes the specified request synchronously applying the mapping function to the response.
      *
      * @param request the {@link Request}.
