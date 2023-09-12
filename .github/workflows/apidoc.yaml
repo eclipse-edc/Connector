@@ -53,7 +53,7 @@ jobs:
       - name: Create API
         continue-on-error: true
         run: |
-          swaggerhub api:create ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+          swaggerhub api:create ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup }} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
 
       # Post snapshots of the API to SwaggerHub as "unpublished", because published APIs cannot be overwritten
       - name: Publish API Specs to SwaggerHub
@@ -63,8 +63,9 @@ jobs:
           
           if [[ $vers != *-SNAPSHOT ]]; then
             echo "no snapshot, will set the API to 'published'";
-            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=publish
+            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup }} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=publish
+            swaggerhub api:setdefault ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup }}/$vers
           else
             echo "snapshot, will set the API to 'unpublished'";
-            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup}} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
+            swaggerhub api:update ${{ env.SWAGGERHUB_USER }}/${{ matrix.apiGroup }} -f ${{ matrix.apiGroup }}.yaml --visibility=public --published=unpublish
           fi
