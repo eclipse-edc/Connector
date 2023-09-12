@@ -24,9 +24,10 @@ dependencies {
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
 
-    testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))
     testImplementation(project(":spi:data-plane:data-plane-spi"))
+    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":extensions:control-plane:api:control-plane-api-client"))
+    testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))
 
     testRuntimeOnly(project(":launchers:data-plane-server"))
 }
