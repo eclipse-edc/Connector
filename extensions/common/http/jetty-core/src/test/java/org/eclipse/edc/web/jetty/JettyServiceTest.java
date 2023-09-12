@@ -14,24 +14,19 @@
 
 package org.eclipse.edc.web.jetty;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.glassfish.jersey.internal.inject.AbstractBinder;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,14 +39,7 @@ import static org.mockito.Mockito.mock;
 class JettyServiceTest {
 
     private JettyService jettyService;
-    private Monitor monitor;
-    private TestController testController;
-
-    @BeforeEach
-    void setUp() {
-        monitor = mock(Monitor.class);
-        testController = new TestController();
-    }
+    private final Monitor monitor = mock();
 
     @Test
     void verifyDefaultPortMapping() {
@@ -60,8 +48,7 @@ class JettyServiceTest {
 
         jettyService.start();
 
-        var servletContainer = new ServletContainer(createTestResource());
-        jettyService.registerServlet("default", servletContainer);
+        jettyService.registerServlet("default", new TestServlet());
 
         given()
                 .get("http://localhost:7171/api/test/resource")
@@ -76,11 +63,10 @@ class JettyServiceTest {
                 "web.http.another.port", "9191",
                 "web.http.another.path", "/another")); //default port mapping
         jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
-        ResourceConfig rc = createTestResource();
 
         jettyService.start();
 
-        jettyService.registerServlet("another", new ServletContainer(rc));
+        jettyService.registerServlet("another", new TestServlet());
 
         given()
                 .get("http://localhost:9191/another/test/resource")
@@ -103,8 +89,8 @@ class JettyServiceTest {
 
         jettyService.start();
 
-        jettyService.registerServlet("another", new ServletContainer(createTestResource()));
-        jettyService.registerServlet("default", new ServletContainer(createTestResource()));
+        jettyService.registerServlet("another", new TestServlet());
+        jettyService.registerServlet("default", new TestServlet());
 
         given()
                 .get("http://localhost:9191/another/test/resource")
@@ -127,7 +113,7 @@ class JettyServiceTest {
 
         jettyService.start();
 
-        jettyService.registerServlet("default", new ServletContainer(createTestResource()));
+        jettyService.registerServlet("default", new TestServlet());
 
         assertThat(listener.getConnectionsOpened()).isEqualTo(0);
         given()
@@ -146,7 +132,7 @@ class JettyServiceTest {
 
         jettyService.start();
 
-        jettyService.registerServlet("default", new ServletContainer(createTestResource()));
+        jettyService.registerServlet("default", new TestServlet());
 
         given()
                 .get("http://localhost:7171/test/resource")
@@ -188,25 +174,6 @@ class JettyServiceTest {
         jettyService.shutdown();
     }
 
-    @NotNull
-    private ResourceConfig createTestResource() {
-        var rc = new ResourceConfig();
-        rc.registerClasses(TestController.class);
-        rc.registerInstances(new TestBinder());
-        return rc;
-    }
-
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("/test")
-    public static class TestController { //needs to be public, otherwise it won't get picked up
-
-        @GET
-        @Path("/resource")
-        public String foo() {
-            return "exists";
-        }
-    }
-
     private static class JettyListener extends AbstractLifeCycle implements Connection.Listener {
 
         private final AtomicInteger connectionsOpened = new AtomicInteger();
@@ -225,14 +192,10 @@ class JettyServiceTest {
         }
     }
 
-    /**
-     * Maps (JAX-RS resource) instances to types.
-     */
-    private class TestBinder extends AbstractBinder {
-
+    private static class TestServlet extends HttpServlet {
         @Override
-        protected void configure() {
-            bind(testController).to(TestController.class);
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            resp.getWriter().write("{}");
         }
     }
 }
