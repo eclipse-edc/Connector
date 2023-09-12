@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
@@ -42,6 +41,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
 public class ProviderContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ProviderContractNegotiationManager {
+
     private StateMachineManager stateMachineManager;
 
     private ProviderContractNegotiationManagerImpl() {
@@ -97,32 +97,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to consumer: %s", contractOfferMessage.getClass().getSimpleName(), throwable.getMessage())))
                 .execute("[Provider] send counter offer");
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract rejection to the respective
-     * consumer. If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
-     * to TERMINATING for a retry.
-     *
-     * @return true if processed, false elsewhere
-     */
-    @WithSpan
-    private boolean processTerminating(ContractNegotiation negotiation) {
-        var rejection = ContractNegotiationTerminationMessage.Builder.newInstance()
-                .protocol(negotiation.getProtocol())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .processId(negotiation.getCorrelationId())
-                .rejectionReason(negotiation.getErrorDetail())
-                .policy(negotiation.getLastContractOffer().getPolicy())
-                .build();
-
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, rejection))
-                .entityRetrieve(negotiationStore::findById)
-                .onSuccess((n, result) -> transitionToTerminated(n))
-                .onFailure((n, throwable) -> transitionToTerminating(n))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send %s to consumer: %s", rejection.getClass().getSimpleName(), throwable.getMessage())))
-                .execute("[Provider] send rejection");
     }
 
     /**

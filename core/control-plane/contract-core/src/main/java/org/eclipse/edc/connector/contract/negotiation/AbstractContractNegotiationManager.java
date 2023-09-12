@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.connector.contract.negotiation;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -39,6 +41,7 @@ import java.time.Clock;
 import java.util.Objects;
 import java.util.function.Function;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_ITERATION_WAIT;
 import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
@@ -78,6 +81,32 @@ public abstract class AbstractContractNegotiationManager {
         contractNegotiation.setPending(true);
         update(contractNegotiation);
         return true;
+    }
+
+    /**
+     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract termination to the counter
+     * party. If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
+     * to TERMINATING for a retry.
+     *
+     * @return true if processed, false elsewhere
+     */
+    @WithSpan
+    protected boolean processTerminating(ContractNegotiation negotiation) {
+        var termination = ContractNegotiationTerminationMessage.Builder.newInstance()
+                .protocol(negotiation.getProtocol())
+                .counterPartyAddress(negotiation.getCounterPartyAddress())
+                .processId(negotiation.getCorrelationId())
+                .rejectionReason(negotiation.getErrorDetail())
+                .policy(negotiation.getLastContractOffer().getPolicy())
+                .build();
+
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, termination))
+                .entityRetrieve(negotiationStore::findById)
+                .onSuccess((n, result) -> transitionToTerminated(n))
+                .onFailure((n, throwable) -> transitionToTerminating(n))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
+                .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send %s to counter party: %s", termination.getClass().getSimpleName(), throwable.getMessage())))
+                .execute("[%s] send termination".formatted(type().name()));
     }
 
     protected void transitionToInitial(ContractNegotiation negotiation) {
