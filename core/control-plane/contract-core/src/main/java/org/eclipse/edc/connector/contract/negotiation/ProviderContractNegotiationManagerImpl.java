@@ -42,29 +42,19 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
  */
 public class ProviderContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ProviderContractNegotiationManager {
 
-    private StateMachineManager stateMachineManager;
-
     private ProviderContractNegotiationManagerImpl() {
     }
 
-    public void start() {
-        stateMachineManager = StateMachineManager.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
+    @Override
+    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        return builder
                 .processor(processNegotiationsInState(OFFERING, this::processOffering))
                 .processor(processNegotiationsInState(REQUESTED, this::processRequested))
                 .processor(processNegotiationsInState(ACCEPTED, this::processAccepted))
                 .processor(processNegotiationsInState(AGREEING, this::processAgreeing))
                 .processor(processNegotiationsInState(VERIFIED, this::processVerified))
                 .processor(processNegotiationsInState(FINALIZING, this::processFinalizing))
-                .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
-                .build();
-
-        stateMachineManager.start();
-    }
-
-    public void stop() {
-        if (stateMachineManager != null) {
-            stateMachineManager.stop();
-        }
+                .processor(processNegotiationsInState(TERMINATING, this::processTerminating));
     }
 
     @Override

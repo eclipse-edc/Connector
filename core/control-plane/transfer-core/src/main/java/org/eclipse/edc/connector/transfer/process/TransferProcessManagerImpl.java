@@ -17,6 +17,7 @@
 package org.eclipse.edc.connector.transfer.process;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.provision.DeprovisionResponsesHandler;
 import org.eclipse.edc.connector.transfer.provision.ProvisionResponsesHandler;
@@ -43,24 +44,19 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTermination
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.system.ExecutorInstrumentation;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
-import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -68,10 +64,6 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_BATCH_SIZE;
-import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_ITERATION_WAIT;
-import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
-import static org.eclipse.edc.connector.transfer.TransferCoreExtension.DEFAULT_SEND_RETRY_LIMIT;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
@@ -109,9 +101,7 @@ import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECR
  * If no processes need to be transitioned, the transfer manager will wait according to the defined {@link WaitStrategy}
  * before conducting the next iteration. A wait strategy may implement a backoff scheme.
  */
-public class TransferProcessManagerImpl implements TransferProcessManager {
-    private int batchSize = DEFAULT_BATCH_SIZE;
-    private WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
+public class TransferProcessManagerImpl extends AbstractStateEntityManager implements TransferProcessManager {
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
@@ -120,15 +110,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TransferProcessObservable observable;
-    private Monitor monitor;
-    private Telemetry telemetry;
-    private ExecutorInstrumentation executorInstrumentation;
-    private StateMachineManager stateMachineManager;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private EntityRetryProcessFactory entityRetryProcessFactory;
-    private Clock clock;
-    private EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
     private ProtocolWebhook protocolWebhook;
     private ProvisionResponsesHandler provisionResponsesHandler;
     private DeprovisionResponsesHandler deprovisionResponsesHandler;
@@ -137,9 +120,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private TransferProcessManagerImpl() {
     }
 
-    public void start() {
-        entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
-        stateMachineManager = StateMachineManager.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
+    @Override
+    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        return builder
                 .processor(processTransfersInState(INITIAL, this::processInitial))
                 .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
@@ -148,15 +131,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .processor(processConsumerTransfersInState(STARTED, this::processStarted))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
-                .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning))
-                .build();
-        stateMachineManager.start();
-    }
-
-    public void stop() {
-        if (stateMachineManager != null) {
-            stateMachineManager.stop();
-        }
+                .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
     }
 
     /**
@@ -613,27 +588,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
     }
 
-    public static class Builder {
-        private final TransferProcessManagerImpl manager;
+    public static class Builder extends AbstractStateEntityManager.Builder<TransferProcessManagerImpl, Builder> {
 
         private Builder() {
-            manager = new TransferProcessManagerImpl();
-            manager.clock = Clock.systemUTC(); // default implementation
-            manager.telemetry = new Telemetry(); // default noop implementation
-            manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
+            super(new TransferProcessManagerImpl());
         }
 
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder batchSize(int size) {
-            manager.batchSize = size;
-            return this;
-        }
-
-        public Builder waitStrategy(WaitStrategy waitStrategy) {
-            manager.waitStrategy = waitStrategy;
+        @Override
+        public Builder self() {
             return this;
         }
 
@@ -657,28 +623,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder monitor(Monitor monitor) {
-            manager.monitor = monitor;
-            return this;
-        }
-
         public Builder statusCheckerRegistry(StatusCheckerRegistry statusCheckerRegistry) {
             manager.statusCheckerRegistry = statusCheckerRegistry;
-            return this;
-        }
-
-        public Builder telemetry(Telemetry telemetry) {
-            manager.telemetry = telemetry;
-            return this;
-        }
-
-        public Builder executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
-            manager.executorInstrumentation = executorInstrumentation;
-            return this;
-        }
-
-        public Builder clock(Clock clock) {
-            manager.clock = clock;
             return this;
         }
 
@@ -707,11 +653,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
-            manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
-            return this;
-        }
-
         public Builder protocolWebhook(ProtocolWebhook protocolWebhook) {
             manager.protocolWebhook = protocolWebhook;
             return this;
@@ -732,23 +673,20 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
+        @Override
         public TransferProcessManagerImpl build() {
+            super.build();
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
             Objects.requireNonNull(manager.provisionManager, "provisionManager cannot be null");
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager cannot be null");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
-            Objects.requireNonNull(manager.monitor, "monitor cannot be null");
-            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation cannot be null");
             Objects.requireNonNull(manager.statusCheckerRegistry, "statusCheckerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "observable cannot be null");
-            Objects.requireNonNull(manager.telemetry, "telemetry cannot be null");
             Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
             Objects.requireNonNull(manager.transferProcessStore, "transferProcessStore cannot be null");
             Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
             Objects.requireNonNull(manager.provisionResponsesHandler, "provisionResultHandler cannot be null");
             Objects.requireNonNull(manager.deprovisionResponsesHandler, "deprovisionResponsesHandler cannot be null");
-
-            manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);
 
             return manager;
         }

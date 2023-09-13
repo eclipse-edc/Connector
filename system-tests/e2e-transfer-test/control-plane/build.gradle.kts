@@ -36,6 +36,8 @@ dependencies {
     implementation(project(":extensions:control-plane:transfer:transfer-pull-http-receiver"))
     implementation(project(":extensions:control-plane:transfer:transfer-pull-http-dynamic-receiver"))
     implementation(project(":extensions:common:api:management-api-configuration"))
+
+    implementation(project(":core:policy-monitor:policy-monitor-core"))
 }
 
 edcBuild {

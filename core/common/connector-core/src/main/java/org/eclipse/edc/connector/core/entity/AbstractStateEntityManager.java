@@ -1,0 +1,132 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.core.entity;
+
+import org.eclipse.edc.spi.entity.StateEntityManager;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
+import org.eclipse.edc.spi.retry.WaitStrategy;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
+import org.eclipse.edc.spi.telemetry.Telemetry;
+import org.eclipse.edc.statemachine.StateMachineManager;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
+import org.jetbrains.annotations.NotNull;
+
+import java.time.Clock;
+import java.util.Objects;
+
+public abstract class AbstractStateEntityManager implements StateEntityManager {
+
+    public static final long DEFAULT_ITERATION_WAIT = 1000;
+    public static final int DEFAULT_BATCH_SIZE = 20;
+    public static final int DEFAULT_SEND_RETRY_LIMIT = 7;
+    public static final long DEFAULT_SEND_RETRY_BASE_DELAY = 1000L;
+
+    protected Monitor monitor;
+    protected int batchSize = DEFAULT_BATCH_SIZE;
+    protected WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
+    protected ExecutorInstrumentation executorInstrumentation = ExecutorInstrumentation.noop();
+    protected Telemetry telemetry = new Telemetry();
+    protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
+    protected EntityRetryProcessFactory entityRetryProcessFactory;
+    protected StateMachineManager stateMachineManager;
+    protected Clock clock = Clock.systemUTC();
+
+    @Override
+    public void start() {
+        entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
+        var stateMachineManagerBuilder = StateMachineManager.Builder
+                .newInstance(getClass().getSimpleName(), monitor, executorInstrumentation, waitStrategy);
+        stateMachineManager = configureStateMachineManager(stateMachineManagerBuilder).build();
+
+        stateMachineManager.start();
+    }
+
+    @Override
+    public void stop() {
+        if (stateMachineManager != null) {
+            stateMachineManager.stop();
+        }
+    }
+
+    /**
+     * configure the State Machine Manager builder
+     *
+     * @param builder the builder.
+     * @return the builder.
+     */
+    protected abstract StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder);
+
+    @NotNull
+    private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
+        return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
+    }
+
+    public abstract static class Builder<M extends AbstractStateEntityManager, B extends Builder<M, B>> {
+
+        protected final M manager;
+
+        protected Builder(M manager) {
+            this.manager = manager;
+        }
+
+        public abstract B self();
+
+        public B monitor(Monitor monitor) {
+            manager.monitor = monitor;
+            return self();
+        }
+
+        public B batchSize(int batchSize) {
+            manager.batchSize = batchSize;
+            return self();
+        }
+
+        public B waitStrategy(WaitStrategy waitStrategy) {
+            manager.waitStrategy = waitStrategy;
+            return self();
+        }
+
+        public B clock(Clock clock) {
+            manager.clock = clock;
+            return self();
+        }
+
+        public B telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
+            return self();
+        }
+
+        public B executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
+            manager.executorInstrumentation = executorInstrumentation;
+            return self();
+        }
+
+        public B entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
+            manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
+            return self();
+        }
+
+        public M build() {
+            Objects.requireNonNull(manager.monitor, "monitor");
+
+            manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);
+
+            return manager;
+        }
+    }
+
+}

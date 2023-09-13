@@ -41,6 +41,11 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.concurrent.Executors;
 
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_SEND_RETRY_BASE_DELAY;
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_SEND_RETRY_LIMIT;
+
 /**
  * Provides core services for the Data Plane Framework.
  */
@@ -48,11 +53,6 @@ import java.util.concurrent.Executors;
 @Extension(value = DataPlaneFrameworkExtension.NAME)
 public class DataPlaneFrameworkExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Framework";
-
-    public static final long DEFAULT_ITERATION_WAIT = 1000;
-    public static final int DEFAULT_BATCH_SIZE = 20;
-    public static final int DEFAULT_SEND_RETRY_LIMIT = 7;
-    public static final long DEFAULT_SEND_RETRY_BASE_DELAY = 1000L;
 
     @Setting(value = "the iteration wait time in milliseconds in the data plane state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
     private static final String DATAPLANE_MACHINE_ITERATION_WAIT_MILLIS = "edc.dataplane.state-machine.iteration-wait-millis";
