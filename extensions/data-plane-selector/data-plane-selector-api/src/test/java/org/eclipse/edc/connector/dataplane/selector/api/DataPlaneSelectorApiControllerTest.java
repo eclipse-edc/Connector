@@ -78,13 +78,15 @@ public class DataPlaneSelectorApiControllerTest {
     void addEntry(DataPlaneInstanceStore store) {
         var dpi = createInstanceJson("test-id");
 
-        baseRequest()
+        var result = baseRequest()
                 .body(dpi)
                 .contentType(JSON)
                 .post()
                 .then()
-                .statusCode(204);
+                .statusCode(200)
+                .extract().body().as(JsonObject.class);
 
+        assertThat(result.getString(ID)).isEqualTo("test-id");
         assertThat(store.getAll()).hasSize(1)
                 .allMatch(d -> d.getId().equals("test-id"));
     }
@@ -99,7 +101,7 @@ public class DataPlaneSelectorApiControllerTest {
                 .post()
                 .then()
                 .statusCode(400);
-        
+
     }
 
     @Test
@@ -119,7 +121,7 @@ public class DataPlaneSelectorApiControllerTest {
                 .contentType(JSON)
                 .post()
                 .then()
-                .statusCode(204);
+                .statusCode(200);
 
 
         assertThat(store.getAll()).hasSize(3)
