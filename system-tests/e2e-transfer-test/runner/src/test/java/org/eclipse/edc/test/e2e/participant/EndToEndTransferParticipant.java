@@ -163,7 +163,7 @@ public class EndToEndTransferParticipant extends Participant {
                 .when()
                 .post("/v2/dataplanes")
                 .then()
-                .statusCode(204);
+                .statusCode(200);
     }
 
     public Map<String, String> controlPlaneConfiguration() {
@@ -199,7 +199,7 @@ public class EndToEndTransferParticipant extends Participant {
             }
         };
     }
-    
+
     public Map<String, String> controlPlanePostgresConfiguration() {
         var baseConfiguration = controlPlaneConfiguration();
 

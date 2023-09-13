@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 
@@ -107,7 +108,7 @@ class RemoteDataPlaneSelectorClientTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DataplaneSelectorApiController(SELECTOR_SERVICE_MOCK, typeTransformerRegistry, validator);
+        return new DataplaneSelectorApiController(SELECTOR_SERVICE_MOCK, typeTransformerRegistry, validator, Clock.systemUTC());
     }
 
     @Override

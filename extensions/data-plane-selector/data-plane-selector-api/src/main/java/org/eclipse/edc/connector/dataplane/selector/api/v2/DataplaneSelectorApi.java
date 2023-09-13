@@ -53,17 +53,18 @@ public interface DataplaneSelectorApi {
             description = "Adds one datatplane instance to the internal database of the selector",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Entry was added successfully to the database"),
+                    @ApiResponse(responseCode = "200", description = "Entry was added successfully to the database", content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
     @POST
-    void addEntry(JsonObject instance);
+    JsonObject addEntry(JsonObject instance);
 
     @Operation(method = "GET",
             description = "Returns a list of all currently registered data plane instances",
             responses = {
-                    @ApiResponse(responseCode = "204", description = "A (potentially empty) list of currently registered data plane instances"),
+                    @ApiResponse(responseCode = "200", description = "A (potentially empty) list of currently registered data plane instances",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = DataPlaneInstanceSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )

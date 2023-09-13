@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
+import java.time.Clock;
 import java.util.Map;
 
 import static jakarta.json.Json.createBuilderFactory;
@@ -57,6 +58,9 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
 
+    @Inject
+    private Clock clock;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         typeManager.registerTypes(DataPlaneInstance.class);
@@ -65,7 +69,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
         transformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         transformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager.getMapper(JSON_LD)));
-        var controller = new DataplaneSelectorApiController(selectionService, transformerRegistry, validatorRegistry);
+        var controller = new DataplaneSelectorApiController(selectionService, transformerRegistry, validatorRegistry, clock);
 
         webservice.registerResource(managementApiConfiguration.getContextAlias(), controller);
     }
