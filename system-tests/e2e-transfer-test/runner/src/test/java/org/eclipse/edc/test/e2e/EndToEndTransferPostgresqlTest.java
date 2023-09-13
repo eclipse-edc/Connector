@@ -17,17 +17,21 @@ package org.eclipse.edc.test.e2e;
 import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
 import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 
 import static org.eclipse.edc.test.e2e.PostgresUtil.createDatabase;
 
 @PostgresqlDbIntegrationTest
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
+
+    @RegisterExtension
+    static BeforeAllCallback createDatabase = context -> {
+        createDatabase(CONSUMER);
+        createDatabase(PROVIDER);
+    };
 
     @RegisterExtension
     static EdcClassRuntimesExtension runtimes = new EdcClassRuntimesExtension(
@@ -65,11 +69,5 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
                     }
             )
     );
-
-    @BeforeAll
-    static void beforeAll() throws SQLException, IOException, ClassNotFoundException {
-        createDatabase(CONSUMER);
-        createDatabase(PROVIDER);
-    }
 
 }
