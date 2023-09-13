@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e;
 
 import org.eclipse.edc.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.edc.junit.extensions.EdcClassRuntimesExtension;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -29,53 +30,45 @@ import static org.eclipse.edc.test.e2e.PostgresUtil.createDatabase;
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
 
     @RegisterExtension
-    static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:control-plane-postgresql",
-            "consumer-control-plane",
-            CONSUMER.controlPlanePostgresConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension consumerDataPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:data-plane",
-            "consumer-data-plane",
-            CONSUMER.dataPlaneConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension consumerBackendService = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:backend-service",
-            "consumer-backend-service",
-            new HashMap<>() {
-                {
-                    put("web.http.port", String.valueOf(CONSUMER.backendService().getPort()));
-                }
-            }
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension providerDataPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:data-plane",
-            "provider-data-plane",
-            PROVIDER.dataPlaneConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension providerControlPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:control-plane-postgresql",
-            "provider-control-plane",
-            PROVIDER.controlPlanePostgresConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension providerBackendService = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:backend-service",
-            "provider-backend-service",
-            new HashMap<>() {
-                {
-                    put("web.http.port", String.valueOf(PROVIDER.backendService().getPort()));
-                }
-            }
+    static EdcClassRuntimesExtension runtimes = new EdcClassRuntimesExtension(
+            new EdcRuntimeExtension(
+                    ":system-tests:e2e-transfer-test:control-plane-postgresql",
+                    "consumer-control-plane",
+                    CONSUMER.controlPlanePostgresConfiguration()
+            ),
+            new EdcRuntimeExtension(
+                    ":system-tests:e2e-transfer-test:data-plane",
+                    "consumer-data-plane",
+                    CONSUMER.dataPlaneConfiguration()
+            ),
+            new EdcRuntimeExtension(
+                    ":system-tests:e2e-transfer-test:backend-service",
+                    "consumer-backend-service",
+                    new HashMap<>() {
+                        {
+                            put("web.http.port", String.valueOf(CONSUMER.backendService().getPort()));
+                        }
+                    }
+            ),
+            new EdcRuntimeExtension(
+                    ":system-tests:e2e-transfer-test:data-plane",
+                    "provider-data-plane",
+                    PROVIDER.dataPlaneConfiguration()
+            ),
+            new EdcRuntimeExtension(
+                    ":system-tests:e2e-transfer-test:control-plane-postgresql",
+                    "provider-control-plane",
+                    PROVIDER.controlPlanePostgresConfiguration()
+            ),
+            new EdcRuntimeExtension(
+                    ":system-tests:e2e-transfer-test:backend-service",
+                    "provider-backend-service",
+                    new HashMap<>() {
+                        {
+                            put("web.http.port", String.valueOf(PROVIDER.backendService().getPort()));
+                        }
+                    }
+            )
     );
 
     @BeforeAll

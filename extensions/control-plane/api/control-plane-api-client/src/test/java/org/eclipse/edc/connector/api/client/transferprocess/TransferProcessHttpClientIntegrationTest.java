@@ -69,7 +69,8 @@ public class TransferProcessHttpClientIntegrationTest {
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
                 "web.http.control.port", String.valueOf(port),
-                "web.http.control.path", "/control"
+                "web.http.control.path", "/control",
+                "edc.core.retry.retries.max", "0"
         ));
 
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
