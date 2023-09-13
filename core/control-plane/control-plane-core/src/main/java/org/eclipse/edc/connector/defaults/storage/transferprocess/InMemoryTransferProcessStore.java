@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.defaults.storage.transferprocess;
 
-import org.eclipse.edc.connector.defaults.storage.InMemoryStatefulEntityStore;
+import org.eclipse.edc.connector.core.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.persistence.Lease;

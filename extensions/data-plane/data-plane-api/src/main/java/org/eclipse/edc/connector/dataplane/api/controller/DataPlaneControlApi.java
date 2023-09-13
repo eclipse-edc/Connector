@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.container.AsyncResponse;
-import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
+import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 @OpenAPIDefinition
@@ -39,5 +39,5 @@ public interface DataPlaneControlApi {
     @Operation(description = "Get the current state of a data transfer.",
             responses = @ApiResponse(responseCode = "200", description = "Missing access token")
     )
-    DataPlaneStore.State getTransferState(String processId);
+    DataFlowStates getTransferState(String processId);
 }

@@ -46,4 +46,5 @@ public class EdcClassRuntimesExtension implements BeforeAllCallback, AfterAllCal
             extension.afterTestExecution(extensionContext);
         }
     }
+
 }

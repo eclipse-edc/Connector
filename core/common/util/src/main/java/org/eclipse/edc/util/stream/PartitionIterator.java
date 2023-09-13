@@ -54,7 +54,7 @@ public class PartitionIterator<T> implements Iterator<List<T>> {
     @Override
     public List<T> next() {
         List<T> partition = new ArrayList<>(partitionSize);
-        while (source.hasNext() && partition.size() < partitionSize) {
+        while (partition.size() < partitionSize && source.hasNext()) {
             partition.add(source.next());
         }
         return partition;

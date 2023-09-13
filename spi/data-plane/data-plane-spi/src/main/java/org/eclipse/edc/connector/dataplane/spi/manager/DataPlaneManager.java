@@ -14,10 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.spi.manager;
 
+import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
-import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -59,12 +58,7 @@ public interface DataPlaneManager {
     /**
      * Initiates a transfer for the data flow request. This method is non-blocking with respect to processing the request.
      */
-    void initiateTransfer(DataFlowRequest dataRequest);
-
-    /**
-     * Performs a data transfer using the supplied data source.
-     */
-    CompletableFuture<StreamResult<Void>> transfer(DataSource source, DataFlowRequest request);
+    void initiate(DataFlowRequest dataRequest);
 
     /**
      * Performs a data transfer using the supplied data sink.
@@ -74,5 +68,5 @@ public interface DataPlaneManager {
     /**
      * Returns the transfer state for the process.
      */
-    State transferState(String processId);
+    DataFlowStates transferState(String processId);
 }

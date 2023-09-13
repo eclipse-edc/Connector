@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.telemetry.TraceCarrier;
 import org.eclipse.edc.util.stream.PartitionIterator;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +33,6 @@ import java.util.function.Supplier;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.failure;
 import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
 
@@ -58,17 +56,17 @@ public abstract class ParallelSink implements DataSink {
             }
 
             try (var partStream = streamResult.getContent()) {
-                var partitioned = PartitionIterator.streamOf(partStream, partitionSize);
-                var traceCarrier = telemetry.getTraceCarrierWithCurrentContext();
-
-                var futures = partitioned.map(parts -> processPartsAsync(parts, traceCarrier)).collect(toList());
-                return futures.stream()
+                return PartitionIterator.streamOf(partStream, partitionSize)
+                        .map(this::processPartsAsync)
                         .collect(asyncAllOf())
-                        .thenApply(results -> results.stream()
-                                .filter(AbstractResult::failed)
-                                .findFirst()
-                                .map(r -> StreamResult.<Void>error(String.join(",", r.getFailureMessages())))
-                                .orElseGet(this::complete))
+                        .thenApply(results -> {
+                            StreamResult<Void> voidStreamResult = results.stream()
+                                    .filter(AbstractResult::failed)
+                                    .findFirst()
+                                    .map(r -> StreamResult.<Void>error(String.join(",", r.getFailureMessages())))
+                                    .orElseGet(() -> complete());
+                            return voidStreamResult;
+                        })
                         .exceptionally(throwable -> StreamResult.error("Unhandled exception raised when transferring data: " + throwable.getMessage()));
             }
         } catch (Exception e) {
@@ -79,9 +77,12 @@ public abstract class ParallelSink implements DataSink {
     }
 
     @NotNull
-    private CompletableFuture<StreamResult<Void>> processPartsAsync(List<DataSource.Part> parts, TraceCarrier traceCarrier) {
-        Supplier<StreamResult<Void>> supplier = () -> transferParts(parts);
-        return supplyAsync(telemetry.contextPropagationMiddleware(supplier, traceCarrier), executorService);
+    private CompletableFuture<StreamResult<Void>> processPartsAsync(List<DataSource.Part> parts) {
+        return supplyAsync(transfer(parts), executorService);
+    }
+
+    private Supplier<StreamResult<Void>> transfer(List<DataSource.Part> parts) {
+        return telemetry.contextPropagationMiddleware(() -> transferParts(parts), telemetry.getTraceCarrierWithCurrentContext());
     }
 
     protected abstract StreamResult<Void> transferParts(List<DataSource.Part> parts);

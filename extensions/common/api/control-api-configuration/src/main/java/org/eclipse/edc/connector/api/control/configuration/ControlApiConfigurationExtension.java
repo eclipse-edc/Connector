@@ -28,8 +28,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 
 import static java.lang.String.format;
 
@@ -77,15 +76,14 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
         context.registerService(ControlApiConfiguration.class, new ControlApiConfiguration(config));
         context.registerService(ControlApiUrl.class, callbackAddress);
-
     }
 
     private ControlApiUrl controlApiUrl(ServiceExtensionContext context, WebServiceConfiguration config) {
         var callbackAddress = context.getSetting(CONTROL_API_ENDPOINT, format("http://%s:%s%s", hostname.get(), config.getPort(), config.getPath()));
         try {
-            var url = new URL(callbackAddress);
+            var url = URI.create(callbackAddress);
             return () -> url;
-        } catch (MalformedURLException e) {
+        } catch (IllegalArgumentException e) {
             context.getMonitor().severe("Error creating control plane endpoint url", e);
             throw new EdcException(e);
         }

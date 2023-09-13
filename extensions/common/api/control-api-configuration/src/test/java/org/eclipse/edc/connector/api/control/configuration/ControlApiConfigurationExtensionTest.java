@@ -89,7 +89,7 @@ public class ControlApiConfigurationExtensionTest {
 
     @Test
     void initialize_withInvalidEndpoint(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
-        var endpoint = "invalidUrl";
+        var endpoint = "http:// invalid";
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
         when(context.getSetting(eq(CONTROL_API_ENDPOINT), any())).thenReturn(endpoint);
 

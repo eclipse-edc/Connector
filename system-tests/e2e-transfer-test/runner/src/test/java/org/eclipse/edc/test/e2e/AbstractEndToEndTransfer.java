@@ -169,6 +169,7 @@ public abstract class AbstractEndToEndTransfer {
         var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
 
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
+
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
             assertThat(state).isEqualTo(COMPLETED.name());
@@ -225,7 +226,6 @@ public abstract class AbstractEndToEndTransfer {
 
     private void registerDataPlanes() {
         PROVIDER.registerDataPlane();
-        CONSUMER.registerDataPlane();
     }
 
     private void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, Object> dataAddressProperties) {

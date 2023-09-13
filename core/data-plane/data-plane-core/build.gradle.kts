@@ -17,11 +17,23 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
-    api(project(":core:common:connector-core"))
-    api(project(":core:common:boot"))
-    api(project(":extensions:common:http"))
-    api(project(":core:data-plane:data-plane-framework"))
+    api(project(":spi:control-plane:control-plane-api-client-spi"))
+    api(project(":spi:data-plane:data-plane-spi"))
+
+    implementation(project(":core:common:connector-core"))
+    implementation(project(":core:common:boot"))
+    implementation(project(":core:common:state-machine"))
+    implementation(project(":core:common:util"))
+    implementation(project(":core:data-plane:data-plane-util"))
+    implementation(project(":extensions:common:http"))
+
+    implementation(libs.opentelemetry.instrumentation.annotations)
+
+    testImplementation(project(":core:common:junit"))
+    testImplementation(libs.awaitility)
+    testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))
 }
 
 

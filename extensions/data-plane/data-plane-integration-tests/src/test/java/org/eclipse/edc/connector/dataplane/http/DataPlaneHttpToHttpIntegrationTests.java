@@ -20,8 +20,8 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.apache.http.HttpStatus;
+import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema;
-import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -42,6 +42,7 @@ import org.mockserver.model.Parameters;
 import org.mockserver.verify.VerificationTimes;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,9 +52,10 @@ import java.util.stream.Collectors;
 import static io.restassured.RestAssured.given;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures.createRequest;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
@@ -96,6 +98,8 @@ public class DataPlaneHttpToHttpIntegrationTests {
     private static final String SOURCE_AUTH_VALUE = "source-auth-key";
     private static final String SINK_AUTH_VALUE = "sink-auth-key";
 
+    private final Duration timeout = Duration.ofSeconds(30);
+
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":launchers:data-plane-server",
@@ -135,36 +139,26 @@ public class DataPlaneHttpToHttpIntegrationTests {
     void transfer_success(TypeManager typeManager) {
         var body = UUID.randomUUID().toString();
         var processId = UUID.randomUUID().toString();
-        httpSourceMockServer.when(getRequest(), once())
-                .respond(successfulResponse(body));
+        httpSourceMockServer.when(getRequest(), once()).respond(successfulResponse(body));
 
         // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body), once())
-                .respond(successfulResponse());
+        httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
 
         // Act & Assert
         // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
         // Wait for transfer to be completed.
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchTransferState(processId)
-        );
+        await().atMost(timeout).untilAsserted(() -> expectState(processId, COMPLETED));
 
         // Verify HTTP Source server called exactly once.
-        httpSourceMockServer.verify(
-                getRequest(),
-                VerificationTimes.once()
-        );
+        httpSourceMockServer.verify(getRequest(), VerificationTimes.once());
         // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(
-                postRequest(body),
-                VerificationTimes.once()
-        );
+        httpSinkMockServer.verify(postRequest(body), VerificationTimes.once());
     }
 
     @Test
-    void transfer_WithSourceQueryParams_Success(TypeManager typeManager) {
+    void transfer_withSourceQueryParams_success(TypeManager typeManager) {
         // HTTP Source Request & Response
         var body = UUID.randomUUID().toString();
         var processId = UUID.randomUUID().toString();
@@ -173,32 +167,22 @@ public class DataPlaneHttpToHttpIntegrationTests {
                 "param2", "any other value"
         );
 
-        httpSourceMockServer.when(getRequest(queryParams), once())
-                .respond(successfulResponse(body));
+        httpSourceMockServer.when(getRequest(queryParams), once()).respond(successfulResponse(body));
 
         // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body), once())
-                .respond(successfulResponse());
+        httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
 
         // Act & Assert
         // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, queryParams, typeManager));
 
         // Wait for transfer to be completed.
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchTransferState(processId)
-        );
+        await().atMost(timeout).untilAsserted(() -> expectState(processId, COMPLETED));
 
         // Verify HTTP Source server called exactly once.
-        httpSourceMockServer.verify(
-                getRequest(),
-                VerificationTimes.once()
-        );
+        httpSourceMockServer.verify(getRequest(), VerificationTimes.once());
         // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(
-                postRequest(body),
-                VerificationTimes.once()
-        );
+        httpSinkMockServer.verify(postRequest(body), VerificationTimes.once());
     }
 
     /**
@@ -225,21 +209,15 @@ public class DataPlaneHttpToHttpIntegrationTests {
     void transfer_sourceNotAvailable_noInteractionWithSink(TypeManager typeManager) {
         var processId = UUID.randomUUID().toString();
         // HTTP Source Request & Error Response
-        httpSourceMockServer.when(getRequest())
-                .error(withDropConnection());
+        httpSourceMockServer.when(getRequest()).error(withDropConnection());
 
         // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
         // Wait for transfer to be completed.
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchTransferState(processId)
-        );
+        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
         // Verify HTTP Source server called at lest once.
-        httpSourceMockServer.verify(
-                getRequest(),
-                VerificationTimes.atLeast(1)
-        );
+        httpSourceMockServer.verify(getRequest(), VerificationTimes.atLeast(1));
         // Verify zero interaction with HTTP Sink.
         httpSinkMockServer.verifyZeroInteractions();
     }
@@ -251,36 +229,25 @@ public class DataPlaneHttpToHttpIntegrationTests {
     void transfer_sourceTemporaryDropConnection_success(TypeManager typeManager) {
         var processId = UUID.randomUUID().toString();
         // First two calls to HTTP Source returns a failure response.
-        httpSourceMockServer.when(getRequest(), exactly(2))
-                .error(withDropConnection());
+        httpSourceMockServer.when(getRequest(), exactly(2)).error(withDropConnection());
 
         // Next call to HTTP Source returns a valid response.
         var body = UUID.randomUUID().toString();
-        httpSourceMockServer.when(getRequest(), once())
-                .respond(successfulResponse(body));
+        httpSourceMockServer.when(getRequest(), once()).respond(successfulResponse(body));
 
         // HTTP Sink Request & Response
-        httpSinkMockServer.when(postRequest(body), once())
-                .respond(successfulResponse());
+        httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
 
         // Act & Assert
         // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
         // Wait for transfer to be completed.
-        await().atMost(30, SECONDS).untilAsserted(() ->
-                fetchTransferState(processId)
-        );
+        await().atMost(timeout).untilAsserted(() -> expectState(processId, COMPLETED));
         // Verify HTTP Source server called exactly 3 times.
-        httpSourceMockServer.verify(
-                getRequest(),
-                VerificationTimes.exactly(3)
-        );
+        httpSourceMockServer.verify(getRequest(), VerificationTimes.exactly(3));
         // Verify HTTP Sink server called exactly once.
-        httpSinkMockServer.verify(
-                postRequest(body),
-                VerificationTimes.once()
-        );
+        httpSinkMockServer.verify(postRequest(body), VerificationTimes.once());
     }
 
     /**
@@ -363,15 +330,16 @@ public class DataPlaneHttpToHttpIntegrationTests {
      * Fetch transfer state and assert if transfer is completed.
      *
      * @param processId ProcessID of transfer. See {@link DataFlowRequest}
+     * @param expectedState the expected state
      */
-    private void fetchTransferState(String processId) {
+    private void expectState(String processId, DataFlowStates expectedState) {
         givenDpfRequest()
                 .pathParam(PROCESS_ID, processId)
                 .when()
                 .get(TRANSFER_RESULT_PATH)
                 .then()
                 .assertThat().statusCode(HttpStatus.SC_OK)
-                .body(containsString(State.COMPLETED.name()));
+                .body(containsString(expectedState.name()));
     }
 
     /**

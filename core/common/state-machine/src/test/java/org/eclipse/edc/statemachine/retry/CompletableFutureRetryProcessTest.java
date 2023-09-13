@@ -72,6 +72,19 @@ class CompletableFutureRetryProcessTest {
     }
 
     @Test
+    void shouldUsePassedEntity_whenReloadEntityReturnsNull() {
+        when(process.get()).thenReturn(CompletableFuture.completedFuture("content"));
+        var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).clock(clock).build();
+        var retryProcess = new CompletableFutureRetryProcess<>(entity, process, mock(Monitor.class), clock, configuration);
+
+        var result = retryProcess.onSuccess(onSuccess).entityRetrieve(id -> null).execute("any");
+
+        assertThat(result).isTrue();
+        verify(process).get();
+        verify(onSuccess).accept(entity, "content");
+    }
+
+    @Test
     void shouldExecuteOnRetryExhausted_whenFailureAndRetriesHaveBeenExhausted() {
         CompletableFuture<String> statusResult = CompletableFuture.failedFuture(new EdcException("error"));
         when(process.get()).thenReturn(statusResult);

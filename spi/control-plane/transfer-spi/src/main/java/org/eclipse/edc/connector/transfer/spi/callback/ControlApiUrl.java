@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.transfer.spi.callback;
 
 
-import java.net.URL;
+import java.net.URI;
 
 @FunctionalInterface
 public interface ControlApiUrl {
 
     /**
-     * gets the URL which the HTTP Control API provides for out-of-process systems to call back into.
+     * gets the URI which the HTTP Control API provides for out-of-process systems to call back into.
      */
-    URL get();
+    URI get();
 }

@@ -38,8 +38,6 @@ jobs:
       - name: Run Javadoc
         run: ./gradlew javadoc
 
-
-
   Unit-Tests:
     runs-on: ubuntu-latest
     env:
@@ -52,8 +50,6 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           command: ./gradlew test jacocoTestReport
-
-
 
   Daps-Integration-Tests:
     runs-on: ubuntu-latest
@@ -94,7 +90,6 @@ jobs:
         with:
           command: ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
 
-
   End-To-End-Tests:
     runs-on: ubuntu-latest
     steps:
@@ -104,8 +99,7 @@ jobs:
       - name: End to End Integration Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew test -DincludeTags="EndToEndTest"
-
+          command: ./gradlew test jacocoTestReport -DincludeTags="EndToEndTest"
 
   Component-Tests:
     env:
@@ -184,6 +178,7 @@ jobs:
       - API-Tests
       - Unit-Tests
       - Component-Tests
+      - End-To-End-Tests
 
     runs-on: ubuntu-latest
     if: always()

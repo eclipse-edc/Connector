@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.PostgresDat
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Clock;
+import java.time.Duration;
 
 
 @ComponentTest
@@ -37,7 +39,7 @@ import java.time.Clock;
 public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
     private final DataPlaneStatements statements = new PostgresDataPlaneStatements();
-
+    private LeaseUtil leaseUtil;
     private SqlDataPlaneStore store;
 
     @BeforeEach
@@ -47,8 +49,9 @@ public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
         var clock = Clock.systemUTC();
 
+        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
         store = new SqlDataPlaneStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
-                statements, typeManager.getMapper(), clock, queryExecutor);
+                statements, typeManager.getMapper(), clock, queryExecutor, "test-connector");
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         extension.runQuery(schema);
     }
@@ -61,5 +64,19 @@ public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
     @Override
     protected DataPlaneStore getStore() {
         return store;
+    }
+
+    @Override
+    protected void leaseEntity(String negotiationId, String owner, Duration duration) {
+        getLeaseUtil().leaseEntity(negotiationId, owner, duration);
+    }
+
+    @Override
+    protected boolean isLeasedBy(String negotiationId, String owner) {
+        return getLeaseUtil().isLeased(negotiationId, owner);
+    }
+
+    protected LeaseUtil getLeaseUtil() {
+        return leaseUtil;
     }
 }

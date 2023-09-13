@@ -19,8 +19,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,9 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DataFlowRequestTest {
 
     @Test
-    void verifySerializeDeserialize() throws JsonProcessingException, MalformedURLException {
+    void verifySerializeDeserialize() throws JsonProcessingException {
 
-        var url = new URL("http://test");
+        var uri = URI.create("http://test");
         var mapper = new TypeManager().getMapper();
         var request = DataFlowRequest.Builder.newInstance()
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("foo").build())
@@ -39,7 +38,7 @@ class DataFlowRequestTest {
                 .id(UUID.randomUUID().toString())
                 .processId(UUID.randomUUID().toString())
                 .destinationType("test")
-                .callbackAddress(url)
+                .callbackAddress(uri)
                 .properties(Map.of("key", "value"))
                 .traceContext(Map.of("key2", "value2"))
                 .build();
@@ -49,6 +48,6 @@ class DataFlowRequestTest {
         assertThat(deserialized).isNotNull();
         assertThat(deserialized.getProperties().get("key")).isEqualTo("value");
         assertThat(deserialized.getTraceContext().get("key2")).isEqualTo("value2");
-        assertThat(deserialized.getCallbackAddress()).isEqualTo(url);
+        assertThat(deserialized.getCallbackAddress()).isEqualTo(uri);
     }
 }

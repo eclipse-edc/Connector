@@ -20,8 +20,10 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
 
+    testFixturesApi(project(":core:common:junit"))
     testFixturesImplementation(libs.bundles.jupiter)
     testFixturesImplementation(libs.assertj)
+    testFixturesImplementation(libs.awaitility)
 }
 
 

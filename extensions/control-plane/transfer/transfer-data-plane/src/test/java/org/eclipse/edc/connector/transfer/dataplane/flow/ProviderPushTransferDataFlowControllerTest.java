@@ -27,8 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,9 +43,9 @@ class ProviderPushTransferDataFlowControllerTest {
     private ProviderPushTransferDataFlowController flowController;
 
     @BeforeEach
-    void setUp() throws MalformedURLException {
+    void setUp() {
         var callbackUrlMock = mock(ControlApiUrl.class);
-        var url = new URL("http://localhost");
+        var url = URI.create("http://localhost");
         when(callbackUrlMock.get()).thenReturn(url);
         flowController = new ProviderPushTransferDataFlowController(callbackUrlMock, dataPlaneClient);
     }

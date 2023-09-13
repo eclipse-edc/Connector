@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.asset;
 
-import org.eclipse.edc.connector.defaults.storage.CriterionToPredicateConverterImpl;
+import org.eclipse.edc.connector.core.store.CriterionToPredicateConverterImpl;
 import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
 import org.eclipse.edc.spi.query.CriterionToPredicateConverter;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
