@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.transferprocess;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ApiTest
 public class TransferProcessControlApiControllerTest extends RestControllerTestBase {
 
     private final TransferProcessService transferProcessService = mock();

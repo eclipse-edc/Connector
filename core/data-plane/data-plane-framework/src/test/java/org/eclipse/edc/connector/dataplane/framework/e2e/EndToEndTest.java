@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.framework.e2e;
 
-import org.eclipse.edc.connector.api.client.spi.transferprocess.NoopTransferProcessClient;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
@@ -58,7 +57,7 @@ public class EndToEndTest {
                 .monitor(monitor)
                 .pipelineService(pipelineService)
                 .executorInstrumentation(ExecutorInstrumentation.noop())
-                .transferProcessClient(new NoopTransferProcessClient())
+                .transferProcessClient(mock())
                 .build();
         manager.start();
         manager.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("bytes".getBytes())), createRequest("1").build()).get();

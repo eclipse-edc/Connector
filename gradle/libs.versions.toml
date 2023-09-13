@@ -108,7 +108,6 @@ kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka
 
 [bundles]
 jersey-core = ["jersey.server", "jersey.common", "jersey.jackson", "jersey.multipart", "jersey.inject", "jersey.servlet", "jersey.servletcore"]
-jersey-api = ["jersey.common", "jersey.server"]
 jackson = ["jackson.core", "jackson.annotations", "jackson.databind", "jackson-datatypeJsr310"]
 jupiter = ["junit-jupiter-api", "junit-jupiter-params"]
 

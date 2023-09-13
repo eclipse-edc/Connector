@@ -14,12 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.framework.manager;
 
-import org.eclipse.edc.connector.api.client.spi.transferprocess.NoopTransferProcessClient;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -39,10 +37,10 @@ import static org.mockito.Mockito.when;
 
 
 class DataPlaneManagerImplTest {
-    TransferService transferService = mock(TransferService.class);
+    TransferService transferService = mock();
     DataPlaneStore store = new InMemoryDataPlaneStore(10);
     DataFlowRequest request = createRequest();
-    TransferServiceRegistry registry = mock(TransferServiceRegistry.class);
+    TransferServiceRegistry registry = mock();
 
     @BeforeEach
     public void setUp() {
@@ -54,7 +52,7 @@ class DataPlaneManagerImplTest {
      * Verifies a request is enqueued, dequeued, and dispatched to the pipeline service.
      */
     @Test
-    void verifyWorkDispatch() throws InterruptedException {
+    void verifyWorkDispatch() {
         var dataPlaneManager = createDataPlaneManager();
 
         when(registry.resolveTransferService(request))
@@ -63,9 +61,8 @@ class DataPlaneManagerImplTest {
                 .thenReturn(true);
 
 
-        when(transferService.transfer(isA(DataFlowRequest.class))).thenAnswer(i -> {
-            return completedFuture(Result.success("ok"));
-        });
+        when(transferService.transfer(isA(DataFlowRequest.class)))
+                .thenAnswer(i -> completedFuture(Result.success("ok")));
 
         dataPlaneManager.start();
         dataPlaneManager.initiateTransfer(request);
@@ -80,7 +77,7 @@ class DataPlaneManagerImplTest {
      * Verifies that the dispatch thread survives an error thrown by a worker.
      */
     @Test
-    void verifyWorkDispatchError() throws InterruptedException {
+    void verifyWorkDispatchError() {
         var dataPlaneManager = createDataPlaneManager();
 
         when(transferService.canHandle(request))
@@ -89,9 +86,8 @@ class DataPlaneManagerImplTest {
         when(transferService.transfer(request))
                 .thenAnswer(i -> {
                     throw new RuntimeException("Test exception");
-                }).thenAnswer((i -> {
-                    return completedFuture(Result.success("ok"));
-                }));
+                })
+                .thenAnswer((i -> completedFuture(Result.success("ok"))));
 
 
         dataPlaneManager.start();
@@ -105,7 +101,7 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void verifyWorkDispatch_onUnavailableTransferService_completesTransfer() throws InterruptedException {
+    void verifyWorkDispatch_onUnavailableTransferService_completesTransfer() {
         // Modify store used in createDataPlaneManager()
         store = mock(DataPlaneStore.class);
 
@@ -139,8 +135,8 @@ class DataPlaneManagerImplTest {
                 .waitTimeout(10)
                 .transferServiceRegistry(registry)
                 .store(store)
-                .transferProcessClient(new NoopTransferProcessClient())
-                .monitor(mock(Monitor.class))
+                .transferProcessClient(mock())
+                .monitor(mock())
                 .build();
     }
 

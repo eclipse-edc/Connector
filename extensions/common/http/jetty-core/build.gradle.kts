@@ -24,7 +24,6 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))
 
-    testImplementation(libs.bundles.jersey.core)
     testImplementation(libs.restAssured)
     testImplementation(project(":core:common:junit"))
 }
