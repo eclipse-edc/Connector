@@ -6,8 +6,8 @@ A `PolicyMonitor` extension component will be implemented.
 
 ## Rationale
 
-Ongoing transfers like "streaming" one, where they actually don't get `COMPLETED`, need to be terminated whenever the
-`Policy` on which the parts agreed on is not valid anymore.
+Some transfer types, such as streaming never reach the `COMPLETED` state, so they need to be terminated whenever the
+`Policy` on which the participants agreed is not valid anymore.
 
 ## Approach
 
@@ -19,7 +19,10 @@ This component will be implemented using the same model as the state machine we'
     or remote through a rest call) and the entry will be removed from the `PolicyMonitorStore`.
   - otherwise the lease will be broken and the policy be verified again in the next run.
 
+With "leasing" we mean that the entity will be reserved by a connector instance that will be the only one allowed to modify it
+until the lease gets broken, and this can happen by updating it or after a certain amount of time.
+
 This mechanism will permit to scale the process to multiple instances.
 
-The `PolicyMonitor` will be deployable embedded in the control-plane or separately in a dedicated runtime.
+The `PolicyMonitor` will be deployable embedded in the control-plane or separately in a standalone runtime.
 The `PolicyMonitorStore` will have a in-memory implementation for testing scenarios and a sql (postgres) one.
