@@ -58,13 +58,6 @@ Docker supports [health check](https://docs.docker.com/engine/reference/builder/
 the Observability API for that, simply add this line to your `Dockerfile`:
 
 ```dockerfile
-FROM openjdk:17-slim-buster
-
-# by default curl is not available, so install it
-RUN apt update && apt install curl -y
-
-# HERE you should put all your other instructions, like exposing ports, etc.
-
 # health status is determined by the availability of the /health endpoint
 HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail -X GET http://localhost:8181/api/check/health || exit 1
 
