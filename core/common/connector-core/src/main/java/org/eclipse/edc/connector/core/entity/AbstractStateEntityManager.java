@@ -15,7 +15,9 @@
 package org.eclipse.edc.connector.core.entity;
 
 import org.eclipse.edc.spi.entity.StateEntityManager;
+import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -28,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.Objects;
 
-public abstract class AbstractStateEntityManager implements StateEntityManager {
+public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S extends StateEntityStore<E>> implements StateEntityManager {
 
     public static final long DEFAULT_ITERATION_WAIT = 1000;
     public static final int DEFAULT_BATCH_SIZE = 20;
@@ -44,6 +46,7 @@ public abstract class AbstractStateEntityManager implements StateEntityManager {
     protected EntityRetryProcessFactory entityRetryProcessFactory;
     protected StateMachineManager stateMachineManager;
     protected Clock clock = Clock.systemUTC();
+    protected S store;
 
     @Override
     public void start() {
@@ -75,7 +78,18 @@ public abstract class AbstractStateEntityManager implements StateEntityManager {
         return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
     }
 
-    public abstract static class Builder<M extends AbstractStateEntityManager, B extends Builder<M, B>> {
+    protected void update(E entity) {
+        store.save(entity);
+        monitor.debug(() -> "[%s] %s %s is now in state %s"
+                .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
+                        entity.getId(), entity.stateAsString()));
+    }
+
+    protected void breakLease(E entity) {
+        store.save(entity);
+    }
+
+    public abstract static class Builder<E extends StatefulEntity<E>, S extends StateEntityStore<E>, M extends AbstractStateEntityManager<E, S>, B extends Builder<E, S, M, B>> {
 
         protected final M manager;
 
@@ -120,7 +134,13 @@ public abstract class AbstractStateEntityManager implements StateEntityManager {
             return self();
         }
 
+        public B store(S store) {
+            manager.store = store;
+            return self();
+        }
+
         public M build() {
+            Objects.requireNonNull(manager.store, "store");
             Objects.requireNonNull(manager.monitor, "monitor");
 
             manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);

@@ -37,10 +37,9 @@ import static java.lang.String.format;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 
-public abstract class AbstractContractNegotiationManager extends AbstractStateEntityManager {
+public abstract class AbstractContractNegotiationManager extends AbstractStateEntityManager<ContractNegotiation, ContractNegotiationStore> {
 
     protected String participantId;
-    protected ContractNegotiationStore negotiationStore;
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
     protected PolicyDefinitionStore policyStore;
@@ -51,7 +50,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
 
     protected Processor processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
         var filter = new Criterion[] { hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name()) };
-        return ProcessorImpl.Builder.newInstance(() -> negotiationStore.nextNotLeased(batchSize, filter))
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
                 .onNotProcessed(this::breakLease)
@@ -65,8 +64,8 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract termination to the counter
-     * party. If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
+     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract termination to the counter-party.
+     * If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
      * to TERMINATING for a retry.
      *
      * @return true if processed, false elsewhere
@@ -82,7 +81,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, termination))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToTerminated(n))
                 .onFailure((n, throwable) -> transitionToTerminating(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -184,13 +183,8 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
-    private void update(ContractNegotiation negotiation) {
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[%s] ContractNegotiation %s is now in state %s.",
-                negotiation.getType(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    public static class Builder<T extends AbstractContractNegotiationManager> extends AbstractStateEntityManager.Builder<T, Builder<T>> {
+    public static class Builder<T extends AbstractContractNegotiationManager>
+            extends AbstractStateEntityManager.Builder<ContractNegotiation, ContractNegotiationStore, T, Builder<T>> {
 
         protected Builder(T manager) {
             super(manager);
@@ -216,11 +210,6 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
             return this;
         }
 
-        public Builder<T> store(ContractNegotiationStore store) {
-            manager.negotiationStore = store;
-            return this;
-        }
-
         public Builder<T> policyStore(PolicyDefinitionStore policyStore) {
             manager.policyStore = policyStore;
             return this;
@@ -242,14 +231,10 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
             Objects.requireNonNull(manager.participantId, "participantId");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.observable, "observable");
-            Objects.requireNonNull(manager.negotiationStore, "store");
+
             Objects.requireNonNull(manager.policyStore, "policyStore");
             return manager;
         }
-    }
-
-    protected void breakLease(ContractNegotiation negotiation) {
-        negotiationStore.save(negotiation);
     }
 
 }

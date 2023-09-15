@@ -32,13 +32,12 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 import java.time.Instant;
 import java.util.function.Function;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
-public class PolicyMonitorManagerImpl extends AbstractStateEntityManager implements PolicyMonitorManager {
+public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyMonitorEntry, PolicyMonitorStore>
+        implements PolicyMonitorManager {
 
-    private PolicyMonitorStore store;
     private PolicyEngine policyEngine;
     private TransferProcessService transferProcessService;
     private ContractAgreementService contractAgreementService;
@@ -94,11 +93,6 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager impleme
         return false;
     }
 
-    private void update(PolicyMonitorEntry entity) {
-        store.save(entity);
-        monitor.debug(() -> format("PolicyMonitorEntry %s is now in state %s", entity.getId(), entity.stateAsString()));
-    }
-
     private Processor processEntriesInState(PolicyMonitorEntryStates state, Function<PolicyMonitorEntry, Boolean> function) {
         var filter = new Criterion[]{ hasState(state.code()) };
         return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
@@ -107,11 +101,8 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager impleme
                 .build();
     }
 
-    private void breakLease(PolicyMonitorEntry entry) {
-        store.save(entry);
-    }
-
-    public static class Builder extends AbstractStateEntityManager.Builder<PolicyMonitorManagerImpl, Builder> {
+    public static class Builder
+            extends AbstractStateEntityManager.Builder<PolicyMonitorEntry, PolicyMonitorStore, PolicyMonitorManagerImpl, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -133,11 +124,6 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager impleme
 
         public Builder transferProcessService(TransferProcessService transferProcessService) {
             manager.transferProcessService = transferProcessService;
-            return this;
-        }
-
-        public Builder store(PolicyMonitorStore store) {
-            manager.store = store;
             return this;
         }
 

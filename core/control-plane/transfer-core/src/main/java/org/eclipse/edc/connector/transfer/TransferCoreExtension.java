@@ -187,7 +187,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .vault(vault)
                 .clock(clock)
                 .observable(observable)
-                .transferProcessStore(transferProcessStore)
+                .store(transferProcessStore)
                 .policyArchive(policyArchive)
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .addressResolver(addressResolver)

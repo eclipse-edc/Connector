@@ -123,7 +123,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToRequested(n))
                 .onFailure((n, throwable) -> transitionToRequesting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -160,7 +160,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToAccepted(n))
                 .onFailure((n, throwable) -> transitionToAccepting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -196,7 +196,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToVerified(n))
                 .onFailure((n, throwable) -> transitionToVerifying(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))

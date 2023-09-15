@@ -46,10 +46,9 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 /**
  * Default data manager implementation.
  */
-public class DataPlaneManagerImpl extends AbstractStateEntityManager implements DataPlaneManager {
+public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, DataPlaneStore> implements DataPlaneManager {
 
     private PipelineService pipelineService;
-    private DataPlaneStore store;
     private TransferServiceRegistry transferServiceRegistry;
     private TransferProcessApiClient transferProcessClient;
 
@@ -156,16 +155,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager implements 
                 .build();
     }
 
-    private void breakLease(DataFlow dataFlow) {
-        store.save(dataFlow);
-    }
-
-    private void update(DataFlow entity) {
-        store.save(entity);
-        monitor.debug(format("DataFlow %s is now in state %s", entity.getId(), entity.stateAsString()));
-    }
-
-    public static class Builder extends AbstractStateEntityManager.Builder<DataPlaneManagerImpl, Builder> {
+    public static class Builder extends AbstractStateEntityManager.Builder<DataFlow, DataPlaneStore, DataPlaneManagerImpl, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -187,11 +177,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager implements 
 
         public Builder transferServiceRegistry(TransferServiceRegistry transferServiceRegistry) {
             manager.transferServiceRegistry = transferServiceRegistry;
-            return this;
-        }
-
-        public Builder store(DataPlaneStore store) {
-            manager.store = store;
             return this;
         }
 

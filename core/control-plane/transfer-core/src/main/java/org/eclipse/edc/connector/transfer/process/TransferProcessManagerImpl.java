@@ -47,14 +47,12 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
-import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -101,10 +99,10 @@ import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECR
  * If no processes need to be transitioned, the transfer manager will wait according to the defined {@link WaitStrategy}
  * before conducting the next iteration. A wait strategy may implement a backoff scheme.
  */
-public class TransferProcessManagerImpl extends AbstractStateEntityManager implements TransferProcessManager {
+public class TransferProcessManagerImpl extends AbstractStateEntityManager<TransferProcess, TransferProcessStore>
+        implements TransferProcessManager {
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
-    private TransferProcessStore transferProcessStore;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
     private StatusCheckerRegistry statusCheckerRegistry;
@@ -142,7 +140,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
     public StatusResult<TransferProcess> initiateConsumerRequest(TransferRequest transferRequest) {
         // make the request idempotent: if the process exists, return
         var id = Optional.ofNullable(transferRequest.getId()).orElseGet(() -> UUID.randomUUID().toString());
-        var existingTransferProcess = transferProcessStore.findForCorrelationId(id);
+        var existingTransferProcess = store.findForCorrelationId(id);
         if (existingTransferProcess != null) {
             return StatusResult.success(existingTransferProcess);
         }
@@ -243,7 +241,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
         var resources = process.getResourcesToProvision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.provision(resources, policy))
-                .entityRetrieve(transferProcessStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((transferProcess, responses) -> handleResult(transferProcess, responses, provisionResponsesHandler))
                 .onFailure((t, throwable) -> transitionToProvisioning(t))
                 .onRetryExhausted((t, throwable) -> {
@@ -298,7 +296,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCounterPartyAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.findById(id))
+                .entityRetrieve(id -> store.findById(id))
                 .onSuccess((t, content) -> transitionToRequested(t))
                 .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
@@ -339,7 +337,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
 
         entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.findById(id))
+                .entityRetrieve(id -> store.findById(id))
                 .onSuccess((t, content) -> transitionToStarted(t))
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -395,7 +393,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.findById(id))
+                .entityRetrieve(id -> store.findById(id))
                 .onSuccess((t, content) -> transitionToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -426,7 +424,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> transferProcessStore.findById(id))
+                .entityRetrieve(id -> store.findById(id))
                 .onSuccess((t, content) -> transitionToTerminated(t))
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -450,7 +448,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
         return entityRetryProcessFactory.doAsyncProcess(process, () -> provisionManager.deprovision(resourcesToDeprovision, policy))
-                .entityRetrieve(transferProcessStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((transferProcess, responses) -> handleResult(transferProcess, responses, deprovisionResponsesHandler))
                 .onFailure((t, throwable) -> transitionToDeprovisioning(t))
                 .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
@@ -482,7 +480,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
     }
 
     private ProcessorImpl<TransferProcess> createProcessor(Function<TransferProcess, Boolean> function, Criterion[] filter) {
-        return ProcessorImpl.Builder.newInstance(() -> transferProcessStore.nextNotLeased(batchSize, filter))
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
                 .onNotProcessed(this::breakLease)
@@ -574,21 +572,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
         observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
 
-    private void update(TransferProcess transferProcess) {
-        transferProcessStore.save(transferProcess);
-        monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
-    }
-
-    private void breakLease(TransferProcess process) {
-        transferProcessStore.save(process);
-    }
-
-    @NotNull
-    private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
-        return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
-    }
-
-    public static class Builder extends AbstractStateEntityManager.Builder<TransferProcessManagerImpl, Builder> {
+    public static class Builder
+            extends AbstractStateEntityManager.Builder<TransferProcess, TransferProcessStore, TransferProcessManagerImpl, Builder> {
 
         private Builder() {
             super(new TransferProcessManagerImpl());
@@ -638,11 +623,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
             return this;
         }
 
-        public Builder transferProcessStore(TransferProcessStore transferProcessStore) {
-            manager.transferProcessStore = transferProcessStore;
-            return this;
-        }
-
         public Builder policyArchive(PolicyArchive policyArchive) {
             manager.policyArchive = policyArchive;
             return this;
@@ -683,7 +663,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager imple
             Objects.requireNonNull(manager.statusCheckerRegistry, "statusCheckerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "observable cannot be null");
             Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
-            Objects.requireNonNull(manager.transferProcessStore, "transferProcessStore cannot be null");
             Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
             Objects.requireNonNull(manager.provisionResponsesHandler, "provisionResultHandler cannot be null");
             Objects.requireNonNull(manager.deprovisionResponsesHandler, "deprovisionResponsesHandler cannot be null");
