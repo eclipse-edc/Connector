@@ -9,7 +9,7 @@
 #
 #  Contributors:
 #       Microsoft Corporation - initial API and implementation
-#
+#       NTT DATA Corporation - refactoring as opt-in plugin
 #
 
-org.eclipse.edc.boot.monitor.MonitorProvider
+org.eclipse.edc.monitor.slf4j.MonitorProvider

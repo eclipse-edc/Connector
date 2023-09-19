@@ -10,13 +10,15 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       NTT DATA Group Corporation - refactoring as opt-in extension
  *
  */
 
-package org.eclipse.edc.boot.monitor;
+package org.eclipse.edc.monitor.slf4j;
 
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
 import org.slf4j.Marker;
@@ -36,8 +38,8 @@ public class MonitorProvider implements SLF4JServiceProvider {
     private final IMarkerFactory markerFactory = new BasicMarkerFactory();
     private final MDCAdapter mdcAdapter = new NOPMDCAdapter();
 
-    public static void setInstance(Monitor monitor) {
-        instance = monitor;
+    public static void initialize(ServiceExtensionContext context) {
+        instance = context.getMonitor();
     }
 
     @Override
