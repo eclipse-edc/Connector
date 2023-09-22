@@ -31,8 +31,6 @@ dependencies {
 
     implementation(libs.junit.pioneer)
     implementation(libs.testcontainers.junit)
-
-    testFixturesImplementation(libs.mockito.core)
 }
 
 
