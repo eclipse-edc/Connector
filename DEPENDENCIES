@@ -163,8 +163,8 @@ maven/mavencentral/jakarta.inject/jakarta.inject-api/2.0.1, Apache-2.0, approved
 maven/mavencentral/jakarta.json/jakarta.json-api/2.1.1, EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0, approved, #7907
 maven/mavencentral/jakarta.transaction/jakarta.transaction-api/2.0.0, EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0, approved, #7697
 maven/mavencentral/jakarta.transaction/jakarta.transaction-api/2.0.1, EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0, approved, #7697
-maven/mavencentral/jakarta.validation/jakarta.validation-api/2.0.2, Apache-2.0, approved, clearlydefined
-maven/mavencentral/jakarta.validation/jakarta.validation-api/3.0.2, Apache-2.0, approved, clearlydefined
+maven/mavencentral/jakarta.validation/jakarta.validation-api/2.0.2, Apache-2.0, approved, ee4j.validation
+maven/mavencentral/jakarta.validation/jakarta.validation-api/3.0.2, Apache-2.0, approved, ee4j.validation
 maven/mavencentral/jakarta.ws.rs/jakarta.ws.rs-api/3.1.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.rest
 maven/mavencentral/jakarta.xml.bind/jakarta.xml.bind-api/2.3.2, BSD-3-Clause, approved, ee4j.jaxb
 maven/mavencentral/jakarta.xml.bind/jakarta.xml.bind-api/3.0.0, BSD-3-Clause, approved, ee4j.jaxb
