@@ -16,7 +16,6 @@
 package org.eclipse.edc.boot.system.runtime;
 
 
-import org.eclipse.edc.boot.monitor.MonitorProvider;
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.boot.system.ServiceLocator;
@@ -94,7 +93,6 @@ public class BaseRuntime {
     @NotNull
     protected ServiceExtensionContext createServiceExtensionContext() {
         monitor = createMonitor();
-        MonitorProvider.setInstance(monitor);
 
         var context = createContext(monitor);
         initializeContext(context);
