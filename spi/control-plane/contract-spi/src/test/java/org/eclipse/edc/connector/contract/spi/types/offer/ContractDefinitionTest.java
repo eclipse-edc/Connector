@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - Initial implementation
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -19,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,11 +32,14 @@ class ContractDefinitionTest {
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
         ObjectMapper mapper = new TypeManager().getMapper();
+        Map<String, Object> privateProperties = new HashMap<>();
+        privateProperties.put("key1", "value1");
         var definition = ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .assetsSelectorCriterion(criterion("field", "=", "value"))
+                .privateProperties(privateProperties)
                 .build();
 
         var serialized = mapper.writeValueAsString(definition);
