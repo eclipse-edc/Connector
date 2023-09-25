@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.api.client.spi.transferprocess;
 
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 /**
@@ -32,13 +33,13 @@ public interface TransferProcessApiClient {
      *
      * @param request The completed {@link DataFlowRequest}
      */
-    void completed(DataFlowRequest request);
+    Result<Void> completed(DataFlowRequest request);
 
     /**
      * Mark the TransferProcess referenced by {@link DataFlowRequest#getProcessId()} as failed
      *
      * @param request The failed {@link DataFlowRequest}
      */
-    void failed(DataFlowRequest request, String reason);
+    Result<Void> failed(DataFlowRequest request, String reason);
 
 }
