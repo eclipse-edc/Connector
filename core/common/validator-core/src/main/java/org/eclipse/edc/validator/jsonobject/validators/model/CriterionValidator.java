@@ -17,6 +17,7 @@ package org.eclipse.edc.validator.jsonobject.validators.model;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -40,6 +41,7 @@ public class CriterionValidator {
         return builder
                 .verify(CRITERION_OPERAND_LEFT, MandatoryValue::new)
                 .verify(CRITERION_OPERATOR, MandatoryValue::new)
+                .verify(CRITERION_OPERAND_RIGHT, MandatoryArray.min(1))
                 .verify(OperandRightValidator::new);
     }
 
@@ -57,9 +59,9 @@ public class CriterionValidator {
             }
 
             return Optional.ofNullable(input.getJsonArray(CRITERION_OPERAND_RIGHT))
-                    .filter(it -> it.size() == 1)
+                    .filter(it -> it.size() < 2)
                     .map(it -> ValidationResult.success())
-                    .orElse(ValidationResult.failure(Violation.violation(format("%s cannot contain multiple values as the operator is not 'in'", path.toString()), CRITERION_OPERAND_RIGHT)));
+                    .orElse(ValidationResult.failure(Violation.violation(format("%s cannot contain multiple values as the operator is not 'in'", path.append(CRITERION_OPERAND_RIGHT)), CRITERION_OPERAND_RIGHT)));
         }
     }
 }
