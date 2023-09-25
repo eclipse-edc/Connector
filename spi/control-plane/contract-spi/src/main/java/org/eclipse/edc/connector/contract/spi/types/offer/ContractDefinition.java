@@ -149,6 +149,11 @@ public class ContractDefinition extends Entity {
             return this;
         }
 
+        public Builder privateProperty(String key, Object value) {
+            entity.privateProperties.put(key, value);
+            return this;
+        }
+
         public Builder privateProperties(Map<String, Object> privateProperties) {
             Objects.requireNonNull(privateProperties);
             entity.privateProperties.putAll(privateProperties);

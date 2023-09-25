@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -22,16 +23,20 @@ import org.eclipse.edc.connector.api.management.contractdefinition.transform.Jso
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
 
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = ContractDefinitionApiExtension.NAME)
 public class ContractDefinitionApiExtension implements ServiceExtension {
@@ -53,6 +58,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     JsonObjectValidatorRegistry validatorRegistry;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -61,7 +69,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var jsonFactory = Json.createBuilderFactory(Map.of());
-        transformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory));
+        var mapper = typeManager.getMapper(JSON_LD);
+        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
+        transformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, mapper));
         transformerRegistry.register(new JsonObjectToContractDefinitionTransformer());
 
         validatorRegistry.register(CONTRACT_DEFINITION_TYPE, ContractDefinitionValidator.instance());
