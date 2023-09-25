@@ -180,6 +180,8 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                 if (existsById(assetId, connection)) {
                     queryExecutor.execute(connection, assetStatements.getDeletePropertyByIdTemplate(), assetId);
                     insertProperties(asset, assetId, connection);
+                    var updateTemplate = assetStatements.getUpdateDataAddressTemplate();
+                    queryExecutor.execute(connection, updateTemplate, toJson(asset.getDataAddress().getProperties()), assetId);
                     return StoreResult.success(asset);
                 }
                 return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
