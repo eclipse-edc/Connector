@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.List;
 
-import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
+import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
 
 /**
  * Implementation of {@link TransferProcessApiClient} which talks to the Control Plane Transfer Process via HTTP APIs
@@ -64,7 +64,7 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
         if (dataFlowRequest.getCallbackAddress() != null) {
             try {
                 var request = createRequest(buildUrl(dataFlowRequest, action), body);
-                try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNot(204)))) {
+                try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(200, 204)))) {
                     if (!response.isSuccessful()) {
                         var message = "Failed to send callback request: received %s from the TransferProcess API"
                                 .formatted(response.code());

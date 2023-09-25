@@ -19,6 +19,9 @@ import dev.failsafe.event.ExecutionAttemptedEvent;
 import dev.failsafe.function.CheckedFunction;
 import okhttp3.Response;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
 
 /**
@@ -64,6 +67,28 @@ public interface FallbackFactories {
             };
             return Fallback.builderOfException(exceptionSupplier)
                     .handleResultIf(r -> r.code() != status)
+                    .build();
+        };
+    }
+
+    /**
+     * Verifies that the response has a specific statuses, otherwise it should be retried
+     *
+     * @return the {@link FallbackFactory}
+     */
+    static FallbackFactory retryWhenStatusIsNotIn(int... status) {
+        var codes = Arrays.stream(status).boxed().collect(Collectors.toSet());
+        return request -> {
+            CheckedFunction<ExecutionAttemptedEvent<? extends Response>, Exception> exceptionSupplier = event -> {
+                var response = event.getLastResult();
+                if (response == null) {
+                    return new EdcHttpClientException(event.getLastException().getMessage());
+                } else {
+                    return new EdcHttpClientException(format("Server response to %s was not %s but was %s: %s", request, status, response.code(), response.body().string()));
+                }
+            };
+            return Fallback.builderOfException(exceptionSupplier)
+                    .handleResultIf(r -> !codes.contains(r.code()))
                     .build();
         };
     }
