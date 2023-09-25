@@ -30,6 +30,12 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 import java.util.Objects;
 
+/**
+ * Abstraction that provides a common ground for state machine manager implementation.
+ *
+ * @param <E> the entity type.
+ * @param <S> the store type.
+ */
 public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S extends StateEntityStore<E>> implements StateEntityManager {
 
     public static final long DEFAULT_ITERATION_WAIT = 1000;
@@ -66,7 +72,7 @@ public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S 
     }
 
     /**
-     * configure the State Machine Manager builder
+     * configures the State Machine Manager builder
      *
      * @param builder the builder.
      * @return the builder.

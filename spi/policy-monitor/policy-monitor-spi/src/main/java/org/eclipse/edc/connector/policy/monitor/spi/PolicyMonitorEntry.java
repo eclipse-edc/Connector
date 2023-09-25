@@ -20,6 +20,9 @@ import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntrySta
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.FAILED;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
 
+/**
+ * Entity that represent a transfer process into the Policy Monitor context.
+ */
 public class PolicyMonitorEntry extends StatefulEntity<PolicyMonitorEntry> {
 
     private String contractId;

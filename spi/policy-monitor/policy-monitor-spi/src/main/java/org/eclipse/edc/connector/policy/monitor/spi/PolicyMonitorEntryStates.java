@@ -16,6 +16,9 @@ package org.eclipse.edc.connector.policy.monitor.spi;
 
 import java.util.Arrays;
 
+/**
+ * States for the {@link PolicyMonitorEntry} entity.
+ */
 public enum PolicyMonitorEntryStates {
     STARTED(100),
     COMPLETED(200),

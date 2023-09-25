@@ -15,7 +15,7 @@
 package org.eclipse.edc.spi.entity;
 
 /**
- * Is a long-running process that takes care of managing entity and their status.
+ * A long-running process that manages entities and their states
  */
 public interface StateEntityManager {
 

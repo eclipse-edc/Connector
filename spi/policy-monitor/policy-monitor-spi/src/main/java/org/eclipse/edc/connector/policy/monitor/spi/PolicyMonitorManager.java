@@ -17,8 +17,7 @@ package org.eclipse.edc.connector.policy.monitor.spi;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 
 /**
- * Takes care to iterate over the ongoing transfers verifying their policy, completing them whenever the policy
- * cannot be evaluated anymore.
+ * Iterates over ongoing transfers, verifying their policies and completing when the policy can no longer be evaluated.
  */
 public interface PolicyMonitorManager extends StateEntityManager {
 

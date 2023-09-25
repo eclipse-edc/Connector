@@ -35,6 +35,9 @@ import java.util.function.Function;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
+/**
+ * Implementation of the {@link PolicyMonitorManager}
+ */
 public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyMonitorEntry, PolicyMonitorStore>
         implements PolicyMonitorManager {
 

@@ -22,6 +22,9 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
 
+/**
+ * Event subscriber that will start monitoring a transfer process whenever it gets started and it's a PROVIDER one.
+ */
 public class StartMonitoring implements EventSubscriber {
 
     private final PolicyMonitorManager manager;

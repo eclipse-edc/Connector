@@ -27,6 +27,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * In-memory implementation of the {@link PolicyMonitorStore}
+ */
 public class InMemoryPolicyMonitorStore implements PolicyMonitorStore {
 
     private final InMemoryStatefulEntityStore<PolicyMonitorEntry> store;
