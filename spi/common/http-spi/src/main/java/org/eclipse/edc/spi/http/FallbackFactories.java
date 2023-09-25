@@ -84,7 +84,7 @@ public interface FallbackFactories {
                 if (response == null) {
                     return new EdcHttpClientException(event.getLastException().getMessage());
                 } else {
-                    return new EdcHttpClientException(format("Server response to %s was not %s but was %s: %s", request, status, response.code(), response.body().string()));
+                    return new EdcHttpClientException(format("Server response to %s was not one of %s but was %s: %s", request, Arrays.toString(status), response.code(), response.body().string()));
                 }
             };
             return Fallback.builderOfException(exceptionSupplier)
