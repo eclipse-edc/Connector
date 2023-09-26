@@ -56,19 +56,7 @@ public interface FallbackFactories {
      * @return the {@link FallbackFactory}
      */
     static FallbackFactory retryWhenStatusIsNot(int status) {
-        return request -> {
-            CheckedFunction<ExecutionAttemptedEvent<? extends Response>, Exception> exceptionSupplier = event -> {
-                var response = event.getLastResult();
-                if (response == null) {
-                    return new EdcHttpClientException(event.getLastException().getMessage());
-                } else {
-                    return new EdcHttpClientException(format("Server response to %s was not %s but was %s: %s", request, status, response.code(), response.body().string()));
-                }
-            };
-            return Fallback.builderOfException(exceptionSupplier)
-                    .handleResultIf(r -> r.code() != status)
-                    .build();
-        };
+        return retryWhenStatusIsNotIn(status);
     }
 
     /**
