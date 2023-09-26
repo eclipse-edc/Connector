@@ -28,12 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class PipelineServiceIntegrationTest {
@@ -47,10 +47,11 @@ public class PipelineServiceIntegrationTest {
         pipelineService.registerFactory(endpoint);
         pipelineService.registerFactory(new InputStreamDataFactory());
 
-        var result = pipelineService.transfer(createRequest().build());
+        var future = pipelineService.transfer(createRequest().build());
 
-        assertThat(result).succeedsWithin(5, TimeUnit.SECONDS);
-        assertThat(endpoint.stream.size()).isEqualTo("bytes".getBytes().length);
+        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS).satisfies(result -> {
+            assertThat(result).isSucceeded().isEqualTo("bytes");
+        });
     }
 
     private DataFlowRequest.Builder createRequest() {
@@ -62,12 +63,10 @@ public class PipelineServiceIntegrationTest {
     }
 
     private static class FixedEndpoint implements DataSinkFactory {
-        private final ByteArrayOutputStream stream;
         private final OutputStreamDataSink sink;
 
         FixedEndpoint(Monitor monitor) {
-            stream = new ByteArrayOutputStream();
-            sink = new OutputStreamDataSink(randomUUID().toString(), stream, Executors.newFixedThreadPool(1), monitor);
+            sink = new OutputStreamDataSink(randomUUID().toString(), Executors.newFixedThreadPool(1), monitor);
         }
 
         @Override

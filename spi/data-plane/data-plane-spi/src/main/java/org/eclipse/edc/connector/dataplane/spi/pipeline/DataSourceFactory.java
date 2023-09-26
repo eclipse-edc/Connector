@@ -19,7 +19,7 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Creates {@link DataSource}s and optimized {@link PipelineService}s.
+ * Creates {@link DataSource}s.
  */
 public interface DataSourceFactory {
 

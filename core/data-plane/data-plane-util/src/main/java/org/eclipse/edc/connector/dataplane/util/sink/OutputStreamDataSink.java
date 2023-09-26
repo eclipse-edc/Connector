@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -41,15 +42,15 @@ public class OutputStreamDataSink implements DataSink {
     private final ExecutorService executorService;
     private final Monitor monitor;
 
-    public OutputStreamDataSink(String requestId, OutputStream stream, ExecutorService executorService, Monitor monitor) {
+    public OutputStreamDataSink(String requestId, ExecutorService executorService, Monitor monitor) {
         this.requestId = requestId;
-        this.stream = stream;
+        this.stream = new ByteArrayOutputStream();
         this.executorService = executorService;
         this.monitor = monitor;
     }
 
     @Override
-    public CompletableFuture<StreamResult<Void>> transfer(DataSource source) {
+    public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
         var streamResult = source.openPartStream();
         if (streamResult.failed()) {
             return completedFuture(failure(streamResult.getFailure()));
@@ -63,7 +64,7 @@ public class OutputStreamDataSink implements DataSink {
                         if (results.stream().anyMatch(AbstractResult::failed)) {
                             return error("Error transferring data");
                         }
-                        return StreamResult.success();
+                        return StreamResult.success(stream.toString());
                     });
         } catch (Exception e) {
             var errorMessage = format("Error processing data transfer request - Request ID: %s", requestId);

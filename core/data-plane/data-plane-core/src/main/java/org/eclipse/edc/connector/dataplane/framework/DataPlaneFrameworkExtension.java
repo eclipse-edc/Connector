@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSel
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
@@ -48,7 +49,7 @@ import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.D
 /**
  * Provides core services for the Data Plane Framework.
  */
-@Provides({ DataPlaneManager.class, PipelineService.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class })
+@Provides({ DataPlaneManager.class, PipelineService.class, TransferService.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class })
 @Extension(value = DataPlaneFrameworkExtension.NAME)
 public class DataPlaneFrameworkExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Framework";
@@ -96,19 +97,21 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var pipelineService = new PipelineServiceImpl(monitor);
-        pipelineService.registerFactory(new OutputStreamDataSinkFactory()); // Added by default to support synchronous data transfer, i.e. pull data
-        context.registerService(PipelineService.class, pipelineService);
-
-        var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
-        transferServiceRegistry.registerTransferService(pipelineService);
-        context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         var numThreads = context.getSetting(TRANSFER_THREADS, DEFAULT_TRANSFER_THREADS);
         var executorService = Executors.newFixedThreadPool(numThreads);
         var executorContainer = new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
         context.registerService(DataTransferExecutorServiceContainer.class, executorContainer);
+
+        var transferService = new PipelineServiceImpl(monitor);
+        transferService.registerFactory(new OutputStreamDataSinkFactory(monitor, executorContainer.getExecutorService())); // Added by default to support synchronous data transfer, i.e. pull data
+        context.registerService(PipelineService.class, transferService);
+        context.registerService(TransferService.class, transferService);
+
+        var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
+        transferServiceRegistry.registerTransferService(transferService);
+        context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         var iterationWaitMillis = context.getSetting(DATAPLANE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = new ExponentialWaitStrategy(iterationWaitMillis);
@@ -119,7 +122,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .clock(clock)
                 .entityRetryProcessConfiguration(getEntityRetryProcessConfiguration(context))
                 .executorInstrumentation(executorInstrumentation)
-                .pipelineService(pipelineService)
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)

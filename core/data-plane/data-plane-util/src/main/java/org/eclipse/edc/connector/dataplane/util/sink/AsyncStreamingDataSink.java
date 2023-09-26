@@ -71,7 +71,7 @@ public class AsyncStreamingDataSink implements DataSink {
     }
 
     @Override
-    public CompletableFuture<StreamResult<Void>> transfer(DataSource source) {
+    public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
         var streamResult = source.openPartStream();
         if (streamResult.failed()) {
             return completedFuture(failure(streamResult.getFailure()));
@@ -84,7 +84,7 @@ public class AsyncStreamingDataSink implements DataSink {
     }
 
     @NotNull
-    private StreamResult<Void> processResults(List<? extends StatusResult<?>> results, Stream<DataSource.Part> partStream) {
+    private StreamResult<Object> processResults(List<? extends StatusResult<?>> results, Stream<DataSource.Part> partStream) {
         close(partStream);
         if (results.stream().anyMatch(AbstractResult::failed)) {
             return error("Error transferring data");

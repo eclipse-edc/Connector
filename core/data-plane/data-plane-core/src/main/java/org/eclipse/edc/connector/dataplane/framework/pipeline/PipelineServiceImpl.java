@@ -16,12 +16,12 @@ package org.eclipse.edc.connector.dataplane.framework.pipeline;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -40,7 +40,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 /**
  * Default pipeline service implementation.
  */
-public class PipelineServiceImpl implements PipelineService {
+public class PipelineServiceImpl implements PipelineService, TransferService {
     private final List<DataSourceFactory> sourceFactories = new ArrayList<>();
     private final List<DataSinkFactory> sinkFactories = new ArrayList<>();
     private final Map<String, DataSource> sources = new HashMap<>();
@@ -85,7 +85,7 @@ public class PipelineServiceImpl implements PipelineService {
 
     @WithSpan
     @Override
-    public CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request) {
+    public CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request) {
         var sourceFactory = getSourceFactory(request);
         if (sourceFactory == null) {
             return noSourceFactory(request);
@@ -98,19 +98,6 @@ public class PipelineServiceImpl implements PipelineService {
         sources.put(request.getProcessId(), source);
 
         var sink = sinkFactory.createSink(request);
-        monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
-        return sink.transfer(source);
-    }
-
-    @Override
-    public CompletableFuture<StreamResult<Void>> transfer(DataSink sink, DataFlowRequest request) {
-        var sourceFactory = getSourceFactory(request);
-        if (sourceFactory == null) {
-            return noSourceFactory(request);
-        }
-        var source = sourceFactory.createSource(request);
-        sources.put(request.getProcessId(), source);
-
         monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
         return sink.transfer(source);
     }
@@ -152,12 +139,12 @@ public class PipelineServiceImpl implements PipelineService {
     }
 
     @NotNull
-    private CompletableFuture<StreamResult<Void>> noSourceFactory(DataFlowRequest request) {
+    private CompletableFuture<StreamResult<Object>> noSourceFactory(DataFlowRequest request) {
         return completedFuture(StreamResult.error("Unknown data source type: " + request.getSourceDataAddress().getType()));
     }
 
     @NotNull
-    private CompletableFuture<StreamResult<Void>> noSinkFactory(DataFlowRequest request) {
+    private CompletableFuture<StreamResult<Object>> noSinkFactory(DataFlowRequest request) {
         return completedFuture(StreamResult.error("Unknown data sink type: " + request.getDestinationDataAddress().getType()));
     }
 

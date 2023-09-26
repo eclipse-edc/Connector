@@ -34,10 +34,12 @@ import org.mockito.ArgumentCaptor;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
@@ -107,6 +109,31 @@ class DataPlaneManagerImplTest {
         assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
         assertThat(dataFlow.isTrackable()).isEqualTo(request.isTrackable());
         assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
+    }
+
+    @Test
+    void transfer_shouldCallTransferOnResolvedService() {
+        var request = dataFlowBuilder().build().toRequest();
+        when(registry.resolveTransferService(any())).thenReturn(transferService);
+        when(transferService.transfer(any())).thenReturn(CompletableFuture.completedFuture(StreamResult.success()));
+
+        var future = manager.transfer(request);
+
+        assertThat(future).succeedsWithin(5, SECONDS);
+        verify(registry).resolveTransferService(request);
+        verify(transferService).transfer(request);
+    }
+
+    @Test
+    void transfer_shouldFail_whenNoTransferServiceAvailable() {
+        var request = dataFlowBuilder().build().toRequest();
+        when(registry.resolveTransferService(any())).thenReturn(null);
+
+        var future = manager.transfer(request);
+
+        assertThat(future).failsWithin(5, SECONDS);
+        verify(registry).resolveTransferService(request);
+        verifyNoInteractions(transferService);
     }
 
     @Test

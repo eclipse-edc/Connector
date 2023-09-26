@@ -14,26 +14,25 @@
 
 package org.eclipse.edc.connector.dataplane.util.sink;
 
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.Mockito.mock;
 
 class OutputStreamDataSinkFactoryTest {
 
-    private OutputStreamDataSinkFactory factory;
-
-    @BeforeEach
-    void setUp() {
-        factory = new OutputStreamDataSinkFactory();
-    }
+    private final Monitor monitor = mock();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final OutputStreamDataSinkFactory factory = new OutputStreamDataSinkFactory(monitor, executorService);
 
     @Test
     void verifyCanHandle() {
@@ -62,12 +61,14 @@ class OutputStreamDataSinkFactoryTest {
 
     @Test
     void verifyCreateSinkReturnCompletedFuture() {
-        var sink = factory.createSink(null);
+        var request = createDataFlowRequest("dummy");
 
-        assertThat(sink.transfer(null)).succeedsWithin(500L, TimeUnit.MILLISECONDS);
+        var sink = factory.createSink(request);
+
+        assertThat(sink).isInstanceOf(OutputStreamDataSink.class);
     }
 
-    private static DataFlowRequest createDataFlowRequest(String destAddressType) {
+    private DataFlowRequest createDataFlowRequest(String destAddressType) {
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(DataAddress.Builder.newInstance()

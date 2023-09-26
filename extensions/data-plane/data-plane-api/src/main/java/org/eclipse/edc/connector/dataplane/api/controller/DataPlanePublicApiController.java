@@ -31,14 +31,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
-import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSink;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
-import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -52,18 +48,12 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
     private final DataPlaneManager dataPlaneManager;
     private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
-    private final Monitor monitor;
-    private final ExecutorService executorService;
 
     public DataPlanePublicApiController(DataPlaneManager dataPlaneManager,
-                                        DataAddressResolver dataAddressResolver,
-                                        Monitor monitor,
-                                        ExecutorService executorService) {
+                                        DataAddressResolver dataAddressResolver) {
         this.dataPlaneManager = dataPlaneManager;
         this.dataAddressResolver = dataAddressResolver;
         this.requestSupplier = new DataFlowRequestSupplier();
-        this.monitor = monitor;
-        this.executorService = executorService;
     }
 
     @GET
@@ -140,14 +130,11 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
             return;
         }
 
-        var stream = new ByteArrayOutputStream();
-        var sink = new OutputStreamDataSink(dataFlowRequest.getId(), stream, executorService, monitor);
-
-        dataPlaneManager.transfer(sink, dataFlowRequest)
+        dataPlaneManager.transfer(dataFlowRequest)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         if (result.succeeded()) {
-                            response.resume(Response.ok(stream.toString()).build());
+                            response.resume(Response.ok(result.getContent()).build());
                         } else {
                             response.resume(internalErrors(result.getFailureMessages()));
                         }

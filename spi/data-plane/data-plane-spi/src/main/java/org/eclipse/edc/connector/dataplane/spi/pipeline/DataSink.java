@@ -24,5 +24,6 @@ public interface DataSink {
     /**
      * Transfers the data to the sink, returning a future to obtain the result. Implementations may be non-blocking.
      */
-    CompletableFuture<StreamResult<Void>> transfer(DataSource source);
+    CompletableFuture<StreamResult<Object>> transfer(DataSource source);
+
 }

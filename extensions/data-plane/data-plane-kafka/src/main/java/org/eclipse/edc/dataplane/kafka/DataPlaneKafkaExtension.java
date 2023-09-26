@@ -15,7 +15,7 @@
 package org.eclipse.edc.dataplane.kafka;
 
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.dataplane.kafka.config.KafkaPropertiesFactory;
 import org.eclipse.edc.dataplane.kafka.pipeline.KafkaDataSinkFactory;
 import org.eclipse.edc.dataplane.kafka.pipeline.KafkaDataSourceFactory;
@@ -35,7 +35,7 @@ public class DataPlaneKafkaExtension implements ServiceExtension {
     private DataTransferExecutorServiceContainer executorContainer;
 
     @Inject
-    private PipelineService pipelineService;
+    private TransferService transferService;
 
     @Inject
     private Clock clock;
@@ -50,7 +50,7 @@ public class DataPlaneKafkaExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var propertiesFactory = new KafkaPropertiesFactory();
 
-        pipelineService.registerFactory(new KafkaDataSourceFactory(monitor, propertiesFactory, clock));
-        pipelineService.registerFactory(new KafkaDataSinkFactory(executorContainer.getExecutorService(), monitor, propertiesFactory));
+        transferService.registerFactory(new KafkaDataSourceFactory(monitor, propertiesFactory, clock));
+        transferService.registerFactory(new KafkaDataSinkFactory(executorContainer.getExecutorService(), monitor, propertiesFactory));
     }
 }

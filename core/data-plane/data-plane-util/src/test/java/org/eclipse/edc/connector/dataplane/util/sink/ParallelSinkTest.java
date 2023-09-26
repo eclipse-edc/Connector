@@ -119,18 +119,18 @@ class ParallelSinkTest {
     private static class FakeParallelSink extends ParallelSink {
 
         List<DataSource.Part> parts;
-        Supplier<StreamResult<Void>> transferResultSupplier = StreamResult::success;
+        Supplier<StreamResult<Object>> transferResultSupplier = StreamResult::success;
         private int complete;
-        private StreamResult<Void> completeResponse = StreamResult.success();
+        private StreamResult<Object> completeResponse = StreamResult.success();
 
         @Override
-        protected StreamResult<Void> transferParts(List<DataSource.Part> parts) {
+        protected StreamResult<Object> transferParts(List<DataSource.Part> parts) {
             this.parts = parts;
             return transferResultSupplier.get();
         }
 
         @Override
-        protected StreamResult<Void> complete() {
+        protected StreamResult<Object> complete() {
             complete++;
             return completeResponse;
         }

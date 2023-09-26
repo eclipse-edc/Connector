@@ -44,7 +44,7 @@ class KafkaDataSink extends ParallelSink implements Closeable {
     }
 
     @Override
-    protected StreamResult<Void> transferParts(List<DataSource.Part> parts) {
+    protected StreamResult<Object> transferParts(List<DataSource.Part> parts) {
         return parts.stream()
                 .map(this::publishPart)
                 .filter(AbstractResult::failed)
@@ -52,7 +52,7 @@ class KafkaDataSink extends ParallelSink implements Closeable {
                 .orElse(StreamResult.success());
     }
 
-    private StreamResult<Void> publishPart(DataSource.Part part) {
+    private StreamResult<Object> publishPart(DataSource.Part part) {
         try (var is = part.openStream()) {
             // asynchronous publishing
             producer.send(new ProducerRecord<>(topic, null, is.readAllBytes()), (metadata, exception) -> {

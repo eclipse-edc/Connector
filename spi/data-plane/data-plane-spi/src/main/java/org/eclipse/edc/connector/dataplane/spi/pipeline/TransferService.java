@@ -38,7 +38,7 @@ public interface TransferService {
     /**
      * Transfers data from source to destination.
      */
-    CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request);
+    CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request);
 
     /**
      * Terminate a data flow.
@@ -46,4 +46,14 @@ public interface TransferService {
      * @param dataFlow the data flow.
      */
     StreamResult<Void> terminate(DataFlow dataFlow);
+
+    /**
+     * Registers a factory for creating data sources.
+     */
+    void registerFactory(DataSourceFactory factory);
+
+    /**
+     * Registers a factory for creating data sinks.
+     */
+    void registerFactory(DataSinkFactory factory);
 }

@@ -15,28 +15,14 @@
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Transfers data from a source to a sink.
+ *
+ * @deprecated this interface will be removed from the hierarchy, please use {@link TransferService} instead.
  */
 @ExtensionPoint
+@Deprecated(since = "0.3.0")
 public interface PipelineService extends TransferService {
 
-    /**
-     * Transfers data using the supplied data sink.
-     */
-    CompletableFuture<StreamResult<Void>> transfer(DataSink sink, DataFlowRequest request);
-
-    /**
-     * Registers a factory for creating data sources.
-     */
-    void registerFactory(DataSourceFactory factory);
-
-    /**
-     * Registers a factory for creating data sinks.
-     */
-    void registerFactory(DataSinkFactory factory);
 }
