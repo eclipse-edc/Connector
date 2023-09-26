@@ -61,6 +61,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_SEND_RETRY_BASE_DELAY;
+import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_SEND_RETRY_LIMIT;
+
 /**
  * Provides core data transfer services to the system.
  */
@@ -70,11 +75,6 @@ import java.time.Clock;
 public class TransferCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Core";
-
-    public static final long DEFAULT_ITERATION_WAIT = 1000;
-    public static final int DEFAULT_BATCH_SIZE = 20;
-    public static final int DEFAULT_SEND_RETRY_LIMIT = 7;
-    public static final long DEFAULT_SEND_RETRY_BASE_DELAY = 1000L;
 
     @Setting(value = "the iteration wait time in milliseconds in the transfer process state machine. Default value " + DEFAULT_ITERATION_WAIT, type = "long")
     private static final String TRANSFER_STATE_MACHINE_ITERATION_WAIT_MILLIS = "edc.transfer.state-machine.iteration-wait-millis";
@@ -187,7 +187,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .vault(vault)
                 .clock(clock)
                 .observable(observable)
-                .transferProcessStore(transferProcessStore)
+                .store(transferProcessStore)
                 .policyArchive(policyArchive)
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, DEFAULT_BATCH_SIZE))
                 .addressResolver(addressResolver)

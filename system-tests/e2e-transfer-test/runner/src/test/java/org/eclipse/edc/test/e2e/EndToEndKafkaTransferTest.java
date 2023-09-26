@@ -33,21 +33,18 @@ import org.eclipse.edc.test.e2e.annotations.KafkaIntegrationTest;
 import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
 import org.eclipse.edc.test.e2e.serializers.JacksonDeserializer;
 import org.eclipse.edc.test.e2e.serializers.JacksonSerializer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.validation.constraints.NotNull;
@@ -55,11 +52,11 @@ import javax.validation.constraints.NotNull;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
+import static org.eclipse.edc.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.stop.Stop.stopQuietly;
 import static org.mockserver.verify.VerificationTimes.atLeast;
@@ -87,9 +84,6 @@ class EndToEndKafkaTransferTest {
             .id("urn:connector:provider")
             .build();
 
-    private static ClientAndServer eventDestination;
-    private static ScheduledExecutorService executor;
-
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane",
@@ -113,42 +107,40 @@ class EndToEndKafkaTransferTest {
 
     @BeforeAll
     public static void setUp() {
-        eventDestination = startClientAndServer(EVENT_DESTINATION_PORT);
         startKafkaProducer();
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        stopQuietly(eventDestination);
-        executor.shutdown();
-    }
-
-    /**
-     * Reset mock server internal state after every test.
-     */
-    @AfterEach
-    public void resetMockServer() {
-        eventDestination.reset();
     }
 
     @Test
     void kafkaToHttpTransfer() {
-        PROVIDER.registerDataPlane();
+        var eventDestination = startClientAndServer(EVENT_DESTINATION_PORT);
+        PROVIDER.registerDataPlane(Set.of("Kafka"), Set.of("HttpData"));
 
         var assetId = UUID.randomUUID().toString();
         createResourcesOnProvider(assetId, kafkaSourceProperty());
 
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), httpSink());
         await().atMost(TIMEOUT).untilAsserted(() -> {
-            var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(STARTED.name());
-
             var requestDefinition = HttpRequest.request()
                     .withMethod(HttpMethod.POST.name())
                     .withPath(SINK_HTTP_PATH)
                     .withBody(OBJECT_MAPPER.writeValueAsBytes(JSON_MESSAGE));
             eventDestination.verify(requestDefinition, atLeast(1));
         });
+
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(COMPLETED.name());
+            eventDestination.reset();
+        });
+
+        /* TODO: this should be enabled to ensure that the transfer gets actually stopped:
+        * https://github.com/eclipse-edc/Connector/issues/3453
+        * await().atLeast(5, TimeUnit.SECONDS).untilAsserted(() -> {
+        *   eventDestination.verifyZeroInteractions();
+        * });
+        */
+
+        stopQuietly(eventDestination);
     }
 
     @Test
@@ -156,19 +148,21 @@ class EndToEndKafkaTransferTest {
         try (var consumer = createKafkaConsumer()) {
             consumer.subscribe(List.of(SINK_TOPIC));
 
-            PROVIDER.registerDataPlane();
+            PROVIDER.registerDataPlane(Set.of("Kafka"), Set.of("Kafka"));
 
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, kafkaSourceProperty());
 
             var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), kafkaSink());
             await().atMost(TIMEOUT).untilAsserted(() -> {
-                var state = CONSUMER.getTransferProcessState(transferProcessId);
-                assertThat(state).isEqualTo(STARTED.name());
-
                 var records = consumer.poll(Duration.ZERO);
                 assertThat(records.isEmpty()).isFalse();
                 records.records(SINK_TOPIC).forEach(record -> assertThat(record.value()).isEqualTo(JSON_MESSAGE));
+            });
+
+            await().atMost(TIMEOUT).untilAsserted(() -> {
+                var state = CONSUMER.getTransferProcessState(transferProcessId);
+                assertThat(state).isEqualTo(COMPLETED.name());
             });
         }
     }
@@ -192,16 +186,16 @@ class EndToEndKafkaTransferTest {
 
     private static void startKafkaProducer() {
         var producer = createKafkaProducer();
-        executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> producer.send(new ProducerRecord<>(SOURCE_TOPIC, String.valueOf(MESSAGE_COUNTER.getAndIncrement()), JSON_MESSAGE)),
                 0, 100, TimeUnit.MILLISECONDS);
     }
 
     private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
-        var noConstraintPolicyDefinition = PROVIDER.createPolicyDefinition(noConstraintPolicy());
-        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyDefinition, noConstraintPolicyDefinition);
+        var policy = inForceDatePolicy("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s");
+        var policyDefinition = PROVIDER.createPolicyDefinition(policy);
+        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), policyDefinition, policyDefinition);
     }
 
     private static JsonObject httpSink() {

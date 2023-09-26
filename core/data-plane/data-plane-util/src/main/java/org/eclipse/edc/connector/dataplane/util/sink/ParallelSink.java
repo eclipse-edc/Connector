@@ -59,14 +59,11 @@ public abstract class ParallelSink implements DataSink {
                 return PartitionIterator.streamOf(partStream, partitionSize)
                         .map(this::processPartsAsync)
                         .collect(asyncAllOf())
-                        .thenApply(results -> {
-                            StreamResult<Void> voidStreamResult = results.stream()
-                                    .filter(AbstractResult::failed)
-                                    .findFirst()
-                                    .map(r -> StreamResult.<Void>error(String.join(",", r.getFailureMessages())))
-                                    .orElseGet(() -> complete());
-                            return voidStreamResult;
-                        })
+                        .thenApply(results -> results.stream()
+                                .filter(AbstractResult::failed)
+                                .findFirst()
+                                .map(r -> StreamResult.<Void>error(String.join(",", r.getFailureMessages())))
+                                .orElseGet(this::complete))
                         .exceptionally(throwable -> StreamResult.error("Unhandled exception raised when transferring data: " + throwable.getMessage()));
             }
         } catch (Exception e) {

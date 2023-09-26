@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.contract.spi.negotiation;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.entity.StateEntityManager;
 
 /**
  * Manages contract negotiations on the provider.
@@ -24,6 +25,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
  */
 
 @ExtensionPoint
-public interface ProviderContractNegotiationManager {
+public interface ProviderContractNegotiationManager extends StateEntityManager {
 
 }

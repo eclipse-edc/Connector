@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -48,7 +49,7 @@ import java.util.concurrent.CompletableFuture;
  * </pre>
  */
 @ExtensionPoint
-public interface DataPlaneManager {
+public interface DataPlaneManager extends StateEntityManager {
 
     /**
      * Determines if the data flow request is valid and can be processed by this runtime.

@@ -88,7 +88,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .clock(clock)
                 .statusCheckerRegistry(mock())
                 .observable(mock())
-                .transferProcessStore(store)
+                .store(store)
                 .policyArchive(policyArchive)
                 .addressResolver(mock())
                 .provisionResponsesHandler(new ProvisionResponsesHandler(mock(), mock(), mock(), mock()))

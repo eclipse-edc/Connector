@@ -163,7 +163,7 @@ class TransferProcessManagerImplTest {
                 .clock(clock)
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(observable)
-                .transferProcessStore(transferProcessStore)
+                .store(transferProcessStore)
                 .policyArchive(policyArchive)
                 .vault(vault)
                 .addressResolver(addressResolver)
