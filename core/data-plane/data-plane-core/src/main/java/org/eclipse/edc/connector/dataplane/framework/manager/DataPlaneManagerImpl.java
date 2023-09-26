@@ -132,18 +132,26 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     private boolean processCompleted(DataFlow dataFlow) {
-        transferProcessClient.completed(dataFlow.toRequest());
-        dataFlow.transitToNotified();
-        update(dataFlow);
-
+        var response = transferProcessClient.completed(dataFlow.toRequest());
+        if (response.succeeded()) {
+            dataFlow.transitToNotified();
+            update(dataFlow);
+        } else {
+            dataFlow.transitToCompleted();
+            update(dataFlow);
+        }
         return true;
     }
 
     private boolean processFailed(DataFlow dataFlow) {
-        transferProcessClient.failed(dataFlow.toRequest(), dataFlow.getErrorDetail());
-        dataFlow.transitToNotified();
-        update(dataFlow);
-
+        var response = transferProcessClient.failed(dataFlow.toRequest(), dataFlow.getErrorDetail());
+        if (response.succeeded()) {
+            dataFlow.transitToNotified();
+            update(dataFlow);
+        } else {
+            dataFlow.transitToFailed(dataFlow.getErrorDetail());
+            update(dataFlow);
+        }
         return true;
     }
 
