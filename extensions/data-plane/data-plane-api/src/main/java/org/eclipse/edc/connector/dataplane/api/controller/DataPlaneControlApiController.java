@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.api.controller;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -33,8 +34,8 @@ import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions
 import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.validationErrors;
 
 @Path("/transfer")
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 public class DataPlaneControlApiController implements DataPlaneControlApi {
     private final DataPlaneManager dataPlaneManager;
 
@@ -60,8 +61,18 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
 
     @GET
     @Override
-    @Path("/{processId}")
-    public DataFlowStates getTransferState(@PathParam("processId") String processId) {
-        return dataPlaneManager.transferState(processId);
+    @Path("/{transferProcessId}")
+    public DataFlowStates getTransferState(@PathParam("transferProcessId") String transferProcessId) {
+        return dataPlaneManager.transferState(transferProcessId);
     }
+
+    @DELETE
+    @Path("/{transferProcessId}")
+    @Override
+    public void terminateTransfer(@PathParam("transferProcessId") String transferProcessId, @Suspended AsyncResponse response) {
+        dataPlaneManager.terminate(transferProcessId)
+                .onSuccess(r -> response.resume(Response.noContent().build()))
+                .onFailure(f -> response.resume(validationError("Cannot terminate transfer: " + f.getFailureDetail())));
+    }
+
 }

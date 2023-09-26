@@ -28,7 +28,6 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -37,6 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Implementation of a {@link DataPlaneClient} that uses a remote {@link DataPlaneManager} accessible from a REST API.
@@ -57,25 +57,41 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
 
     @WithSpan
     @Override
-    public StatusResult<Void> transfer(DataFlowRequest request) {
-        var instance = selectorClient.find(request.getSourceDataAddress(), request.getDestinationDataAddress(), selectorStrategy);
+    public StatusResult<Void> transfer(DataFlowRequest dataFlowRequest) {
+        var instance = selectorClient.find(dataFlowRequest.getSourceDataAddress(), dataFlowRequest.getDestinationDataAddress(), selectorStrategy);
         if (instance == null) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to find data plane instance supporting request: " + request.getId());
+            return StatusResult.failure(FATAL_ERROR, "Failed to find data plane instance supporting request: " + dataFlowRequest.getId());
         }
 
         RequestBody body;
         try {
-            body = RequestBody.create(mapper.writeValueAsString(request), TYPE_JSON);
+            body = RequestBody.create(mapper.writeValueAsString(dataFlowRequest), TYPE_JSON);
         } catch (JsonProcessingException e) {
             throw new EdcException(e);
         }
         var rq = new Request.Builder().post(body).url(instance.getUrl()).build();
 
         try (var response = httpClient.execute(rq)) {
-            return handleResponse(response, request.getId());
+            return handleResponse(response, dataFlowRequest.getId());
         } catch (IOException e) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, e.getMessage());
+            return StatusResult.failure(FATAL_ERROR, e.getMessage());
         }
+    }
+
+    @Override
+    public StatusResult<Void> terminate(String transferProcessId) {
+        return selectorClient.getAll().stream()
+                .map(dataPlane -> {
+                    var request = new Request.Builder().delete().url(dataPlane.getUrl() + "/" + transferProcessId).build();
+
+                    try (var response = httpClient.execute(request)) { // TODO: should retry when status is 409 (???)
+                        return handleResponse(response, transferProcessId);
+                    } catch (IOException e) {
+                        return StatusResult.<Void>failure(FATAL_ERROR, e.getMessage());
+                    }
+                })
+                .findAny()
+                .orElse(StatusResult.success());
     }
 
     private StatusResult<Void> handleResponse(Response response, String requestId) {
@@ -90,7 +106,7 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
         var errorMsg = Optional.ofNullable(response.body())
                 .map(this::formatErrorMessage)
                 .orElse("null response body");
-        return StatusResult.failure(ResponseStatus.FATAL_ERROR, format("Transfer request failed with status code %s for request %s: %s", response.code(), requestId, errorMsg));
+        return StatusResult.failure(FATAL_ERROR, format("Transfer request failed with status code %s for request %s: %s", response.code(), requestId, errorMsg));
     }
 
     private String formatErrorMessage(ResponseBody body) {

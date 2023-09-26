@@ -83,6 +83,11 @@ public class HttpDataSource implements DataSource {
     private HttpDataSource() {
     }
 
+    @Override
+    public void close() {
+
+    }
+
     public static class Builder {
         private final HttpDataSource dataSource;
 

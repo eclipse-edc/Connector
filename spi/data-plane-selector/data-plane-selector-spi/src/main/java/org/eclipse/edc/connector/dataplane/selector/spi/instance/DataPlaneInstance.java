@@ -39,35 +39,22 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class DataPlaneInstance {
 
     public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + "DataPlaneInstance";
-    public static final String TURNCOUNT = EDC_NAMESPACE + "turnCount";
+    public static final String TURN_COUNT = EDC_NAMESPACE + "turnCount";
     public static final String LAST_ACTIVE = EDC_NAMESPACE + "lastActive";
     public static final String URL = EDC_NAMESPACE + "url";
     public static final String PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String ALLOWED_SOURCE_TYPES = EDC_NAMESPACE + "allowedSourceTypes";
     public static final String ALLOWED_DEST_TYPES = EDC_NAMESPACE + "allowedDestTypes";
 
-    private Map<String, Object> properties;
-
-    private Set<String> allowedSourceTypes;
-
-    private Set<String> allowedDestTypes;
-
-    private int turnCount;
-
-    private long lastActive;
-
+    private Map<String, Object> properties = new HashMap<>();
+    private Set<String> allowedSourceTypes = new HashSet<>();
+    private Set<String> allowedDestTypes = new HashSet<>();
+    private int turnCount = 0;
+    private long lastActive = Instant.now().toEpochMilli();
     private URL url;
-
     private String id;
 
-    protected DataPlaneInstance() {
-        turnCount = 0;
-        lastActive = Instant.now().toEpochMilli();
-        properties = new HashMap<>();
-        url = null;
-
-        allowedSourceTypes = new HashSet<>();
-        allowedDestTypes = new HashSet<>();
+    private DataPlaneInstance() {
     }
 
     public String getId() {
@@ -112,7 +99,6 @@ public class DataPlaneInstance {
         return Collections.unmodifiableSet(allowedDestTypes);
     }
 
-
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private final DataPlaneInstance instance;
@@ -122,46 +108,68 @@ public class DataPlaneInstance {
         }
 
         @JsonCreator
-        public static DataPlaneInstance.Builder newInstance() {
-            return new DataPlaneInstance.Builder();
+        public static Builder newInstance() {
+            return new Builder();
         }
 
-        public DataPlaneInstance.Builder turnCount(int turnCount) {
+        public Builder turnCount(int turnCount) {
             instance.turnCount = turnCount;
             return this;
         }
 
-        public DataPlaneInstance.Builder lastActive(long lastActive) {
+        public Builder lastActive(long lastActive) {
             instance.lastActive = lastActive;
             return this;
         }
 
-        public DataPlaneInstance.Builder id(String id) {
+        public Builder id(String id) {
             instance.id = id;
             return this;
         }
 
-        public DataPlaneInstance.Builder allowedSourceType(String type) {
+        public Builder allowedSourceType(String type) {
             instance.allowedSourceTypes.add(type);
             return this;
         }
 
-        public DataPlaneInstance.Builder allowedDestType(String type) {
+        public Builder allowedDestType(String type) {
             instance.allowedDestTypes.add(type);
             return this;
         }
 
-        public DataPlaneInstance.Builder url(URL url) {
+        public Builder url(URL url) {
             instance.url = url;
             return this;
         }
 
-        public DataPlaneInstance.Builder url(String url) {
+        public Builder url(String url) {
             try {
                 instance.url = new URL(url);
             } catch (MalformedURLException e) {
                 throw new EdcException(e);
             }
+            return this;
+        }
+
+        public Builder property(String key, Object value) {
+            instance.properties.put(key, value);
+            return this;
+        }
+
+        public Builder allowedDestTypes(Set<String> types) {
+            instance.allowedDestTypes = types;
+            return this;
+        }
+
+        public Builder allowedSourceTypes(Set<String> types) {
+            if (types != null) {
+                instance.allowedSourceTypes = types;
+            }
+            return this;
+        }
+
+        public Builder properties(Map<String, Object> properties) {
+            instance.properties = properties;
             return this;
         }
 
@@ -172,28 +180,6 @@ public class DataPlaneInstance {
             Objects.requireNonNull(instance.url, "DataPlaneInstance must have an URL");
 
             return instance;
-        }
-
-        public DataPlaneInstance.Builder property(String key, Object value) {
-            instance.properties.put(key, value);
-            return this;
-        }
-
-        public DataPlaneInstance.Builder allowedDestTypes(Set<String> types) {
-            instance.allowedDestTypes = types;
-            return this;
-        }
-
-        public DataPlaneInstance.Builder allowedSourceTypes(Set<String> types) {
-            if (types != null) {
-                instance.allowedSourceTypes = types;
-            }
-            return this;
-        }
-
-        public DataPlaneInstance.Builder properties(Map<String, Object> properties) {
-            instance.properties = properties;
-            return this;
         }
     }
 }

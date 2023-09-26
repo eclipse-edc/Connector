@@ -52,7 +52,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:data-plane",
                     "provider-data-plane",
-                    PROVIDER.dataPlaneConfiguration()
+                    PROVIDER.dataPlanePostgresConfiguration()
             ),
             new EdcRuntimeExtension(
                     ":system-tests:e2e-transfer-test:control-plane-postgresql",

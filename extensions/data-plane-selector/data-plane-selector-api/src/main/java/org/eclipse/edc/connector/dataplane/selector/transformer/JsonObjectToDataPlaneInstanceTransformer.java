@@ -35,7 +35,7 @@ import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlan
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.Builder;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURNCOUNT;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 
 public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTransformer<JsonObject, DataPlaneInstance> {
@@ -62,7 +62,7 @@ public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTran
                 }
             }
             case LAST_ACTIVE -> transformLong(context, jsonValue, builder::lastActive);
-            case TURNCOUNT -> builder.turnCount(transformInt(jsonValue, context));
+            case TURN_COUNT -> builder.turnCount(transformInt(jsonValue, context));
             case ALLOWED_DEST_TYPES -> {
                 var set = jsonValue.asJsonArray().stream().map(jv -> transformString(jv, context)).collect(Collectors.toSet());
                 builder.allowedDestTypes(set);

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.pipeline;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
@@ -28,7 +29,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
@@ -40,6 +43,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class PipelineServiceImpl implements PipelineService {
     private final List<DataSourceFactory> sourceFactories = new ArrayList<>();
     private final List<DataSinkFactory> sinkFactories = new ArrayList<>();
+    private final Map<String, DataSource> sources = new HashMap<>();
     private final Monitor monitor;
 
     public PipelineServiceImpl(Monitor monitor) {
@@ -91,17 +95,8 @@ public class PipelineServiceImpl implements PipelineService {
             return noSinkFactory(request);
         }
         var source = sourceFactory.createSource(request);
-        var sink = sinkFactory.createSink(request);
-        monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
-        return sink.transfer(source);
-    }
+        sources.put(request.getProcessId(), source);
 
-    @Override
-    public CompletableFuture<StreamResult<Void>> transfer(DataSource source, DataFlowRequest request) {
-        var sinkFactory = getSinkFactory(request);
-        if (sinkFactory == null) {
-            return noSinkFactory(request);
-        }
         var sink = sinkFactory.createSink(request);
         monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
         return sink.transfer(source);
@@ -114,8 +109,26 @@ public class PipelineServiceImpl implements PipelineService {
             return noSourceFactory(request);
         }
         var source = sourceFactory.createSource(request);
+        sources.put(request.getProcessId(), source);
+
         monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
         return sink.transfer(source);
+    }
+
+    @Override
+    public StreamResult<Void> terminate(DataFlow dataFlow) {
+        var source = sources.get(dataFlow.getId());
+        if (source == null) {
+            return StreamResult.notFound();
+        } else {
+            try {
+                source.close();
+                sources.remove(dataFlow.getId());
+                return StreamResult.success();
+            } catch (Exception e) {
+                return StreamResult.error("Cannot terminate DataFlow %s: %s".formatted(dataFlow.getId(), e.getMessage()));
+            }
+        }
     }
 
     @Override

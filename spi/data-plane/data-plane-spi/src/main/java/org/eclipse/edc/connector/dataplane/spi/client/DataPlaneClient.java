@@ -28,4 +28,12 @@ public interface DataPlaneClient {
      * Delegates data transfer to the Data Plane.
      */
     StatusResult<Void> transfer(DataFlowRequest request);
+
+    /**
+     * Terminate the transfer.
+     *
+     * @param transferProcessId the transfer process id.
+     * @return success if the transfer has been terminated, failure otherwise.
+     */
+    StatusResult<Void> terminate(String transferProcessId);
 }

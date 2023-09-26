@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.dataplane.framework;
 import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
-import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceTransferServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
@@ -100,10 +99,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var pipelineService = new PipelineServiceImpl(monitor);
         pipelineService.registerFactory(new OutputStreamDataSinkFactory()); // Added by default to support synchronous data transfer, i.e. pull data
         context.registerService(PipelineService.class, pipelineService);
-        var transferService = new PipelineServiceTransferServiceImpl(pipelineService);
 
         var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
-        transferServiceRegistry.registerTransferService(transferService);
+        transferServiceRegistry.registerTransferService(pipelineService);
         context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         var numThreads = context.getSetting(TRANSFER_THREADS, DEFAULT_TRANSFER_THREADS);

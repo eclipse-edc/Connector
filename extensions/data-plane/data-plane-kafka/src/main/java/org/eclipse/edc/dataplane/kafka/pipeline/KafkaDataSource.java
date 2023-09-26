@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.InputStream;
 import java.time.Clock;
 import java.time.Duration;
@@ -39,7 +38,7 @@ import java.util.stream.StreamSupport;
 
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
-class KafkaDataSource implements DataSource, Closeable {
+class KafkaDataSource implements DataSource {
 
     private String name;
     private Monitor monitor;
@@ -54,6 +53,7 @@ class KafkaDataSource implements DataSource, Closeable {
     @Override
     public void close() {
         if (consumer != null) {
+            // TODO: should be the iterator closed as well?
             consumer.close();
         }
     }

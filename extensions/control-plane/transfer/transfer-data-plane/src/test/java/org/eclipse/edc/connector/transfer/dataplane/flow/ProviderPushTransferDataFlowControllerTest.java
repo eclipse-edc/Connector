@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
-import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
@@ -23,7 +22,6 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -32,6 +30,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -40,24 +39,17 @@ import static org.mockito.Mockito.when;
 class ProviderPushTransferDataFlowControllerTest {
 
     private final DataPlaneClient dataPlaneClient = mock();
-    private ProviderPushTransferDataFlowController flowController;
-
-    @BeforeEach
-    void setUp() {
-        var callbackUrlMock = mock(ControlApiUrl.class);
-        var url = URI.create("http://localhost");
-        when(callbackUrlMock.get()).thenReturn(url);
-        flowController = new ProviderPushTransferDataFlowController(callbackUrlMock, dataPlaneClient);
-    }
+    private final ProviderPushTransferDataFlowController flowController =
+            new ProviderPushTransferDataFlowController(() -> URI.create("http://localhost"), dataPlaneClient);
 
     @Test
-    void verifyCanHandle() {
+    void canHandle() {
         assertThat(flowController.canHandle(transferProcess(HTTP_PROXY))).isFalse();
         assertThat(flowController.canHandle(transferProcess("not-http-proxy"))).isTrue();
     }
 
     @Test
-    void verifyReturnFailedResultIfTransferFails() {
+    void initiateFlow_returnFailedResultIfTransferFails() {
         var errorMsg = "error";
         var transferProcess = TransferProcess.Builder.newInstance()
                 .dataRequest(createDataRequest())
@@ -75,7 +67,7 @@ class ProviderPushTransferDataFlowControllerTest {
     }
 
     @Test
-    void verifyTransferSuccess() {
+    void initiateFlow_transferSuccess() {
         var request = createDataRequest();
         var source = testDataAddress();
         var transferProcess = TransferProcess.Builder.newInstance()
@@ -100,7 +92,7 @@ class ProviderPushTransferDataFlowControllerTest {
     }
 
     @Test
-    void verifyTransferSuccessWithAdditionalProperties() {
+    void initiateFlow_transferSuccessWithAdditionalProperties() {
         var request = createDataRequest("test");
         var source = testDataAddress();
         var transferProcess = TransferProcess.Builder.newInstance()
@@ -121,6 +113,21 @@ class ProviderPushTransferDataFlowControllerTest {
         assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
         assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(request.getDataDestination());
         assertThat(captured.getCallbackAddress()).isNotNull();
+    }
+
+    @Test
+    void terminate_shouldCallTerminate() {
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id("transferProcessId")
+                .dataRequest(createDataRequest())
+                .contentDataAddress(testDataAddress())
+                .build();
+        when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+
+        var result = flowController.terminate(transferProcess);
+
+        assertThat(result).isSucceeded();
+        verify(dataPlaneClient).terminate("transferProcessId");
     }
 
     private DataAddress testDataAddress() {

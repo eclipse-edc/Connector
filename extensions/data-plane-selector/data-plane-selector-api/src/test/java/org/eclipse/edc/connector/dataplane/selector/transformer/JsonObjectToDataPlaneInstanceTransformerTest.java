@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURNCOUNT;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -66,7 +66,7 @@ class JsonObjectToDataPlaneInstanceTransformerTest {
                 .add(URL, "http://somewhere.com:1234/api/v1")
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder(Set.of("source1", "source2")))
                 .add(LAST_ACTIVE, 234L)
-                .add(TURNCOUNT, 42)
+                .add(TURN_COUNT, 42)
                 .add(ALLOWED_DEST_TYPES, createArrayBuilder(Set.of("dest1", "dest2")))
                 .build();
 
