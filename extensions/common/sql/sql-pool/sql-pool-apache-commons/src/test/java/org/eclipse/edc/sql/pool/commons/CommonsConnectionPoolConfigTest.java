@@ -28,7 +28,7 @@ class CommonsConnectionPoolConfigTest {
         Assertions.assertEquals(1, commonsConnectionPoolConfig.getMinIdleConnections());
         Assertions.assertTrue(commonsConnectionPoolConfig.getTestConnectionOnBorrow());
         Assertions.assertTrue(commonsConnectionPoolConfig.getTestConnectionOnCreate());
-        Assertions.assertTrue(commonsConnectionPoolConfig.getTestConnectionOnReturn());
+        Assertions.assertFalse(commonsConnectionPoolConfig.getTestConnectionOnReturn());
         Assertions.assertFalse(commonsConnectionPoolConfig.getTestConnectionWhileIdle());
         Assertions.assertEquals("SELECT 1;", commonsConnectionPoolConfig.getTestQuery());
     }

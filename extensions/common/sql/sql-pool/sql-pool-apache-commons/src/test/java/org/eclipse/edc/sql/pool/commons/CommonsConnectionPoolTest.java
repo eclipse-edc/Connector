@@ -14,175 +14,194 @@
 
 package org.eclipse.edc.sql.pool.commons;
 
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import javax.sql.DataSource;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 class CommonsConnectionPoolTest {
+
+    private final Monitor monitor = mock();
 
     @Test
     void getConnection() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        PreparedStatement testQueryPreparedStatement = Mockito.mock(PreparedStatement.class);
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
+        var connection = mock(Connection.class);
+        var testQueryPreparedStatement = mock(PreparedStatement.class);
+        var dataSource = mock(DataSource.class);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
 
-        Mockito.when(testQueryPreparedStatement.execute()).thenReturn(true);
-        Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(testQueryPreparedStatement);
-        Mockito.when(dataSource.getConnection()).thenReturn(connection);
+        when(testQueryPreparedStatement.execute()).thenReturn(true);
+        when(connection.prepareStatement(anyString())).thenReturn(testQueryPreparedStatement);
+        when(dataSource.getConnection()).thenReturn(connection);
 
-        Connection result = connectionPool.getConnection();
+        var result = connectionPool.getConnection();
 
-        Assertions.assertNotNull(connection);
-        Assertions.assertEquals(connection, result);
+        assertNotNull(connection);
+        assertEquals(connection, result);
 
-        Mockito.verify(dataSource, Mockito.atLeastOnce()).getConnection();
-        Mockito.verify(connection, Mockito.atLeastOnce()).isClosed();
-        Mockito.verify(connection, Mockito.atLeastOnce()).prepareStatement(Mockito.anyString());
-        Mockito.verify(testQueryPreparedStatement, Mockito.atLeastOnce()).execute();
+        verify(dataSource, atLeastOnce()).getConnection();
+        verify(connection, atLeastOnce()).isClosed();
+        verify(connection, atLeastOnce()).prepareStatement(anyString());
+        verify(testQueryPreparedStatement, atLeastOnce()).execute();
     }
 
     @Test
     void getConnectionAnyExceptionThrownThrowsSqlException() throws SQLException {
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
-        RuntimeException causingRuntimeException = new RuntimeException("intended to be thrown");
+        var dataSource = mock(DataSource.class);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
+        var causingRuntimeException = new RuntimeException("intended to be thrown");
 
-        Mockito.when(dataSource.getConnection()).thenThrow(causingRuntimeException);
+        when(dataSource.getConnection()).thenThrow(causingRuntimeException);
 
-        EdcPersistenceException exceptionWrappingRuntimeException = Assertions.assertThrows(EdcPersistenceException.class, connectionPool::getConnection);
+        var exceptionWrappingRuntimeException = assertThrows(EdcPersistenceException.class, connectionPool::getConnection);
 
-        Assertions.assertNotNull(exceptionWrappingRuntimeException.getCause());
-        Assertions.assertEquals(causingRuntimeException, exceptionWrappingRuntimeException.getCause());
+        assertNotNull(exceptionWrappingRuntimeException.getCause());
+        assertEquals(causingRuntimeException, exceptionWrappingRuntimeException.getCause());
 
-        Mockito.verify(dataSource, Mockito.atLeastOnce()).getConnection();
+        verify(dataSource, atLeastOnce()).getConnection();
     }
 
     @Test
     void getConnectionSqlExceptionThrownThrowsSame() throws SQLException {
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
-        SQLException causingSqlException = new SQLException("intended to be thrown");
+        var dataSource = mock(DataSource.class);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
+        var causingSqlException = new SQLException("intended to be thrown");
 
-        Mockito.when(dataSource.getConnection()).thenThrow(causingSqlException);
+        when(dataSource.getConnection()).thenThrow(causingSqlException);
 
-        EdcPersistenceException sqlException = Assertions.assertThrows(EdcPersistenceException.class, connectionPool::getConnection);
+        var sqlException = assertThrows(EdcPersistenceException.class, connectionPool::getConnection);
 
-        Assertions.assertNotNull(sqlException.getCause());
-        Assertions.assertEquals(causingSqlException, sqlException.getCause());
+        assertNotNull(sqlException.getCause());
+        assertEquals(causingSqlException, sqlException.getCause());
 
-        Mockito.verify(dataSource, Mockito.atLeastOnce()).getConnection();
+        verify(dataSource, atLeastOnce()).getConnection();
     }
 
     @Test
     void returnConnectionNullThrowsNullPointerException() {
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
+        var dataSource = mock(DataSource.class);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
 
-        Assertions.assertThrows(NullPointerException.class, () -> connectionPool.returnConnection(null));
+        assertThrows(NullPointerException.class, () -> connectionPool.returnConnection(null));
     }
 
     @Test
     void returnConnectionUnknownThrowsIllegalStateException() {
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
+        var dataSource = mock(DataSource.class);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
 
         // a connection unmanaged by the pool
-        Connection connection = Mockito.mock(Connection.class);
+        var connection = mock(Connection.class);
 
-        Assertions.assertThrows(IllegalStateException.class, () -> connectionPool.returnConnection(connection));
+        assertThrows(IllegalStateException.class, () -> connectionPool.returnConnection(connection));
     }
 
     @Test
     void returnConnection() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        PreparedStatement testQueryPreparedStatement = Mockito.mock(PreparedStatement.class);
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
+        var connection = mock(Connection.class);
+        PreparedStatement testQueryPreparedStatement = mock(PreparedStatement.class);
+        var dataSource = mock(DataSource.class);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
 
-        Mockito.when(testQueryPreparedStatement.execute()).thenReturn(true);
-        Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(testQueryPreparedStatement);
-        Mockito.when(dataSource.getConnection()).thenReturn(connection);
+        when(testQueryPreparedStatement.execute()).thenReturn(true);
+        when(connection.prepareStatement(anyString())).thenReturn(testQueryPreparedStatement);
+        when(dataSource.getConnection()).thenReturn(connection);
 
-        Connection result = connectionPool.getConnection();
+        var result = connectionPool.getConnection();
 
-        Assertions.assertNotNull(connection);
-        Assertions.assertEquals(connection, result);
+        assertNotNull(connection);
+        assertEquals(connection, result);
 
         connectionPool.returnConnection(result);
 
-        Mockito.verify(dataSource, Mockito.atLeastOnce()).getConnection();
-        Mockito.verify(connection, Mockito.atLeastOnce()).isClosed();
-        Mockito.verify(connection, Mockito.atLeastOnce()).prepareStatement(Mockito.anyString());
-        Mockito.verify(testQueryPreparedStatement, Mockito.atLeastOnce()).execute();
-    }
+        verify(dataSource, atLeastOnce()).getConnection();
+        verify(connection, atLeastOnce()).isClosed();
+        verify(connection, atLeastOnce()).prepareStatement(anyString());
+        verify(testQueryPreparedStatement, atLeastOnce()).execute();
+        verify(connection, atLeastOnce()).rollback();
 
+    }
+    
     @Test
-    void returnConnectionProperlyClosed() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        PreparedStatement testQueryPreparedStatement = Mockito.mock(PreparedStatement.class);
-        Mockito.when(testQueryPreparedStatement.execute()).thenReturn(false);
-        Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(testQueryPreparedStatement);
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        Mockito.when(dataSource.getConnection()).thenReturn(connection);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance()
+    void returnConnection_shouldInvalidateConnection_rollbackFailure() throws SQLException {
+        var connection = mock(Connection.class);
+        var testQueryPreparedStatement = mock(PreparedStatement.class);
+        when(testQueryPreparedStatement.execute()).thenReturn(true);
+        when(connection.prepareStatement(anyString())).thenReturn(testQueryPreparedStatement);
+        var dataSource = mock(DataSource.class);
+        when(dataSource.getConnection()).thenReturn(connection);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance()
                 .testConnectionOnCreate(false)
                 .testConnectionOnBorrow(false)
+                .testConnectionOnReturn(true)
                 .build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
 
-        Connection result = connectionPool.getConnection();
+        var result = connectionPool.getConnection();
 
-        Assertions.assertNotNull(connection);
-        Assertions.assertEquals(connection, result);
+        assertNotNull(connection);
+        assertEquals(connection, result);
 
-        Mockito.when(connection.isClosed()).thenReturn(false);
+        when(connection.isClosed()).thenReturn(false);
+
+        doThrow(new SQLException()).when(connection).rollback();
 
         connectionPool.returnConnection(connection);
 
-        Mockito.verify(dataSource, Mockito.atLeastOnce()).getConnection();
-        Mockito.verify(connection, Mockito.atLeastOnce()).isClosed();
-        Mockito.verify(connection, Mockito.atLeastOnce()).prepareStatement(Mockito.anyString());
-        Mockito.verify(testQueryPreparedStatement, Mockito.atLeastOnce()).execute();
-        Mockito.verify(connection, Mockito.atLeastOnce()).close();
+        verify(dataSource, atLeastOnce()).getConnection();
+        verify(connection, atLeastOnce()).isClosed();
+        verify(connection, atLeastOnce()).prepareStatement(anyString());
+        verify(testQueryPreparedStatement, atLeastOnce()).execute();
+        verify(connection, atLeastOnce()).close();
+
+        verify(connection).rollback();
+
     }
 
     @Test
     void closeProperlyClosesManagedConnections() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        PreparedStatement testQueryPreparedStatement = Mockito.mock(PreparedStatement.class);
-        Mockito.when(testQueryPreparedStatement.execute()).thenReturn(true);
-        Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(testQueryPreparedStatement);
-        DataSource dataSource = Mockito.mock(DataSource.class);
-        Mockito.when(dataSource.getConnection()).thenReturn(connection);
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
-        CommonsConnectionPool connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig);
+        var connection = mock(Connection.class);
+        var testQueryPreparedStatement = mock(PreparedStatement.class);
+        when(testQueryPreparedStatement.execute()).thenReturn(true);
+        when(connection.prepareStatement(anyString())).thenReturn(testQueryPreparedStatement);
+        var dataSource = mock(DataSource.class);
+        when(dataSource.getConnection()).thenReturn(connection);
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var connectionPool = new CommonsConnectionPool(dataSource, commonsConnectionPoolConfig, monitor);
 
-        Connection result = connectionPool.getConnection();
+        var result = connectionPool.getConnection();
 
-        Assertions.assertNotNull(connection);
-        Assertions.assertEquals(connection, result);
+        assertNotNull(connection);
+        assertEquals(connection, result);
 
         connectionPool.returnConnection(connection);
 
         connectionPool.close();
 
-        Mockito.verify(dataSource, Mockito.atLeastOnce()).getConnection();
-        Mockito.verify(connection, Mockito.atLeastOnce()).isClosed();
-        Mockito.verify(connection, Mockito.atLeastOnce()).prepareStatement(Mockito.anyString());
-        Mockito.verify(testQueryPreparedStatement, Mockito.atLeastOnce()).execute();
-        Mockito.verify(connection, Mockito.atLeastOnce()).close();
+        verify(dataSource, atLeastOnce()).getConnection();
+        verify(connection, atLeastOnce()).isClosed();
+        verify(connection, atLeastOnce()).prepareStatement(anyString());
+        verify(testQueryPreparedStatement, atLeastOnce()).execute();
+        verify(connection, atLeastOnce()).close();
     }
 }

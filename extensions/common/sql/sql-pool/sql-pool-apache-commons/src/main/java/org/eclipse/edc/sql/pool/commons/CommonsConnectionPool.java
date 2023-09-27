@@ -20,6 +20,7 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.sql.pool.ConnectionPool;
 import org.jetbrains.annotations.NotNull;
@@ -32,13 +33,15 @@ import javax.sql.DataSource;
 
 public final class CommonsConnectionPool implements ConnectionPool, AutoCloseable {
     private final GenericObjectPool<Connection> connectionObjectPool;
+    private final CommonsConnectionPoolConfig poolConfig;
 
-    public CommonsConnectionPool(DataSource dataSource, CommonsConnectionPoolConfig commonsConnectionPoolConfig) {
+    public CommonsConnectionPool(DataSource dataSource, CommonsConnectionPoolConfig commonsConnectionPoolConfig, Monitor monitor) {
+        this.poolConfig = commonsConnectionPoolConfig;
         Objects.requireNonNull(dataSource, "connectionFactory");
         Objects.requireNonNull(commonsConnectionPoolConfig, "commonsConnectionPoolConfig");
 
         this.connectionObjectPool = new GenericObjectPool<>(
-                new PooledConnectionObjectFactory(dataSource, commonsConnectionPoolConfig.getTestQuery()),
+                new PooledConnectionObjectFactory(dataSource, commonsConnectionPoolConfig.getTestQuery(), monitor),
                 getGenericObjectPoolConfig(commonsConnectionPoolConfig));
     }
 
@@ -81,18 +84,44 @@ public final class CommonsConnectionPool implements ConnectionPool, AutoCloseabl
         connectionObjectPool.close();
     }
 
+    public CommonsConnectionPoolConfig getPoolConfig() {
+        return poolConfig;
+    }
+
     private static class PooledConnectionObjectFactory extends BasePooledObjectFactory<Connection> {
         private final String testQuery;
         private final DataSource dataSource;
 
-        PooledConnectionObjectFactory(@NotNull DataSource dataSource, @NotNull String testQuery) {
+        private final Monitor monitor;
+
+        PooledConnectionObjectFactory(@NotNull DataSource dataSource, @NotNull String testQuery, Monitor monitor) {
             this.dataSource = Objects.requireNonNull(dataSource);
             this.testQuery = Objects.requireNonNull(testQuery);
+            this.monitor = monitor;
         }
 
         @Override
         public Connection create() throws SQLException {
             return dataSource.getConnection();
+        }
+
+        @Override
+        public boolean validateObject(PooledObject<Connection> pooledObject) {
+            if (pooledObject == null) {
+                return false;
+            }
+
+            Connection connection = pooledObject.getObject();
+            if (connection == null) {
+                return false;
+            }
+
+            return isConnectionValid(connection);
+        }
+
+        @Override
+        public PooledObject<Connection> wrap(Connection connection) {
+            return new DefaultPooledObject<>(connection);
         }
 
         @Override
@@ -110,20 +139,6 @@ public final class CommonsConnectionPool implements ConnectionPool, AutoCloseabl
             pooledObject.invalidate();
         }
 
-        @Override
-        public boolean validateObject(PooledObject<Connection> pooledObject) {
-            if (pooledObject == null) {
-                return false;
-            }
-
-            Connection connection = pooledObject.getObject();
-            if (connection == null) {
-                return false;
-            }
-
-            return isConnectionValid(connection);
-        }
-
         private boolean isConnectionValid(Connection connection) {
             try {
                 if (connection.isClosed()) {
@@ -131,16 +146,25 @@ public final class CommonsConnectionPool implements ConnectionPool, AutoCloseabl
                 }
 
                 try (PreparedStatement preparedStatement = connection.prepareStatement(testQuery)) {
-                    return preparedStatement.execute();
+                    preparedStatement.execute();
+                    return rollbackIfNeeded(connection);
                 }
             } catch (Exception e) { // any exception thrown indicates invalidity of the connection
                 return false;
             }
         }
 
-        @Override
-        public PooledObject<Connection> wrap(Connection connection) {
-            return new DefaultPooledObject<>(connection);
+        private boolean rollbackIfNeeded(Connection connection) {
+            try {
+                if (!connection.getAutoCommit()) {
+                    connection.rollback();
+                }
+                return true;
+            } catch (SQLException e) {
+                monitor.debug("Failed to rollback transaction", e);
+            }
+            return false;
         }
+
     }
 }
