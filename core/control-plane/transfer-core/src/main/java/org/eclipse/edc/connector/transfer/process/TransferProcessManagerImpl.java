@@ -29,7 +29,6 @@ import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
-import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -53,7 +52,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -71,7 +69,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
@@ -105,7 +102,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-    private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TransferProcessObservable observable;
     private DataAddressResolver addressResolver;
@@ -116,20 +112,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private TransferProcessPendingGuard pendingGuard = tp -> false;
 
     private TransferProcessManagerImpl() {
-    }
-
-    @Override
-    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
-        return builder
-                .processor(processTransfersInState(INITIAL, this::processInitial))
-                .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
-                .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
-                .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
-                .processor(processProviderTransfersInState(STARTING, this::processStarting))
-                .processor(processConsumerTransfersInState(STARTED, this::processStarted))
-                .processor(processTransfersInState(COMPLETING, this::processCompleting))
-                .processor(processTransfersInState(TERMINATING, this::processTerminating))
-                .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
     }
 
     /**
@@ -172,6 +154,19 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
 
         return StatusResult.success(process);
+    }
+
+    @Override
+    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        return builder
+                .processor(processTransfersInState(INITIAL, this::processInitial))
+                .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
+                .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
+                .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
+                .processor(processProviderTransfersInState(STARTING, this::processStarting))
+                .processor(processTransfersInState(COMPLETING, this::processCompleting))
+                .processor(processTransfersInState(TERMINATING, this::processTerminating))
+                .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
     }
 
     /**
@@ -343,37 +338,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .execute(description);
-    }
-
-    /**
-     * Process STARTED transfer<p> if is completed or there's no checker and it's not managed, set to COMPLETE,
-     * nothing otherwise.
-     *
-     * @param transferProcess the STARTED transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private boolean processStarted(TransferProcess transferProcess) {
-        return entityRetryProcessFactory.doSimpleProcess(transferProcess, () -> checkCompletion(transferProcess))
-                .execute("Check completion");
-    }
-
-    @NotNull
-    private Boolean checkCompletion(TransferProcess transferProcess) {
-        var checker = statusCheckerRegistry.resolve(transferProcess.getDataDestination().getType());
-        if (checker == null) {
-            monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", transferProcess.getId()));
-            return false;
-        } else {
-            var resources = transferProcess.getProvisionedResources();
-            if (checker.isComplete(transferProcess, resources)) {
-                transitionToCompleting(transferProcess);
-                return true;
-            } else {
-                monitor.debug(format("Transfer process %s not COMPLETED yet. The process will stay in STARTED.", transferProcess.getId()));
-                return false;
-            }
-        }
     }
 
     /**
@@ -588,6 +552,22 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
+        @Override
+        public TransferProcessManagerImpl build() {
+            super.build();
+            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
+            Objects.requireNonNull(manager.provisionManager, "provisionManager cannot be null");
+            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager cannot be null");
+            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
+            Objects.requireNonNull(manager.observable, "observable cannot be null");
+            Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
+            Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
+            Objects.requireNonNull(manager.provisionResponsesHandler, "provisionResultHandler cannot be null");
+            Objects.requireNonNull(manager.deprovisionResponsesHandler, "deprovisionResponsesHandler cannot be null");
+
+            return manager;
+        }
+
         public Builder manifestGenerator(ResourceManifestGenerator manifestGenerator) {
             manager.manifestGenerator = manifestGenerator;
             return this;
@@ -605,11 +585,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry registry) {
             manager.dispatcherRegistry = registry;
-            return this;
-        }
-
-        public Builder statusCheckerRegistry(StatusCheckerRegistry statusCheckerRegistry) {
-            manager.statusCheckerRegistry = statusCheckerRegistry;
             return this;
         }
 
@@ -651,23 +626,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         public Builder pendingGuard(TransferProcessPendingGuard pendingGuard) {
             manager.pendingGuard = pendingGuard;
             return this;
-        }
-
-        @Override
-        public TransferProcessManagerImpl build() {
-            super.build();
-            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
-            Objects.requireNonNull(manager.provisionManager, "provisionManager cannot be null");
-            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager cannot be null");
-            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
-            Objects.requireNonNull(manager.statusCheckerRegistry, "statusCheckerRegistry cannot be null!");
-            Objects.requireNonNull(manager.observable, "observable cannot be null");
-            Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
-            Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
-            Objects.requireNonNull(manager.provisionResponsesHandler, "provisionResultHandler cannot be null");
-            Objects.requireNonNull(manager.deprovisionResponsesHandler, "deprovisionResponsesHandler cannot be null");
-
-            return manager;
         }
     }
 
