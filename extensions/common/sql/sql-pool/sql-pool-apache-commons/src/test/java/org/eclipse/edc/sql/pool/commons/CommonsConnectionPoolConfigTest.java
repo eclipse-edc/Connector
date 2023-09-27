@@ -14,37 +14,40 @@
 
 package org.eclipse.edc.sql.pool.commons;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommonsConnectionPoolConfigTest {
 
     @Test
     void testDefaults() {
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance().build();
 
-        Assertions.assertEquals(4, commonsConnectionPoolConfig.getMaxIdleConnections());
-        Assertions.assertEquals(8, commonsConnectionPoolConfig.getMaxTotalConnections());
-        Assertions.assertEquals(1, commonsConnectionPoolConfig.getMinIdleConnections());
-        Assertions.assertTrue(commonsConnectionPoolConfig.getTestConnectionOnBorrow());
-        Assertions.assertTrue(commonsConnectionPoolConfig.getTestConnectionOnCreate());
-        Assertions.assertFalse(commonsConnectionPoolConfig.getTestConnectionOnReturn());
-        Assertions.assertFalse(commonsConnectionPoolConfig.getTestConnectionWhileIdle());
-        Assertions.assertEquals("SELECT 1;", commonsConnectionPoolConfig.getTestQuery());
+        assertEquals(4, commonsConnectionPoolConfig.getMaxIdleConnections());
+        assertEquals(8, commonsConnectionPoolConfig.getMaxTotalConnections());
+        assertEquals(1, commonsConnectionPoolConfig.getMinIdleConnections());
+        assertTrue(commonsConnectionPoolConfig.getTestConnectionOnBorrow());
+        assertTrue(commonsConnectionPoolConfig.getTestConnectionOnCreate());
+        assertFalse(commonsConnectionPoolConfig.getTestConnectionOnReturn());
+        assertFalse(commonsConnectionPoolConfig.getTestConnectionWhileIdle());
+        assertEquals("SELECT 1;", commonsConnectionPoolConfig.getTestQuery());
     }
 
     @Test
     void test() {
-        int minIdleConnections = 1;
-        int maxIdleConnections = 2;
-        int maxTotalConnections = 3;
-        boolean testConnectionOnBorrow = true;
-        boolean testConnectionOnCreate = false;
-        boolean testConnectionWhileIdle = true;
-        boolean testConnectionOnReturn = false;
-        String testQuery = "testquery";
+        var minIdleConnections = 1;
+        var maxIdleConnections = 2;
+        var maxTotalConnections = 3;
+        var testConnectionOnBorrow = true;
+        var testConnectionOnCreate = false;
+        var testConnectionWhileIdle = true;
+        var testConnectionOnReturn = false;
+        var testQuery = "testquery";
 
-        CommonsConnectionPoolConfig commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance()
+        var commonsConnectionPoolConfig = CommonsConnectionPoolConfig.Builder.newInstance()
                 .maxIdleConnections(maxIdleConnections)
                 .maxTotalConnections(maxTotalConnections)
                 .minIdleConnections(minIdleConnections)
@@ -55,13 +58,13 @@ class CommonsConnectionPoolConfigTest {
                 .testQuery(testQuery)
                 .build();
 
-        Assertions.assertEquals(maxIdleConnections, commonsConnectionPoolConfig.getMaxIdleConnections());
-        Assertions.assertEquals(maxTotalConnections, commonsConnectionPoolConfig.getMaxTotalConnections());
-        Assertions.assertEquals(minIdleConnections, commonsConnectionPoolConfig.getMinIdleConnections());
-        Assertions.assertEquals(testConnectionOnBorrow, commonsConnectionPoolConfig.getTestConnectionOnBorrow());
-        Assertions.assertEquals(testConnectionOnCreate, commonsConnectionPoolConfig.getTestConnectionOnCreate());
-        Assertions.assertEquals(testConnectionOnReturn, commonsConnectionPoolConfig.getTestConnectionOnReturn());
-        Assertions.assertEquals(testConnectionWhileIdle, commonsConnectionPoolConfig.getTestConnectionWhileIdle());
-        Assertions.assertEquals(testQuery, commonsConnectionPoolConfig.getTestQuery());
+        assertEquals(maxIdleConnections, commonsConnectionPoolConfig.getMaxIdleConnections());
+        assertEquals(maxTotalConnections, commonsConnectionPoolConfig.getMaxTotalConnections());
+        assertEquals(minIdleConnections, commonsConnectionPoolConfig.getMinIdleConnections());
+        assertEquals(testConnectionOnBorrow, commonsConnectionPoolConfig.getTestConnectionOnBorrow());
+        assertEquals(testConnectionOnCreate, commonsConnectionPoolConfig.getTestConnectionOnCreate());
+        assertEquals(testConnectionOnReturn, commonsConnectionPoolConfig.getTestConnectionOnReturn());
+        assertEquals(testConnectionWhileIdle, commonsConnectionPoolConfig.getTestConnectionWhileIdle());
+        assertEquals(testQuery, commonsConnectionPoolConfig.getTestQuery());
     }
 }
