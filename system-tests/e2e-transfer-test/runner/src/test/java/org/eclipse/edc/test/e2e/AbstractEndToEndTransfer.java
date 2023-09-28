@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,9 +36,8 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.test.system.utils.PolicyFixtures.inForceDatePermission;
+import static org.eclipse.edc.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.eclipse.edc.test.system.utils.PolicyFixtures.noConstraintPolicy;
-import static org.eclipse.edc.test.system.utils.PolicyFixtures.policy;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
@@ -91,7 +89,7 @@ public abstract class AbstractEndToEndTransfer {
         var now = Instant.now();
 
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        var contractPolicy = inForcePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
+        var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
         createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress());
@@ -107,7 +105,7 @@ public abstract class AbstractEndToEndTransfer {
         var assetId = UUID.randomUUID().toString();
         var now = Instant.now();
         // contract was valid from t-10d to t-5d, so "now" it is expired
-        var contractPolicy = inForcePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
+        var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
         createResourcesOnProvider(assetId, contractPolicy, httpDataAddressProperties());
 
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), syncDataAddress());
@@ -233,10 +231,6 @@ public abstract class AbstractEndToEndTransfer {
         var accessPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), accessPolicyId, contractPolicyId);
-    }
-
-    private JsonObject inForcePolicy(String operatorStart, Object startDate, String operatorEnd, Object endDate) {
-        return policy(List.of(inForceDatePermission(operatorStart, startDate, operatorEnd, endDate)));
     }
 
     private JsonObject noPrivateProperty() {

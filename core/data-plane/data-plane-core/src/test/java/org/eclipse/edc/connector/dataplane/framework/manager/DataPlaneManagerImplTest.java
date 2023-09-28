@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -172,6 +173,7 @@ class DataPlaneManagerImplTest {
     void completed_shouldNotifyResultToControlPlane() {
         var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(Result.success());
 
         manager.start();
 
@@ -182,16 +184,48 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
+    void completed_shouldNotTransitionToNotified() {
+        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(Result.failure(""));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).completed(any());
+            verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
+        });
+    }
+
+    @Test
     void failed_shouldNotifyResultToControlPlane() {
         var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
         when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.success());
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(transferProcessApiClient).failed(any(), eq("an error"));
             verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
+        });
+    }
+
+    @Test
+    void failed_shouldNotTransitionToNotified() {
+        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.failure("an error"));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).failed(any(), eq("an error"));
+            verify(store).save(argThat(it -> it.getState() == FAILED.code()));
         });
     }
 

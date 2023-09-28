@@ -52,6 +52,70 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  */
 public abstract class AssetIndexTestBase {
 
+    @NotNull
+    protected Asset createAsset(String name) {
+        return createAsset(name, UUID.randomUUID().toString());
+    }
+
+    @NotNull
+    protected Asset createAsset(String name, String id) {
+        return createAsset(name, id, "contentType");
+    }
+
+    @NotNull
+    protected Asset createAsset(String name, String id, String contentType) {
+        return Asset.Builder.newInstance()
+                .id(id)
+                .name(name)
+                .version("1")
+                .contentType(contentType)
+                .dataAddress(DataAddress.Builder.newInstance()
+                        .keyName("test-keyname")
+                        .type(contentType)
+                        .build())
+                .build();
+    }
+
+    /**
+     * Returns the SuT i.e. the fully constructed instance of the {@link AssetIndex}
+     */
+    protected abstract AssetIndex getAssetIndex();
+
+    protected DataAddress createDataAddress() {
+        return DataAddress.Builder.newInstance()
+                .keyName("test-keyname")
+                .type("type")
+                .build();
+    }
+
+    protected Asset.Builder createAssetBuilder(String id) {
+        return Asset.Builder.newInstance()
+                .id(id)
+                .createdAt(Clock.systemUTC().millis())
+                .property("key" + id, "value" + id)
+                .contentType("type")
+                .dataAddress(getDataAddress());
+    }
+
+    private QuerySpec filter(Criterion... criteria) {
+        return QuerySpec.Builder.newInstance().filter(Arrays.asList(criteria)).build();
+    }
+
+    private Asset getAsset(String id) {
+        return createAssetBuilder(id)
+                .build();
+    }
+
+    private DataAddress getDataAddress() {
+        return DataAddress.Builder.newInstance()
+                .type("type")
+                .property("key", "value")
+                .build();
+    }
+
+    public record TestObject(String text, int number, boolean bool) {
+    }
+
     @Nested
     class Create {
         @Test
@@ -493,6 +557,26 @@ public abstract class AssetIndexTestBase {
             assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
             assertThat(assetFound.getProperties()).containsEntry("newKey", "newValue");
         }
+
+        @Test
+        void exists_updateDataAddress() {
+            var id = "id1";
+            var asset = getAsset(id);
+            var assetIndex = getAssetIndex();
+            assetIndex.create(asset);
+
+            assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
+
+            asset.getDataAddress().getProperties().put("newKey", "newValue");
+            var updated = assetIndex.updateAsset(asset);
+
+            Assertions.assertThat(updated).isNotNull();
+
+            var assetFound = getAssetIndex().findById("id1");
+
+            assertThat(assetFound).isNotNull();
+            assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
+        }
     }
 
     @Nested
@@ -573,68 +657,5 @@ public abstract class AssetIndexTestBase {
             assertThat(addressFound.getProperties()).containsEntry("newKey", "newValue");
         }
     }
-
-    @NotNull
-    protected Asset createAsset(String name) {
-        return createAsset(name, UUID.randomUUID().toString());
-    }
-
-    @NotNull
-    protected Asset createAsset(String name, String id) {
-        return createAsset(name, id, "contentType");
-    }
-
-    @NotNull
-    protected Asset createAsset(String name, String id, String contentType) {
-        return Asset.Builder.newInstance()
-                .id(id)
-                .name(name)
-                .version("1")
-                .contentType(contentType)
-                .dataAddress(DataAddress.Builder.newInstance()
-                        .keyName("test-keyname")
-                        .type(contentType)
-                        .build())
-                .build();
-    }
-
-    /**
-     * Returns the SuT i.e. the fully constructed instance of the {@link AssetIndex}
-     */
-    protected abstract AssetIndex getAssetIndex();
-
-    protected DataAddress createDataAddress() {
-        return DataAddress.Builder.newInstance()
-                .keyName("test-keyname")
-                .type("type")
-                .build();
-    }
-
-    private QuerySpec filter(Criterion... criteria) {
-        return QuerySpec.Builder.newInstance().filter(Arrays.asList(criteria)).build();
-    }
-
-    private Asset getAsset(String id) {
-        return createAssetBuilder(id)
-                .build();
-    }
-
-    protected Asset.Builder createAssetBuilder(String id) {
-        return Asset.Builder.newInstance()
-                .id(id)
-                .createdAt(Clock.systemUTC().millis())
-                .property("key" + id, "value" + id)
-                .contentType("type")
-                .dataAddress(getDataAddress());
-    }
-
-    private DataAddress getDataAddress() {
-        return DataAddress.Builder.newInstance()
-                .type("type")
-                .property("key", "value")
-                .build();
-    }
-
-    public record TestObject(String text, int number, boolean bool) { }
 }
 

@@ -63,6 +63,8 @@ include(":core:data-plane:data-plane-core")
 
 include(":core:data-plane-selector:data-plane-selector-core")
 
+include(":core:policy-monitor:policy-monitor-core")
+
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:dsp:dsp-api-configuration")
 include(":data-protocols:dsp:dsp-catalog")
@@ -200,6 +202,7 @@ include(":spi:data-plane:data-plane-spi")
 include(":spi:data-plane:data-plane-http-spi")
 
 include(":spi:data-plane-selector:data-plane-selector-spi")
+include(":spi:policy-monitor:policy-monitor-spi")
 
 // modules for system tests ------------------------------------------------------------------------
 include(":system-tests:e2e-transfer-test:backend-service")

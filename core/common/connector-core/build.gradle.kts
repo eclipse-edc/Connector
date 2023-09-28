@@ -28,6 +28,7 @@ dependencies {
     api(project(":spi:common:validator-spi"))
 
     implementation(project(":core:common:policy-engine"))
+    implementation(project(":core:common:state-machine"))
     implementation(project(":core:common:transform-core"))
     implementation(project(":core:common:util"))
 

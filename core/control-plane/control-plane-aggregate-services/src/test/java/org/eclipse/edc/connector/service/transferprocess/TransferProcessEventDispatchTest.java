@@ -32,8 +32,6 @@ import org.eclipse.edc.connector.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
-import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
-import org.eclipse.edc.connector.transfer.spi.types.StatusChecker;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
@@ -113,7 +111,6 @@ public class TransferProcessEventDispatchTest {
                                                            TransferProcessProtocolService protocolService,
                                                            EventRouter eventRouter,
                                                            RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                           StatusCheckerRegistry statusCheckerRegistry,
                                                            PolicyArchive policyArchive,
                                                            ContractNegotiationStore negotiationStore,
                                                            ParticipantAgentService agentService) {
@@ -132,10 +129,7 @@ public class TransferProcessEventDispatchTest {
         when(negotiationStore.findContractAgreement("contractId")).thenReturn(agreement);
         when(agentService.createFor(token)).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
-        var statusCheck = mock(StatusChecker.class);
 
-        statusCheckerRegistry.register("any", statusCheck);
-        when(statusCheck.isComplete(any(), any())).thenReturn(false);
         var transferRequest = createTransferRequest();
 
         var initiateResult = service.initiateTransfer(transferRequest);

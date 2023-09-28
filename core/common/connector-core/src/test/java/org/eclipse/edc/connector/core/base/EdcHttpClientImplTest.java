@@ -37,6 +37,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
+import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
 import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusNot2xxOr4xx;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.matchers.Times.once;
@@ -53,6 +54,11 @@ class EdcHttpClientImplTest {
 
     private final TypeManager typeManager = new TypeManager();
     private ClientAndServer server;
+
+    @NotNull
+    private static EdcHttpClientImpl clientWith(RetryPolicy<Response> retryPolicy) {
+        return new EdcHttpClientImpl(testOkHttpClient(), retryPolicy, mock(Monitor.class));
+    }
 
     @BeforeEach
     public void startServer() {
@@ -136,6 +142,22 @@ class EdcHttpClientImplTest {
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
 
         var result = client.execute(request, List.of(retryWhenStatusIsNot(204)), handleResponse());
+
+        assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
+                .first().asString().matches(it -> it.startsWith("Server response to"));
+        server.verify(request(), exactly(2));
+    }
+
+    @Test
+    void execute_fallback_shouldRetryIfStatusIsNotContainedInExpected() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+        var request = new Request.Builder()
+                .url("http://localhost:" + port)
+                .build();
+        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(400));
+
+        var result = client.execute(request, List.of(retryWhenStatusIsNotIn(200, 204)), handleResponse());
 
         assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
                 .first().asString().matches(it -> it.startsWith("Server response to"));
@@ -232,11 +254,6 @@ class EdcHttpClientImplTest {
         var result = client.executeAsync(request, handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-    }
-
-    @NotNull
-    private static EdcHttpClientImpl clientWith(RetryPolicy<Response> retryPolicy) {
-        return new EdcHttpClientImpl(testOkHttpClient(), retryPolicy, mock(Monitor.class));
     }
 
     @NotNull

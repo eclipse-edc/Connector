@@ -22,47 +22,27 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.retry.WaitStrategy;
-import org.eclipse.edc.spi.system.ExecutorInstrumentation;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
-import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
-import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
-import org.jetbrains.annotations.NotNull;
 
-import java.time.Clock;
 import java.util.Objects;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_BATCH_SIZE;
-import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_ITERATION_WAIT;
-import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_BASE_DELAY;
-import static org.eclipse.edc.connector.contract.ContractCoreExtension.DEFAULT_SEND_RETRY_LIMIT;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 
-public abstract class AbstractContractNegotiationManager {
+public abstract class AbstractContractNegotiationManager extends AbstractStateEntityManager<ContractNegotiation, ContractNegotiationStore> {
+
     protected String participantId;
-    protected ContractNegotiationStore negotiationStore;
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
-    protected Monitor monitor;
-    protected Clock clock;
-    protected Telemetry telemetry;
-    protected ExecutorInstrumentation executorInstrumentation;
-    protected int batchSize = DEFAULT_BATCH_SIZE;
-    protected WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
     protected PolicyDefinitionStore policyStore;
-    protected EntityRetryProcessFactory entityRetryProcessFactory;
-    protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
     protected ProtocolWebhook protocolWebhook;
     protected ContractNegotiationPendingGuard pendingGuard = it -> false;
 
@@ -70,7 +50,7 @@ public abstract class AbstractContractNegotiationManager {
 
     protected Processor processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
         var filter = new Criterion[] { hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name()) };
-        return ProcessorImpl.Builder.newInstance(() -> negotiationStore.nextNotLeased(batchSize, filter))
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
                 .onNotProcessed(this::breakLease)
@@ -84,8 +64,8 @@ public abstract class AbstractContractNegotiationManager {
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract termination to the counter
-     * party. If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
+     * Processes {@link ContractNegotiation} in state TERMINATING. Tries to send a contract termination to the counter-party.
+     * If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
      * to TERMINATING for a retry.
      *
      * @return true if processed, false elsewhere
@@ -101,7 +81,7 @@ public abstract class AbstractContractNegotiationManager {
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, termination))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToTerminated(n))
                 .onFailure((n, throwable) -> transitionToTerminating(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -203,40 +183,20 @@ public abstract class AbstractContractNegotiationManager {
         observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
-    private void update(ContractNegotiation negotiation) {
-        negotiationStore.save(negotiation);
-        monitor.debug(String.format("[%s] ContractNegotiation %s is now in state %s.",
-                negotiation.getType(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-    }
-
-    public static class Builder<T extends AbstractContractNegotiationManager> {
-
-        private final T manager;
+    public static class Builder<T extends AbstractContractNegotiationManager>
+            extends AbstractStateEntityManager.Builder<ContractNegotiation, ContractNegotiationStore, T, Builder<T>> {
 
         protected Builder(T manager) {
-            this.manager = manager;
-            this.manager.clock = Clock.systemUTC(); // default implementation
-            this.manager.telemetry = new Telemetry(); // default noop implementation
-            this.manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
+            super(manager);
+        }
+
+        @Override
+        public Builder<T> self() {
+            return this;
         }
 
         public Builder<T> participantId(String id) {
             manager.participantId = id;
-            return this;
-        }
-
-        public Builder<T> monitor(Monitor monitor) {
-            manager.monitor = monitor;
-            return this;
-        }
-
-        public Builder<T> batchSize(int batchSize) {
-            manager.batchSize = batchSize;
-            return this;
-        }
-
-        public Builder<T> waitStrategy(WaitStrategy waitStrategy) {
-            manager.waitStrategy = waitStrategy;
             return this;
         }
 
@@ -245,38 +205,13 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
-        public Builder<T> clock(Clock clock) {
-            manager.clock = clock;
-            return this;
-        }
-
-        public Builder<T> telemetry(Telemetry telemetry) {
-            manager.telemetry = telemetry;
-            return this;
-        }
-
-        public Builder<T> executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
-            manager.executorInstrumentation = executorInstrumentation;
-            return this;
-        }
-
         public Builder<T> observable(ContractNegotiationObservable observable) {
             manager.observable = observable;
             return this;
         }
 
-        public Builder<T> store(ContractNegotiationStore store) {
-            manager.negotiationStore = store;
-            return this;
-        }
-
         public Builder<T> policyStore(PolicyDefinitionStore policyStore) {
             manager.policyStore = policyStore;
-            return this;
-        }
-
-        public Builder<T> entityRetryProcessConfiguration(EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
-            manager.entityRetryProcessConfiguration = entityRetryProcessConfiguration;
             return this;
         }
 
@@ -290,31 +225,16 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
+        @Override
         public T build() {
+            super.build();
             Objects.requireNonNull(manager.participantId, "participantId");
-            Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.observable, "observable");
-            Objects.requireNonNull(manager.clock, "clock");
-            Objects.requireNonNull(manager.telemetry, "telemetry");
-            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
-            Objects.requireNonNull(manager.negotiationStore, "store");
+
             Objects.requireNonNull(manager.policyStore, "policyStore");
-
-            manager.entityRetryProcessFactory = new EntityRetryProcessFactory(manager.monitor, manager.clock, manager.entityRetryProcessConfiguration);
-
             return manager;
         }
     }
 
-    protected void breakLease(ContractNegotiation negotiation) {
-        negotiationStore.save(negotiation);
-    }
-
-
-    @NotNull
-    private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
-        return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
-
-    }
 }

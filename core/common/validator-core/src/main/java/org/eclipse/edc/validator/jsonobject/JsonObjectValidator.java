@@ -81,23 +81,49 @@ public class JsonObjectValidator implements Validator<JsonObject> {
             return new Builder(new JsonObjectValidator(path, walker));
         }
 
-        public Builder verify(Function<JsonLdPath, Validator<JsonObject>> validatorProvider) {
-            validator.validators.add(validatorProvider.apply(validator.path));
+        /**
+         * Add a validator on the root object level.
+         *
+         * @param provider the validator provider.
+         * @return the builder.
+         */
+        public Builder verify(Function<JsonLdPath, Validator<JsonObject>> provider) {
+            validator.validators.add(provider.apply(validator.path));
             return this;
         }
 
-        public Builder verify(String fieldName, Function<JsonLdPath, Validator<JsonObject>> validatorProvider) {
+        /**
+         * Add a validator on a specific field.
+         *
+         * @param fieldName the name of the field to be validated.
+         * @param provider the validator provider.
+         * @return the builder.
+         */
+        public Builder verify(String fieldName, Function<JsonLdPath, Validator<JsonObject>> provider) {
             var newPath = validator.path.append(fieldName);
-            validator.validators.add(validatorProvider.apply(newPath));
+            validator.validators.add(provider.apply(newPath));
             return this;
         }
 
-        public Builder verifyId(Function<JsonLdPath, Validator<JsonString>> idValidatorProvider) {
+        /**
+         * Add a validator on the @id field.
+         *
+         * @param provider the validator provider.
+         * @return the builder.
+         */
+        public Builder verifyId(Function<JsonLdPath, Validator<JsonString>> provider) {
             var newPath = validator.path.append(ID);
-            validator.validators.add(input -> idValidatorProvider.apply(newPath).validate(input.getJsonString(ID)));
+            validator.validators.add(input -> provider.apply(newPath).validate(input.getJsonString(ID)));
             return this;
         }
 
+        /**
+         * Add a validator on a specific nested object.
+         *
+         * @param fieldName the name of the nested object to be validated.
+         * @param provider the validator provider.
+         * @return the builder.
+         */
         public Builder verifyObject(String fieldName, UnaryOperator<JsonObjectValidator.Builder> provider) {
             var newPath = validator.path.append(fieldName);
             var builder = JsonObjectValidator.Builder.newInstance(newPath, NESTED_OBJECT);
@@ -105,6 +131,13 @@ public class JsonObjectValidator implements Validator<JsonObject> {
             return this;
         }
 
+        /**
+         * Add a validator on a specific nested array.
+         *
+         * @param fieldName the name of the nested array to be validated.
+         * @param provider the validator provider.
+         * @return the builder.
+         */
         public Builder verifyArrayItem(String fieldName, UnaryOperator<JsonObjectValidator.Builder> provider) {
             var newPath = validator.path.append(fieldName);
             var builder = JsonObjectValidator.Builder.newInstance(newPath, ARRAY_ITEMS);

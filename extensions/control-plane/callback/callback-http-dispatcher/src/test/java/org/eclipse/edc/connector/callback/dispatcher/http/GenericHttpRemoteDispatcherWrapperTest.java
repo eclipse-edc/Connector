@@ -18,10 +18,10 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import org.eclipse.edc.connector.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessCompleted;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.http.EdcHttpClient;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -36,9 +36,9 @@ import org.mockserver.model.MediaType;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
@@ -53,19 +53,21 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.stop.Stop.stopQuietly;
 
+@ComponentTest
 public class GenericHttpRemoteDispatcherWrapperTest {
 
     private static final int CALLBACK_PORT = getFreePort();
     private static final String CALLBACK_PATH = "hooks";
     private static ClientAndServer receiverEndpointServer;
     private final TypeManager typeManager = new TypeManager();
-    private EdcHttpClient httpClient;
+    private final EdcHttpClient httpClient = spy(testHttpClient());
     private final Vault vault = mock();
+    private final GenericHttpRemoteDispatcherImpl dispatcher = new GenericHttpRemoteDispatcherImpl(httpClient);
 
     @BeforeEach
     void setup() {
         receiverEndpointServer = startClientAndServer(CALLBACK_PORT);
-        httpClient = spy(testHttpClient());
+        dispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper(), vault));
     }
 
     @AfterEach
@@ -74,9 +76,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
     }
 
     @Test
-    public void send_shouldCallTheHttpCallback() throws ExecutionException, InterruptedException, IOException {
-        var dispatcher = createDispatcher();
-
+    public void send_shouldCallTheHttpCallback() throws IOException {
         var callback = CallbackAddress.Builder.newInstance()
                 .events(Set.of("test"))
                 .uri(callbackUrl())
@@ -92,22 +92,17 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
+        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
-        dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
-
+        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
-
-
     }
 
     @Test
-    public void send_shouldCallTheHttpCallback_WithAuthHeader() throws ExecutionException, InterruptedException, IOException {
-        var dispatcher = createDispatcher();
-
+    public void send_shouldCallTheHttpCallback_WithAuthHeader() throws IOException {
         var authKey = "authHeader";
         var authCodeId = "authCodeId";
         var authCodeIdValue = "authCodeIdValue";
-
 
         when(vault.resolveSecret(authCodeId)).thenReturn(authCodeIdValue);
 
@@ -129,15 +124,14 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         receiverEndpointServer.when(request).respond(successfulResponse());
 
-        dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get();
+        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
+        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
     }
 
     @Test
-    public void send_shouldThrowExceptionWhenTheCallbackFails() throws ExecutionException, InterruptedException, IOException {
-        var dispatcher = createDispatcher();
-
+    public void send_shouldThrowExceptionWhenTheCallbackFails() throws IOException {
         var callback = CallbackAddress.Builder.newInstance()
                 .events(Set.of("test"))
                 .uri(callbackUrl())
@@ -153,20 +147,10 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         receiverEndpointServer.when(request).respond(failedResponse());
 
+        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
-        assertThatThrownBy(() -> dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP)).get())
-                .cause()
-                .isInstanceOf(EdcException.class);
-
+        assertThat(future).failsWithin(5, TimeUnit.SECONDS).withThrowableThat().havingCause().isInstanceOf(EdcException.class);
         verify(httpClient, atMostOnce()).execute(any());
-
-
-    }
-
-    private RemoteMessageDispatcher createDispatcher() {
-        var baseDispatcher = new GenericHttpRemoteDispatcherImpl(httpClient);
-        baseDispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper(), vault));
-        return baseDispatcher;
     }
 
     private HttpResponse successfulResponse() {

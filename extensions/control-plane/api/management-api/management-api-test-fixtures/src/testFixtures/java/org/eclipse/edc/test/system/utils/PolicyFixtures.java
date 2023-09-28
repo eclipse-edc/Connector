@@ -30,22 +30,37 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class PolicyFixtures {
 
     private static final String CONTRACT_EXPIRY_EVALUATION_KEY = EDC_NAMESPACE + "inForceDate";
+    private static final String ODRL_JSONLD = "http://www.w3.org/ns/odrl.jsonld";
 
     private PolicyFixtures() {
     }
 
     public static JsonObject noConstraintPolicy() {
         return createObjectBuilder()
-                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                .add(CONTEXT, ODRL_JSONLD)
                 .add(TYPE, "use")
                 .build();
     }
 
     public static JsonObject policy(List<JsonObject> permissions) {
         return createObjectBuilder()
-                .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
+                .add(CONTEXT, ODRL_JSONLD)
                 .add("permission", createArrayBuilder(permissions))
                 .build();
+    }
+
+    /**
+     * Create a policy with "inForceDate" permissions, to enforce contract date being in a certain range.
+     * Please check the ContractExpiryCheckFunction documentation for details.
+     *
+     * @param operatorStart the operator used for the start date.
+     * @param startDate the start date.
+     * @param operatorEnd the operator used for the end date.
+     * @param endDate the end date.
+     * @return the policy json-ld representation object.
+     */
+    public static JsonObject inForceDatePolicy(String operatorStart, Object startDate, String operatorEnd, Object endDate) {
+        return policy(List.of(inForceDatePermission(operatorStart, startDate, operatorEnd, endDate)));
     }
 
     public static JsonObject atomicConstraint(String leftOperand, String operator, Object rightOperand) {

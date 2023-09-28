@@ -38,6 +38,7 @@ public class MandatoryValue implements Validator<JsonObject> {
     @Override
     public ValidationResult validate(JsonObject input) {
         return Optional.ofNullable(input.getJsonArray(path.last()))
+                .filter(it -> !it.isEmpty())
                 .map(it -> it.getJsonObject(0))
                 .map(it -> it.getString(VALUE))
                 .filter(it -> !it.isBlank())

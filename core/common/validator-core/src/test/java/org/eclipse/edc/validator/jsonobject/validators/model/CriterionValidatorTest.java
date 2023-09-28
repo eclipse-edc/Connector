@@ -57,9 +57,28 @@ class CriterionValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .hasSize(2)
+                .hasSize(3)
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CRITERION_OPERAND_LEFT))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CRITERION_OPERATOR));
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CRITERION_OPERATOR))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CRITERION_OPERAND_RIGHT));
+    }
+
+    @Test
+    void shouldFail_whenOperandRightIsEmpty() {
+        var input = Json.createObjectBuilder()
+                .add(CRITERION_OPERAND_LEFT, value("operand left"))
+                .add(CRITERION_OPERATOR, value("="))
+                .add(CRITERION_OPERAND_RIGHT, createArrayBuilder().build())
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .hasSize(1)
+                .anySatisfy(violation -> {
+                    assertThat(violation.path()).isEqualTo(CRITERION_OPERAND_RIGHT);
+                    assertThat(violation.message()).contains("contains '1' elements");
+                });
     }
 
     @Test

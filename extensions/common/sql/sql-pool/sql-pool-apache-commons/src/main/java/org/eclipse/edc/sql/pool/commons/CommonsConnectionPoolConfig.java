@@ -90,7 +90,7 @@ public class CommonsConnectionPoolConfig {
         private int minIdleConnections = 1;
         private boolean testConnectionOnBorrow = true;
         private boolean testConnectionOnCreate = true;
-        private boolean testConnectionOnReturn = true;
+        private boolean testConnectionOnReturn = false;
         private boolean testConnectionWhileIdle = false;
         private String testQuery = "SELECT 1;";
 
