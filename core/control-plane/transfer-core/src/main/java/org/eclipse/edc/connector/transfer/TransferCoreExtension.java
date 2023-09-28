@@ -33,7 +33,6 @@ import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.transfer.spi.retry.TransferWaitStrategy;
-import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
@@ -93,9 +92,6 @@ public class TransferCoreExtension implements ServiceExtension {
 
     @Inject
     private DataFlowManager dataFlowManager;
-
-    @Inject
-    private StatusCheckerRegistry statusCheckerRegistry;
 
     @Inject
     private ResourceManifestGenerator resourceManifestGenerator;
@@ -180,7 +176,6 @@ public class TransferCoreExtension implements ServiceExtension {
                 .dataFlowManager(dataFlowManager)
                 .provisionManager(provisionManager)
                 .dispatcherRegistry(dispatcherRegistry)
-                .statusCheckerRegistry(statusCheckerRegistry)
                 .monitor(monitor)
                 .telemetry(telemetry)
                 .executorInstrumentation(executorInstrumentation)

@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.transfer;
 
 import org.eclipse.edc.connector.transfer.flow.DataFlowManagerImpl;
 import org.eclipse.edc.connector.transfer.observe.TransferProcessObservableImpl;
-import org.eclipse.edc.connector.transfer.process.StatusCheckerRegistryImpl;
 import org.eclipse.edc.connector.transfer.provision.ProvisionManagerImpl;
 import org.eclipse.edc.connector.transfer.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessPendingGuard;
@@ -24,7 +23,6 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
-import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -53,11 +51,6 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
     @Provider
     public ResourceManifestGenerator resourceManifestGenerator() {
         return new ResourceManifestGeneratorImpl(policyEngine);
-    }
-
-    @Provider
-    public StatusCheckerRegistry statusCheckerRegistry() {
-        return new StatusCheckerRegistryImpl();
     }
 
     @Provider

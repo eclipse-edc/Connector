@@ -86,7 +86,6 @@ class TransferProcessManagerImplIntegrationTest {
                 .manifestGenerator(manifestGenerator)
                 .monitor(monitor)
                 .clock(clock)
-                .statusCheckerRegistry(mock())
                 .observable(mock())
                 .store(store)
                 .policyArchive(policyArchive)
