@@ -162,7 +162,23 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                     definition.getContractPolicyId(),
                     toJson(definition.getAssetsSelector()),
                     definition.getCreatedAt());
+
+            insertProperties(definition, connection);
         });
+    }
+
+    private void insertProperties(ContractDefinition definition, Connection connection) {
+        if (Objects.nonNull(definition.getPrivateProperties())) {
+            for (var privateProperty : definition.getPrivateProperties().entrySet()) {
+                queryExecutor.execute(connection,
+                        statements.getInsertPropertyTemplate(),
+                        definition.getId(),
+                        privateProperty.getKey(),
+                        toJson(privateProperty.getValue()),
+                        privateProperty.getValue().getClass().getName(),
+                        true);
+            }
+        }
     }
 
     private void updateInternal(Connection connection, ContractDefinition definition) {

@@ -44,7 +44,17 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     }
 
     @Override
+    public String getInsertPropertyTemplate() {
+        return executeStatement()
+                .column(getPropertyContractDefinitionIdFkColumn())
+                .column(getContractDefinitionPropertyNameColumn())
+                .column(getContractDefinitionPropertyValueColumn())
+                .column(getContractDefinitionPropertyTypeColumn())
+                .column(getContractDefinitionPropertyIsPrivateColumn())
+                .insertInto(getContractDefinitionPropertyTable());
+    }
 
+    @Override
     public String getCountTemplate() {
         return format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
                 getIdColumn(),

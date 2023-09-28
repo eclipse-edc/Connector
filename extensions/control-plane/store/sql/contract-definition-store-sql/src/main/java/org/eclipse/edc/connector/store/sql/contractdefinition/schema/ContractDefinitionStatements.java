@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -50,11 +51,37 @@ public interface ContractDefinitionStatements extends SqlStatements {
         return "created_at";
     }
 
+    default String getContractDefinitionPropertyTable() {
+        return "edc_contract_definition_property";
+    }
+
+    default String getContractDefinitionPropertyNameColumn() {
+        return "property_name";
+    }
+
+    default String getContractDefinitionPropertyValueColumn() {
+        return "property_value";
+    }
+
+    default String getContractDefinitionPropertyTypeColumn() {
+        return "property_type";
+    }
+
+    default String getContractDefinitionPropertyIsPrivateColumn() {
+        return "property_is_private";
+    }
+
+    default String getPropertyContractDefinitionIdFkColumn() {
+        return "contract_definition_id_fk";
+    }
+
     String getDeleteByIdTemplate();
 
     String getFindByTemplate();
 
     String getInsertTemplate();
+
+    String getInsertPropertyTemplate();
 
     String getCountTemplate();
 
