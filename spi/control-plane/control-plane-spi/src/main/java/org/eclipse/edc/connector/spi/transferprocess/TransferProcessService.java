@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.StopTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -73,6 +74,14 @@ public interface TransferProcessService {
     default ServiceResult<Void> terminate(String transferProcessId, String reason) {
         return terminate(new TerminateTransferCommand(transferProcessId, reason));
     }
+
+    /**
+     * Request transfer flow to be stopped, and subsequently the transfer will be completed/terminated
+     *
+     * @param command the command.
+     * @return success if the request succeeds, failure otherwise.
+     */
+    ServiceResult<Void> stop(StopTransferCommand command);
 
     /**
      * Asynchronously requests completion of the transfer process.

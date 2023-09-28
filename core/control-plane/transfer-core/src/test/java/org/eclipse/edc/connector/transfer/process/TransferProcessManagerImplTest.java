@@ -91,6 +91,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STOPPING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
@@ -554,6 +555,22 @@ class TransferProcessManagerImplTest {
         await().untilAsserted(() -> {
             verifyNoInteractions(dataFlowManager);
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTING.code()));
+        });
+    }
+
+    @Test
+    void stopping_shouldStopDataTransferAndTransitionToSubsequentState() {
+        var process = createTransferProcess(STARTED).toBuilder().type(PROVIDER).build();
+        process.transitionStopping(null, COMPLETING);
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STOPPING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(dataFlowManager).terminate(process);
+            verify(transferProcessStore).save(argThat(p -> p.getState() == COMPLETING.code()));
         });
     }
     

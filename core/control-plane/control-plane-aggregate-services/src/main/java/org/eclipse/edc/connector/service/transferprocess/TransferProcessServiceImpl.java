@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.transfer.spi.types.command.AddProvisionedResour
 import org.eclipse.edc.connector.transfer.spi.types.command.CompleteTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionCompleteCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.StopTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
@@ -89,6 +90,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
             var process = transferProcessStore.findById(transferProcessId);
             return Optional.ofNullable(process).map(p -> TransferProcessStates.from(p.getState()).name()).orElse(null);
         });
+    }
+
+    @Override
+    public ServiceResult<Void> stop(StopTransferCommand command) {
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 
     @Override

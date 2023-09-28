@@ -44,6 +44,7 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
@@ -57,6 +58,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STOPPING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -226,6 +228,13 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return Collections.unmodifiableList(callbackAddresses);
     }
 
+    public TransferProcessStates stoppingSubsequentState() {
+        if (privateProperties.get("stopping-subsequent-state") instanceof TransferProcessStates subsequentState) {
+            return subsequentState;
+        }
+        return null;
+    }
+
     public boolean deprovisionComplete() {
         return getResourcesToDeprovision().isEmpty();
     }
@@ -274,8 +283,22 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         }
     }
 
+    public void transitionStopping(String reason, TransferProcessStates subsequentState) {
+        transition(STOPPING, STARTED);
+        errorDetail = reason;
+        privateProperties.put("stopping-subsequent-state", subsequentState);
+    }
+
     public boolean canBeCompleted() {
-        return currentStateIsOneOf(COMPLETING, STARTED);
+        return currentStateIsOneOf(COMPLETING, STARTED, STOPPING);
+    }
+
+    public boolean canBeStopped() {
+        return type == PROVIDER && currentStateIsOneOf(STARTED);
+    }
+
+    public void transitionSuspending() {
+        transition(SUSPENDING, STARTED, STOPPING);
     }
 
     public void transitionCompleting() {
@@ -308,7 +331,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public boolean canBeTerminated() {
-        return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED, STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDED, TERMINATING);
+        return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
+                STARTING, STARTED, STOPPING, COMPLETING, SUSPENDING, SUSPENDED, TERMINATING);
     }
 
     public void transitionTerminating(@Nullable String errorDetail) {

@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.StopTransferCommand;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
@@ -49,6 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
@@ -169,6 +171,27 @@ class TransferProcessServiceImplTest {
         var command = new TerminateTransferCommand("id", "reason");
 
         var result = service.terminate(command);
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void stop_shouldExecuteCommandAndReturnResult() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+        var command = new StopTransferCommand("id", "reason", COMPLETING);
+
+        var result = service.stop(command);
+
+        assertThat(result).isSucceeded();
+        verify(commandHandlerRegistry).execute(command);
+    }
+
+    @Test
+    void stop_shouldFailWhenCommandHandlerFails() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
+        var command = new StopTransferCommand("id", "reason", COMPLETING);
+
+        var result = service.stop(command);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
     }

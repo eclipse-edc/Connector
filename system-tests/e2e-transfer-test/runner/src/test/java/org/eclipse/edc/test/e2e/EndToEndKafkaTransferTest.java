@@ -22,7 +22,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -67,7 +66,7 @@ import static org.mockserver.stop.Stop.stopQuietly;
 import static org.mockserver.verify.VerificationTimes.atLeast;
 import static org.mockserver.verify.VerificationTimes.never;
 
-//@KafkaIntegrationTest
+@KafkaIntegrationTest
 class EndToEndKafkaTransferTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -142,6 +141,7 @@ class EndToEndKafkaTransferTest {
 
         destinationServer.clear(request)
                 .when(request).respond(response());
+
         await().pollDelay(2, TimeUnit.SECONDS).untilAsserted(() -> {
             destinationServer.verify(request, never());
         });

@@ -31,6 +31,7 @@ public enum TransferProcessStates {
     STARTED(600),
     SUSPENDING(650),
     SUSPENDED(700),
+    STOPPING(725),
     COMPLETING(750),
     COMPLETED(800),
     TERMINATING(825),
