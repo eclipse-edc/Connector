@@ -6,4 +6,14 @@ entity edc_contract_definitions {
   * contract_policy: string <<json>>
   * assets_selector: string <<json>>
 }
+
+entity edc_contract_definition_property {
+  * contract_definition_id_fk: string <<PK>>
+  * property_name: string
+  * property_value: string
+  * property_type: string
+  --
+}
+
+edc_contract_definitions ||--o{ edc_contract_definition_property
 @enduml
