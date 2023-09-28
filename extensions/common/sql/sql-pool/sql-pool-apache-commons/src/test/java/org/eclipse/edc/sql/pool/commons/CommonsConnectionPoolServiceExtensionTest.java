@@ -14,194 +14,147 @@
 
 package org.eclipse.edc.sql.pool.commons;
 
-import org.eclipse.edc.transaction.local.DataSourceResource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.ThrowingConsumer;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.stream.IntStream;
-import javax.sql.DataSource;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_MAX_IDLE_CONNECTIONS;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_MAX_TOTAL_CONNECTIONS;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_MIN_IDLE_CONNECTIONS;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_TEST_CONNECTION_ON_BORROW;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_TEST_CONNECTION_ON_CREATE;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_TEST_CONNECTION_ON_RETURN;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_TEST_CONNECTION_WHILE_IDLE;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.DEPRACATED_POOL_TEST_QUERY;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTIONS_MAX_IDLE;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTIONS_MAX_TOTAL;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTIONS_MIN_IDLE;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTION_TEST_ON_BORROW;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTION_TEST_ON_CREATE;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTION_TEST_ON_RETURN;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTION_TEST_QUERY;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolConfigKeys.POOL_CONNECTION_TEST_WHILE_IDLE;
+import static org.eclipse.edc.sql.pool.commons.CommonsConnectionPoolServiceExtension.EDC_DATASOURCE_PREFIX;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 //sometimes hangs and causes the test to never finish.
-@Disabled
-class CommonsConnectionPoolServiceExtensionTest extends AbstractCommonsConnectionPoolServiceExtensionTest {
-    private static final String SQL_QUERY = "SELECT 1";
+@ExtendWith(DependencyInjectionExtension.class)
+class CommonsConnectionPoolServiceExtensionTest {
     private static final String DS_1_NAME = "ds1";
-    private static final String DS_2_NAME = "ds2";
-
-    private final Map<String, String> systemProperties = new HashMap<>() {
-        {
-            put("edc.datasource." + DS_1_NAME + ".url", DS_1_NAME);
-            put("edc.datasource." + DS_1_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_ON_CREATE, "false");
-            put("edc.datasource." + DS_1_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_ON_RETURN, "false");
-            put("edc.datasource." + DS_1_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_ON_BORROW, "false");
-            put("edc.datasource." + DS_1_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_WHILE_IDLE, "false");
-            put("edc.datasource." + DS_2_NAME + ".url", DS_2_NAME);
-            put("edc.datasource." + DS_2_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_ON_CREATE, "false");
-            put("edc.datasource." + DS_2_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_ON_RETURN, "false");
-            put("edc.datasource." + DS_2_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_ON_BORROW, "false");
-            put("edc.datasource." + DS_2_NAME + "." + CommonsConnectionPoolConfigKeys.POOL_TEST_CONNECTION_WHILE_IDLE, "false");
-        }
-    };
-
-    // mocks
-    private Connection dataSource1Connection;
-    private Connection dataSource2Connection;
+    private final DataSourceRegistry dataSourceRegistry = mock();
 
     @BeforeEach
-    void setUp() {
-        dataSource1Connection = Mockito.mock(Connection.class);
-        dataSource2Connection = Mockito.mock(Connection.class);
-
-        systemProperties.forEach(System::setProperty);
+    void setUp(ServiceExtensionContext context) {
+        context.registerService(DataSourceRegistry.class, dataSourceRegistry);
     }
 
-    @AfterEach
-    void tearDown() {
-        systemProperties.keySet().forEach(System::clearProperty);
+    @ParameterizedTest
+    @ArgumentsSource(ConfigProvider.class)
+    void initialize_withConfig(Map<String, String> configuration, ThrowingConsumer<CommonsConnectionPoolConfig> checker,
+                               boolean isEnv,
+                               CommonsConnectionPoolServiceExtension extension, ServiceExtensionContext context) {
+        Config config;
+        if (isEnv) {
+            config = ConfigFactory.fromEnvironment(configuration);
+        } else {
+            config = ConfigFactory.fromMap(configuration);
+        }
+        when(context.getConfig(EDC_DATASOURCE_PREFIX)).thenReturn(config);
+
+        extension.initialize(context);
+
+        verify(dataSourceRegistry).register(eq(DS_1_NAME), any());
+
+        assertThat(extension.getCommonsConnectionPools()).hasSize(1).first()
+                .extracting(CommonsConnectionPool::getPoolConfig)
+                .satisfies(checker);
     }
 
-    @Test
-    @DisplayName("DataSource Registry contains defined DataSources")
-    void testDataSourceRegistryContainsDataSources() {
-        DataSource dataSource = getDataSourceRegistry().resolve(DS_1_NAME);
 
-        Assertions.assertNotNull(dataSource);
-        Assertions.assertInstanceOf(DataSourceResource.class, dataSource);
+    static class ConfigProvider implements ArgumentsProvider {
 
-        dataSource = getDataSourceRegistry().resolve(DS_2_NAME);
-        Assertions.assertNotNull(dataSource);
-        Assertions.assertInstanceOf(DataSourceResource.class, dataSource);
-    }
+        private final Map<String, String> defaultConfig = Map.of(DS_1_NAME + ".url", DS_1_NAME);
 
-    @Test
-    @DisplayName("Used DataSource is scoped by the TransactionContext")
-    void testUsedDataSourceIsScopedByTransactionContext() throws SQLException {
-        PreparedStatement preparedStatementMock = Mockito.mock(PreparedStatement.class);
+        private final Map<String, String> configuration = Map.of(
+                DS_1_NAME + ".url", DS_1_NAME,
+                DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_CREATE, "false",
+                DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_BORROW, "false",
+                DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_RETURN, "true",
+                DS_1_NAME + "." + POOL_CONNECTION_TEST_WHILE_IDLE, "true",
+                DS_1_NAME + "." + POOL_CONNECTION_TEST_QUERY, "SELECT foo FROM bar;",
+                DS_1_NAME + "." + POOL_CONNECTIONS_MIN_IDLE, "10",
+                DS_1_NAME + "." + POOL_CONNECTIONS_MAX_IDLE, "10",
+                DS_1_NAME + "." + POOL_CONNECTIONS_MAX_TOTAL, "10");
 
-        try (MockedStatic<DriverManager> driverManagerMock = Mockito.mockStatic(DriverManager.class)) {
-            driverManagerMock.when(() -> DriverManager.getConnection(Mockito.eq(DS_1_NAME), Mockito.any(Properties.class))).thenReturn(dataSource1Connection);
 
-            Mockito.when(dataSource1Connection.prepareStatement(SQL_QUERY)).thenReturn(preparedStatementMock);
+        private final Map<String, String> deprecatedConfig = Map.of(
+                DS_1_NAME + ".url", DS_1_NAME,
+                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_ON_CREATE, "false",
+                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_ON_BORROW, "false",
+                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_ON_RETURN, "true",
+                DS_1_NAME + "." + DEPRACATED_POOL_TEST_CONNECTION_WHILE_IDLE, "true",
+                DS_1_NAME + "." + DEPRACATED_POOL_TEST_QUERY, "SELECT foo FROM bar;",
+                DS_1_NAME + "." + DEPRACATED_POOL_MIN_IDLE_CONNECTIONS, "10",
+                DS_1_NAME + "." + DEPRACATED_POOL_MAX_IDLE_CONNECTIONS, "10",
+                DS_1_NAME + "." + DEPRACATED_POOL_MAX_TOTAL_CONNECTIONS, "10");
 
-            getTransactionContext().execute(() -> {
-                DataSource dataSource = getDataSourceRegistry().resolve(DS_1_NAME);
-                try (Connection connection = dataSource.getConnection()) {
-                    try (PreparedStatement statement = connection.prepareStatement(SQL_QUERY)) {
-                        statement.execute();
-                    }
-                } catch (Exception exception) {
-                    throw new RuntimeException(exception);
-                }
-            });
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            ThrowingConsumer<CommonsConnectionPoolConfig> checkDefault = this::checkDefault;
+            ThrowingConsumer<CommonsConnectionPoolConfig> checkWithConfig = this::checkWithConfig;
 
-            driverManagerMock.verify(() -> DriverManager.getConnection(Mockito.eq(DS_1_NAME), Mockito.any(Properties.class)), Mockito.times(1));
-            driverManagerMock.verify(() -> DriverManager.getConnection(Mockito.eq(DS_2_NAME), Mockito.any(Properties.class)), Mockito.never());
+            var envConfiguration = configuration.entrySet().stream()
+                    .map(it -> Map.entry(it.getKey().toUpperCase().replace(".", "_"), it.getValue()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            return Stream.of(
+                    Arguments.of(defaultConfig, checkDefault, false),
+                    Arguments.of(configuration, checkWithConfig, false),
+                    Arguments.of(envConfiguration, checkWithConfig, true),
+                    Arguments.of(deprecatedConfig, checkWithConfig, false)
+            );
         }
 
-        Mockito.verify(dataSource1Connection, Mockito.times(1)).setAutoCommit(false);
-
-        Mockito.verify(preparedStatementMock, Mockito.times(1)).execute();
-
-        Mockito.verify(preparedStatementMock, Mockito.times(1)).close();
-
-        Mockito.verify(dataSource1Connection, Mockito.times(1)).commit();
-    }
-
-    @Test
-    @DisplayName("DataSourcePool reuses issued Connection")
-    void testDataSourcePoolReusesConnections() throws SQLException {
-        PreparedStatement preparedStatementMock = Mockito.mock(PreparedStatement.class);
-
-        final int iterations = 3;
-        try (MockedStatic<DriverManager> driverManagerMock = Mockito.mockStatic(DriverManager.class)) {
-            driverManagerMock.when(() -> DriverManager.getConnection(Mockito.eq(DS_1_NAME), Mockito.any(Properties.class))).thenReturn(dataSource1Connection);
-
-            Mockito.when(dataSource1Connection.prepareStatement(SQL_QUERY)).thenReturn(preparedStatementMock);
-
-            IntStream.rangeClosed(1, iterations).forEach((iteration) -> {
-                getTransactionContext().execute(() -> {
-                    DataSource dataSource = getDataSourceRegistry().resolve(DS_1_NAME);
-                    try (Connection connection = dataSource.getConnection()) {
-                        try (PreparedStatement statement = connection.prepareStatement(SQL_QUERY)) {
-                            statement.execute();
-                        }
-                    } catch (Exception exception) {
-                        throw new RuntimeException(exception);
-                    }
-                });
-            });
-
-            driverManagerMock.verify(() -> DriverManager.getConnection(Mockito.eq(DS_1_NAME), Mockito.any(Properties.class)), Mockito.times(1));
-            driverManagerMock.verify(() -> DriverManager.getConnection(Mockito.eq(DS_2_NAME), Mockito.any(Properties.class)), Mockito.never());
+        private void checkDefault(CommonsConnectionPoolConfig cfg) {
+            assertThat(cfg.getTestConnectionOnCreate()).isTrue();
+            assertThat(cfg.getTestConnectionOnBorrow()).isTrue();
+            assertThat(cfg.getTestConnectionOnReturn()).isFalse();
+            assertThat(cfg.getTestConnectionWhileIdle()).isFalse();
+            assertThat(cfg.getTestQuery()).isEqualTo("SELECT 1;");
+            assertThat(cfg.getMinIdleConnections()).isEqualTo(1);
+            assertThat(cfg.getMaxIdleConnections()).isEqualTo(4);
+            assertThat(cfg.getMaxTotalConnections()).isEqualTo(8);
         }
 
-        Mockito.verify(dataSource1Connection, Mockito.times(iterations)).setAutoCommit(false);
-
-        Mockito.verify(preparedStatementMock, Mockito.times(iterations)).execute();
-
-        Mockito.verify(preparedStatementMock, Mockito.times(iterations)).close();
-
-        Mockito.verify(dataSource1Connection, Mockito.times(iterations)).commit();
-    }
-
-    @Test
-    @DisplayName("All used DataSources are scoped by the TransactionContext")
-    void testAllDataSourceAreScopedByTransactionContext() throws SQLException {
-        PreparedStatement preparedStatementMock1 = Mockito.mock(PreparedStatement.class);
-        PreparedStatement preparedStatementMock2 = Mockito.mock(PreparedStatement.class);
-
-        try (MockedStatic<DriverManager> driverManagerMock = Mockito.mockStatic(DriverManager.class)) {
-            driverManagerMock.when(() -> DriverManager.getConnection(Mockito.eq(DS_1_NAME), Mockito.any(Properties.class))).thenReturn(dataSource1Connection);
-            driverManagerMock.when(() -> DriverManager.getConnection(Mockito.eq(DS_2_NAME), Mockito.any(Properties.class))).thenReturn(dataSource2Connection);
-
-            Mockito.when(dataSource1Connection.prepareStatement(SQL_QUERY)).thenReturn(preparedStatementMock1);
-            Mockito.when(dataSource2Connection.prepareStatement(SQL_QUERY)).thenReturn(preparedStatementMock2);
-
-            getTransactionContext().execute(() -> {
-                DataSource dataSource1 = getDataSourceRegistry().resolve(DS_1_NAME);
-                try (Connection connection = dataSource1.getConnection()) {
-                    try (PreparedStatement statement = connection.prepareStatement(SQL_QUERY)) {
-                        statement.execute();
-                    }
-                } catch (Exception exception) {
-                    throw new RuntimeException(exception);
-                }
-                DataSource dataSource2 = getDataSourceRegistry().resolve(DS_2_NAME);
-                try (Connection connection = dataSource2.getConnection()) {
-                    try (PreparedStatement statement = connection.prepareStatement(SQL_QUERY)) {
-                        statement.execute();
-                    }
-                } catch (Exception exception) {
-                    throw new RuntimeException(exception);
-                }
-            });
-
-            driverManagerMock.verify(() -> DriverManager.getConnection(Mockito.eq(DS_1_NAME), Mockito.any(Properties.class)), Mockito.times(1));
-            driverManagerMock.verify(() -> DriverManager.getConnection(Mockito.eq(DS_2_NAME), Mockito.any(Properties.class)), Mockito.times(1));
+        private void checkWithConfig(CommonsConnectionPoolConfig cfg) {
+            assertThat(cfg.getTestConnectionOnCreate()).isFalse();
+            assertThat(cfg.getTestConnectionOnBorrow()).isFalse();
+            assertThat(cfg.getTestConnectionOnReturn()).isTrue();
+            assertThat(cfg.getTestConnectionWhileIdle()).isTrue();
+            assertThat(cfg.getTestQuery()).isEqualTo("SELECT foo FROM bar;");
+            assertThat(cfg.getMinIdleConnections()).isEqualTo(10);
+            assertThat(cfg.getMaxIdleConnections()).isEqualTo(10);
+            assertThat(cfg.getMaxTotalConnections()).isEqualTo(10);
         }
 
-        Mockito.verify(dataSource1Connection, Mockito.times(1)).setAutoCommit(false);
-        Mockito.verify(dataSource2Connection, Mockito.times(1)).setAutoCommit(false);
-
-        Mockito.verify(preparedStatementMock1, Mockito.times(1)).execute();
-        Mockito.verify(preparedStatementMock1, Mockito.times(1)).close();
-        Mockito.verify(preparedStatementMock2, Mockito.times(1)).execute();
-        Mockito.verify(preparedStatementMock2, Mockito.times(1)).close();
-
-        Mockito.verify(dataSource1Connection, Mockito.times(1)).commit();
-        Mockito.verify(dataSource2Connection, Mockito.times(1)).commit();
     }
+
 }
