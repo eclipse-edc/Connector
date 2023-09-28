@@ -23,13 +23,14 @@ import org.eclipse.edc.connector.api.client.spi.transferprocess.TransferProcessA
 import org.eclipse.edc.connector.api.client.transferprocess.model.TransferProcessFailRequest;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.List;
 
-import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNot;
+import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
 
 /**
  * Implementation of {@link TransferProcessApiClient} which talks to the Control Plane Transfer Process via HTTP APIs
@@ -49,34 +50,38 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
     }
 
     @Override
-    public void completed(DataFlowRequest dataFlowRequest) {
-        sendRequest(dataFlowRequest, "complete", null);
+    public Result<Void> completed(DataFlowRequest dataFlowRequest) {
+        return sendRequest(dataFlowRequest, "complete", null);
     }
 
     @Override
-    public void failed(DataFlowRequest dataFlowRequest, String reason) {
-        sendRequest(dataFlowRequest, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
+    public Result<Void> failed(DataFlowRequest dataFlowRequest, String reason) {
+        return sendRequest(dataFlowRequest, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
     }
 
-    private void sendRequest(DataFlowRequest dataFlowRequest, String action, Object body) {
+    private Result<Void> sendRequest(DataFlowRequest dataFlowRequest, String action, Object body) {
 
         if (dataFlowRequest.getCallbackAddress() != null) {
             try {
                 var request = createRequest(buildUrl(dataFlowRequest, action), body);
-                try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNot(200)))) {
+                try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(200, 204)))) {
                     if (!response.isSuccessful()) {
                         var message = "Failed to send callback request: received %s from the TransferProcess API"
                                 .formatted(response.code());
                         monitor.severe(message);
+                        return Result.failure(message);
                     }
                 }
 
             } catch (Exception e) {
                 monitor.severe("Failed to send callback request", e);
+                return Result.failure("Failed to send callback request: " + e.getMessage());
             }
         } else {
             monitor.warning(String.format("Missing callback address in DataFlowRequest %s", dataFlowRequest.getId()));
         }
+        return Result.success();
+
     }
 
     @NotNull

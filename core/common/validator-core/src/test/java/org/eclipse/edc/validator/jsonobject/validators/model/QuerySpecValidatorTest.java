@@ -17,6 +17,7 @@ package org.eclipse.edc.validator.jsonobject.validators.model;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -112,9 +113,19 @@ class QuerySpecValidatorTest {
     }
 
     @Test
-    void shouldFail_whenFilterExpressionNotValid() {
+    void shouldFail_whenFilterExpressionEntryNotValid() {
         var input = Json.createObjectBuilder()
-                .add(EDC_QUERY_SPEC_FILTER_EXPRESSION, createArrayBuilder().add(createObjectBuilder().add("a", "a")))
+                .add(EDC_QUERY_SPEC_FILTER_EXPRESSION, createArrayBuilder()
+                        .add(createObjectBuilder()
+                                .add(Criterion.CRITERION_OPERAND_LEFT, value("key"))
+                                .add(Criterion.CRITERION_OPERATOR, value("="))
+                                .add(Criterion.CRITERION_OPERAND_RIGHT, value("valid criterion"))
+                        )
+                        .add(createObjectBuilder()
+                                .add(Criterion.CRITERION_OPERATOR, value("="))
+                                .add(Criterion.CRITERION_OPERAND_RIGHT, value("invalid criterion"))
+                        )
+                )
                 .build();
 
         var result = validator.validate(input);

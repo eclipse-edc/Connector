@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 /**
  * Extract objects from JsonObject sub-path.
  */
-interface JsonWalker {
+public interface JsonWalker {
 
     /**
      * Extract a {@link Stream} of {@link JsonObject} from the path passed that can then be validated.

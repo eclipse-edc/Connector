@@ -45,28 +45,18 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
  */
 public class ConsumerContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ConsumerContractNegotiationManager {
 
-    private StateMachineManager stateMachineManager;
-
     private ConsumerContractNegotiationManagerImpl() {
     }
 
-    public void start() {
-        stateMachineManager = StateMachineManager.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
+    @Override
+    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
+        return builder
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(ACCEPTING, this::processAccepting))
                 .processor(processNegotiationsInState(AGREED, this::processAgreed))
                 .processor(processNegotiationsInState(VERIFYING, this::processVerifying))
-                .processor(processNegotiationsInState(TERMINATING, this::processTerminating))
-                .build();
-
-        stateMachineManager.start();
-    }
-
-    public void stop() {
-        if (stateMachineManager != null) {
-            stateMachineManager.stop();
-        }
+                .processor(processNegotiationsInState(TERMINATING, this::processTerminating));
     }
 
     /**
@@ -133,7 +123,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToRequested(n))
                 .onFailure((n, throwable) -> transitionToRequesting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -170,7 +160,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToAccepted(n))
                 .onFailure((n, throwable) -> transitionToAccepting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -206,7 +196,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(negotiationStore::findById)
+                .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToVerified(n))
                 .onFailure((n, throwable) -> transitionToVerifying(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))

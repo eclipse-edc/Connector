@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:policy-engine-spi"))
     api(project(":spi:control-plane:contract-spi"))
 
+    implementation(project(":core:common:connector-core"))
     implementation(project(":core:common:state-machine"))
     implementation(libs.opentelemetry.instrumentation.annotations)
 

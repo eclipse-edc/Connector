@@ -100,7 +100,7 @@ public interface AssetIndex extends DataAddressResolver {
      * Stores a {@link Asset} in the asset index, if no asset with the same ID already exists.
      * Implementors must ensure that it's stored in a transactional way.
      *
-     * @param asset       The {@link Asset} to store
+     * @param asset The {@link Asset} to store
      * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
      */
     default StoreResult<Void> create(Asset asset) {
@@ -139,6 +139,8 @@ public interface AssetIndex extends DataAddressResolver {
      * @param assetId     the database of the Asset to update
      * @param dataAddress The DataAddress containing the new values.
      * @return {@link StoreResult#success(Object)} if the object was updated, {@link StoreResult#notFound(String)} when an object with that ID was not found.
+     * @deprecated Updating only the DataAddress is deprecated and will be removed in future releases. Please use the {@link AssetIndex#updateAsset(Asset)} method.
      */
+    @Deprecated(forRemoval = true)
     StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress);
 }

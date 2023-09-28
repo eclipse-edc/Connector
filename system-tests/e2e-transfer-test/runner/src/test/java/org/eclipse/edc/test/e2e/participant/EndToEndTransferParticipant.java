@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -148,12 +149,16 @@ public class EndToEndTransferParticipant extends Participant {
     }
 
     public void registerDataPlane() {
+        registerDataPlane(Set.of("HttpData", "HttpProvision", "Kafka"), Set.of("HttpData", "HttpProvision", "HttpProxy", "Kafka"));
+    }
+
+    public void registerDataPlane(Set<String> sources, Set<String> destinations) {
         var jsonObject = Json.createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(ID, UUID.randomUUID().toString())
                 .add(EDC_NAMESPACE + "url", dataPlaneControl + "/transfer")
-                .add(EDC_NAMESPACE + "allowedSourceTypes", createArrayBuilder(List.of("HttpData", "HttpProvision", "Kafka")))
-                .add(EDC_NAMESPACE + "allowedDestTypes", createArrayBuilder(List.of("HttpData", "HttpProvision", "HttpProxy", "Kafka")))
+                .add(EDC_NAMESPACE + "allowedSourceTypes", createArrayBuilder(sources))
+                .add(EDC_NAMESPACE + "allowedDestTypes", createArrayBuilder(destinations))
                 .add(EDC_NAMESPACE + "properties", createObjectBuilder().add("publicApiUrl", dataPlanePublic.toString()))
                 .build();
 

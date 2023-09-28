@@ -46,7 +46,7 @@ public class QuerySpecValidator {
                 .verify(EDC_QUERY_SPEC_LIMIT, OptionalValueGreaterZero::new)
                 .verify(EDC_QUERY_SPEC_SORT_ORDER, OptionalValueSortField::new)
                 .verify(EDC_QUERY_SPEC_SORT_FIELD, OptionalValueNotBlank::new)
-                .verifyObject(EDC_QUERY_SPEC_FILTER_EXPRESSION, CriterionValidator::instance);
+                .verifyArrayItem(EDC_QUERY_SPEC_FILTER_EXPRESSION, CriterionValidator::instance);
     }
 
     private record OptionalValueGreaterEqualZero(JsonLdPath path) implements Validator<JsonObject> {

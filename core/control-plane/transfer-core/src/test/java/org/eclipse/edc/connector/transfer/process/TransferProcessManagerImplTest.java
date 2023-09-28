@@ -28,7 +28,6 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.transfer.spi.provision.ResourceManifestGenerator;
-import org.eclipse.edc.connector.transfer.spi.status.StatusCheckerRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -108,7 +107,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
@@ -128,7 +126,6 @@ class TransferProcessManagerImplTest {
 
     private final ProvisionManager provisionManager = mock();
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
-    private final StatusCheckerRegistry statusCheckerRegistry = mock();
     private final ResourceManifestGenerator manifestGenerator = mock();
     private final TransferProcessStore transferProcessStore = mock();
     private final PolicyArchive policyArchive = mock();
@@ -161,9 +158,8 @@ class TransferProcessManagerImplTest {
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock())
                 .clock(clock)
-                .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(observable)
-                .transferProcessStore(transferProcessStore)
+                .store(transferProcessStore)
                 .policyArchive(policyArchive)
                 .vault(vault)
                 .addressResolver(addressResolver)
@@ -560,70 +556,7 @@ class TransferProcessManagerImplTest {
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTING.code()));
         });
     }
-
-    @Test
-    void started_shouldComplete_whenCheckerCompleted() {
-        var process = createTransferProcessBuilder(STARTED)
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance()
-                        .resources(List.of(provisionedDataDestinationResource(), provisionedDataDestinationResource()))
-                        .build())
-                .build();
-
-        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-            verify(transferProcessStore).save(argThat(p -> p.getState() == COMPLETING.code()));
-        });
-    }
-
-    @Test
-    void started_shouldBreakLeaseAndNotComplete_whenNotAllYetCompleted() {
-        var process = createTransferProcess(STARTED);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-
-        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> false);
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
-        });
-    }
-
-    @Test
-    void started_shouldNotComplete_whenNoChecker() {
-        var process = createTransferProcess(STARTED);
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process));
-        doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(transferProcessStore).save(process);
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(transferProcessStore).save(captor.capture());
-            assertThat(captor.getValue().getState()).isEqualTo(STARTED.code());
-        });
-    }
-
-    @Test
-    void started_shouldBreakLeaseIfNotConsumer() {
-        var process = createTransferProcessBuilder(STARTED)
-                .type(PROVIDER)
-                .build();
-        when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(STARTED.code()))).thenReturn(List.of(process));
-        manager.start();
-        await().untilAsserted(() -> verify(transferProcessStore, atLeastOnce()).save(eq(process)));
-    }
-
+    
     @Test
     void completing_shouldTransitionToCompleted_whenSendingMessageSucceed() {
         var process = createTransferProcessBuilder(COMPLETING).dataRequest(createDataRequestBuilder().id("correlationId").build()).build();
