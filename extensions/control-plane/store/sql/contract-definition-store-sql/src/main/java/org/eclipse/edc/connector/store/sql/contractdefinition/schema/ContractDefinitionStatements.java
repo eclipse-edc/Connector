@@ -77,6 +77,8 @@ public interface ContractDefinitionStatements extends SqlStatements {
 
     String getDeleteByIdTemplate();
 
+    String getDeletePropertyByIdTemplate();
+
     String getFindByTemplate();
 
     String getInsertTemplate();

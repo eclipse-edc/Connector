@@ -12,6 +12,7 @@
  *       Microsoft Corporation - refactoring, bugfixing
  *       Fraunhofer Institute for Software and Systems Engineering - added method
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -190,6 +191,10 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 toJson(definition.getAssetsSelector()),
                 definition.getCreatedAt(),
                 definition.getId());
+
+        queryExecutor.execute(connection, statements.getDeletePropertyByIdTemplate(),
+                definition.getId());
+        insertProperties(definition, connection);
     }
 
     private boolean existsById(Connection connection, String definitionId) {

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -25,6 +26,11 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     @Override
     public String getDeleteByIdTemplate() {
         return executeStatement().delete(getContractDefinitionTable(), getIdColumn());
+    }
+
+    @Override
+    public String getDeletePropertyByIdTemplate() {
+        return executeStatement().delete(getContractDefinitionPropertyTable(), getPropertyContractDefinitionIdFkColumn());
     }
 
     @Override

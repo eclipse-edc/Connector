@@ -14,11 +14,13 @@
  *       Microsoft Corporation - added tests
  *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       SAP SE - SAP SE - add private properties to contract definition
  *
  */
 
 package org.eclipse.edc.connector.contract.spi.testfixtures.offer.store;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.Criterion;
@@ -158,6 +160,65 @@ public abstract class ContractDefinitionStoreTestBase {
                 assertThat(definition.getAccessPolicyId()).isEqualTo(definition2.getAccessPolicyId());
                 assertThat(definition.getContractPolicyId()).isEqualTo(definition2.getContractPolicyId());
             });
+        }
+
+        @Test
+        @DisplayName("Update contract definition that exists, adding a property")
+        void exists_addsProperty() {
+            var definition1 = createContractDefinition("id1", "policy1", "contract1");
+            getContractDefinitionStore().save(definition1);
+            var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(definitions).isNotNull().hasSize(1);
+
+            definition1.getPrivateProperties().put("newKey", "newValue");
+            var updated = getContractDefinitionStore().update(definition1);
+            Assertions.assertThat(updated).isNotNull();
+
+            var definitionFound = getContractDefinitionStore().findById("id1");
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
+        }
+
+
+        @Test
+        @DisplayName("Update contract definition that exists, removing a property")
+        void exists_removesProperty() {
+            var definition1 = createContractDefinition("id1", "policy1", "contract1");
+            definition1.getPrivateProperties().put("newKey", "newValue");
+            getContractDefinitionStore().save(definition1);
+            var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(definitions).isNotNull().hasSize(1);
+
+            definition1.getPrivateProperties().remove("newKey");
+            var updated = getContractDefinitionStore().update(definition1);
+            Assertions.assertThat(updated).isNotNull();
+
+            var definitionFound = getContractDefinitionStore().findById("id1");
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
+            assertThat(definitionFound.getPrivateProperties()).doesNotContainKey("newKey");
+        }
+
+        @Test
+        @DisplayName("Update an Asset that exists, replacing a property")
+        void exists_replacingProperty() {
+            var definition1 = createContractDefinition("id1", "policy1", "contract1");
+            definition1.getPrivateProperties().put("newKey", "originalValue");
+            getContractDefinitionStore().save(definition1);
+            var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(definitions).isNotNull().hasSize(1);
+
+            definition1.getPrivateProperties().put("newKey", "newValue");
+            var updated = getContractDefinitionStore().update(definition1);
+            Assertions.assertThat(updated).isNotNull();
+
+            var definitionFound = getContractDefinitionStore().findById("id1");
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
+            assertThat(definitionFound.getPrivateProperties()).containsEntry("newKey", "newValue");
         }
     }
 
