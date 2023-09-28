@@ -87,6 +87,8 @@ public interface ContractDefinitionStatements extends SqlStatements {
 
     String getCountTemplate();
 
+    String getFindPropertyByIdTemplate();
+
     String getUpdateTemplate();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);

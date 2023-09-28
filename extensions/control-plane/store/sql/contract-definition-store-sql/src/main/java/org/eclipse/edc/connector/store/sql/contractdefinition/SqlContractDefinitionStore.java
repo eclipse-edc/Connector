@@ -38,11 +38,15 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.partitioningBy;
+import static java.util.stream.Collectors.toMap;
 
 public class SqlContractDefinitionStore extends AbstractSqlStore implements ContractDefinitionStore {
 
@@ -208,9 +212,69 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
         return resultSet.getLong(1);
     }
 
+    private Object fromPropertyValue(String value, String type) throws ClassNotFoundException {
+        var clazz = Class.forName(type);
+        if (clazz == String.class) {
+            return value;
+        }
+        return fromJson(value, clazz);
+    }
+
+    private SqlPropertyWrapper mapProperties(ResultSet resultSet) throws SQLException, ClassNotFoundException {
+        var name = resultSet.getString(statements.getContractDefinitionPropertyNameColumn());
+        var value = resultSet.getString(statements.getContractDefinitionPropertyValueColumn());
+        var type = resultSet.getString(statements.getContractDefinitionPropertyTypeColumn());
+        var isPrivate = resultSet.getBoolean(statements.getContractDefinitionPropertyIsPrivateColumn());
+        return new SqlPropertyWrapper(isPrivate, new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type)));
+    }
+
     private ContractDefinition findById(Connection connection, String id) {
-        var sql = statements.getFindByTemplate();
-        return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
+        return transactionContext.execute(() -> {
+            var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("id", "=", id))).build();
+            var queryStatement = statements.createQuery(query);
+
+            var contractDefinitionStream = queryExecutor.query(connection, false,
+                            this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+            var allPropertiesStream = queryExecutor.query(connection, false,
+                            this::mapProperties, statements.getFindPropertyByIdTemplate(), id);
+
+            Map<Boolean, List<SqlPropertyWrapper>> groupedProperties =
+                        allPropertiesStream.collect(partitioningBy(SqlPropertyWrapper::isPrivate));
+            var contractDefinitionPrivateProperties = groupedProperties.get(true).stream().collect(
+                        toMap(SqlPropertyWrapper::getPropertyKey, SqlPropertyWrapper::getPropertyValue));
+
+            var contractDefinition = contractDefinitionStream.findFirst().orElse(null);
+            return ContractDefinition.Builder.newInstance()
+                        .id(contractDefinition.getId())
+                        .createdAt(contractDefinition.getCreatedAt())
+                        .accessPolicyId(contractDefinition.getAccessPolicyId())
+                        .contractPolicyId(contractDefinition.getContractPolicyId())
+                        .assetsSelector(contractDefinition.getAssetsSelector())
+                        .privateProperties(contractDefinitionPrivateProperties)
+                        .build();
+        });
+    }
+
+    private static class SqlPropertyWrapper {
+        private final boolean isPrivate;
+        private final AbstractMap.SimpleImmutableEntry<String, Object> property;
+
+        protected SqlPropertyWrapper(boolean isPrivate, AbstractMap.SimpleImmutableEntry<String, Object> kvSimpleImmutableEntry) {
+            this.isPrivate = isPrivate;
+            this.property = kvSimpleImmutableEntry;
+        }
+
+        protected boolean isPrivate() {
+            return isPrivate;
+        }
+
+        protected String getPropertyKey() {
+            return property.getKey();
+        }
+
+        protected Object getPropertyValue() {
+            return property.getValue();
+        }
     }
 
 }

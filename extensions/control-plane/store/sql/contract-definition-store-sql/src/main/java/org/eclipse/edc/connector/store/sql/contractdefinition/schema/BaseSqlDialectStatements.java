@@ -69,6 +69,13 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     }
 
     @Override
+    public String getFindPropertyByIdTemplate() {
+        return format("SELECT * FROM %s WHERE %s = ?",
+                getContractDefinitionPropertyTable(),
+                getPropertyContractDefinitionIdFkColumn());
+    }
+
+    @Override
     public String getUpdateTemplate() {
         return executeStatement()
                 .column(getIdColumn())
