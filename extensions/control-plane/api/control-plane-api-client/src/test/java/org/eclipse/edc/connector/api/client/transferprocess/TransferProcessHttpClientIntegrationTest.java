@@ -19,6 +19,8 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -164,6 +166,9 @@ public class TransferProcessHttpClientIntegrationTest {
         @Inject
         private TransferServiceRegistry registry;
 
+        @Inject
+        private DataFlowManager dataFlowManager;
+
         private TransferServiceMockExtension(TransferService transferService) {
             this.transferService = transferService;
         }
@@ -171,6 +176,10 @@ public class TransferProcessHttpClientIntegrationTest {
         @Override
         public void initialize(ServiceExtensionContext context) {
             registry.registerTransferService(transferService);
+            DataFlowController controller = mock();
+            when(controller.canHandle(any())).thenReturn(true);
+            when(controller.terminate(any())).thenReturn(StatusResult.success());
+            dataFlowManager.register(controller);
         }
     }
 

@@ -22,7 +22,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -55,7 +54,7 @@ import static java.time.Duration.ZERO;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -67,7 +66,7 @@ import static org.mockserver.stop.Stop.stopQuietly;
 import static org.mockserver.verify.VerificationTimes.atLeast;
 import static org.mockserver.verify.VerificationTimes.never;
 
-//@KafkaIntegrationTest
+@KafkaIntegrationTest
 class EndToEndKafkaTransferTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -132,17 +131,17 @@ class EndToEndKafkaTransferTest {
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), httpSink());
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
-            destinationServer.verify(request, atLeast(2));
+            destinationServer.verify(request, atLeast(1));
         });
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(COMPLETED.name());
+            assertThat(state).isEqualTo(TERMINATED.name());
         });
 
         destinationServer.clear(request)
                 .when(request).respond(response());
-        await().pollDelay(2, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().pollDelay(2, TimeUnit.SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
             destinationServer.verify(request, never());
         });
 
@@ -168,11 +167,11 @@ class EndToEndKafkaTransferTest {
 
             await().atMost(TIMEOUT).untilAsserted(() -> {
                 var state = CONSUMER.getTransferProcessState(transferProcessId);
-                assertThat(state).isEqualTo(COMPLETED.name());
+                assertThat(state).isEqualTo(TERMINATED.name());
             });
 
             consumer.poll(ZERO);
-            await().pollDelay(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            await().pollDelay(5, TimeUnit.SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
                 var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
                 assertThat(recordsFound).isEmpty();
             });
