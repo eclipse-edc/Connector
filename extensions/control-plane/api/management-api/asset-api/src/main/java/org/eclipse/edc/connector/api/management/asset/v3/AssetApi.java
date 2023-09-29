@@ -123,6 +123,7 @@ public interface AssetApi {
                     },
                     "dataAddress": {
                         "type": "HttpData"
+                        "baseUrl": "https://jsonplaceholder.typicode.com/todos"
                     }
                 }
                 """;
@@ -152,6 +153,7 @@ public interface AssetApi {
                     },
                     "edc:dataAddress": {
                         "edc:type": "HttpData"
+                        "edc:baseUrl": "https://jsonplaceholder.typicode.com/todos"
                     },
                     "edc:createdAt": 1688465655
                 }
