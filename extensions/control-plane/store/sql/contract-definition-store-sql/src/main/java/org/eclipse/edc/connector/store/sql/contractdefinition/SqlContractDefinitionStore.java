@@ -74,16 +74,6 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 throw new EdcPersistenceException(exception);
             }
         });
-        /*return transactionContext.execute(() -> {
-            Objects.requireNonNull(spec);
-
-            try {
-                var queryStmt = statements.createQuery(spec);
-                return queryExecutor.query(getConnection(), true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
-            } catch (SQLException exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });*/
     }
 
     @Override
