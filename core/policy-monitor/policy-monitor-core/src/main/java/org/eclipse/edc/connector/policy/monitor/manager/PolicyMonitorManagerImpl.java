@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.transfer.spi.types.command.StopTransferCommand;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.query.Criterion;
@@ -34,7 +33,6 @@ import java.time.Instant;
 import java.util.function.Function;
 
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 /**
@@ -87,8 +85,7 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
         var result = policyEngine.evaluate("transfer.process", policy, policyContext);
         if (result.failed()) {
             monitor.debug(() -> "[policy-monitor] Policy evaluation for TP %s failed: %s".formatted(entry.getId(), result.getFailureDetail()));
-            var command = new StopTransferCommand(entry.getId(), result.getFailureDetail(), COMPLETING);
-            var completeResult = transferProcessService.stop(command);
+            var completeResult = transferProcessService.complete(entry.getId());
             if (completeResult.succeeded()) {
                 entry.transitionToCompleted();
                 update(entry);

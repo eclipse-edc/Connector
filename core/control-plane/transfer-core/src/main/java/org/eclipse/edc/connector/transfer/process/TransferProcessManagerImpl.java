@@ -41,7 +41,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -71,7 +70,6 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STOPPING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
@@ -166,7 +164,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
-                .processor(processProviderTransfersInState(STOPPING, this::processStopping))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
@@ -322,25 +319,25 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .execute(description);
     }
 
-    /**
-     * Process STOPPING transfer<p>
-     * Terminate data transfer and transition to the pre-set subsequent state, that could be one of:
-     * - COMPLETING
-     * - TERMINATING
-     * - SUSPENDING
-     * Can never happen for CONSUMER TransferProcess.
-     *
-     * @param process the TransferProcess.
-     * @return if the transfer has been processed or not
-     */
     @WithSpan
-    private boolean processStopping(TransferProcess process) {
-        return entityRetryProcessFactory.doSyncProcess(process, () -> dataFlowManager.terminate(process))
-                .onSuccess((p, dataFlowResponse) -> transitionTo(p, process.stoppingSubsequentState()))
-                .onFatalError((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
-                .onFailure((t, failure) -> transitionToStopping(t))
-                .onRetryExhausted((p, failure) -> transitionToTerminating(p, failure.getFailureDetail()))
-                .execute("Terminate data flow");
+    private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse, Policy policy) {
+        var message = TransferStartMessage.Builder.newInstance()
+                .processId(process.getCorrelationId())
+                .protocol(process.getProtocol())
+                .dataAddress(dataFlowResponse.getDataAddress())
+                .counterPartyAddress(process.getConnectorAddress())
+                .policy(policy)
+                .build();
+
+        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
+
+        entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
+                .entityRetrieve(id -> store.findById(id))
+                .onSuccess((t, content) -> transitionToStarted(t))
+                .onFailure((t, throwable) -> transitionToStarting(t))
+                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
+                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute(description);
     }
 
     /**
@@ -420,27 +417,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFailure((t, throwable) -> transitionToDeprovisioning(t))
                 .onRetryExhausted((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
                 .execute("deprovisioning");
-    }
-
-    @WithSpan
-    private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse, Policy policy) {
-        var message = TransferStartMessage.Builder.newInstance()
-                .processId(process.getCorrelationId())
-                .protocol(process.getProtocol())
-                .dataAddress(dataFlowResponse.getDataAddress())
-                .counterPartyAddress(process.getConnectorAddress())
-                .policy(policy)
-                .build();
-
-        var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
-
-        entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(id -> store.findById(id))
-                .onSuccess((t, content) -> transitionToStarted(t))
-                .onFailure((t, throwable) -> transitionToStarting(t))
-                .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute(description);
     }
 
     private <T> void handleResult(TransferProcess transferProcess, List<StatusResult<T>> responses, ResponsesHandler<StatusResult<T>> handler) {
@@ -528,21 +504,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         monitor.warning(message, errors);
         process.transitionTerminating(message);
         update(process);
-    }
-
-    private void transitionToStopping(TransferProcess transferProcess) {
-        transferProcess.transitionStopping(transferProcess.getErrorDetail(), transferProcess.stoppingSubsequentState());
-        update(transferProcess);
-    }
-
-    private void transitionTo(TransferProcess transferProcess, TransferProcessStates state) {
-        switch (state) {
-            case COMPLETING -> transferProcess.transitionCompleting();
-            case TERMINATING -> transferProcess.transitionTerminating();
-            case SUSPENDING -> transferProcess.transitionSuspending();
-            default -> throw new EdcException("this case should never happen");
-        }
-        update(transferProcess);
     }
 
     private void transitionToTerminated(TransferProcess process, Throwable throwable) {

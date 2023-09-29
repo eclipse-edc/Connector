@@ -87,7 +87,7 @@ class PolicyMonitorManagerImplTest {
     }
 
     @Test
-    void started_shouldTransitionToCompletedAndStopTransfer_whenPolicyIsNotValid() {
+    void started_shouldTransitionToComplete_whenPolicyIsNotValidAndTransferProcessGetsCompleted() {
         var entry = PolicyMonitorEntry.Builder.newInstance()
                 .id("transferProcessId")
                 .contractId("contractId")
@@ -98,7 +98,7 @@ class PolicyMonitorManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(entry)).thenReturn(emptyList());
         when(contractAgreementService.findById(any())).thenReturn(contractAgreement);
         when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
-        when(transferProcessService.stop(any())).thenReturn(ServiceResult.success());
+        when(transferProcessService.complete(any())).thenReturn(ServiceResult.success());
 
         manager.start();
 
@@ -108,13 +108,13 @@ class PolicyMonitorManagerImplTest {
             verify(policyEngine).evaluate(eq("transfer.process"), same(policy), captor.capture());
             var policyContext = captor.getValue();
             assertThat(policyContext.getContextData(ContractAgreement.class)).isSameAs(contractAgreement);
-            verify(transferProcessService).stop(any());
+            verify(transferProcessService).complete("transferProcessId");
             verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
 
     @Test
-    void started_shouldNotTransitionToComplete_whenTransferProcessStopFails() {
+    void started_shouldNotTransitionToComplete_whenTransferProcessCompletionFails() {
         var entry = PolicyMonitorEntry.Builder.newInstance()
                 .id("transferProcessId")
                 .contractId("contractId")
@@ -124,7 +124,7 @@ class PolicyMonitorManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(entry)).thenReturn(emptyList());
         when(contractAgreementService.findById(any())).thenReturn(createContractAgreement(policy));
         when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
-        when(transferProcessService.stop(any())).thenReturn(ServiceResult.conflict("failure"));
+        when(transferProcessService.complete(any())).thenReturn(ServiceResult.conflict("failure"));
 
         manager.start();
 
