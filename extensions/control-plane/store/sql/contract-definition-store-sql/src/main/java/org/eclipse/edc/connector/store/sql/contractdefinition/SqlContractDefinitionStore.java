@@ -68,11 +68,22 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
             try {
                 var queryStmt = statements.createQuery(spec);
-                return queryExecutor.query(getConnection(), true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
+                return queryExecutor.query(getConnection(), true, this::mapContractDefinitionIds, queryStmt.getQueryAsString(), queryStmt.getParameters())
+                        .map(this::findById);
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
         });
+        /*return transactionContext.execute(() -> {
+            Objects.requireNonNull(spec);
+
+            try {
+                var queryStmt = statements.createQuery(spec);
+                return queryExecutor.query(getConnection(), true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
+            } catch (SQLException exception) {
+                throw new EdcPersistenceException(exception);
+            }
+        });*/
     }
 
     @Override
@@ -139,6 +150,10 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
             }
         });
 
+    }
+
+    private String mapContractDefinitionIds(ResultSet resultSet) throws SQLException {
+        return resultSet.getString(statements.getIdColumn());
     }
 
     private ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
