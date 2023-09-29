@@ -8,6 +8,7 @@
 - [Performance Tuning](performance-tuning.md)
 
 ## Build and testing
+- [Build your own connector](build-your-own-connector.md)
 - [OpenApi Spec Generation](openapi.md)
 - [Cloud Testing](cloud_testing.md)
 
