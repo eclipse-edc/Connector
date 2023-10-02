@@ -10,4 +10,8 @@ Exemplary configuration:
 ```properties
 web.http.control.port=9191
 web.http.control.path=/api/v1/control
+edc.control.endpoint=<control-api-endpoint>
 ```
+
+The `edc.control.endpoint` will be used by the data plane to notify the control plane when data transfer completes or
+fails.  
