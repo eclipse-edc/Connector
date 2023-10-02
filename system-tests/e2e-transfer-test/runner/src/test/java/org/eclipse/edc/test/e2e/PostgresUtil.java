@@ -37,20 +37,18 @@ public class PostgresUtil {
         var helper = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, consumer.getName());
         helper.createDatabase(consumer.getName());
 
-        var controlPlaneScripts = Stream.of(
-                        "asset-index-sql",
-                        "contract-definition-store-sql",
-                        "contract-negotiation-store-sql",
-                        "policy-definition-store-sql",
-                        "transfer-process-store-sql")
-                .map(module -> "../../../extensions/control-plane/store/sql/" + module + "/docs/schema.sql")
-                .map(Paths::get);
-
-        var dataPlaneScripts = Stream.of("data-plane-store-sql")
-                .map(module -> "../../../extensions/data-plane/store/sql/" + module + "/docs/schema.sql")
-                .map(Paths::get);
-
-        var scripts = Stream.concat(controlPlaneScripts, dataPlaneScripts).toList();
+        var scripts = Stream.of(
+                "extensions/control-plane/store/sql/asset-index-sql",
+                "extensions/control-plane/store/sql/contract-definition-store-sql",
+                "extensions/control-plane/store/sql/contract-negotiation-store-sql",
+                "extensions/control-plane/store/sql/policy-definition-store-sql",
+                "extensions/control-plane/store/sql/transfer-process-store-sql",
+                "extensions/data-plane/store/sql/data-plane-store-sql",
+                "extensions/policy-monitor/store/sql/policy-monitor-store-sql"
+        )
+                .map("../../../%s/docs/schema.sql"::formatted)
+                .map(Paths::get)
+                .toList();
 
         try (var connection = DriverManager.getConnection(consumer.jdbcUrl(), USER, PASSWORD)) {
             for (var script : scripts) {

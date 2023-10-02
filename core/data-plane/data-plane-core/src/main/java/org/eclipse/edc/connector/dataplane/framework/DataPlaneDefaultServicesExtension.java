@@ -18,8 +18,11 @@ import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSel
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
+
+import java.time.Clock;
 
 @Extension(value = DataPlaneDefaultServicesExtension.NAME)
 public class DataPlaneDefaultServicesExtension implements ServiceExtension {
@@ -31,6 +34,9 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
         return NAME;
     }
 
+    @Inject
+    private Clock clock;
+
     @Provider(isDefault = true)
     public TransferServiceSelectionStrategy transferServiceSelectionStrategy() {
         return TransferServiceSelectionStrategy.selectFirst();
@@ -38,6 +44,6 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataPlaneStore dataPlaneStore() {
-        return new InMemoryDataPlaneStore();
+        return new InMemoryDataPlaneStore(clock);
     }
 }

@@ -26,6 +26,7 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
+    testImplementation(testFixtures(project(":spi:policy-monitor:policy-monitor-spi")))
 }
 
 

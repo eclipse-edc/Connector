@@ -81,17 +81,16 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).collect(toList());
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
-            var statement = statements.createQuery(querySpec);
-            statement.addWhereClause(statements.getNotLeasedFilter());
-            statement.addParameter(clock.millis());
+            var statement = statements.createQuery(querySpec)
+                    .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
 
             try (
                     var connection = getConnection();
                     var stream = queryExecutor.query(connection, true, this::mapDataFlow, statement.getQueryAsString(), statement.getParameters())
             ) {
-                var transferProcesses = stream.collect(Collectors.toList());
-                transferProcesses.forEach(transferProcess -> leaseContext.withConnection(connection).acquireLease(transferProcess.getId()));
-                return transferProcesses;
+                var entries = stream.collect(Collectors.toList());
+                entries.forEach(entry -> leaseContext.withConnection(connection).acquireLease(entry.getId()));
+                return entries;
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -104,13 +103,13 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
             try (var connection = getConnection()) {
                 var entity = findByIdInternal(connection, id);
                 if (entity == null) {
-                    return StoreResult.notFound(format("TransferProcess %s not found", id));
+                    return StoreResult.notFound(format("DataFlow %s not found", id));
                 }
 
                 leaseContext.withConnection(connection).acquireLease(entity.getId());
                 return StoreResult.success(entity);
             } catch (IllegalStateException e) {
-                return StoreResult.alreadyLeased(format("TransferProcess %s is already leased", id));
+                return StoreResult.alreadyLeased(format("DataFlow %s is already leased", id));
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

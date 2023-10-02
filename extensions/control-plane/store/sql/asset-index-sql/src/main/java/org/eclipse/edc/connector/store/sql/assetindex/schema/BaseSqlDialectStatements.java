@@ -23,7 +23,6 @@ import org.eclipse.edc.sql.translation.SqlConditionExpression;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -121,25 +120,21 @@ public class BaseSqlDialectStatements implements AssetStatements {
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         var criteria = querySpec.getFilterExpression();
         var conditions = criteria.stream().map(SqlConditionExpression::new).toList();
-        var results = conditions.stream().map(SqlConditionExpression::isValidExpression).toList();
+        var validation = conditions.stream()
+                .map(SqlConditionExpression::isValidExpression)
+                .reduce(Result::merge)
+                .orElse(Result.success());
 
-        if (results.stream().anyMatch(Result::failed)) {
-            var message = results.stream().flatMap(r -> r.getFailureMessages().stream()).collect(Collectors.joining(", "));
-            throw new IllegalArgumentException(message);
+        if (validation.failed()) {
+            throw new IllegalArgumentException(validation.getFailureDetail());
         }
-        var subSelects = conditions.stream().map(this::toSubSelect).collect(Collectors.toList());
 
-        var query = getSelectAssetTemplate() + " " + concatSubSelects(subSelects);
-        var stmt = new SqlQueryStatement(query);
+        var statement = new SqlQueryStatement(getSelectAssetTemplate(), querySpec.getLimit(), querySpec.getOffset());
 
-        conditions.stream()
-                .flatMap(SqlConditionExpression::toStatementParameter)
-                .forEach(stmt::addParameter);
+        conditions.forEach(condition -> statement
+                .addWhereClause(this.toSubSelect(condition), condition.toStatementParameter().toArray()));
 
-        stmt.addParameter(querySpec.getLimit());
-        stmt.addParameter(querySpec.getOffset());
-
-        return stmt;
+        return statement;
     }
 
     @Override

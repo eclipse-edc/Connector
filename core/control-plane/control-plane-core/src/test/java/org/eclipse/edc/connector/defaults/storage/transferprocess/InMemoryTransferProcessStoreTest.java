@@ -16,23 +16,13 @@ package org.eclipse.edc.connector.defaults.storage.transferprocess;
 
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.testfixtures.store.TransferProcessStoreTestBase;
-import org.eclipse.edc.spi.persistence.Lease;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 class InMemoryTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
-    private final Map<String, Lease> leases = new HashMap<>();
-    private InMemoryTransferProcessStore store;
-
-    @BeforeEach
-    void setUp() {
-        store = new InMemoryTransferProcessStore(CONNECTOR_NAME, Clock.systemUTC(), leases);
-    }
+    private final InMemoryTransferProcessStore store = new InMemoryTransferProcessStore(CONNECTOR_NAME, Clock.systemUTC());
 
     @Override
     protected TransferProcessStore getTransferProcessStore() {
@@ -40,20 +30,13 @@ class InMemoryTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @Override
-    protected void leaseEntity(String negotiationId, String owner, Duration duration) {
-        leases.put(negotiationId, new Lease(owner, Clock.systemUTC().millis(), duration.toMillis()));
+    protected void leaseEntity(String entityId, String owner, Duration duration) {
+        store.acquireLease(entityId, owner, duration);
     }
 
     @Override
-    protected boolean isLeasedBy(String negotiationId, String owner) {
-        return leases.entrySet().stream().anyMatch(e -> e.getKey().equals(negotiationId) &&
-                e.getValue().getLeasedBy().equals(owner) &&
-                !isExpired(e.getValue()));
+    protected boolean isLeasedBy(String entityId, String owner) {
+        return store.isLeasedBy(entityId, owner);
     }
-
-    private boolean isExpired(Lease e) {
-        return e.getLeasedAt() + e.getLeaseDuration() < Clock.systemUTC().millis();
-    }
-
 
 }
