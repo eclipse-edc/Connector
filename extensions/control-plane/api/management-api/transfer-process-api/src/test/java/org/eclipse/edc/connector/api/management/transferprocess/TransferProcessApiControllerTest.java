@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TerminateT
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -370,7 +371,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var terminateTransfer = new TerminateTransfer("anyReason");
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(TerminateTransfer.class))).thenReturn(Result.success(terminateTransfer));
-        when(service.terminate(any(), any())).thenReturn(ServiceResult.success());
+        when(service.terminate(any())).thenReturn(ServiceResult.success());
 
         given()
                 .port(port)
@@ -380,7 +381,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(204);
         verify(transformerRegistry).transform(expanded, TerminateTransfer.class);
-        verify(service).terminate("id", "anyReason");
+        verify(service).terminate(isA(TerminateTransferCommand.class));
     }
 
     @Test
@@ -419,7 +420,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
         var terminateTransfer = new TerminateTransfer("anyReason");
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(TerminateTransfer.class))).thenReturn(Result.success(terminateTransfer));
-        when(service.terminate(any(), any())).thenReturn(ServiceResult.conflict("conflict"));
+        when(service.terminate(any())).thenReturn(ServiceResult.conflict("conflict"));
 
         given()
                 .port(port)

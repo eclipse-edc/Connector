@@ -35,19 +35,6 @@ public interface RemoteMessageDispatcher {
      * @param responseType the expected response type
      * @param message      the message
      * @return a future that can be used to retrieve the response when the operation has completed
-     * @deprecated please use {@link #dispatch(Class, RemoteMessage)}
-     */
-    @Deprecated(since = "0.1.1")
-    default <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message) {
-        return dispatch(responseType, message).thenApply(StatusResult::getContent);
-    }
-
-    /**
-     * Binds and sends the message.
-     *
-     * @param responseType the expected response type
-     * @param message      the message
-     * @return a future that can be used to retrieve the response when the operation has completed
      */
     <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, M message);
 

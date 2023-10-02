@@ -22,7 +22,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.asset.AssetEntry;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -40,7 +39,6 @@ public interface AssetIndex extends DataAddressResolver {
     String ASSET_EXISTS_TEMPLATE = "Asset with ID %s already exists";
     String ASSET_NOT_FOUND_TEMPLATE = "Asset with ID %s not found";
     String DATA_ADDRESS_NOT_FOUND_TEMPLATE = "DataAddress with ID %s not found";
-    String DUPLICATE_PROPERTY_KEYS_TEMPLATE = "Duplicate keys in properties and private properties are not allowed";
 
     /**
      * Finds all assets that are covered by a specific {@link QuerySpec}. Results are always sorted. If no {@link QuerySpec#getSortField()}
@@ -67,45 +65,13 @@ public interface AssetIndex extends DataAddressResolver {
     Asset findById(String assetId);
 
     /**
-     * Stores an {@link Asset} and a {@link DataAddress} in the asset index, if no asset with the same ID already exists.
-     * Implementors must ensure that bothe objects are stored in a transactional way, and the DataAddress must always be resolvable for an Asset.
-     *
-     * @param asset       The {@link Asset} to store
-     * @param dataAddress The {@link DataAddress} to store
-     * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
-     * @deprecated please use {@link #create(Asset)}
-     */
-    @Deprecated(since = "0.1.2", forRemoval = true)
-    default StoreResult<Void> create(Asset asset, DataAddress dataAddress) {
-        return create(new AssetEntry(asset, dataAddress));
-    }
-
-    /**
-     * This method will be removed in favor of {@link #create(Asset)}
-     *
-     * @param item the asset entry.
-     * @return the result.
-     * @deprecated please use and override {@link #create(Asset)}
-     */
-    @Deprecated(since = "0.1.2")
-    default StoreResult<Void> create(AssetEntry item) {
-        var asset = item.getAsset();
-        var assetWithDataAddress = asset.toBuilder()
-                .dataAddress(item.getDataAddress())
-                .build();
-        return create(assetWithDataAddress);
-    }
-
-    /**
      * Stores a {@link Asset} in the asset index, if no asset with the same ID already exists.
      * Implementors must ensure that it's stored in a transactional way.
      *
      * @param asset The {@link Asset} to store
      * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
      */
-    default StoreResult<Void> create(Asset asset) {
-        return create(new AssetEntry(asset, asset.getDataAddress()));
-    }
+    StoreResult<Void> create(Asset asset);
 
     /**
      * Deletes an asset if it exists.
@@ -141,6 +107,6 @@ public interface AssetIndex extends DataAddressResolver {
      * @return {@link StoreResult#success(Object)} if the object was updated, {@link StoreResult#notFound(String)} when an object with that ID was not found.
      * @deprecated Updating only the DataAddress is deprecated and will be removed in future releases. Please use the {@link AssetIndex#updateAsset(Asset)} method.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "0.3.0", forRemoval = true)
     StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress);
 }

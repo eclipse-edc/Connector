@@ -40,17 +40,6 @@ public interface AssetService {
     ServiceResult<Stream<Asset>> query(QuerySpec query);
 
     /**
-     * Create an asset with its related data address
-     *
-     * @param asset       the asset
-     * @param dataAddress the address of the asset
-     * @return successful result if the asset is created correctly, failure otherwise
-     * @deprecated please use {@link #create(Asset)}
-     */
-    @Deprecated(since = "0.1.2")
-    ServiceResult<Asset> create(Asset asset, DataAddress dataAddress);
-
-    /**
      * Create an asset
      *
      * @param asset       the asset

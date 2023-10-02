@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.connector.api.management.asset.model.AssetEntryNewDto.EDC_ASSET_ENTRY_DTO_TYPE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,7 +47,6 @@ class AssetApiExtensionTest {
     void initialize_shouldRegisterControllers(AssetApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(org.eclipse.edc.connector.api.management.asset.v2.AssetApiController.class));
         verify(webService).registerResource(any(), isA(AssetApiController.class));
     }
 
@@ -57,7 +55,6 @@ class AssetApiExtensionTest {
         extension.initialize(context);
 
         verify(validatorRegistry).register(eq(EDC_ASSET_TYPE), any());
-        verify(validatorRegistry).register(eq(EDC_ASSET_ENTRY_DTO_TYPE), any());
         verify(validatorRegistry).register(eq(EDC_DATA_ADDRESS_TYPE), any());
     }
 }
