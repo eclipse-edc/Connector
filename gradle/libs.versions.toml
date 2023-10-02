@@ -2,7 +2,7 @@
 format.version = "1.1"
 
 [versions]
-apacheCommonsPool2 = "2.11.1"
+apacheCommonsPool2 = "2.12.0"
 iron-vc = "0.8.1"
 assertj = "3.24.2"
 atomikos = "6.0.0"
