@@ -174,30 +174,6 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .statusCode(204);
     }
 
-    @Test
-    void cancel() {
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        store.save(createContractNegotiationBuilder("cn1").build());
-
-        baseRequest()
-                .contentType(JSON)
-                .post("/v2/contractnegotiations/cn1/cancel")
-                .then()
-                .statusCode(204);
-    }
-
-    @Test
-    void decline() {
-        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
-        store.save(createContractNegotiationBuilder("cn1").build());
-
-        baseRequest()
-                .contentType(JSON)
-                .post("/v2/contractnegotiations/cn1/decline")
-                .then()
-                .statusCode(204);
-    }
-
     private ContractNegotiation createContractNegotiation(String negotiationId) {
         return createContractNegotiationBuilder(negotiationId)
                 .build();

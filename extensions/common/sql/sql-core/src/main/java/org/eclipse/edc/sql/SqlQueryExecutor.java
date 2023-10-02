@@ -36,13 +36,6 @@ import static java.util.stream.StreamSupport.stream;
  */
 public class SqlQueryExecutor implements QueryExecutor {
 
-    /**
-     * static INSTANCE provided only to make the static methods working.
-     *
-     * @deprecated please inject and use the {@link QueryExecutor} service instance instead.
-     */
-    @Deprecated(since = "0.1.0")
-    private static final SqlQueryExecutor INSTANCE = new SqlQueryExecutor();
     private final SqlQueryExecutorConfiguration configuration;
 
     public SqlQueryExecutor() {
@@ -140,43 +133,6 @@ public class SqlQueryExecutor implements QueryExecutor {
             }
 
         };
-    }
-
-    /**
-     * Intended for mutating queries.
-     *
-     * @param sql the parametrized sql query
-     * @param arguments the parameters to interpolate with the parametrized sql query
-     * @return rowsChanged
-     * @deprecated please inject and use the {@link QueryExecutor} service instance instead
-     */
-    @Deprecated(since = "0.1.0")
-    public static int executeQuery(Connection connection, String sql, Object... arguments) {
-        return INSTANCE.execute(connection, sql, arguments);
-    }
-
-    @Deprecated(since = "0.1.0")
-    public static <T> T executeQuerySingle(Connection connection, boolean closeConnection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
-        return INSTANCE.single(connection, closeConnection, resultSetMapper, sql, arguments);
-    }
-
-    /**
-     * Intended for reading queries.
-     * The resulting {@link Stream} must be closed with the "close()" when a terminal operation is used on the stream
-     * (collect, forEach, anyMatch, etc...)
-     *
-     * @param connection the connection to be used to execute the query.
-     * @param closeConnection if true the connection will be closed on stream closure, else it won't be closed.
-     * @param resultSetMapper able to map a row to an object e.g. pojo.
-     * @param sql the parametrized sql query
-     * @param arguments the parameteres to interpolate with the parametrized sql query
-     * @param <T> generic type returned after mapping from the executed query
-     * @return a Stream on the results, must be closed when a terminal operation is used on the stream (collect, forEach, anyMatch, etc...)
-     * @deprecated please inject and use the {@link QueryExecutor} service instance instead
-     */
-    @Deprecated(since = "0.1.0")
-    public static <T> Stream<T> executeQuery(Connection connection, boolean closeConnection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
-        return INSTANCE.query(connection, closeConnection, resultSetMapper, sql, arguments);
     }
 
 }

@@ -23,15 +23,10 @@ import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import static java.lang.String.format;
-
 /**
  * Provides specialization of Oauth2 extension to interact with DAPS instance
- *
- * @deprecated This DAPS specific extension will be deleted and be replaced by configuration values
  */
 @Extension(value = DapsExtension.NAME)
-@Deprecated(since = "0.1.0")
 public class DapsExtension implements ServiceExtension {
 
     public static final String NAME = "DAPS";
@@ -41,7 +36,6 @@ public class DapsExtension implements ServiceExtension {
 
     @Inject
     private Oauth2JwtDecoratorRegistry jwtDecoratorRegistry;
-
 
     @Override
     public String name() {
@@ -55,12 +49,7 @@ public class DapsExtension implements ServiceExtension {
 
     @Provider
     public TokenDecorator createDapsTokenDecorator(ServiceExtensionContext context) {
-        var scope = context.getSetting(DAPS_TOKEN_SCOPE, null);
-        if (scope == null) {
-            context.getMonitor().warning(() -> format("The config value '%s' was not supplied, falling back to the default '%s'. " +
-                    "Please be aware that this default will be removed in future releases", DAPS_TOKEN_SCOPE, DEFAULT_TOKEN_SCOPE));
-            scope = DEFAULT_TOKEN_SCOPE;
-        }
+        var scope = context.getConfig().getString(DAPS_TOKEN_SCOPE);
 
         return new DapsTokenDecorator(scope);
     }

@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TransferSt
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -157,7 +158,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         var terminateTransfer = transformerRegistry.transform(requestBody, TerminateTransfer.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.terminate(id, terminateTransfer.reason())
+        service.terminate(new TerminateTransferCommand(id, terminateTransfer.reason()))
                 .onSuccess(tp -> monitor.debug(format("Termination requested for TransferProcess with ID %s", id)))
                 .orElseThrow(failure -> mapToException(failure, TransferProcess.class, id));
     }

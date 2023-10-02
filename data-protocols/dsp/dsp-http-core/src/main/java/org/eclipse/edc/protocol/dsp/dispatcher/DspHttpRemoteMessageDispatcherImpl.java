@@ -67,28 +67,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
         return HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
     }
 
-    /**
-     * Sends a remote message. Chooses the delegate for the respective message type to build the
-     * request. Adds the token received from the {@link IdentityService} as the Authorization header.
-     * Sends the request using the {@link EdcHttpClient} and parses the response as defined by
-     * the delegate.
-     *
-     * @param responseType the expected response type
-     * @param message      the message
-     * @return a completable future for the response body
-     */
-    @Override
-    public <T, M extends RemoteMessage> CompletableFuture<T> send(Class<T> responseType, M message) {
-        return dispatch(responseType, message)
-                .thenApply(it -> {
-                    if (it.succeeded()) {
-                        return it.getContent();
-                    } else {
-                        return null;
-                    }
-                });
-    }
-
     @Override
     public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, M message) {
         var handlers = (Handlers<M, T>) this.handlers.get(message.getClass());

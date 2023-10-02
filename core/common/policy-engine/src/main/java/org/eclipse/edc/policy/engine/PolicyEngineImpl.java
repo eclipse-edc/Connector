@@ -16,7 +16,6 @@ package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleFunction;
 import org.eclipse.edc.policy.evaluator.PolicyEvaluator;
@@ -26,7 +25,6 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.policy.model.Rule;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
@@ -115,24 +113,6 @@ public class PolicyEngineImpl implements PolicyEngine {
         } else {
             return failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
-    }
-
-    @Override
-    @Deprecated(since = "0.1.1")
-    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
-        var context = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
-        return evaluate(scope, policy, context).map(it -> policy);
-    }
-
-    @Override
-    @Deprecated(since = "0.1.1")
-    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class<?>, Object> contextInformation) {
-        var builder = PolicyContextImpl.Builder.newInstance()
-                .additional(ParticipantAgent.class, agent);
-
-        contextInformation.forEach((key, value) -> builder.additional(key, key.cast(value)));
-
-        return evaluate(scope, policy, builder.build()).map(it -> policy);
     }
 
     @Override
