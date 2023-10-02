@@ -63,7 +63,8 @@ class TransferProcessManagerImplIntegrationTest {
     private static final int TRANSFER_MANAGER_BATCH_SIZE = 10;
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
-    private final TransferProcessStore store = new InMemoryTransferProcessStore();
+    private final Clock clock = Clock.systemUTC();
+    private final TransferProcessStore store = new InMemoryTransferProcessStore(clock);
     private TransferProcessManagerImpl transferProcessManager;
 
     @BeforeEach
@@ -76,7 +77,6 @@ class TransferProcessManagerImplIntegrationTest {
 
         var monitor = mock(Monitor.class);
         var waitStrategy = mock(ExponentialWaitStrategy.class);
-        var clock = Clock.systemUTC();
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(mock())

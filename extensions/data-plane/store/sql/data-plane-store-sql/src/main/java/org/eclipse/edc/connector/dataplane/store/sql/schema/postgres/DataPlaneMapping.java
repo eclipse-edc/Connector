@@ -16,26 +16,15 @@ package org.eclipse.edc.connector.dataplane.store.sql.schema.postgres;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataPlaneStatements;
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
-import org.eclipse.edc.sql.translation.TranslationMapping;
+import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 
 /**
  * Maps fields of a {@link DataFlow} onto the
  * corresponding SQL schema (= column names) enabling access through Postgres JSON operators where applicable
  */
-public class DataPlaneMapping extends TranslationMapping {
-
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_STATE = "state";
-    private static final String FIELD_CREATED_TIMESTAMP = "createdAt";
-    private static final String FIELD_TRACE_CONTEXT = "traceContext";
-    private static final String FIELD_ERROR_DETAIL = "errorDetail";
+public class DataPlaneMapping extends StatefulEntityMapping {
 
     public DataPlaneMapping(DataPlaneStatements statements) {
-        add(FIELD_ID, statements.getIdColumn());
-        add(FIELD_STATE, statements.getStateColumn());
-        add(FIELD_CREATED_TIMESTAMP, statements.getCreatedAtColumn());
-        add(FIELD_TRACE_CONTEXT, new JsonFieldMapping(statements.getTraceContextColumn()));
-        add(FIELD_ERROR_DETAIL, statements.getErrorDetailColumn());
+        super(statements);
     }
 }

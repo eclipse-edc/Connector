@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.policy.monitor;
 
 import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitorManagerImpl;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
-import org.eclipse.edc.connector.policy.monitor.store.InMemoryPolicyMonitorStore;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.subscriber.StartMonitoring;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
@@ -72,6 +72,9 @@ public class PolicyMonitorExtension implements ServiceExtension {
     @Inject
     private TransferProcessService transferProcessService;
 
+    @Inject
+    private PolicyMonitorStore policyMonitorStore;
+
     private PolicyMonitorManager manager;
 
     @Override
@@ -89,7 +92,7 @@ public class PolicyMonitorExtension implements ServiceExtension {
                 .contractAgreementService(contractAgreementService)
                 .policyEngine(policyEngine)
                 .transferProcessService(transferProcessService)
-                .store(new InMemoryPolicyMonitorStore())
+                .store(policyMonitorStore)
                 .build();
 
         context.registerService(PolicyMonitorManager.class, manager);

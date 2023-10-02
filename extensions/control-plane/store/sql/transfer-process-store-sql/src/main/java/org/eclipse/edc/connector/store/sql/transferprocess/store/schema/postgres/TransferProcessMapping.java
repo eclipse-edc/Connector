@@ -16,21 +16,17 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgre
 
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 import org.eclipse.edc.sql.translation.JsonFieldMapping;
-import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
  * Maps fields of a {@link TransferProcess} onto the
  * corresponding SQL schema (= column names) enabling access through Postgres JSON operators where applicable
  */
-public class TransferProcessMapping extends TranslationMapping {
+public class TransferProcessMapping extends StatefulEntityMapping {
 
-    private static final String FIELD_ID = "id";
     private static final String FIELD_TYPE = "type";
-    private static final String FIELD_STATE = "state";
     private static final String FIELD_CREATED_TIMESTAMP = "createdAt";
-    private static final String FIELD_TRACECONTEXT = "traceContext";
-    private static final String FIELD_ERRORDETAIL = "errorDetail";
     private static final String FIELD_DATAREQUEST = "dataRequest";
     private static final String FIELD_DATAADDRESS = "dataAddress";
     // this actually an alias for "dataAddress":
@@ -44,12 +40,9 @@ public class TransferProcessMapping extends TranslationMapping {
 
 
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
-        add(FIELD_ID, statements.getIdColumn());
+        super(statements);
         add(FIELD_TYPE, statements.getTypeColumn());
-        add(FIELD_STATE, statements.getStateColumn());
         add(FIELD_CREATED_TIMESTAMP, statements.getCreatedAtColumn());
-        add(FIELD_TRACECONTEXT, new JsonFieldMapping(statements.getTraceContextColumn()));
-        add(FIELD_ERRORDETAIL, statements.getErrorDetailColumn());
         add(FIELD_DATAREQUEST, new DataRequestMapping(statements));
         add(FIELD_DATAADDRESS, new JsonFieldMapping(statements.getContentDataAddressColumn()));
         add(FIELD_CONTENTDATAADDRESS, new JsonFieldMapping(statements.getContentDataAddressColumn()));

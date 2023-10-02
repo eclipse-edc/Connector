@@ -63,6 +63,7 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 public abstract class ContractNegotiationStoreTestBase {
 
     protected static final String CONNECTOR_NAME = "test-connector";
+    protected final Clock clock = Clock.systemUTC();
     private static final String ASSET_ID = "TEST_ASSET_ID";
 
     @Nested
@@ -240,7 +241,7 @@ public abstract class ContractNegotiationStoreTestBase {
             var newNegotiation = builder
                     .stateCount(420) //modified
                     .state(800) //modified
-                    .updatedAt(Clock.systemUTC().millis())
+                    .updatedAt(clock.millis())
                     .build();
 
             // update should break lease

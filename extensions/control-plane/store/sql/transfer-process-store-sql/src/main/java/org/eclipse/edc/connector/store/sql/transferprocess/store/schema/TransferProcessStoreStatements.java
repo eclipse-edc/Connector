@@ -17,13 +17,14 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.lease.LeaseStatements;
+import org.eclipse.edc.sql.lease.StatefulEntityStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Statement templates and SQL table+column names required for the TransferProcessStore
  */
 @ExtensionPoint
-public interface TransferProcessStoreStatements extends LeaseStatements {
+public interface TransferProcessStoreStatements extends StatefulEntityStatements, LeaseStatements {
 
     String getInsertStatement();
 
@@ -37,28 +38,12 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     String getUpdateDataRequestTemplate();
 
-    default String getIdColumn() {
-        return "transferprocess_id";
-    }
-
     default String getTransferProcessTableName() {
         return "edc_transfer_process";
     }
 
-    default String getStateColumn() {
-        return "state";
-    }
-
-    default String getStateTimestampColumn() {
-        return "state_time_stamp";
-    }
-
-    default String getTraceContextColumn() {
-        return "trace_context";
-    }
-
-    default String getErrorDetailColumn() {
-        return "error_detail";
+    default String getIdColumn() {
+        return "transferprocess_id";
     }
 
     default String getResourceManifestColumn() {
@@ -71,14 +56,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     default String getTypeColumn() {
         return "type";
-    }
-
-    default String getCreatedAtColumn() {
-        return "created_at";
-    }
-
-    default String getUpdatedAtColumn() {
-        return "updated_at";
     }
 
     default String getContentDataAddressColumn() {
@@ -123,10 +100,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     default String getDataDestinationColumn() {
         return "data_destination";
-    }
-
-    default String getStateCountColumn() {
-        return "state_count";
     }
 
     default String getDataRequestIdColumn() {

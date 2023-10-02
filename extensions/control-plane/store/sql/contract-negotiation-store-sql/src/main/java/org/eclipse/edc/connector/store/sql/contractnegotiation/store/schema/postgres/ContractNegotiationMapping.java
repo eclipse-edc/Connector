@@ -16,40 +16,30 @@ package org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.pos
 
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
-import org.eclipse.edc.sql.translation.TranslationMapping;
+import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 
 /**
  * Maps fields of a {@link ContractNegotiation}
  * onto the corresponding SQL schema (= column names)
  */
-class ContractNegotiationMapping extends TranslationMapping {
-    private static final String FIELD_ID = "id";
+class ContractNegotiationMapping extends StatefulEntityMapping {
     private static final String FIELD_CORRELATION_ID = "correlationId";
     private static final String FIELD_COUNTER_PARTY_ID = "counterPartyId";
     private static final String FIELD_COUNTERPARTY_ADDRESS = "counterPartyAddress";
     private static final String FIELD_PROTOCOL = "protocol";
     private static final String FIELD_TYPE = "type";
-    private static final String FIELD_STATE = "state";
-    private static final String FIELD_STATECOUNT = "stateCount";
-    private static final String FIELD_STATETIMESTAMP = "stateTimestamp";
-    private static final String FIELD_ERRORDETAIL = "errorDetail";
     private static final String FIELD_CONTRACT_AGREEMENT = "contractAgreement";
     private static final String FIELD_TRACECONTEXT = "traceContext";
     private static final String FIELD_PENDING = "pending";
 
 
     ContractNegotiationMapping(ContractNegotiationStatements statements) {
-        // cannot use Map.of(), because that only accepts 10 pairs
-        add(FIELD_ID, statements.getIdColumn());
+        super(statements);
         add(FIELD_CORRELATION_ID, statements.getCorrelationIdColumn());
         add(FIELD_COUNTER_PARTY_ID, statements.getCounterPartyIdColumn());
         add(FIELD_COUNTERPARTY_ADDRESS, statements.getCounterPartyAddressColumn());
         add(FIELD_PROTOCOL, statements.getProtocolColumn());
         add(FIELD_TYPE, statements.getTypeColumn());
-        add(FIELD_STATE, statements.getStateColumn());
-        add(FIELD_STATECOUNT, statements.getStateCountColumn());
-        add(FIELD_STATETIMESTAMP, statements.getStateTimestampColumn());
-        add(FIELD_ERRORDETAIL, statements.getErrorDetailColumn());
         add(FIELD_PENDING, statements.getPendingColumn());
 
         fieldMap.put(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
