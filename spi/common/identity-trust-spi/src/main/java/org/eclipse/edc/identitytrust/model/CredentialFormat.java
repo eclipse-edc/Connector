@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.identitytrust.model;
 
-import java.util.Map;
-
-public record CredentialStatus(String id, String type, Map<String, Object> additionalProperties) {
+public enum CredentialFormat {
+    JSON_LD,
+    JWT
 }

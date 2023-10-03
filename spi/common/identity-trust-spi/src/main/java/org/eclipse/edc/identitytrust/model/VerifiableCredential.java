@@ -14,45 +14,38 @@
 
 package org.eclipse.edc.identitytrust.model;
 
-import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents a VerifiableCredential as per the <a href="https://www.w3.org/TR/vc-data-model/">VerifiableCredential Data Model 1.1</a>
+ * Represents a VerifiableCredential as per the <a href="https://w3c.github.io/vc-data-model/">VerifiableCredential Data Model 2.0</a>.
+ * The RAW VC must always be preserved in THE EXACT FORMAT it was originally received, otherwise the proofs become invalid.
  */
 public class VerifiableCredential {
-    public static final String DEFAULT_CONTEXT = "https://www.w3.org/2018/credentials/v1";
-    public static final String DEFAULT_TYPE = "VerifiableCredential";
-
-    private List<String> contexts = new ArrayList<>();
+    private final String rawVc;
+    private final CredentialFormat format;
     private List<CredentialSubject> credentialSubject = new ArrayList<>();
-    private List<Proof> proofs = new ArrayList<>();
-    private URI id;
+    private String id; // must be URI, but URI is less efficient at runtime
     private List<String> types = new ArrayList<>();
     private Object issuer; // can be URI or an object containing an ID
-    private Date issuanceDate;
-    private Date expirationDate;
+    private Instant issuanceDate; // v2 of the spec renames this to "validFrom"
+    private Instant expirationDate; // v2 of the spec renames this to "validUntil"
     private CredentialStatus credentialStatus;
 
-    private VerifiableCredential() {
+    private VerifiableCredential(String rawVc, CredentialFormat format) {
+        this.rawVc = rawVc;
+        this.format = format;
     }
 
-    public List<String> getContexts() {
-        return contexts;
-    }
 
     public List<CredentialSubject> getCredentialSubject() {
         return credentialSubject;
     }
 
-    public List<Proof> getProofs() {
-        return proofs;
-    }
 
-    public URI getId() {
+    public String getId() {
         return id;
     }
 
@@ -64,11 +57,11 @@ public class VerifiableCredential {
         return issuer;
     }
 
-    public Date getIssuanceDate() {
+    public Instant getIssuanceDate() {
         return issuanceDate;
     }
 
-    public Date getExpirationDate() {
+    public Instant getExpirationDate() {
         return expirationDate;
     }
 
@@ -76,27 +69,23 @@ public class VerifiableCredential {
         return credentialStatus;
     }
 
+    public String getRawVc() {
+        return rawVc;
+    }
+
+    public CredentialFormat getFormat() {
+        return format;
+    }
+
     public static final class Builder {
         private final VerifiableCredential instance;
 
-        private Builder() {
-            instance = new VerifiableCredential();
-            instance.contexts.add(DEFAULT_CONTEXT);
-            instance.types.add(DEFAULT_TYPE);
+        private Builder(String rawVc, CredentialFormat format) {
+            instance = new VerifiableCredential(rawVc, format);
         }
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public Builder contexts(List<String> contexts) {
-            this.instance.contexts = contexts;
-            return this;
-        }
-
-        public Builder context(String context) {
-            this.instance.contexts.add(context);
-            return this;
+        public static Builder newInstance(String rawVc, CredentialFormat format) {
+            return new Builder(rawVc, format);
         }
 
         public Builder credentialSubject(List<CredentialSubject> credentialSubject) {
@@ -109,17 +98,7 @@ public class VerifiableCredential {
             return this;
         }
 
-        public Builder proofs(List<Proof> proofs) {
-            this.instance.proofs = proofs;
-            return this;
-        }
-
-        public Builder proof(Proof proof) {
-            this.instance.proofs.add(proof);
-            return this;
-        }
-
-        public Builder id(URI id) {
+        public Builder id(String id) {
             this.instance.id = id;
             return this;
         }
@@ -142,12 +121,12 @@ public class VerifiableCredential {
             return this;
         }
 
-        public Builder issuanceDate(Date issuanceDate) {
+        public Builder issuanceDate(Instant issuanceDate) {
             this.instance.issuanceDate = issuanceDate;
             return this;
         }
 
-        public Builder expirationDate(Date expirationDate) {
+        public Builder expirationDate(Instant expirationDate) {
             this.instance.expirationDate = expirationDate;
             return this;
         }
@@ -158,9 +137,6 @@ public class VerifiableCredential {
         }
 
         public VerifiableCredential build() {
-            if (instance.contexts.isEmpty()) {
-                throw new IllegalArgumentException("VerifiableCredential must contain at least one context.");
-            }
             if (instance.types.isEmpty()) {
                 throw new IllegalArgumentException("VerifiableCredentials MUST have at least one 'type' value.");
             }
@@ -169,9 +145,6 @@ public class VerifiableCredential {
             }
             Objects.requireNonNull(instance.issuer, "VerifiableCredential must have an 'issuer' property.");
             Objects.requireNonNull(instance.issuanceDate, "Credential must contain `issuanceDate` property.");
-            if (instance.proofs.isEmpty()) {
-                throw new IllegalArgumentException("VerifiableCredential must contain at least one 'proof'.");
-            }
 
             return instance;
         }

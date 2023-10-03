@@ -19,12 +19,11 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Date;
 
 import static java.time.Instant.now;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
 
 class VerifiableCredentialTest {
 
@@ -34,45 +33,40 @@ class VerifiableCredentialTest {
 
     @Test
     void buildMinimalVc() {
-        assertThatNoException().isThrownBy(() -> VerifiableCredential.Builder.newInstance()
+        assertThatNoException().isThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
-                .issuanceDate(Date.from(now()))
-                .proof(TestFunctions.createProof())
+                .issuanceDate(now())
+                .type("test-type")
                 .build());
     }
 
     @Test
     void assertDefaultValues() {
-        var vc = VerifiableCredential.Builder.newInstance()
+        var vc = VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
-                .issuanceDate(Date.from(now()))
-                .proof(TestFunctions.createProof())
+                .issuanceDate(now())
+                .type("test-type")
                 .build();
-        assertThat(vc.getContexts()).containsExactly(VerifiableCredential.DEFAULT_CONTEXT);
-        assertThat(vc.getTypes()).containsExactly(VerifiableCredential.DEFAULT_TYPE);
     }
 
     @Test
     void build_emptyContexts() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
+        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
-                .issuanceDate(Date.from(now()))
-                .proof(TestFunctions.createProof())
-                .contexts(new ArrayList<>())
+                .issuanceDate(now())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void build_emptyTypes() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
+        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
-                .issuanceDate(Date.from(now()))
-                .proof(TestFunctions.createProof())
+                .issuanceDate(now())
                 .types(new ArrayList<>())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
@@ -80,11 +74,10 @@ class VerifiableCredentialTest {
 
     @Test
     void build_emptyProofs() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
+        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
-                .issuanceDate(Date.from(now()))
-                .proofs(new ArrayList<>())
+                .issuanceDate(now())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
     }

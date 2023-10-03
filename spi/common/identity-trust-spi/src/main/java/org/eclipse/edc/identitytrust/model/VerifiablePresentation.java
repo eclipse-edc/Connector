@@ -14,31 +14,26 @@
 
 package org.eclipse.edc.identitytrust.model;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents a VerifiablePresentation object as specified by the
- * <a href="https://www.w3.org/TR/vc-data-model/#presentations-0">W3 specification</a>
+ * <a href="https://w3c.github.io/vc-data-model/#presentations-0">W3 specification</a>
  */
 public class VerifiablePresentation {
     public static final String DEFAULT_TYPE = "VerifiablePresentation";
-    public static final String DEFAUT_CONTEXT = "https://www.w3.org/2018/credentials/v1";
-    private List<String> contexts = new ArrayList<>();
+    private final String rawVp;
+    private final CredentialFormat format;
     private List<VerifiableCredential> credentials = new ArrayList<>();
     private String id;
     private List<String> types = new ArrayList<>();
-    private URI holder;
-    private List<Proof> proofs = new ArrayList<>();
+    private String holder; //must be a URI
 
-    private VerifiablePresentation() {
+    private VerifiablePresentation(String rawVp, CredentialFormat format) {
         types.add(DEFAULT_TYPE);
-        contexts.add(DEFAUT_CONTEXT);
-    }
-
-    public List<String> getContexts() {
-        return contexts;
+        this.rawVp = rawVp;
+        this.format = format;
     }
 
     public List<VerifiableCredential> getCredentials() {
@@ -53,23 +48,28 @@ public class VerifiablePresentation {
         return types;
     }
 
-    public URI getHolder() {
+    public String getHolder() {
         return holder;
     }
 
-    public List<Proof> getProofs() {
-        return proofs;
+    public CredentialFormat getFormat() {
+        return format;
     }
+
+    public String getRawVp() {
+        return rawVp;
+    }
+
 
     public static final class Builder {
         private final VerifiablePresentation instance;
 
-        private Builder() {
-            this.instance = new VerifiablePresentation();
+        private Builder(String rawVp, CredentialFormat format) {
+            this.instance = new VerifiablePresentation(rawVp, format);
         }
 
-        public static Builder newInstance() {
-            return new Builder();
+        public static Builder newInstance(String rawVp, CredentialFormat format) {
+            return new Builder(rawVp, format);
         }
 
         public Builder credentials(List<VerifiableCredential> credentials) {
@@ -79,16 +79,6 @@ public class VerifiablePresentation {
 
         public Builder credential(VerifiableCredential credential) {
             this.instance.credentials.add(credential);
-            return this;
-        }
-
-        public Builder contexts(List<String> contexts) {
-            this.instance.contexts = contexts;
-            return this;
-        }
-
-        public Builder context(String context) {
-            this.instance.contexts.add(context);
             return this;
         }
 
@@ -102,13 +92,8 @@ public class VerifiablePresentation {
             return this;
         }
 
-        public Builder holder(URI holder) {
+        public Builder holder(String holder) {
             this.instance.holder = holder;
-            return this;
-        }
-
-        public Builder proof(List<Proof> proof) {
-            this.instance.proofs = proof;
             return this;
         }
 
@@ -116,15 +101,9 @@ public class VerifiablePresentation {
             if (instance.types == null || instance.types.isEmpty()) {
                 throw new IllegalArgumentException("VerifiablePresentation must have at least one type.");
             }
-            if (instance.contexts == null || instance.contexts.isEmpty()) {
-                throw new IllegalArgumentException("VerifiablePresentation must have at least one context.");
-            }
             // these next two aren't mandated by the spec, but there is no point in having a VP without credentials or a proof.
             if (instance.credentials == null || instance.credentials.isEmpty()) {
                 throw new IllegalArgumentException("VerifiablePresentation must have at least one credential.");
-            }
-            if (instance.proofs == null || instance.proofs.isEmpty()) {
-                throw new IllegalArgumentException("VerifiablePresentation must have at least one proof.");
             }
             return instance;
         }

@@ -15,27 +15,18 @@
 package org.eclipse.edc.identitytrust.model;
 
 import java.net.URI;
-import java.util.Date;
 
 import static java.time.Instant.now;
+import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
 
 public class TestFunctions {
-    static Proof createProof() {
-        return Proof.Builder.newInstance()
-                .type("test-type")
-                .created(Date.from(now()))
-                .verificationMethod(URI.create("http://verification.method/"))
-                .proofContent("foo", "bar")
-                .proofPurpose("assertionMethod")
-                .build();
-    }
 
     static VerifiableCredential createCredential() {
-        return VerifiableCredential.Builder.newInstance()
+        return VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
                 .credentialSubject(new CredentialSubject())
+                .type("test-type")
                 .issuer(URI.create("http://test.issuer"))
-                .issuanceDate(Date.from(now()))
-                .proof(createProof())
+                .issuanceDate(now())
                 .build();
     }
 }

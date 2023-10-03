@@ -20,27 +20,23 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
 import static org.eclipse.edc.identitytrust.model.TestFunctions.createCredential;
-import static org.eclipse.edc.identitytrust.model.TestFunctions.createProof;
 
 class VerifiablePresentationTest {
 
     @Test
     void assertDefaults() {
-        var vp = VerifiablePresentation.Builder.newInstance()
+        var vp = VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
                 .credential(createCredential())
-                .proof(List.of(createProof()))
                 .build();
 
-        assertThat(vp.getContexts()).containsExactly(VerifiablePresentation.DEFAUT_CONTEXT);
-        assertThat(vp.getTypes()).containsExactly(VerifiablePresentation.DEFAULT_TYPE);
     }
 
     @Test
     void build_noType() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
+        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
                 .types(new ArrayList<>())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
@@ -48,30 +44,11 @@ class VerifiablePresentationTest {
     }
 
     @Test
-    void build_noContext() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
-                .contexts(new ArrayList<>())
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("at least one context.");
-    }
-
-    @Test
     void build_noCredentials() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
+        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
                 .types(List.of("test-type"))
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageEndingWith("must have at least one credential.");
-    }
-
-    @Test
-    void build_noProofs() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
-                .types(List.of("test-type"))
-                .credential(createCredential())
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith("must have at least one proof.");
     }
 }
