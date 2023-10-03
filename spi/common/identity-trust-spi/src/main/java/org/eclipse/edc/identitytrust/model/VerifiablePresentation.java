@@ -23,6 +23,11 @@ import java.util.List;
  */
 public class VerifiablePresentation {
     public static final String DEFAULT_TYPE = "VerifiablePresentation";
+    public static final String VERIFIABLE_PRESENTATION_ID_PROPERTY = "id";
+    public static final String VERIFIABLE_PRESENTATION_TYPE_PROPERTY = "type";
+    public static final String VERIFIABLE_PRESENTATION_HOLDER_PROPERTY = "holder";
+    public static final String VERIFIABLE_PRESENTATION_VC_PROPERTY = "verifiableCredential";
+    public static final String VERIFIABLE_PRESENTATION_PROOF_PROPERTY = "proof";
     private final String rawVp;
     private final CredentialFormat format;
     private List<VerifiableCredential> credentials = new ArrayList<>();
@@ -89,6 +94,11 @@ public class VerifiablePresentation {
 
         public Builder types(List<String> type) {
             this.instance.types = type;
+            return this;
+        }
+
+        public Builder type(String type) {
+            this.instance.types.add(type);
             return this;
         }
 

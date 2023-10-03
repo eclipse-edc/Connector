@@ -12,14 +12,11 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-    `java-test-fixtures`
+package org.eclipse.edc.identitytrust;
+
+public interface VcConstants {
+    String VC_NAMESPACE_V1 = "https://www.w3.org/ns/credentials/v1/";
+    String VC_NAMESPACE_V2 = "https://www.w3.org/ns/credentials/v2/";
+
+    String VC_NAMESPACE = VC_NAMESPACE_V2; //todo: should we default to V1 or V2?
 }
-
-dependencies {
-    api(project(":spi:common:core-spi"))
-}
-
-

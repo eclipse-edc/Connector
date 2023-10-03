@@ -110,6 +110,8 @@ include(":extensions:common:iam:oauth2:oauth2-daps")
 include(":extensions:common:iam:oauth2:oauth2-core")
 include(":extensions:common:iam:oauth2:oauth2-client")
 include(":extensions:common:iam:oauth2:oauth2-service")
+include(":extensions:common:iam:identity-trust")
+include(":extensions:common:iam:identity-trust:identity-trust-transform")
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
 include(":extensions:common:monitor:monitor-jdk-logger")
@@ -219,3 +221,4 @@ include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")
+

@@ -24,6 +24,15 @@ import java.util.Objects;
  * The RAW VC must always be preserved in THE EXACT FORMAT it was originally received, otherwise the proofs become invalid.
  */
 public class VerifiableCredential {
+    public static final String VERIFIABLE_CREDENTIAL_ID_PROPERTY = "id";
+    public static final String VERIFIABLE_CREDENTIAL_TYPE_PROPERTY = "type";
+    public static final String VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY = "issuer";
+    public static final String VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY = "validFrom";
+    public static final String VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY = "validUntil";
+    public static final String VERIFIABLE_CREDENTIAL_STATUS_PROPERTY = "credentialStatus";
+    public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = "credentialSubject";
+    public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = "name";
+    public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = "description";
     private final String rawVc;
     private final CredentialFormat format;
     private List<CredentialSubject> credentialSubject = new ArrayList<>();
@@ -39,11 +48,9 @@ public class VerifiableCredential {
         this.format = format;
     }
 
-
     public List<CredentialSubject> getCredentialSubject() {
         return credentialSubject;
     }
-
 
     public String getId() {
         return id;

@@ -15,11 +15,14 @@
 plugins {
     `java-library`
     `maven-publish`
-    `java-test-fixtures`
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-}
+    api(project(":spi:common:identity-trust-spi"))
+    api(project(":spi:common:json-ld-spi"))
+    api(project(":spi:common:transform-spi"))
 
+    testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
+}
 

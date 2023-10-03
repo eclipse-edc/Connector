@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.identitytrust.TestFunctions.createCredential;
 import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
-import static org.eclipse.edc.identitytrust.model.TestFunctions.createCredential;
 
 class VerifiablePresentationTest {
 
