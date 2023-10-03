@@ -12,17 +12,14 @@ maven/mavencentral/com.ethlo.time/itu/1.7.0, Apache-2.0, approved, clearlydefine
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.10.3, Apache-2.0, approved, CQ21280
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.14.0, Apache-2.0, approved, #5303
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.14.1, Apache-2.0, approved, #5303
-maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.14.2, Apache-2.0, approved, #5303
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.15.1, Apache-2.0, approved, #7947
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.15.2, Apache-2.0, approved, #7947
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.14.1, Apache-2.0 AND MIT, approved, #4303
-maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.14.2, Apache-2.0 AND MIT, approved, #4303
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.15.1, MIT AND Apache-2.0, approved, #7932
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.15.2, MIT AND Apache-2.0, approved, #7932
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.11.0, Apache-2.0, approved, CQ23093
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.0, Apache-2.0, approved, #4105
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.1, Apache-2.0, approved, #4105
-maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.2, Apache-2.0, approved, #4105
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.15.1, Apache-2.0, approved, #7934
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.15.2, Apache-2.0, approved, #7934
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.14.0, Apache-2.0, approved, #5933
@@ -30,7 +27,6 @@ maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.15
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.15.2, Apache-2.0, approved, #8802
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.15.2, Apache-2.0, approved, #9179
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.14.0, Apache-2.0, approved, #4699
-maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.14.2, Apache-2.0, approved, #4699
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.15.1, Apache-2.0, approved, #7930
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.15.2, Apache-2.0, approved, #7930
 maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.15.2, Apache-2.0, approved, #9235
