@@ -75,7 +75,7 @@ The `JsonLd` interface will be extended with an overloaded method containing a `
 Result<JsonObject> compact(JsonObject json, String scope);
 ```
 
-The existing `Json.ld.compact(JsonObject json);` method will be treated as a `*` wildcard.
+The existing `Json.ld.compact(JsonObject json)` method will be treated as a `*` wildcard.
 
 Constructors for `JerseyJsonLdInterceptor` and `JsonLdRemoteMessageSerializerImpl` will be updated to include a `scope`
 parameter that will be used for compaction operations.
