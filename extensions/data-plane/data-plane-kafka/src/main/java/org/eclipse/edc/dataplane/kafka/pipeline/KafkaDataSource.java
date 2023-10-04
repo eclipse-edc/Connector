@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.InputStream;
 import java.time.Clock;
 import java.time.Duration;
@@ -33,13 +32,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
+import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.stream.StreamSupport.stream;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
-class KafkaDataSource implements DataSource, Closeable {
+class KafkaDataSource implements DataSource {
 
     private String name;
     private Monitor monitor;
@@ -47,30 +47,31 @@ class KafkaDataSource implements DataSource, Closeable {
     private Duration maxDuration;
     private Consumer<String, byte[]> consumer;
     private Clock clock;
+    private final AtomicBoolean active = new AtomicBoolean(true);
 
     private KafkaDataSource() {
     }
 
     @Override
     public void close() {
-        if (consumer != null) {
-            consumer.close();
-        }
+        active.set(false);
     }
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
-        return success(openRecordsStream()
+        var stream = openRecordsStream()
                 .flatMap(consumerRecords -> consumerRecords.partitions().stream()
                         .flatMap(p -> consumerRecords.records(p).stream())
-                        .map(KafkaPart::new)));
+                        .map(KafkaPart::new)
+                        .map(Part.class::cast))
+                .onClose(() -> consumer.close());
+
+        return success(stream);
     }
 
     @NotNull
     private Stream<ConsumerRecords<String, byte[]>> openRecordsStream() {
-        return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(new ConsumerRecordsIterator(), 0),
-                /* not parallel */ false);
+        return stream(spliteratorUnknownSize(new ConsumerRecordsIterator(), 0), /* not parallel */ false);
     }
 
     public static class Builder {
@@ -170,13 +171,13 @@ class KafkaDataSource implements DataSource, Closeable {
             if (isMaxDurationReached) {
                 debug("max duration reached");
             }
-            return !isMaxDurationReached;
+            return active.get() && !isMaxDurationReached;
         }
 
         @Override
         public ConsumerRecords<String, byte[]> next() {
             var records = consumer.poll(Duration.ZERO);
-            while (records.isEmpty()) {
+            while (active.get() && records.isEmpty()) {
                 records = consumer.poll(pollDuration);
             }
             return records;

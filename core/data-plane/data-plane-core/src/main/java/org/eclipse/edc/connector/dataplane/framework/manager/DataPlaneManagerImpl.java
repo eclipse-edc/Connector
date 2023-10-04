@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.edc.statemachine.Processor;
@@ -42,6 +43,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Default data manager implementation.
@@ -98,6 +100,29 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     public DataFlowStates transferState(String processId) {
         return Optional.ofNullable(store.findById(processId)).map(StatefulEntity::getState)
                 .map(DataFlowStates::from).orElse(null);
+    }
+
+    @Override
+    public StatusResult<Void> terminate(String dataFlowId) {
+        var result = store.findByIdAndLease(dataFlowId);
+        if (result.succeeded()) {
+            var dataFlow = result.getContent();
+            var transferService = transferServiceRegistry.resolveTransferService(dataFlow.toRequest());
+
+            if (transferService == null) {
+                return StatusResult.failure(FATAL_ERROR, "TransferService cannot be resolved for DataFlow %s".formatted(dataFlowId));
+            }
+
+            var terminateResult = transferService.terminate(dataFlow);
+            if (terminateResult.failed()) {
+                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, terminateResult.getFailureDetail()));
+            }
+            dataFlow.transitToCompleted();
+            store.save(dataFlow);
+            return StatusResult.success();
+        } else {
+            return StatusResult.from(result).map(it -> null);
+        }
     }
 
     private boolean processReceived(DataFlow dataFlow) {

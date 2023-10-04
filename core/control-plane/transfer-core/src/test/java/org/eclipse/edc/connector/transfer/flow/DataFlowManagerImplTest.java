@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -37,7 +38,7 @@ class DataFlowManagerImplTest {
     private final DataFlowManagerImpl manager = new DataFlowManagerImpl();
 
     @Test
-    void should_initiate_flow_on_correct_controller() {
+    void initiate_shouldInitiateFlowOnCorrectController() {
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
         var policy = Policy.Builder.newInstance().build();
@@ -54,7 +55,7 @@ class DataFlowManagerImplTest {
     }
 
     @Test
-    void should_return_fatal_error_if_no_controller_can_handle_the_request() {
+    void initiate_shouldReturnFatalError_whenNoControllerCanHandleTheRequest() {
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
@@ -71,7 +72,7 @@ class DataFlowManagerImplTest {
     }
 
     @Test
-    void should_catch_exceptions_and_return_fatal_error() {
+    void initiate_shouldCatchExceptionsAndReturnFatalError() {
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
@@ -91,7 +92,7 @@ class DataFlowManagerImplTest {
     }
 
     @Test
-    void shouldChooseHighestPriorityController() {
+    void initiate_shouldChooseHighestPriorityController() {
         var highPriority = createDataFlowController();
         var lowPriority = createDataFlowController();
         manager.register(1, lowPriority);
@@ -101,6 +102,23 @@ class DataFlowManagerImplTest {
 
         verify(highPriority).initiateFlow(any(), any());
         verifyNoInteractions(lowPriority);
+    }
+
+    @Test
+    void terminate_shouldChooseControllerAndTerminate() {
+        var controller = mock(DataFlowController.class);
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("test-dest-type").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
+        var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(dataAddress).build();
+
+        when(controller.canHandle(any())).thenReturn(true);
+        when(controller.terminate(any())).thenReturn(StatusResult.success());
+        manager.register(controller);
+
+        var result = manager.terminate(transferProcess);
+
+        assertThat(result).isSucceeded();
+        verify(controller).terminate(transferProcess);
     }
 
     private DataFlowController createDataFlowController() {

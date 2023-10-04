@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneP
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -47,7 +49,7 @@ class ConsumerPullTransferDataFlowControllerTest {
     }
 
     @Test
-    void verifyInitiateFlowSuccess() {
+    void initiateFlow_success() {
         var proxyAddress = dataAddress();
         var instance = mock(DataPlaneInstance.class);
         var transferProcess = TransferProcess.Builder.newInstance()
@@ -60,13 +62,13 @@ class ConsumerPullTransferDataFlowControllerTest {
 
         var result = flowController.initiateFlow(transferProcess, null);
 
-        assertThat(result.succeeded()).isTrue();
-        var response = result.getContent();
-        assertThat(response.getDataAddress()).isEqualTo(proxyAddress);
+        assertThat(result).isSucceeded().satisfies(response -> {
+            assertThat(response.getDataAddress()).isEqualTo(proxyAddress);
+        });
     }
 
     @Test
-    void verifyInitiateFlowReturnsFailureIfNoDataPlaneInstance() {
+    void initiateFlow_returnsFailureIfNoDataPlaneInstance() {
         var transferProcess = TransferProcess.Builder.newInstance()
                 .dataRequest(dataRequest())
                 .contentDataAddress(dataAddress())
@@ -74,13 +76,13 @@ class ConsumerPullTransferDataFlowControllerTest {
 
         var result = flowController.initiateFlow(transferProcess, null);
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureDetail())
+
+        assertThat(result).isFailed().extracting(Failure::getFailureDetail).asString()
                 .isEqualTo(String.format("Failed to find DataPlaneInstance for source/destination: %s/%s", transferProcess.getContentDataAddress().getType(), HTTP_PROXY));
     }
 
     @Test
-    void verifyInitiateFlowReturnsFailureIfAddressResolutionFails() {
+    void initiateFlow_returnsFailureIfAddressResolutionFails() {
         var errorMsg = "Test Error Message";
         var instance = mock(DataPlaneInstance.class);
         var transferProcess = TransferProcess.Builder.newInstance()
@@ -93,8 +95,19 @@ class ConsumerPullTransferDataFlowControllerTest {
 
         var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureDetail()).contains(errorMsg);
+        assertThat(result).isFailed().extracting(Failure::getFailureDetail).asString().contains(errorMsg);
+    }
+
+    @Test
+    void terminate_shouldAlwaysReturnSuccess() {
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(dataRequest())
+                .contentDataAddress(dataAddress())
+                .build();
+
+        var result = flowController.terminate(transferProcess);
+
+        assertThat(result).isSucceeded();
     }
 
     private TransferProcess transferProcess(String destinationType) {

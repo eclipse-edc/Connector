@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.CompletableFuture;
@@ -24,27 +23,7 @@ import java.util.concurrent.CompletableFuture;
  * Transfers data from a source to a sink.
  */
 @ExtensionPoint
-public interface PipelineService {
-
-    /**
-     * Returns true if this service can transfer the request.
-     */
-    boolean canHandle(DataFlowRequest request);
-
-    /**
-     * Returns true if the request is valid.
-     */
-    Result<Boolean> validate(DataFlowRequest request);
-
-    /**
-     * Transfers data from source to destination.
-     */
-    CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request);
-
-    /**
-     * Transfers data using the supplied data source.
-     */
-    CompletableFuture<StreamResult<Void>> transfer(DataSource source, DataFlowRequest request);
+public interface PipelineService extends TransferService {
 
     /**
      * Transfers data using the supplied data sink.

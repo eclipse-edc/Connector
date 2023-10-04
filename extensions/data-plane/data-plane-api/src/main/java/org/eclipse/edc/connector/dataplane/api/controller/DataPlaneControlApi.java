@@ -39,5 +39,14 @@ public interface DataPlaneControlApi {
     @Operation(description = "Get the current state of a data transfer.",
             responses = @ApiResponse(responseCode = "200", description = "Missing access token")
     )
-    DataFlowStates getTransferState(String processId);
+    DataFlowStates getTransferState(String transferProcessId);
+
+    @Operation(description = "Terminates a data transfer.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Data transfer terminated"),
+                    @ApiResponse(responseCode = "404", description = "Data transfer not handled by the data plane"),
+                    @ApiResponse(responseCode = "409", description = "Cannot terminate the transfer"),
+            }
+    )
+    void terminateTransfer(String transferProcessId, AsyncResponse response);
 }

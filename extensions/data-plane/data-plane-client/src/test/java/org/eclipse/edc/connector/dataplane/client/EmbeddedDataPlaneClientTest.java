@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -33,50 +33,46 @@ import static org.mockito.Mockito.when;
 
 class EmbeddedDataPlaneClientTest {
 
-    private DataPlaneManager dataPlaneManagerMock;
-    private DataPlaneClient client;
+    private final DataPlaneManager dataPlaneManager = mock();
+    private final DataPlaneClient client = new EmbeddedDataPlaneClient(dataPlaneManager);
 
-    @BeforeEach
-    public void setUp() {
-        dataPlaneManagerMock = mock(DataPlaneManager.class);
-        client = new EmbeddedDataPlaneClient(dataPlaneManagerMock);
+    @Test
+    void transfer_shouldSucceed_whenTransferInitiatedCorrectly() {
+        var request = createDataFlowRequest();
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
+        doNothing().when(dataPlaneManager).initiate(any());
+
+        var result = client.transfer(request);
+
+        verify(dataPlaneManager).validate(request);
+        verify(dataPlaneManager).initiate(request);
+
+        assertThat(result).isSucceeded();
     }
 
     @Test
-    void verifyDataPlaneManagerMandatory() {
-        assertThatNullPointerException().isThrownBy(() -> new EmbeddedDataPlaneClient(null));
-    }
-
-    @Test
-    void verifyReturnFailedResultIfValidationFailure() {
+    void transfer_shouldReturnFailedResult_whenValidationFailure() {
         var errorMsg = "error";
         var request = createDataFlowRequest();
-        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.failure(errorMsg));
-        doNothing().when(dataPlaneManagerMock).initiate(any());
+        when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
+        doNothing().when(dataPlaneManager).initiate(any());
 
         var result = client.transfer(request);
 
-        verify(dataPlaneManagerMock).validate(request);
-        verify(dataPlaneManagerMock, never()).initiate(any());
+        verify(dataPlaneManager).validate(request);
+        verify(dataPlaneManager, never()).initiate(any());
 
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages())
-                .hasSize(1)
-                .allSatisfy(s -> assertThat(s).contains(errorMsg));
+        assertThat(result).isFailed().messages().hasSize(1).allSatisfy(s -> assertThat(s).contains(errorMsg));
     }
 
     @Test
-    void verifyTransferSuccess() {
-        var request = createDataFlowRequest();
-        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
-        doNothing().when(dataPlaneManagerMock).initiate(any());
+    void terminate_shouldProxyCallToManager() {
+        when(dataPlaneManager.terminate(any())).thenReturn(StatusResult.success());
 
-        var result = client.transfer(request);
+        var result = client.terminate("dataFlowId");
 
-        verify(dataPlaneManagerMock).validate(request);
-        verify(dataPlaneManagerMock).initiate(request);
-
-        assertThat(result.succeeded()).isTrue();
+        assertThat(result).isSucceeded();
+        verify(dataPlaneManager).terminate("dataFlowId");
     }
 
     private static DataFlowRequest createDataFlowRequest() {

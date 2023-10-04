@@ -87,7 +87,7 @@ class PolicyMonitorManagerImplTest {
     }
 
     @Test
-    void started_shouldTransitionToComplete_whenPolicyIsNotValidAndTransferProcessGetsCompleted() {
+    void started_shouldTerminateTransferAndTransitionToComplete_whenPolicyIsNotValid() {
         var entry = PolicyMonitorEntry.Builder.newInstance()
                 .id("transferProcessId")
                 .contractId("contractId")
@@ -98,7 +98,7 @@ class PolicyMonitorManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(entry)).thenReturn(emptyList());
         when(contractAgreementService.findById(any())).thenReturn(contractAgreement);
         when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
-        when(transferProcessService.complete(any())).thenReturn(ServiceResult.success());
+        when(transferProcessService.terminate(any())).thenReturn(ServiceResult.success());
 
         manager.start();
 
@@ -108,13 +108,13 @@ class PolicyMonitorManagerImplTest {
             verify(policyEngine).evaluate(eq("transfer.process"), same(policy), captor.capture());
             var policyContext = captor.getValue();
             assertThat(policyContext.getContextData(ContractAgreement.class)).isSameAs(contractAgreement);
-            verify(transferProcessService).complete("transferProcessId");
+            verify(transferProcessService).terminate(argThat(c -> c.getEntityId().equals("transferProcessId")));
             verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
 
     @Test
-    void started_shouldNotTransitionToComplete_whenTransferProcessCompletionFails() {
+    void started_shouldNotTransitionToComplete_whenTransferProcessTerminationFails() {
         var entry = PolicyMonitorEntry.Builder.newInstance()
                 .id("transferProcessId")
                 .contractId("contractId")
@@ -124,7 +124,7 @@ class PolicyMonitorManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(entry)).thenReturn(emptyList());
         when(contractAgreementService.findById(any())).thenReturn(createContractAgreement(policy));
         when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.failure("policy is not valid"));
-        when(transferProcessService.complete(any())).thenReturn(ServiceResult.conflict("failure"));
+        when(transferProcessService.terminate(any())).thenReturn(ServiceResult.conflict("failure"));
 
         manager.start();
 
@@ -144,7 +144,6 @@ class PolicyMonitorManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(STARTED.code()))).thenReturn(List.of(entry)).thenReturn(emptyList());
         when(contractAgreementService.findById(any())).thenReturn(createContractAgreement(policy));
         when(policyEngine.evaluate(any(), any(), isA(PolicyContext.class))).thenReturn(Result.success());
-        when(transferProcessService.complete(any())).thenReturn(ServiceResult.conflict("failure"));
 
         manager.start();
 

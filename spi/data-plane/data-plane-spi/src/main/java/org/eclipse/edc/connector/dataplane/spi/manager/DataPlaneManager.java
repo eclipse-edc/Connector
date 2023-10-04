@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -70,4 +71,12 @@ public interface DataPlaneManager extends StateEntityManager {
      * Returns the transfer state for the process.
      */
     DataFlowStates transferState(String processId);
+
+    /**
+     * Terminate the data flow.
+     *
+     * @param dataFlowId the data flow id.
+     * @return success if data flow is terminated, failed otherwise.
+     */
+    StatusResult<Void> terminate(String dataFlowId);
 }

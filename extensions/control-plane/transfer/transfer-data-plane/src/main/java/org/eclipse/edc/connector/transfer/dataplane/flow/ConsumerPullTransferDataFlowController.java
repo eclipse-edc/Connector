@@ -58,6 +58,11 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
                 .orElse(failure(FATAL_ERROR, format("Failed to find DataPlaneInstance for source/destination: %s/%s", contentAddress.getType(), HTTP_PROXY)));
     }
 
+    @Override
+    public StatusResult<Void> terminate(TransferProcess transferProcess) {
+        return StatusResult.success();
+    }
+
     private DataFlowResponse toResponse(DataAddress address) {
         return DataFlowResponse.Builder.newInstance().dataAddress(address).build();
     }
