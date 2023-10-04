@@ -74,6 +74,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     public static final String CONTRACT_NEGOTIATION_STATE = EDC_NAMESPACE + "state";
     public static final String CONTRACT_NEGOTIATION_NEG_TYPE = EDC_NAMESPACE + "type";
     public static final String CONTRACT_NEGOTIATION_CALLBACK_ADDR = EDC_NAMESPACE + "callbackAddresses";
+    public static final String CONTRACT_NEGOTIATION_OFFERS = EDC_NAMESPACE + "offers";
     public static final String CONTRACT_NEGOTIATION_CREATED_AT = EDC_NAMESPACE + "createdAt";
 
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();

@@ -16,9 +16,11 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -26,16 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_AGREEMENT_ID;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CALLBACK_ADDR;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ID;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CREATED_AT;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_ERRORDETAIL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_NEG_TYPE;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROTOCOL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_STATE;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.*;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -56,6 +49,11 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
                 .map(callbackAddress -> context.transform(callbackAddress, JsonObject.class))
                 .collect(toJsonArray());
 
+        var offers = contractNegotiation.getContractOffers().stream()
+                .map(offer -> offerToOfferDescription(offer))
+                .map(offerDescription -> context.transform(offerDescription, JsonObject.class))
+                .collect(toJsonArray());
+
         builder.add(TYPE, CONTRACT_NEGOTIATION_TYPE)
                 .add(ID, contractNegotiation.getId())
                 .add(CONTRACT_NEGOTIATION_NEG_TYPE, contractNegotiation.getType().toString())
@@ -64,12 +62,20 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
                 .add(CONTRACT_NEGOTIATION_COUNTERPARTY_ID, contractNegotiation.getCounterPartyId())
                 .add(CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR, contractNegotiation.getCounterPartyAddress())
                 .add(CONTRACT_NEGOTIATION_CALLBACK_ADDR, callbackAddresses)
+                .add(CONTRACT_NEGOTIATION_OFFERS, offers)
                 .add(CONTRACT_NEGOTIATION_CREATED_AT, contractNegotiation.getCreatedAt());
 
         ofNullable(contractNegotiation.getContractAgreement()).map(ContractAgreement::getId).ifPresent(s -> builder.add(CONTRACT_NEGOTIATION_AGREEMENT_ID, s));
         ofNullable(contractNegotiation.getErrorDetail()).ifPresent(s -> builder.add(CONTRACT_NEGOTIATION_ERRORDETAIL, s));
 
         return builder.build();
+    }
+
+    private ContractOfferDescription offerToOfferDescription(ContractOffer offer) {
+        return ContractOfferDescription.Builder.newInstance()
+                .offerId(offer.getId())
+                .assetId(offer.getAssetId())
+                .policy(offer.getPolicy()).build();
     }
 
 }

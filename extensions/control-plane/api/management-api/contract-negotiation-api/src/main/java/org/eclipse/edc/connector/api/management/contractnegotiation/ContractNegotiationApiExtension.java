@@ -18,11 +18,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.*;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
@@ -71,6 +67,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
+        transformerRegistry.register(new JsonObjectFromContractOfferDescriptionTransformer(factory));
 
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
