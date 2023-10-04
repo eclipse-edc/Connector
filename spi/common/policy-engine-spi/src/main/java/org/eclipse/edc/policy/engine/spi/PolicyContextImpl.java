@@ -16,15 +16,12 @@
 
 package org.eclipse.edc.policy.engine.spi;
 
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * Default context implementation.
@@ -33,31 +30,7 @@ public class PolicyContextImpl implements PolicyContext {
     private final List<String> problems = new ArrayList<>();
     private final Map<Class<?>, Object> additional = new HashMap<>();
 
-    public PolicyContextImpl() {
-        this(null, emptyMap());
-    }
-
-    /**
-     * Creates a new PolicyContextImpl with the given participant agent and additional context
-     * data. Values in the additional map need to be of the same type defined by the key, otherwise
-     * they will be omitted.
-     *
-     * @param agent the requesting participant agent.
-     * @param additionalData additional context data.
-     * @deprecated please use the default constructor
-     */
-    @Deprecated(since = "0.1.1")
-    public PolicyContextImpl(ParticipantAgent agent, Map<Class<?>, Object> additionalData) {
-        if (agent != null) {
-            additional.put(ParticipantAgent.class, agent);
-        }
-        additionalData.forEach((key, value) -> {
-            try {
-                additional.put(key, value);
-            } catch (ClassCastException ignore) {
-                // invalid entry
-            }
-        });
+    private PolicyContextImpl() {
     }
 
     @Override
@@ -73,12 +46,6 @@ public class PolicyContextImpl implements PolicyContext {
     @Override
     public @NotNull List<String> getProblems() {
         return problems;
-    }
-
-    @Override
-    @Deprecated(since = "0.1.1")
-    public ParticipantAgent getParticipantAgent() {
-        return getContextData(ParticipantAgent.class);
     }
 
     @Override

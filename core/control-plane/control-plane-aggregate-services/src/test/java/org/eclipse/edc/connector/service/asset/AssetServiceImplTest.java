@@ -188,51 +188,6 @@ class AssetServiceImplTest {
     }
 
     @Test
-    @Deprecated(since = "0.1.2")
-    void createAssetDeprecated_shouldCreateAssetIfItDoesNotAlreadyExist() {
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-        var assetId = "assetId";
-        var asset = createAsset(assetId);
-        var addressType = "addressType";
-        var dataAddress = DataAddress.Builder.newInstance().type(addressType).build();
-        when(index.create(isA(Asset.class))).thenReturn(StoreResult.success());
-
-        var inserted = service.create(asset, dataAddress);
-
-        assertThat(inserted.succeeded()).isTrue();
-        assertThat(inserted.getContent()).matches(hasId(assetId));
-        verify(observable).invokeForEach(any());
-    }
-
-    @Test
-    @Deprecated(since = "0.1.2")
-    void createAssetDeprecated_shouldNotCreateAssetIfItAlreadyExists() {
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
-        var asset = createAsset("assetId");
-        var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
-        when(index.create(isA(Asset.class))).thenReturn(StoreResult.alreadyExists("test"));
-
-        var inserted = service.create(asset, dataAddress);
-
-        assertThat(inserted).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-    }
-
-    @Test
-    @Deprecated(since = "0.1.2")
-    void createAssetDeprecated_shouldNotCreateAssetIfDataAddressInvalid() {
-        var asset = createAsset("assetId");
-        var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
-        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("Data address is invalid"));
-
-        var result = service.create(asset, dataAddress);
-
-        Assertions.assertThat(result).satisfies(ServiceResult::failed)
-                .extracting(ServiceResult::reason)
-                .isEqualTo(BAD_REQUEST);
-        verifyNoInteractions(index);
-    }
-
-    @Test
     void delete_shouldDeleteAssetIfItsNotReferencedByAnyNegotiation() {
         when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
         when(index.deleteById("assetId")).thenReturn(StoreResult.success(createAsset("assetId")));

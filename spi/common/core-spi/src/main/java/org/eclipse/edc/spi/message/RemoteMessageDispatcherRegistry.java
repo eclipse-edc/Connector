@@ -34,19 +34,6 @@ public interface RemoteMessageDispatcherRegistry {
     void register(RemoteMessageDispatcher dispatcher);
 
     /**
-     * Sends the message using the given protocol.
-     *
-     * @param responseType the expected response type
-     * @param message      the message
-     * @return a future that can be used to retrieve the response when the operation has completed
-     * @deprecated please use {@link #dispatch(Class, RemoteMessage)}
-     */
-    @Deprecated(since = "0.1.1")
-    default <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message) {
-        return dispatch(responseType, message).thenApply(StatusResult::getContent);
-    }
-
-    /**
      * Sends the message.
      *
      * @param responseType the expected response type

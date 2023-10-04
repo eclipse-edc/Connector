@@ -51,25 +51,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport
 
-  Daps-Integration-Tests:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: reset permissions to permit checkout (because the omejdn volumes)
-        run: sudo chown -R $USER:$USER ${{ github.workspace }}
-
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-build
-
-      - run: |
-          export DAPS_RESOURCES=${{ github.workspace }}/extensions/common/iam/oauth2/oauth2-daps/src/test/resources
-          docker run -d --rm -p 4567:4567 -v $DAPS_RESOURCES/config:/opt/config -v $DAPS_RESOURCES/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.4.2
-
-      - name: Daps Integration Tests
-        uses: ./.github/actions/run-tests
-        with:
-          command: ./gradlew -p extensions/common/iam/oauth2/oauth2-daps test -DincludeTags="DapsIntegrationTest"
-
   Postgresql-Integration-Tests:
     runs-on: ubuntu-latest
 
@@ -150,7 +131,6 @@ jobs:
     needs:
       - API-Tests
       - Component-Tests
-      - Daps-Integration-Tests
       - End-To-End-Tests
       - Postgresql-Integration-Tests
       - Kafka-Integration-Tests

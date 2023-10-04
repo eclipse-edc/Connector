@@ -117,45 +117,12 @@ public interface ContractNegotiationApi {
     )
     void terminateNegotiation(String id, JsonObject terminateNegotiation);
 
-    @Operation(description = "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
-            "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to cancel the Contract negotiation was successfully received",
-                            links = @Link(name = "poll-state", operationId = "getNegotiationState")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            })
-    @Deprecated(since = "0.1.3")
-    void cancelNegotiation(String id);
-
-    @Operation(description = "Requests cancelling the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
-            "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to decline the Contract negotiation was successfully received",
-                            links = @Link(name = "poll-state", operationId = "getNegotiationState")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            }
-    )
-    @Deprecated(since = "0.1.3")
-    void declineNegotiation(String id);
-
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(
             @Schema(name = TYPE, example = CONTRACT_REQUEST_TYPE)
             String type,
             String protocol,
             String connectorAddress,
-            @Deprecated(since = "0.1.3")
-            @Schema(deprecated = true, description = "please use providerId instead")
-            String connectorId,
-            @Deprecated(since = "0.1.3")
-            @Schema(deprecated = true, description = "this field is not used anymore")
-            String consumerId,
             String providerId,
             ContractOfferDescriptionSchema offer,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {

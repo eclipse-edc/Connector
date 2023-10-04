@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.policy.engine.spi;
 
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -40,14 +39,6 @@ public interface PolicyContext {
      */
     @NotNull
     List<String> getProblems();
-
-    /**
-     * Returns the participant agent to evaluate the policy against.
-     *
-     * @deprecated please use {@link #getContextData(Class)}.
-     */
-    @Deprecated(since = "0.1.1")
-    ParticipantAgent getParticipantAgent();
 
     /**
      * Gets additional data from the context by type.

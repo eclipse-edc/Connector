@@ -191,6 +191,7 @@ include(":spi:common:transaction-spi")
 include(":spi:common:transform-spi")
 include(":spi:common:validator-spi")
 include(":spi:common:web-spi")
+include(":spi:common:identity-trust-spi")
 
 include(":spi:control-plane:asset-spi")
 include(":spi:control-plane:contract-spi")

@@ -2,7 +2,7 @@
 format.version = "1.1"
 
 [versions]
-apacheCommonsPool2 = "2.11.1"
+apacheCommonsPool2 = "2.12.0"
 iron-vc = "0.8.1"
 assertj = "3.24.2"
 atomikos = "6.0.0"
@@ -24,7 +24,7 @@ junit-pioneer = "2.1.0"
 jupiter = "5.10.0"
 micrometer = "1.11.4"
 mockito = "5.2.0"
-nimbus = "9.32"
+nimbus = "9.35"
 okhttp = "4.11.0"
 opentelemetry = "1.29.0"
 opentelemetry-proto = "1.0.0-alpha"
