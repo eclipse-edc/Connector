@@ -34,14 +34,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
@@ -89,10 +81,6 @@ public class JsonLdExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var service = new TitaniumJsonLd(monitor, configuration);
         service.registerNamespace(EDC_PREFIX, EDC_NAMESPACE);
-        service.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA);
-        service.registerNamespace(DCT_PREFIX, DCT_SCHEMA);
-        service.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA);
-        service.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA);
 
         getResourceUri("document" + File.separator + "odrl.jsonld")
                 .onSuccess(uri -> service.registerCachedDocument("http://www.w3.org/ns/odrl.jsonld", uri))

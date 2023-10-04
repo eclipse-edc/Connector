@@ -37,9 +37,12 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
     private final JsonLd jsonLd;
     private final ObjectMapper objectMapper;
 
-    public JerseyJsonLdInterceptor(JsonLd jsonLd, ObjectMapper objectMapper) {
+    private final String scope;
+
+    public JerseyJsonLdInterceptor(JsonLd jsonLd, ObjectMapper objectMapper, String scope) {
         this.jsonLd = jsonLd;
         this.objectMapper = objectMapper;
+        this.scope = scope;
     }
 
     @Override
@@ -80,7 +83,7 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
     }
 
     private JsonObject compact(JsonObject jsonObject) {
-        return jsonLd.compact(jsonObject)
+        return jsonLd.compact(jsonObject, scope)
                 .orElseThrow(f -> new InternalServerErrorException("Failed to compact JsonObject: " + f.getFailureDetail()));
     }
 }

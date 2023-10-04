@@ -58,6 +58,15 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 import java.util.Map;
 
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
@@ -87,28 +96,20 @@ public class DspApiConfigurationExtension implements ServiceExtension {
             .defaultPort(DEFAULT_PROTOCOL_PORT)
             .name("Protocol API")
             .build();
-
     @Inject
     private TypeManager typeManager;
-
     @Inject
     private WebService webService;
-
     @Inject
     private WebServer webServer;
-
     @Inject
     private WebServiceConfigurer configurator;
-
     @Inject
     private JsonLd jsonLd;
-
     @Inject
     private TypeTransformerRegistry transformerRegistry;
-
     @Inject
     private IdentityService identityService;
-
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
 
@@ -126,8 +127,16 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         context.registerService(DspRequestHandler.class, new DspRequestHandlerImpl(context.getMonitor(), dspWebhookAddress, identityService, validatorRegistry, transformerRegistry));
 
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
+
+
+        // registers ns for DSP scope
+        jsonLd.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, DSP_SCOPE);
+        jsonLd.registerNamespace(DCT_PREFIX, DCT_SCHEMA, DSP_SCOPE);
+        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, DSP_SCOPE);
+
         webService.registerResource(config.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
-        webService.registerResource(config.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper));
+        webService.registerResource(config.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, DSP_SCOPE));
 
         registerTransformers();
     }

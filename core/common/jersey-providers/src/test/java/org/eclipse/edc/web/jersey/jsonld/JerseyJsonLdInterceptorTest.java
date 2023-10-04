@@ -33,6 +33,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -41,8 +42,9 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
 
+    private static final String SCOPE = "scope";
     private final JsonLd jsonLd = mock();
-    private final JerseyJsonLdInterceptor interceptor = new JerseyJsonLdInterceptor(jsonLd, objectMapper);
+    private final JerseyJsonLdInterceptor interceptor = new JerseyJsonLdInterceptor(jsonLd, objectMapper, SCOPE);
 
     @Test
     void expansion_shouldSucceed_whenInputIsJsonObject() {
@@ -101,7 +103,7 @@ class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
 
     @Test
     void compaction_single_shouldSucceed_whenOutputIsJsonObject() {
-        when(jsonLd.compact(any())).thenReturn(Result.success(compactedJson()));
+        when(jsonLd.compact(any(), eq(SCOPE))).thenReturn(Result.success(compactedJson()));
 
         given()
                 .port(port)
@@ -111,12 +113,12 @@ class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("compacted-key", is("compacted-value"));
 
-        verify(jsonLd).compact(expandedJson());
+        verify(jsonLd).compact(expandedJson(), SCOPE);
     }
 
     @Test
     void compaction_single_shouldReturnInternalServerError_whenCompactionFails() {
-        when(jsonLd.compact(any())).thenReturn(Result.failure("compaction failure"));
+        when(jsonLd.compact(any(), eq(SCOPE))).thenReturn(Result.failure("compaction failure"));
 
         given()
                 .port(port)
@@ -140,7 +142,7 @@ class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
 
     @Test
     void compaction_multiple_shouldSucceed_whenOutputIsJsonObject() {
-        when(jsonLd.compact(any())).thenReturn(Result.success(compactedJson()));
+        when(jsonLd.compact(any(), eq(SCOPE))).thenReturn(Result.success(compactedJson()));
 
         given()
                 .port(port)
@@ -151,12 +153,12 @@ class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
                 .body("size()", is(1))
                 .body("[0].compacted-key", is("compacted-value"));
 
-        verify(jsonLd).compact(expandedJson());
+        verify(jsonLd).compact(expandedJson(), SCOPE);
     }
 
     @Test
     void compaction_multiple_shouldReturnInternalServerError_whenCompactionFails() {
-        when(jsonLd.compact(any())).thenReturn(Result.failure("compaction failure"));
+        when(jsonLd.compact(any(), eq(SCOPE))).thenReturn(Result.failure("compaction failure"));
 
         given()
                 .port(port)
@@ -186,6 +188,18 @@ class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
     @Override
     protected Object additionalResource() {
         return interceptor;
+    }
+
+    private JsonObject expandedJson() {
+        return Json.createObjectBuilder().add("expanded-key", "expanded-value").add("bau", 3).build();
+    }
+
+    private JsonObject compactedJson() {
+        return Json.createObjectBuilder().add("compacted-key", "compacted-value").add("bau", 3).build();
+    }
+
+    private Map<String, String> notJsonObject() {
+        return Map.of("key", "value");
     }
 
     @Path("/")
@@ -229,17 +243,5 @@ class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
             return List.of(notJsonObject());
         }
 
-    }
-
-    private JsonObject expandedJson() {
-        return Json.createObjectBuilder().add("expanded-key", "expanded-value").add("bau", 3).build();
-    }
-
-    private JsonObject compactedJson() {
-        return Json.createObjectBuilder().add("compacted-key", "compacted-value").add("bau", 3).build();
-    }
-
-    private Map<String, String> notJsonObject() {
-        return Map.of("key", "value");
     }
 }

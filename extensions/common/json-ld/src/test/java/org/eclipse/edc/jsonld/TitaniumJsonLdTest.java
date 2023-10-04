@@ -120,7 +120,7 @@ class TitaniumJsonLdTest {
     }
 
     @Test
-    void compact_withCustomContext() {
+    void compact_withCustomPrefix() {
         var ns = "https://test.org/schema/";
         var prefix = "customContext";
         var expanded = createObjectBuilder()
@@ -138,6 +138,99 @@ class TitaniumJsonLdTest {
             assertThat(c.getJsonObject(prefix + ":item")).isNotNull();
             assertThat(c.getJsonObject(prefix + ":item").getJsonString(prefix + ":key1").getString()).isEqualTo("value1");
             assertThat(c.getJsonObject(prefix + ":item").getJsonString(prefix + ":key2").getString()).isEqualTo("value2");
+        });
+    }
+
+    @Test
+    void expandAndCompact_withCustomContext() {
+        var context = "http://schema.org/";
+        var input = createObjectBuilder()
+                .add("@context", createArrayBuilder().add(context).build())
+                .add(TYPE, "Person")
+                .add("name", "Jane Doe")
+                .add("jobTitle", "Professor")
+                .build();
+
+        var service = defaultService();
+        service.registerContext(context);
+        service.registerCachedDocument(context, getFileFromResourceName("schema-org-light.jsonld").toURI());
+
+        var expanded = service.expand(input);
+
+        assertThat(expanded).isSucceeded().satisfies(c -> {
+            assertThat(c.getJsonArray(context + "name").get(0).asJsonObject().getJsonString(VALUE).getString()).isEqualTo("Jane Doe");
+            assertThat(c.getJsonArray(context + "jobTitle").get(0).asJsonObject().getJsonString(VALUE).getString()).isEqualTo("Professor");
+        });
+
+        var compacted = service.compact(expanded.getContent());
+
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            assertThat(c).isEqualTo(input);
+        });
+    }
+
+    @Test
+    void expandAndCompact_withCustomContextAndNameClash() {
+        var schemaContext = "http://schema.org/";
+        var testSchemaContext = "http://test.org/";
+
+        var input = createObjectBuilder()
+                .add("@context", createArrayBuilder().add(schemaContext).add(testSchemaContext).build())
+                .add(TYPE, "schema:Person")
+                .add("name", "Jane Doe")
+                .add("schema:jobTitle", "Professor")
+                .build();
+
+        var service = defaultService();
+        service.registerContext(schemaContext);
+        service.registerContext(testSchemaContext);
+        service.registerCachedDocument(schemaContext, getFileFromResourceName("schema-org-light.jsonld").toURI());
+        service.registerCachedDocument(testSchemaContext, getFileFromResourceName("test-org-light.jsonld").toURI());
+
+        var expanded = service.expand(input);
+
+        assertThat(expanded).isSucceeded().satisfies(c -> {
+            assertThat(c.getJsonArray(testSchemaContext + "name").get(0).asJsonObject().getJsonString(VALUE).getString()).isEqualTo("Jane Doe");
+            assertThat(c.getJsonArray(schemaContext + "jobTitle").get(0).asJsonObject().getJsonString(VALUE).getString()).isEqualTo("Professor");
+        });
+
+        var compacted = service.compact(expanded.getContent());
+
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            assertThat(c).isEqualTo(input);
+        });
+    }
+
+    @Test
+    void expandAndCompact_withCustomContextAndCustomScope() {
+        var schemaContext = "http://schema.org/";
+        var testSchemaContext = "http://test.org/";
+        var customScope = "customScope";
+
+        var input = createObjectBuilder()
+                .add("@context", createArrayBuilder().add(schemaContext).add(testSchemaContext).build())
+                .add(TYPE, "schema:Person")
+                .add("name", "Jane Doe")
+                .add("schema:jobTitle", "Professor")
+                .build();
+
+        var service = defaultService();
+        service.registerContext(schemaContext);
+        service.registerContext(testSchemaContext, customScope);
+        service.registerCachedDocument(schemaContext, getFileFromResourceName("schema-org-light.jsonld").toURI());
+        service.registerCachedDocument(testSchemaContext, getFileFromResourceName("test-org-light.jsonld").toURI());
+
+        var expanded = service.expand(input);
+
+        assertThat(expanded).isSucceeded().satisfies(c -> {
+            assertThat(c.getJsonArray(testSchemaContext + "name").get(0).asJsonObject().getJsonString(VALUE).getString()).isEqualTo("Jane Doe");
+            assertThat(c.getJsonArray(schemaContext + "jobTitle").get(0).asJsonObject().getJsonString(VALUE).getString()).isEqualTo("Professor");
+        });
+
+        var compacted = service.compact(expanded.getContent(), customScope);
+
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            assertThat(c).isEqualTo(input);
         });
     }
 

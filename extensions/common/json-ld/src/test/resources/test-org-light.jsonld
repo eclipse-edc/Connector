@@ -1,0 +1,15 @@
+{
+  "@context": {
+    "@vocab": "http://test.org/",
+    "testSchema": "http://test.org/",
+    "Person": {
+      "@id": "testSchema:Person"
+    },
+    "name": {
+      "@id": "testSchema:name"
+    },
+    "jobTitle": {
+      "@id": "testSchema:jobTitle"
+    }
+  }
+}
