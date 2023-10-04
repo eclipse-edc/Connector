@@ -287,7 +287,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public boolean canBeDeprovisioned() {
-        return currentStateIsOneOf(COMPLETED, TERMINATED, DEPROVISIONING);
+        return currentStateIsOneOf(COMPLETING, TERMINATING, COMPLETED, TERMINATED, DEPROVISIONING);
     }
 
     public void transitionDeprovisioning() {
