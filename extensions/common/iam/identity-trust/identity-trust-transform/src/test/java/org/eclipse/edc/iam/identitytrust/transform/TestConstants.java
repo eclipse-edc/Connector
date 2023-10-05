@@ -19,8 +19,7 @@ public interface TestConstants {
     String EXAMPLE_VC_JSONLD = """
             {
               "@context": [
-                "https://www.w3.org/ns/credentials/v2",
-                "https://www.w3.org/ns/credentials/examples/v2"
+                "https://www.w3.org/ns/credentials/v2"
               ],
               "id": "http://university.example/credentials/3732",
               "type": ["VerifiableCredential", "ExampleDegreeCredential"],
@@ -30,6 +29,7 @@ public interface TestConstants {
                 "description": "A public university focusing on teaching examples."
               },
               "validFrom": "2015-05-10T12:30:00Z",
+              "validUntil":"2023-05-12T23:00:00Z",
               "name": "Example University Degree",
               "description": "2015 Bachelor of Science and Arts Degree",
               "credentialSubject": {

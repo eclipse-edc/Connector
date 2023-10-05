@@ -14,25 +14,32 @@
 
 package org.eclipse.edc.identitytrust.model;
 
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static org.eclipse.edc.identitytrust.VcConstants.SCHEMA_ORG_NAMESPACE;
+import static org.eclipse.edc.identitytrust.VcConstants.VC_NAMESPACE;
 
 /**
  * Represents a VerifiableCredential as per the <a href="https://w3c.github.io/vc-data-model/">VerifiableCredential Data Model 2.0</a>.
  * The RAW VC must always be preserved in THE EXACT FORMAT it was originally received, otherwise the proofs become invalid.
  */
 public class VerifiableCredential {
-    public static final String VERIFIABLE_CREDENTIAL_ID_PROPERTY = "id";
-    public static final String VERIFIABLE_CREDENTIAL_TYPE_PROPERTY = "type";
-    public static final String VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY = "issuer";
-    public static final String VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY = "validFrom";
-    public static final String VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY = "validUntil";
-    public static final String VERIFIABLE_CREDENTIAL_STATUS_PROPERTY = "credentialStatus";
-    public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = "credentialSubject";
-    public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = "name";
-    public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = "description";
+    public static final String VERIFIABLE_CREDENTIAL_ID_PROPERTY = JsonLdKeywords.ID;
+    public static final String VERIFIABLE_CREDENTIAL_TYPE_PROPERTY = JsonLdKeywords.TYPE;
+    public static final String VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY = VC_NAMESPACE + "issuer";
+    public static final String VERIFIABLE_CREDENTIAL_ISSUANCEDATE_PROPERTY = VC_NAMESPACE + "issuanceDate";
+    public static final String VERIFIABLE_CREDENTIAL_EXPIRATIONDATE_PROPERTY = VC_NAMESPACE + "expirationDate";
+    public static final String VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY = VC_NAMESPACE + "validFrom";
+    public static final String VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY = VC_NAMESPACE + "validUntil";
+    public static final String VERIFIABLE_CREDENTIAL_STATUS_PROPERTY = VC_NAMESPACE + "credentialStatus";
+    public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = VC_NAMESPACE + "credentialSubject";
+    public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = SCHEMA_ORG_NAMESPACE + "name";
+    public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
     private final String rawVc;
     private final CredentialFormat format;
     private List<CredentialSubject> credentialSubject = new ArrayList<>();
@@ -42,6 +49,8 @@ public class VerifiableCredential {
     private Instant issuanceDate; // v2 of the spec renames this to "validFrom"
     private Instant expirationDate; // v2 of the spec renames this to "validUntil"
     private CredentialStatus credentialStatus;
+    private String description;
+    private String name;
 
     private VerifiableCredential(String rawVc, CredentialFormat format) {
         this.rawVc = rawVc;
@@ -84,6 +93,14 @@ public class VerifiableCredential {
         return format;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public static final class Builder {
         private final VerifiableCredential instance;
 
@@ -120,6 +137,11 @@ public class VerifiableCredential {
             return this;
         }
 
+        public Builder description(String desc) {
+            this.instance.description = desc;
+            return this;
+        }
+
         /**
          * Issuers can be URIs or objects containing an ID
          */
@@ -143,6 +165,11 @@ public class VerifiableCredential {
             return this;
         }
 
+        public Builder name(String name) {
+            this.instance.name = name;
+            return this;
+        }
+
         public VerifiableCredential build() {
             if (instance.types.isEmpty()) {
                 throw new IllegalArgumentException("VerifiableCredentials MUST have at least one 'type' value.");
@@ -155,5 +182,7 @@ public class VerifiableCredential {
 
             return instance;
         }
+
+
     }
 }

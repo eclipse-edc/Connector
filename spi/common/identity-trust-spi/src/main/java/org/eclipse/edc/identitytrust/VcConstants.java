@@ -18,5 +18,7 @@ public interface VcConstants {
     String VC_NAMESPACE_V1 = "https://www.w3.org/ns/credentials/v1/";
     String VC_NAMESPACE_V2 = "https://www.w3.org/ns/credentials/v2/";
 
-    String VC_NAMESPACE = VC_NAMESPACE_V2; //todo: should we default to V1 or V2?
+    String VC_PREFIX = "https://www.w3.org/2018/credentials#";
+    String VC_NAMESPACE = VC_PREFIX; //todo: should we default to V1 or V2?
+    String SCHEMA_ORG_NAMESPACE = "https://schema.org/";
 }

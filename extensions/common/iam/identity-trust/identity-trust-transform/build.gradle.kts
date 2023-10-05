@@ -21,8 +21,10 @@ dependencies {
     api(project(":spi:common:identity-trust-spi"))
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:transform-spi"))
+    api(project(":spi:common:transform-spi"))
 
     testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(project(":core:common:transform-core")) //for the TransformerContextImpl
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
 }
 
