@@ -122,7 +122,8 @@ public interface AssetApi {
                         "privateKey": "privateValue"
                     },
                     "dataAddress": {
-                        "type": "HttpData"
+                        "type": "HttpData",
+                        "baseUrl": "https://jsonplaceholder.typicode.com/todos"
                     }
                 }
                 """;
@@ -151,7 +152,8 @@ public interface AssetApi {
                         "edc:privateKey": "privateValue"
                     },
                     "edc:dataAddress": {
-                        "edc:type": "HttpData"
+                        "edc:type": "HttpData",
+                        "edc:baseUrl": "https://jsonplaceholder.typicode.com/todos"
                     },
                     "edc:createdAt": 1688465655
                 }
