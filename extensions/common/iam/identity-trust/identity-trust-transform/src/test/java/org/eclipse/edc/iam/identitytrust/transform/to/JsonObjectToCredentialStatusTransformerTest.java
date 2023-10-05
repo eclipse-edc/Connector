@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.transform.TestConstants.TEST_NAMESPACE;
+import static org.eclipse.edc.iam.identitytrust.transform.TestData.TEST_NAMESPACE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;

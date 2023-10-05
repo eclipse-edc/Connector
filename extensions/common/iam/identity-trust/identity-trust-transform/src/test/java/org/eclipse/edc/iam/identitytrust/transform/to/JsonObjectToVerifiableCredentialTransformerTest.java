@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URISyntaxException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.transform.TestConstants.EXAMPLE_VC_JSONLD;
+import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_JSONLD;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectToVerifiableCredentialTransformerTest {
@@ -63,7 +63,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         assertThat(vc.getTypes()).hasSize(2);
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
-        assertThat(vc.getCredentialStatus()).isNull();
+        assertThat(vc.getCredentialStatus()).isNotNull();
         assertThat(vc.getRawVc()).isNotNull().isEqualToIgnoringWhitespace(EXAMPLE_VC_JSONLD);
     }
 }

@@ -14,30 +14,26 @@
 
 package org.eclipse.edc.identitytrust.model;
 
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import static org.eclipse.edc.identitytrust.VcConstants.SCHEMA_ORG_NAMESPACE;
-import static org.eclipse.edc.identitytrust.VcConstants.VC_NAMESPACE;
+import static org.eclipse.edc.identitytrust.VcConstants.VC_PREFIX;
 
 /**
  * Represents a VerifiableCredential as per the <a href="https://w3c.github.io/vc-data-model/">VerifiableCredential Data Model 2.0</a>.
  * The RAW VC must always be preserved in THE EXACT FORMAT it was originally received, otherwise the proofs become invalid.
  */
 public class VerifiableCredential {
-    public static final String VERIFIABLE_CREDENTIAL_ID_PROPERTY = JsonLdKeywords.ID;
-    public static final String VERIFIABLE_CREDENTIAL_TYPE_PROPERTY = JsonLdKeywords.TYPE;
-    public static final String VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY = VC_NAMESPACE + "issuer";
-    public static final String VERIFIABLE_CREDENTIAL_ISSUANCEDATE_PROPERTY = VC_NAMESPACE + "issuanceDate";
-    public static final String VERIFIABLE_CREDENTIAL_EXPIRATIONDATE_PROPERTY = VC_NAMESPACE + "expirationDate";
-    public static final String VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY = VC_NAMESPACE + "validFrom";
-    public static final String VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY = VC_NAMESPACE + "validUntil";
-    public static final String VERIFIABLE_CREDENTIAL_STATUS_PROPERTY = VC_NAMESPACE + "credentialStatus";
-    public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = VC_NAMESPACE + "credentialSubject";
+    public static final String VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY = VC_PREFIX + "issuer";
+    public static final String VERIFIABLE_CREDENTIAL_ISSUANCEDATE_PROPERTY = VC_PREFIX + "issuanceDate";
+    public static final String VERIFIABLE_CREDENTIAL_EXPIRATIONDATE_PROPERTY = VC_PREFIX + "expirationDate";
+    public static final String VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY = VC_PREFIX + "validFrom";
+    public static final String VERIFIABLE_CREDENTIAL_VALIDUNTIL_PROPERTY = VC_PREFIX + "validUntil";
+    public static final String VERIFIABLE_CREDENTIAL_STATUS_PROPERTY = VC_PREFIX + "credentialStatus";
+    public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = VC_PREFIX + "credentialSubject";
     public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = SCHEMA_ORG_NAMESPACE + "name";
     public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
     private final String rawVc;

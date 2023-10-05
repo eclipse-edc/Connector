@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.transform;
 
-public interface TestConstants {
+public interface TestData {
     String TEST_NAMESPACE = "https://here.is.the/thing/";
     String EXAMPLE_VC_JSONLD = """
             {
@@ -38,6 +38,13 @@ public interface TestConstants {
                   "type": "ExampleBachelorDegree",
                   "subtype": "Bachelor of Science and Arts"
                 }
+              },
+              "credentialStatus": {
+                  "id": "https://university.example/credentials/status/3#94567",
+                  "type": "StatusList2021Entry",
+                  "statusPurpose": "revocation",
+                  "statusListIndex": "94567",
+                  "statusListCredential": "https://university.example/credentials/status/3"
               }
             }
             """;

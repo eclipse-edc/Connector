@@ -22,9 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static org.eclipse.edc.identitytrust.model.CredentialStatus.CREDENTIAL_STATUS_ID_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.CredentialStatus.CREDENTIAL_STATUS_TYPE_PROPERTY;
 
 public class JsonObjectToCredentialStatusTransformer extends AbstractJsonLdTransformer<JsonObject, CredentialStatus> {
@@ -37,23 +35,10 @@ public class JsonObjectToCredentialStatusTransformer extends AbstractJsonLdTrans
 
 
         var props = new HashMap<String, Object>();
-        AtomicReference<String> id = new AtomicReference<>();
-        AtomicReference<String> type = new AtomicReference<>();
-        visitProperties(jsonObject, (s, jsonValue) -> {
+        var id = nodeId(jsonObject);
+        var type = transformString(jsonObject.get(CREDENTIAL_STATUS_TYPE_PROPERTY), context);
+        visitProperties(jsonObject, (s, jsonValue) -> props.put(s, transformGenericProperty(jsonValue, context)));
 
-            switch (s) {
-                case CREDENTIAL_STATUS_ID_PROPERTY:
-                    id.set(transformString(jsonValue, context));
-                    break;
-                case CREDENTIAL_STATUS_TYPE_PROPERTY:
-                    type.set(transformString(jsonValue, context));
-                    break;
-                default:
-                    props.put(s, transformGenericProperty(jsonValue, context));
-                    break;
-            }
-        });
-
-        return new CredentialStatus(id.get(), type.get(), props);
+        return new CredentialStatus(id, type, props);
     }
 }
