@@ -125,7 +125,7 @@ public abstract class PolicyMonitorStoreTestBase {
 
             leaseEntity(entry.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
-            await().atMost(Duration.ofMillis(500))
+            await().atMost(timeout())
                     .until(() -> getStore().nextNotLeased(1, hasState(STARTED.code())), hasSize(1));
         }
 
@@ -154,6 +154,15 @@ public abstract class PolicyMonitorStoreTestBase {
             }
             t.updateStateTimestamp();
         }
+    }
+
+    /**
+     * Timeout for async tests.
+     *
+     * @return the timeout.
+     */
+    protected Duration timeout() {
+        return Duration.ofMillis(500);
     }
 
     @Nested
