@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -27,6 +25,6 @@ class JsonObjectToVerifiablePresentationTransformerTest {
 
     @BeforeEach
     void setup() {
-        transformer = new JsonObjectToVerifiableCredentialTransformer(JacksonJsonLd.createObjectMapper(), new TitaniumJsonLd(mock()));
+        transformer = new JsonObjectToVerifiableCredentialTransformer();
     }
 }

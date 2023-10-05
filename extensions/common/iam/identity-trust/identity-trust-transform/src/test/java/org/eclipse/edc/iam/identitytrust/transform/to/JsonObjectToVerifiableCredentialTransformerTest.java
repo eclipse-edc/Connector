@@ -45,7 +45,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
 
     @BeforeEach
     void setUp() throws URISyntaxException {
-        transformer = new JsonObjectToVerifiableCredentialTransformer(OBJECT_MAPPER, jsonLdService);
+        transformer = new JsonObjectToVerifiableCredentialTransformer();
         var registry = new TypeTransformerRegistryImpl();
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
@@ -54,7 +54,6 @@ class JsonObjectToVerifiableCredentialTransformerTest {
 
         context = spy(new TransformerContextImpl(registry));
         jsonLdService.registerCachedDocument("https://www.w3.org/ns/credentials/v2", Thread.currentThread().getContextClassLoader().getResource("document/credentials.v2.jsonld").toURI());
-        jsonLdService.registerCachedDocument("https://www.w3.org/ns/credentials/examples/v2", Thread.currentThread().getContextClassLoader().getResource("document/example.jsonld").toURI());
     }
 
     @Test
