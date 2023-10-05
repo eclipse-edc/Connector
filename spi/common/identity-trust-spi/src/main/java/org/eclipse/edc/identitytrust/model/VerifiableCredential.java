@@ -24,7 +24,7 @@ import static org.eclipse.edc.identitytrust.VcConstants.VC_PREFIX;
 
 /**
  * Represents a VerifiableCredential as per the <a href="https://w3c.github.io/vc-data-model/">VerifiableCredential Data Model 2.0</a>.
- * The RAW VC must always be preserved in THE EXACT FORMAT it was originally received, otherwise the proofs become invalid.
+ * Note that the proof is not maintained in this data structure.
  */
 public class VerifiableCredential {
     public static final String VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY = VC_PREFIX + "issuer";
@@ -36,8 +36,6 @@ public class VerifiableCredential {
     public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = VC_PREFIX + "credentialSubject";
     public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = SCHEMA_ORG_NAMESPACE + "name";
     public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
-    private final String rawVc;
-    private final CredentialFormat format;
     private List<CredentialSubject> credentialSubject = new ArrayList<>();
     private String id; // must be URI, but URI is less efficient at runtime
     private List<String> types = new ArrayList<>();
@@ -48,9 +46,7 @@ public class VerifiableCredential {
     private String description;
     private String name;
 
-    private VerifiableCredential(String rawVc, CredentialFormat format) {
-        this.rawVc = rawVc;
-        this.format = format;
+    private VerifiableCredential() {
     }
 
     public List<CredentialSubject> getCredentialSubject() {
@@ -81,14 +77,6 @@ public class VerifiableCredential {
         return credentialStatus;
     }
 
-    public String getRawVc() {
-        return rawVc;
-    }
-
-    public CredentialFormat getFormat() {
-        return format;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -100,12 +88,12 @@ public class VerifiableCredential {
     public static final class Builder {
         private final VerifiableCredential instance;
 
-        private Builder(String rawVc, CredentialFormat format) {
-            instance = new VerifiableCredential(rawVc, format);
+        private Builder() {
+            instance = new VerifiableCredential();
         }
 
-        public static Builder newInstance(String rawVc, CredentialFormat format) {
-            return new Builder(rawVc, format);
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder credentialSubject(List<CredentialSubject> credentialSubject) {

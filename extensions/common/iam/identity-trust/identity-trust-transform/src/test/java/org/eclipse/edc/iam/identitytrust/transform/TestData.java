@@ -35,7 +35,7 @@ public interface TestData {
               "credentialSubject": {
                 "id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
                 "degree": {
-                  "type": "ExampleBachelorDegree",
+                  "degreetype": "ExampleBachelorDegree",
                   "subtype": "Bachelor of Science and Arts"
                 }
               },

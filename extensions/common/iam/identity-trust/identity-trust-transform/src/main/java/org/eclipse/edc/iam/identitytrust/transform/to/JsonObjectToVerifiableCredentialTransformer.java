@@ -14,11 +14,9 @@
 
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialStatus;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
@@ -64,22 +62,8 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
 
     @Override
     public @Nullable VerifiableCredential transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        String rawVc;
-        try {
-            rawVc = mapper.writeValueAsString(jsonObject);
-        } catch (JsonProcessingException e) {
-            context.reportProblem("Cannot convert JsonObject to String: %s".formatted(e.getMessage()));
-            return null;
-        }
-        var expansionResult = jsonLd.expand(jsonObject);
-        if (expansionResult.failed()) {
-            context.reportProblem("Could not expand JSON-LD of the VerifiableCredential: %s".formatted(expansionResult.getFailureDetail()));
-            return null;
-        }
-        jsonObject = expansionResult.getContent();
 
-
-        var vcBuilder = Builder.newInstance(rawVc, CredentialFormat.JSON_LD);
+        var vcBuilder = Builder.newInstance();
         vcBuilder.id(nodeId(jsonObject));
         transformArrayOrObject(jsonObject.get(JsonLdKeywords.TYPE), Object.class, o -> vcBuilder.type(o.toString()), context);
 

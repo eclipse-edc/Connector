@@ -22,7 +22,6 @@ import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
 import java.net.URI;
 
 import static java.time.Instant.now;
-import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
 
 public class TestFunctions {
 
@@ -31,15 +30,7 @@ public class TestFunctions {
     }
 
     public static VerifiableCredential.Builder createCredentialBuilder() {
-        return VerifiableCredential.Builder.newInstance("test-vc", JSON_LD)
-                .credentialSubject(new CredentialSubject())
-                .type("test-type")
-                .issuer(URI.create("http://test.issuer"))
-                .issuanceDate(now());
-    }
-
-    public static VerifiableCredential.Builder createCredentialBuilder(String rawVc, CredentialFormat format) {
-        return VerifiableCredential.Builder.newInstance(rawVc, format)
+        return VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
                 .type("test-type")
                 .issuer(URI.create("http://test.issuer"))

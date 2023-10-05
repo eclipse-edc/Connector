@@ -31,7 +31,11 @@ import java.net.URISyntaxException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_JSONLD;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class JsonObjectToVerifiableCredentialTransformerTest {
     public static final ObjectMapper OBJECT_MAPPER = JacksonJsonLd.createObjectMapper();
@@ -48,15 +52,16 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         registry.register(new JsonValueToGenericTypeTransformer(OBJECT_MAPPER));
         registry.register(transformer);
 
-        context = new TransformerContextImpl(registry);
+        context = spy(new TransformerContextImpl(registry));
         jsonLdService.registerCachedDocument("https://www.w3.org/ns/credentials/v2", Thread.currentThread().getContextClassLoader().getResource("document/credentials.v2.jsonld").toURI());
+        jsonLdService.registerCachedDocument("https://www.w3.org/ns/credentials/examples/v2", Thread.currentThread().getContextClassLoader().getResource("document/example.jsonld").toURI());
     }
 
     @Test
     void transform() throws JsonProcessingException {
 
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD, JsonObject.class);
-        var vc = transformer.transform(jsonObj, context);
+        var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
 
         assertThat(vc).isNotNull();
         assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
@@ -64,6 +69,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();
-        assertThat(vc.getRawVc()).isNotNull().isEqualToIgnoringWhitespace(EXAMPLE_VC_JSONLD);
+        verify(context, never()).reportProblem(anyString());
+
     }
 }
