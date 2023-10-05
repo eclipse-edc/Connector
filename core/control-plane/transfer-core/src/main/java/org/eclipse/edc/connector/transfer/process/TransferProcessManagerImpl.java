@@ -68,6 +68,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATING;
@@ -335,7 +336,12 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> store.findById(id))
-                .onSuccess((t, content) -> transitionToCompleted(t))
+                .onSuccess((t, content) -> {
+                    transitionToCompleted(t);
+                    if (t.getType() == PROVIDER) {
+                        transitionToDeprovisioning(t);
+                    }
+                })
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -351,6 +357,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processTerminating(TransferProcess process) {
+        if (process.getType() == CONSUMER && process.getState() < REQUESTED.code()) {
+            transitionToTerminated(process);
+            return true;
+        }
+
         return entityRetryProcessFactory.doSyncProcess(process, () -> terminateDataFlow(process))
                 .onSuccess((p, dataFlowResponse) -> sendTransferTerminationMessage(p))
                 .onFailure((t, failure) -> transitionToTerminating(t, failure.getFailureDetail()))
@@ -424,7 +435,12 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
                 .entityRetrieve(id -> store.findById(id))
-                .onSuccess((t, content) -> transitionToTerminated(t))
+                .onSuccess((t, content) -> {
+                    transitionToTerminated(t);
+                    if (t.getType() == PROVIDER) {
+                        transitionToDeprovisioning(t);
+                    }
+                })
                 .onFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted(this::transitionToTerminated)
