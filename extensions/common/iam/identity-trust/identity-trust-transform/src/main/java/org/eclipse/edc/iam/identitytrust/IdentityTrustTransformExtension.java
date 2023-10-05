@@ -42,8 +42,6 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        ServiceExtension.super.initialize(context);
-
         getResourceUri("document" + File.separator + "credentials.v2.jsonld")
                 .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v2", uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
