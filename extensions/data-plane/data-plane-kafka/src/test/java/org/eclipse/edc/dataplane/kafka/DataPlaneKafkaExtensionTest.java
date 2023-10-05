@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.dataplane.kafka;
 
-import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.dataplane.kafka.pipeline.KafkaDataSourceFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -29,18 +29,18 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(DependencyInjectionExtension.class)
 class DataPlaneKafkaExtensionTest {
 
-    private final TransferService transferService = mock();
+    private final PipelineService pipelineService = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(TransferService.class, transferService);
+        context.registerService(PipelineService.class, pipelineService);
     }
 
     @Test
     void verifyRegisterKafkaSource(DataPlaneKafkaExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(transferService).registerFactory(any(KafkaDataSourceFactory.class));
+        verify(pipelineService).registerFactory(any(KafkaDataSourceFactory.class));
     }
 
 }

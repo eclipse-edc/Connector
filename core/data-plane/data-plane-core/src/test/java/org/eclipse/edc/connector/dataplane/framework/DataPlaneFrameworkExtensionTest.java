@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -34,10 +34,10 @@ class DataPlaneFrameworkExtensionTest {
     }
 
     @Test
-    void initialize_registers_transferService(ServiceExtensionContext context, DataPlaneFrameworkExtension extension) {
+    void initialize_registers_pipelineService(ServiceExtensionContext context, DataPlaneFrameworkExtension extension) {
         extension.initialize(context);
 
-        assertThat(context.getService(TransferService.class)).isInstanceOf(PipelineServiceImpl.class);
+        assertThat(context.getService(PipelineService.class)).isInstanceOf(PipelineServiceImpl.class);
     }
 
 }

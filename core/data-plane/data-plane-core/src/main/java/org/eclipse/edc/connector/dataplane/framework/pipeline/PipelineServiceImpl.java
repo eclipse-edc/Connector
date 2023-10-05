@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -40,7 +39,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 /**
  * Default pipeline service implementation.
  */
-public class PipelineServiceImpl implements PipelineService, TransferService {
+public class PipelineServiceImpl implements PipelineService {
     private final List<DataSourceFactory> sourceFactories = new ArrayList<>();
     private final List<DataSinkFactory> sinkFactories = new ArrayList<>();
     private final Map<String, DataSource> sources = new HashMap<>();

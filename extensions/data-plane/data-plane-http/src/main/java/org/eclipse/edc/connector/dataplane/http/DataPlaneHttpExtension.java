@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -48,7 +48,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     private EdcHttpClient httpClient;
 
     @Inject
-    private TransferService transferService;
+    private PipelineService pipelineService;
 
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
@@ -75,10 +75,10 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var httpRequestFactory = new HttpRequestFactory();
 
         var sourceFactory = new HttpDataSourceFactory(httpClient, paramsProvider, monitor, httpRequestFactory);
-        transferService.registerFactory(sourceFactory);
+        pipelineService.registerFactory(sourceFactory);
 
         var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, paramsProvider, httpRequestFactory);
-        transferService.registerFactory(sinkFactory);
+        pipelineService.registerFactory(sinkFactory);
     }
 
 }

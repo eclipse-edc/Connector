@@ -17,12 +17,20 @@ package org.eclipse.edc.connector.dataplane.spi.pipeline;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
- * Transfers data from a source to a sink.
- *
- * @deprecated this interface will be removed from the hierarchy, please use {@link TransferService} instead.
+ * Transfers data from a {@link DataSource} to a {@link DataSink} using Data Plane extensions.
+ * Represent the default {@link TransferService} that leverages on the internal Data-Plane transfer mechanism.
  */
 @ExtensionPoint
-@Deprecated(since = "0.3.0")
 public interface PipelineService extends TransferService {
+
+    /**
+     * Registers a factory for creating data sources.
+     */
+    void registerFactory(DataSourceFactory factory);
+
+    /**
+     * Registers a factory for creating data sinks.
+     */
+    void registerFactory(DataSinkFactory factory);
 
 }

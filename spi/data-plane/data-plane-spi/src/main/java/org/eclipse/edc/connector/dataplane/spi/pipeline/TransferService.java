@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * A service that can satisfy a {@link DataFlowRequest} by transferring data from a source to a destination.
+ * This could be done in the Data-Plane internally, or it could leverage on external and more performant systems.
  */
 public interface TransferService {
 
@@ -47,13 +48,4 @@ public interface TransferService {
      */
     StreamResult<Void> terminate(DataFlow dataFlow);
 
-    /**
-     * Registers a factory for creating data sources.
-     */
-    void registerFactory(DataSourceFactory factory);
-
-    /**
-     * Registers a factory for creating data sinks.
-     */
-    void registerFactory(DataSinkFactory factory);
 }

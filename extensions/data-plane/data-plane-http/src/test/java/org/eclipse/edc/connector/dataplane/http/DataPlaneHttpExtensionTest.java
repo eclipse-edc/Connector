@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.dataplane.http;
 
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
@@ -58,7 +58,7 @@ public class DataPlaneHttpExtensionTest {
     }
 
     @Test
-    void transferSourceToDestination(TransferService transferService) {
+    void transferSourceToDestination(PipelineService pipelineService) {
         var source = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://localhost:" + SOURCE_PORT)
                 .build();
@@ -75,7 +75,7 @@ public class DataPlaneHttpExtensionTest {
                 .traceContext(emptyMap())
                 .build();
 
-        var future = transferService.transfer(request);
+        var future = pipelineService.transfer(request);
 
         assertThat(future).succeedsWithin(10, SECONDS)
                 .matches(StreamResult::succeeded);
@@ -84,7 +84,7 @@ public class DataPlaneHttpExtensionTest {
     }
 
     @Test
-    void transferSourceToDestinationAddHeaders(TransferService transferService, HttpRequestParamsProvider paramsProvider) {
+    void transferSourceToDestinationAddHeaders(PipelineService pipelineService, HttpRequestParamsProvider paramsProvider) {
         paramsProvider.registerSourceDecorator((request, address, builder) -> builder.header("customSourceHeader", "customValue"));
         paramsProvider.registerSinkDecorator((request, address, builder) -> builder.header("customSinkHeader", "customValue"));
         var source = HttpDataAddress.Builder.newInstance()
@@ -103,7 +103,7 @@ public class DataPlaneHttpExtensionTest {
                 .traceContext(emptyMap())
                 .build();
 
-        var future = transferService.transfer(request);
+        var future = pipelineService.transfer(request);
 
         assertThat(future).succeedsWithin(10, SECONDS)
                 .matches(StreamResult::succeeded);
