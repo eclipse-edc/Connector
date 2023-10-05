@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.identitytrust;
 
-import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
@@ -37,8 +36,8 @@ public class TestFunctions {
                 .issuanceDate(now());
     }
 
-    public static VerifiablePresentation.Builder createPresentationBuilder(String rawVp, CredentialFormat format) {
-        return VerifiablePresentation.Builder.newInstance(rawVp, format)
+    public static VerifiablePresentation.Builder createPresentationBuilder() {
+        return VerifiablePresentation.Builder.newInstance()
                 .credential(createCredentialBuilder().build())
                 .holder("did:web:testholder234")
                 .id("test-id");

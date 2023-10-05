@@ -14,8 +14,12 @@
 
 package org.eclipse.edc.iam.identitytrust.transform.to;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
+import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +32,36 @@ public class JsonObjectToVerifiablePresentationTransformer extends AbstractJsonL
 
     @Override
     public @Nullable VerifiablePresentation transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        return null;
+        var vcBuilder = VerifiablePresentation.Builder.newInstance();
+        vcBuilder.id(nodeId(jsonObject));
+        transformArrayOrObject(jsonObject.get(JsonLdKeywords.TYPE), Object.class, o -> vcBuilder.type(o.toString()), context);
+
+        visitProperties(jsonObject, (s, jsonValue) -> transformProperties(s, jsonValue, vcBuilder, context));
+        return vcBuilder.build();
+    }
+
+    private void transformProperties(String key, JsonValue jsonValue, VerifiablePresentation.Builder vpBuilder, TransformerContext context) {
+        switch (key) {
+            case VerifiablePresentation.VERIFIABLE_PRESENTATION_HOLDER_PROPERTY ->
+                    vpBuilder.holder(transformString(jsonValue, context));
+            case VerifiablePresentation.VERIFIABLE_PRESENTATION_VC_PROPERTY ->
+                    transformCredential(jsonValue, vpBuilder, context);
+            default ->
+                    context.reportProblem("Unknown property: %s type: %s".formatted(key, jsonValue.getValueType().name()));
+        }
+    }
+
+    /**
+     * Credentials appear to be defined as "@graph", so thats what they're expanded to.
+     */
+    private void transformCredential(JsonValue jsonValue, VerifiablePresentation.Builder vpBuilder, TransformerContext context) {
+        if (jsonValue instanceof JsonArray) {
+            var content = ((JsonArray) jsonValue).get(0);
+            if (content instanceof JsonObject) {
+                var credArray = ((JsonObject) content).getJsonArray(JsonLdKeywords.GRAPH);
+                transformArrayOrObject(credArray, VerifiableCredential.class, vpBuilder::credential, context);
+
+            }
+        }
     }
 }

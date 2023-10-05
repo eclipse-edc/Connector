@@ -22,13 +22,12 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.identitytrust.TestFunctions.createCredential;
-import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
 
 class VerifiablePresentationTest {
 
     @Test
     void assertDefaults() {
-        var vp = VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
+        var vp = VerifiablePresentation.Builder.newInstance()
                 .credential(createCredential())
                 .build();
 
@@ -36,7 +35,7 @@ class VerifiablePresentationTest {
 
     @Test
     void build_noType() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
+        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
                 .types(new ArrayList<>())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
@@ -45,7 +44,7 @@ class VerifiablePresentationTest {
 
     @Test
     void build_noCredentials() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
+        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
                 .types(List.of("test-type"))
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)

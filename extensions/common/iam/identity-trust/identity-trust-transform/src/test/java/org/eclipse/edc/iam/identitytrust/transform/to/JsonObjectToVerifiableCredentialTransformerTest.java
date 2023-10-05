@@ -53,7 +53,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         registry.register(transformer);
 
         context = spy(new TransformerContextImpl(registry));
-        jsonLdService.registerCachedDocument("https://www.w3.org/ns/credentials/v2", Thread.currentThread().getContextClassLoader().getResource("document/credentials.v2.jsonld").toURI());
+        jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v2", Thread.currentThread().getContextClassLoader().getResource("document/credentials.v2.jsonld").toURI());
     }
 
     @Test

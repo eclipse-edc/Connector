@@ -45,11 +45,11 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
         ServiceExtension.super.initialize(context);
 
         getResourceUri("document" + File.separator + "credentials.v2.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/ns/credentials/v2", uri))
+                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v2", uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
         getResourceUri("document" + File.separator + "credentials.v1.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/ns/credentials/v1", uri))
+                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v1", uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
         typeTransformerRegistry.register(new JsonObjectToCredentialStatusTransformer());
