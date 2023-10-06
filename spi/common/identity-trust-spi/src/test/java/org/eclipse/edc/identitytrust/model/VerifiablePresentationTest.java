@@ -20,16 +20,18 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.identitytrust.TestFunctions.createCredential;
 
 class VerifiablePresentationTest {
 
     @Test
-    void assertDefaults() {
-        var vp = VerifiablePresentation.Builder.newInstance()
+    void buildMinimalVp() {
+        assertThatNoException().isThrownBy(() -> VerifiablePresentation.Builder.newInstance()
                 .credential(createCredential())
-                .build();
+                .type("test-type")
+                .build());
 
     }
 
