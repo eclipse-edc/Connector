@@ -96,19 +96,20 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var pipelineService = new PipelineServiceImpl(monitor);
-        pipelineService.registerFactory(new OutputStreamDataSinkFactory()); // Added by default to support synchronous data transfer, i.e. pull data
-        context.registerService(PipelineService.class, pipelineService);
-
-        var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
-        transferServiceRegistry.registerTransferService(pipelineService);
-        context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         var numThreads = context.getSetting(TRANSFER_THREADS, DEFAULT_TRANSFER_THREADS);
         var executorService = Executors.newFixedThreadPool(numThreads);
         var executorContainer = new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
         context.registerService(DataTransferExecutorServiceContainer.class, executorContainer);
+
+        var pipelineService = new PipelineServiceImpl(monitor);
+        pipelineService.registerFactory(new OutputStreamDataSinkFactory(monitor, executorContainer.getExecutorService())); // Added by default to support synchronous data transfer, i.e. pull data
+        context.registerService(PipelineService.class, pipelineService);
+
+        var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
+        transferServiceRegistry.registerTransferService(pipelineService);
+        context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         var iterationWaitMillis = context.getSetting(DATAPLANE_MACHINE_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = new ExponentialWaitStrategy(iterationWaitMillis);
@@ -119,7 +120,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .clock(clock)
                 .entityRetryProcessConfiguration(getEntityRetryProcessConfiguration(context))
                 .executorInstrumentation(executorInstrumentation)
-                .pipelineService(pipelineService)
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)

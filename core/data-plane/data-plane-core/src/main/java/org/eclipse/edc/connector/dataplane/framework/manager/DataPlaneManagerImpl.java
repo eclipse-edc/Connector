@@ -19,11 +19,10 @@ import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -50,7 +49,6 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, DataPlaneStore> implements DataPlaneManager {
 
-    private PipelineService pipelineService;
     private TransferServiceRegistry transferServiceRegistry;
     private TransferProcessApiClient transferProcessClient;
 
@@ -92,8 +90,12 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public CompletableFuture<StreamResult<Void>> transfer(DataSink sink, DataFlowRequest request) {
-        return pipelineService.transfer(sink, request);
+    public CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request) {
+        var transferService = transferServiceRegistry.resolveTransferService(request);
+        if (transferService == null) {
+            return CompletableFuture.failedFuture(new EdcException("No TransferService available for request " + request.getProcessId()));
+        }
+        return transferService.transfer(request);
     }
 
     @Override
@@ -200,11 +202,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         @Override
         public Builder self() {
-            return this;
-        }
-
-        public Builder pipelineService(PipelineService pipelineService) {
-            manager.pipelineService = pipelineService;
             return this;
         }
 

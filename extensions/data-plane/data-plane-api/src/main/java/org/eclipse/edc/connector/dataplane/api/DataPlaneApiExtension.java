@@ -98,7 +98,7 @@ public class DataPlaneApiExtension implements ServiceExtension {
         webService.registerResource(controlApiConfiguration.getContextAlias(), new DataPlaneControlApiController(dataPlaneManager));
 
         var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
-        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, dataAddressResolver, monitor, executorService);
+        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, dataAddressResolver);
         webService.registerResource(configuration.getContextAlias(), publicApiController);
     }
 }

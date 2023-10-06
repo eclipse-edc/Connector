@@ -15,20 +15,13 @@
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
- * Transfers data from a source to a sink.
+ * Transfers data from a {@link DataSource} to a {@link DataSink} using Data Plane extensions.
+ * Represent the default {@link TransferService} that leverages on the internal Data-Plane transfer mechanism.
  */
 @ExtensionPoint
 public interface PipelineService extends TransferService {
-
-    /**
-     * Transfers data using the supplied data sink.
-     */
-    CompletableFuture<StreamResult<Void>> transfer(DataSink sink, DataFlowRequest request);
 
     /**
      * Registers a factory for creating data sources.
@@ -39,4 +32,5 @@ public interface PipelineService extends TransferService {
      * Registers a factory for creating data sinks.
      */
     void registerFactory(DataSinkFactory factory);
+
 }
