@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.policy.monitor;
 
+import org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction;
 import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitorManagerImpl;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
@@ -22,6 +23,9 @@ import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.engine.spi.PolicyScope;
+import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -37,7 +41,9 @@ import java.time.Clock;
 
 import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
 import static org.eclipse.edc.connector.core.entity.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
+import static org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.NAME;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 
 @Extension(value = NAME)
 @Provides({ PolicyMonitorManager.class })
@@ -50,6 +56,9 @@ public class PolicyMonitorExtension implements ServiceExtension {
 
     @Setting(value = "the batch size in the policy monitor state machine. Default value " + DEFAULT_BATCH_SIZE, type = "int")
     private static final String POLICY_MONITOR_BATCH_SIZE = "edc.policy.monitor.state-machine.batch-size";
+
+    @PolicyScope
+    public static final String POLICY_MONITOR_SCOPE = "policy.monitor";
 
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
@@ -75,12 +84,19 @@ public class PolicyMonitorExtension implements ServiceExtension {
     @Inject
     private PolicyMonitorStore policyMonitorStore;
 
+    @Inject
+    private RuleBindingRegistry ruleBindingRegistry;
+
     private PolicyMonitorManager manager;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var iterationWaitMillis = context.getSetting(POLICY_MONITOR_ITERATION_WAIT_MILLIS, DEFAULT_ITERATION_WAIT);
         var waitStrategy = new ExponentialWaitStrategy(iterationWaitMillis);
+
+        ruleBindingRegistry.bind(ODRL_SCHEMA + "use", POLICY_MONITOR_SCOPE);
+        ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, POLICY_MONITOR_SCOPE);
+        policyEngine.registerFunction(POLICY_MONITOR_SCOPE, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, new ContractExpiryCheckFunction());
 
         manager = PolicyMonitorManagerImpl.Builder.newInstance()
                 .clock(clock)

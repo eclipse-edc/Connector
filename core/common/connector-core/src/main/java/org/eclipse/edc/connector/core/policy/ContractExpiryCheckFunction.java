@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.contract.validation;
+package org.eclipse.edc.connector.core.policy;
 
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;

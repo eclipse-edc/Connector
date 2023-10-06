@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.contract.validation;
+package org.eclipse.edc.connector.core.policy;
 
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -45,7 +45,7 @@ import static java.time.Duration.ofDays;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
-import static org.eclipse.edc.connector.contract.validation.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
+import static org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.model.Operator.EQ;
 import static org.eclipse.edc.policy.model.Operator.GEQ;
