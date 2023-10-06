@@ -17,10 +17,13 @@ package org.eclipse.edc.identitytrust.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.eclipse.edc.identitytrust.VcConstants.VC_PREFIX;
+
 /**
  * Credential subject as defined in <a href="https://www.w3.org/TR/vc-data-model/#credential-subject">W3C specification</a>.
  */
 public class CredentialSubject {
+    public static final String CREDENTIAL_SUBJECT_ID_PROPERTY = VC_PREFIX + "id";
     private Map<String, Object> claims = new HashMap<>();
     private String id;
 

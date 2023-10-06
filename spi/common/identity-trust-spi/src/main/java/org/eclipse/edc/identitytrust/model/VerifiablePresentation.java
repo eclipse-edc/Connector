@@ -17,23 +17,21 @@ package org.eclipse.edc.identitytrust.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.eclipse.edc.identitytrust.VcConstants.VC_PREFIX;
+
 /**
  * Represents a VerifiablePresentation object as specified by the
  * <a href="https://w3c.github.io/vc-data-model/#presentations-0">W3 specification</a>
  */
 public class VerifiablePresentation {
-    public static final String DEFAULT_TYPE = "VerifiablePresentation";
-    private final String rawVp;
-    private final CredentialFormat format;
+    public static final String VERIFIABLE_PRESENTATION_HOLDER_PROPERTY = VC_PREFIX + "holder";
+    public static final String VERIFIABLE_PRESENTATION_VC_PROPERTY = VC_PREFIX + "verifiableCredential";
     private List<VerifiableCredential> credentials = new ArrayList<>();
     private String id;
     private List<String> types = new ArrayList<>();
     private String holder; //must be a URI
 
-    private VerifiablePresentation(String rawVp, CredentialFormat format) {
-        types.add(DEFAULT_TYPE);
-        this.rawVp = rawVp;
-        this.format = format;
+    private VerifiablePresentation() {
     }
 
     public List<VerifiableCredential> getCredentials() {
@@ -52,24 +50,15 @@ public class VerifiablePresentation {
         return holder;
     }
 
-    public CredentialFormat getFormat() {
-        return format;
-    }
-
-    public String getRawVp() {
-        return rawVp;
-    }
-
-
     public static final class Builder {
         private final VerifiablePresentation instance;
 
-        private Builder(String rawVp, CredentialFormat format) {
-            this.instance = new VerifiablePresentation(rawVp, format);
+        private Builder() {
+            this.instance = new VerifiablePresentation();
         }
 
-        public static Builder newInstance(String rawVp, CredentialFormat format) {
-            return new Builder(rawVp, format);
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder credentials(List<VerifiableCredential> credentials) {
@@ -89,6 +78,11 @@ public class VerifiablePresentation {
 
         public Builder types(List<String> type) {
             this.instance.types = type;
+            return this;
+        }
+
+        public Builder type(String type) {
+            this.instance.types.add(type);
             return this;
         }
 

@@ -12,15 +12,9 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-    `java-test-fixtures`
+package org.eclipse.edc.iam.identitytrust.transform;
+
+import java.util.Map;
+
+public record TestObject(String foo, Map<String, Object> baz) {
 }
-
-dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
-}
-
-

@@ -12,15 +12,10 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-    `java-test-fixtures`
+package org.eclipse.edc.identitytrust;
+
+public interface VcConstants {
+
+    String VC_PREFIX = "https://www.w3.org/2018/credentials#";
+    String SCHEMA_ORG_NAMESPACE = "https://schema.org/";
 }
-
-dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
-}
-
-

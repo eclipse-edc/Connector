@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
 
 class VerifiableCredentialTest {
 
@@ -33,7 +32,7 @@ class VerifiableCredentialTest {
 
     @Test
     void buildMinimalVc() {
-        assertThatNoException().isThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
+        assertThatNoException().isThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
                 .issuanceDate(now())
@@ -43,7 +42,7 @@ class VerifiableCredentialTest {
 
     @Test
     void assertDefaultValues() {
-        var vc = VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
+        var vc = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
                 .issuanceDate(now())
@@ -53,7 +52,7 @@ class VerifiableCredentialTest {
 
     @Test
     void build_emptyContexts() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
+        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
                 .issuanceDate(now())
@@ -63,7 +62,7 @@ class VerifiableCredentialTest {
 
     @Test
     void build_emptyTypes() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
+        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
                 .issuanceDate(now())
@@ -74,7 +73,7 @@ class VerifiableCredentialTest {
 
     @Test
     void build_emptyProofs() {
-        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance("rest-vc", JSON_LD)
+        assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
                 .issuer(URI.create("http://test.issuer"))
                 .issuanceDate(now())

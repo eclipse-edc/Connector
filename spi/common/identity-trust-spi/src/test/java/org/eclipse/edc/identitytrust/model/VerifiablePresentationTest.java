@@ -20,23 +20,24 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.identitytrust.model.CredentialFormat.JSON_LD;
-import static org.eclipse.edc.identitytrust.model.TestFunctions.createCredential;
+import static org.eclipse.edc.identitytrust.TestFunctions.createCredential;
 
 class VerifiablePresentationTest {
 
     @Test
-    void assertDefaults() {
-        var vp = VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
+    void buildMinimalVp() {
+        assertThatNoException().isThrownBy(() -> VerifiablePresentation.Builder.newInstance()
                 .credential(createCredential())
-                .build();
+                .type("test-type")
+                .build());
 
     }
 
     @Test
     void build_noType() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
+        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
                 .types(new ArrayList<>())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
@@ -45,7 +46,7 @@ class VerifiablePresentationTest {
 
     @Test
     void build_noCredentials() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance("rest-vp", JSON_LD)
+        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
                 .types(List.of("test-type"))
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
