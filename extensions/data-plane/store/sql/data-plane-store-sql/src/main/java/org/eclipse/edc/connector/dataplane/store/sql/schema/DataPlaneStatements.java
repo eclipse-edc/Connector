@@ -16,12 +16,13 @@ package org.eclipse.edc.connector.dataplane.store.sql.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.lease.LeaseStatements;
+import org.eclipse.edc.sql.lease.StatefulEntityStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Sql Statements for DataPlane Store
  */
-public interface DataPlaneStatements extends LeaseStatements {
+public interface DataPlaneStatements extends StatefulEntityStatements, LeaseStatements {
 
     default String getIdColumn() {
         return "process_id";
@@ -29,34 +30,6 @@ public interface DataPlaneStatements extends LeaseStatements {
 
     default String getDataPlaneTable() {
         return "edc_data_plane";
-    }
-
-    default String getCreatedAtColumn() {
-        return "created_at";
-    }
-
-    default String getUpdatedAtColumn() {
-        return "updated_at";
-    }
-
-    default String getStateColumn() {
-        return "state";
-    }
-
-    default String getTraceContextColumn() {
-        return "trace_context";
-    }
-
-    default String getStateCountColumn() {
-        return "state_count";
-    }
-
-    default String getStateTimestampColumn() {
-        return "state_time_stamp";
-    }
-
-    default String getErrorDetailColumn() {
-        return "error_detail";
     }
 
     default String getCallbackAddressColumn() {
@@ -78,8 +51,6 @@ public interface DataPlaneStatements extends LeaseStatements {
     default String getPropertiesColumn() {
         return "properties";
     }
-
-    String getFindByIdTemplate();
 
     String getInsertTemplate();
 

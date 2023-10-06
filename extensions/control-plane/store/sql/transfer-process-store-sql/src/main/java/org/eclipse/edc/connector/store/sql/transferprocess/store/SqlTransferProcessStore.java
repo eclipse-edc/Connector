@@ -74,9 +74,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).collect(toList());
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
-            var statement = statements.createQuery(querySpec);
-            statement.addWhereClause(statements.getNotLeasedFilter());
-            statement.addParameter(clock.millis());
+            var statement = statements.createQuery(querySpec)
+                    .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
 
             try (
                     var connection = getConnection();

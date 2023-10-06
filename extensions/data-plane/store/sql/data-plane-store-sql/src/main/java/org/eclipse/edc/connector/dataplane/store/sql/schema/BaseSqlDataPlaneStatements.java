@@ -23,11 +23,6 @@ import static java.lang.String.format;
 public class BaseSqlDataPlaneStatements implements DataPlaneStatements {
 
     @Override
-    public String getFindByIdTemplate() {
-        return String.format("SELECT * FROM %s WHERE %s = ?", getDataPlaneTable(), getIdColumn());
-    }
-
-    @Override
     public String getInsertTemplate() {
         return executeStatement()
                 .column(getIdColumn())

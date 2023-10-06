@@ -21,8 +21,9 @@ dependencies {
     runtimeOnly(project(":extensions:control-plane:store:sql:control-plane-sql"))
     runtimeOnly(project(":extensions:common:sql:sql-pool:sql-pool-apache-commons"))
     runtimeOnly(project(":extensions:common:transaction:transaction-local"))
-    runtimeOnly(libs.postgres)
     runtimeOnly(project(":extensions:common:api:management-api-configuration"))
+    runtimeOnly(project(":extensions:policy-monitor:store:sql:policy-monitor-store-sql"))
+    runtimeOnly(libs.postgres)
 }
 
 edcBuild {

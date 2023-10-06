@@ -29,6 +29,14 @@ class SqlQueryStatementTest {
     private static final String SELECT_STATEMENT = "SELECT * FROM test-table";
 
     @Test
+    void withoutQuerySpec_shouldSetOffsetAndLimit() {
+        var statement = new SqlQueryStatement(SELECT_STATEMENT, 80, 20);
+
+        assertThat(statement.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " LIMIT ? OFFSET ?;");
+        assertThat(statement.getParameters()).containsOnly(80, 20);
+    }
+
+    @Test
     void singleExpression_equalsOperator() {
         var criterion = new Criterion("field1", "=", "testid1");
         var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
@@ -113,11 +121,10 @@ class SqlQueryStatementTest {
     @Test
     void addWhereClause() {
         var criterion = new Criterion("field1", "=", "testid1");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
         var customParameter = 3;
         var customSql = "(another_field IS null OR (another_field IN (select * from another_table where that_field > ?))";
-        t.addWhereClause(customSql);
-        t.addParameter(customParameter);
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping())
+                .addWhereClause(customSql, customParameter);
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? AND " + customSql + " LIMIT ? OFFSET ?;");
         assertThat(t.getParameters()).containsExactly("testid1", customParameter, 50, 0);
