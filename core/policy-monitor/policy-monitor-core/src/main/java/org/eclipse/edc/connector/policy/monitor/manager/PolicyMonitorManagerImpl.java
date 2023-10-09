@@ -33,6 +33,7 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 import java.time.Instant;
 import java.util.function.Function;
 
+import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.POLICY_MONITOR_SCOPE;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
@@ -83,7 +84,7 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
                 .additional(ContractAgreement.class, contractAgreement)
                 .build();
 
-        var result = policyEngine.evaluate("transfer.process", policy, policyContext);
+        var result = policyEngine.evaluate(POLICY_MONITOR_SCOPE, policy, policyContext);
         if (result.failed()) {
             monitor.debug(() -> "[policy-monitor] Policy evaluation for TP %s failed: %s".formatted(entry.getId(), result.getFailureDetail()));
             var command = new TerminateTransferCommand(entry.getId(), result.getFailureDetail());

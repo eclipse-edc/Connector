@@ -37,6 +37,7 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.policy.monitor.PolicyMonitorExtension.POLICY_MONITOR_SCOPE;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.COMPLETED;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.FAILED;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
@@ -105,7 +106,7 @@ class PolicyMonitorManagerImplTest {
         await().untilAsserted(() -> {
             verify(contractAgreementService).findById("contractId");
             var captor = ArgumentCaptor.forClass(PolicyContextImpl.class);
-            verify(policyEngine).evaluate(eq("transfer.process"), same(policy), captor.capture());
+            verify(policyEngine).evaluate(eq(POLICY_MONITOR_SCOPE), same(policy), captor.capture());
             var policyContext = captor.getValue();
             assertThat(policyContext.getContextData(ContractAgreement.class)).isSameAs(contractAgreement);
             verify(transferProcessService).terminate(argThat(c -> c.getEntityId().equals("transferProcessId")));
