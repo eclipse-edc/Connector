@@ -150,20 +150,20 @@ public class TitaniumJsonLd implements JsonLd {
         var contexts = Stream.concat(contextsForScope(DEFAULT_SCOPE), contextsForScope(scope))
                 .collect(Collectors.toSet());
 
+        var contextObject = builder.build();
         // if not empty we build a JsonArray
         if (!contexts.isEmpty()) {
-            var arrayBuilder = createArrayBuilder();
-            contexts.forEach(arrayBuilder::add);
+            var contextArray = createArrayBuilder();
+            contexts.forEach(contextArray::add);
 
-            var namespaces = builder.build();
             // don't append an empty object
-            if (!namespaces.isEmpty()) {
-                arrayBuilder.add(namespaces);
+            if (!contextObject.isEmpty()) {
+                contextArray.add(contextObject);
             }
-            return arrayBuilder.build();
+            return contextArray.build();
         } else {
             // return only the JsonObject with the namespaces
-            return builder.build();
+            return contextObject;
         }
     }
 
