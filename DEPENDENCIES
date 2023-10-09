@@ -319,7 +319,7 @@ maven/mavencentral/org.testcontainers/jdbc/1.19.1, Apache-2.0, approved, #10348
 maven/mavencentral/org.testcontainers/junit-jupiter/1.19.1, MIT, approved, #10344
 maven/mavencentral/org.testcontainers/postgresql/1.19.1, MIT, approved, #10350
 maven/mavencentral/org.testcontainers/testcontainers/1.19.1, Apache-2.0 AND MIT, approved, #10347
-maven/mavencentral/org.testcontainers/vault/1.19.1, None, restricted, #10852
+maven/mavencentral/org.testcontainers/vault/1.19.1, MIT, approved, #10852
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.4, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
 maven/mavencentral/org.xmlunit/xmlunit-core/2.9.1, Apache-2.0, approved, #6272
 maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.9.1, Apache-2.0, approved, clearlydefined
