@@ -42,13 +42,12 @@ class JsonLdRemoteMessageSerializerImplTest {
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final RemoteMessage message = mock(RemoteMessage.class);
     private JsonLdRemoteMessageSerializerImpl serializer;
-    private TitaniumJsonLd jsonLdService;
 
     @BeforeEach
     void setUp() {
-        jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
+        var jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
         jsonLdService.registerNamespace("schema", "http://schema/"); //needed for compaction
-        serializer = new JsonLdRemoteMessageSerializerImpl(registry, mapper, jsonLdService);
+        serializer = new JsonLdRemoteMessageSerializerImpl(registry, mapper, jsonLdService, "scope");
     }
 
     @Test

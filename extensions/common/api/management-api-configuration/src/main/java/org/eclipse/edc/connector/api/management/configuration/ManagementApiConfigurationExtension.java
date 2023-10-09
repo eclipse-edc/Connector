@@ -40,6 +40,8 @@ import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 
 import java.util.Map;
 
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 /**
@@ -62,25 +64,19 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             .useDefaultContext(true)
             .name(WEB_SERVICE_NAME)
             .build();
-
+    private static final String MANAGEMENT_SCOPE = "MANAGEMENT_API";
     @Inject
     private WebService webService;
-
     @Inject
     private WebServer webServer;
-
     @Inject
     private AuthenticationService authenticationService;
-
     @Inject
     private WebServiceConfigurer configurator;
-
     @Inject
     private TypeManager typeManager;
-
     @Inject
     private JsonLd jsonLd;
-
     @Inject
     private TypeTransformerRegistry transformerRegistry;
 
@@ -96,9 +92,10 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));
         webService.registerResource(webServiceConfiguration.getContextAlias(), new AuthenticationRequestFilter(authenticationService));
 
+        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
         webService.registerResource(webServiceConfiguration.getContextAlias(), new ObjectMapperProvider(jsonLdMapper));
-        webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper));
+        webService.registerResource(webServiceConfiguration.getContextAlias(), new JerseyJsonLdInterceptor(jsonLd, jsonLdMapper, MANAGEMENT_SCOPE));
     }
 
     @Provider

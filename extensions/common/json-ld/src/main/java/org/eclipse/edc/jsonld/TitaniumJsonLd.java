@@ -24,16 +24,24 @@ import com.apicatalog.jsonld.loader.FileLoader;
 import com.apicatalog.jsonld.loader.HttpLoader;
 import com.apicatalog.jsonld.loader.SchemeRouter;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.document.JarLoader;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createBuilderFactory;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Optional.ofNullable;
@@ -45,8 +53,13 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  * Implementation of the {@link JsonLd} interface that uses the Titanium library for all JSON-LD operations.
  */
 public class TitaniumJsonLd implements JsonLd {
+    private static final Map<String, String> EMPTY_NAMESPACES = Collections.emptyMap();
+
+    private static final Set<String> EMPTY_CONTEXTS = Collections.emptySet();
+
     private final Monitor monitor;
-    private final Map<String, String> additionalNamespaces = new HashMap<>();
+    private final Map<String, Map<String, String>> scopedNamespaces = new HashMap<>();
+    private final Map<String, Set<String>> scopedContexts = new HashMap<>();
     private final CachedDocumentLoader documentLoader;
 
     public TitaniumJsonLd(Monitor monitor) {
@@ -76,14 +89,16 @@ public class TitaniumJsonLd implements JsonLd {
     }
 
     @Override
-    public Result<JsonObject> compact(JsonObject json) {
+    public Result<JsonObject> compact(JsonObject json, String scope) {
         try {
             var document = JsonDocument.of(json);
             var jsonFactory = createBuilderFactory(Map.of());
             var contextDocument = JsonDocument.of(jsonFactory.createObjectBuilder()
-                    .add(CONTEXT, createContextObject())
+                    .add(CONTEXT, createContext(scope))
                     .build());
-            var compacted = com.apicatalog.jsonld.JsonLd.compact(document, contextDocument).get();
+            var compacted = com.apicatalog.jsonld.JsonLd.compact(document, contextDocument)
+                    .options(new JsonLdOptions(documentLoader))
+                    .get();
             return Result.success(compacted);
         } catch (JsonLdError e) {
             monitor.warning("Error compacting JSON-LD structure", e);
@@ -92,8 +107,15 @@ public class TitaniumJsonLd implements JsonLd {
     }
 
     @Override
-    public void registerNamespace(String prefix, String contextIri) {
-        additionalNamespaces.put(prefix, contextIri);
+    public void registerNamespace(String prefix, String contextIri, String scope) {
+        var namespaces = scopedNamespaces.computeIfAbsent(scope, k -> new LinkedHashMap<>());
+        namespaces.put(prefix, contextIri);
+    }
+
+    @Override
+    public void registerContext(String contextIri, String scope) {
+        var contexts = scopedContexts.computeIfAbsent(scope, k -> new LinkedHashSet<>());
+        contexts.add(contextIri);
     }
 
     @Override
@@ -118,10 +140,39 @@ public class TitaniumJsonLd implements JsonLd {
         return jsonObjectBuilder.build();
     }
 
-    private JsonObject createContextObject() {
+    private JsonValue createContext(String scope) {
         var builder = createObjectBuilder();
-        additionalNamespaces.forEach(builder::add);
-        return builder.build();
+        // Adds the configured namespaces for * and the input scope
+        Stream.concat(namespacesForScope(DEFAULT_SCOPE), namespacesForScope(scope))
+                .forEach(entry -> builder.add(entry.getKey(), entry.getValue()));
+
+        // Compute the additional context IRI defined for * and the input scope
+        var contexts = Stream.concat(contextsForScope(DEFAULT_SCOPE), contextsForScope(scope))
+                .collect(Collectors.toSet());
+
+        var contextObject = builder.build();
+        // if not empty we build a JsonArray
+        if (!contexts.isEmpty()) {
+            var contextArray = createArrayBuilder();
+            contexts.forEach(contextArray::add);
+
+            // don't append an empty object
+            if (!contextObject.isEmpty()) {
+                contextArray.add(contextObject);
+            }
+            return contextArray.build();
+        } else {
+            // return only the JsonObject with the namespaces
+            return contextObject;
+        }
+    }
+
+    private Stream<Map.Entry<String, String>> namespacesForScope(String scope) {
+        return scopedNamespaces.getOrDefault(scope, EMPTY_NAMESPACES).entrySet().stream();
+    }
+
+    private Stream<String> contextsForScope(String scope) {
+        return scopedContexts.getOrDefault(scope, EMPTY_CONTEXTS).stream();
     }
 
     private static class CachedDocumentLoader implements DocumentLoader {
