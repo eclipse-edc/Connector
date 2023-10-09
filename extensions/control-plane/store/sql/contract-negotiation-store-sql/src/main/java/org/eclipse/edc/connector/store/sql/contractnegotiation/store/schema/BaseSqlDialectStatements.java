@@ -121,20 +121,14 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     public SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec) {
         // for generic SQL, only the limit and offset fields are used!
         var sql = getSelectNegotiationsTemplate();
-        var stmt = new SqlQueryStatement(sql);
-        stmt.addParameter(querySpec.getLimit());
-        stmt.addParameter(querySpec.getOffset());
-        return stmt;
+        return new SqlQueryStatement(sql, querySpec.getLimit(), querySpec.getOffset());
     }
 
     @Override
     public SqlQueryStatement createAgreementsQuery(QuerySpec querySpec) {
         // for generic SQL, only the limit and offset fields are used!
         var sql = "SELECT * FROM " + getContractAgreementTable();
-        var stmt = new SqlQueryStatement(sql);
-        stmt.addParameter(querySpec.getLimit());
-        stmt.addParameter(querySpec.getOffset());
-        return stmt;
+        return new SqlQueryStatement(sql, querySpec.getLimit(), querySpec.getOffset());
     }
 
     @Override

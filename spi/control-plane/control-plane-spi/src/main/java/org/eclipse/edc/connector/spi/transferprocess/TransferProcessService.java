@@ -59,22 +59,6 @@ public interface TransferProcessService {
     String getState(String transferProcessId);
 
     /**
-     * Asynchronously requests termination of the transfer process.
-     * <p>
-     * The return result status only reflects the successful submission of the command.
-     *
-     * @param transferProcessId id of the transferProcess
-     * @param reason reason for the termination
-     * @return a result that is successful if the transfer process was found and is in a state that can be terminated
-     * @deprecated please use {@link #terminate(TerminateTransferCommand)}
-     */
-    @NotNull
-    @Deprecated(since = "0.1.3")
-    default ServiceResult<Void> terminate(String transferProcessId, String reason) {
-        return terminate(new TerminateTransferCommand(transferProcessId, reason));
-    }
-
-    /**
      * Asynchronously requests completion of the transfer process.
      * <p>
      * The return result status only reflects the successful submission of the command.

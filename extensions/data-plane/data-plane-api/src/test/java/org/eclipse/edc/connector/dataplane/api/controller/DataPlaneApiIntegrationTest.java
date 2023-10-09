@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -225,7 +224,7 @@ class DataPlaneApiIntegrationTest {
                         .withBody(MAPPER.writeValueAsString(testDestAddress()))
                 );
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManager.transfer(any(DataSink.class), any()))
+        when(dataPlaneManager.transfer(any()))
                 .thenReturn(completedFuture(StreamResult.error(errorMsg)));
 
         given()
@@ -249,7 +248,7 @@ class DataPlaneApiIntegrationTest {
                         .withBody(MAPPER.writeValueAsString(testDestAddress()))
                 );
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManager.transfer(any(DataSink.class), any(DataFlowRequest.class)))
+        when(dataPlaneManager.transfer(any(DataFlowRequest.class)))
                 .thenReturn(failedFuture(new RuntimeException(errorMsg)));
 
         given()
@@ -275,7 +274,7 @@ class DataPlaneApiIntegrationTest {
                         .withBody(MAPPER.writeValueAsString(address))
                 );
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManager.transfer(any(DataSink.class), any()))
+        when(dataPlaneManager.transfer(any()))
                 .thenReturn(completedFuture(StreamResult.success()));
 
         given()
@@ -287,7 +286,7 @@ class DataPlaneApiIntegrationTest {
                 .statusCode(Response.Status.OK.getStatusCode());
 
         verify(dataPlaneManager).validate(requestCaptor.capture());
-        verify(dataPlaneManager).transfer(ArgumentCaptor.forClass(DataSink.class).capture(), requestCaptor.capture());
+        verify(dataPlaneManager).transfer(requestCaptor.capture());
         var capturedRequests = requestCaptor.getAllValues();
         assertThat(capturedRequests)
                 .hasSize(2)

@@ -45,7 +45,6 @@ public class TransferProcessControlApiController implements TransferProcessContr
         this.transferProcessService = transferProcessService;
     }
 
-
     @POST
     @Path("/{processId}/complete")
     @Override

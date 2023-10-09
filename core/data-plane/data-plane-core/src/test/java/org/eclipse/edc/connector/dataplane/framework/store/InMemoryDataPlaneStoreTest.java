@@ -16,23 +16,13 @@ package org.eclipse.edc.connector.dataplane.framework.store;
 
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.testfixtures.store.DataPlaneStoreTestBase;
-import org.eclipse.edc.spi.persistence.Lease;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 class InMemoryDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
-    private final Map<String, Lease> leases = new HashMap<>();
-    private InMemoryDataPlaneStore store;
-
-    @BeforeEach
-    void setUp() {
-        store = new InMemoryDataPlaneStore(CONNECTOR_NAME, leases);
-    }
+    private final InMemoryDataPlaneStore store = new InMemoryDataPlaneStore(CONNECTOR_NAME, Clock.systemUTC());
 
     @Override
     protected DataPlaneStore getStore() {
@@ -41,17 +31,12 @@ class InMemoryDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
     @Override
     protected void leaseEntity(String entityId, String owner, Duration duration) {
-        leases.put(entityId, new Lease(owner, Clock.systemUTC().millis(), duration.toMillis()));
+        store.acquireLease(entityId, owner, duration);
     }
 
     @Override
     protected boolean isLeasedBy(String entityId, String owner) {
-        return leases.entrySet().stream().anyMatch(e -> e.getKey().equals(entityId) &&
-                e.getValue().getLeasedBy().equals(owner) &&
-                !isExpired(e.getValue()));
+        return store.isLeasedBy(entityId, owner);
     }
 
-    private boolean isExpired(Lease e) {
-        return e.getLeasedAt() + e.getLeaseDuration() < Clock.systemUTC().millis();
-    }
 }

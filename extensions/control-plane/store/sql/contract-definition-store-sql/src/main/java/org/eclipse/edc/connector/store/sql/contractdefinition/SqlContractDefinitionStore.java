@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.store.sql.contractdefinition.schema.ContractDefinitionStatements;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -50,9 +49,9 @@ import static java.util.stream.Collectors.toMap;
 
 public class SqlContractDefinitionStore extends AbstractSqlStore implements ContractDefinitionStore {
 
+    private final ContractDefinitionStatements statements;
     public static final TypeReference<List<Criterion>> CRITERION_LIST = new TypeReference<>() {
     };
-    private final ContractDefinitionStatements statements;
 
     public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
                                       TransactionContext transactionContext, ContractDefinitionStatements statements,
@@ -147,20 +146,12 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     }
 
     private ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
-        List<Criterion> assetsSelector;
-        try {
-            assetsSelector = fromJson(resultSet.getString(statements.getAssetsSelectorColumn()), CRITERION_LIST);
-        } catch (EdcPersistenceException e) {
-            // this fallback is to avoid breaking changes as json fields cannot be migrated.
-            assetsSelector = fromJson(resultSet.getString(statements.getAssetsSelectorColumn()), AssetSelectorExpression.class).getCriteria();
-        }
-
         return ContractDefinition.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
                 .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
-                .assetsSelector(assetsSelector)
+                .assetsSelector(fromJson(resultSet.getString(statements.getAssetsSelectorColumn()), CRITERION_LIST))
                 .build();
     }
 

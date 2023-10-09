@@ -423,7 +423,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         @Test
         void queryByAssetsSelector_rightAndLeft() {
-            var definitionsExpected = createContractDefinitions(20);
+            var definitionsExpected = createContractDefinitions(10);
             definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
             definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
             saveContractDefinitions(definitionsExpected);

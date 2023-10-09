@@ -31,14 +31,14 @@ import static java.lang.String.format;
  * Writes data in a streaming fashion to an HTTP endpoint.
  */
 public class HttpDataSink extends ParallelSink {
-    private static final StreamResult<Void> ERROR_WRITING_DATA = StreamResult.error("Error writing data");
+    private static final StreamResult<Object> ERROR_WRITING_DATA = StreamResult.error("Error writing data");
 
     private HttpRequestParams params;
     private EdcHttpClient httpClient;
     private HttpRequestFactory requestFactory;
 
     @Override
-    protected StreamResult<Void> transferParts(List<DataSource.Part> parts) {
+    protected StreamResult<Object> transferParts(List<DataSource.Part> parts) {
         for (var part : parts) {
             var request = requestFactory.toRequest(params, part::openStream);
             try (var response = httpClient.execute(request)) {

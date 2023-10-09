@@ -1,0 +1,15 @@
+{
+  "@context": {
+    "@vocab": "http://schema.org/",
+    "schema": "http://schema.org/",
+    "Person": {
+      "@id": "schema:Person"
+    },
+    "name": {
+      "@id": "schema:name"
+    },
+    "jobTitle": {
+      "@id": "schema:jobTitle"
+    }
+  }
+}

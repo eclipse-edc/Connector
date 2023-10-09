@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -51,16 +52,26 @@ public class DataFlowManagerImpl implements DataFlowManager {
     @Override
     public @NotNull StatusResult<DataFlowResponse> initiate(TransferProcess transferProcess, Policy policy) {
         try {
-            return controllers.stream()
-                    .sorted(Comparator.comparingInt(a -> -a.priority))
-                    .map(PrioritizedDataFlowController::controller)
-                    .filter(controller -> controller.canHandle(transferProcess))
-                    .findFirst()
-                    .map(controller -> controller.initiateFlow(transferProcess, policy))
-                    .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
+            return chooseControllerAndApply(transferProcess, controller -> controller.initiateFlow(transferProcess, policy));
         } catch (Exception e) {
             return StatusResult.failure(FATAL_ERROR, runtimeException(transferProcess.getId(), e.getLocalizedMessage()));
         }
+    }
+
+    @Override
+    public @NotNull StatusResult<Void> terminate(TransferProcess transferProcess) {
+        return chooseControllerAndApply(transferProcess, controller -> controller.terminate(transferProcess));
+    }
+
+    @NotNull
+    private <T> StatusResult<T> chooseControllerAndApply(TransferProcess transferProcess, Function<DataFlowController, StatusResult<T>> function) {
+        return controllers.stream()
+                .sorted(Comparator.comparingInt(a -> -a.priority))
+                .map(PrioritizedDataFlowController::controller)
+                .filter(controller -> controller.canHandle(transferProcess))
+                .findFirst()
+                .map(function)
+                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
     }
 
     private String runtimeException(String id, String message) {

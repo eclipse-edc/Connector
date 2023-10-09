@@ -16,13 +16,14 @@ package org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.lease.LeaseStatements;
+import org.eclipse.edc.sql.lease.StatefulEntityStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Provides database-related constants, such as column names, table names and statement templates. Methods to compose
  * statements must be overridden by implementors.
  */
-public interface ContractNegotiationStatements extends LeaseStatements {
+public interface ContractNegotiationStatements extends StatefulEntityStatements, LeaseStatements {
     String getFindTemplate();
 
     String getFindContractAgreementTemplate();
@@ -97,14 +98,6 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "agreement_id";
     }
 
-    default String getStateColumn() {
-        return "state";
-    }
-
-    default String getStateCountColumn() {
-        return "state_count";
-    }
-
     default String getStateTimestampColumn() {
         return "state_timestamp";
     }
@@ -117,24 +110,8 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "callback_addresses";
     }
 
-    default String getErrorDetailColumn() {
-        return "error_detail";
-    }
-
-    default String getTraceContextColumn() {
-        return "trace_context";
-    }
-
     default String getTypeColumn() {
         return "type";
-    }
-
-    default String getCreatedAtColumn() {
-        return "created_at";
-    }
-
-    default String getUpdatedAtColumn() {
-        return "updated_at";
     }
 
     default String getPendingColumn() {

@@ -56,10 +56,10 @@ public class AssetEventDispatchTest {
     @Test
     void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
         eventRouter.register(AssetEvent.class, eventSubscriber);
-        var asset = Asset.Builder.newInstance().id("assetId").build();
         var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        var asset = Asset.Builder.newInstance().id("assetId").dataAddress(dataAddress).build();
 
-        service.create(asset, dataAddress);
+        service.create(asset);
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(AssetCreated.class)));
         });

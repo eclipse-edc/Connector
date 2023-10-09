@@ -35,10 +35,6 @@ public class OkHttpClientFactory {
     private static final String DEFAULT_TIMEOUT = "30";
     private static final String DEFAULT_HTTPS_ENFORCE = "false";
 
-    @Setting(value = "DEPRECATED. If true, enable HTTPS call enforcement. Default value is 'false'", type = "boolean")
-    @Deprecated(since = "0.1.3")
-    public static final String EDC_HTTP_ENFORCE_HTTPS = "edc.http.enforce-https";
-
     @Setting(value = "If true, enable HTTPS call enforcement.", defaultValue = DEFAULT_HTTPS_ENFORCE, type = "boolean")
     public static final String EDC_HTTP_CLIENT_HTTPS_ENFORCE = "edc.http.client.https.enforce";
 
@@ -66,11 +62,7 @@ public class OkHttpClientFactory {
 
         ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
-        if (context.getSetting(EDC_HTTP_ENFORCE_HTTPS, null) != null) {
-            context.getMonitor().warning(format("Configuration setting %s has been deprecated, please use %s instead", EDC_HTTP_ENFORCE_HTTPS, EDC_HTTP_CLIENT_HTTPS_ENFORCE));
-        }
-
-        var enforceHttps = context.getSetting(EDC_HTTP_CLIENT_HTTPS_ENFORCE, context.getSetting(EDC_HTTP_ENFORCE_HTTPS, Boolean.parseBoolean(DEFAULT_HTTPS_ENFORCE)));
+        var enforceHttps = context.getSetting(EDC_HTTP_CLIENT_HTTPS_ENFORCE, Boolean.parseBoolean(DEFAULT_HTTPS_ENFORCE));
         if (enforceHttps) {
             builder.addInterceptor(new EnforceHttps());
         } else {

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -21,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * A service that can satisfy a {@link DataFlowRequest} by transferring data from a source to a destination.
+ * This could be done in the Data-Plane internally, or it could leverage on external and more performant systems.
  */
 public interface TransferService {
 
@@ -37,5 +39,13 @@ public interface TransferService {
     /**
      * Transfers data from source to destination.
      */
-    CompletableFuture<StreamResult<Void>> transfer(DataFlowRequest request);
+    CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request);
+
+    /**
+     * Terminate a data flow.
+     *
+     * @param dataFlow the data flow.
+     */
+    StreamResult<Void> terminate(DataFlow dataFlow);
+
 }

@@ -14,54 +14,61 @@
 
 package org.eclipse.edc.connector.dataplane.util.sink;
 
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.Mockito.mock;
 
 class OutputStreamDataSinkFactoryTest {
 
-    private OutputStreamDataSinkFactory factory;
-
-    @BeforeEach
-    void setUp() {
-        factory = new OutputStreamDataSinkFactory();
-    }
+    private final Monitor monitor = mock();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final OutputStreamDataSinkFactory factory = new OutputStreamDataSinkFactory(monitor, executorService);
 
     @Test
     void verifyCanHandle() {
-        assertThat(factory.canHandle(createDataFlowRequest(OutputStreamDataSinkFactory.TYPE)))
-                .isTrue();
-
-        assertThat(factory.canHandle(createDataFlowRequest("dummy")))
-                .isFalse();
+        assertThat(factory.canHandle(createDataFlowRequest(OutputStreamDataSinkFactory.TYPE))).isTrue();
+        assertThat(factory.canHandle(createDataFlowRequest("dummy"))).isFalse();
     }
 
     @Test
-    void validate() {
-        assertThat(factory.validateRequest(createDataFlowRequest(OutputStreamDataSinkFactory.TYPE)))
-                .satisfies(result -> assertThat(result.succeeded()).isTrue());
+    void validate_shouldSucceed_whenRequestIsManageable() {
+        var request = createDataFlowRequest(OutputStreamDataSinkFactory.TYPE);
 
-        assertThat(factory.validateRequest(createDataFlowRequest("dummy")))
-                .satisfies(result -> {
-                    assertThat(result.failed()).isTrue();
-                    assertThat(result.getFailureMessages())
-                            .containsExactly("OutputStreamDataSinkFactory: Cannot handle destination data address with type: dummy");
-                });
+        var result = factory.validateRequest(request);
+
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void validate_shouldFail_whenRequestIsNotManageable() {
+        var request = createDataFlowRequest("dummy");
+
+        var result = factory.validateRequest(request);
+
+        assertThat(result).isFailed().extracting(Failure::getMessages).asList()
+                .containsExactly("OutputStreamDataSinkFactory: Cannot handle destination data address with type: dummy");
     }
 
     @Test
     void verifyCreateSinkReturnCompletedFuture() {
-        var sink = factory.createSink(null);
-        assertThat(sink.transfer(null)).succeedsWithin(500L, TimeUnit.MILLISECONDS);
+        var request = createDataFlowRequest("dummy");
+
+        var sink = factory.createSink(request);
+
+        assertThat(sink).isInstanceOf(OutputStreamDataSink.class);
     }
 
-    private static DataFlowRequest createDataFlowRequest(String destAddressType) {
+    private DataFlowRequest createDataFlowRequest(String destAddressType) {
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(DataAddress.Builder.newInstance()

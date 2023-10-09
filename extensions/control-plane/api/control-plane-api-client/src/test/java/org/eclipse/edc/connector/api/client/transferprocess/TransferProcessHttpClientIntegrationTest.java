@@ -19,6 +19,8 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -46,6 +48,7 @@ import java.util.UUID;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.INTEGER;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -93,7 +96,7 @@ public class TransferProcessHttpClientIntegrationTest {
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull()
-                    .extracting(StatefulEntity::getState).isEqualTo(COMPLETED.code());
+                    .extracting(StatefulEntity::getState).asInstanceOf(INTEGER).isGreaterThanOrEqualTo(COMPLETED.code());
         });
     }
 
@@ -109,7 +112,7 @@ public class TransferProcessHttpClientIntegrationTest {
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
-                assertThat(process.getState()).isEqualTo(TERMINATED.code());
+                assertThat(process.getState()).isGreaterThanOrEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
             });
         });
@@ -127,7 +130,7 @@ public class TransferProcessHttpClientIntegrationTest {
         await().untilAsserted(() -> {
             var transferProcess = store.findById("tp-id");
             assertThat(transferProcess).isNotNull().satisfies(process -> {
-                assertThat(process.getState()).isEqualTo(TERMINATED.code());
+                assertThat(process.getState()).isGreaterThanOrEqualTo(TERMINATED.code());
                 assertThat(process.getErrorDetail()).isEqualTo("error");
             });
         });
@@ -164,6 +167,9 @@ public class TransferProcessHttpClientIntegrationTest {
         @Inject
         private TransferServiceRegistry registry;
 
+        @Inject
+        private DataFlowManager dataFlowManager;
+
         private TransferServiceMockExtension(TransferService transferService) {
             this.transferService = transferService;
         }
@@ -171,6 +177,10 @@ public class TransferProcessHttpClientIntegrationTest {
         @Override
         public void initialize(ServiceExtensionContext context) {
             registry.registerTransferService(transferService);
+            DataFlowController controller = mock();
+            when(controller.canHandle(any())).thenReturn(true);
+            when(controller.terminate(any())).thenReturn(StatusResult.success());
+            dataFlowManager.register(controller);
         }
     }
 

@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.query.SortOrder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,11 +42,10 @@ public class SqlQueryStatement {
     private final String selectStatement;
     private final List<String> whereClauses = new ArrayList<>();
     private final List<Object> parameters = new ArrayList<>();
-    private boolean fromQuerySpec = false;
 
     private String orderByClause = "";
-    private int limit;
-    private int offset;
+    private final int limit;
+    private final int offset;
 
     /**
      * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
@@ -56,18 +56,21 @@ public class SqlQueryStatement {
      *                        model/format
      */
     public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel) {
-        this(selectStatement);
-        fromQuerySpec = true;
+        this(selectStatement, query.getLimit(), query.getOffset());
         initialize(query, rootModel);
     }
 
     /**
-     * Initializes this SQL Query Statement with a SELECT clause
+     * Initializes this SQL Query Statement with a SELECT clause, LIMIT and OFFSET values.
      *
      * @param selectStatement The SELECT clause, e.g. {@code SELECT * FROM your_table}
+     * @param limit the limit value.
+     * @param offset the offset value.
      */
-    public SqlQueryStatement(String selectStatement) {
+    public SqlQueryStatement(String selectStatement, int limit, int offset) {
         this.selectStatement = selectStatement;
+        this.limit = limit;
+        this.offset = offset;
     }
 
     /**
@@ -93,18 +96,31 @@ public class SqlQueryStatement {
      */
     public Object[] getParameters() {
         var params = new ArrayList<>(parameters);
-        if (fromQuerySpec) {
-            params.add(limit);
-            params.add(offset);
-        }
+        params.add(limit);
+        params.add(offset);
         return params.toArray(Object[]::new);
+    }
+
+    /**
+     * Add where clause with related parameters. If it contains multiple clauses better wrap it with parenthesis
+     *
+     * @param clause the SQL where clause.
+     * @param parameters the parameters.
+     * @return self.
+     */
+    public SqlQueryStatement addWhereClause(String clause, Object... parameters) {
+        whereClauses.add(clause);
+        Collections.addAll(this.parameters, parameters);
+        return this;
     }
 
     /**
      * Add where clause. If it contains multiple clauses better wrap it with parenthesis
      *
      * @param clause the SQL where clause.
+     * @deprecated please use {@link #addWhereClause(String, Object...)}
      */
+    @Deprecated(since = "0.3.1")
     public void addWhereClause(String clause) {
         whereClauses.add(clause);
     }
@@ -113,15 +129,14 @@ public class SqlQueryStatement {
      * Add parameter.
      *
      * @param parameter the parameter.
+     * @deprecated please use {@link #addWhereClause(String, Object...)}
      */
+    @Deprecated(since = "0.3.1")
     public void addParameter(Object parameter) {
         parameters.add(parameter);
     }
 
     private void initialize(QuerySpec query, TranslationMapping rootModel) {
-        whereClauses.clear();
-        parameters.clear();
-
         query.getFilterExpression().stream()
                 .map(criterion -> parseExpression(criterion, rootModel))
                 .forEach(conditionExpression -> {
@@ -130,9 +145,6 @@ public class SqlQueryStatement {
                     var params = conditionExpression.toStatementParameter().skip(1).toList();
                     parameters.addAll(params);
                 });
-
-        limit = query.getLimit();
-        offset = query.getOffset();
 
         orderByClause = parseSortField(query, rootModel);
     }

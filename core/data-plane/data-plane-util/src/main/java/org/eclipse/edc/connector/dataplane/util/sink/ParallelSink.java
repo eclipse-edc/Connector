@@ -48,7 +48,7 @@ public abstract class ParallelSink implements DataSink {
 
     @WithSpan
     @Override
-    public CompletableFuture<StreamResult<Void>> transfer(DataSource source) {
+    public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
         try {
             var streamResult = source.openPartStream();
             if (streamResult.failed()) {
@@ -62,7 +62,7 @@ public abstract class ParallelSink implements DataSink {
                         .thenApply(results -> results.stream()
                                 .filter(AbstractResult::failed)
                                 .findFirst()
-                                .map(r -> StreamResult.<Void>error(String.join(",", r.getFailureMessages())))
+                                .map(r -> StreamResult.<Object>error(String.join(",", r.getFailureMessages())))
                                 .orElseGet(this::complete))
                         .exceptionally(throwable -> StreamResult.error("Unhandled exception raised when transferring data: " + throwable.getMessage()));
             }
@@ -74,15 +74,15 @@ public abstract class ParallelSink implements DataSink {
     }
 
     @NotNull
-    private CompletableFuture<StreamResult<Void>> processPartsAsync(List<DataSource.Part> parts) {
+    private CompletableFuture<StreamResult<Object>> processPartsAsync(List<DataSource.Part> parts) {
         return supplyAsync(transfer(parts), executorService);
     }
 
-    private Supplier<StreamResult<Void>> transfer(List<DataSource.Part> parts) {
+    private Supplier<StreamResult<Object>> transfer(List<DataSource.Part> parts) {
         return telemetry.contextPropagationMiddleware(() -> transferParts(parts), telemetry.getTraceCarrierWithCurrentContext());
     }
 
-    protected abstract StreamResult<Void> transferParts(List<DataSource.Part> parts);
+    protected abstract StreamResult<Object> transferParts(List<DataSource.Part> parts);
 
     /**
      * Called after all parallel parts are transferred, only if all parts were successfully transferred.
@@ -91,7 +91,7 @@ public abstract class ParallelSink implements DataSink {
      *
      * @return status result to be returned to caller.
      */
-    protected StreamResult<Void> complete() {
+    protected StreamResult<Object> complete() {
         return StreamResult.success();
     }
 

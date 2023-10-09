@@ -35,10 +35,13 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
     private final ObjectMapper mapper;
     private final JsonLd jsonLdService;
 
-    public JsonLdRemoteMessageSerializerImpl(TypeTransformerRegistry registry, ObjectMapper mapper, JsonLd jsonLdService) {
+    private final String scope;
+
+    public JsonLdRemoteMessageSerializerImpl(TypeTransformerRegistry registry, ObjectMapper mapper, JsonLd jsonLdService, String scope) {
         this.registry = registry;
         this.mapper = mapper;
         this.jsonLdService = jsonLdService;
+        this.scope = scope;
     }
 
     /**
@@ -55,7 +58,7 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
             var transformResult = registry.transform(message, JsonObject.class);
 
             if (transformResult.succeeded()) {
-                var compacted = jsonLdService.compact(transformResult.getContent());
+                var compacted = jsonLdService.compact(transformResult.getContent(), scope);
                 if (compacted.succeeded()) {
                     return mapper.writeValueAsString(compacted.getContent());
                 }

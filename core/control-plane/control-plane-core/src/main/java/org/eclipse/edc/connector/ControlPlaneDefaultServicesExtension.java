@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.spi.callback.CallbackRegistry;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
@@ -34,6 +35,7 @@ import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.util.concurrency.LockManager;
 
+import java.time.Clock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -50,6 +52,9 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     public String name() {
         return NAME;
     }
+
+    @Inject
+    private Clock clock;
 
     @Provider(isDefault = true)
     public AssetIndex defaultAssetIndex() {
@@ -68,12 +73,12 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public ContractNegotiationStore defaultContractNegotiationStore() {
-        return new InMemoryContractNegotiationStore();
+        return new InMemoryContractNegotiationStore(clock);
     }
 
     @Provider(isDefault = true)
     public TransferProcessStore defaultTransferProcessStore() {
-        return new InMemoryTransferProcessStore();
+        return new InMemoryTransferProcessStore(clock);
     }
 
     @Provider(isDefault = true)

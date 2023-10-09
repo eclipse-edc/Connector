@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.contract.spi;
 
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Base64;
 import java.util.UUID;
@@ -51,20 +50,6 @@ public final class ContractId {
     }
 
     /**
-     * Returns a new id given the definition part
-     *
-     * @param definitionPart the part that will be used as prefix of the id
-     * @param assetId        The ID of the asset that is contained in the offer
-     * @return a {@link String} that represent the contract id
-     * @deprecated please use {@link #create(String, String)}
-     */
-    @NotNull
-    @Deprecated(since = "0.1.2", forRemoval = true)
-    public static String createContractId(String definitionPart, String assetId) {
-        return create(definitionPart, assetId).toString();
-    }
-
-    /**
      * Return a {@link ContractId} instance parsed from the passed string, that should be in the
      * <code>[definition-id]:[asset-id]:[UUID]</code> format
      *
@@ -96,36 +81,12 @@ public final class ContractId {
         return Result.success(contractId);
     }
 
-    /**
-     * Return a {@link ContractId} instance parsed from the passed string, that should be in the
-     * <code>[definition-id]:UUID</code> format
-     *
-     * @param id the string representation of the id
-     * @return the {@link ContractId} instance that represent the id
-     * @deprecated please use {@link #parseId(String)}
-     */
-    @Deprecated(since = "0.1.2", forRemoval = true)
-    public static ContractId parse(String id) {
-        return parseId(id).getContent();
-    }
-
     private static String decodeSafely(String base64string) {
         try {
             return new String(Base64.getDecoder().decode(base64string));
         } catch (IllegalArgumentException exception) {
             return null;
         }
-    }
-
-    /**
-     * The id is valid if it follows the following scheme: [definition-id]:UUID
-     *
-     * @return true if it is valid, false otherwise
-     * @deprecated an instantiated {@link ContractId} object is always valid
-     */
-    @Deprecated(since = "0.1.2", forRemoval = true)
-    public boolean isValid() {
-        return true;
     }
 
     /**

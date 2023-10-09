@@ -110,6 +110,8 @@ include(":extensions:common:iam:oauth2:oauth2-daps")
 include(":extensions:common:iam:oauth2:oauth2-core")
 include(":extensions:common:iam:oauth2:oauth2-client")
 include(":extensions:common:iam:oauth2:oauth2-service")
+include(":extensions:common:iam:identity-trust")
+include(":extensions:common:iam:identity-trust:identity-trust-transform")
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
 include(":extensions:common:monitor:monitor-jdk-logger")
@@ -167,6 +169,8 @@ include(":extensions:data-plane-selector:data-plane-selector-api")
 include(":extensions:data-plane-selector:data-plane-selector-client")
 include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql")
 
+include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
+
 
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
@@ -189,6 +193,7 @@ include(":spi:common:transaction-spi")
 include(":spi:common:transform-spi")
 include(":spi:common:validator-spi")
 include(":spi:common:web-spi")
+include(":spi:common:identity-trust-spi")
 
 include(":spi:control-plane:asset-spi")
 include(":spi:control-plane:contract-spi")
@@ -218,3 +223,4 @@ include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")
+

@@ -174,9 +174,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).toList();
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
-            var statement = statements.createNegotiationsQuery(querySpec);
-            statement.addWhereClause(statements.getNotLeasedFilter());
-            statement.addParameter(clock.millis());
+            var statement = statements.createNegotiationsQuery(querySpec)
+                    .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
 
             try (
                     var connection = getConnection();

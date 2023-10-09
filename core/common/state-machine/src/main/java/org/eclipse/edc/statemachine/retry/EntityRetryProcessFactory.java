@@ -38,13 +38,6 @@ public class EntityRetryProcessFactory {
     }
 
     /**
-     * Initialize a simple process that needs to be retried if it does not succeed
-     */
-    public <T extends StatefulEntity<T>> SimpleRetryProcess<T> doSimpleProcess(T entity, Supplier<Boolean> process) {
-        return new SimpleRetryProcess<>(entity, process, monitor, clock, configuration);
-    }
-
-    /**
      * Initialize a synchronous process that needs to be retried if it does not succeed
      */
     public <T extends StatefulEntity<T>, C> StatusResultRetryProcess<T, C> doSyncProcess(T entity, Supplier<StatusResult<C>> process) {

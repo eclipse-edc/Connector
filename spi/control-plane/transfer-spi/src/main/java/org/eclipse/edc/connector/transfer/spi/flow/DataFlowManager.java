@@ -55,6 +55,15 @@ public interface DataFlowManager {
     StatusResult<DataFlowResponse> initiate(TransferProcess transferProcess, Policy policy);
 
     /**
+     * Terminates a data flow.
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the flow has been stopped correctly, failed otherwise.
+     */
+    @NotNull
+    StatusResult<Void> terminate(TransferProcess transferProcess);
+
+    /**
      * Initiates a data flow.
      *
      * @param dataRequest    the data to transfer

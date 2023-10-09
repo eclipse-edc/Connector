@@ -30,6 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.hasEntry;
@@ -67,6 +69,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .contentType(JSON)
                 .body(ID, is(id))
                 .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
+                .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
                 .log().all()
                 .body("'edc:policy'.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
     }
@@ -148,9 +151,9 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                                 .add("target", "http://example.com/asset:9898.movie")
                                 .add("action", "use")
                                 .add("constraint", createObjectBuilder()
-                                                .add("leftOperand", "left")
-                                                .add("operator", "eq")
-                                                .add("rightOperand", "value"))
+                                        .add("leftOperand", "left")
+                                        .add("operator", "eq")
+                                        .add("rightOperand", "value"))
                                 .build())
                         .build())
                 .build();

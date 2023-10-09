@@ -71,11 +71,6 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
-        return create(asset.toBuilder().dataAddress(dataAddress).build());
-    }
-
-    @Override
     public ServiceResult<Asset> create(Asset asset) {
         if (asset.hasDuplicatePropertyKeys()) {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);

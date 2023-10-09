@@ -28,7 +28,6 @@ import java.util.ArrayList;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ID;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
@@ -68,11 +67,6 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
         var providerId = jsonObject.get(PROVIDER_ID);
         if (providerId != null) {
             return transformString(providerId, context);
-        }
-
-        var connectorId = jsonObject.get(CONNECTOR_ID);
-        if (connectorId != null) {
-            return transformString(connectorId, context);
         }
 
         return transformString(jsonObject.get(CONNECTOR_ADDRESS), context);

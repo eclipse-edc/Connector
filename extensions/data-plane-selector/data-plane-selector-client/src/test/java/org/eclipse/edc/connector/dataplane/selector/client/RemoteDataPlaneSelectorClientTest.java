@@ -113,6 +113,6 @@ class RemoteDataPlaneSelectorClientTest extends RestControllerTestBase {
 
     @Override
     protected Object additionalResource() {
-        return new JerseyJsonLdInterceptor(new TitaniumJsonLd(mock()), JacksonJsonLd.createObjectMapper());
+        return new JerseyJsonLdInterceptor(new TitaniumJsonLd(mock()), JacksonJsonLd.createObjectMapper(), "scope");
     }
 }

@@ -57,4 +57,9 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
         return dataPlaneClient.transfer(dataFlowRequest).map(it -> DataFlowResponse.Builder.newInstance().build());
     }
 
+    @Override
+    public StatusResult<Void> terminate(TransferProcess transferProcess) {
+        return dataPlaneClient.terminate(transferProcess.getId());
+    }
+
 }

@@ -160,21 +160,6 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         service.terminate(command).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
-    @POST
-    @Path("/{id}/cancel")
-    @Override
-    public void cancelNegotiation(@PathParam("id") String id) {
-        service.terminate(new TerminateNegotiationCommand(id, "Cancelled")).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
-    }
-
-    @POST
-    @Path("/{id}/decline")
-    @Override
-    public void declineNegotiation(@PathParam("id") String id) {
-        service.terminate(new TerminateNegotiationCommand(id, "Declined")).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
-    }
-
-
     private void logIfError(Result<?> result) {
         result.onFailure(f -> monitor.warning(f.getFailureDetail()));
     }

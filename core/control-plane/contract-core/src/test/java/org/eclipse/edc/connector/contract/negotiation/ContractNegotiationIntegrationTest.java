@@ -54,6 +54,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -78,8 +79,9 @@ class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
-    private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore();
-    private final InMemoryContractNegotiationStore consumerStore = new InMemoryContractNegotiationStore();
+    private final Clock clock = Clock.systemUTC();
+    private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore(clock);
+    private final InMemoryContractNegotiationStore consumerStore = new InMemoryContractNegotiationStore(clock);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);

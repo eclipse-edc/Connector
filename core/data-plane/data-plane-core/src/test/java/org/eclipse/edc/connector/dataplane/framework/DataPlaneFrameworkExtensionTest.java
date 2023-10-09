@@ -34,7 +34,7 @@ class DataPlaneFrameworkExtensionTest {
     }
 
     @Test
-    void initialize_registers_PipelineService(ServiceExtensionContext context, DataPlaneFrameworkExtension extension) {
+    void initialize_registers_pipelineService(ServiceExtensionContext context, DataPlaneFrameworkExtension extension) {
         extension.initialize(context);
 
         assertThat(context.getService(PipelineService.class)).isInstanceOf(PipelineServiceImpl.class);
