@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -71,6 +72,19 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
     }
 
     private boolean processMonitoring(PolicyMonitorEntry entry) {
+        var transferProcess = transferProcessService.findById(entry.getId());
+        if (transferProcess == null) {
+            entry.transitionToFailed("TransferProcess %s does not exist".formatted(entry.getId()));
+            update(entry);
+            return true;
+        }
+
+        if (transferProcess.getState() >= TransferProcessStates.COMPLETING.code()) {
+            entry.transitionToCompleted();
+            update(entry);
+            return true;
+        }
+
         var contractAgreement = contractAgreementService.findById(entry.getContractId());
         if (contractAgreement == null) {
             entry.transitionToFailed("ContractAgreement %s does not exist".formatted(entry.getContractId()));
@@ -96,7 +110,8 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
             }
         }
 
-        return false;
+        breakLease(entry);
+        return true;
     }
 
     private Processor processEntriesInState(PolicyMonitorEntryStates state, Function<PolicyMonitorEntry, Boolean> function) {
