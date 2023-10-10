@@ -109,7 +109,7 @@ public interface ContractDefinitionApi {
 
         public static final String CONTRACT_DEFINITION_INPUT_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "definition-id",
                     "accessPolicyId": "asset-policy-id",
                     "contractPolicyId": "contract-policy-id",
@@ -131,12 +131,12 @@ public interface ContractDefinitionApi {
 
         public static final String CONTRACT_DEFINITION_OUTPUT_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "definition-id",
-                    "edc:accessPolicyId": "asset-policy-id",
-                    "edc:contractPolicyId": "contract-policy-id",
-                    "edc:assetsSelector": [],
-                    "edc:createdAt": 1688465655
+                    "accessPolicyId": "asset-policy-id",
+                    "contractPolicyId": "contract-policy-id",
+                    "assetsSelector": [],
+                    "createdAt": 1688465655
                 }
                 """;
     }

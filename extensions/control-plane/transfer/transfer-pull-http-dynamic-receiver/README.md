@@ -8,7 +8,7 @@ and will be used by the consumer connector to dispatch the EDR
 ```json
 {
   "@context": {
-    "edc": "https://w3id.org/edc/v0.0.1/ns/"
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
   },
   "@type": "TransferRequest",
   "protocol": "dataspace-protocol-http",

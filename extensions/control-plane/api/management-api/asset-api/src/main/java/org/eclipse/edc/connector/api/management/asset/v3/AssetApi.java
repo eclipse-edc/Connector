@@ -113,7 +113,7 @@ public interface AssetApi {
     ) {
         public static final String ASSET_INPUT_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "asset-id",
                     "properties": {
                         "key": "value"
@@ -143,19 +143,19 @@ public interface AssetApi {
     ) {
         public static final String ASSET_OUTPUT_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "asset-id",
-                    "edc:properties": {
-                        "edc:key": "value"
+                    "properties": {
+                        "key": "value"
                     },
-                    "edc:privateProperties": {
-                        "edc:privateKey": "privateValue"
+                    "privateProperties": {
+                        "privateKey": "privateValue"
                     },
-                    "edc:dataAddress": {
-                        "edc:type": "HttpData",
-                        "edc:baseUrl": "https://jsonplaceholder.typicode.com/todos"
+                    "dataAddress": {
+                        "type": "HttpData",
+                        "baseUrl": "https://jsonplaceholder.typicode.com/todos"
                     },
-                    "edc:createdAt": 1688465655
+                    "createdAt": 1688465655
                 }
                 """;
     }

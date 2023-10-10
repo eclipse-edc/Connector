@@ -33,7 +33,6 @@ import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
-import static java.lang.String.format;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -79,7 +78,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .then()
                 .statusCode(200)
                 .body("@id", is("tp2"))
-                .body(TYPE, is("edc:TransferProcess"));
+                .body(TYPE, is("TransferProcess"));
     }
 
     @Test
@@ -91,8 +90,8 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body(TYPE, is("edc:TransferState"))
-                .body("'edc:state'", is("COMPLETED"));
+                .body(TYPE, is("TransferState"))
+                .body("'state'", is("COMPLETED"));
     }
 
     @Test
@@ -171,7 +170,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
         var content = """
                 {
                     "@context": {
-                        "edc": "https://w3id.org/edc/v0.0.1/ns/"
+                        "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
                     },
                     "@type": "QuerySpec",
                     "filterExpression": [
@@ -184,9 +183,8 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                     "limit": 100,
                     "offset": 0
                 }
-                """;
-        content = format(content, state.code());
-        JsonObject query = JacksonJsonLd.createObjectMapper()
+                """.formatted(state.code());
+        var query = JacksonJsonLd.createObjectMapper()
                 .readValue(content, JsonObject.class);
 
         var result = baseRequest()
@@ -198,7 +196,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .extract().body().as(JsonArray.class);
 
         assertThat(result).isNotEmpty();
-        assertThat(result).anySatisfy(it -> assertThat(it.asJsonObject().getString("edc:state")).isEqualTo(state.toString()));
+        assertThat(result).anySatisfy(it -> assertThat(it.asJsonObject().getString("state")).isEqualTo(state.toString()));
     }
 
     private TransferProcessStore getStore() {

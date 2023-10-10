@@ -117,7 +117,7 @@ public class CatalogApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .statusCode(200)
                 .contentType(JSON)
                 .body(TYPE, is("dcat:Catalog"))
-                .body("'dcat:dataset'.'edc:id'", is("id-2"));
+                .body("'dcat:dataset'.id", is("id-2"));
     }
 
     @Test
