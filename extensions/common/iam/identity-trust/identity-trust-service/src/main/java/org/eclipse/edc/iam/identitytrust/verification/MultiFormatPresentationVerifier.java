@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.verification;
 
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
-import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
+import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.spi.result.Result;
 
 public class MultiFormatPresentationVerifier implements PresentationVerifier {

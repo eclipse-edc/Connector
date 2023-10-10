@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.identitytrust.verifier;
+package org.eclipse.edc.identitytrust.verification;
 
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.spi.result.Result;

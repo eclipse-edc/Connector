@@ -22,7 +22,8 @@ import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
-import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
+import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.result.Result;
@@ -60,11 +61,13 @@ class IdentityAndTrustServiceTest {
     private final PresentationVerifier mockedVerifier = mock();
     private final CredentialServiceClient mockedClient = mock();
     private final JwtValidator jwtValidatorMock = mock();
-    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient, jwtValidatorMock, mock());
+    private final JwtVerifier jwtVerfierMock = mock();
+    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient, jwtValidatorMock, jwtVerfierMock);
 
     @BeforeEach
     void setup() {
         when(jwtValidatorMock.validateToken(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance().claim("iss", CONSUMER_DID).build()));
+        when(jwtVerfierMock.verify(any(), any())).thenReturn(success());
     }
 
     @Nested
@@ -193,6 +196,16 @@ class IdentityAndTrustServiceTest {
                     .isFailed()
                     .messages().hasSize(1)
                     .containsExactly("test failure");
+        }
+
+        @Test
+        void jwtTokenNotVerified() {
+            when(jwtVerfierMock.verify(any(), any())).thenReturn(failure("test-failure"));
+            var token = createJwt();
+            assertThat(service.verifyJwtToken(token, "test-audience"))
+                    .isFailed()
+                    .messages().hasSize(1)
+                    .containsExactly("test-failure");
         }
     }
 

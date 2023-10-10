@@ -12,10 +12,9 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.service;
+package org.eclipse.edc.iam.identitytrust.validation;
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.eclipse.edc.iam.identitytrust.validation.JwtValidatorImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -64,8 +63,7 @@ class JwtValidatorImplTest {
                 .build();
         assertThat(validator.validateToken(createJwt(claimsSet), "some-aud"))
                 .isFailed()
-                .messages().hasSize(1)
-                .containsExactly("The iss and aud claims must be identical.");
+                .detail().isEqualTo("The iss and aud claims must be identical.");
     }
 
     @Disabled("not testable")
@@ -87,8 +85,7 @@ class JwtValidatorImplTest {
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID))
                 .isFailed()
-                .messages().hasSize(1)
-                .containsExactly("aud claim expected to be %s but was [%s]".formatted(EXPECTED_OWN_DID, "invalid-audience"));
+                .detail().isEqualTo("aud claim expected to be %s but was [%s]".formatted(EXPECTED_OWN_DID, "invalid-audience"));
     }
 
     @Test
@@ -104,8 +101,7 @@ class JwtValidatorImplTest {
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID))
                 .isFailed()
-                .messages().hasSize(1)
-                .containsExactly("client_id must be equal to the issuer ID");
+                .detail().isEqualTo("client_id must be equal to the issuer ID");
     }
 
     @Test
@@ -122,8 +118,7 @@ class JwtValidatorImplTest {
 
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID)).isFailed()
-                .messages().hasSize(1)
-                .containsExactly("The sub_jwk claim must not be present.");
+                .detail().isEqualTo("The sub_jwk claim must not be present.");
     }
 
 
@@ -139,8 +134,7 @@ class JwtValidatorImplTest {
 
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID)).isFailed()
-                .messages().hasSize(1)
-                .containsExactly("The jti claim is mandatory.");
+                .detail().isEqualTo("The jti claim is mandatory.");
     }
 
     @Test
@@ -155,8 +149,7 @@ class JwtValidatorImplTest {
 
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID)).isFailed()
-                .messages().hasSize(1)
-                .containsExactly("The exp claim is mandatory.");
+                .detail().isEqualTo("The exp claim is mandatory.");
     }
 
     @Test
@@ -172,8 +165,7 @@ class JwtValidatorImplTest {
 
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID)).isFailed()
-                .messages().hasSize(1)
-                .containsExactly("The token must not be expired.");
+                .detail().isEqualTo("The token must not be expired.");
     }
 
 }

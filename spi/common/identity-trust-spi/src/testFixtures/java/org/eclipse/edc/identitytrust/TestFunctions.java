@@ -77,6 +77,26 @@ public class TestFunctions {
 
     }
 
+    public static TokenRepresentation createJwt(JWTClaimsSet claimsSet, ECKey key) {
+        // Generate an EC key pair
+        try {
+
+            var signer = new ECDSASigner(key);
+
+            var signedJwt = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(key.getKeyID()).build(),
+                    claimsSet);
+
+            signedJwt.sign(signer);
+
+            return TokenRepresentation.Builder.newInstance()
+                    .token(signedJwt.serialize())
+                    .build();
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static TokenRepresentation createJwt(JWTClaimsSet claimsSet) {
         // Generate an EC key pair
         ECKey ecJwk;

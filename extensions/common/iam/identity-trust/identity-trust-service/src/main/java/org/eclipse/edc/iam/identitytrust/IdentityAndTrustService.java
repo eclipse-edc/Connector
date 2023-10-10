@@ -22,12 +22,12 @@ import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.validation.VcValidationRule;
-import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
+import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
@@ -58,7 +58,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final PresentationVerifier presentationVerifier;
     private final CredentialServiceClient credentialServiceClient;
     private final JwtValidator jwtValidator;
-    private final Monitor monitor;
+    private final JwtVerifier jwtVerifier;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -66,13 +66,13 @@ public class IdentityAndTrustService implements IdentityService {
      * @param secureTokenService Instance of an STS, which can create SI tokens
      * @param myOwnDid           The DID which belongs to "this connector"
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient, JwtValidator jwtValidator, Monitor monitor) {
+    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient, JwtValidator jwtValidator, JwtVerifier jwtVerifier) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.presentationVerifier = presentationVerifier;
         this.credentialServiceClient = credentialServiceClient;
         this.jwtValidator = jwtValidator;
-        this.monitor = monitor;
+        this.jwtVerifier = jwtVerifier;
     }
 
     @Override
@@ -93,7 +93,10 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
-        var issuerResult = jwtValidator.validateToken(tokenRepresentation, audience)
+
+        // verify and validate incoming SI Token
+        var issuerResult = jwtVerifier.verify(tokenRepresentation, audience)
+                .compose(v -> jwtValidator.validateToken(tokenRepresentation, audience))
                 .compose(claimToken -> success(claimToken.getStringClaim("iss")));
 
         if (issuerResult.failed()) {

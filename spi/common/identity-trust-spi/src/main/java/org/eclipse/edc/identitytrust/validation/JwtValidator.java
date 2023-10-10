@@ -19,7 +19,12 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 
 /**
- * Validates a Self-Issued ID token, that is expected to adhere to the IATP spec
+ * Validates a Self-Issued ID token, that is expected to adhere to the IATP spec.
+ * <p>
+ * Validation refers to the structural integrity of a JWT, i.e. all claims are there and contain the proper values.
+ * This does <strong>mean</strong> cryptographic integrity!
+ *
+ * @see org.eclipse.edc.identitytrust.verification.JwtVerifier cryptographic verification
  */
 public interface JwtValidator {
     Result<ClaimToken> validateToken(TokenRepresentation token, String audience);
