@@ -56,13 +56,16 @@ import static org.mockito.Mockito.when;
 
 class IdentityAndTrustServiceTest {
     public static final String EXPECTED_OWN_DID = "did:web:test";
+
+    public static final String EXPECTED_PARTICIPANT_ID = "participantId";
+
     public static final String CONSUMER_DID = "did:web:consumer";
     private final SecureTokenService mockedSts = mock();
     private final PresentationVerifier mockedVerifier = mock();
     private final CredentialServiceClient mockedClient = mock();
     private final JwtValidator jwtValidatorMock = mock();
     private final JwtVerifier jwtVerfierMock = mock();
-    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient, jwtValidatorMock, jwtVerfierMock);
+    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient, jwtValidatorMock, jwtVerfierMock);
 
     @BeforeEach
     void setup() {
@@ -114,7 +117,8 @@ class IdentityAndTrustServiceTest {
             assertThat(service.obtainClientCredentials(tp)).isSucceeded();
             verify(mockedSts).createToken(argThat(m -> m.get("iss").equals(EXPECTED_OWN_DID) &&
                     m.get("sub").equals(EXPECTED_OWN_DID) &&
-                    m.get("aud").equals(tp.getAudience())), eq(scope));
+                    m.get("aud").equals(tp.getAudience()) &&
+                    m.get("client_id").equals(EXPECTED_PARTICIPANT_ID)), eq(scope));
         }
     }
 
@@ -208,5 +212,4 @@ class IdentityAndTrustServiceTest {
                     .containsExactly("test-failure");
         }
     }
-
 }

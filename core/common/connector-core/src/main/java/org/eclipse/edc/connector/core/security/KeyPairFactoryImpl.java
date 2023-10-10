@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.dataplane.security;
+package org.eclipse.edc.connector.core.security;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
@@ -23,6 +23,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
@@ -33,14 +34,30 @@ import java.security.PublicKey;
 import java.util.Optional;
 import java.util.UUID;
 
-public class ConsumerPullKeyPairFactory {
+public class KeyPairFactoryImpl implements KeyPairFactory {
 
     private final PrivateKeyResolver privateKeyResolver;
     private final Vault vault;
 
-    public ConsumerPullKeyPairFactory(PrivateKeyResolver privateKeyResolver, Vault vault) {
+    public KeyPairFactoryImpl(PrivateKeyResolver privateKeyResolver, Vault vault) {
         this.privateKeyResolver = privateKeyResolver;
         this.vault = vault;
+    }
+
+    @NotNull
+    private static Result<PublicKey> convertPemToPublicKey(String pem) {
+        try {
+            var jwk = JWK.parseFromPEMEncodedObjects(pem);
+            if (jwk instanceof RSAKey) {
+                return Result.success(jwk.toRSAKey().toPublicKey());
+            } else if (jwk instanceof ECKey) {
+                return Result.success(jwk.toECKey().toPublicKey());
+            } else {
+                return Result.failure(String.format("Public key algorithm %s is not supported", jwk.getAlgorithm().toString()));
+            }
+        } catch (JOSEException e) {
+            return Result.failure("Failed to parse private key: " + e.getMessage());
+        }
     }
 
     public Result<KeyPair> fromConfig(@NotNull String publicKeyAlias, @NotNull String privateKeyAlias) {
@@ -64,7 +81,7 @@ public class ConsumerPullKeyPairFactory {
     @NotNull
     private Result<PublicKey> publicKey(String alias) {
         return Optional.ofNullable(vault.resolveSecret(alias))
-                .map(ConsumerPullKeyPairFactory::convertPemToPublicKey)
+                .map(KeyPairFactoryImpl::convertPemToPublicKey)
                 .orElse(Result.failure("Failed to resolve public key with alias: " + alias));
     }
 
@@ -73,21 +90,5 @@ public class ConsumerPullKeyPairFactory {
         return Optional.ofNullable(privateKeyResolver.resolvePrivateKey(alias, PrivateKey.class))
                 .map(Result::success)
                 .orElse(Result.failure("Failed to resolve private key with alias: " + alias));
-    }
-
-    @NotNull
-    private static Result<PublicKey> convertPemToPublicKey(String pem) {
-        try {
-            var jwk = JWK.parseFromPEMEncodedObjects(pem);
-            if (jwk instanceof RSAKey) {
-                return Result.success(jwk.toRSAKey().toPublicKey());
-            } else if (jwk instanceof ECKey) {
-                return Result.success(jwk.toECKey().toPublicKey());
-            } else {
-                return Result.failure(String.format("Public key algorithm %s is not supported", jwk.getAlgorithm().toString()));
-            }
-        } catch (JOSEException e) {
-            return Result.failure("Failed to parse private key: " + e.getMessage());
-        }
     }
 }
