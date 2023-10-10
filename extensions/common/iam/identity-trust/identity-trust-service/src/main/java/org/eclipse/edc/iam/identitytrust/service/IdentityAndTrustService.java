@@ -14,7 +14,14 @@
 
 package org.eclipse.edc.iam.identitytrust.service;
 
+import org.eclipse.edc.iam.identitytrust.validation.HasValidIssuer;
+import org.eclipse.edc.iam.identitytrust.validation.HasValidSubjectIds;
+import org.eclipse.edc.iam.identitytrust.validation.IsRevoked;
+import org.eclipse.edc.iam.identitytrust.validation.VcValidationRule;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.model.VerifiableCredential;
+import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
+import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -22,6 +29,9 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.edc.spi.result.Result.failure;
@@ -43,6 +53,7 @@ public class IdentityAndTrustService implements IdentityService {
 
     private final SecureTokenService secureTokenService;
     private final String issuerDid;
+    private final PresentationVerifier presentationVerifier;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -50,9 +61,10 @@ public class IdentityAndTrustService implements IdentityService {
      * @param secureTokenService Instance of an STS, which can create SI tokens
      * @param issuerDid          The DID which belongs to "this connector"
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String issuerDid) {
+    public IdentityAndTrustService(SecureTokenService secureTokenService, String issuerDid, PresentationVerifier presentationVerifier) {
         this.secureTokenService = secureTokenService;
         this.issuerDid = issuerDid;
+        this.presentationVerifier = presentationVerifier;
     }
 
     @Override
@@ -73,10 +85,52 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
-        //todo: implement VP request, VP validation
+        // todo: implement validation of consumer's SI token
+        var consumerDid = ""; //todo: where do we get the consumer DID from?
+
+        //todo: implement VP request
         // https://github.com/eclipse-edc/Connector/issues/3495
-        // https://github.com/eclipse-edc/Connector/issues/3496
+
+        var vpResponse = sendVpRequest(tokenRepresentation, audience);
+
+        if (vpResponse.failed()) {
+            return vpResponse.mapTo();
+        }
+
+        var verifiablePresentation = vpResponse.getContent();
+        var credentials = verifiablePresentation.presentation().getCredentials();
+        // verify, that the VP and all VPs are cryptographically OK
+        var result = presentationVerifier.verifyPresentation(verifiablePresentation.rawVp(), verifiablePresentation.format())
+                .compose(u -> {
+                    // in addition, verify that all VCs are valid
+                    var filters = new ArrayList<>(List.of(
+                            new HasValidSubjectIds(issuerDid),
+                            new IsRevoked(null),
+                            new HasValidIssuer(getAllowedIssuers())));
+
+                    filters.addAll(getAdditionalValidations());
+                    var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), VcValidationRule::and).apply(c)).reduce(Result::merge);
+
+                    return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
+                });
+
+        return result.map(u -> extractClaimToken(credentials));
+    }
+
+    private ClaimToken extractClaimToken(List<VerifiableCredential> credentials) {
         return null;
+    }
+
+    private Collection<? extends VcValidationRule> getAdditionalValidations() {
+        return null;
+    }
+
+    private List<String> getAllowedIssuers() {
+        return List.of();
+    }
+
+    private Result<VerifiablePresentationContainer> sendVpRequest(TokenRepresentation tokenRepresentation, String audience) {
+        return Result.success(null);
     }
 
     private Result<Void> validateScope(String scope) {

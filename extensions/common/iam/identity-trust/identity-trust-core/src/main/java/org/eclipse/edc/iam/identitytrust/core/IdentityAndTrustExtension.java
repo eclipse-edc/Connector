@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.core;
 
 import org.eclipse.edc.iam.identitytrust.service.IdentityAndTrustService;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -32,10 +33,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Inject
     private SecureTokenService secureTokenService;
+    
+    @Inject
+    private PresentationVerifier presentationVerifier;
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context));
+        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), presentationVerifier);
     }
 
     private String getIssuerDid(ServiceExtensionContext context) {

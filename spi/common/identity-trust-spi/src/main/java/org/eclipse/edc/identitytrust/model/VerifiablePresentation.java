@@ -97,7 +97,7 @@ public class VerifiablePresentation {
             }
             // these next two aren't mandated by the spec, but there is no point in having a VP without credentials or a proof.
             if (instance.credentials == null || instance.credentials.isEmpty()) {
-                throw new IllegalArgumentException("VerifiablePresentation must have at least one credential.");
+                throw new IllegalArgumentException("VerifiablePresentation must have at least one presentation.");
             }
             return instance;
         }
