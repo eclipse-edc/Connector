@@ -12,17 +12,16 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-    `java-test-fixtures`
+package org.eclipse.edc.iam.identitytrust.core.service;
+
+import org.eclipse.edc.spi.result.Result;
+
+class JsonLdPresentationVerifier {
+
+    JsonLdPresentationVerifier() {
+    }
+
+    public Result<Void> verifyPresentation(String rawVp) {
+        throw new UnsupportedOperationException("not yet implemented!");
+    }
 }
-
-dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
-
-    testFixturesImplementation(libs.nimbus.jwt)
-}
-
-

@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.result.Result;
  * A presentation verifier is used to assert that a certain {@link org.eclipse.edc.identitytrust.model.VerifiablePresentation}
  * is cryptographically sound, i.e. all the proofs of the presentation, and all the proofs of all the VerifiableCredentials
  * can be verified.
- * <p/>
+ * <p>
  * Note that this does <strong>not</strong> perform any revocation checks, or any other business-related checks.
  */
 public interface PresentationVerifier {

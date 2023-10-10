@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.core;
+package org.eclipse.edc.iam.identitytrust.core.service;
 
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;

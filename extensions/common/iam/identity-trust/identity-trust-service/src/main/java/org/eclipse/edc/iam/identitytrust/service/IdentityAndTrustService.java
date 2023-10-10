@@ -14,21 +14,24 @@
 
 package org.eclipse.edc.iam.identitytrust.service;
 
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.validation.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.IsRevoked;
-import org.eclipse.edc.iam.identitytrust.validation.VcValidationRule;
+import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
-import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
+import org.eclipse.edc.identitytrust.validation.VcValidationRule;
 import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,19 +55,23 @@ public class IdentityAndTrustService implements IdentityService {
     private static final String SCOPE_STRING_REGEX = "(.+):(.+):(read|write|\\*)";
 
     private final SecureTokenService secureTokenService;
-    private final String issuerDid;
+    private final String myOwnDid;
     private final PresentationVerifier presentationVerifier;
+    private final CredentialServiceClient credentialServiceClient;
+    private final Monitor monitor;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
      *
      * @param secureTokenService Instance of an STS, which can create SI tokens
-     * @param issuerDid          The DID which belongs to "this connector"
+     * @param myOwnDid           The DID which belongs to "this connector"
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String issuerDid, PresentationVerifier presentationVerifier) {
+    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient, Monitor monitor) {
         this.secureTokenService = secureTokenService;
-        this.issuerDid = issuerDid;
+        this.myOwnDid = myOwnDid;
         this.presentationVerifier = presentationVerifier;
+        this.credentialServiceClient = credentialServiceClient;
+        this.monitor = monitor;
     }
 
     @Override
@@ -77,7 +84,7 @@ public class IdentityAndTrustService implements IdentityService {
         }
 
         // create claims for the STS
-        var claims = new java.util.HashMap<>(Map.of("iss", issuerDid, "sub", issuerDid, "aud", parameters.getAudience()));
+        var claims = new java.util.HashMap<>(Map.of("iss", myOwnDid, "sub", myOwnDid, "aud", parameters.getAudience()));
         parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
 
         return secureTokenService.createToken(claims, scope);
@@ -85,13 +92,22 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
-        // todo: implement validation of consumer's SI token
-        var consumerDid = ""; //todo: where do we get the consumer DID from?
+        SignedJWT jwt;
+        try {
+            // todo: implement validation of consumer's SI token
+            jwt = SignedJWT.parse(tokenRepresentation.getToken());
+        } catch (ParseException e) {
+            monitor.severe("Error parsing JWT:", e);
+            return Result.failure("Error parsing JWT");
+        }
+        var issuerResult = getIssuerDid(jwt);
+        if (issuerResult.failed()) {
+            return issuerResult.mapTo();
+        }
 
-        //todo: implement VP request
+        //todo: implement actual VP request, currently it's a stub
         // https://github.com/eclipse-edc/Connector/issues/3495
-
-        var vpResponse = sendVpRequest(tokenRepresentation, audience);
+        var vpResponse = credentialServiceClient.requestPresentation(null, null, null);
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();
@@ -104,7 +120,7 @@ public class IdentityAndTrustService implements IdentityService {
                 .compose(u -> {
                     // in addition, verify that all VCs are valid
                     var filters = new ArrayList<>(List.of(
-                            new HasValidSubjectIds(issuerDid),
+                            new HasValidSubjectIds(issuerResult.getContent()),
                             new IsRevoked(null),
                             new HasValidIssuer(getAllowedIssuers())));
 
@@ -117,20 +133,26 @@ public class IdentityAndTrustService implements IdentityService {
         return result.map(u -> extractClaimToken(credentials));
     }
 
+    private Result<String> getIssuerDid(SignedJWT tokenRepresentation) {
+
+        try {
+            return success(tokenRepresentation.getJWTClaimsSet().getIssuer());
+        } catch (ParseException e) {
+            monitor.severe("Error extracting issuer claim");
+            return Result.failure("Failed to extract issuer claim");
+        }
+    }
+
     private ClaimToken extractClaimToken(List<VerifiableCredential> credentials) {
         return null;
     }
 
     private Collection<? extends VcValidationRule> getAdditionalValidations() {
-        return null;
+        return List.of();
     }
 
     private List<String> getAllowedIssuers() {
         return List.of();
-    }
-
-    private Result<VerifiablePresentationContainer> sendVpRequest(TokenRepresentation tokenRepresentation, String audience) {
-        return Result.success(null);
     }
 
     private Result<Void> validateScope(String scope) {

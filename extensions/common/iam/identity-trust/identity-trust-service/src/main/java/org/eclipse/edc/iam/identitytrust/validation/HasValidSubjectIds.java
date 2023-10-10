@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.validation;
 
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
+import org.eclipse.edc.identitytrust.validation.VcValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
 import static org.eclipse.edc.spi.result.Result.failure;

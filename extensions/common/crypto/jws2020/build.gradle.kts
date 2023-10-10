@@ -26,7 +26,7 @@ dependencies {
     runtimeOnly(libs.tink)
     implementation(libs.jakartaJson)
 
-    implementation(libs.iron.vc) {
+    api(libs.iron.vc) {
         exclude("com.github.multiformats")
     }
 

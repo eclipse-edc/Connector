@@ -12,17 +12,12 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-    `java-test-fixtures`
+package org.eclipse.edc.iam.identitytrust.core.service;
+
+import org.eclipse.edc.spi.result.Result;
+
+class JwtPresentationVerifier {
+    public Result<Void> verifyPresentation(String rawVp) {
+        return null;
+    }
 }
-
-dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
-
-    testFixturesImplementation(libs.nimbus.jwt)
-}
-
-

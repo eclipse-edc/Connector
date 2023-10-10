@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import org.eclipse.edc.iam.identitytrust.core.service.EmbeddedSecureTokenService;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
