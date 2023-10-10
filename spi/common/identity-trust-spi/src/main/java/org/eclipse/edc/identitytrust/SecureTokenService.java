@@ -21,13 +21,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 /**
- * This interface is intended to give access to a SecureTokenService. The job of an STS is to create self-issued ID tokens.
+ * A {@link SecureTokenService} is used to create self-signed ID tokens, that can contain a set of claims, and optionally, a
+ * {@code bearerAccessScope}.
  */
 public interface SecureTokenService {
 
     /**
-     * if bearerAccessScope != null -> creates an access_token claim, which is another JWT containing the scope as claims.
-     * if bearerAccessScope == null -> creates a normal JWT using all the claims in the map
+     * Generates the self-signed ID token.
+     *
+     * @param claims            a set of claims, that are to be included in the SI token. MUST include {@code iss}, {@code sub} and {@code aud}.
+     * @param bearerAccessScope if non-null, must be a space-separated list of scopes as per <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#31-access-scopes">IATP specification</a>
+     *                          if bearerAccessScope != null -> creates an {@code access_token} claim, which is another JWT containing the scope as claims.
+     *                          if bearerAccessScope == null -> creates a normal JWT using all the claims in the map
      */
     Result<TokenRepresentation> createToken(Map<String, String> claims, @Nullable String bearerAccessScope);
 

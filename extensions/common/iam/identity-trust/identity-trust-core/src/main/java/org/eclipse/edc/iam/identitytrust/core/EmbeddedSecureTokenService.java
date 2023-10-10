@@ -21,6 +21,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+/**
+ * Implementation of a {@link SecureTokenService}, that is capable of creating a self-signed ID token ("SI token") completely in-process.
+ * To that end, it makes use of the <a href="https://connect2id.com/products/nimbus-jose-jwt">Nimbus JOSE/JWT library</a>.<br/>
+ * As a recommendation, the private key it uses should not be used for anything else.
+ */
 public class EmbeddedSecureTokenService implements SecureTokenService {
 
     public EmbeddedSecureTokenService() {
