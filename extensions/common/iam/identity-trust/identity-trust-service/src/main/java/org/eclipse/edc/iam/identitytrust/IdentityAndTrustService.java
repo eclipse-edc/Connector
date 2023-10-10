@@ -12,15 +12,15 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.service;
+package org.eclipse.edc.iam.identitytrust;
 
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.validation.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.IsRevoked;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
+import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.validation.VcValidationRule;
 import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -31,7 +31,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -58,6 +57,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final String myOwnDid;
     private final PresentationVerifier presentationVerifier;
     private final CredentialServiceClient credentialServiceClient;
+    private final JwtValidator jwtValidator;
     private final Monitor monitor;
 
     /**
@@ -66,11 +66,12 @@ public class IdentityAndTrustService implements IdentityService {
      * @param secureTokenService Instance of an STS, which can create SI tokens
      * @param myOwnDid           The DID which belongs to "this connector"
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient, Monitor monitor) {
+    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient, JwtValidator jwtValidator, Monitor monitor) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.presentationVerifier = presentationVerifier;
         this.credentialServiceClient = credentialServiceClient;
+        this.jwtValidator = jwtValidator;
         this.monitor = monitor;
     }
 
@@ -92,15 +93,9 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
-        SignedJWT jwt;
-        try {
-            // todo: implement validation of consumer's SI token
-            jwt = SignedJWT.parse(tokenRepresentation.getToken());
-        } catch (ParseException e) {
-            monitor.severe("Error parsing JWT:", e);
-            return Result.failure("Error parsing JWT");
-        }
-        var issuerResult = getIssuerDid(jwt);
+        var issuerResult = jwtValidator.validateToken(tokenRepresentation, audience)
+                .compose(claimToken -> success(claimToken.getStringClaim("iss")));
+
         if (issuerResult.failed()) {
             return issuerResult.mapTo();
         }
@@ -131,16 +126,6 @@ public class IdentityAndTrustService implements IdentityService {
                 });
 
         return result.map(u -> extractClaimToken(credentials));
-    }
-
-    private Result<String> getIssuerDid(SignedJWT tokenRepresentation) {
-
-        try {
-            return success(tokenRepresentation.getJWTClaimsSet().getIssuer());
-        } catch (ParseException e) {
-            monitor.severe("Error extracting issuer claim");
-            return Result.failure("Failed to extract issuer claim");
-        }
     }
 
     private ClaimToken extractClaimToken(List<VerifiableCredential> credentials) {

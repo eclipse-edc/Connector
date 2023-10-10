@@ -67,6 +67,17 @@ public class TestFunctions {
     }
 
     public static TokenRepresentation createJwt(String issuer, String subject) {
+
+        var claimsSet = new JWTClaimsSet.Builder()
+                .subject(subject)
+                .issuer(issuer)
+                .expirationTime(new Date(new Date().getTime() + 60 * 1000))
+                .build();
+        return createJwt(claimsSet);
+
+    }
+
+    public static TokenRepresentation createJwt(JWTClaimsSet claimsSet) {
         // Generate an EC key pair
         ECKey ecJwk;
         try {
@@ -75,12 +86,6 @@ public class TestFunctions {
                     .generate();
 
             var signer = new ECDSASigner(ecJwk);
-
-            var claimsSet = new JWTClaimsSet.Builder()
-                    .subject(subject)
-                    .issuer(issuer)
-                    .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-                    .build();
 
             var signedJwt = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(ecJwk.getKeyID()).build(),

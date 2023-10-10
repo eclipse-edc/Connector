@@ -14,10 +14,12 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.iam.identitytrust.core.service.MultiFormatPresentationVerifier;
-import org.eclipse.edc.iam.identitytrust.service.IdentityAndTrustService;
+import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
+import org.eclipse.edc.iam.identitytrust.validation.JwtValidatorImpl;
+import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVerifier;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -42,9 +44,20 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private CredentialServiceClient credentialServiceClient;
 
+    private JwtValidator jwtValidator;
+
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), presentationVerifier, credentialServiceClient, context.getMonitor());
+        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), presentationVerifier,
+                credentialServiceClient, getJwtValidator(), context.getMonitor());
+    }
+
+    @Provider
+    public JwtValidator getJwtValidator() {
+        if (jwtValidator == null) {
+            jwtValidator = new JwtValidatorImpl();
+        }
+        return jwtValidator;
     }
 
     @Provider

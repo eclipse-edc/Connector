@@ -12,16 +12,15 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.core.service;
+package org.eclipse.edc.identitytrust.validation;
 
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 
-class JsonLdPresentationVerifier {
-
-    JsonLdPresentationVerifier() {
-    }
-
-    public Result<Void> verifyPresentation(String rawVp) {
-        throw new UnsupportedOperationException("not yet implemented!");
-    }
+/**
+ * Validates a Self-Issued ID token, that is expected to adhere to the IATP spec
+ */
+public interface JwtValidator {
+    Result<ClaimToken> validateToken(TokenRepresentation token, String audience);
 }

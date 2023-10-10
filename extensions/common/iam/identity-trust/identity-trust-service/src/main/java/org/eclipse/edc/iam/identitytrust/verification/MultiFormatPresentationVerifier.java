@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.core.service;
+package org.eclipse.edc.iam.identitytrust.verification;
 
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;

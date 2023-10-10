@@ -15,14 +15,18 @@
 package org.eclipse.edc.iam.identitytrust.service;
 
 
+import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
+import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.verifier.PresentationVerifier;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.result.Result;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,14 +55,20 @@ import static org.mockito.Mockito.when;
 
 class IdentityAndTrustServiceTest {
     public static final String EXPECTED_OWN_DID = "did:web:test";
+    public static final String CONSUMER_DID = "did:web:consumer";
     private final SecureTokenService mockedSts = mock();
     private final PresentationVerifier mockedVerifier = mock();
     private final CredentialServiceClient mockedClient = mock();
-    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient, mock());
+    private final JwtValidator jwtValidatorMock = mock();
+    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, mockedVerifier, mockedClient, jwtValidatorMock, mock());
 
+    @BeforeEach
+    void setup() {
+        when(jwtValidatorMock.validateToken(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance().claim("iss", CONSUMER_DID).build()));
+    }
 
     @Nested
-    class VerifyObtainToken {
+    class ObtainClientCredentials {
         @ParameterizedTest(name = "{0}")
         @ValueSource(strings = { "org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
                 "org.eclipse.edc:fooCredential:+" })
@@ -105,8 +115,9 @@ class IdentityAndTrustServiceTest {
         }
     }
 
+
     @Nested
-    class PresentationValidation {
+    class VerifyJwtToken {
 
         @Test
         void presentationRequestFails() {
@@ -142,12 +153,11 @@ class IdentityAndTrustServiceTest {
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
             when(mockedVerifier.verifyPresentation(anyString(), any(CredentialFormat.class))).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
-            var consumerDid = "did:web:test-consumer";
-            var token = createJwt(consumerDid, EXPECTED_OWN_DID);
+            var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().messages()
                     .hasSizeGreaterThanOrEqualTo(1)
-                    .contains("Not all subject IDs match the expected subject ID %s".formatted(consumerDid));
+                    .contains("Not all subject IDs match the expected subject ID %s".formatted(CONSUMER_DID));
         }
 
         @Disabled("Not yet implemented")
@@ -175,6 +185,15 @@ class IdentityAndTrustServiceTest {
                     .contains("Issuer 'invalid-issuer' is not in the list of allowed issuers");
         }
 
+        @Test
+        void jwtTokenNotValid() {
+            when(jwtValidatorMock.validateToken(any(), any())).thenReturn(failure("test failure"));
+            var token = createJwt();
+            assertThat(service.verifyJwtToken(token, "test-audience"))
+                    .isFailed()
+                    .messages().hasSize(1)
+                    .containsExactly("test failure");
+        }
     }
 
 }
