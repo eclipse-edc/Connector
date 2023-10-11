@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.validation;
 
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
-import org.eclipse.edc.identitytrust.validation.VcValidationRule;
+import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
@@ -24,7 +24,13 @@ import java.util.Map;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
-public class HasValidIssuer implements VcValidationRule {
+/**
+ * A class that implements the {@link CredentialValidationRule} interface and checks if a {@link VerifiableCredential} has a valid issuer.
+ * Valid issuers are stored in a global list.
+ * <p>
+ * If the issuer object is neither a string nor an object containing an "id" field, a failure is returned.
+ */
+public class HasValidIssuer implements CredentialValidationRule {
     private final List<String> allowedIssuers;
 
     public HasValidIssuer(List<String> allowedIssuers) {
@@ -41,6 +47,9 @@ public class HasValidIssuer implements VcValidationRule {
             issuer = issuerObject.toString();
         } else if (issuerObject instanceof Map) {
             issuer = ((Map) issuerObject).get("id").toString();
+            if (issuer == null) {
+                return failure("Issuer was an object, but did not contain an 'id' field");
+            }
         } else {
             return failure("VC Issuer must either be a String or an Object but was %s.".formatted(issuerObject.getClass()));
         }

@@ -30,12 +30,24 @@ import java.text.ParseException;
 import java.util.Optional;
 
 /**
- * This implementation
+ * Performs cryptographic (and some structural) verification of a self-issued ID token. To that end, the issuer of the token
+ * ({@code iss} claim) is presumed to be a Decentralized Identifier (<a href="https://www.w3.org/TR/did-core/">DID</a>).
+ * <p>
+ * If the JWT contains in its header a {@code kid} field identifying the public key that was used for signing, the DID is
+ * <strong>expected</strong> to have a <a href="https://www.w3.org/TR/did-core/#verification-methods">verificationMethod</a>
+ * with that same ID. If no such verification method is found, {@link Result#failure(String)} is returned.
+ * <p>
+ * If no such {@code kid} header is present, then the <em>first</em> verification method is used.
+ * <p>
+ * Please note that <strong>no structural</strong> validation is done beyond the very basics (must have iss and aud claim).
+ * This is done by the {@link org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator}.
+ *
+ * @see org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator For SI Token validation.
  */
-public class JwtVerifierImpl implements JwtVerifier {
+public class SelfIssuedIdTokenVerifier implements JwtVerifier {
     private final DidResolverRegistry resolverRegistry;
 
-    public JwtVerifierImpl(DidResolverRegistry resolverRegistry) {
+    public SelfIssuedIdTokenVerifier(DidResolverRegistry resolverRegistry) {
         this.resolverRegistry = resolverRegistry;
     }
 

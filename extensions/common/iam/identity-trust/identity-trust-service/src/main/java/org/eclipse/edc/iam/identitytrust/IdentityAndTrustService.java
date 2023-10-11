@@ -20,8 +20,8 @@ import org.eclipse.edc.iam.identitytrust.validation.IsRevoked;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
+import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
-import org.eclipse.edc.identitytrust.validation.VcValidationRule;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -123,7 +123,7 @@ public class IdentityAndTrustService implements IdentityService {
                             new HasValidIssuer(getAllowedIssuers())));
 
                     filters.addAll(getAdditionalValidations());
-                    var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), VcValidationRule::and).apply(c)).reduce(Result::merge);
+                    var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
 
                     return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
                 });
@@ -135,7 +135,7 @@ public class IdentityAndTrustService implements IdentityService {
         return null;
     }
 
-    private Collection<? extends VcValidationRule> getAdditionalValidations() {
+    private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
         return List.of();
     }
 

@@ -28,9 +28,22 @@ import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 /**
- * Default implementation for JWT validation in the context of IATP.
+ * Performs structural validation a Self-Issued ID Token. It asserts that:
+ * <ul>
+ *     <li>{@code iss == sub}</li>
+ *     <li>{@code sub_jwk == null}</li>
+ *     <li>{@code aud == audience} (method argument)</li>
+ *     <li>{@code client_id == iss}</li>
+ *     <li>{@code jti != null} only verifies that a jti claim is there, no further validation</li>
+ *     <li>{@code exp !=null}</li>
+ *     <li>{@code exp < now()} token not expired, epsilon = 60s</li>
+ * </ul>
+ * <p>
+ * Please note that the signature of the JWT is <strong>not</strong> verified, that is done by the {@link org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier}.
+ *
+ * @see org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier SI Token signature verification
  */
-public class JwtValidatorImpl implements JwtValidator {
+public class SelfIssuedIdTokenValidator implements JwtValidator {
 
     private static final long EPSILON = 60;
 

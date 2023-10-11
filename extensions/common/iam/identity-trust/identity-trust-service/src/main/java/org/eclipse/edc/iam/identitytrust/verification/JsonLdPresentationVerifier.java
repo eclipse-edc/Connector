@@ -16,11 +16,16 @@ package org.eclipse.edc.iam.identitytrust.verification;
 
 import org.eclipse.edc.spi.result.Result;
 
+/**
+ * Verifies the cryptographic integrity of a VerifiablePresentation that is presented as a JSON-LD.
+ */
 class JsonLdPresentationVerifier {
 
-    JsonLdPresentationVerifier() {
-    }
-
+    /**
+     * Computes the cryptographic integrity of a VerifiablePresentation
+     *
+     * @param rawVp The unaltered JSON-LD string, as it was received from the holder.
+     */
     public Result<Void> verifyPresentation(String rawVp) {
         throw new UnsupportedOperationException("not yet implemented!");
     }

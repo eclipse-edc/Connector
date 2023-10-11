@@ -21,8 +21,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface VcValidationRule extends Function<VerifiableCredential, Result<Void>> {
-    default VcValidationRule and(VcValidationRule other) {
+/**
+ * Interface for a rule that is being applied to a {@link VerifiableCredential}, and returns {@link Result#success()} or {@link Result#failure(String)}.
+ */
+public interface CredentialValidationRule extends Function<VerifiableCredential, Result<Void>> {
+    default CredentialValidationRule and(CredentialValidationRule other) {
         return t -> {
             var thisResult = this.apply(t);
             var otherResult = other.apply(t);

@@ -15,13 +15,17 @@
 package org.eclipse.edc.iam.identitytrust.validation;
 
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
-import org.eclipse.edc.identitytrust.validation.VcValidationRule;
+import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
-public class HasValidSubjectIds implements VcValidationRule {
+/**
+ * This class implements the CredentialValidationRule interface and checks if all subject IDs in a
+ * VerifiableCredential match an expected subject ID, which in practice is the DID of the holder of a VP.
+ */
+public class HasValidSubjectIds implements CredentialValidationRule {
 
     private final String expectedSubjectId;
 

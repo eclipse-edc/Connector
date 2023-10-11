@@ -15,12 +15,15 @@
 package org.eclipse.edc.iam.identitytrust.validation;
 
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
-import org.eclipse.edc.identitytrust.validation.VcValidationRule;
+import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
 import static org.eclipse.edc.spi.result.Result.success;
 
-public class IsRevoked implements VcValidationRule {
+/**
+ * This class represents a rule that checks if a given VerifiableCredential is revoked based on a StatusList2021 credential.
+ */
+public class IsRevoked implements CredentialValidationRule {
     private final VerifiableCredential statusList2021;
 
     public IsRevoked(VerifiableCredential statusList2021) {

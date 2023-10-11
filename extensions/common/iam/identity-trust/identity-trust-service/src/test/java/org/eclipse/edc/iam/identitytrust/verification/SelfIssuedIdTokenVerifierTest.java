@@ -38,10 +38,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class JwtVerifierImplTest {
+class SelfIssuedIdTokenVerifierTest {
 
     private final DidResolverRegistry didResolverRegistry = mock();
-    private final JwtVerifierImpl verifier = new JwtVerifierImpl(didResolverRegistry);
+    private final SelfIssuedIdTokenVerifier verifier = new SelfIssuedIdTokenVerifier(didResolverRegistry);
     private ECKey didVerificationMethod;
 
     @BeforeEach

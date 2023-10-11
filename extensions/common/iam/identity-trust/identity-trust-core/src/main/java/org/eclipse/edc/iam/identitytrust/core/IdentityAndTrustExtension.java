@@ -16,9 +16,9 @@ package org.eclipse.edc.iam.identitytrust.core;
 
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
-import org.eclipse.edc.iam.identitytrust.validation.JwtValidatorImpl;
-import org.eclipse.edc.iam.identitytrust.verification.JwtVerifierImpl;
+import org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator;
 import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVerifier;
+import org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
@@ -62,7 +62,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Provider
     public JwtValidator getJwtValidator() {
         if (jwtValidator == null) {
-            jwtValidator = new JwtValidatorImpl();
+            jwtValidator = new SelfIssuedIdTokenValidator();
         }
         return jwtValidator;
     }
@@ -75,7 +75,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Provider
     private JwtVerifier getJwtVerifier() {
         if (jwtVerifier == null) {
-            jwtVerifier = new JwtVerifierImpl(resolverRegistry);
+            jwtVerifier = new SelfIssuedIdTokenVerifier(resolverRegistry);
         }
         return jwtVerifier;
     }

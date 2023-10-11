@@ -26,11 +26,11 @@ import java.util.UUID;
 import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
-class JwtValidatorImplTest {
+class SelfIssuedIdTokenValidatorTest {
 
     private static final String EXPECTED_OWN_DID = "did:web:provider";
     private static final String CONSUMER_DID = "did:web:consumer";
-    private final JwtValidatorImpl validator = new JwtValidatorImpl();
+    private final SelfIssuedIdTokenValidator validator = new SelfIssuedIdTokenValidator();
 
     @BeforeEach
     void setUp() {
