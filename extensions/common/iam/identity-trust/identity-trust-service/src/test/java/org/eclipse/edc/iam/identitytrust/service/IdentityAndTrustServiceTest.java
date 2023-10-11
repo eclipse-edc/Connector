@@ -147,7 +147,7 @@ class IdentityAndTrustServiceTest {
             var presentation = createPresentationBuilder()
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
-                            .credentialSubject(List.of(CredentialSubject.Builder.newInstance()
+                            .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
                                     .id("invalid-subject-id")
                                     .claim("some-claim", "some-val")
                                     .build()))

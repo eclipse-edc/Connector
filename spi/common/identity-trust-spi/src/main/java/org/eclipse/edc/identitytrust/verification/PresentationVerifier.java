@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.result.Result;
  * <p>
  * Note that this does <strong>not</strong> perform any revocation checks, or any other business-related checks.
  */
+@FunctionalInterface
 public interface PresentationVerifier {
     /**
      * Verifies the cryptographic integrity of a VerifiablePresentation.

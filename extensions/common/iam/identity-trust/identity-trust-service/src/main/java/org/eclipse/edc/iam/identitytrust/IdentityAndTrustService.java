@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.identitytrust;
 
-import org.eclipse.edc.iam.identitytrust.validation.HasValidIssuer;
-import org.eclipse.edc.iam.identitytrust.validation.HasValidSubjectIds;
-import org.eclipse.edc.iam.identitytrust.validation.IsRevoked;
+import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
+import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
+import org.eclipse.edc.iam.identitytrust.validation.rules.IsRevoked;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;

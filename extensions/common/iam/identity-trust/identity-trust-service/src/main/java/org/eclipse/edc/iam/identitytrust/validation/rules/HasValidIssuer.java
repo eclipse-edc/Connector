@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.validation;
+package org.eclipse.edc.iam.identitytrust.validation.rules;
 
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
@@ -46,10 +46,11 @@ public class HasValidIssuer implements CredentialValidationRule {
         if (issuerObject instanceof String) {
             issuer = issuerObject.toString();
         } else if (issuerObject instanceof Map) {
-            issuer = ((Map) issuerObject).get("id").toString();
-            if (issuer == null) {
+            var id = ((Map) issuerObject).get("id");
+            if (id == null) {
                 return failure("Issuer was an object, but did not contain an 'id' field");
             }
+            issuer = id.toString();
         } else {
             return failure("VC Issuer must either be a String or an Object but was %s.".formatted(issuerObject.getClass()));
         }

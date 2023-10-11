@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.validation;
+package org.eclipse.edc.iam.identitytrust.validation.rules;
 
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
