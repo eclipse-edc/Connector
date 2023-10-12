@@ -85,7 +85,7 @@ class SelfIssuedIdTokenValidatorTest {
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID))
                 .isFailed()
-                .detail().isEqualTo("aud claim expected to be %s but was [%s]".formatted(EXPECTED_OWN_DID, "invalid-audience"));
+                .detail().isEqualTo("The aud claim expected to be %s but was [%s]".formatted(EXPECTED_OWN_DID, "invalid-audience"));
     }
 
     @Test
@@ -101,7 +101,7 @@ class SelfIssuedIdTokenValidatorTest {
         var token = createJwt(claimsSet);
         assertThat(validator.validateToken(token, EXPECTED_OWN_DID))
                 .isFailed()
-                .detail().isEqualTo("client_id must be equal to the issuer ID");
+                .detail().isEqualTo("The client_id must be equal to the issuer ID");
     }
 
     @Test

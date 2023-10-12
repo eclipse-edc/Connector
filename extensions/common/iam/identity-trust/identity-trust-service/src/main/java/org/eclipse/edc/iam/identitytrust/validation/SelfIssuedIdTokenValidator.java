@@ -70,10 +70,10 @@ public class SelfIssuedIdTokenValidator implements JwtValidator {
                 return failure("The sub_jwk claim must not be present.");
             }
             if (!aud.contains(audience)) {
-                return failure("aud claim expected to be %s but was %s".formatted(audience, aud));
+                return failure("The aud claim expected to be %s but was %s".formatted(audience, aud));
             }
             if (!Objects.equals(clientId, iss)) {
-                return failure("client_id must be equal to the issuer ID");
+                return failure("The client_id must be equal to the issuer ID");
             }
             if (jti == null) {
                 return failure("The jti claim is mandatory.");

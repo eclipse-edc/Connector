@@ -33,6 +33,7 @@ import org.eclipse.edc.util.string.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +86,7 @@ public class IdentityAndTrustService implements IdentityService {
         }
 
         // create claims for the STS
-        var claims = new java.util.HashMap<>(Map.of("iss", myOwnDid, "sub", myOwnDid, "aud", parameters.getAudience()));
+        var claims = new HashMap<>(Map.of("iss", myOwnDid, "sub", myOwnDid, "aud", parameters.getAudience()));
         parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
 
         return secureTokenService.createToken(claims, scope);
