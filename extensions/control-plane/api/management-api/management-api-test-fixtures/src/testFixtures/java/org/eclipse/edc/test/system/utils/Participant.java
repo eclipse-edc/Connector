@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
@@ -385,7 +384,7 @@ public class Participant {
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath()
-                .getString(format("%s", fieldName));
+                .getString(fieldName);
     }
 
     /**
