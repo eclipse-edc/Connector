@@ -19,7 +19,6 @@ import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -34,27 +33,15 @@ public class HasValidIssuer implements CredentialValidationRule {
     private final List<String> allowedIssuers;
 
     public HasValidIssuer(List<String> allowedIssuers) {
-
         this.allowedIssuers = allowedIssuers;
     }
 
     @Override
     public Result<Void> apply(VerifiableCredential credential) {
-        var issuerObject = credential.getIssuer();
-        String issuer;
-        // issuers can be URLs, or Objects containing an "id" property
-        if (issuerObject instanceof String) {
-            issuer = issuerObject.toString();
-        } else if (issuerObject instanceof Map) {
-            var id = ((Map) issuerObject).get("id");
-            if (id == null) {
-                return failure("Issuer was an object, but did not contain an 'id' field");
-            }
-            issuer = id.toString();
-        } else {
-            return failure("VC Issuer must either be a String or an Object but was %s.".formatted(issuerObject.getClass()));
+        var issuer = credential.getIssuer();
+        if (issuer.id() == null) {
+            return failure("Issuer did not contain an 'id' field.");
         }
-
-        return allowedIssuers.contains(issuer) ? success() : failure("Issuer '%s' is not in the list of allowed issuers".formatted(issuer));
+        return allowedIssuers.contains(issuer.id()) ? success() : failure("Issuer '%s' is not in the list of allowed issuers".formatted(issuer.id()));
     }
 }

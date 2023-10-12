@@ -20,6 +20,7 @@ import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
@@ -37,6 +38,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.eclipse.edc.identitytrust.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
@@ -179,7 +181,7 @@ class IdentityAndTrustServiceTest {
             var presentation = createPresentationBuilder()
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
-                            .issuer("invalid-issuer")
+                            .issuer(new Issuer("invalid-issuer", Map.of()))
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);

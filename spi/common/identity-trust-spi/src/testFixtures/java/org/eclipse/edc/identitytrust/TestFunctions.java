@@ -25,12 +25,14 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 
 import java.util.Date;
+import java.util.Map;
 
 import static java.time.Instant.now;
 
@@ -47,7 +49,7 @@ public class TestFunctions {
                         .claim("test-claim", "test-value")
                         .build())
                 .type("test-type")
-                .issuer("http://test.issuer")
+                .issuer(new Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now());
     }
 
