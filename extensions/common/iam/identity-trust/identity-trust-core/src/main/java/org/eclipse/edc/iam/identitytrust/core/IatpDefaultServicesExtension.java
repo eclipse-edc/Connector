@@ -40,10 +40,10 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     public static final String STS_PUBLIC_KEY_ALIAS = "edc.iam.sts.publickey.alias";
     // not a setting, it's defined in Oauth2ServiceExtension
     private static final String OAUTH_TOKENURL_PROPERTY = "edc.oauth.token.url";
-    @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + IatpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION)
+    @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + IatpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
     private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
 
-    private static final int DEFAULT_STS_TOKEN_EXPIRATION = 5;
+    private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
 
     @Inject
     private KeyPairFactory keyPairFactory;
@@ -55,7 +55,7 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
         context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
         var keyPair = keyPairFromConfig(context);
-        var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION);
+        var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
 
 
         if (context.getSetting(OAUTH_TOKENURL_PROPERTY, null) != null) {

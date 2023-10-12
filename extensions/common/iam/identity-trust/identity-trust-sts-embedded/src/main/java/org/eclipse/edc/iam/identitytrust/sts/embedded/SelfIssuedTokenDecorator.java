@@ -27,12 +27,16 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 
-public class SelfIssuedTokenDecorator implements JwtDecorator {
+/**
+ * Decorator for Self-Issued ID token and Access Token. It appends input claims and
+ * generic claims like iat, exp, and jti
+ */
+class SelfIssuedTokenDecorator implements JwtDecorator {
     private final Map<String, String> claims;
     private final Clock clock;
     private final long validity;
 
-    public SelfIssuedTokenDecorator(Map<String, String> claims, Clock clock, long validity) {
+    SelfIssuedTokenDecorator(Map<String, String> claims, Clock clock, long validity) {
         this.claims = claims;
         this.clock = clock;
         this.validity = validity;

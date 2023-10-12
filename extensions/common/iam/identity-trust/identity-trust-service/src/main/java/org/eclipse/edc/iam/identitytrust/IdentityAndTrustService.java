@@ -88,16 +88,16 @@ public class IdentityAndTrustService implements IdentityService {
         if (scopeValidationResult.failed()) {
             return failure(scopeValidationResult.getFailureMessages());
         }
+        
+        // create claims for the STS
+        var claims = new HashMap<String, String>();
+        parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
 
-        var mandatoryClaims = Map.of(
+        claims.putAll(Map.of(
                 "iss", myOwnDid,
                 "sub", myOwnDid,
                 "aud", parameters.getAudience(),
-                "client_id", participantId);
-
-        // create claims for the STS
-        var claims = new HashMap<>(mandatoryClaims);
-        parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
+                "client_id", participantId));
 
         return secureTokenService.createToken(claims, scope);
     }
