@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.core.transform.TransformerContextImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -50,6 +51,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(OBJECT_MAPPER));
+        registry.register(new JsonObjectToIssuerTransformer());
         registry.register(transformer);
 
         context = spy(new TransformerContextImpl(registry));
@@ -68,7 +70,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();
+        assertThat(vc.getIssuer()).isNotNull().extracting(Issuer::id).isEqualTo("https://university.example/issuers/565049");
         verify(context, never()).reportProblem(anyString());
-
     }
 }

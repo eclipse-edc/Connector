@@ -87,6 +87,20 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
     }
 
     private Issuer parseIssuer(JsonValue jsonValue, TransformerContext context) {
-        return new Issuer(transformString(jsonValue, context), Map.of()); //todo: handle the case where the issuer is an object
+        if (jsonValue.getValueType() == JsonValue.ValueType.STRING) {
+            return new Issuer(transformString(jsonValue, context), Map.of());
+        } else {
+            // issuers can be objects, that MUST contain an ID, and optional other properties
+            // an issuer is never an array with >1 elements
+            JsonObject issuer;
+            if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
+                issuer = jsonValue.asJsonArray().get(0).asJsonObject();
+            } else if (jsonValue.getValueType() == JsonValue.ValueType.OBJECT) {
+                issuer = jsonValue.asJsonObject();
+            } else {
+                throw new IllegalArgumentException("Unknown issuer type, expected ARRAY or OBJECT, was %s".formatted(jsonValue.getValueType()));
+            }
+            return transformObject(issuer, Issuer.class, context);
+        }
     }
 }

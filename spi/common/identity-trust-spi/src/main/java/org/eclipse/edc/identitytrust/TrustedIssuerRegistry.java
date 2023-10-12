@@ -14,9 +14,19 @@
 
 package org.eclipse.edc.identitytrust;
 
+import org.eclipse.edc.identitytrust.model.Issuer;
+
+import java.util.Collection;
+
 /**
  * A list of trusted VC issuers
  */
 public interface TrustedIssuerRegistry {
+
+    void addIssuer(Issuer issuer);
+
+    Issuer getById(String id);
+
+    Collection<Issuer> getTrustedIssuers();
 }
 
