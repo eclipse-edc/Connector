@@ -21,6 +21,7 @@ import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVer
 import org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
@@ -50,13 +51,16 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private DidResolverRegistry resolverRegistry;
 
+    @Inject
+    private TrustedIssuerRegistry registry;
+
     private JwtValidator jwtValidator;
     private JwtVerifier jwtVerifier;
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
         return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), context.getParticipantId(), presentationVerifier,
-                credentialServiceClient, getJwtValidator(), getJwtVerifier());
+                credentialServiceClient, getJwtValidator(), getJwtVerifier(), registry);
     }
 
     @Provider

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -77,5 +77,10 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
         Objects.requireNonNull(privKeyAlias, "private key alias");
         return keyPairFactory.fromConfig(pubKeyAlias, privKeyAlias)
                 .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
+    }
+
+    @Provider(isDefault = true)
+    public TrustedIssuerRegistry createInMemoryIssuerRegistry() {
+        return new DefaultTrustedIssuerRegistry();
     }
 }

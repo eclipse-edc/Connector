@@ -51,7 +51,7 @@ class HasValidIssuerTest {
                 .issuer(new Issuer("did:web:invalid", Map.of()))
                 .build();
         assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of allowed issuers");
+                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of trusted issuers");
     }
 
     @DisplayName("Issuer (object) is not in the list of valid issuers")
@@ -61,7 +61,7 @@ class HasValidIssuerTest {
                 .issuer(new Issuer("did:web:invalid", Map.of("id", "did:web:invalid", "name", "test issuer company")))
                 .build();
         assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of allowed issuers");
+                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of trusted issuers");
     }
 
     @DisplayName("Issuer (object) does not have an 'id' property")

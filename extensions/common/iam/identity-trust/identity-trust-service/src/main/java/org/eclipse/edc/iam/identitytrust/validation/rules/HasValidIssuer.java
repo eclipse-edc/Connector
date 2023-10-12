@@ -18,7 +18,7 @@ import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
-import java.util.List;
+import java.util.Collection;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -30,10 +30,10 @@ import static org.eclipse.edc.spi.result.Result.success;
  * If the issuer object is neither a string nor an object containing an "id" field, a failure is returned.
  */
 public class HasValidIssuer implements CredentialValidationRule {
-    private final List<String> allowedIssuers;
+    private final Collection<String> trustedIssuers;
 
-    public HasValidIssuer(List<String> allowedIssuers) {
-        this.allowedIssuers = allowedIssuers;
+    public HasValidIssuer(Collection<String> trustedIssuers) {
+        this.trustedIssuers = trustedIssuers;
     }
 
     @Override
@@ -42,6 +42,6 @@ public class HasValidIssuer implements CredentialValidationRule {
         if (issuer.id() == null) {
             return failure("Issuer did not contain an 'id' field.");
         }
-        return allowedIssuers.contains(issuer.id()) ? success() : failure("Issuer '%s' is not in the list of allowed issuers".formatted(issuer.id()));
+        return trustedIssuers.contains(issuer.id()) ? success() : failure("Issuer '%s' is not in the list of trusted issuers".formatted(issuer.id()));
     }
 }

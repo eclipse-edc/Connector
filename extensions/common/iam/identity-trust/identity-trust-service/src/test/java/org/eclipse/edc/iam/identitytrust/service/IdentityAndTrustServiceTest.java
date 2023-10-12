@@ -18,6 +18,7 @@ package org.eclipse.edc.iam.identitytrust.service;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
@@ -67,7 +68,9 @@ class IdentityAndTrustServiceTest {
     private final CredentialServiceClient mockedClient = mock();
     private final JwtValidator jwtValidatorMock = mock();
     private final JwtVerifier jwtVerfierMock = mock();
-    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient, jwtValidatorMock, jwtVerfierMock);
+    private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
+    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient,
+            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock);
 
     @BeforeEach
     void setup() {
@@ -191,7 +194,7 @@ class IdentityAndTrustServiceTest {
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().messages()
                     .hasSizeGreaterThanOrEqualTo(1)
-                    .contains("Issuer 'invalid-issuer' is not in the list of allowed issuers");
+                    .contains("Issuer 'invalid-issuer' is not in the list of trusted issuers");
         }
 
         @Test
