@@ -14,8 +14,16 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.iam.identitytrust.service.IdentityAndTrustService;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
+import org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator;
+import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVerifier;
+import org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier;
+import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.validation.JwtValidator;
+import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -33,9 +41,43 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private SecureTokenService secureTokenService;
 
+    @Inject
+    private PresentationVerifier presentationVerifier;
+
+    @Inject
+    private CredentialServiceClient credentialServiceClient;
+
+    @Inject
+    private DidResolverRegistry resolverRegistry;
+
+    private JwtValidator jwtValidator;
+    private JwtVerifier jwtVerifier;
+
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context));
+        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), presentationVerifier,
+                credentialServiceClient, getJwtValidator(), getJwtVerifier());
+    }
+
+    @Provider
+    public JwtValidator getJwtValidator() {
+        if (jwtValidator == null) {
+            jwtValidator = new SelfIssuedIdTokenValidator();
+        }
+        return jwtValidator;
+    }
+
+    @Provider
+    public PresentationVerifier createPresentationVerifier() {
+        return new MultiFormatPresentationVerifier();
+    }
+
+    @Provider
+    private JwtVerifier getJwtVerifier() {
+        if (jwtVerifier == null) {
+            jwtVerifier = new SelfIssuedIdTokenVerifier(resolverRegistry);
+        }
+        return jwtVerifier;
     }
 
     private String getIssuerDid(ServiceExtensionContext context) {

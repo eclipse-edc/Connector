@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import org.eclipse.edc.iam.identitytrust.core.service.EmbeddedSecureTokenService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
