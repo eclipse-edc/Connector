@@ -128,6 +128,8 @@ public class IdentityAndTrustService implements IdentityService {
                     return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
                 });
 
+        //todo: at this point we have established what the other participant's DID is, and that it's authentic
+        // so we need to make sure that `iss == sub == DID`
         return result.map(u -> extractClaimToken(credentials));
     }
 
