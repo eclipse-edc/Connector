@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
+ *       Materna Information & Communications SE - Refactoring
  *
  */
 
@@ -38,6 +39,10 @@ public class HashicorpVault implements Vault {
     @Override
     public @Nullable String resolveSecret(String key) {
         var result = hashicorpVaultClient.getSecretValue(key);
+
+        if (result.failed()) {
+            monitor.warning("Failed to resolve secret '%s': %s".formatted(key, result.getFailureMessages()));
+        }
 
         return result.succeeded() ? result.getContent() : null;
     }
