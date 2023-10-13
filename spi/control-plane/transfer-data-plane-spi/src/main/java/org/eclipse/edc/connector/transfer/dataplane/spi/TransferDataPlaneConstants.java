@@ -16,8 +16,6 @@ package org.eclipse.edc.connector.transfer.dataplane.spi;
 
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-
 /**
  * Type of Data Plane transfer.
  */
@@ -32,14 +30,4 @@ public interface TransferDataPlaneConstants {
      * data source as an encrypted string.
      */
     String DATA_ADDRESS = "dad";
-
-    /**
-     * Claim of the token used in input of Data Plane public API containing the contract id.
-     */
-    String CONTRACT_ID = "cid";
-
-    /**
-     * Claim of the token used in input of Data Plane public API containing the contract id with namespace.
-     */
-    String EDC_CONTRACT_ID = EDC_NAMESPACE + "cid";
 }
