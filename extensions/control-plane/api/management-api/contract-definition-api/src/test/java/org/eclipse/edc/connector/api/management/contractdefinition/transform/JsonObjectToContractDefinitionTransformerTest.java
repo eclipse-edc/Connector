@@ -105,7 +105,6 @@ class JsonObjectToContractDefinitionTransformerTest {
         jsonObj = expand(jsonObj);
         var contractDefinition = transformer.transform(jsonObj, context);
 
-        //AbstractResultAssert.assertThat(contractDefinition).withFailMessage(contractDefinition::getFailureDetail).isSucceeded();
         assertThat(contractDefinition.getPrivateProperties())
                 .hasSize(1)
                 .containsEntry(EDC_NAMESPACE + "test-prop", "test-val");

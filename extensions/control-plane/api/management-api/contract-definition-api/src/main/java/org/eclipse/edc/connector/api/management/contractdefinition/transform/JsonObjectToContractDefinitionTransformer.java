@@ -43,17 +43,17 @@ public class JsonObjectToContractDefinitionTransformer extends AbstractJsonLdTra
     }
 
     private void transformProperties(String key, JsonValue jsonValue, ContractDefinition.Builder builder, TransformerContext context) {
-        if (CONTRACT_DEFINITION_ACCESSPOLICY_ID.equals(key) ) {
-            builder.accessPolicyId(transformString(jsonValue, context));
-        } else if (CONTRACT_DEFINITION_CONTRACTPOLICY_ID.equals(key) ) {
-            builder.contractPolicyId(transformString(jsonValue, context));
-        } else if (CONTRACT_DEFINITION_ASSETS_SELECTOR.equals(key) ) {
-            builder.assetsSelector(transformArray(jsonValue, Criterion.class, context));
-        } else if (CONTRACT_DEFINITION_PRIVATE_PROPERTIES.equals(key) && jsonValue instanceof JsonArray) {
-            var props = jsonValue.asJsonArray().getJsonObject(0);
-            visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
-        } else {
+        switch (key) {
+            case CONTRACT_DEFINITION_ACCESSPOLICY_ID -> builder.accessPolicyId(transformString(jsonValue, context));
+            case CONTRACT_DEFINITION_CONTRACTPOLICY_ID -> builder.contractPolicyId(transformString(jsonValue, context));
+            case CONTRACT_DEFINITION_ASSETS_SELECTOR -> builder.assetsSelector(transformArray(jsonValue, Criterion.class, context));
+            case CONTRACT_DEFINITION_PRIVATE_PROPERTIES -> {
+                var props = jsonValue.asJsonArray().getJsonObject(0);
+                visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
+            }
+            default -> {
                 builder.privateProperty(key, transformGenericProperty(jsonValue, context));
             }
         }
+    }
 }

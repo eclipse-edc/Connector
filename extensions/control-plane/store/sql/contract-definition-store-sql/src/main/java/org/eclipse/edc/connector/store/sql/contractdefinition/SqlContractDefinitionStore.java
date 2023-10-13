@@ -67,7 +67,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
             try {
                 var queryStmt = statements.createQuery(spec);
-                return queryExecutor.query(getConnection(), true, this::mapContractDefinitionIds, queryStmt.getQueryAsString(), queryStmt.getParameters())
+                return queryExecutor.query(getConnection(), true, this::mapContractDefinitionId, queryStmt.getQueryAsString(), queryStmt.getParameters())
                         .map(this::findById);
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
@@ -141,7 +141,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
     }
 
-    private String mapContractDefinitionIds(ResultSet resultSet) throws SQLException {
+    private String mapContractDefinitionId(ResultSet resultSet) throws SQLException {
         return resultSet.getString(statements.getIdColumn());
     }
 
@@ -169,16 +169,14 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     }
 
     private void insertProperties(ContractDefinition definition, Connection connection) {
-        if (Objects.nonNull(definition.getPrivateProperties())) {
-            for (var privateProperty : definition.getPrivateProperties().entrySet()) {
-                queryExecutor.execute(connection,
-                        statements.getInsertPropertyTemplate(),
-                        definition.getId(),
-                        privateProperty.getKey(),
-                        toJson(privateProperty.getValue()),
-                        privateProperty.getValue().getClass().getName(),
-                        true);
-            }
+        for (var privateProperty : definition.getPrivateProperties().entrySet()) {
+            queryExecutor.execute(connection,
+                    statements.getInsertPropertyTemplate(),
+                    definition.getId(),
+                    privateProperty.getKey(),
+                    toJson(privateProperty.getValue()),
+                    privateProperty.getValue().getClass().getName(),
+                    true);
         }
     }
 

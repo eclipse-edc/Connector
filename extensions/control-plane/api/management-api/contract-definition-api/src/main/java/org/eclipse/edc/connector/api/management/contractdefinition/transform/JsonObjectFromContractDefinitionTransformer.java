@@ -55,7 +55,7 @@ public class JsonObjectFromContractDefinitionTransformer extends AbstractJsonLdT
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, contractDefinition.getContractPolicyId())
                 .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, criteria);
 
-        if (contractDefinition.getPrivateProperties() != null && !contractDefinition.getPrivateProperties().isEmpty()) {
+        if (!contractDefinition.getPrivateProperties().isEmpty()) {
             var privatePropBuilder = jsonFactory.createObjectBuilder();
             transformProperties(contractDefinition.getPrivateProperties(), privatePropBuilder, mapper, context);
             builder.add(ContractDefinition.CONTRACT_DEFINITION_PRIVATE_PROPERTIES, privatePropBuilder);

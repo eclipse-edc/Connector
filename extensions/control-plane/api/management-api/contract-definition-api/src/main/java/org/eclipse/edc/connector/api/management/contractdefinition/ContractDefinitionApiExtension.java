@@ -23,8 +23,6 @@ import org.eclipse.edc.connector.api.management.contractdefinition.transform.Jso
 import org.eclipse.edc.connector.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -70,7 +68,6 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var jsonFactory = Json.createBuilderFactory(Map.of());
         var mapper = typeManager.getMapper(JSON_LD);
-        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
         transformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, mapper));
         transformerRegistry.register(new JsonObjectToContractDefinitionTransformer());
 

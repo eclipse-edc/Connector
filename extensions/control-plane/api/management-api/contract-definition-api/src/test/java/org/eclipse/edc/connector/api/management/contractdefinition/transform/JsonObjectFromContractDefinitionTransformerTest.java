@@ -77,7 +77,7 @@ class JsonObjectFromContractDefinitionTransformerTest {
         var criterionJson = jsonFactory.createObjectBuilder().build();
         when(context.transform(isA(Criterion.class), eq(JsonObject.class))).thenReturn(criterionJson);
         var criterion = criterion("left", "=", "right");
-        var contractDefinition =ContractDefinition.Builder.newInstance()
+        var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("id")
                 .accessPolicyId("accessPolicyId")
                 .contractPolicyId("contractPolicyId")
