@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.transfer.dataplane.api.ConsumerPullTransferToke
 import org.eclipse.edc.connector.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ProviderPushTransferDataFlowController;
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
-import org.eclipse.edc.connector.transfer.dataplane.security.ConsumerPullKeyPairFactory;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.dataplane.validation.ContractValidationRule;
@@ -37,6 +36,7 @@ import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -96,6 +96,9 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private KeyPairFactory keyPairFactory;
+
     @Override
     public String name() {
         return NAME;
@@ -106,14 +109,13 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var keyPair = keyPairFromConfig(context);
         var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(keyPair.getPublic()), dataEncrypter, typeManager);
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
-
+        
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new TokenGenerationServiceImpl(keyPair.getPrivate()), tokenExpirationDateFunction);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorClient, resolver));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, dataPlaneClient));
     }
 
     private KeyPair keyPairFromConfig(ServiceExtensionContext context) {
-        var keyPairFactory = new ConsumerPullKeyPairFactory(privateKeyResolver, vault);
         var pubKeyAlias = context.getSetting(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null);
         var privKeyAlias = context.getSetting(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null);
         if (pubKeyAlias == null && privKeyAlias == null) {

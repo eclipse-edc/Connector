@@ -28,6 +28,8 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -39,10 +41,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.security.PrivateKey;
+import java.security.KeyPair;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
+import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConfig.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -55,16 +59,30 @@ class TransferDataPlaneCoreExtensionTest {
 
     private static final String CONTROL_PLANE_API_CONTEXT = "control";
 
-    private final PrivateKeyResolver privateKeyResolver = mock(PrivateKeyResolver.class);
     private final Vault vault = mock(Vault.class);
     private final WebService webService = mock(WebService.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
-
+    private final KeyPairFactory keyPairFactory = mock();
+    private KeyPair keypair;
     private ServiceExtensionContext context;
     private TransferDataPlaneCoreExtension extension;
 
+    private static KeyPair keyPair() throws JOSEException {
+        return new RSAKeyGenerator(2048)
+                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                .generate()
+                .toKeyPair();
+    }
+
+    private static String publicKeyPem() throws IOException {
+        return new String(Objects.requireNonNull(TransferDataPlaneCoreExtensionTest.class.getClassLoader().getResourceAsStream("rsa-pubkey.pem"))
+                .readAllBytes());
+    }
+
     @BeforeEach
-    public void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+    public void setUp(ServiceExtensionContext context, ObjectFactory factory) throws JOSEException {
+        keypair = keyPair();
         var monitor = mock(Monitor.class);
         var controlApiConfigurationMock = mock(ControlApiConfiguration.class);
         when(controlApiConfigurationMock.getContextAlias()).thenReturn(CONTROL_PLANE_API_CONTEXT);
@@ -79,7 +97,7 @@ class TransferDataPlaneCoreExtensionTest {
         context.registerService(ControlApiConfiguration.class, controlApiConfigurationMock);
         context.registerService(DataPlaneClient.class, mock(DataPlaneClient.class));
         context.registerService(Vault.class, vault);
-        context.registerService(PrivateKeyResolver.class, privateKeyResolver);
+        context.registerService(KeyPairFactory.class, keyPairFactory);
 
         this.context = spy(context); //used to inject the config
         when(this.context.getMonitor()).thenReturn(monitor);
@@ -93,28 +111,15 @@ class TransferDataPlaneCoreExtensionTest {
         var privateKeyAlias = "privateKey";
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
-        when(config.getString("edc.transfer.proxy.token.verifier.publickey.alias")).thenReturn(publicKeyAlias);
-        when(config.getString("edc.transfer.proxy.token.signer.privatekey.alias")).thenReturn(privateKeyAlias);
+        when(config.getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null)).thenReturn(publicKeyAlias);
+        when(config.getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null)).thenReturn(privateKeyAlias);
         when(vault.resolveSecret(publicKeyAlias)).thenReturn(publicKeyPem());
-        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class)).thenReturn(privateKey());
+        when(keyPairFactory.fromConfig(publicKeyAlias, privateKeyAlias)).thenReturn(Result.success(keypair));
 
         extension.initialize(context);
 
         verify(dataFlowManager).register(any(ConsumerPullTransferDataFlowController.class));
         verify(dataFlowManager).register(any(ProviderPushTransferDataFlowController.class));
         verify(webService).registerResource(eq(CONTROL_PLANE_API_CONTEXT), any(ConsumerPullTransferTokenValidationApiController.class));
-    }
-
-    private static PrivateKey privateKey() throws JOSEException {
-        return new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                .generate()
-                .toPrivateKey();
-    }
-
-    private static String publicKeyPem() throws IOException {
-        return new String(Objects.requireNonNull(TransferDataPlaneCoreExtensionTest.class.getClassLoader().getResourceAsStream("rsa-pubkey.pem"))
-                .readAllBytes());
     }
 }

@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.core.event.EventRouterImpl;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
 import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
+import org.eclipse.edc.connector.core.security.KeyPairFactoryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
@@ -39,7 +40,9 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -84,6 +87,9 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
+
+    @Inject
+    private Vault vault;
 
     @Inject
     private EventExecutorServiceContainer eventExecutorServiceContainer;
@@ -165,6 +171,11 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public EventRouter eventRouter(ServiceExtensionContext context) {
         return new EventRouterImpl(context.getMonitor(), eventExecutorServiceContainer.getExecutorService());
+    }
+
+    @Provider
+    public KeyPairFactory keyPairFactory() {
+        return new KeyPairFactoryImpl(privateKeyResolver, vault);
     }
 
     @Provider

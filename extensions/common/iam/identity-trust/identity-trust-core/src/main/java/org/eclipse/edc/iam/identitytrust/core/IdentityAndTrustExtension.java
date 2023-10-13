@@ -55,7 +55,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), presentationVerifier,
+        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), context.getParticipantId(), presentationVerifier,
                 credentialServiceClient, getJwtValidator(), getJwtVerifier());
     }
 
