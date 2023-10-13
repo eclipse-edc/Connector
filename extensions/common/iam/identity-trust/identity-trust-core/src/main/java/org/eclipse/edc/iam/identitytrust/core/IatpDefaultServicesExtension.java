@@ -70,7 +70,7 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
         var pubKeyAlias = context.getSetting(STS_PUBLIC_KEY_ALIAS, null);
         var privKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
         if (pubKeyAlias == null && privKeyAlias == null) {
-            context.getMonitor().info(() -> "No public or private key provided for 'STS' -> a key pair will be generated (DO NOT USE IN PRODUCTION)");
+            context.getMonitor().info(() -> "No public or private key provided for 'STS.' A key pair will be generated (DO NOT USE IN PRODUCTION)");
             return keyPairFactory.defaultKeyPair();
         }
         Objects.requireNonNull(pubKeyAlias, "public key alias");
