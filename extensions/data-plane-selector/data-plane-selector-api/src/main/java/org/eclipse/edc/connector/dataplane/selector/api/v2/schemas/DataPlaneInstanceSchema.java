@@ -36,7 +36,7 @@ public record DataPlaneInstanceSchema(@Schema(name = TYPE, example = DATAPLANE_I
     public static final String DATAPLANE_INSTANCE_EXAMPLE = """
             {
                 "@context": {
-                    "edc": "https://w3id.org/edc/v0.0.1/ns/"
+                    "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
                 },
                 "@id": "your-dataplane-id",
                 "url": "http://somewhere.com:1234/api/v1",

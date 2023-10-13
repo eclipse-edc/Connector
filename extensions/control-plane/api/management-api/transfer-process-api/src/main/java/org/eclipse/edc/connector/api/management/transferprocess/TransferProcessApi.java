@@ -136,7 +136,7 @@ public interface TransferProcessApi {
 
         public static final String TRANSFER_REQUEST_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TransferRequest",
                     "protocol": "dataspace-protocol-http",
                     "connectorAddress": "http://provider-address",
@@ -181,7 +181,7 @@ public interface TransferProcessApi {
     ) {
         public static final String TRANSFER_PROCESS_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TransferProcess",
                     "@id": "process-id",
                     "correlationId": "correlation-id",
@@ -218,7 +218,7 @@ public interface TransferProcessApi {
     ) {
         public static final String TRANSFER_STATE_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TransferState",
                     "state": "STARTED"
                 }
@@ -233,7 +233,7 @@ public interface TransferProcessApi {
     ) {
         public static final String TERMINATE_TRANSFER_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TerminateTransfer",
                     "reason": "a reason to terminate"
                 }

@@ -107,7 +107,7 @@ public interface PolicyDefinitionApi {
         // policy example took from https://w3c.github.io/odrl/bp/
         public static final String POLICY_DEFINITION_INPUT_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "definition-id",
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
@@ -139,7 +139,7 @@ public interface PolicyDefinitionApi {
         // policy example took from https://w3c.github.io/odrl/bp/
         public static final String POLICY_DEFINITION_OUTPUT_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@id": "definition-id",
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",

@@ -61,14 +61,14 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
         assertThat(body).isNotNull();
         assertThat(body.getString(ID)).isEqualTo(TEST_ASSET_ID);
-        assertThat(body.getMap("edc:properties"))
+        assertThat(body.getMap("properties"))
                 .hasSize(5)
-                .containsEntry("edc:name", TEST_ASSET_NAME)
-                .containsEntry("edc:description", TEST_ASSET_DESCRIPTION)
-                .containsEntry("edc:contenttype", TEST_ASSET_CONTENTTYPE)
-                .containsEntry("edc:version", TEST_ASSET_VERSION);
-        assertThat(body.getMap("'edc:dataAddress'"))
-                .containsEntry("edc:type", "addressType");
+                .containsEntry("name", TEST_ASSET_NAME)
+                .containsEntry("description", TEST_ASSET_DESCRIPTION)
+                .containsEntry("contenttype", TEST_ASSET_CONTENTTYPE)
+                .containsEntry("version", TEST_ASSET_VERSION);
+        assertThat(body.getMap("'dataAddress'"))
+                .containsEntry("type", "addressType");
     }
 
     @Test

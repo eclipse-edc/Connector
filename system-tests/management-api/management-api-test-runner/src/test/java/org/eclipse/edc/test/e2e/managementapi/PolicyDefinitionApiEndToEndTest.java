@@ -71,7 +71,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
                 .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
                 .log().all()
-                .body("'edc:policy'.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
+                .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .statusCode(200)
                 .extract().as(JsonArray.class)
                 .get(0).asJsonObject()
-                .getJsonNumber("edc:createdAt").longValue();
+                .getJsonNumber("createdAt").longValue();
 
         baseRequest()
                 .contentType(JSON)

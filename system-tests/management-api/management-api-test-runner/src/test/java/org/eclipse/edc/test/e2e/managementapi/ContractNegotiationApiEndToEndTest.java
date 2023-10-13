@@ -66,11 +66,11 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .body("size()", is(2))
                 .extract().jsonPath();
 
-        assertThat(jsonPath.getString("[0]['edc:counterPartyAddress']")).isEqualTo(protocolUrl);
+        assertThat(jsonPath.getString("[0].counterPartyAddress")).isEqualTo(protocolUrl);
         assertThat(jsonPath.getString("[0].@id")).isIn("cn1", "cn2");
         assertThat(jsonPath.getString("[1].@id")).isIn("cn1", "cn2");
-        assertThat(jsonPath.getString("[0]['edc:protocol']")).isEqualTo("dataspace-protocol-http");
-        assertThat(jsonPath.getString("[1]['edc:protocol']")).isEqualTo("dataspace-protocol-http");
+        assertThat(jsonPath.getString("[0].protocol")).isEqualTo("dataspace-protocol-http");
+        assertThat(jsonPath.getString("[1].protocol")).isEqualTo("dataspace-protocol-http");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .extract().jsonPath();
 
         assertThat((String) json.get("@id")).isEqualTo("cn1");
-        assertThat(json.getString("'edc:protocol'")).isEqualTo("dataspace-protocol-http");
+        assertThat(json.getString("protocol")).isEqualTo("dataspace-protocol-http");
     }
 
     @Test
@@ -102,7 +102,7 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("'edc:state'", is("FINALIZED"));
+                .body("state", is("FINALIZED"));
     }
 
     @Test
@@ -120,8 +120,8 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
                 .extract().jsonPath();
 
         assertThat(json.getString("@id")).isEqualTo("cn1");
-        assertThat((Object) json.get("'edc:policy'")).isNotNull().isInstanceOf(Map.class);
-        assertThat(json.getString("'edc:assetId'")).isEqualTo(agreement.getAssetId());
+        assertThat((Object) json.get("policy")).isNotNull().isInstanceOf(Map.class);
+        assertThat(json.getString("assetId")).isEqualTo(agreement.getAssetId());
     }
 
     @Test

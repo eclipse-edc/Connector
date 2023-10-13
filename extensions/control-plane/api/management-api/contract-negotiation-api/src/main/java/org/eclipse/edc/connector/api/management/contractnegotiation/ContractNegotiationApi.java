@@ -130,7 +130,7 @@ public interface ContractNegotiationApi {
         // policy example took from https://w3c.github.io/odrl/bp/
         public static final String CONTRACT_REQUEST_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequest",
                     "connectorAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
@@ -167,7 +167,7 @@ public interface ContractNegotiationApi {
     ) {
         public static final String NEGOTIATION_STATE_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/NegotiationState",
                     "state": "REQUESTED"
                 }
@@ -195,7 +195,7 @@ public interface ContractNegotiationApi {
     ) {
         public static final String TERMINATE_NEGOTIATION_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TerminateNegotiation",
                     "@id": "negotiation-id",
                     "reason": "a reason to terminate"
