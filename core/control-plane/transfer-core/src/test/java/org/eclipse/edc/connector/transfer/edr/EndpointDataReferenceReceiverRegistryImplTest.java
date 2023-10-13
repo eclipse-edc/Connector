@@ -45,7 +45,22 @@ class EndpointDataReferenceReceiverRegistryImplTest {
     private final TypeTransformerRegistry typeTransformerRegistry = mock(TypeTransformerRegistry.class);
 
     private final EndpointDataReferenceReceiverRegistryImpl registry = new EndpointDataReferenceReceiverRegistryImpl(typeTransformerRegistry);
-    
+
+    private static DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type("test").build();
+    }
+
+    private static EndpointDataReference createEndpointDataReference() {
+        return EndpointDataReference.Builder.newInstance()
+                .endpoint("test.endpoint.url")
+                .authKey("authKey")
+                .authCode("authCode")
+                .id("id")
+                .contractId("contract-id")
+                .properties(Map.of("test-key", UUID.randomUUID().toString()))
+                .build();
+    }
+
     @Test
     void onEvent_success() {
         var address = DataAddress.Builder.newInstance().type("test").build();
@@ -123,20 +138,6 @@ class EndpointDataReferenceReceiverRegistryImplTest {
                 .at(10)
                 .id("id")
                 .payload(e)
-                .build();
-    }
-
-    private static DataAddress dataAddress() {
-        return DataAddress.Builder.newInstance().type("test").build();
-    }
-
-    private static EndpointDataReference createEndpointDataReference() {
-        return EndpointDataReference.Builder.newInstance()
-                .endpoint("test.endpoint.url")
-                .authKey("test-authkey")
-                .authCode(UUID.randomUUID().toString())
-                .id(UUID.randomUUID().toString())
-                .properties(Map.of("test-key", UUID.randomUUID().toString()))
                 .build();
     }
 }

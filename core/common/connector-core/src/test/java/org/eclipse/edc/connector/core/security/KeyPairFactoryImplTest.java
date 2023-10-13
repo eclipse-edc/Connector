@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.transfer.dataplane.security;
+package org.eclipse.edc.connector.core.security;
 
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -29,12 +29,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ConsumerPullKeyPairFactoryTest {
+class KeyPairFactoryImplTest {
 
     private final PrivateKeyResolver privateKeyResolver = mock(PrivateKeyResolver.class);
     private final Vault vault = mock(Vault.class);
 
-    private final ConsumerPullKeyPairFactory factory = new ConsumerPullKeyPairFactory(privateKeyResolver, vault);
+    private final KeyPairFactoryImpl factory = new KeyPairFactoryImpl(privateKeyResolver, vault);
+
+    private static String loadPemFile(String file) throws IOException {
+        return new String(Objects.requireNonNull(KeyPairFactoryImpl.class.getClassLoader().getResourceAsStream(file))
+                .readAllBytes());
+    }
 
     @ParameterizedTest(name = "{index} {1}")
     @CsvSource({ "rsa-pubkey.pem, RSA", "ec-pubkey.pem, EC" })
@@ -79,10 +84,5 @@ class ConsumerPullKeyPairFactoryTest {
         var result = factory.fromConfig(publicKeyAlias, privateKeyAlias);
 
         assertThat(result.failed()).isTrue();
-    }
-
-    private static String loadPemFile(String file) throws IOException {
-        return new String(Objects.requireNonNull(ConsumerPullKeyPairFactoryTest.class.getClassLoader().getResourceAsStream(file))
-                .readAllBytes());
     }
 }

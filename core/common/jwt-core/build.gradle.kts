@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:jwt-spi"))
 
     implementation(libs.nimbus.jwt)
+    api(libs.bouncyCastle.bcpkixJdk18on)
 }
 
 

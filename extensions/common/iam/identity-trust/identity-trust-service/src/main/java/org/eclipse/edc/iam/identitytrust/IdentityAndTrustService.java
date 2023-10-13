@@ -56,6 +56,7 @@ public class IdentityAndTrustService implements IdentityService {
 
     private final SecureTokenService secureTokenService;
     private final String myOwnDid;
+    private final String participantId;
     private final PresentationVerifier presentationVerifier;
     private final CredentialServiceClient credentialServiceClient;
     private final JwtValidator jwtValidator;
@@ -67,9 +68,12 @@ public class IdentityAndTrustService implements IdentityService {
      * @param secureTokenService Instance of an STS, which can create SI tokens
      * @param myOwnDid           The DID which belongs to "this connector"
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient, JwtValidator jwtValidator, JwtVerifier jwtVerifier) {
+    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
+                                   PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
+                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
+        this.participantId = participantId;
         this.presentationVerifier = presentationVerifier;
         this.credentialServiceClient = credentialServiceClient;
         this.jwtValidator = jwtValidator;
@@ -84,10 +88,16 @@ public class IdentityAndTrustService implements IdentityService {
         if (scopeValidationResult.failed()) {
             return failure(scopeValidationResult.getFailureMessages());
         }
-
+        
         // create claims for the STS
-        var claims = new HashMap<>(Map.of("iss", myOwnDid, "sub", myOwnDid, "aud", parameters.getAudience()));
+        var claims = new HashMap<String, String>();
         parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
+
+        claims.putAll(Map.of(
+                "iss", myOwnDid,
+                "sub", myOwnDid,
+                "aud", parameters.getAudience(),
+                "client_id", participantId));
 
         return secureTokenService.createToken(claims, scope);
     }

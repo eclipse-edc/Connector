@@ -218,7 +218,8 @@ public class HttpDynamicEndpointDataReferenceReceiverTest {
                 .endpoint("some.endpoint.url")
                 .authKey("test-authkey")
                 .authCode(UUID.randomUUID().toString())
-                .id(UUID.randomUUID().toString());
+                .id(UUID.randomUUID().toString())
+                .contractId("contractId");
     }
 
     private String receiverUrl() {

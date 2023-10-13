@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.types.domain.edr.EndpointDataReference.AUTH_CODE;
 import static org.eclipse.edc.spi.types.domain.edr.EndpointDataReference.AUTH_KEY;
+import static org.eclipse.edc.spi.types.domain.edr.EndpointDataReference.CONTRACT_ID;
 import static org.eclipse.edc.spi.types.domain.edr.EndpointDataReference.EDR_SIMPLE_TYPE;
 import static org.eclipse.edc.spi.types.domain.edr.EndpointDataReference.ENDPOINT;
 import static org.eclipse.edc.spi.types.domain.edr.EndpointDataReference.ID;
@@ -36,6 +37,7 @@ public class DataAddressToEndpointDataReferenceTransformer implements TypeTransf
 
     private static final Set<String> PROPERTIES = Set.of(
             ID,
+            CONTRACT_ID,
             ENDPOINT,
             AUTH_CODE,
             DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY,
@@ -64,6 +66,7 @@ public class DataAddressToEndpointDataReferenceTransformer implements TypeTransf
 
         return EndpointDataReference.Builder.newInstance()
                 .id(address.getStringProperty(ID))
+                .contractId(address.getStringProperty(CONTRACT_ID))
                 .authCode(address.getStringProperty(AUTH_CODE))
                 .authKey(address.getStringProperty(AUTH_KEY))
                 .endpoint(address.getStringProperty(ENDPOINT))

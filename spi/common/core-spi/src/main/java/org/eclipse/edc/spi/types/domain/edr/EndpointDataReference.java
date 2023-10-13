@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -38,26 +37,28 @@ public class EndpointDataReference {
     public static final String EDR_SIMPLE_TYPE = "EDR";
 
     public static final String ID = EDC_NAMESPACE + "id";
+    public static final String CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String AUTH_CODE = EDC_NAMESPACE + "authCode";
     public static final String AUTH_KEY = EDC_NAMESPACE + "authKey";
     public static final String ENDPOINT = EDC_NAMESPACE + "endpoint";
-    private final String id;
-    private final String endpoint;
-    private final String authKey;
-    private final String authCode;
-    private final Map<String, Object> properties;
+    private final Map<String, Object> properties = new HashMap<>();
+    private String id;
+    private String contractId;
+    private String endpoint;
+    private String authKey;
+    private String authCode;
 
-    private EndpointDataReference(String id, String endpoint, String authKey, String authCode, Map<String, Object> properties) {
-        this.id = id;
-        this.endpoint = endpoint;
-        this.authKey = authKey;
-        this.authCode = authCode;
-        this.properties = properties;
+    private EndpointDataReference() {
     }
 
     @NotNull
     public String getId() {
         return id;
+    }
+
+    @NotNull
+    public String getContractId() {
+        return contractId;
     }
 
     @NotNull
@@ -82,13 +83,10 @@ public class EndpointDataReference {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private final Map<String, Object> properties = new HashMap<>();
-        private String id = UUID.randomUUID().toString();
-        private String endpoint;
-        private String authKey;
-        private String authCode;
+        private final EndpointDataReference edr;
 
         private Builder() {
+            edr = new EndpointDataReference();
         }
 
         @JsonCreator
@@ -97,39 +95,51 @@ public class EndpointDataReference {
         }
 
         public EndpointDataReference.Builder id(String id) {
-            this.id = id;
+            edr.id = id;
+            return this;
+        }
+
+        public EndpointDataReference.Builder contractId(String contractId) {
+            edr.contractId = contractId;
             return this;
         }
 
         public EndpointDataReference.Builder endpoint(String address) {
-            this.endpoint = address;
+            edr.endpoint = address;
             return this;
         }
 
         public EndpointDataReference.Builder authKey(String authKey) {
-            this.authKey = authKey;
+            edr.authKey = authKey;
             return this;
         }
 
         public EndpointDataReference.Builder authCode(String authCode) {
-            this.authCode = authCode;
+            edr.authCode = authCode;
+            return this;
+        }
+
+        public EndpointDataReference.Builder property(String key, Object value) {
+            edr.properties.put(key, value);
             return this;
         }
 
         public EndpointDataReference.Builder properties(Map<String, Object> properties) {
-            this.properties.putAll(properties);
+            edr.properties.putAll(properties);
             return this;
         }
 
         public EndpointDataReference build() {
-            Objects.requireNonNull(endpoint, "endpoint");
-            if (authKey != null) {
-                Objects.requireNonNull(authCode, "authCode");
+            Objects.requireNonNull(edr.id, "id");
+            Objects.requireNonNull(edr.contractId, "contractId");
+            Objects.requireNonNull(edr.endpoint, "endpoint");
+            if (edr.authKey != null) {
+                Objects.requireNonNull(edr.authCode, "authCode");
             }
-            if (authCode != null) {
-                Objects.requireNonNull(authKey, "authKey");
+            if (edr.authCode != null) {
+                Objects.requireNonNull(edr.authKey, "authKey");
             }
-            return new EndpointDataReference(id, endpoint, authKey, authCode, properties);
+            return edr;
         }
     }
 }
