@@ -23,7 +23,6 @@ import java.security.KeyPair;
 /**
  * Handles generation of a {@link KeyPair} from the public, private key alias
  */
-
 @ExtensionPoint
 public interface KeyPairFactory {
 
