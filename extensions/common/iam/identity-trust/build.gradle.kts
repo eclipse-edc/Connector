@@ -18,6 +18,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":extensions:common:iam:identity-trust:identity-trust-core"))
+    api(project(":extensions:common:iam:identity-trust:identity-trust-service"))
     api(project(":extensions:common:iam:identity-trust:identity-trust-transform"))
 }
 

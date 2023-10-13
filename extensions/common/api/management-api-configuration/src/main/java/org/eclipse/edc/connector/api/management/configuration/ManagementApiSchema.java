@@ -46,7 +46,7 @@ public interface ManagementApiSchema {
     ) {
         public static final String CONTRACT_AGREEMENT_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractAgreement",
                     "@id": "negotiation-id",
                     "providerId": "provider-id",
@@ -88,7 +88,7 @@ public interface ManagementApiSchema {
     ) {
         public static final String DATA_ADDRESS_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/DataAddress",
                     "type": "HttpData",
                     "baseUrl": "http://example.com"
@@ -137,7 +137,7 @@ public interface ManagementApiSchema {
     ) {
         public static final String CONTRACT_NEGOTIATION_EXAMPLE = """
                 {
-                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractNegotiation",
                     "@id": "negotiation-id",
                     "type": "PROVIDER",

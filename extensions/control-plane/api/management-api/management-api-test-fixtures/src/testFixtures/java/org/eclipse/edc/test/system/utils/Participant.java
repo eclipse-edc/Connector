@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
@@ -343,7 +342,7 @@ public class Participant {
                 .get("/v2/transferprocesses/{id}/state", id)
                 .then()
                 .statusCode(200)
-                .extract().body().jsonPath().getString("'edc:state'");
+                .extract().body().jsonPath().getString("state");
     }
 
     private ContractOfferId extractContractDefinitionId(JsonObject dataset) {
@@ -358,7 +357,7 @@ public class Participant {
                 .get("/v2/contractnegotiations/{id}/state", id)
                 .then()
                 .statusCode(200)
-                .extract().body().jsonPath().getString("'edc:state'");
+                .extract().body().jsonPath().getString("state");
     }
 
 
@@ -385,7 +384,7 @@ public class Participant {
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath()
-                .getString(format("'edc:%s'", fieldName));
+                .getString(fieldName);
     }
 
     /**

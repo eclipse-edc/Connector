@@ -51,6 +51,8 @@ import static org.eclipse.edc.connector.api.management.contractnegotiation.model
 import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.is;
@@ -255,8 +257,9 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     @Test
     void getSingleContractNegotiationState() {
         var compacted = createObjectBuilder()
+                .add(VOCAB, EDC_NAMESPACE)
                 .add(TYPE, NEGOTIATION_STATE_TYPE)
-                .add("edc:state", "REQUESTED")
+                .add("state", "REQUESTED")
                 .build();
 
         when(service.getState(eq("cn1"))).thenReturn("REQUESTED");
@@ -268,7 +271,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("'edc:state'", is("REQUESTED"));
+                .body("state", is("REQUESTED"));
         verify(service).getState(eq("cn1"));
         verify(transformerRegistry).transform(any(NegotiationState.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);

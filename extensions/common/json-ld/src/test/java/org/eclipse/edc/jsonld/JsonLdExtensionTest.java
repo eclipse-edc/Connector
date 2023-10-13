@@ -17,9 +17,7 @@ package org.eclipse.edc.jsonld;
 import com.apicatalog.jsonld.loader.DocumentLoader;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -29,30 +27,25 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.util.reflection.ReflectionUtil.getFieldValue;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class JsonLdExtensionTest {
 
     @Test
-    void createService(ServiceExtensionContext context, ObjectFactory factory) {
-        var extension = factory.constructInstance(JsonLdExtension.class);
-
+    void createService(ServiceExtensionContext context, JsonLdExtension extension) {
         var service = extension.createJsonLdService(context);
 
         assertThat(service).isNotNull();
     }
 
     @Test
-    void verifyCachedDocsFromConfig_oneValidEntry(ServiceExtensionContext context, ObjectFactory factory) throws URISyntaxException {
-        Config config = ConfigFactory.fromMap(Map.of(
+    void verifyCachedDocsFromConfig_oneValidEntry(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+        var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json")
         );
-        context = spy(context);
         when(context.getConfig()).thenReturn(config);
-        var extension = factory.constructInstance(JsonLdExtension.class);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
@@ -62,15 +55,13 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_oneValidEntry_withSuperfluous(ServiceExtensionContext context, ObjectFactory factory) throws URISyntaxException {
-        Config config = ConfigFactory.fromMap(Map.of(
+    void verifyCachedDocsFromConfig_oneValidEntry_withSuperfluous(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+        var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.invalid", "should be ignored",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json")
         );
-        context = spy(context);
         when(context.getConfig()).thenReturn(config);
-        var extension = factory.constructInstance(JsonLdExtension.class);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
@@ -80,16 +71,14 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_multipleValidEntries(ServiceExtensionContext context, ObjectFactory factory) throws URISyntaxException {
-        Config config = ConfigFactory.fromMap(Map.of(
+    void verifyCachedDocsFromConfig_multipleValidEntries(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+        var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json",
                 "edc.jsonld.document.bar.url", "http://bar.org/doc.json",
                 "edc.jsonld.document.bar.path", "/tmp/bar/doc.json"
         ));
-        context = spy(context);
         when(context.getConfig()).thenReturn(config);
-        var extension = factory.constructInstance(JsonLdExtension.class);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
@@ -100,15 +89,13 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_multipleEntries_oneIncomplete(ServiceExtensionContext context, ObjectFactory factory) throws URISyntaxException {
-        Config config = ConfigFactory.fromMap(Map.of(
+    void verifyCachedDocsFromConfig_multipleEntries_oneIncomplete(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+        var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json",
                 "edc.jsonld.document.bar.url", "http://bar.org/doc.json"
         ));
-        context = spy(context);
         when(context.getConfig()).thenReturn(config);
-        var extension = factory.constructInstance(JsonLdExtension.class);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
@@ -120,15 +107,13 @@ class JsonLdExtensionTest {
     }
 
     @Test
-    void verifyCachedDocsFromConfig_multipleEntries_oneInvalid(ServiceExtensionContext context, ObjectFactory factory) throws URISyntaxException {
-        Config config = ConfigFactory.fromMap(Map.of(
+    void verifyCachedDocsFromConfig_multipleEntries_oneInvalid(ServiceExtensionContext context, JsonLdExtension extension) throws URISyntaxException {
+        var config = ConfigFactory.fromMap(Map.of(
                 "edc.jsonld.document.foo.url", "http://foo.org/doc.json",
                 "edc.jsonld.document.foo.path", "/tmp/foo/doc.json",
                 "edc.jsonld.document.bar.invalid", "http://bar.org/doc.json"
         ));
-        context = spy(context);
         when(context.getConfig()).thenReturn(config);
-        var extension = factory.constructInstance(JsonLdExtension.class);
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);

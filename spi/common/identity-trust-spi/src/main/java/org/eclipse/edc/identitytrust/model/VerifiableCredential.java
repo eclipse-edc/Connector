@@ -96,7 +96,7 @@ public class VerifiableCredential {
             return new Builder();
         }
 
-        public Builder credentialSubject(List<CredentialSubject> credentialSubject) {
+        public Builder credentialSubjects(List<CredentialSubject> credentialSubject) {
             this.instance.credentialSubject = credentialSubject;
             return this;
         }

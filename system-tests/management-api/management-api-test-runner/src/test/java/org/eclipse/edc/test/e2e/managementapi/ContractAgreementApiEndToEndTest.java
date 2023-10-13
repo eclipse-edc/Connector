@@ -51,8 +51,8 @@ public class ContractAgreementApiEndToEndTest extends BaseManagementApiEndToEndT
                 .body("size()", is(2))
                 .extract().jsonPath();
 
-        assertThat(jsonPath.getString("[0]['edc:assetId']")).isNotNull();
-        assertThat(jsonPath.getString("[1]['edc:assetId']")).isNotNull();
+        assertThat(jsonPath.getString("[0].assetId")).isNotNull();
+        assertThat(jsonPath.getString("[1].assetId")).isNotNull();
         assertThat(jsonPath.getString("[0].@id")).isIn("cn1", "cn2");
         assertThat(jsonPath.getString("[1].@id")).isIn("cn1", "cn2");
     }
@@ -71,7 +71,7 @@ public class ContractAgreementApiEndToEndTest extends BaseManagementApiEndToEndT
                 .extract().jsonPath();
 
         assertThat(json.getString("@id")).isEqualTo("cn1");
-        assertThat(json.getString("'edc:assetId'")).isNotNull();
+        assertThat(json.getString("assetId")).isNotNull();
     }
 
     @Test

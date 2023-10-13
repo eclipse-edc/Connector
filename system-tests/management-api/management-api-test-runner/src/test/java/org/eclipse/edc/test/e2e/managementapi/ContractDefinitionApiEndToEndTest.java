@@ -55,7 +55,7 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .body("size()", greaterThan(0))
                 .extract().body().as(JsonArray.class);
 
-        var criteria = body.getJsonObject(0).getJsonArray("edc:assetsSelector");
+        var criteria = body.getJsonObject(0).getJsonArray("assetsSelector");
         assertThat(criteria).hasSize(2);
     }
 
