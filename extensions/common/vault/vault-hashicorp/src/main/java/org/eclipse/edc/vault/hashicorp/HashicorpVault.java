@@ -42,9 +42,10 @@ public class HashicorpVault implements Vault {
 
         if (result.failed()) {
             monitor.warning("Failed to resolve secret '%s': %s".formatted(key, result.getFailureMessages()));
-        }
-
-        return result.succeeded() ? result.getContent() : null;
+            return null;
+        } 
+        
+        return result.getContent();
     }
 
     @Override
