@@ -41,7 +41,7 @@ public class HashicorpVault implements Vault {
         var result = hashicorpVaultClient.getSecretValue(key);
 
         if (result.failed()) {
-            monitor.warning("Failed to resolve secret '%s': %s".formatted(key, result.getFailureMessages()));
+            monitor.debug("Failed to resolve secret '%s': %s".formatted(key, result.getFailureMessages()));
             return null;
         } 
         
