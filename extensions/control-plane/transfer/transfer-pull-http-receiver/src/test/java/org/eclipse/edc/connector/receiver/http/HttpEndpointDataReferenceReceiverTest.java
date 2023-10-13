@@ -124,7 +124,9 @@ public class HttpEndpointDataReferenceReceiverTest {
                 .endpoint("some.endpoint.url")
                 .authKey("test-authkey")
                 .authCode(UUID.randomUUID().toString())
-                .id(UUID.randomUUID().toString()).build();
+                .id(UUID.randomUUID().toString())
+                .contractId("contractId")
+                .build();
     }
 
     private String receiverUrl() {

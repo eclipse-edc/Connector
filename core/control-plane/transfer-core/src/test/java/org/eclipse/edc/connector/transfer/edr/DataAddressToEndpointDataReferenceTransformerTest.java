@@ -40,6 +40,7 @@ class DataAddressToEndpointDataReferenceTransformerTest {
                 .property(EndpointDataReference.AUTH_KEY, "test-authkey")
                 .property(EndpointDataReference.AUTH_CODE, UUID.randomUUID().toString())
                 .property(EndpointDataReference.ID, UUID.randomUUID().toString())
+                .property(EndpointDataReference.CONTRACT_ID, UUID.randomUUID().toString())
                 .build();
 
         var edr = transformer.transform(address, context);
@@ -52,6 +53,7 @@ class DataAddressToEndpointDataReferenceTransformerTest {
                         .authKey(address.getStringProperty(EndpointDataReference.AUTH_KEY))
                         .authCode(address.getStringProperty(EndpointDataReference.AUTH_CODE))
                         .id(address.getStringProperty(EndpointDataReference.ID))
+                        .contractId(address.getStringProperty(EndpointDataReference.CONTRACT_ID))
                         .build());
     }
 

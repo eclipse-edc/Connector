@@ -58,6 +58,7 @@ public class ConsumerPullDataPlaneProxyResolver {
                         .map(token -> DataAddress.Builder.newInstance()
                                 .type(EndpointDataReference.EDR_SIMPLE_TYPE)
                                 .property(EndpointDataReference.ID, request.getId())
+                                .property(EndpointDataReference.CONTRACT_ID, request.getContractId())
                                 .property(EndpointDataReference.ENDPOINT, proxyUrl)
                                 .property(EndpointDataReference.AUTH_KEY, HttpHeaders.AUTHORIZATION)
                                 .property(EndpointDataReference.AUTH_CODE, token)
