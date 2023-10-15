@@ -39,12 +39,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toMap;
 
 public class SqlContractDefinitionStore extends AbstractSqlStore implements ContractDefinitionStore {
@@ -235,7 +233,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
             var contractDefinitionPrivateProperties = privatePropertiesStream.collect(toMap(SqlPropertyWrapper::getPropertyKey,
                     SqlPropertyWrapper::getPropertyValue));
-            
+
             return ContractDefinition.Builder.newInstance()
                         .id(contractDefinition.getId())
                         .createdAt(contractDefinition.getCreatedAt())
