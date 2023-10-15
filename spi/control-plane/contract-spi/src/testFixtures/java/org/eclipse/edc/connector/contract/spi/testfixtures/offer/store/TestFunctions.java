@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - SAP SE - add private properties to contract definition
  *
  */
 
@@ -17,6 +18,7 @@ package org.eclipse.edc.connector.contract.spi.testfixtures.offer.store;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -34,6 +36,15 @@ public class TestFunctions {
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
+                .build();
+    }
+
+    public static ContractDefinition createContractDefinition(String id, String accessPolicyId, String contractPolicyId, Map<String, Object> privateProperties) {
+        return ContractDefinition.Builder.newInstance()
+                .id(id)
+                .accessPolicyId(accessPolicyId)
+                .contractPolicyId(contractPolicyId)
+                .privateProperties(privateProperties)
                 .build();
     }
 

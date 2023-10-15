@@ -32,14 +32,12 @@ class ContractDefinitionTest {
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
         ObjectMapper mapper = new TypeManager().getMapper();
-        Map<String, Object> privateProperties = new HashMap<>();
-        privateProperties.put("key1", "value1");
         var definition = ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .assetsSelectorCriterion(criterion("field", "=", "value"))
-                .privateProperties(privateProperties)
+                .privateProperties(Map.of("key1", "value2"))
                 .build();
 
         var serialized = mapper.writeValueAsString(definition);
