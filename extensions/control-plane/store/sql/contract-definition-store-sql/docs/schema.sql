@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS edc_contract_definition_property
     property_name  VARCHAR(255) NOT NULL,
     property_value TEXT         NOT NULL,
     property_type  VARCHAR(255) NOT NULL,
-    property_is_private BOOLEAN,
     PRIMARY KEY (contract_definition_id_fk, property_name),
     FOREIGN KEY (contract_definition_id_fk) REFERENCES edc_contract_definitions (contract_definition_id) ON DELETE CASCADE
 );
@@ -49,5 +48,3 @@ COMMENT ON COLUMN edc_contract_definition_property.property_value IS
     'Contract definition property value';
 COMMENT ON COLUMN edc_contract_definition_property.property_type IS
     'Contract definition property class name';
-COMMENT ON COLUMN edc_contract_definition_property.property_is_private IS
-    'Contract definition property private flag';

@@ -67,9 +67,6 @@ public interface ContractDefinitionStatements extends SqlStatements {
         return "property_type";
     }
 
-    default String getContractDefinitionPropertyIsPrivateColumn() {
-        return "property_is_private";
-    }
 
     default String getPropertyContractDefinitionIdFkColumn() {
         return "contract_definition_id_fk";

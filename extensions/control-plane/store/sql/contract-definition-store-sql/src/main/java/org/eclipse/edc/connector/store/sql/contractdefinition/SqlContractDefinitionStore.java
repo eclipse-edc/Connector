@@ -175,8 +175,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                     definition.getId(),
                     privateProperty.getKey(),
                     toJson(privateProperty.getValue()),
-                    privateProperty.getValue().getClass().getName(),
-                    true);
+                    privateProperty.getValue().getClass().getName());
         }
     }
 
@@ -218,26 +217,25 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
         var name = resultSet.getString(statements.getContractDefinitionPropertyNameColumn());
         var value = resultSet.getString(statements.getContractDefinitionPropertyValueColumn());
         var type = resultSet.getString(statements.getContractDefinitionPropertyTypeColumn());
-        var isPrivate = resultSet.getBoolean(statements.getContractDefinitionPropertyIsPrivateColumn());
-        return new SqlPropertyWrapper(isPrivate, new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type)));
+        return new SqlPropertyWrapper(new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type)));
     }
 
     private ContractDefinition findById(Connection connection, String id) {
         return transactionContext.execute(() -> {
+            if (!existsById(connection, id)) {
+                return null;
+            }
             var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("id", "=", id))).build();
             var queryStatement = statements.createQuery(query);
 
-            var contractDefinitionStream = queryExecutor.query(connection, false,
+            var contractDefinition = queryExecutor.single(connection, false,
                             this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
-            var allPropertiesStream = queryExecutor.query(connection, false,
+            var privatePropertiesStream = queryExecutor.query(connection, false,
                             this::mapProperties, statements.getFindPropertyByIdTemplate(), id);
 
-            Map<Boolean, List<SqlPropertyWrapper>> groupedProperties =
-                        allPropertiesStream.collect(partitioningBy(SqlPropertyWrapper::isPrivate));
-            var contractDefinitionPrivateProperties = groupedProperties.get(true).stream().collect(
-                        toMap(SqlPropertyWrapper::getPropertyKey, SqlPropertyWrapper::getPropertyValue));
-
-            var contractDefinition = contractDefinitionStream.findFirst().orElse(null);
+            var contractDefinitionPrivateProperties = privatePropertiesStream.collect(toMap(SqlPropertyWrapper::getPropertyKey,
+                    SqlPropertyWrapper::getPropertyValue));
+            
             return ContractDefinition.Builder.newInstance()
                         .id(contractDefinition.getId())
                         .createdAt(contractDefinition.getCreatedAt())
@@ -250,16 +248,10 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     }
 
     private static class SqlPropertyWrapper {
-        private final boolean isPrivate;
         private final AbstractMap.SimpleImmutableEntry<String, Object> property;
 
-        protected SqlPropertyWrapper(boolean isPrivate, AbstractMap.SimpleImmutableEntry<String, Object> kvSimpleImmutableEntry) {
-            this.isPrivate = isPrivate;
+        protected SqlPropertyWrapper(AbstractMap.SimpleImmutableEntry<String, Object> kvSimpleImmutableEntry) {
             this.property = kvSimpleImmutableEntry;
-        }
-
-        protected boolean isPrivate() {
-            return isPrivate;
         }
 
         protected String getPropertyKey() {

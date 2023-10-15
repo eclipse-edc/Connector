@@ -56,7 +56,6 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .column(getContractDefinitionPropertyNameColumn())
                 .column(getContractDefinitionPropertyValueColumn())
                 .column(getContractDefinitionPropertyTypeColumn())
-                .column(getContractDefinitionPropertyIsPrivateColumn())
                 .insertInto(getContractDefinitionPropertyTable());
     }
 
