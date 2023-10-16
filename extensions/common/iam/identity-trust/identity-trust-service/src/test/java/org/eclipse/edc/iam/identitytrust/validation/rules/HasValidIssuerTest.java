@@ -63,14 +63,4 @@ class HasValidIssuerTest {
         assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
                 .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of trusted issuers");
     }
-
-    @DisplayName("Issuer (object) does not have an 'id' property")
-    @Test
-    void issuerIsObject_noIdField() {
-        var vc = createCredentialBuilder()
-                .issuer(new Issuer(null, Map.of("name", "test issuer company")))
-                .build();
-        assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer did not contain an 'id' field.");
-    }
 }
