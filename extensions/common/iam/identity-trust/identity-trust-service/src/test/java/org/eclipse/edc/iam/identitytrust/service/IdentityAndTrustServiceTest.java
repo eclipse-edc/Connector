@@ -49,7 +49,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -144,7 +143,7 @@ class IdentityAndTrustServiceTest {
 
         @Test
         void cryptographicError() {
-            when(mockedVerifier.verifyPresentation(anyString(), any(CredentialFormat.class))).thenReturn(Result.failure("Cryptographic error"));
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(Result.failure("Cryptographic error"));
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(createPresentationContainer()));
             var token = createJwt();
             var result = service.verifyJwtToken(token, "test-audience");
@@ -163,7 +162,7 @@ class IdentityAndTrustServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
-            when(mockedVerifier.verifyPresentation(anyString(), any(CredentialFormat.class))).thenReturn(success());
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");
@@ -188,7 +187,7 @@ class IdentityAndTrustServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
-            when(mockedVerifier.verifyPresentation(anyString(), any(CredentialFormat.class))).thenReturn(success());
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
             var token = createJwt(consumerDid, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");

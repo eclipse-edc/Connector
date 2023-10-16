@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.verification;
 
+import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.spi.result.Result;
 
 /**
@@ -21,11 +22,11 @@ import org.eclipse.edc.spi.result.Result;
  */
 class JwtPresentationVerifier {
     /**
-     * Computes the cryptographic integrity of a VerifiablePresentation
+     * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT
      *
-     * @param rawVp The base64-encoded JWT string
+     * @param container The base64-encoded JWT string
      */
-    public Result<Void> verifyPresentation(String rawVp) {
+    public Result<Void> verifyPresentation(VerifiablePresentationContainer container) {
         throw new UnsupportedOperationException("not yet implemented!");
     }
 }

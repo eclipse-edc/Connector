@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.verification;
 
-import org.eclipse.edc.identitytrust.model.CredentialFormat;
+import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.spi.result.Result;
 
@@ -23,10 +23,10 @@ public class MultiFormatPresentationVerifier implements PresentationVerifier {
     private final JsonLdPresentationVerifier jsonLdVerifier = new JsonLdPresentationVerifier();
 
     @Override
-    public Result<Void> verifyPresentation(String rawVp, CredentialFormat format) {
-        return switch (format) {
-            case JSON_LD -> jsonLdVerifier.verifyPresentation(rawVp);
-            case JWT -> jwtVerifier.verifyPresentation(rawVp);
+    public Result<Void> verifyPresentation(VerifiablePresentationContainer container) {
+        return switch (container.format()) {
+            case JSON_LD -> jsonLdVerifier.verifyPresentation(container);
+            case JWT -> jwtVerifier.verifyPresentation(container);
         };
     }
 
