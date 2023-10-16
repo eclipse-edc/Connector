@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.spi.pipeline;
 
-import java.util.stream.Stream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.stream.Stream;
 
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
