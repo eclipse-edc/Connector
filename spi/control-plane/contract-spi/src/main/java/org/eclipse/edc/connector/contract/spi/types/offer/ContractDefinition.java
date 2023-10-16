@@ -19,10 +19,16 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+
+
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -69,6 +75,7 @@ public class ContractDefinition extends Entity {
     public List<Criterion> getAssetsSelector() {
         return assetsSelector;
     }
+
     @NotNull
     public Map<String, Object> getPrivateProperties() {
         return privateProperties;
