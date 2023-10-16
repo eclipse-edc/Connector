@@ -32,6 +32,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension("Identity And Trust Extension")
 public class IdentityAndTrustExtension implements ServiceExtension {
@@ -54,6 +57,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private TrustedIssuerRegistry registry;
 
+    @Inject
+    private TypeManager typeManager;
+
     private JwtValidator jwtValidator;
     private JwtVerifier jwtVerifier;
 
@@ -72,8 +78,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     }
 
     @Provider
-    public PresentationVerifier createPresentationVerifier() {
-        return new MultiFormatPresentationVerifier();
+    public PresentationVerifier createPresentationVerifier(ServiceExtensionContext context) {
+        return new MultiFormatPresentationVerifier(jwtVerifier, getOwnDid(context), typeManager.getMapper(JSON_LD));
+    }
+
+    private String getOwnDid(ServiceExtensionContext context) {
+        // todo: this must be config value
+        return null;
     }
 
     @Provider

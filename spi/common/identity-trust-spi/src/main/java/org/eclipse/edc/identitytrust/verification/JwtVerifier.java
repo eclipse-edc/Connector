@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.identitytrust.verification;
 
-import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 
 /**
@@ -23,5 +22,5 @@ import org.eclipse.edc.spi.result.Result;
  * @see org.eclipse.edc.identitytrust.validation.JwtValidator structural validation
  */
 public interface JwtVerifier {
-    Result<Void> verify(TokenRepresentation tokenRepresentation, String audience);
+    Result<Void> verify(String serializedJwt, String audience);
 }

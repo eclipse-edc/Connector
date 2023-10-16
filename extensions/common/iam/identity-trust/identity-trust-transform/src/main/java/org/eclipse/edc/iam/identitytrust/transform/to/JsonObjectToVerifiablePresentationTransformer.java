@@ -52,7 +52,7 @@ public class JsonObjectToVerifiablePresentationTransformer extends AbstractJsonL
     }
 
     /**
-     * Credentials appear to be defined as "@graph", so thats what they're expanded to.
+     * Credentials appear to be defined as "@graph", so that's what they're expanded to.
      */
     private void transformCredential(JsonValue jsonValue, VerifiablePresentation.Builder vpBuilder, TransformerContext context) {
         if (jsonValue instanceof JsonArray) {

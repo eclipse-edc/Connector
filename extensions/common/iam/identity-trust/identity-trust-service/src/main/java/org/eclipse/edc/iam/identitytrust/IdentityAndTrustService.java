@@ -110,7 +110,7 @@ public class IdentityAndTrustService implements IdentityService {
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
 
         // verify and validate incoming SI Token
-        var issuerResult = jwtVerifier.verify(tokenRepresentation, audience)
+        var issuerResult = jwtVerifier.verify(tokenRepresentation.getToken(), audience)
                 .compose(v -> jwtValidator.validateToken(tokenRepresentation, audience))
                 .compose(claimToken -> success(claimToken.getStringClaim("iss")));
 
