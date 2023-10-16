@@ -26,7 +26,27 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Verifies VerifiablePresentations, which are present in JWT format. Only the cryptographic integrity is asserted
+ * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT.
+ * In order to be successfully verified, a VP-JWT must contain a "vp" claim, that contains a JSON structure containing a
+ * "verifiableCredentials" object.
+ * This object contains an array of strings, each representing one VerifiableCredential, represented in JWT format.
+ * <p><br/>
+ * Both VP-JWTs and VC-JWTs must fulfill the following requirements:
+ *
+ * <ul>
+ *     <li>contain a JWS, that can be verified using the issuer's public key</li>
+ *     <li>have in its header a key-id ("kid"), which references the public key in the DID document of the VP-issuer</li>
+ *     <li>contain the following claims:
+ *     <ul>
+ *         <li>aud: must be equal to this connector's DID</li>
+ *         <li>sub: only presence is asserted</li>
+ *         <li>iss: is used to resolve the DID, that contains the key-id</li>
+ *     </ul>
+ *     <li>A VP is only verified, if it and all VCs it contains are verified</li>
+ *     </li>
+ * </ul>
+ *
+ * <em>Note: VP-JWTs may only contain VCs also represented in JWT format. Mixing formats is not allowed.</em>
  */
 class JwtPresentationVerifier {
     public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
@@ -47,10 +67,12 @@ class JwtPresentationVerifier {
         this.objectMapper = objectMapper;
     }
 
+
     /**
-     * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT
+     * Verifies the presentation by checking the cryptographic integrity as well as the presence of mandatory claims in the JWT.
      *
-     * @param serializedJwt The base64-encoded JWT string
+     * @param serializedJwt The serialized JWT presentation to be verified.
+     * @return A Result object representing the verification result, containing specific error messages in case of failure.
      */
     public Result<Void> verifyPresentation(String serializedJwt) {
 

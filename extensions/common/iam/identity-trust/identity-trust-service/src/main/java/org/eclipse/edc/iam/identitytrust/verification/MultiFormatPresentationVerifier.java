@@ -31,13 +31,11 @@ public class MultiFormatPresentationVerifier implements PresentationVerifier {
 
     @Override
     public Result<Void> verifyPresentation(VerifiablePresentationContainer container) {
-        var vpResult = switch (container.format()) {
+
+        return switch (container.format()) {
             case JSON_LD -> jsonLdVerifier.verifyPresentation(container.rawVp());
             case JWT -> jwtPresentationVerifier.verifyPresentation(container.rawVp());
         };
-
-
-        return vpResult;
     }
 
 }
