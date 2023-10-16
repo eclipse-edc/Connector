@@ -19,6 +19,8 @@ import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsRevoked;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
@@ -61,6 +63,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final CredentialServiceClient credentialServiceClient;
     private final JwtValidator jwtValidator;
     private final JwtVerifier jwtVerifier;
+    private final TrustedIssuerRegistry trustedIssuerRegistry;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -70,7 +73,7 @@ public class IdentityAndTrustService implements IdentityService {
      */
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
-                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier) {
+                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier, TrustedIssuerRegistry trustedIssuerRegistry) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.participantId = participantId;
@@ -78,6 +81,7 @@ public class IdentityAndTrustService implements IdentityService {
         this.credentialServiceClient = credentialServiceClient;
         this.jwtValidator = jwtValidator;
         this.jwtVerifier = jwtVerifier;
+        this.trustedIssuerRegistry = trustedIssuerRegistry;
     }
 
     @Override
@@ -88,7 +92,7 @@ public class IdentityAndTrustService implements IdentityService {
         if (scopeValidationResult.failed()) {
             return failure(scopeValidationResult.getFailureMessages());
         }
-        
+
         // create claims for the STS
         var claims = new HashMap<String, String>();
         parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
@@ -131,7 +135,7 @@ public class IdentityAndTrustService implements IdentityService {
                     var filters = new ArrayList<>(List.of(
                             new HasValidSubjectIds(issuerResult.getContent()),
                             new IsRevoked(null),
-                            new HasValidIssuer(getAllowedIssuers())));
+                            new HasValidIssuer(getTrustedIssuerIds())));
 
                     filters.addAll(getAdditionalValidations());
                     var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
@@ -152,8 +156,8 @@ public class IdentityAndTrustService implements IdentityService {
         return List.of();
     }
 
-    private List<String> getAllowedIssuers() {
-        return List.of();
+    private List<String> getTrustedIssuerIds() {
+        return trustedIssuerRegistry.getTrustedIssuers().stream().map(Issuer::id).toList();
     }
 
     private Result<Void> validateScope(String scope) {

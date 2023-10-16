@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.identitytrust.model.CredentialStatus;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.Map;
 
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.Builder;
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY;
@@ -84,7 +86,21 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
         return Instant.parse(str);
     }
 
-    private Object parseIssuer(JsonValue jsonValue, TransformerContext context) {
-        return transformString(jsonValue, context); //todo: handle the case where the issuer is an object
+    private Issuer parseIssuer(JsonValue jsonValue, TransformerContext context) {
+        if (jsonValue.getValueType() == JsonValue.ValueType.STRING) {
+            return new Issuer(transformString(jsonValue, context), Map.of());
+        } else {
+            // issuers can be objects, that MUST contain an ID, and optional other properties
+            // an issuer is never an array with >1 elements
+            JsonObject issuer;
+            if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
+                issuer = jsonValue.asJsonArray().get(0).asJsonObject();
+            } else if (jsonValue.getValueType() == JsonValue.ValueType.OBJECT) {
+                issuer = jsonValue.asJsonObject();
+            } else {
+                throw new IllegalArgumentException("Unknown issuer type, expected ARRAY or OBJECT, was %s".formatted(jsonValue.getValueType()));
+            }
+            return transformObject(issuer, Issuer.class, context);
+        }
     }
 }

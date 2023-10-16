@@ -48,6 +48,7 @@ class JsonObjectToVerifiablePresentationTransformerTest {
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
         registry.register(new JsonObjectToVerifiableCredentialTransformer());
+        registry.register(new JsonObjectToIssuerTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(OBJECT_MAPPER));
         registry.register(transformer);
 

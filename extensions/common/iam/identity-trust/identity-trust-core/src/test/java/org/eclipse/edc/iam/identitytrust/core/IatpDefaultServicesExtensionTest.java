@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,5 +93,14 @@ class IatpDefaultServicesExtensionTest {
         verify(mockedMonitor).info(anyString());
         verify(mockedMonitor).warning(anyString());
         verify(keyPairFactory, times(1)).defaultKeyPair();
+    }
+
+    @Test
+    void verify_defaultIssuerRegistry(ServiceExtensionContext context, ObjectFactory factory) {
+        Monitor mockedMonitor = mock();
+        context.registerService(Monitor.class, mockedMonitor);
+        var ext = factory.constructInstance(IatpDefaultServicesExtension.class);
+
+        assertThat(ext.createInMemoryIssuerRegistry()).isInstanceOf(DefaultTrustedIssuerRegistry.class);
     }
 }

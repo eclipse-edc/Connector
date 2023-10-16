@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.validation.rules;
 
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,7 @@ class HasValidIssuerTest {
     @Test
     void hasValidIssuer_string() {
         var vc = createCredentialBuilder()
-                .issuer("did:web:issuer2")
+                .issuer(new Issuer("did:web:issuer2", Map.of()))
                 .build();
         assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isSucceeded();
     }
@@ -38,7 +39,7 @@ class HasValidIssuerTest {
     @Test
     void hasValidIssuer_object() {
         var vc = createCredentialBuilder()
-                .issuer(Map.of("id", "did:web:issuer1", "name", "test issuer company"))
+                .issuer(new Issuer("did:web:issuer1", Map.of("name", "test issuer company")))
                 .build();
         assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isSucceeded();
     }
@@ -47,39 +48,19 @@ class HasValidIssuerTest {
     @Test
     void invalidIssuer_string() {
         var vc = createCredentialBuilder()
-                .issuer("did:web:invalid")
+                .issuer(new Issuer("did:web:invalid", Map.of()))
                 .build();
         assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of allowed issuers");
+                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of trusted issuers");
     }
 
     @DisplayName("Issuer (object) is not in the list of valid issuers")
     @Test
     void invalidIssuer_object() {
         var vc = createCredentialBuilder()
-                .issuer(Map.of("id", "did:web:invalid", "name", "test issuer company"))
+                .issuer(new Issuer("did:web:invalid", Map.of("id", "did:web:invalid", "name", "test issuer company")))
                 .build();
         assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of allowed issuers");
-    }
-
-    @DisplayName("Issuer (object) does not have an 'id' property")
-    @Test
-    void issuerIsObject_noIdField() {
-        var vc = createCredentialBuilder()
-                .issuer(Map.of("name", "test issuer company"))
-                .build();
-        assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("Issuer was an object, but did not contain an 'id' field");
-    }
-
-    @DisplayName("Issuer neither a string nor an object")
-    @Test
-    void issuerIsInvalidType() {
-        var vc = createCredentialBuilder()
-                .issuer(43L)
-                .build();
-        assertThat(new HasValidIssuer(List.of("did:web:issuer1", "did:web:issuer2")).apply(vc)).isFailed()
-                .detail().isEqualTo("VC Issuer must either be a String or an Object but was class java.lang.Long.");
+                .detail().isEqualTo("Issuer 'did:web:invalid' is not in the list of trusted issuers");
     }
 }

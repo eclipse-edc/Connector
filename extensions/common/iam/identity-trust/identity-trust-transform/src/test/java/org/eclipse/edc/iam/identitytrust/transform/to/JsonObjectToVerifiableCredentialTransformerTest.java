@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.core.transform.TransformerContextImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -31,6 +32,7 @@ import java.net.URISyntaxException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_JSONLD;
+import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VC_JSONLD_ISSUER_IS_URL;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -50,6 +52,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(OBJECT_MAPPER));
+        registry.register(new JsonObjectToIssuerTransformer());
         registry.register(transformer);
 
         context = spy(new TransformerContextImpl(registry));
@@ -68,7 +71,23 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         assertThat(vc.getDescription()).isNotNull();
         assertThat(vc.getName()).isNotNull();
         assertThat(vc.getCredentialStatus()).isNotNull();
+        assertThat(vc.getIssuer()).isNotNull().extracting(Issuer::id).isEqualTo("https://university.example/issuers/565049");
         verify(context, never()).reportProblem(anyString());
+    }
 
+    @Test
+    void transform_issuerIsUrl() throws JsonProcessingException {
+
+        var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD_ISSUER_IS_URL, JsonObject.class);
+        var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+
+        assertThat(vc).isNotNull();
+        assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
+        assertThat(vc.getTypes()).hasSize(2);
+        assertThat(vc.getDescription()).isNotNull();
+        assertThat(vc.getName()).isNotNull();
+        assertThat(vc.getCredentialStatus()).isNotNull();
+        assertThat(vc.getIssuer()).isNotNull().extracting(Issuer::id).isEqualTo("https://university.example/issuers/565049");
+        verify(context, never()).reportProblem(anyString());
     }
 }
