@@ -15,6 +15,10 @@
 package org.eclipse.edc.identitytrust.model;
 
 import java.util.Map;
+import java.util.Objects;
 
 public record Issuer(String id, Map<String, Object> additionalProperties) {
+    public Issuer {
+        Objects.requireNonNull(id, "Issuer must be a URL or have an id!");
+    }
 }

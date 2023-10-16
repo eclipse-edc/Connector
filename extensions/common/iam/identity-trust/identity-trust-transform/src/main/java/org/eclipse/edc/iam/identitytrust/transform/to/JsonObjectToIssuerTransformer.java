@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.identitytrust.model.Issuer;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +34,10 @@ public class JsonObjectToIssuerTransformer extends AbstractJsonLdTransformer<Jso
         var id = nodeId(jsonObject);
         var props = new HashMap<String, Object>();
         visitProperties(jsonObject, (key, jsonValue) -> {
-            var res = transformGenericProperty(jsonValue, context);
-            props.put(key, res);
+            if (!JsonLdKeywords.ID.equals(key)) {
+                var res = transformGenericProperty(jsonValue, context);
+                props.put(key, res);
+            }
         });
         return new Issuer(id, props);
     }

@@ -48,6 +48,34 @@ public interface TestData {
               }
             }
             """;
+    String EXAMPLE_VC_JSONLD_ISSUER_IS_URL = """
+            {
+              "@context": [
+                "https://www.w3.org/2018/credentials/v2"
+              ],
+              "id": "http://university.example/credentials/3732",
+              "type": ["VerifiableCredential", "ExampleDegreeCredential"],
+              "issuer": "https://university.example/issuers/565049",
+              "validFrom": "2015-05-10T12:30:00Z",
+              "validUntil":"2023-05-12T23:00:00Z",
+              "name": "Example University Degree",
+              "description": "2015 Bachelor of Science and Arts Degree",
+              "credentialSubject": {
+                "id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
+                "degree": {
+                  "degreetype": "ExampleBachelorDegree",
+                  "subtype": "Bachelor of Science and Arts"
+                }
+              },
+              "credentialStatus": {
+                  "id": "https://university.example/credentials/status/3#94567",
+                  "type": "StatusList2021Entry",
+                  "statusPurpose": "revocation",
+                  "statusListIndex": "94567",
+                  "statusListCredential": "https://university.example/credentials/status/3"
+              }
+            }
+            """;
     String EXAMPLE_VP_JSONLD = """
             {
               "@context": [
