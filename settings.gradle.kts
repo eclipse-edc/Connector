@@ -115,6 +115,7 @@ include(":extensions:common:iam:identity-trust:identity-trust-transform")
 include(":extensions:common:iam:identity-trust:identity-trust-service")
 include(":extensions:common:iam:identity-trust:identity-trust-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts-embedded")
+include(":extensions:common:iam:identity-trust:identity-trust-sts-api")
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
 include(":extensions:common:monitor:monitor-jdk-logger")
@@ -226,4 +227,3 @@ include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")
-
