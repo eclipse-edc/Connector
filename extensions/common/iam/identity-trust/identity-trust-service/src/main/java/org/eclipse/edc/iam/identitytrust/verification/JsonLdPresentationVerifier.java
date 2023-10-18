@@ -24,9 +24,9 @@ class JsonLdPresentationVerifier {
     /**
      * Computes the cryptographic integrity of a VerifiablePresentation
      *
-     * @param rawVp The unaltered JSON-LD string, as it was received from the holder.
+     * @param rawPresentation The unaltered JSON-LD string, as it was received from the holder.
      */
-    public Result<Void> verifyPresentation(String rawVp) {
+    public Result<Void> verifyPresentation(String rawPresentation) {
         throw new UnsupportedOperationException("not yet implemented!");
     }
 }

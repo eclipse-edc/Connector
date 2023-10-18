@@ -110,7 +110,7 @@ public class IdentityAndTrustService implements IdentityService {
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
 
         // verify and validate incoming SI Token
-        var issuerResult = jwtVerifier.verify(tokenRepresentation, audience)
+        var issuerResult = jwtVerifier.verify(tokenRepresentation.getToken(), audience)
                 .compose(v -> jwtValidator.validateToken(tokenRepresentation, audience))
                 .compose(claimToken -> success(claimToken.getStringClaim("iss")));
 
@@ -129,7 +129,7 @@ public class IdentityAndTrustService implements IdentityService {
         var verifiablePresentation = vpResponse.getContent();
         var credentials = verifiablePresentation.presentation().getCredentials();
         // verify, that the VP and all VPs are cryptographically OK
-        var result = presentationVerifier.verifyPresentation(verifiablePresentation.rawVp(), verifiablePresentation.format())
+        var result = presentationVerifier.verifyPresentation(verifiablePresentation)
                 .compose(u -> {
                     // in addition, verify that all VCs are valid
                     var filters = new ArrayList<>(List.of(

@@ -27,6 +27,7 @@ import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
+import org.eclipse.edc.identitytrust.model.VerifiableCredentialContainer;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -62,6 +63,10 @@ public class TestFunctions {
 
     public static VerifiablePresentationContainer createPresentationContainer() {
         return new VerifiablePresentationContainer("RAW_VP", CredentialFormat.JSON_LD, createPresentationBuilder().type("VerifiableCredential").build());
+    }
+
+    public static VerifiableCredentialContainer createCredentialContainer() {
+        return new VerifiableCredentialContainer("RAW_VC", CredentialFormat.JSON_LD, createCredentialBuilder().type("VerifiableCredential").build());
     }
 
     public static TokenRepresentation createJwt() {

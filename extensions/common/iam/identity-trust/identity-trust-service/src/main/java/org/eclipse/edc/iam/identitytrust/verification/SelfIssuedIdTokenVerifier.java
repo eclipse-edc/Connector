@@ -22,7 +22,6 @@ import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,11 +51,11 @@ public class SelfIssuedIdTokenVerifier implements JwtVerifier {
     }
 
     @Override
-    public Result<Void> verify(TokenRepresentation tokenRepresentation, String audience) {
+    public Result<Void> verify(String serializedJwt, String audience) {
 
         SignedJWT jwt;
         try {
-            jwt = SignedJWT.parse(tokenRepresentation.getToken());
+            jwt = SignedJWT.parse(serializedJwt);
             var didResult = resolverRegistry.resolve(jwt.getJWTClaimsSet().getIssuer());
             if (didResult.failed()) {
                 return Result.failure("Unable to resolve DID: %s".formatted(didResult.getFailureDetail()));
