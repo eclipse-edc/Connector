@@ -291,36 +291,6 @@ class AssetServiceImplTest {
         verifyNoInteractions(index);
     }
 
-    @Test
-    void updateDataAddress_shouldUpdateWhenExists() {
-        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
-        var assetId = "assetId";
-        var asset = createAsset(assetId);
-        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
-        when(index.updateDataAddress(assetId, dataAddress)).thenReturn(StoreResult.success(dataAddress));
-
-        var updated = service.update(assetId, dataAddress);
-
-        assertThat(updated.succeeded()).isTrue();
-        verify(index).updateDataAddress(eq(assetId), eq(dataAddress));
-        verify(observable).invokeForEach(any());
-    }
-
-    @Test
-    void updateDataAddress_shouldReturnNotFound_whenNotExists() {
-        var assetId = "assetId";
-        var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
-        when(index.updateDataAddress(assetId, dataAddress)).thenReturn(StoreResult.notFound("test"));
-
-        var updated = service.update(assetId, dataAddress);
-
-        assertThat(updated.failed()).isTrue();
-        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
-        verify(index).updateDataAddress(eq(assetId), eq(dataAddress));
-        verifyNoMoreInteractions(index);
-        verify(observable, never()).invokeForEach(any());
-    }
-
     private static class InvalidFilters implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {

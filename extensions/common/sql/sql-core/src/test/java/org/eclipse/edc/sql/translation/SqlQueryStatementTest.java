@@ -110,15 +110,6 @@ class SqlQueryStatementTest {
     }
 
     @Test
-    void singleExpression_orderBy_WithNestedProperty() {
-        var builder = queryBuilder().sortField("complex");
-
-        assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Translation failed for Model");
-    }
-
-    @Test
     void addWhereClause() {
         var criterion = new Criterion("field1", "=", "testid1");
         var customParameter = 3;

@@ -20,7 +20,6 @@ import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.List;
@@ -38,7 +37,6 @@ public interface AssetIndex extends DataAddressResolver {
 
     String ASSET_EXISTS_TEMPLATE = "Asset with ID %s already exists";
     String ASSET_NOT_FOUND_TEMPLATE = "Asset with ID %s not found";
-    String DATA_ADDRESS_NOT_FOUND_TEMPLATE = "DataAddress with ID %s not found";
 
     /**
      * Finds all assets that are covered by a specific {@link QuerySpec}. Results are always sorted. If no {@link QuerySpec#getSortField()}
@@ -98,15 +96,4 @@ public interface AssetIndex extends DataAddressResolver {
      */
     StoreResult<Asset> updateAsset(Asset asset);
 
-    /**
-     * Updates a {@link DataAddress} that is associated with the {@link Asset} that is identified by the {@code assetId} argument.
-     * If the asset is not found, no further database interaction takes place.
-     *
-     * @param assetId     the database of the Asset to update
-     * @param dataAddress The DataAddress containing the new values.
-     * @return {@link StoreResult#success(Object)} if the object was updated, {@link StoreResult#notFound(String)} when an object with that ID was not found.
-     * @deprecated Updating only the DataAddress is deprecated and will be removed in future releases. Please use the {@link AssetIndex#updateAsset(Asset)} method.
-     */
-    @Deprecated(since = "0.3.0", forRemoval = true)
-    StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress);
 }

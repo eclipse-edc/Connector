@@ -14,7 +14,10 @@
 
 package org.eclipse.edc.sql.translation;
 
+import org.eclipse.edc.spi.types.PathItem;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -38,24 +41,26 @@ public abstract class TranslationMapping {
      */
     public String getStatement(String canonicalPropertyName, Class<?> type) {
         if (canonicalPropertyName == null) {
-            throw new IllegalArgumentException(format("Translation failed for Model '%s' input canonicalPropertyName is null", getClass().getName()));
+            throw new IllegalArgumentException(format("Translation failed for Model '%s' input path is null", getClass().getName()));
         }
-        var leftHandTokens = canonicalPropertyName.split("\\.", 2);
-        var key = leftHandTokens[0];
 
-        var entry = fieldMap.get(key);
+        return getStatement(PathItem.parse(canonicalPropertyName), type);
+    }
+
+    public String getStatement(List<PathItem> path, Class<?> type) {
+        var key = path.get(0);
+        var entry = fieldMap.get(key.toString());
         if (entry == null) {
             return null;
         }
+
         if (entry instanceof TranslationMapping mappingEntry) {
-            var nextToken = leftHandTokens.length < 2 ? null : leftHandTokens[1];
-            //recursively descend into the metamodel tree
-            return mappingEntry.getStatement(nextToken, type);
+            var remainingPath = path.stream().skip(1).toList();
+            return mappingEntry.getStatement(remainingPath, type);
         }
 
         return entry.toString();
     }
-
 
     protected void add(String fieldId, Object value) {
         fieldMap.put(fieldId, value);
