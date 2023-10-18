@@ -14,28 +14,30 @@
 
 package org.eclipse.edc.iam.identitytrust.verification;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
-import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.identitytrust.verification.CredentialVerifier;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
+import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.spi.result.Result;
 
 public class MultiFormatPresentationVerifier implements PresentationVerifier {
-    private final JwtPresentationVerifier jwtPresentationVerifier;
-    private final JsonLdPresentationVerifier jsonLdPresentationVerifier;
 
-    public MultiFormatPresentationVerifier(JwtVerifier tokenVerifier, String audience, ObjectMapper mapper) {
-        jwtPresentationVerifier = new JwtPresentationVerifier(tokenVerifier, audience, mapper);
-        jsonLdPresentationVerifier = new JsonLdPresentationVerifier();
+    private final VerifierContext context;
+
+    public MultiFormatPresentationVerifier(String audience, CredentialVerifier... verifiers) {
+
+        this.context = VerifierContext.Builder.newInstance()
+                .verifiers(verifiers)
+                .audience(audience).build();
+    }
+
+    public VerifierContext getContext() {
+        return context;
     }
 
     @Override
     public Result<Void> verifyPresentation(VerifiablePresentationContainer container) {
-
-        return switch (container.format()) {
-            case JSON_LD -> jsonLdPresentationVerifier.verifyPresentation(container.rawVp());
-            case JWT -> jwtPresentationVerifier.verifyPresentation(container.rawVp());
-        };
+        return context.verify(container.rawVp());
     }
 
 }

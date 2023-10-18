@@ -39,9 +39,7 @@ import static org.eclipse.edc.spi.result.Result.success;
  *     <li>{@code exp < now()} token not expired, epsilon = 60s</li>
  * </ul>
  * <p>
- * Please note that the signature of the JWT is <strong>not</strong> verified, that is done by the {@link org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier}.
- *
- * @see org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier SI Token signature verification
+ * Please note that the signature of the JWT is <strong>not</strong> verified, that is done by the {@code SelfIssuedIdTokenVerifier}.
  */
 public class SelfIssuedIdTokenValidator implements JwtValidator {
 

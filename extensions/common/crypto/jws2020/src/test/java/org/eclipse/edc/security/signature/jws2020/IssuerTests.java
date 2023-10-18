@@ -50,7 +50,7 @@ class IssuerTests {
 
     private final JwsSignature2020Suite jws2020suite = new JwsSignature2020Suite(JacksonJsonLd.createObjectMapper());
     //used to load remote data from a local directory
-    private final TestResourcesLoader loader = new TestResourcesLoader("https://org.eclipse.edc/", "jws2020/issuing/", SchemeRouter.defaultInstance());
+    private final TestDocumentLoader loader = new TestDocumentLoader("https://org.eclipse.edc/", "jws2020/issuing/", SchemeRouter.defaultInstance());
 
     @DisplayName("t0001: a simple credential to sign (EC Key)")
     @Test

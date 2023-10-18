@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.verification;
+package org.eclipse.edc.verification.jwt;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;

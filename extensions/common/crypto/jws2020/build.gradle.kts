@@ -13,6 +13,7 @@
  */
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -31,4 +32,7 @@ dependencies {
     }
 
     testImplementation(testFixtures(project(":core:common:junit")))
+    testFixturesImplementation(testFixtures(project(":core:common:junit")))
+    testFixturesImplementation(libs.nimbus.jwt)
+    testFixturesImplementation(project(":extensions:common:json-ld"))
 }

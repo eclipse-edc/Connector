@@ -89,6 +89,8 @@ include(":extensions:common:api:api-observability")
 include(":extensions:common:auth:auth-basic")
 include(":extensions:common:auth:auth-tokenbased")
 include(":extensions:common:crypto:crypto-core")
+include(":extensions:common:crypto:ldp-verifiable-credentials")
+include(":extensions:common:crypto:jwt-verifiable-credentials")
 include(":extensions:common:crypto:jws2020")
 
 

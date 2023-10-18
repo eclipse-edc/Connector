@@ -12,12 +12,17 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.verification;
+package org.eclipse.edc.verifiablecredentials.jwt;
 
-public interface TestData {
+public interface TestConstants {
+    String CENTRAL_ISSUER_KEY_ID = "#central-issuer-key1";
+    String PRESENTER_KEY_ID = "#my-key1";
+    String VP_HOLDER_ID = "did:web:test-issuer";
+    String MY_OWN_DID = "did:web:myself";
+    String CENTRAL_ISSUER_DID = "did:web:some-official-issuer";
 
     // taken straight from here: https://www.w3.org/TR/vc-data-model/#example-verifiable-presentation-using-jwt-compact-serialization-non-normative
-    String VC_CONTENT_FOR_JWT_DEGREE_EXAMPLE = """
+    String VC_CONTENT_DEGREE_EXAMPLE = """
             {
                 "@context": [
                   "https://www.w3.org/2018/credentials/v1",
@@ -28,7 +33,7 @@ public interface TestData {
                   "UniversityDegreeCredential"
                 ],
                 "credentialSubject": {
-                  "id": "degreeSub"
+                  "id": "degreeSub",
                   "degree": {
                     "type": "BachelorDegree",
                     "name": "<span lang='fr-CA'>Baccalauréat en musiques numériques</span>"
@@ -37,7 +42,7 @@ public interface TestData {
               }
             """;
 
-    String VC_CONTENT_FOR_JWT_CERTIFICATE_EXAMPLE = """
+    String VC_CONTENT_CERTIFICATE_EXAMPLE = """
             {
                 "@context": [
                   "https://www.w3.org/2018/credentials/v1",
@@ -47,8 +52,10 @@ public interface TestData {
                   "VerifiableCredential",
                   "IsoCertificateCredential"
                 ],
+                "issuer":"did:web:test-issuer",
+                "issuanceDate": "2022-10-18T12:56:00Z",
                 "credentialSubject": {
-                  "id": "isoCred"
+                  "id": "https://w3id.org/example/isoCred",
                   "degree": {
                     "type": "Iso9001Certificate",
                     "name": "ISO 9001 Certificate for excellence in many things"
@@ -58,15 +65,16 @@ public interface TestData {
             """;
 
     // taken straight from here: https://www.w3.org/TR/vc-data-model/#example-verifiable-presentation-using-jwt-compact-serialization-non-normative
-    String VP_CONTENT_FOR_JWT = """
+    String VP_CONTENT_TEMPLATE = """
             {
                 "@context": [
                   "https://www.w3.org/2018/credentials/v1",
                   "https://www.w3.org/2018/credentials/examples/v1"
                 ],
+                "id": "https://exapmle.com/test-vp",
+                "holder": "https://holder.test.com",
                 "type": [
-                  "VerifiablePresentation",
-                  "CredentialManagerPresentation"
+                  "VerifiablePresentation"
                 ],
                 "verifiableCredential": [
                   %s

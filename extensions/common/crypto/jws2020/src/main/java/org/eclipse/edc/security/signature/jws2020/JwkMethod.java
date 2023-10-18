@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URI;
 
-record JwkMethod(URI id, URI type, URI controller, JWK keyPair) implements KeyPair {
+public record JwkMethod(URI id, URI type, URI controller, JWK keyPair) implements KeyPair {
 
     @Override
     public byte[] privateKey() {

@@ -15,7 +15,9 @@
 package org.eclipse.edc.security.signature.jws2020;
 
 import com.apicatalog.ld.signature.key.KeyPair;
+import com.apicatalog.ld.signature.method.VerificationMethod;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -26,11 +28,11 @@ import java.util.UUID;
 
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 
-class TestFunctions {
+public class TestFunctions {
 
     private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
 
-    static KeyPair createKeyPair(JWK jwk) {
+    public static KeyPair createKeyPair(JWK jwk) {
         var id = URI.create("https://org.eclipse.edc/keys/" + UUID.randomUUID());
         var type = URI.create("https://w3id.org/security#JsonWebKey2020");
         return new JwkMethod(id, type, null, jwk);
@@ -42,5 +44,10 @@ class TestFunctions {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static VerificationMethod createKeyPair(ECKey jwk, String id) {
+        var type = URI.create("https://w3id.org/security#JsonWebKey2020");
+        return new JwkMethod(URI.create(id), type, null, jwk);
     }
 }

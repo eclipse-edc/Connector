@@ -77,7 +77,7 @@ class Jws2020Schema {
                         .test(created -> Instant.now().isAfter(created))
                         .required(),
                 property(CONTROLLER, link()),
-                property(PURPOSE, link()).required(),
+                property(PURPOSE, link()).required().test(uri -> uri.toString().equals("https://w3id.org/security#assertionMethod")),
                 verificationMethod(VERIFICATION_METHOD, getVerificationMethod(mapper).map(new JwkAdapter())).required(),
                 property(DOMAIN, string())
                         .test((domain, params) -> !params.containsKey(DOMAIN.name()) || params.get(DOMAIN.name()).equals(domain)),
