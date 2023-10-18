@@ -19,12 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.v3.model.ContractRequestDto;
 import org.eclipse.edc.connector.api.management.contractnegotiation.v3.transform.ContractRequestDtoToContractRequestTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.v3.transform.JsonObjectToContractRequestDtoTransformer;
-import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
+import org.eclipse.edc.connector.api.management.contractnegotiation.v3.validation.ContractRequestDtoValidator;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.JsonLdExtension;
@@ -62,7 +62,7 @@ class ContractNegotiationApiTest {
 
     @Test
     void contractRequestExample() throws JsonProcessingException {
-        var validator = ContractRequestValidator.instance();
+        var validator = ContractRequestDtoValidator.instance();
 
         var jsonObject = objectMapper.readValue(CONTRACT_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -70,7 +70,7 @@ class ContractNegotiationApiTest {
         var expanded = jsonLd.expand(jsonObject);
         assertThat(expanded).isSucceeded()
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, ContractRequest.class))
+                .extracting(e -> transformer.transform(e, ContractRequestDto.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
                             assertThat(transformed.getProviderId()).isNotBlank();
