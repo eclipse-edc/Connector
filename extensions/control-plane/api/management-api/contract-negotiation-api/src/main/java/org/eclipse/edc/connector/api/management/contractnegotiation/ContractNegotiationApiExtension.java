@@ -38,6 +38,7 @@ import org.eclipse.edc.web.spi.WebService;
 
 import java.util.Map;
 
+import static org.eclipse.edc.connector.api.management.contractnegotiation.v3.model.ContractRequestDto.CONTRACT_REQUEST_DTO_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 
@@ -80,7 +81,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
-        validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestDtoValidator.instance());
+        validatorRegistry.register(CONTRACT_REQUEST_DTO_TYPE, ContractRequestDtoValidator.instance());
 
         var monitor = context.getMonitor();
 

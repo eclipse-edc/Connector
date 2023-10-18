@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.eclipse.edc.connector.api.management.contractnegotiation.v3.model.ContractRequestDto.CONTRACT_REQUEST_DTO_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,6 +44,7 @@ class ContractNegotiationApiExtensionTest {
         extension.initialize(context);
 
         verify(validatorRegistry).register(eq(CONTRACT_REQUEST_TYPE), any());
+        verify(validatorRegistry).register(eq(CONTRACT_REQUEST_DTO_TYPE), any());
         verify(validatorRegistry).register(eq(TERMINATE_NEGOTIATION_TYPE), any());
     }
 }

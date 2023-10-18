@@ -380,7 +380,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
                 .then()
                 .statusCode(400);
 
-        verify(validatorRegistry).validate(eq(ContractRequestDto.CONTRACT_REQUEST_TYPE), any());
+        verify(validatorRegistry).validate(eq(ContractRequestDto.CONTRACT_REQUEST_DTO_TYPE), any());
         verifyNoInteractions(transformerRegistry, service);
     }
 

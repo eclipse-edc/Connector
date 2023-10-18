@@ -28,7 +28,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
  */
 public class ContractRequestDto {
 
-    public static final String CONTRACT_REQUEST_TYPE = EDC_NAMESPACE + "ContractRequest";
+    public static final String CONTRACT_REQUEST_DTO_TYPE = EDC_NAMESPACE + "ContractRequestDto";
     public static final String CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
     public static final String PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String PROVIDER_ID = EDC_NAMESPACE + "providerId";

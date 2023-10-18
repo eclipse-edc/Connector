@@ -131,7 +131,7 @@ public interface ContractNegotiationApi {
         public static final String CONTRACT_REQUEST_EXAMPLE = """
                 {
                     "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequest",
+                    "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequestDto",
                     "connectorAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
                     "providerId": "provider-id",

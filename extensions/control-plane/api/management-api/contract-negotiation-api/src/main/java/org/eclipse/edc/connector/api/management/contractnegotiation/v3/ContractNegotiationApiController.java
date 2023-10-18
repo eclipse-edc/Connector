@@ -43,8 +43,8 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.connector.api.management.contractnegotiation.v3.model.ContractRequestDto.CONTRACT_REQUEST_DTO_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -129,7 +129,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @POST
     @Override
     public JsonObject initiateContractNegotiation(JsonObject requestObject) {
-        validatorRegistry.validate(CONTRACT_REQUEST_TYPE, requestObject)
+        validatorRegistry.validate(CONTRACT_REQUEST_DTO_TYPE, requestObject)
                 .orElseThrow(ValidationFailureException::new);
 
         var contractRequestDto = transformerRegistry.transform(requestObject, ContractRequestDto.class)

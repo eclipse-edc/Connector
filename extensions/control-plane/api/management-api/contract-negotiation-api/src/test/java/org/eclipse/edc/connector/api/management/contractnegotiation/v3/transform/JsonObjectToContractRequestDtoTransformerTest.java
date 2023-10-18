@@ -65,7 +65,7 @@ class JsonObjectToContractRequestDtoTransformerTest {
     @Test
     void transform() {
         var jsonObject = Json.createObjectBuilder()
-                .add(TYPE, ContractRequestDto.CONTRACT_REQUEST_TYPE)
+                .add(TYPE, ContractRequestDto.CONTRACT_REQUEST_DTO_TYPE)
                 .add(CONNECTOR_ADDRESS, "test-address")
                 .add(PROTOCOL, "test-protocol")
                 .add(PROVIDER_ID, "test-provider-id")
@@ -97,7 +97,7 @@ class JsonObjectToContractRequestDtoTransformerTest {
     @Test
     void transform_shouldSetProviderIdAsConnectorAddress_whenProviderIdNotDefined() {
         var jsonObject = Json.createObjectBuilder()
-                .add(TYPE, ContractRequestDto.CONTRACT_REQUEST_TYPE)
+                .add(TYPE, ContractRequestDto.CONTRACT_REQUEST_DTO_TYPE)
                 .add(CONNECTOR_ADDRESS, "test-address")
                 .add(PROTOCOL, "test-protocol")
                 .add(ASSET_ID, "asset-id")
