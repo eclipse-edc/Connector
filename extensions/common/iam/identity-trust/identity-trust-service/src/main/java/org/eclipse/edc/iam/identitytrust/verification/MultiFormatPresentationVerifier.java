@@ -26,14 +26,14 @@ public class MultiFormatPresentationVerifier implements PresentationVerifier {
 
     public MultiFormatPresentationVerifier(JwtVerifier tokenVerifier, String audience, ObjectMapper mapper) {
         jwtPresentationVerifier = new JwtPresentationVerifier(tokenVerifier, audience, mapper);
-        jsonLdVerifier = new JsonLdPresentationVerifier();
+        jsonLdPresentationVerifier = new JsonLdPresentationVerifier();
     }
 
     @Override
     public Result<Void> verifyPresentation(VerifiablePresentationContainer container) {
 
         return switch (container.format()) {
-            case JSON_LD -> jsonLdVerifier.verifyPresentation(container.rawVp());
+            case JSON_LD -> jsonLdPresentationVerifier.verifyPresentation(container.rawVp());
             case JWT -> jwtPresentationVerifier.verifyPresentation(container.rawVp());
         };
     }
