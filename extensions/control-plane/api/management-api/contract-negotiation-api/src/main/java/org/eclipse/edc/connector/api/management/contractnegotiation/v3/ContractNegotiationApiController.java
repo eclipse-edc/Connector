@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2023 ZF Friedrichshafen AG
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,13 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       ZF Friedrichshafen AG - Initial API and Implementation
- *       Microsoft Corporation - Added initiate-negotiation endpoint
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Improvements
+ *       ZF Friedrichshafen AG - Negotiation API enhancement
  *
  */
 
-package org.eclipse.edc.connector.api.management.contractnegotiation;
+package org.eclipse.edc.connector.api.management.contractnegotiation.v3;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -27,6 +25,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.connector.api.management.contractnegotiation.v3.model.ContractRequestDto;
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
@@ -52,8 +51,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 
-@Path("/v2/contractnegotiations")
-@Deprecated(since = "0.3.2")
+@Path("/v3/contractnegotiations")
 public class ContractNegotiationApiController implements ContractNegotiationApi {
     private final ContractNegotiationService service;
     private final TypeTransformerRegistry transformerRegistry;
@@ -134,7 +132,10 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         validatorRegistry.validate(CONTRACT_REQUEST_TYPE, requestObject)
                 .orElseThrow(ValidationFailureException::new);
 
-        var contractRequest = transformerRegistry.transform(requestObject, ContractRequest.class)
+        var contractRequestDto = transformerRegistry.transform(requestObject, ContractRequestDto.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        var contractRequest = transformerRegistry.transform(contractRequestDto, ContractRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
         var contractNegotiation = service.initiateNegotiation(contractRequest);

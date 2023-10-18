@@ -23,6 +23,9 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.transform.Js
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.v3.transform.ContractRequestDtoToContractRequestTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.v3.transform.JsonObjectToContractRequestDtoTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.v3.validation.ContractRequestDtoValidator;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
@@ -72,12 +75,16 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
 
+        transformerRegistry.register(new JsonObjectToContractRequestDtoTransformer());
+        transformerRegistry.register(new ContractRequestDtoToContractRequestTransformer());
+
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
+        validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestDtoValidator.instance());
 
         var monitor = context.getMonitor();
 
-        var controller = new ContractNegotiationApiController(service, transformerRegistry, monitor, validatorRegistry);
-        webService.registerResource(config.getContextAlias(), controller);
+        webService.registerResource(config.getContextAlias(), new ContractNegotiationApiController(service, transformerRegistry, monitor, validatorRegistry));
+        webService.registerResource(config.getContextAlias(), new org.eclipse.edc.connector.api.management.contractnegotiation.v3.ContractNegotiationApiController(service, transformerRegistry, monitor, validatorRegistry));
     }
 }

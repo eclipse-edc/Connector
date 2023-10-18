@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 ZF Friedrichshafen AG
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       ZF Friedrichshafen AG - Negotiation API enhancement
  *
  */
 
-package org.eclipse.edc.connector.api.management.contractnegotiation;
+package org.eclipse.edc.connector.api.management.contractnegotiation.v3;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +40,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition
 @Tag(name = "Contract Negotiation")
-@Deprecated(since = "0.3.2")
 public interface ContractNegotiationApi {
 
     @Operation(description = "Returns all contract negotiations according to a query",
@@ -131,23 +130,20 @@ public interface ContractNegotiationApi {
         // policy example took from https://w3c.github.io/odrl/bp/
         public static final String CONTRACT_REQUEST_EXAMPLE = """
                 {
-                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequest",
                     "connectorAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
                     "providerId": "provider-id",
-                    "offer": {
-                        "offerId": "offer-id",
-                        "assetId": "asset-id",
-                        "policy": {
-                            "@context": "http://www.w3.org/ns/odrl.jsonld",
-                            "@type": "Set",
-                            "@id": "offer-id",
-                            "permission": [{
-                                "target": "asset-id",
-                                "action": "display"
-                            }]
-                        }
+                    "assetId": "asset-id",
+                    "policy": {
+                        "@context": "http://www.w3.org/ns/odrl.jsonld",
+                        "@type": "Set",
+                        "@id": "policy-id",
+                        "permission": [{
+                            "target": "asset-id",
+                            "action": "display"
+                        }]
                     },
                     "callbackAddresses": [{
                         "transactional": false,
@@ -168,7 +164,7 @@ public interface ContractNegotiationApi {
     ) {
         public static final String NEGOTIATION_STATE_EXAMPLE = """
                 {
-                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/NegotiationState",
                     "state": "REQUESTED"
                 }
@@ -196,7 +192,7 @@ public interface ContractNegotiationApi {
     ) {
         public static final String TERMINATE_NEGOTIATION_EXAMPLE = """
                 {
-                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
+                    "@context": { "edc": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TerminateNegotiation",
                     "@id": "negotiation-id",
                     "reason": "a reason to terminate"
