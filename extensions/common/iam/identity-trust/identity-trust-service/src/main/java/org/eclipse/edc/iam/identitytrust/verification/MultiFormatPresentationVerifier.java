@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.result.Result;
 
 public class MultiFormatPresentationVerifier implements PresentationVerifier {
     private final JwtPresentationVerifier jwtPresentationVerifier;
-    private final JsonLdPresentationVerifier jsonLdVerifier;
+    private final JsonLdPresentationVerifier jsonLdPresentationVerifier;
 
     public MultiFormatPresentationVerifier(JwtVerifier tokenVerifier, String audience, ObjectMapper mapper) {
         jwtPresentationVerifier = new JwtPresentationVerifier(tokenVerifier, audience, mapper);
