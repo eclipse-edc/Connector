@@ -18,9 +18,19 @@ import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
+/**
+ * Functional interface for creating a {@link TokenGenerationService} for an {@link StsTokenGenerationProvider}
+ * Each client should have its own {@link TokenGenerationService}, since it's bounded to a single private key.
+ */
 @ExtensionPoint
 @FunctionalInterface
 public interface StsTokenGenerationProvider {
 
+    /**
+     * Returns a {@link TokenGenerationService} for the input {@link StsClient}
+     *
+     * @param client The {@link StsClient}
+     * @return The {@link TokenGenerationService}
+     */
     TokenGenerationService tokenGeneratorFor(StsClient client);
 }
