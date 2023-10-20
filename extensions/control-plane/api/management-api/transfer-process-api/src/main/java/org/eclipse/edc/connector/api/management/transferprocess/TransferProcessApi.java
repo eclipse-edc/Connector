@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TransferSt
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 
 import java.util.List;
-import java.util.Map;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE;
@@ -140,9 +139,9 @@ public interface TransferProcessApi {
             @Schema(requiredMode = REQUIRED)
             ManagementApiSchema.DataAddressSchema dataDestination,
             @Schema(deprecated = true, description = "Deprecated as this field is not used anymore, please use privateProperties instead")
-            Map<String, String> properties,
+            ManagementApiSchema.FreeFormPropertiesSchema properties,
             @Schema(additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
-            Map<String, String> privateProperties,
+            ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
         public static final String TRANSFER_REQUEST_EXAMPLE = """
@@ -186,9 +185,9 @@ public interface TransferProcessApi {
             String errorDetail,
             @Deprecated(since = "0.2.0")
             @Schema(deprecated = true)
-            Map<String, String> properties,
+            ManagementApiSchema.FreeFormPropertiesSchema properties,
             ManagementApiSchema.DataAddressSchema dataDestination,
-            Map<String, Object> privateProperties,
+            ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
     ) {
         public static final String TRANSFER_PROCESS_EXAMPLE = """

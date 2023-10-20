@@ -96,6 +96,9 @@ public interface ManagementApiSchema {
                 """;
     }
 
+    @Schema(name = "Properties", additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
+    record FreeFormPropertiesSchema() {}
+
     @Schema(name = "Policy", description = "ODRL policy", example = PolicySchema.POLICY_EXAMPLE)
     record PolicySchema() {
         public static final String POLICY_EXAMPLE = """
