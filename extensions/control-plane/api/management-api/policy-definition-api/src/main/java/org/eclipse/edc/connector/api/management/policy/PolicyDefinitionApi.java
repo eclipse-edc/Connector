@@ -27,7 +27,9 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -87,7 +89,7 @@ public interface PolicyDefinitionApi {
     @Operation(description = "Updates an existing Policy, If the Policy is not found, an error is reported",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionInputSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "policy definition was updated successfully. Returns the Policy Definition Id and updated timestamp"),
+                    @ApiResponse(responseCode = "204", description = "policy definition was updated successfully."),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "policy definition could not be updated, because it does not exists",
@@ -98,10 +100,13 @@ public interface PolicyDefinitionApi {
 
     @Schema(name = "PolicyDefinitionInput", example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
     record PolicyDefinitionInputSchema(
+            @Schema(name = CONTEXT, requiredMode = REQUIRED)
+            Object context,
             @Schema(name = ID)
             String id,
             @Schema(name = TYPE, example = EDC_POLICY_DEFINITION_TYPE)
             String type,
+            @Schema(requiredMode = REQUIRED)
             ManagementApiSchema.PolicySchema policy) {
 
         // policy example took from https://w3c.github.io/odrl/bp/

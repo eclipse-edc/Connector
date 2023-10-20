@@ -19,20 +19,28 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URL;
 import java.util.Set;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @Schema(example = DataPlaneInstanceSchema.DATAPLANE_INSTANCE_EXAMPLE)
-public record DataPlaneInstanceSchema(@Schema(name = TYPE, example = DATAPLANE_INSTANCE_TYPE)
-                                      String type,
-                                      @Schema(name = ID)
-                                      String id,
-                                      Set<String> allowedSourceTypes,
-                                      Set<String> allowedDestTypes,
-                                      Integer turnCount,
-                                      Long lastActive,
-                                      URL url) {
+public record DataPlaneInstanceSchema(
+        @Schema(name = CONTEXT, requiredMode = REQUIRED)
+        Object context,
+        @Schema(name = TYPE, example = DATAPLANE_INSTANCE_TYPE)
+        String type,
+        @Schema(name = ID)
+        String id,
+        @Schema(requiredMode = REQUIRED)
+        URL url,
+        @Schema(requiredMode = REQUIRED)
+        Set<String> allowedSourceTypes,
+        @Schema(requiredMode = REQUIRED)
+        Set<String> allowedDestTypes,
+        Integer turnCount,
+        Long lastActive) {
     public static final String DATAPLANE_INSTANCE_EXAMPLE = """
             {
                 "@context": {
