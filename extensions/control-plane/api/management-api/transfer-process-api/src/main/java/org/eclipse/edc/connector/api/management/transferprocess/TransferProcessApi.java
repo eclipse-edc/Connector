@@ -141,6 +141,7 @@ public interface TransferProcessApi {
             ManagementApiSchema.DataAddressSchema dataDestination,
             @Schema(deprecated = true, description = "Deprecated as this field is not used anymore, please use privateProperties instead")
             Map<String, String> properties,
+            @Schema(additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
             Map<String, String> privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
@@ -186,6 +187,7 @@ public interface TransferProcessApi {
             @Deprecated(since = "0.2.0")
             @Schema(deprecated = true)
             Map<String, String> properties,
+            ManagementApiSchema.DataAddressSchema dataDestination,
             Map<String, Object> privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
     ) {

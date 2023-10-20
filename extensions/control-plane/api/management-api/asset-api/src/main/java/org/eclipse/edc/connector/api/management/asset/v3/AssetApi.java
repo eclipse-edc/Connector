@@ -111,8 +111,9 @@ public interface AssetApi {
             String id,
             @Schema(name = TYPE, example = EDC_ASSET_TYPE)
             String type,
-            @Schema(requiredMode = REQUIRED)
+            @Schema(requiredMode = REQUIRED, additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
             Map<String, Object> properties,
+            @Schema(additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
             Map<String, Object> privateProperties,
             @Schema(requiredMode = REQUIRED)
             ManagementApiSchema.DataAddressSchema dataAddress
