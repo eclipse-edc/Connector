@@ -116,6 +116,8 @@ include(":extensions:common:iam:identity-trust:identity-trust-service")
 include(":extensions:common:iam:identity-trust:identity-trust-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts-embedded")
 include(":extensions:common:iam:identity-trust:identity-trust-sts-api")
+include(":extensions:common:iam:identity-trust:identity-trust-sts-core")
+
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
 include(":extensions:common:monitor:monitor-jdk-logger")
@@ -198,6 +200,8 @@ include(":spi:common:transform-spi")
 include(":spi:common:validator-spi")
 include(":spi:common:web-spi")
 include(":spi:common:identity-trust-spi")
+include(":spi:common:identity-trust-sts-spi")
+
 
 include(":spi:control-plane:asset-spi")
 include(":spi:control-plane:contract-spi")
