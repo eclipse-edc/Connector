@@ -28,8 +28,6 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 
-import java.util.Map;
-
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -112,8 +110,8 @@ public interface AssetApi {
             @Schema(name = TYPE, example = EDC_ASSET_TYPE)
             String type,
             @Schema(requiredMode = REQUIRED)
-            Map<String, Object> properties,
-            Map<String, Object> privateProperties,
+            ManagementApiSchema.FreeFormPropertiesSchema properties,
+            ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             @Schema(requiredMode = REQUIRED)
             ManagementApiSchema.DataAddressSchema dataAddress
     ) {
@@ -142,8 +140,8 @@ public interface AssetApi {
             String id,
             @Schema(name = TYPE, example = EDC_ASSET_TYPE)
             String type,
-            Map<String, Object> properties,
-            Map<String, Object> privateProperties,
+            ManagementApiSchema.FreeFormPropertiesSchema properties,
+            ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             ManagementApiSchema.DataAddressSchema dataAddress,
             long createdAt
     ) {
