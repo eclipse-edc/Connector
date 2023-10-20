@@ -26,7 +26,7 @@ import java.util.Objects;
 
 /**
  * Token generator that wraps {@link TokenGenerationServiceImpl} and does not cache the private
- * key, but instead it resolves it at token generation time.
+ * key, but instead resolves it at token generation time.
  */
 public class LazyTokenGenerationService implements TokenGenerationService {
 
