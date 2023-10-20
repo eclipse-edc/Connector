@@ -26,12 +26,12 @@ import java.time.Clock;
 import java.util.Map;
 
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGeneratorService {
 
-    public static final String CLIENT_ID = "client_id";
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
     private final Clock clock;
@@ -53,12 +53,21 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
                 AUDIENCE, additionalParams.getAudience(),
                 CLIENT_ID, client.getClientId());
 
-        var tokenResult = embeddedTokenGenerator.createToken(claims, additionalParams.getBearerAccessScope());
+        var tokenResult = embeddedTokenGenerator.createToken(claims, additionalParams.getBearerAccessScope())
+                .map(this::enrichWithExpiration);
 
         if (tokenResult.failed()) {
             return ServiceResult.badRequest(tokenResult.getFailureDetail());
         }
         return ServiceResult.success(tokenResult.getContent());
+    }
+
+    private TokenRepresentation enrichWithExpiration(TokenRepresentation tokenRepresentation) {
+        return TokenRepresentation.Builder.newInstance()
+                .token(tokenRepresentation.getToken())
+                .additional(tokenRepresentation.getAdditional())
+                .expiresIn(tokenExpiration)
+                .build();
     }
 
 }

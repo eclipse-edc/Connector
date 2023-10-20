@@ -30,7 +30,7 @@ public class StsClientServiceImpl implements StsClientService {
     private final StsClientStore stsClientStore;
     private final TransactionContext transactionContext;
     private final Vault vault;
-    
+
     public StsClientServiceImpl(StsClientStore stsClientStore, Vault vault, TransactionContext transactionContext) {
         this.stsClientStore = stsClientStore;
         this.vault = vault;
@@ -52,6 +52,6 @@ public class StsClientServiceImpl implements StsClientService {
         return Optional.ofNullable(vault.resolveSecret(client.getSecretAlias()))
                 .filter(vaultSecret -> vaultSecret.equals(secret))
                 .map(s -> ServiceResult.success(client))
-                .orElseGet(() -> ServiceResult.badRequest(format("Failed to authenticate client with id %s", client.getId())));
+                .orElseGet(() -> ServiceResult.unauthorized(format("Failed to authenticate client with id %s", client.getId())));
     }
 }

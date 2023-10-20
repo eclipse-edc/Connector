@@ -20,15 +20,12 @@ package org.eclipse.edc.jwt.spi;
  */
 public final class JwtRegisteredClaimNames {
 
-    private JwtRegisteredClaimNames() { }
-
     /**
      * "iss" (Issuer) Claim
      *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1">RFC 7519 "iss" (Issuer) Claim</a>
      */
     public static final String ISSUER = "iss";
-
 
     /**
      * "sub" (Subject) Claim
@@ -37,14 +34,12 @@ public final class JwtRegisteredClaimNames {
      */
     public static final String SUBJECT = "sub";
 
-
     /**
      * "aud" (Audience) Claim
      *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3">RFC 7519 "aud" (Audience) Claim</a>
      */
     public static final String AUDIENCE = "aud";
-
 
     /**
      * "exp" (Expiration Time) Claim
@@ -53,14 +48,12 @@ public final class JwtRegisteredClaimNames {
      */
     public static final String EXPIRATION_TIME = "exp";
 
-
     /**
      * "nbf" (Not Before) Claim
      *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5">RFC 7519 "nbf" (Not Before) Claim</a>
      */
     public static final String NOT_BEFORE = "nbf";
-
 
     /**
      * "iat" (Issued At) Claim
@@ -69,11 +62,21 @@ public final class JwtRegisteredClaimNames {
      */
     public static final String ISSUED_AT = "iat";
 
-
     /**
      * "jti" (JWT ID) Claim
      *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.7">RFC 7519 "jti" (JWT ID) Claim</a>
      */
     public static final String JWT_ID = "jti";
+
+    /**
+     * "client_id" (Client Identifier) Claim
+     *
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc8693#name-client_id-client-identifier">RFC 8693 "client_id" (Client Identifier) Claim</a>
+     */
+
+    public static final String CLIENT_ID = "client_id";
+
+    private JwtRegisteredClaimNames() {
+    }
 }
