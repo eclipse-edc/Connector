@@ -30,6 +30,8 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchem
 
 import java.util.Map;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
@@ -94,7 +96,7 @@ public interface AssetApi {
             "DANGER ZONE: Note that updating assets can have unexpected results, especially for contract offers that have been sent out or are ongoing in contract negotiations.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetInputSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Asset was updated successfully"),
+                    @ApiResponse(responseCode = "204", description = "Asset was updated successfully"),
                     @ApiResponse(responseCode = "404", description = "Asset could not be updated, because it does not exist."),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
@@ -103,12 +105,16 @@ public interface AssetApi {
 
     @Schema(name = "AssetInput", example = AssetInputSchema.ASSET_INPUT_EXAMPLE)
     record AssetInputSchema(
+            @Schema(name = CONTEXT, requiredMode = REQUIRED)
+            Object context,
             @Schema(name = ID)
             String id,
             @Schema(name = TYPE, example = EDC_ASSET_TYPE)
             String type,
+            @Schema(requiredMode = REQUIRED)
             Map<String, Object> properties,
             Map<String, Object> privateProperties,
+            @Schema(requiredMode = REQUIRED)
             ManagementApiSchema.DataAddressSchema dataAddress
     ) {
         public static final String ASSET_INPUT_EXAMPLE = """

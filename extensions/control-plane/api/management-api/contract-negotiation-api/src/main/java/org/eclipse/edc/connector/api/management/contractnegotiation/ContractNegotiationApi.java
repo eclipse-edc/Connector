@@ -33,8 +33,10 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Negoti
 
 import java.util.List;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -119,10 +121,15 @@ public interface ContractNegotiationApi {
 
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(
+            @Schema(name = CONTEXT, requiredMode = REQUIRED)
+            Object context,
             @Schema(name = TYPE, example = CONTRACT_REQUEST_TYPE)
             String type,
+            @Schema(requiredMode = REQUIRED)
             String protocol,
+            @Schema(requiredMode = REQUIRED)
             String connectorAddress,
+            @Schema(requiredMode = REQUIRED)
             String providerId,
             ContractOfferDescriptionSchema offer,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
