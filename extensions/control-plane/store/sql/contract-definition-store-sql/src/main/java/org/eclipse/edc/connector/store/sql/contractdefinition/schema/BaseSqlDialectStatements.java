@@ -26,10 +26,12 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     public String getDeleteByIdTemplate() {
         return executeStatement().delete(getContractDefinitionTable(), getIdColumn());
     }
+
     @Override
     public String getFindByTemplate() {
         return format("SELECT * FROM %s WHERE %s = ?", getContractDefinitionTable(), getIdColumn());
     }
+
     @Override
     public String getInsertTemplate() {
         return executeStatement()
@@ -41,6 +43,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .jsonColumn(getPrivatePropertiesColumn())
                 .insertInto(getContractDefinitionTable());
     }
+
     @Override
     public String getCountTemplate() {
         return format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
@@ -48,6 +51,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 getContractDefinitionTable(),
                 getIdColumn());
     }
+
     @Override
     public String getUpdateTemplate() {
         return executeStatement()

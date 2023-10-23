@@ -55,27 +55,6 @@ public interface ContractDefinitionStatements extends SqlStatements {
         return "private_properties";
     }
 
-    default String getContractDefinitionPropertyTable() {
-        return "edc_contract_definition_property";
-    }
-
-    default String getContractDefinitionPropertyNameColumn() {
-        return "property_name";
-    }
-
-    default String getContractDefinitionPropertyValueColumn() {
-        return "property_value";
-    }
-
-    default String getContractDefinitionPropertyTypeColumn() {
-        return "property_type";
-    }
-
-
-    default String getPropertyContractDefinitionIdFkColumn() {
-        return "contract_definition_id_fk";
-    }
-
     String getDeleteByIdTemplate();
 
     String getFindByTemplate();

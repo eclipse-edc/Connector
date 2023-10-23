@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -56,7 +55,6 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getContractDefinitionTable() + " CASCADE");
-        extension.runQuery("DROP TABLE " + statements.getContractDefinitionPropertyTable() + " CASCADE");
     }
 
     @Override
