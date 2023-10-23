@@ -51,6 +51,10 @@ public interface ContractDefinitionStatements extends SqlStatements {
         return "created_at";
     }
 
+    default String getPrivatePropertiesColumn() {
+        return "private_properties";
+    }
+
     default String getContractDefinitionPropertyTable() {
         return "edc_contract_definition_property";
     }
@@ -74,17 +78,11 @@ public interface ContractDefinitionStatements extends SqlStatements {
 
     String getDeleteByIdTemplate();
 
-    String getDeletePropertyByIdTemplate();
-
     String getFindByTemplate();
 
     String getInsertTemplate();
 
-    String getInsertPropertyTemplate();
-
     String getCountTemplate();
-
-    String getFindPropertyByIdTemplate();
 
     String getUpdateTemplate();
 

@@ -22,29 +22,6 @@ CREATE TABLE IF NOT EXISTS edc_contract_definitions
     access_policy_id       VARCHAR NOT NULL,
     contract_policy_id     VARCHAR NOT NULL,
     assets_selector        JSON    NOT NULL,
+    private_properties     JSON,
     PRIMARY KEY (contract_definition_id)
 );
-
-
--- table: edc_contract_definition_property
-CREATE TABLE IF NOT EXISTS edc_contract_definition_property
-(
-    contract_definition_id_fk       VARCHAR(255) NOT NULL,
-    property_name  VARCHAR(255) NOT NULL,
-    property_value TEXT         NOT NULL,
-    property_type  VARCHAR(255) NOT NULL,
-    PRIMARY KEY (contract_definition_id_fk, property_name),
-    FOREIGN KEY (contract_definition_id_fk) REFERENCES edc_contract_definitions (contract_definition_id) ON DELETE CASCADE
-);
-
-
-CREATE INDEX IF NOT EXISTS idx_edc_contract_definition_property_value
-    ON edc_contract_definition_property (property_name, property_value);
-
-
-COMMENT ON COLUMN edc_contract_definition_property.property_name IS
-    'Contract definition property key';
-COMMENT ON COLUMN edc_contract_definition_property.property_value IS
-    'Contract definition property value';
-COMMENT ON COLUMN edc_contract_definition_property.property_type IS
-    'Contract definition property class name';

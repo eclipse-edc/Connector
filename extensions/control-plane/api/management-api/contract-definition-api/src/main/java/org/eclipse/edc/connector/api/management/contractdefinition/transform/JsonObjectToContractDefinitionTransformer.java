@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition.transform;
 
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;

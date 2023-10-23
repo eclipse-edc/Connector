@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -27,17 +26,10 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     public String getDeleteByIdTemplate() {
         return executeStatement().delete(getContractDefinitionTable(), getIdColumn());
     }
-
-    @Override
-    public String getDeletePropertyByIdTemplate() {
-        return executeStatement().delete(getContractDefinitionPropertyTable(), getPropertyContractDefinitionIdFkColumn());
-    }
-
     @Override
     public String getFindByTemplate() {
         return format("SELECT * FROM %s WHERE %s = ?", getContractDefinitionTable(), getIdColumn());
     }
-
     @Override
     public String getInsertTemplate() {
         return executeStatement()
@@ -46,19 +38,9 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .column(getContractPolicyIdColumn())
                 .jsonColumn(getAssetsSelectorColumn())
                 .column(getCreatedAtColumn())
+                .jsonColumn(getPrivatePropertiesColumn())
                 .insertInto(getContractDefinitionTable());
     }
-
-    @Override
-    public String getInsertPropertyTemplate() {
-        return executeStatement()
-                .column(getPropertyContractDefinitionIdFkColumn())
-                .column(getContractDefinitionPropertyNameColumn())
-                .column(getContractDefinitionPropertyValueColumn())
-                .column(getContractDefinitionPropertyTypeColumn())
-                .insertInto(getContractDefinitionPropertyTable());
-    }
-
     @Override
     public String getCountTemplate() {
         return format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
@@ -66,14 +48,6 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 getContractDefinitionTable(),
                 getIdColumn());
     }
-
-    @Override
-    public String getFindPropertyByIdTemplate() {
-        return format("SELECT * FROM %s WHERE %s = ?",
-                getContractDefinitionPropertyTable(),
-                getPropertyContractDefinitionIdFkColumn());
-    }
-
     @Override
     public String getUpdateTemplate() {
         return executeStatement()
@@ -82,6 +56,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .column(getContractPolicyIdColumn())
                 .jsonColumn(getAssetsSelectorColumn())
                 .column(getCreatedAtColumn())
+                .jsonColumn(getPrivatePropertiesColumn())
                 .update(getContractDefinitionTable(), getIdColumn());
 
     }

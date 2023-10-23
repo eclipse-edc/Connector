@@ -37,18 +37,20 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toMap;
 
 public class SqlContractDefinitionStore extends AbstractSqlStore implements ContractDefinitionStore {
 
     private final ContractDefinitionStatements statements;
     public static final TypeReference<List<Criterion>> CRITERION_LIST = new TypeReference<>() {
+    };
+
+    private static final TypeReference<Map<String, Object>> PRIVATE_PROPERTIES_TYPE = new TypeReference<>() {
     };
 
     public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
@@ -150,6 +152,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
                 .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
                 .assetsSelector(fromJson(resultSet.getString(statements.getAssetsSelectorColumn()), CRITERION_LIST))
+                .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), PRIVATE_PROPERTIES_TYPE))
                 .build();
     }
 
@@ -160,21 +163,9 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                     definition.getAccessPolicyId(),
                     definition.getContractPolicyId(),
                     toJson(definition.getAssetsSelector()),
-                    definition.getCreatedAt());
-
-            insertProperties(definition, connection);
+                    definition.getCreatedAt(),
+                    toJson(definition.getPrivateProperties()));
         });
-    }
-
-    private void insertProperties(ContractDefinition definition, Connection connection) {
-        for (var privateProperty : definition.getPrivateProperties().entrySet()) {
-            queryExecutor.execute(connection,
-                    statements.getInsertPropertyTemplate(),
-                    definition.getId(),
-                    privateProperty.getKey(),
-                    toJson(privateProperty.getValue()),
-                    privateProperty.getValue().getClass().getName());
-        }
     }
 
     private void updateInternal(Connection connection, ContractDefinition definition) {
@@ -185,11 +176,8 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 definition.getContractPolicyId(),
                 toJson(definition.getAssetsSelector()),
                 definition.getCreatedAt(),
+                toJson(definition.getPrivateProperties()),
                 definition.getId());
-
-        queryExecutor.execute(connection, statements.getDeletePropertyByIdTemplate(),
-                definition.getId());
-        insertProperties(definition, connection);
     }
 
     private boolean existsById(Connection connection, String definitionId) {
@@ -203,21 +191,6 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
         return resultSet.getLong(1);
     }
 
-    private Object fromPropertyValue(String value, String type) throws ClassNotFoundException {
-        var clazz = Class.forName(type);
-        if (clazz == String.class) {
-            return value;
-        }
-        return fromJson(value, clazz);
-    }
-
-    private SqlPropertyWrapper mapProperties(ResultSet resultSet) throws SQLException, ClassNotFoundException {
-        var name = resultSet.getString(statements.getContractDefinitionPropertyNameColumn());
-        var value = resultSet.getString(statements.getContractDefinitionPropertyValueColumn());
-        var type = resultSet.getString(statements.getContractDefinitionPropertyTypeColumn());
-        return new SqlPropertyWrapper(new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type)));
-    }
-
     private ContractDefinition findById(Connection connection, String id) {
         return transactionContext.execute(() -> {
             if (!existsById(connection, id)) {
@@ -228,11 +201,6 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
             var contractDefinition = queryExecutor.single(connection, false,
                             this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
-            var privatePropertiesStream = queryExecutor.query(connection, false,
-                            this::mapProperties, statements.getFindPropertyByIdTemplate(), id);
-
-            var contractDefinitionPrivateProperties = privatePropertiesStream.collect(toMap(SqlPropertyWrapper::getPropertyKey,
-                    SqlPropertyWrapper::getPropertyValue));
 
             return ContractDefinition.Builder.newInstance()
                         .id(contractDefinition.getId())
@@ -240,25 +208,8 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                         .accessPolicyId(contractDefinition.getAccessPolicyId())
                         .contractPolicyId(contractDefinition.getContractPolicyId())
                         .assetsSelector(contractDefinition.getAssetsSelector())
-                        .privateProperties(contractDefinitionPrivateProperties)
+                        .privateProperties(contractDefinition.getPrivateProperties())
                         .build();
         });
     }
-
-    private static class SqlPropertyWrapper {
-        private final AbstractMap.SimpleImmutableEntry<String, Object> property;
-
-        protected SqlPropertyWrapper(AbstractMap.SimpleImmutableEntry<String, Object> kvSimpleImmutableEntry) {
-            this.property = kvSimpleImmutableEntry;
-        }
-
-        protected String getPropertyKey() {
-            return property.getKey();
-        }
-
-        protected Object getPropertyValue() {
-            return property.getValue();
-        }
-    }
-
 }
