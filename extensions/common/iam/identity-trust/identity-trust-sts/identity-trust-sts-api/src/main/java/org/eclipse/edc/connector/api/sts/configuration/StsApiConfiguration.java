@@ -16,8 +16,11 @@ package org.eclipse.edc.connector.api.sts.configuration;
 
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 
+/**
+ * Configuration for the STS API
+ */
 public class StsApiConfiguration extends WebServiceConfiguration {
-    
+
     public StsApiConfiguration(WebServiceConfiguration webServiceConfiguration) {
         this.contextAlias = webServiceConfiguration.getContextAlias();
         this.path = webServiceConfiguration.getPath();

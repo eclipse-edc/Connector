@@ -29,7 +29,7 @@ public class StsTokenErrorResponseTest {
     void verifyDeserialize() throws IOException {
         var mapper = new TypeManager().getMapper();
 
-        var response = new StsTokenErrorResponse("error", "description", "uri");
+        var response = new StsTokenErrorResponse("error", "description");
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, response);
 

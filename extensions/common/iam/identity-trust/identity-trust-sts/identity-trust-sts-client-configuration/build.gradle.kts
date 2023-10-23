@@ -18,7 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api"))
-    api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration"))
+    api(project(":spi:common:identity-trust-sts-spi"))
+
+    testImplementation(project(":core:common:junit"))
 }
 

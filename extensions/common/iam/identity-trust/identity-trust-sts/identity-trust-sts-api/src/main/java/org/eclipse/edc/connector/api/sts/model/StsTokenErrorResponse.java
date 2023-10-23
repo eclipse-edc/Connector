@@ -22,10 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @param error            Error code.
  * @param errorDescription Human-readable description.
- * @param errorUri         URI of the error page.
  */
 public record StsTokenErrorResponse(@JsonProperty String error,
-                                    @JsonProperty("error_description") String errorDescription,
-                                    @JsonProperty("error_uri") String errorUri) {
+                                    @JsonProperty("error_description") String errorDescription) {
 
 }

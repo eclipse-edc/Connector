@@ -28,9 +28,9 @@ import org.eclipse.edc.iam.identitytrust.sts.service.StsClientService;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.validator.spi.Validator;
-import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
-import static org.eclipse.edc.connector.api.sts.exception.StsTokenException.tokenExceptionFunction;
+import static org.eclipse.edc.connector.api.sts.exception.StsTokenException.tokenException;
+import static org.eclipse.edc.connector.api.sts.exception.StsTokenException.validationException;
 
 @Path("/")
 public class SecureTokenServiceApiController implements SecureTokenServiceApi {
@@ -53,12 +53,12 @@ public class SecureTokenServiceApiController implements SecureTokenServiceApi {
     @POST
     @Override
     public StsTokenResponse token(@BeanParam StsTokenRequest request) {
-        tokenRequestValidator.validate(request).orElseThrow(ValidationFailureException::new);
+        tokenRequestValidator.validate(request).orElseThrow(validationException(request.getClientId()));
         return clientService.findById(request.getClientId())
                 .compose(client -> clientService.authenticate(client, request.getClientSecret()))
                 .compose(client -> tokenService.tokenFor(client, additionalParams(request)))
                 .map(this::mapToken)
-                .orElseThrow(tokenExceptionFunction(request.getClientId()));
+                .orElseThrow(tokenException(request.getClientId()));
 
     }
 

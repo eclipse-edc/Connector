@@ -29,7 +29,8 @@ import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 
 /**
- * Exception mapper that catches all the `StsTokenException` exceptions, map them to a response code with a detailed response body
+ * Exception mapper that catches the `StsTokenException` exception, map it to a response code with a detailed response body
+ * The {@link StsTokenExceptionMapper} is translated into a {@link StsTokenErrorResponse}
  */
 public class StsTokenExceptionMapper implements ExceptionMapper<StsTokenException> {
 
@@ -37,8 +38,14 @@ public class StsTokenExceptionMapper implements ExceptionMapper<StsTokenExceptio
 
     private final Map<ServiceFailure.Reason, String> errorsMap;
 
+    private final Map<ServiceFailure.Reason, String> errorDetailsMap;
+
 
     public StsTokenExceptionMapper() {
+
+        errorDetailsMap = Map.of(
+                UNAUTHORIZED, "Invalid client or Invalid client credentials",
+                NOT_FOUND, "Invalid client or Invalid client credentials");
 
         statusMap = Map.of(
                 UNAUTHORIZED, Response.Status.UNAUTHORIZED,
@@ -59,8 +66,9 @@ public class StsTokenExceptionMapper implements ExceptionMapper<StsTokenExceptio
     public Response toResponse(StsTokenException exception) {
         var failure = exception.getServiceFailure();
         var status = statusMap.getOrDefault(failure.getReason(), INTERNAL_SERVER_ERROR);
+        var errorDescription = errorDetailsMap.getOrDefault(failure.getReason(), exception.getMessage());
         var errorCode = errorsMap.getOrDefault(failure.getReason(), "invalid_request");
-        StsTokenErrorResponse error = new StsTokenErrorResponse(errorCode, exception.getMessage(), "");
+        var error = new StsTokenErrorResponse(errorCode, errorDescription);
         return Response.status(status)
                 .entity(error)
                 .build();

@@ -31,6 +31,7 @@ import jakarta.ws.rs.FormParam;
  */
 
 public final class StsTokenRequest {
+    
     @FormParam("grant_type")
     private String grantType;
     @FormParam("client_id")

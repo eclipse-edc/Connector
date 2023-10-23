@@ -14,12 +14,18 @@
 
 package org.eclipse.edc.connector.api.sts.exception;
 
+import org.eclipse.edc.connector.api.sts.model.StsTokenErrorResponse;
 import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
+/**
+ * Custom exception and a mapper {@link StsTokenExceptionMapper} in order to be compliant with the OAuth2 <a href="https://datatracker.ietf.org/doc/html/rfc6749#section-5.2">Error Response</a>
+ * The {@link ServiceFailure} is translated to a {@link StsTokenErrorResponse} in the mapper.
+ */
 public class StsTokenException extends EdcException {
 
     private final ServiceFailure serviceFailure;
@@ -31,8 +37,12 @@ public class StsTokenException extends EdcException {
         this.clientId = clientId;
     }
 
-    public static Function<ServiceFailure, StsTokenException> tokenExceptionFunction(@Nullable String clientId) {
+    public static Function<ServiceFailure, StsTokenException> tokenException(@Nullable String clientId) {
         return (serviceFailure -> new StsTokenException(serviceFailure, clientId));
+    }
+
+    public static Function<ValidationFailure, StsTokenException> validationException(@Nullable String clientId) {
+        return (failure -> new StsTokenException(new ServiceFailure(failure.getMessages(), ServiceFailure.Reason.BAD_REQUEST), clientId));
     }
 
     public ServiceFailure getServiceFailure() {

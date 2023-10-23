@@ -120,6 +120,7 @@ include(":extensions:common:iam:identity-trust:identity-trust-sts-embedded")
 include(":extensions:common:iam:identity-trust:identity-trust-sts-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api")
+include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
 
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
@@ -184,6 +185,7 @@ include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
 include(":launchers:dpf-selector")
+include(":launchers:sts-server")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:aggregate-service-spi")
@@ -236,3 +238,6 @@ include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")
+include("extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
+findProject(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")?.name =
+    "identity-trust-sts-client-configuration"
