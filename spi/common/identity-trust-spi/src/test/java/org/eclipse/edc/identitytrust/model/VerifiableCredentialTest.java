@@ -17,8 +17,8 @@ package org.eclipse.edc.identitytrust.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -34,7 +34,7 @@ class VerifiableCredentialTest {
     void buildMinimalVc() {
         assertThatNoException().isThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
-                .issuer(URI.create("http://test.issuer"))
+                .issuer(new Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .type("test-type")
                 .build());
@@ -44,7 +44,7 @@ class VerifiableCredentialTest {
     void assertDefaultValues() {
         var vc = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
-                .issuer(URI.create("http://test.issuer"))
+                .issuer(new Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .type("test-type")
                 .build();
@@ -54,7 +54,7 @@ class VerifiableCredentialTest {
     void build_emptyContexts() {
         assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
-                .issuer(URI.create("http://test.issuer"))
+                .issuer(new Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
@@ -64,7 +64,7 @@ class VerifiableCredentialTest {
     void build_emptyTypes() {
         assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
-                .issuer(URI.create("http://test.issuer"))
+                .issuer(new Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .types(new ArrayList<>())
                 .build())
@@ -75,7 +75,7 @@ class VerifiableCredentialTest {
     void build_emptyProofs() {
         assertThatThrownBy(() -> VerifiableCredential.Builder.newInstance()
                 .credentialSubject(new CredentialSubject())
-                .issuer(URI.create("http://test.issuer"))
+                .issuer(new Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now())
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);

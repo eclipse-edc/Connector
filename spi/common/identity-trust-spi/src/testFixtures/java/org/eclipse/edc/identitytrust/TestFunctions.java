@@ -25,12 +25,15 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
+import org.eclipse.edc.identitytrust.model.VerifiableCredentialContainer;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 
 import java.util.Date;
+import java.util.Map;
 
 import static java.time.Instant.now;
 
@@ -47,7 +50,7 @@ public class TestFunctions {
                         .claim("test-claim", "test-value")
                         .build())
                 .type("test-type")
-                .issuer("http://test.issuer")
+                .issuer(new Issuer("http://test.issuer", Map.of()))
                 .issuanceDate(now());
     }
 
@@ -60,6 +63,10 @@ public class TestFunctions {
 
     public static VerifiablePresentationContainer createPresentationContainer() {
         return new VerifiablePresentationContainer("RAW_VP", CredentialFormat.JSON_LD, createPresentationBuilder().type("VerifiableCredential").build());
+    }
+
+    public static VerifiableCredentialContainer createCredentialContainer() {
+        return new VerifiableCredentialContainer("RAW_VC", CredentialFormat.JSON_LD, createCredentialBuilder().type("VerifiableCredential").build());
     }
 
     public static TokenRepresentation createJwt() {

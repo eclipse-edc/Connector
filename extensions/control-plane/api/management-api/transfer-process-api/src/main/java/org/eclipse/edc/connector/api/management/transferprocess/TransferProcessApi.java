@@ -32,10 +32,11 @@ import org.eclipse.edc.connector.api.management.transferprocess.model.TransferSt
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 
 import java.util.List;
-import java.util.Map;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -121,17 +122,26 @@ public interface TransferProcessApi {
 
     @Schema(name = "TransferRequest", example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
     record TransferRequestSchema(
+            @Schema(name = CONTEXT, requiredMode = REQUIRED)
+            Object context,
             @Schema(name = TYPE, example = TRANSFER_REQUEST_TYPE)
             String type,
+            @Schema(requiredMode = REQUIRED)
             String protocol,
+            @Schema(requiredMode = REQUIRED)
             String connectorAddress,
+            @Schema(requiredMode = REQUIRED)
             String connectorId,
+            @Schema(requiredMode = REQUIRED)
             String contractId,
+            @Schema(requiredMode = REQUIRED)
             String assetId,
+            @Schema(requiredMode = REQUIRED)
             ManagementApiSchema.DataAddressSchema dataDestination,
             @Schema(deprecated = true, description = "Deprecated as this field is not used anymore, please use privateProperties instead")
-            Map<String, String> properties,
-            Map<String, String> privateProperties,
+            ManagementApiSchema.FreeFormPropertiesSchema properties,
+            @Schema(additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
+            ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
         public static final String TRANSFER_REQUEST_EXAMPLE = """
@@ -175,8 +185,9 @@ public interface TransferProcessApi {
             String errorDetail,
             @Deprecated(since = "0.2.0")
             @Schema(deprecated = true)
-            Map<String, String> properties,
-            Map<String, Object> privateProperties,
+            ManagementApiSchema.FreeFormPropertiesSchema properties,
+            ManagementApiSchema.DataAddressSchema dataDestination,
+            ManagementApiSchema.FreeFormPropertiesSchema privateProperties,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses
     ) {
         public static final String TRANSFER_PROCESS_EXAMPLE = """

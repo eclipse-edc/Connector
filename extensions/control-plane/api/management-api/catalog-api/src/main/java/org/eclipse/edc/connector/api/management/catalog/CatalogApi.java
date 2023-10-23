@@ -26,7 +26,9 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition
@@ -57,12 +59,16 @@ public interface CatalogApi {
 
     @Schema(name = "CatalogRequest", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
     record CatalogRequestSchema(
+            @Schema(name = CONTEXT, requiredMode = REQUIRED)
+            Object context,
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
             String type,
             @Deprecated(since = "0.2.0")
             @Schema(deprecated = true, description = "please use counterPartyAddress instead")
             String providerUrl,
+            @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
+            @Schema(requiredMode = REQUIRED)
             String protocol,
             ApiCoreSchema.QuerySpecSchema querySpec) {
 

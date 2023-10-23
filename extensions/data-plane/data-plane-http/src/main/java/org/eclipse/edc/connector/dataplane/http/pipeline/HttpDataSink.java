@@ -47,8 +47,6 @@ public class HttpDataSink extends ParallelSink {
                             response.code(), response.message(), part.name(), request.url().url(), request));
                     return ERROR_WRITING_DATA;
                 }
-
-                return StreamResult.success();
             } catch (Exception e) {
                 monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), request.url().url(), request), e);
                 return ERROR_WRITING_DATA;

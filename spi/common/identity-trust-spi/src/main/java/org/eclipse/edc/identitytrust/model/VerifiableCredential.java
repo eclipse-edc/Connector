@@ -39,7 +39,7 @@ public class VerifiableCredential {
     private List<CredentialSubject> credentialSubject = new ArrayList<>();
     private String id; // must be URI, but URI is less efficient at runtime
     private List<String> types = new ArrayList<>();
-    private Object issuer; // can be URI or an object containing an ID
+    private Issuer issuer; // can be URI or an object containing an ID
     private Instant issuanceDate; // v2 of the spec renames this to "validFrom"
     private Instant expirationDate; // v2 of the spec renames this to "validUntil"
     private CredentialStatus credentialStatus;
@@ -61,7 +61,7 @@ public class VerifiableCredential {
         return types;
     }
 
-    public Object getIssuer() {
+    public Issuer getIssuer() {
         return issuer;
     }
 
@@ -129,7 +129,7 @@ public class VerifiableCredential {
         /**
          * Issuers can be URIs or objects containing an ID
          */
-        public Builder issuer(Object issuer) {
+        public Builder issuer(Issuer issuer) {
             this.instance.issuer = issuer;
             return this;
         }

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.identitytrust.verification;
 
-import org.eclipse.edc.identitytrust.model.CredentialFormat;
+import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.spi.result.Result;
 
 /**
@@ -29,9 +29,8 @@ public interface PresentationVerifier {
     /**
      * Verifies the cryptographic integrity of a VerifiablePresentation.
      *
-     * @param rawVp  The VP in its raw String representation. This could be JSON-LD or a JWT
-     * @param format Determines, which format the VP is specified in.
+     * @param container The VP in its raw String representation. This could be JSON-LD or a JWT
      * @return {@link Result#success()} if valid, {@link Result#failure(String)} otherwise, giving an indication of the error.
      */
-    Result<Void> verifyPresentation(String rawVp, CredentialFormat format);
+    Result<Void> verifyPresentation(VerifiablePresentationContainer container);
 }

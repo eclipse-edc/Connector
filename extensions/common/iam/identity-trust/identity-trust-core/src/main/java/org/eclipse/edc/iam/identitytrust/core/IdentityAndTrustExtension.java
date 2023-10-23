@@ -21,6 +21,7 @@ import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVer
 import org.eclipse.edc.iam.identitytrust.verification.SelfIssuedIdTokenVerifier;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
@@ -31,6 +32,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension("Identity And Trust Extension")
 public class IdentityAndTrustExtension implements ServiceExtension {
@@ -50,13 +54,19 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private DidResolverRegistry resolverRegistry;
 
+    @Inject
+    private TrustedIssuerRegistry registry;
+
+    @Inject
+    private TypeManager typeManager;
+
     private JwtValidator jwtValidator;
     private JwtVerifier jwtVerifier;
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
         return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), context.getParticipantId(), presentationVerifier,
-                credentialServiceClient, getJwtValidator(), getJwtVerifier());
+                credentialServiceClient, getJwtValidator(), getJwtVerifier(), registry);
     }
 
     @Provider
@@ -68,8 +78,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     }
 
     @Provider
-    public PresentationVerifier createPresentationVerifier() {
-        return new MultiFormatPresentationVerifier();
+    public PresentationVerifier createPresentationVerifier(ServiceExtensionContext context) {
+        return new MultiFormatPresentationVerifier(jwtVerifier, getOwnDid(context), typeManager.getMapper(JSON_LD));
+    }
+
+    private String getOwnDid(ServiceExtensionContext context) {
+        // todo: this must be config value
+        return null;
     }
 
     @Provider

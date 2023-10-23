@@ -18,8 +18,10 @@ package org.eclipse.edc.iam.identitytrust.service;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
+import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
+import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
@@ -37,6 +39,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.eclipse.edc.identitytrust.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
@@ -46,7 +49,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -65,7 +67,9 @@ class IdentityAndTrustServiceTest {
     private final CredentialServiceClient mockedClient = mock();
     private final JwtValidator jwtValidatorMock = mock();
     private final JwtVerifier jwtVerfierMock = mock();
-    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient, jwtValidatorMock, jwtVerfierMock);
+    private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
+    private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient,
+            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock);
 
     @BeforeEach
     void setup() {
@@ -139,7 +143,7 @@ class IdentityAndTrustServiceTest {
 
         @Test
         void cryptographicError() {
-            when(mockedVerifier.verifyPresentation(anyString(), any(CredentialFormat.class))).thenReturn(Result.failure("Cryptographic error"));
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(Result.failure("Cryptographic error"));
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(createPresentationContainer()));
             var token = createJwt();
             var result = service.verifyJwtToken(token, "test-audience");
@@ -158,7 +162,7 @@ class IdentityAndTrustServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
-            when(mockedVerifier.verifyPresentation(anyString(), any(CredentialFormat.class))).thenReturn(success());
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");
@@ -179,17 +183,17 @@ class IdentityAndTrustServiceTest {
             var presentation = createPresentationBuilder()
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
-                            .issuer("invalid-issuer")
+                            .issuer(new Issuer("invalid-issuer", Map.of()))
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
-            when(mockedVerifier.verifyPresentation(anyString(), any(CredentialFormat.class))).thenReturn(success());
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
             var token = createJwt(consumerDid, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().messages()
                     .hasSizeGreaterThanOrEqualTo(1)
-                    .contains("Issuer 'invalid-issuer' is not in the list of allowed issuers");
+                    .contains("Issuer 'invalid-issuer' is not in the list of trusted issuers");
         }
 
         @Test

@@ -28,9 +28,11 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 
 import java.util.List;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi.ContractDefinitionInputSchema.CONTRACT_DEFINITION_INPUT_EXAMPLE;
 import static org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi.ContractDefinitionOutputSchema.CONTRACT_DEFINITION_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
@@ -99,12 +101,17 @@ public interface ContractDefinitionApi {
 
     @Schema(name = "ContractDefinitionInput", example = CONTRACT_DEFINITION_INPUT_EXAMPLE)
     record ContractDefinitionInputSchema(
+            @Schema(name = CONTEXT, requiredMode = REQUIRED)
+            Object context,
             @Schema(name = ID)
             String id,
             @Schema(name = TYPE, example = CONTRACT_DEFINITION_TYPE)
             String type,
+            @Schema(requiredMode = REQUIRED)
             String accessPolicyId,
+            @Schema(requiredMode = REQUIRED)
             String contractPolicyId,
+            @Schema(requiredMode = REQUIRED)
             List<ApiCoreSchema.CriterionSchema> assetsSelector) {
 
         public static final String CONTRACT_DEFINITION_INPUT_EXAMPLE = """

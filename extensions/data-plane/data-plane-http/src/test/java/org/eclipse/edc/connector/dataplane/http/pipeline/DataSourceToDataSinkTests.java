@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       T-Systems International GmbH - extended with multimessage transfer
  *
  */
 
@@ -23,6 +24,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.MultipleBinaryPartsDataSource;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
@@ -197,6 +199,42 @@ class DataSourceToDataSinkTests {
         verify(sinkInterceptor).intercept(isA(Interceptor.Chain.class));
     }
 
+    /**
+     * Verifies that multiple messages are transferred
+     */
+    @ParameterizedTest(name = "Test transfer {1} messages with a partition size of {0}.")
+    @ArgumentsSource(ProvideMultipleSpecifications.class)
+    void verifyMultipleTransfer(int partitionSize, int messageSize) throws Exception {
+        int batch = Math.max(1, messageSize / partitionSize);
+
+        var interceptor = mock(Interceptor.class);
+        when(interceptor.intercept(isA(Interceptor.Chain.class)))
+                .thenAnswer(invocation -> createResponse(200, getRequest(invocation)));
+
+        var dataSource = new MultipleBinaryPartsDataSource("test", "test".getBytes(), messageSize);
+
+        var sinkClient = testHttpClient(interceptor);
+
+        var dataSink = HttpDataSink.Builder.newInstance()
+                .params(HttpRequestParams.Builder.newInstance()
+                        .baseUrl("https://example.com/sink")
+                        .method(HttpMethod.POST.name())
+                        .contentType(CONTENT_TYPE)
+                        .build())
+                .requestId("1")
+                .httpClient(sinkClient)
+                .partitionSize(partitionSize)
+                .executorService(executor)
+                .monitor(monitor)
+                .requestFactory(requestFactory)
+                .build();
+
+        assertThat(dataSink.transfer(dataSource)).succeedsWithin(batch * 500, TimeUnit.MILLISECONDS)
+                .satisfies(transferResult -> assertThat(transferResult.succeeded()).isTrue());
+
+        verify(interceptor, times(messageSize)).intercept(isA(Interceptor.Chain.class));
+    }
+
     private Response createResponse(int code, Request request) {
         return new Response.Builder()
                 .protocol(Protocol.HTTP_1_1)
@@ -225,4 +263,18 @@ class DataSourceToDataSinkTests {
             );
         }
     }
+
+    public static class ProvideMultipleSpecifications implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(10, 100),
+                    Arguments.of(1, 1),
+                    Arguments.of(1, 100),
+                    Arguments.of(10, 1),
+                    Arguments.of(333, 1000)
+            );
+        }
+    }
+
 }

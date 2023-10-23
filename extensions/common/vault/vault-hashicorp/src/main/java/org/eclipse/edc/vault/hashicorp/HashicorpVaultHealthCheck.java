@@ -52,36 +52,35 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
 
         switch (response.getCodeAsEnum()) {
             case INITIALIZED_UNSEALED_AND_ACTIVE -> {
-                monitor.debug("HashiCorp Vault HealthCheck successful. " + response.getPayload());
                 result = HealthCheckResult.success();
             }
             case UNSEALED_AND_STANDBY -> {
-                final String standbyMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in standby", response.getPayload());
+                var standbyMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in standby", response.getPayload());
                 monitor.warning(standbyMsg);
                 result = HealthCheckResult.failed(standbyMsg);
             }
             case DISASTER_RECOVERY_MODE_REPLICATION_SECONDARY_AND_ACTIVE -> {
-                final String recoveryModeMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in recovery mode", response.getPayload());
+                var recoveryModeMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in recovery mode", response.getPayload());
                 monitor.warning(recoveryModeMsg);
                 result = HealthCheckResult.failed(recoveryModeMsg);
             }
             case PERFORMANCE_STANDBY -> {
-                final String performanceStandbyMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in performance standby", response.getPayload());
+                var performanceStandbyMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in performance standby", response.getPayload());
                 monitor.warning(performanceStandbyMsg);
                 result = HealthCheckResult.failed(performanceStandbyMsg);
             }
             case NOT_INITIALIZED -> {
-                final String notInitializedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is not initialized", response.getPayload());
+                var notInitializedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is not initialized", response.getPayload());
                 monitor.warning(notInitializedMsg);
                 result = HealthCheckResult.failed(notInitializedMsg);
             }
             case SEALED -> {
-                final String sealedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is sealed", response.getPayload());
+                var sealedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is sealed", response.getPayload());
                 monitor.warning(sealedMsg);
                 result = HealthCheckResult.failed(sealedMsg);
             }
             default -> {
-                final String unspecifiedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Unspecified response from vault. Code: " + response.getCode(), response.getPayload());
+                var unspecifiedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Unspecified response from vault. Code: " + response.getCode(), response.getPayload());
                 monitor.warning(unspecifiedMsg);
                 result = HealthCheckResult.failed(unspecifiedMsg);
             }

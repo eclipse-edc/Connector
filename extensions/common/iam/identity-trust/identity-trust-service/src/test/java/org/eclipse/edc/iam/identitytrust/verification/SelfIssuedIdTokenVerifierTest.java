@@ -70,21 +70,21 @@ class SelfIssuedIdTokenVerifierTest {
                 .audience("test-audience")
                 .expirationTime(new Date(new Date().getTime() + 60 * 1000))
                 .build();
-        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod), "test-audience")).isSucceeded();
+        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod).getToken(), "test-audience")).isSucceeded();
     }
 
     @Test
     void verify_didResolutionFailed() {
         when(didResolverRegistry.resolve(any())).thenReturn(Result.failure("test failure"));
         var jwt = createJwt();
-        assertThat(verifier.verify(jwt, "test-audience")).isFailed()
+        assertThat(verifier.verify(jwt.getToken(), "test-audience")).isFailed()
                 .detail()
                 .isEqualTo("Unable to resolve DID: test failure");
     }
 
     @Test
     void verify_publicKeyNotFound() {
-        assertThat(verifier.verify(createJwt(), "test-audience")).isFailed()
+        assertThat(verifier.verify(createJwt().getToken(), "test-audience")).isFailed()
                 .detail()
                 .isEqualTo("Public Key not found in DID Document.");
     }
@@ -102,7 +102,7 @@ class SelfIssuedIdTokenVerifierTest {
                 .build();
 
         var jwt = createJwt(claimsSet, signKey);
-        assertThat(verifier.verify(jwt, "test-audience"))
+        assertThat(verifier.verify(jwt.getToken(), "test-audience"))
                 .isFailed()
                 .detail().isEqualTo("Token could not be verified: Invalid signature");
 
@@ -116,7 +116,7 @@ class SelfIssuedIdTokenVerifierTest {
                 // aud claim missing
                 .expirationTime(new Date(new Date().getTime() + 60 * 1000))
                 .build();
-        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod), "test-audience"))
+        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod).getToken(), "test-audience"))
                 .isFailed()
                 .detail().contains("Claim verification failed. JWT missing required claims: [aud]");
     }
@@ -129,7 +129,7 @@ class SelfIssuedIdTokenVerifierTest {
                 .audience("test-audience")
                 .expirationTime(new Date(new Date().getTime() + 60 * 1000))
                 .build();
-        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod), "test-audience"))
+        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod).getToken(), "test-audience"))
                 .isFailed()
                 .detail().contains("Claim verification failed. JWT missing required claims: [iss]");
     }
@@ -142,7 +142,7 @@ class SelfIssuedIdTokenVerifierTest {
                 .audience("test-audience")
                 .expirationTime(new Date(new Date().getTime() + 60 * 1000))
                 .build();
-        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod), "invalid-audience"))
+        assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod).getToken(), "invalid-audience"))
                 .isFailed()
                 .detail().contains("Claim verification failed. JWT aud claim has value [test-audience], must be [invalid-audience]");
     }
