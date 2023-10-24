@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust;
 
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
+import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsRevoked;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
@@ -33,6 +34,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,6 +66,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final JwtValidator jwtValidator;
     private final JwtVerifier jwtVerifier;
     private final TrustedIssuerRegistry trustedIssuerRegistry;
+    private final Clock clock;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -73,7 +76,7 @@ public class IdentityAndTrustService implements IdentityService {
      */
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
-                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier, TrustedIssuerRegistry trustedIssuerRegistry) {
+                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier, TrustedIssuerRegistry trustedIssuerRegistry, Clock clock) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.participantId = participantId;
@@ -82,6 +85,7 @@ public class IdentityAndTrustService implements IdentityService {
         this.jwtValidator = jwtValidator;
         this.jwtVerifier = jwtVerifier;
         this.trustedIssuerRegistry = trustedIssuerRegistry;
+        this.clock = clock;
     }
 
     @Override
@@ -133,6 +137,7 @@ public class IdentityAndTrustService implements IdentityService {
                 .compose(u -> {
                     // in addition, verify that all VCs are valid
                     var filters = new ArrayList<>(List.of(
+                            new IsNotExpired(clock),
                             new HasValidSubjectIds(issuerResult.getContent()),
                             new IsRevoked(null),
                             new HasValidIssuer(getTrustedIssuerIds())));

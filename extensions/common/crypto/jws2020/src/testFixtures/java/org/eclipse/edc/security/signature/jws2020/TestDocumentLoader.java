@@ -28,12 +28,12 @@ import java.net.URI;
  * For example, referencing a remote context, or a remote verificationMethod would fail, if that document doesn't exist, but we need it
  * for testing, so we can "redirect" the pointer to the local test resources folder.
  */
-class TestResourcesLoader implements DocumentLoader {
+public class TestDocumentLoader implements DocumentLoader {
     private final String base;
     private final DocumentLoader baseLoader;
     private final String resourcePath;
 
-    TestResourcesLoader(String base, String resourcePath, DocumentLoader baseLoader) {
+    public TestDocumentLoader(String base, String resourcePath, DocumentLoader baseLoader) {
         this.base = base;
         this.resourcePath = resourcePath;
         this.baseLoader = baseLoader;

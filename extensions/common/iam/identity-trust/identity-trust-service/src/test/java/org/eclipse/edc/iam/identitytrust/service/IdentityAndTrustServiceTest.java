@@ -38,6 +38,9 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +72,7 @@ class IdentityAndTrustServiceTest {
     private final JwtVerifier jwtVerfierMock = mock();
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
     private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient,
-            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock);
+            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock, Clock.systemUTC());
 
     @BeforeEach
     void setup() {
@@ -148,6 +151,24 @@ class IdentityAndTrustServiceTest {
             var token = createJwt();
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().detail().isEqualTo("Cryptographic error");
+        }
+
+        @Test
+        void notYetValid() {
+            var presentation = createPresentationBuilder()
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                            .issuanceDate(Instant.now().plus(10, ChronoUnit.DAYS))
+                            .build()))
+                    .build();
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
+            var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
+            var result = service.verifyJwtToken(token, "test-audience");
+            assertThat(result).isFailed().messages()
+                    .hasSizeGreaterThanOrEqualTo(1)
+                    .contains("Credential is not yet valid.");
         }
 
         @Test

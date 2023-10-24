@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.identitytrust.model;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +67,7 @@ public class VerifiableCredential {
         return issuer;
     }
 
+    @NotNull
     public Instant getIssuanceDate() {
         return issuanceDate;
     }

@@ -12,12 +12,14 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.verification;
+package org.eclipse.edc.verifiablecredentials.jwt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.identitytrust.verification.CredentialVerifier;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.spi.result.Result;
 
 import java.text.ParseException;
@@ -26,7 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT.
+ * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT. Internally, for the actual
+ * cryptographic computation it uses the generic {@link JwtVerifier} object. The main task of <em>this</em> class is to read the JWT,
+ * determine whether it's a VP or a VC and parse the contents.
+ * <p>
  * In order to be successfully verified, a VP-JWT must contain a "vp" claim, that contains a JSON structure containing a
  * "verifiableCredentials" object.
  * This object contains an array of strings, each representing one VerifiableCredential, represented in JWT format.
@@ -43,30 +48,37 @@ import java.util.Map;
  *         <li>iss: is used to resolve the DID, that contains the key-id</li>
  *     </ul>
  *     <li>A VP is only verified, if it and all VCs it contains are verified</li>
- *     </li>
  * </ul>
  *
  * <em>Note: VP-JWTs may only contain VCs also represented in JWT format. Mixing formats is not allowed.</em>
  */
-class JwtPresentationVerifier {
+public class JwtPresentationVerifier implements CredentialVerifier {
     public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
     public static final String VP_CLAIM = "vp";
+    public static final String VC_CLAIM = "vc";
     private final JwtVerifier jwtVerifier;
-    private final String thisAudience;
     private final ObjectMapper objectMapper;
 
     /**
      * Verifies the JWT presentation by checking the cryptographic integrity.
      *
-     * @param jwtVerifier  The JwtVerifier instance used to verify the JWT token.
-     * @param thisAudience The audience to which the token is intended. This must be "this connector's identifier"
+     * @param jwtVerifier The JwtVerifier instance used to verify the JWT token.
      */
-    JwtPresentationVerifier(JwtVerifier jwtVerifier, String thisAudience, ObjectMapper objectMapper) {
+    public JwtPresentationVerifier(JwtVerifier jwtVerifier, ObjectMapper objectMapper) {
         this.jwtVerifier = jwtVerifier;
-        this.thisAudience = thisAudience;
         this.objectMapper = objectMapper;
     }
 
+
+    @Override
+    public boolean canHandle(String rawInput) {
+        try {
+            SignedJWT.parse(rawInput);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
 
     /**
      * Verifies the presentation by checking the cryptographic integrity as well as the presence of mandatory claims in the JWT.
@@ -74,22 +86,29 @@ class JwtPresentationVerifier {
      * @param serializedJwt The serialized JWT presentation to be verified.
      * @return A Result object representing the verification result, containing specific error messages in case of failure.
      */
-    public Result<Void> verifyPresentation(String serializedJwt) {
+    @Override
+    public Result<Void> verify(String serializedJwt, VerifierContext context) {
 
         // verify the "outer" JWT, i.e. the VP JWT
-        var vpResult = jwtVerifier.verify(serializedJwt, thisAudience);
-        if (vpResult.failed()) {
-            return vpResult;
+        var audience = context.getAudience();
+        var verificationResult = jwtVerifier.verify(serializedJwt, audience);
+        if (verificationResult.failed()) {
+            return verificationResult;
         }
 
         // verify all "inner" VC JWTs
         try {
-            // obtain the actual VP JSON structure
-            var signedVpJwt = SignedJWT.parse(serializedJwt);
-            var vpClaim = signedVpJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
-            if (vpClaim == null) {
-                return Result.failure("VP-JWT does not contain mandatory claim: " + VP_CLAIM);
+            // obtain the actual JSON structure
+            var signedJwt = SignedJWT.parse(serializedJwt);
+            if (isCredential(signedJwt)) {
+                return verificationResult;
             }
+
+            if (!isPresentation(signedJwt)) {
+                return Result.failure("Either '%s' or '%s' claim must be present in JWT.".formatted(VP_CLAIM, VC_CLAIM));
+            }
+
+            var vpClaim = signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
             var vpJson = vpClaim.toString();
 
             // obtain the "verifiableCredentials" object inside
@@ -97,28 +116,42 @@ class JwtPresentationVerifier {
             if (!map.containsKey(VERIFIABLE_CREDENTIAL_JSON_KEY)) {
                 return Result.failure("Presentation object did not contain mandatory object: " + VERIFIABLE_CREDENTIAL_JSON_KEY);
             }
-            var vcTokens = extractCredentials(map.get(VERIFIABLE_CREDENTIAL_JSON_KEY));
+            var rawCredentials = extractCredentials(map.get(VERIFIABLE_CREDENTIAL_JSON_KEY));
 
-            if (vcTokens.isEmpty()) {
+            if (rawCredentials.isEmpty()) {
                 // todo: this is allowed by the spec, but it is semantic nonsense. Should we return failure or not?
-                return Result.failure("No credential found in presentation.");
+                return Result.success();
             }
 
             // every VC is represented as another JWT, so we verify all of them
-            for (String token : vcTokens) {
-                vpResult = vpResult.merge(jwtVerifier.verify(token, signedVpJwt.getJWTClaimsSet().getIssuer()));
+            for (String token : rawCredentials) {
+                verificationResult = verificationResult.merge(context.withAudience(signedJwt.getJWTClaimsSet().getIssuer()).verify(token));
             }
 
         } catch (ParseException | JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return vpResult;
+        return verificationResult;
+    }
+
+    private boolean isCredential(SignedJWT jwt) throws ParseException {
+        return jwt.getJWTClaimsSet().getClaims().containsKey(VC_CLAIM);
+    }
+
+    private boolean isPresentation(SignedJWT jwt) throws ParseException {
+        return jwt.getJWTClaimsSet().getClaims().containsKey(VP_CLAIM);
     }
 
     @SuppressWarnings("unchecked")
     private List<String> extractCredentials(Object credentialsObject) {
         if (credentialsObject instanceof Collection<?>) {
-            return ((Collection) credentialsObject).stream().map(Object::toString).toList();
+            return ((Collection) credentialsObject).stream().map(obj -> {
+                try {
+                    return (obj instanceof String) ? obj.toString() : objectMapper.writeValueAsString(obj);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList();
         }
         return List.of(credentialsObject.toString());
     }

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.verification;
+package org.eclipse.edc.verification.jwt;
 
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.did.crypto.JwtUtils;
@@ -39,9 +39,7 @@ import java.util.Optional;
  * If no such {@code kid} header is present, then the <em>first</em> verification method is used.
  * <p>
  * Please note that <strong>no structural</strong> validation is done beyond the very basics (must have iss and aud claim).
- * This is done by the {@link org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator}.
- *
- * @see org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator For SI Token validation.
+ * This is done by the {@link SelfIssuedIdTokenVerifier}.
  */
 public class SelfIssuedIdTokenVerifier implements JwtVerifier {
     private final DidResolverRegistry resolverRegistry;

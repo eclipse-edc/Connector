@@ -3,7 +3,7 @@ format.version = "1.1"
 
 [versions]
 apacheCommonsPool2 = "2.12.0"
-iron-vc = "0.8.1"
+apicatalog = "0.8.1"
 assertj = "3.24.2"
 atomikos = "6.0.0"
 awaitility = "4.2.0"
@@ -39,7 +39,8 @@ tink = "1.11.0"
 
 
 [libraries]
-iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "iron-vc" }
+iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
+iron-ed25519 = { module = "com.apicatalog:iron-ed25519-cryptosuite-2020", version.ref = "apicatalog" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }

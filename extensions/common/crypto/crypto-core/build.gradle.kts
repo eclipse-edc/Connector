@@ -16,10 +16,16 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:identity-did-spi"))
+    api(project(":spi:common:identity-trust-spi"))
     implementation(project(":core:common:util"))
+    implementation(project(":spi:common:core-spi"))
+    implementation(project(":extensions:common:iam:decentralized-identity:identity-did-crypto"))
+
     implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
-    
+
     testImplementation(testFixtures(project(":core:common:junit")))
+    testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
 }

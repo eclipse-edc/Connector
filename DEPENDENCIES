@@ -1,4 +1,5 @@
 maven/mavencentral/com.apicatalog/carbon-did/0.0.2, Apache-2.0, approved, #9239
+maven/mavencentral/com.apicatalog/iron-ed25519-cryptosuite-2020/0.8.1, , restricted, clearlydefined
 maven/mavencentral/com.apicatalog/iron-verifiable-credentials/0.8.1, Apache-2.0, approved, #9234
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.3.1, Apache-2.0, approved, #8912
