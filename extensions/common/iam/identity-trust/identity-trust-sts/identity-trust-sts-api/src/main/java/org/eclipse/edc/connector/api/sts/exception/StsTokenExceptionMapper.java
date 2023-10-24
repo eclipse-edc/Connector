@@ -34,40 +34,34 @@ import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.UNAUTHORI
  */
 public class StsTokenExceptionMapper implements ExceptionMapper<StsTokenException> {
 
-    private final Map<ServiceFailure.Reason, Response.Status> statusMap;
+    private static final Map<ServiceFailure.Reason, Response.Status> STATUS_MAP = Map.of(
+            UNAUTHORIZED, Response.Status.UNAUTHORIZED,
+            NOT_FOUND, Response.Status.UNAUTHORIZED,
+            BAD_REQUEST, Response.Status.BAD_REQUEST,
+            CONFLICT, Response.Status.BAD_REQUEST
+    );
 
-    private final Map<ServiceFailure.Reason, String> errorsMap;
+    private static final Map<ServiceFailure.Reason, String> ERRORS_MAP = Map.of(
+            UNAUTHORIZED, "invalid_client",
+            NOT_FOUND, "invalid_client",
+            BAD_REQUEST, "invalid_request",
+            CONFLICT, "invalid_request"
+    );
 
-    private final Map<ServiceFailure.Reason, String> errorDetailsMap;
+    private static final Map<ServiceFailure.Reason, String> ERROR_DETAILS_MAP = Map.of(
+            UNAUTHORIZED, "Invalid client or Invalid client credentials",
+            NOT_FOUND, "Invalid client or Invalid client credentials");
 
 
     public StsTokenExceptionMapper() {
-
-        errorDetailsMap = Map.of(
-                UNAUTHORIZED, "Invalid client or Invalid client credentials",
-                NOT_FOUND, "Invalid client or Invalid client credentials");
-
-        statusMap = Map.of(
-                UNAUTHORIZED, Response.Status.UNAUTHORIZED,
-                NOT_FOUND, Response.Status.UNAUTHORIZED,
-                BAD_REQUEST, Response.Status.BAD_REQUEST,
-                CONFLICT, Response.Status.BAD_REQUEST
-        );
-
-        errorsMap = Map.of(
-                UNAUTHORIZED, "invalid_client",
-                NOT_FOUND, "invalid_client",
-                BAD_REQUEST, "invalid_request",
-                CONFLICT, "invalid_request"
-        );
     }
 
     @Override
     public Response toResponse(StsTokenException exception) {
         var failure = exception.getServiceFailure();
-        var status = statusMap.getOrDefault(failure.getReason(), INTERNAL_SERVER_ERROR);
-        var errorDescription = errorDetailsMap.getOrDefault(failure.getReason(), exception.getMessage());
-        var errorCode = errorsMap.getOrDefault(failure.getReason(), "invalid_request");
+        var status = STATUS_MAP.getOrDefault(failure.getReason(), INTERNAL_SERVER_ERROR);
+        var errorDescription = ERROR_DETAILS_MAP.getOrDefault(failure.getReason(), exception.getMessage());
+        var errorCode = ERRORS_MAP.getOrDefault(failure.getReason(), "invalid_request");
         var error = new StsTokenErrorResponse(errorCode, errorDescription);
         return Response.status(status)
                 .entity(error)

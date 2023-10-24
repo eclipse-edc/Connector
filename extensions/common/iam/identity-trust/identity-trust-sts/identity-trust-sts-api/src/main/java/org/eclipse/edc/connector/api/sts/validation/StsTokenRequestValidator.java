@@ -25,17 +25,21 @@ import java.util.function.Function;
 
 public class StsTokenRequestValidator implements Validator<StsTokenRequest> {
 
-    final Map<String, Function<StsTokenRequest, ?>> fieldsNotNull = Map.of(
-            "grant_type", StsTokenRequest::getGrantType,
-            "client_id", StsTokenRequest::getClientId,
-            "client_secret", StsTokenRequest::getClientSecret,
-            "audience", StsTokenRequest::getAudience
+    public static final String GRANT_TYPE = "grant_type";
+    public static final String CLIENT_ID = "client_id";
+    public static final String CLIENT_SECRET = "client_secret";
+    public static final String AUDIENCE = "audience";
+    private static final Map<String, Function<StsTokenRequest, ?>> FIELDS_NOT_NULL = Map.of(
+            GRANT_TYPE, StsTokenRequest::getGrantType,
+            CLIENT_ID, StsTokenRequest::getClientId,
+            CLIENT_SECRET, StsTokenRequest::getClientSecret,
+            AUDIENCE, StsTokenRequest::getAudience
     );
 
     @Override
     public ValidationResult validate(StsTokenRequest request) {
         var violations = new ArrayList<Violation>();
-        fieldsNotNull.forEach((fieldName, supplier) -> {
+        FIELDS_NOT_NULL.forEach((fieldName, supplier) -> {
             if (supplier.apply(request) == null) {
                 violations.add(Violation.violation(fieldName + " cannot be null", fieldName));
             }
