@@ -35,10 +35,10 @@ import org.eclipse.edc.connector.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
-import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.validator.spi.DataAddressValidator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
