@@ -46,6 +46,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
@@ -146,7 +147,7 @@ class DataPlaneManagerImplTest {
         var result = manager.terminate("dataFlowId");
 
         assertThat(result).isSucceeded();
-        verify(store).save(argThat(d -> d.getState() == COMPLETED.code()));
+        verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
         verify(transferService).terminate(dataFlow);
     }
 
@@ -212,6 +213,24 @@ class DataPlaneManagerImplTest {
         await().untilAsserted(() -> {
             verify(transferService).transfer(isA(DataFlowRequest.class));
             verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
+        });
+    }
+
+    @Test
+    void received_shouldStartTransferAndNotTransitionToCompleted_whenTransferSucceedsBecauseItsTermination() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+        var terminatedDataFlow = dataFlowBuilder().state(TERMINATED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(terminatedDataFlow);
+        when(registry.resolveTransferService(any())).thenReturn(transferService);
+        when(transferService.canHandle(any())).thenReturn(true);
+        when(transferService.transfer(any())).thenReturn(completedFuture(StreamResult.success()));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(store, never()).save(any());
         });
     }
 
