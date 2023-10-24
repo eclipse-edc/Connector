@@ -42,7 +42,8 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.*;
+import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinition;
+import static org.eclipse.edc.connector.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
@@ -374,7 +375,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         @Test
         void shouldReturnEmpty_whenQueryByInvalidKey() {
-            var definitionsExpected = TestFunctions.createContractDefinitions(5);
+            var definitionsExpected = createContractDefinitions(5);
             saveContractDefinitions(definitionsExpected);
 
             var spec = QuerySpec.Builder.newInstance()
