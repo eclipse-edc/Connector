@@ -35,7 +35,6 @@ import static org.eclipse.edc.connector.api.sts.client.configuration.StsClientCo
 import static org.eclipse.edc.connector.api.sts.client.configuration.StsClientConfigurationExtension.CONFIG_PREFIX;
 import static org.eclipse.edc.connector.api.sts.client.configuration.StsClientConfigurationExtension.ID;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -44,11 +43,9 @@ import static org.mockito.Mockito.when;
 public class StsClientConfigurationExtensionTest implements ServiceExtension {
 
     private final StsClientStore clientStore = mock();
-    private ServiceExtensionContext ctx;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        ctx = spy(context); //used to inject the config
         context.registerService(StsClientStore.class, clientStore);
     }
 
@@ -70,8 +67,8 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
         var clientAlias = "client";
         var config = ConfigFactory.fromMap(clientConfig(client, clientAlias));
 
-        when(ctx.getConfig(CONFIG_PREFIX)).thenReturn(config);
-        extension.initialize(ctx);
+        when(context.getConfig(CONFIG_PREFIX)).thenReturn(config);
+        extension.initialize(context);
         var capture = ArgumentCaptor.forClass(StsClient.class);
         verify(clientStore).create(capture.capture());
 

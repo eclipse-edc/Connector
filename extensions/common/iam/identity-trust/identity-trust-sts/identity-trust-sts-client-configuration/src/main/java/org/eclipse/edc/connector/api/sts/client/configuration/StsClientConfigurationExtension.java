@@ -47,7 +47,7 @@ public class StsClientConfigurationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        final Config config = context.getConfig(CONFIG_PREFIX);
+        var config = context.getConfig(CONFIG_PREFIX);
 
         config.partition().forEach(this::configureClient);
     }

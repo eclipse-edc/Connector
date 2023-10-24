@@ -238,6 +238,3 @@ include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 
 include(":version-catalog")
-include("extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
-findProject(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")?.name =
-    "identity-trust-sts-client-configuration"
