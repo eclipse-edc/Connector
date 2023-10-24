@@ -14,16 +14,16 @@
 
 package org.eclipse.edc.connector.service.dataaddress;
 
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.validator.spi.DataAddressValidator;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
 
 class DataAddressValidatorImplTest {
 
-    private final DataAddressValidatorImpl validator = new DataAddressValidatorImpl();
+    private final DataAddressValidator validator = new DataAddressValidatorImpl();
 
     @Test
     void shouldPass_whenTypeDoesNotNeedValidation() {
@@ -33,7 +33,7 @@ class DataAddressValidatorImplTest {
 
         var result = validator.validate(dataAddress);
 
-        assertThat(result).satisfies(Result::succeeded);
+        assertThat(result).isSucceeded();
     }
 
     @Test
@@ -45,7 +45,7 @@ class DataAddressValidatorImplTest {
 
         var result = validator.validate(dataAddress);
 
-        assertThat(result).satisfies(Result::succeeded);
+        assertThat(result).isSucceeded();
     }
 
     @Test
@@ -57,6 +57,6 @@ class DataAddressValidatorImplTest {
 
         var result = validator.validate(dataAddress);
 
-        assertThat(result).satisfies(Result::failed);
+        assertThat(result).isFailed();
     }
 }

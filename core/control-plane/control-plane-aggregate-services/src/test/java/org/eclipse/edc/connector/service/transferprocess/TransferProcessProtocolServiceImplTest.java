@@ -33,7 +33,6 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTermination
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
-import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -41,6 +40,8 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -64,6 +65,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.atLeastOnce;
@@ -105,7 +107,7 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
 
         var result = service.notifyRequested(message, claimToken());
 
@@ -131,7 +133,7 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(), any())).thenReturn(Result.success(null));
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
         when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
 
         var result = service.notifyRequested(message, claimToken());
@@ -151,7 +153,7 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
         when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
         when(validationService.validateAgreement(any(), any())).thenReturn(Result.failure("error"));
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
 
         var result = service.notifyRequested(message, claimToken());
 
@@ -162,7 +164,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @Test
     void notifyRequested_invalidDestination_shouldNotInitiateTransfer() {
-        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("invalid data address"));
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
         var message = TransferRequestMessage.Builder.newInstance()
                 .protocol("protocol")
                 .contractId("agreementId")

@@ -24,16 +24,16 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.dataaddress.DataAddressValidator;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Failure;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +54,7 @@ import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUE
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
@@ -133,7 +134,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldCreateAssetIfItDoesNotAlreadyExist() {
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
         var assetId = "assetId";
         var asset = createAsset(assetId);
         when(index.create(asset)).thenReturn(StoreResult.success());
@@ -149,7 +150,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldNotCreateAssetIfItAlreadyExists() {
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
         var asset = createAsset("assetId");
         when(index.create(asset)).thenReturn(StoreResult.alreadyExists("test"));
 
@@ -161,7 +162,7 @@ class AssetServiceImplTest {
     @Test
     void createAsset_shouldNotCreateAssetIfDataAddressInvalid() {
         var asset = createAsset("assetId");
-        when(dataAddressValidator.validate(any())).thenReturn(Result.failure("Data address is invalid"));
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.failure(violation("Data address is invalid", "path")));
 
         var result = service.create(asset);
 
@@ -177,7 +178,7 @@ class AssetServiceImplTest {
                 .property("property", "value")
                 .privateProperty("property", "other-value")
                 .build();
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
 
         var result = service.create(asset);
 
@@ -292,7 +293,7 @@ class AssetServiceImplTest {
 
     @Test
     void updateDataAddress_shouldUpdateWhenExists() {
-        when(dataAddressValidator.validate(any())).thenReturn(Result.success());
+        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
         var assetId = "assetId";
         var asset = createAsset(assetId);
         var dataAddress = DataAddress.Builder.newInstance().type("test-type").build();
