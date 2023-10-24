@@ -67,8 +67,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
             try {
                 var queryStmt = statements.createQuery(spec);
-                return queryExecutor.query(getConnection(), true, this::mapContractDefinitionId, queryStmt.getQueryAsString(), queryStmt.getParameters())
-                        .map(this::findById);
+                return queryExecutor.query(getConnection(), true, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -141,10 +140,6 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
     }
 
-    private String mapContractDefinitionId(ResultSet resultSet) throws SQLException {
-        return resultSet.getString(statements.getIdColumn());
-    }
-
     private ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
         return ContractDefinition.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
@@ -192,24 +187,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     }
 
     private ContractDefinition findById(Connection connection, String id) {
-        return transactionContext.execute(() -> {
-            if (!existsById(connection, id)) {
-                return null;
-            }
-            var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("id", "=", id))).build();
-            var queryStatement = statements.createQuery(query);
-
-            var contractDefinition = queryExecutor.single(connection, false,
-                            this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
-
-            return ContractDefinition.Builder.newInstance()
-                        .id(contractDefinition.getId())
-                        .createdAt(contractDefinition.getCreatedAt())
-                        .accessPolicyId(contractDefinition.getAccessPolicyId())
-                        .contractPolicyId(contractDefinition.getContractPolicyId())
-                        .assetsSelector(contractDefinition.getAssetsSelector())
-                        .privateProperties(contractDefinition.getPrivateProperties())
-                        .build();
-        });
+        var sql = statements.getFindByTemplate();
+        return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
     }
 }

@@ -129,21 +129,21 @@ public abstract class ContractDefinitionStoreTestBase {
         }
 
        @Test
-        @DisplayName("Save a single Contract Definition that doesn't already exist with private properties")
-        void doesNotExist_with_private_properties() {
-            var definition = createContractDefinition("id1", "policy", "contract", Map.of("key1", "value1", "key2", "value2"));
-            getContractDefinitionStore().save(definition);
+       @DisplayName("Save a single Contract Definition that doesn't already exist with private properties")
+       void doesNotExist_with_private_properties() {
+           var definition = createContractDefinition("id1", "policy", "contract", Map.of("key1", "value1", "key2", "value2"));
+           getContractDefinitionStore().save(definition);
 
-            var definitions = getContractDefinitionStore().findAll(QuerySpec.max())
-                    .collect(Collectors.toList());
+           var definitions = getContractDefinitionStore().findAll(QuerySpec.max())
+                   .collect(Collectors.toList());
 
-            assertThat(definitions).hasSize(1);
-            assertThat(definitions.get(0)).usingRecursiveComparison().isEqualTo(definition);
+           assertThat(definitions).hasSize(1);
+           assertThat(definitions.get(0)).usingRecursiveComparison().isEqualTo(definition);
 
-            assertThat(definitions.get(0).getPrivateProperties()).hasSize(2);
-            assertThat(definitions.get(0).getPrivateProperties().get("key1")).usingRecursiveComparison().isEqualTo("value1");
-            assertThat(definitions.get(0).getPrivateProperties().get("key2")).usingRecursiveComparison().isEqualTo("value2");
-        }
+           assertThat(definitions.get(0).getPrivateProperties()).hasSize(2);
+           assertThat(definitions.get(0).getPrivateProperties().get("key1")).usingRecursiveComparison().isEqualTo("value1");
+           assertThat(definitions.get(0).getPrivateProperties().get("key2")).usingRecursiveComparison().isEqualTo("value2");
+       }
     }
 
     @Nested
