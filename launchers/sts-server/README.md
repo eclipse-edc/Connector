@@ -15,6 +15,17 @@ Once the build end, the STS jar should be available in the build directory `aunc
 
 ### How to run the STS
 
+Before running the STS we need to generate the local keystore for cert and private key.
+
+```shell
+mkdir launchers/sts-server/certs
+openssl genrsa 2048 > launchers/sts-server/certs/key.pem
+openssl req -x509 -new -key launchers/sts-server/certs/key.pem -out launchers/sts-server/certs/cert.pem
+openssl pkcs12 -export -in launchers/sts-server/certs/cert.pem -inkey launchers/sts-server/certs/key.pem -out launchers/sts-server/certs/cert.pfx
+```
+
+When exporting in `pkcs12` use the password `123456`.
+
 To run the STS, just run the following command:
 
 ```shell
