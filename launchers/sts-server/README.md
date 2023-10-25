@@ -29,7 +29,10 @@ When exporting in `pkcs12` use the password `123456`.
 To run the STS, just run the following command:
 
 ```shell
-java -Dedc.keystore=launchers/sts-server/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.vault=launchers/sts-server/sts-vault.properties -Dedc.fs.config=launchers/sts-server/config.properties -jar launchers/sts-server/build/libs/sts-server.jar
+java -Dedc.keystore=launchers/sts-server/certs/cert.pfx -Dedc.keystore.password=123456 \
+     -Dedc.vault=launchers/sts-server/sts-vault.properties \
+     -Dedc.fs.config=launchers/sts-server/config.properties \
+     -jar launchers/sts-server/build/libs/sts-server.jar
  ```
 
 The STS will be available on `9292` port.
