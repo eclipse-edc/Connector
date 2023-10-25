@@ -10,6 +10,7 @@
 --  Contributors:
 --       Daimler TSS GmbH - Initial SQL Query
 --       Microsoft Corporation - refactoring
+--       SAP SE - add private properties to contract definition
 --
 
 -- table: edc_contract_definitions
@@ -21,5 +22,6 @@ CREATE TABLE IF NOT EXISTS edc_contract_definitions
     access_policy_id       VARCHAR NOT NULL,
     contract_policy_id     VARCHAR NOT NULL,
     assets_selector        JSON    NOT NULL,
+    private_properties     JSON,
     PRIMARY KEY (contract_definition_id)
 );

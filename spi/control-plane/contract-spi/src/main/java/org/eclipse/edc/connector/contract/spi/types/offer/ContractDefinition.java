@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -21,7 +22,9 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -45,10 +48,13 @@ public class ContractDefinition extends Entity {
     public static final String CONTRACT_DEFINITION_ACCESSPOLICY_ID = EDC_NAMESPACE + "accessPolicyId";
     public static final String CONTRACT_DEFINITION_CONTRACTPOLICY_ID = EDC_NAMESPACE + "contractPolicyId";
     public static final String CONTRACT_DEFINITION_ASSETS_SELECTOR = EDC_NAMESPACE + "assetsSelector";
+    public static final String CONTRACT_DEFINITION_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
 
     private String accessPolicyId;
     private String contractPolicyId;
     private final List<Criterion> assetsSelector = new ArrayList<>();
+
+    private final Map<String, Object> privateProperties = new HashMap<>();
 
     private ContractDefinition() {
     }
@@ -68,9 +74,18 @@ public class ContractDefinition extends Entity {
         return assetsSelector;
     }
 
+    @NotNull
+    public Map<String, Object> getPrivateProperties() {
+        return privateProperties;
+    }
+
+    public Object getPrivateProperty(String key) {
+        return privateProperties.get(key);
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(id, accessPolicyId, contractPolicyId, assetsSelector);
+        return Objects.hash(id, accessPolicyId, contractPolicyId, assetsSelector, privateProperties);
     }
 
     @Override
@@ -84,7 +99,8 @@ public class ContractDefinition extends Entity {
         ContractDefinition that = (ContractDefinition) o;
         return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) &&
                 Objects.equals(contractPolicyId, that.contractPolicyId) &&
-                Objects.equals(assetsSelector, that.assetsSelector);
+                Objects.equals(assetsSelector, that.assetsSelector) &&
+                Objects.equals(privateProperties, that.privateProperties);
     }
 
     @Override
@@ -92,7 +108,8 @@ public class ContractDefinition extends Entity {
         return "ContractDefinition{" +
                 "accessPolicyId='" + accessPolicyId + '\'' +
                 ", contractPolicyId='" + contractPolicyId + '\'' +
-                ", assetsSelector=" + assetsSelector +
+                ", assetsSelector=" + assetsSelector + '\'' +
+                ", privateProperties=" + privateProperties +
                 '}';
     }
 
@@ -134,6 +151,17 @@ public class ContractDefinition extends Entity {
 
         public Builder assetsSelector(List<Criterion> criteria) {
             entity.assetsSelector.addAll(criteria);
+            return this;
+        }
+
+        public Builder privateProperty(String key, Object value) {
+            entity.privateProperties.put(key, value);
+            return this;
+        }
+
+        public Builder privateProperties(Map<String, Object> privateProperties) {
+            Objects.requireNonNull(privateProperties);
+            entity.privateProperties.putAll(privateProperties);
             return this;
         }
 

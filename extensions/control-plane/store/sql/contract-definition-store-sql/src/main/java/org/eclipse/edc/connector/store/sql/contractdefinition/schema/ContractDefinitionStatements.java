@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -48,6 +49,10 @@ public interface ContractDefinitionStatements extends SqlStatements {
 
     default String getCreatedAtColumn() {
         return "created_at";
+    }
+
+    default String getPrivatePropertiesColumn() {
+        return "private_properties";
     }
 
     String getDeleteByIdTemplate();

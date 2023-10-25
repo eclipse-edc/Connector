@@ -14,11 +14,13 @@
  *       Microsoft Corporation - added tests
  *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       SAP SE - SAP SE - add private properties to contract definition
  *
  */
 
 package org.eclipse.edc.connector.contract.spi.testfixtures.offer.store;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.Criterion;
@@ -34,6 +36,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -124,6 +127,23 @@ public abstract class ContractDefinitionStoreTestBase {
 
             assertThat(definitionsRetrieved).isNotNull().hasSize(definitionsCreated.size());
         }
+
+        @Test
+        @DisplayName("Save a single Contract Definition that doesn't already exist with private properties")
+        void doesNotExist_with_private_properties() {
+            var definition = createContractDefinition("id1", "policy", "contract", Map.of("key1", "value1", "key2", "value2"));
+            getContractDefinitionStore().save(definition);
+
+            var definitions = getContractDefinitionStore().findAll(QuerySpec.max())
+                    .collect(Collectors.toList());
+
+            assertThat(definitions).hasSize(1);
+            assertThat(definitions.get(0)).usingRecursiveComparison().isEqualTo(definition);
+
+            assertThat(definitions.get(0).getPrivateProperties()).hasSize(2);
+            assertThat(definitions.get(0).getPrivateProperties().get("key1")).usingRecursiveComparison().isEqualTo("value1");
+            assertThat(definitions.get(0).getPrivateProperties().get("key2")).usingRecursiveComparison().isEqualTo("value2");
+        }
     }
 
     @Nested
@@ -158,6 +178,65 @@ public abstract class ContractDefinitionStoreTestBase {
                 assertThat(definition.getAccessPolicyId()).isEqualTo(definition2.getAccessPolicyId());
                 assertThat(definition.getContractPolicyId()).isEqualTo(definition2.getContractPolicyId());
             });
+        }
+
+        @Test
+        @DisplayName("Update contract definition that exists, adding a property")
+        void exists_addsProperty() {
+            var definition1 = createContractDefinition("id1", "policy1", "contract1");
+            getContractDefinitionStore().save(definition1);
+            var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(definitions).isNotNull().hasSize(1);
+
+            definition1.getPrivateProperties().put("newKey", "newValue");
+            var updated = getContractDefinitionStore().update(definition1);
+            Assertions.assertThat(updated).isNotNull();
+
+            var definitionFound = getContractDefinitionStore().findById("id1");
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
+        }
+
+
+        @Test
+        @DisplayName("Update contract definition that exists, removing a property")
+        void exists_removesProperty() {
+            var definition1 = createContractDefinition("id1", "policy1", "contract1");
+            definition1.getPrivateProperties().put("newKey", "newValue");
+            getContractDefinitionStore().save(definition1);
+            var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(definitions).isNotNull().hasSize(1);
+
+            definition1.getPrivateProperties().remove("newKey");
+            var updated = getContractDefinitionStore().update(definition1);
+            Assertions.assertThat(updated).isNotNull();
+
+            var definitionFound = getContractDefinitionStore().findById("id1");
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
+            assertThat(definitionFound.getPrivateProperties()).doesNotContainKey("newKey");
+        }
+
+        @Test
+        @DisplayName("Update an Asset that exists, replacing a property")
+        void exists_replacingProperty() {
+            var definition1 = createContractDefinition("id1", "policy1", "contract1");
+            definition1.getPrivateProperties().put("newKey", "originalValue");
+            getContractDefinitionStore().save(definition1);
+            var definitions = getContractDefinitionStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(definitions).isNotNull().hasSize(1);
+
+            definition1.getPrivateProperties().put("newKey", "newValue");
+            var updated = getContractDefinitionStore().update(definition1);
+            Assertions.assertThat(updated).isNotNull();
+
+            var definitionFound = getContractDefinitionStore().findById("id1");
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
+            assertThat(definitionFound.getPrivateProperties()).containsEntry("newKey", "newValue");
         }
     }
 
@@ -296,7 +375,7 @@ public abstract class ContractDefinitionStoreTestBase {
 
         @Test
         void shouldReturnEmpty_whenQueryByInvalidKey() {
-            var definitionsExpected = TestFunctions.createContractDefinitions(5);
+            var definitionsExpected = createContractDefinitions(5);
             saveContractDefinitions(definitionsExpected);
 
             var spec = QuerySpec.Builder.newInstance()
@@ -398,6 +477,17 @@ public abstract class ContractDefinitionStoreTestBase {
                     .usingRecursiveFieldByFieldElementComparator()
                     .containsOnly(definitionsExpected.get(4));
         }
+
+        @Test
+        void shouldReturnAll_with_private_properties_whenNoFiltersApplied() {
+            var definition1 = createContractDefinition("definition1", "policyId", "contractId", Map.of("key1", "value1"));
+            getContractDefinitionStore().save(definition1);
+            var definition2 = createContractDefinition("definition2", "policyId", "contractId", Map.of("key2", "value2"));
+            getContractDefinitionStore().save(definition2);
+
+            var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
+            assertThat(definitionsRetrieved).isNotNull().hasSize(2);
+        }
     }
 
     @Nested
@@ -416,6 +506,17 @@ public abstract class ContractDefinitionStoreTestBase {
         @Test
         void findById_invalidId() {
             assertThat(getContractDefinitionStore().findById("invalid-id")).isNull();
+        }
+
+        @Test
+        void findById_with_private_properties() {
+            var id = "definitionId";
+            var definition = createContractDefinition(id, "policyId", "contractId", Map.of("key1", "value1"));
+            getContractDefinitionStore().save(definition);
+
+            var result = getContractDefinitionStore().findById(id);
+
+            assertThat(result).isNotNull().isEqualTo(definition);
         }
 
     }
@@ -457,6 +558,19 @@ public abstract class ContractDefinitionStoreTestBase {
             assertThat(deletedDefinition.succeeded()).isTrue();
             assertThat(deletedDefinition.getContent()).isEqualTo(definition1);
             assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).doesNotContain(definition1);
+        }
+
+        @Test
+        void shouldDelete_with_private_properties() {
+            var definitionExpected = createContractDefinition("test-id1", "policy1", "contract1", Map.of("key1", "value1"));
+            getContractDefinitionStore().save(definitionExpected);
+            assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
+
+            var deleted = getContractDefinitionStore().deleteById("test-id1");
+
+            assertThat(deleted.succeeded()).isTrue();
+            assertThat(deleted.getContent()).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
+            assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).isEmpty();
         }
     }
 

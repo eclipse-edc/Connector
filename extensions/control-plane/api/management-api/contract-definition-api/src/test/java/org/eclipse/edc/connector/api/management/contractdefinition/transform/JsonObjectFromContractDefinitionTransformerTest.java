@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -29,9 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
+import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,7 +49,7 @@ class JsonObjectFromContractDefinitionTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
-    private final JsonObjectFromContractDefinitionTransformer transformer = new JsonObjectFromContractDefinitionTransformer(jsonFactory);
+    private final JsonObjectFromContractDefinitionTransformer transformer = new JsonObjectFromContractDefinitionTransformer(jsonFactory, createObjectMapper());
 
     @Test
     void transform() {
@@ -70,6 +73,26 @@ class JsonObjectFromContractDefinitionTransformerTest {
         assertThat(result.getJsonArray(CONTRACT_DEFINITION_ASSETS_SELECTOR)).containsExactly(criterionJson);
         verify(context).transform(criterion, JsonObject.class);
         verify(context, never()).reportProblem(anyString());
+    }
+
+
+    @Test
+    void transform_withPrivateProperties_simpleTypes() {
+        var criterionJson = jsonFactory.createObjectBuilder().build();
+        when(context.transform(isA(Criterion.class), eq(JsonObject.class))).thenReturn(criterionJson);
+        var criterion = criterion("left", "=", "right");
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("id")
+                .accessPolicyId("accessPolicyId")
+                .contractPolicyId("contractPolicyId")
+                .assetsSelector(List.of(criterion))
+                .privateProperty("some-key", "some-value")
+                .build();
+
+        var jsonObject = transformer.transform(contractDefinition, context);
+
+        assertThat(jsonObject).isNotNull();
+        assertThat(jsonObject.getJsonObject(CONTRACT_DEFINITION_PRIVATE_PROPERTIES).getJsonString("some-key").getString()).isEqualTo("some-value");
     }
 
 }

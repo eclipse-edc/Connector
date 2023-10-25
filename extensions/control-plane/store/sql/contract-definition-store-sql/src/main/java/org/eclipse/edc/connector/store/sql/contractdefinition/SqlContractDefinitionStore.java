@@ -12,6 +12,7 @@
  *       Microsoft Corporation - refactoring, bugfixing
  *       Fraunhofer Institute for Software and Systems Engineering - added method
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -37,6 +38,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -46,6 +48,9 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
     private final ContractDefinitionStatements statements;
     public static final TypeReference<List<Criterion>> CRITERION_LIST = new TypeReference<>() {
+    };
+
+    private static final TypeReference<Map<String, Object>> PRIVATE_PROPERTIES_TYPE = new TypeReference<>() {
     };
 
     public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
@@ -142,6 +147,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
                 .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
                 .assetsSelector(fromJson(resultSet.getString(statements.getAssetsSelectorColumn()), CRITERION_LIST))
+                .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), PRIVATE_PROPERTIES_TYPE))
                 .build();
     }
 
@@ -152,7 +158,8 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                     definition.getAccessPolicyId(),
                     definition.getContractPolicyId(),
                     toJson(definition.getAssetsSelector()),
-                    definition.getCreatedAt());
+                    definition.getCreatedAt(),
+                    toJson(definition.getPrivateProperties()));
         });
     }
 
@@ -164,6 +171,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 definition.getContractPolicyId(),
                 toJson(definition.getAssetsSelector()),
                 definition.getCreatedAt(),
+                toJson(definition.getPrivateProperties()),
                 definition.getId());
     }
 
@@ -182,5 +190,4 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
         var sql = statements.getFindByTemplate();
         return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
     }
-
 }

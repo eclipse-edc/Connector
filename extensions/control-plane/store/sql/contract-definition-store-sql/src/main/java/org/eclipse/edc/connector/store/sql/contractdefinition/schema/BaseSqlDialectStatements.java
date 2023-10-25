@@ -40,11 +40,11 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .column(getContractPolicyIdColumn())
                 .jsonColumn(getAssetsSelectorColumn())
                 .column(getCreatedAtColumn())
+                .jsonColumn(getPrivatePropertiesColumn())
                 .insertInto(getContractDefinitionTable());
     }
 
     @Override
-
     public String getCountTemplate() {
         return format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
                 getIdColumn(),
@@ -60,6 +60,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .column(getContractPolicyIdColumn())
                 .jsonColumn(getAssetsSelectorColumn())
                 .column(getCreatedAtColumn())
+                .jsonColumn(getPrivatePropertiesColumn())
                 .update(getContractDefinitionTable(), getIdColumn());
 
     }

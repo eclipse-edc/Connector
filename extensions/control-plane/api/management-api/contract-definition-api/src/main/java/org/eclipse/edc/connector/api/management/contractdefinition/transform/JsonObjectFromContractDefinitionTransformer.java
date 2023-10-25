@@ -9,11 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       SAP SE - add private properties to contract definition
  *
  */
 
 package org.eclipse.edc.connector.api.management.contractdefinition.transform;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -31,11 +33,13 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromContractDefinitionTransformer extends AbstractJsonLdTransformer<ContractDefinition, JsonObject> {
+    private final ObjectMapper mapper;
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromContractDefinitionTransformer(JsonBuilderFactory jsonFactory) {
+    public JsonObjectFromContractDefinitionTransformer(JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper) {
         super(ContractDefinition.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
+        this.mapper = jsonLdMapper;
     }
 
     @Override
@@ -44,12 +48,19 @@ public class JsonObjectFromContractDefinitionTransformer extends AbstractJsonLdT
                 .map(criterion -> context.transform(criterion, JsonObject.class))
                 .collect(toJsonArray());
 
-        return jsonFactory.createObjectBuilder()
+        var builder = jsonFactory.createObjectBuilder()
                 .add(ID, contractDefinition.getId())
                 .add(TYPE, CONTRACT_DEFINITION_TYPE)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, contractDefinition.getAccessPolicyId())
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, contractDefinition.getContractPolicyId())
-                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, criteria)
-                .build();
+                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, criteria);
+
+        if (!contractDefinition.getPrivateProperties().isEmpty()) {
+            var privatePropBuilder = jsonFactory.createObjectBuilder();
+            transformProperties(contractDefinition.getPrivateProperties(), privatePropBuilder, mapper, context);
+            builder.add(ContractDefinition.CONTRACT_DEFINITION_PRIVATE_PROPERTIES, privatePropBuilder);
+        }
+
+        return builder.build();
     }
 }
