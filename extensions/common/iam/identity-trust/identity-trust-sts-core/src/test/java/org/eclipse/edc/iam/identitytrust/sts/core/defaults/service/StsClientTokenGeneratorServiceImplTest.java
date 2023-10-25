@@ -35,25 +35,27 @@ import static org.mockito.Mockito.when;
 
 public class StsClientTokenGeneratorServiceImplTest {
 
+    public static final long TOKEN_EXPIRATION = 60 * 5;
     private final StsTokenGenerationProvider tokenGenerationProvider = mock();
     private final TokenGenerationService tokenGenerator = mock();
     private StsClientTokenGeneratorServiceImpl clientTokenService;
 
+
     @BeforeEach
     void setup() {
-        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, Clock.systemUTC(), 60 * 5);
+        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, Clock.systemUTC(), TOKEN_EXPIRATION);
     }
 
     @Test
     void tokenFor() {
         var client = createClient("clientId");
-        var token = TokenRepresentation.Builder.newInstance().token("token").build();
+        var token = TokenRepresentation.Builder.newInstance().token("token").expiresIn(TOKEN_EXPIRATION).build();
         when(tokenGenerationProvider.tokenGeneratorFor(client)).thenReturn(tokenGenerator);
         when(tokenGenerator.generate(any())).thenReturn(Result.success(token));
 
         var inserted = clientTokenService.tokenFor(client, StsClientTokenAdditionalParams.Builder.newInstance().audience("aud").build());
 
-        assertThat(inserted).isSucceeded().isEqualTo(token);
+        assertThat(inserted).isSucceeded().usingRecursiveComparison().isEqualTo(token);
     }
 
     @Test

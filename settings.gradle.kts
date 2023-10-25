@@ -117,8 +117,10 @@ include(":extensions:common:iam:identity-trust:identity-trust-transform")
 include(":extensions:common:iam:identity-trust:identity-trust-service")
 include(":extensions:common:iam:identity-trust:identity-trust-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts-embedded")
-include(":extensions:common:iam:identity-trust:identity-trust-sts-api")
 include(":extensions:common:iam:identity-trust:identity-trust-sts-core")
+include(":extensions:common:iam:identity-trust:identity-trust-sts")
+include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api")
+include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
 
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
@@ -183,6 +185,7 @@ include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:data-plane-server")
 include(":launchers:dpf-selector")
+include(":launchers:sts-server")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:aggregate-service-spi")
@@ -228,6 +231,8 @@ include(":system-tests:e2e-transfer-test:data-plane-postgresql")
 include(":system-tests:e2e-transfer-test:runner")
 include(":system-tests:management-api:management-api-test-runner")
 include(":system-tests:management-api:management-api-test-runtime")
+include(":system-tests:sts-api:sts-api-test-runner")
+include(":system-tests:sts-api:sts-api-test-runtime")
 
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
