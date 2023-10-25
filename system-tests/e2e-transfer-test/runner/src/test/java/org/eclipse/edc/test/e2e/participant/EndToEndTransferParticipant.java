@@ -140,6 +140,7 @@ public class EndToEndTransferParticipant extends Participant {
                 .when()
                 .get()
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .body("message", bodyMatcher);
     }

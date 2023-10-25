@@ -42,6 +42,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +77,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     private static final String POLICY_ID = "3";
     private final int dataPort = getFreePort();
     private final Interceptor delegate = mock(Interceptor.class);
-    private final ContractValidationService contractValidationService = mock(ContractValidationService.class);
+    private final ContractValidationService contractValidationService = mock();
 
     @BeforeEach
     void setup(EdcExtension extension) {
@@ -90,6 +92,10 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerServiceMock(EdcHttpClient.class, testHttpClient(delegate));
         extension.registerServiceMock(ContractValidationService.class, contractValidationService);
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
+        var dataAddressValidatorRegistry = mock(DataAddressValidatorRegistry.class);
+        when(dataAddressValidatorRegistry.validateSource(any())).thenReturn(ValidationResult.success());
+        when(dataAddressValidatorRegistry.validateDestination(any())).thenReturn(ValidationResult.success());
+        extension.registerServiceMock(DataAddressValidatorRegistry.class, dataAddressValidatorRegistry);
         extension.registerSystemExtension(ServiceExtension.class, new DummyCallbackUrlExtension());
         extension.setConfiguration(PROVISIONER_CONFIG);
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {

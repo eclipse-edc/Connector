@@ -17,12 +17,14 @@ package org.eclipse.edc.connector.receiver.http.dynamic;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.eclipse.edc.connector.receiver.http.dynamic.HttpDynamicEndpointDataReferenceReceiver.HTTP_RECEIVER_ENDPOINT;
+import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.BASE_URL;
+import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.HTTP_DATA_TYPE;
 
 public class TestFunctions {
 
@@ -31,8 +33,9 @@ public class TestFunctions {
                 .id(id)
                 .state(TransferProcessStates.STARTED.code())
                 .type(TransferProcess.Type.CONSUMER)
-                .contentDataAddress(HttpDataAddress.Builder.newInstance()
-                        .baseUrl("http://localhost:8080/test")
+                .contentDataAddress(DataAddress.Builder.newInstance()
+                        .type(HTTP_DATA_TYPE)
+                        .property(BASE_URL, "http://localhost:8080/test")
                         .build())
                 .dataRequest(DataRequest.Builder.newInstance()
                         .destinationType("HttpProxy")

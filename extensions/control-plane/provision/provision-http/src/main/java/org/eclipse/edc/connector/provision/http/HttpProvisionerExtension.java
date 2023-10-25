@@ -30,6 +30,8 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.validator.dataaddress.HttpDataDataAddressValidator;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import static java.lang.String.format;
 
@@ -57,6 +59,9 @@ public class HttpProvisionerExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private DataAddressValidatorRegistry dataAddressValidatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -82,6 +87,8 @@ public class HttpProvisionerExtension implements ServiceExtension {
 
             provisionManager.register(provisioner);
         }
+
+        dataAddressValidatorRegistry.registerSourceValidator("HttpProvision", new HttpDataDataAddressValidator());
 
         typeManager.registerTypes(
                 HttpProviderResourceDefinition.class,

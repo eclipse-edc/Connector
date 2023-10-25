@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 import okio.BufferedSink;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;

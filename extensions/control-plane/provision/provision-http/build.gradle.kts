@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:common:http-spi"))
     api(project(":spi:common:web-spi"))
+    api(project(":core:common:validator-core"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:management-api-configuration"))
 

@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static okhttp3.MediaType.get;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 @Path("/provision")
 public class BackendServiceHttpProvisionerController {
@@ -61,8 +62,8 @@ public class BackendServiceHttpProvisionerController {
                 // this is the data address of the content served by this backend service
                 "contentDataAddress", Map.of(
                         "properties", Map.of(
-                                "type", "HttpData",
-                                "baseUrl", format("http://localhost:%d/api/provider/data", exposedHttpPort)
+                                EDC_NAMESPACE + "type", "HttpData",
+                                EDC_NAMESPACE + "baseUrl", format("http://localhost:%d/api/provider/data", exposedHttpPort)
                         )
                 ),
                 "apiKeyJwt", "unused",

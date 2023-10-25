@@ -12,7 +12,9 @@
  *
  */
 
-package org.eclipse.edc.dataplane.kafka.schema;
+package org.eclipse.edc.spi.dataaddress;
+
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Defines the schema of a DataAddress representing a Kafka endpoint.
@@ -27,18 +29,23 @@ public interface KafkaDataAddressSchema {
     /**
      * The Kafka stream name.
      */
-    String NAME = "name";
+    String NAME = EDC_NAMESPACE + "name";
 
     /**
      * The Kafka topic.
      */
-    String TOPIC = "topic";
+    String TOPIC = EDC_NAMESPACE + "topic";
 
     /**
      * The prefix for Kafka properties. These properties are passed to the Kafka which is removed. For example, a property named {@code kafka.key.deserializer} will
      * be passed to the Kafka client as {@code key.deserializer}.
      */
-    String KAFKA_PROPERTIES_PREFIX = "kafka.";
+    String KAFKA_PROPERTIES_PREFIX = EDC_NAMESPACE + "kafka.";
+
+    /**
+     * The bootstrap.servers property
+     */
+    String BOOTSTRAP_SERVERS = KAFKA_PROPERTIES_PREFIX + "bootstrap.servers";
 
     /**
      * The duration of the consumer polling.
@@ -48,7 +55,7 @@ public interface KafkaDataAddressSchema {
      *
      * @see java.time.Duration#parse(CharSequence) for ISO-8601 duration format
      */
-    String POLL_DURATION = "pollDuration";
+    String POLL_DURATION = EDC_NAMESPACE + "pollDuration";
 
     /**
      * Maximum duration of the stream before it closes.
@@ -58,5 +65,5 @@ public interface KafkaDataAddressSchema {
      *
      * @see java.time.Duration#parse(CharSequence) for ISO-8601 duration format
      */
-    String MAX_DURATION = "maxDuration";
+    String MAX_DURATION = EDC_NAMESPACE + "maxDuration";
 }

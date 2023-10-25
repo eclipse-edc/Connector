@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Amadeus
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,18 +8,18 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - Initial implementation
- *       Siemens AG - added additionalHeaders
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.spi.types.domain;
+package org.eclipse.edc.connector.dataplane.http.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +28,8 @@ import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
+import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.BASE_URL;
+import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.HTTP_DATA_TYPE;
 
 /**
  * This is a wrapper class for the {@link DataAddress} object, which has typed accessors for properties specific to
@@ -37,13 +39,10 @@ import static java.util.stream.Collectors.toMap;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class HttpDataAddress extends DataAddress {
 
-    public static final String HTTP_DATA = "HttpData";
-
     private static final String NAME = "name";
     private static final String PATH = "path";
     private static final String QUERY_PARAMS = "queryParams";
     private static final String METHOD = "method";
-    private static final String BASE_URL = "baseUrl";
     private static final String AUTH_KEY = "authKey";
     private static final String AUTH_CODE = "authCode";
     private static final String SECRET_NAME = "secretName";
@@ -59,7 +58,7 @@ public class HttpDataAddress extends DataAddress {
 
     private HttpDataAddress() {
         super();
-        this.setType(HTTP_DATA);
+        this.setType(HTTP_DATA_TYPE);
     }
 
     @JsonIgnore
@@ -132,7 +131,6 @@ public class HttpDataAddress extends DataAddress {
         return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
                 .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> (String) it.getValue()));
-
     }
 
     @JsonIgnore
@@ -241,7 +239,7 @@ public class HttpDataAddress extends DataAddress {
 
         @Override
         public HttpDataAddress build() {
-            this.type(HTTP_DATA);
+            this.type(HTTP_DATA_TYPE);
             return address;
         }
     }

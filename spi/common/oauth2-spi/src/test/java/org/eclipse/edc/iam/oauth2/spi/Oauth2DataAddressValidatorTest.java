@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
+import org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -42,29 +42,34 @@ class Oauth2DataAddressValidatorTest {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            var addressWithPrivateKeyName = HttpDataAddress.Builder.newInstance()
+            var addressWithPrivateKeyName = DataAddress.Builder.newInstance()
+                    .type(HttpDataAddressSchema.HTTP_DATA_TYPE)
                     .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
                     .property(Oauth2DataAddressSchema.PRIVATE_KEY_NAME, "aPrivateKeyName")
                     .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                     .build();
 
-            var addressWithSharedSecret = HttpDataAddress.Builder.newInstance()
+            var addressWithSharedSecret = DataAddress.Builder.newInstance()
+                    .type(HttpDataAddressSchema.HTTP_DATA_TYPE)
                     .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
                     .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "aSecret")
                     .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                     .build();
 
-            var missingTokenUrl = HttpDataAddress.Builder.newInstance()
+            var missingTokenUrl = DataAddress.Builder.newInstance()
+                    .type(HttpDataAddressSchema.HTTP_DATA_TYPE)
                     .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
                     .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "aSecret")
                     .build();
 
-            var missingClientId = HttpDataAddress.Builder.newInstance()
+            var missingClientId = DataAddress.Builder.newInstance()
+                    .type(HttpDataAddressSchema.HTTP_DATA_TYPE)
                     .property(Oauth2DataAddressSchema.CLIENT_SECRET_KEY, "secret-key")
                     .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                     .build();
 
-            var missingPrivateKeyOrSharedSecret = HttpDataAddress.Builder.newInstance()
+            var missingPrivateKeyOrSharedSecret = DataAddress.Builder.newInstance()
+                    .type(HttpDataAddressSchema.HTTP_DATA_TYPE)
                     .property(Oauth2DataAddressSchema.CLIENT_ID, "aClientId")
                     .property(Oauth2DataAddressSchema.TOKEN_URL, "aTokenUrl")
                     .build();

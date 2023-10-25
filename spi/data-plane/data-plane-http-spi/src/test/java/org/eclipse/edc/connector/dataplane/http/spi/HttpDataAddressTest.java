@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.types.domain;
+package org.eclipse.edc.connector.dataplane.http.spi;
 
 import org.junit.jupiter.api.Test;
 
