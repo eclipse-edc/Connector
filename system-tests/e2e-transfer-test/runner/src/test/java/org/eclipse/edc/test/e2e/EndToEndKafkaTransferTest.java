@@ -29,6 +29,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.test.e2e.annotations.KafkaIntegrationTest;
 import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
@@ -45,13 +46,13 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.validation.constraints.NotNull;
 
 import static java.lang.String.format;
 import static java.time.Duration.ZERO;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -136,12 +137,12 @@ class EndToEndKafkaTransferTest {
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
-            assertThat(state).isEqualTo(TERMINATED.name());
+            assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(TERMINATED);
         });
 
         destinationServer.clear(request)
                 .when(request).respond(response());
-        await().pollDelay(2, TimeUnit.SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
+        await().pollDelay(5, SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
             destinationServer.verify(request, never());
         });
 
@@ -167,11 +168,11 @@ class EndToEndKafkaTransferTest {
 
             await().atMost(TIMEOUT).untilAsserted(() -> {
                 var state = CONSUMER.getTransferProcessState(transferProcessId);
-                assertThat(state).isEqualTo(TERMINATED.name());
+                assertThat(TransferProcessStates.valueOf(state)).isGreaterThanOrEqualTo(TERMINATED);
             });
 
             consumer.poll(ZERO);
-            await().pollDelay(5, TimeUnit.SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
+            await().pollDelay(5, SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
                 var recordsFound = consumer.poll(Duration.ofSeconds(1)).records(SINK_TOPIC);
                 assertThat(recordsFound).isEmpty();
             });

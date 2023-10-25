@@ -28,6 +28,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 
 /**
  * Entity that represent a Data Plane Transfer Flow
@@ -106,6 +107,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public void transitToNotified() {
         transitionTo(NOTIFIED.code());
+    }
+
+    public void transitToTerminated() {
+        transitionTo(TERMINATED.code());
     }
 
     @JsonPOJOBuilder(withPrefix = "")
