@@ -138,6 +138,9 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return true;
         }
 
+        dataFlow.transitionToStarted();
+        store.save(dataFlow);
+
         return entityRetryProcessFactory.doAsyncProcess(dataFlow, () -> transferService.transfer(request))
                 .entityRetrieve(id -> store.findById(id))
                 .onSuccess((f, r) -> {

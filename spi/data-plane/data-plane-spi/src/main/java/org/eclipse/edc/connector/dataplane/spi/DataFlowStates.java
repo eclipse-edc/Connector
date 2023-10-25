@@ -23,6 +23,7 @@ public enum DataFlowStates {
 
     NOT_TRACKED(0),
     RECEIVED(100),
+    STARTED(150),
     COMPLETED(200),
     TERMINATED(250),
     FAILED(300),

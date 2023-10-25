@@ -46,6 +46,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
@@ -56,6 +57,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -200,7 +202,24 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void received_shouldStartTransferAndTransitionToCompleted_whenTransferSucceeds() {
+    void received_shouldStartTransferTransitionAndTransitionToStarted() {
+        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+        when(registry.resolveTransferService(any())).thenReturn(transferService);
+        when(transferService.canHandle(any())).thenReturn(true);
+        when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferService).transfer(isA(DataFlowRequest.class));
+            verify(store).save(argThat(it -> it.getState() == STARTED.code()));
+        });
+    }
+
+    @Test
+    void received_shouldStarTransitionToCompleted_whenTransferSucceeds() {
         var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(RECEIVED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(store.findById(any())).thenReturn(dataFlow);
@@ -212,7 +231,7 @@ class DataPlaneManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferService).transfer(isA(DataFlowRequest.class));
-            verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
+            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
 
@@ -230,7 +249,7 @@ class DataPlaneManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferService).transfer(isA(DataFlowRequest.class));
-            verify(store, never()).save(any());
+            verify(store, never()).save(argThat(it -> it.getState() == COMPLETED.code()));
         });
     }
 
@@ -247,7 +266,7 @@ class DataPlaneManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferService).transfer(isA(DataFlowRequest.class));
-            verify(store).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals("an error")));
+            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code() && it.getErrorDetail().equals("an error")));
         });
     }
 
@@ -264,7 +283,7 @@ class DataPlaneManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferService).transfer(isA(DataFlowRequest.class));
-            verify(store).save(argThat(it -> it.getState() == RECEIVED.code()));
+            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == RECEIVED.code()));
         });
     }
 
@@ -279,7 +298,7 @@ class DataPlaneManagerImplTest {
 
         await().untilAsserted(() -> {
             verifyNoInteractions(transferService);
-            verify(store).save(argThat(it -> it.getState() == FAILED.code()));
+            verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code()));
         });
     }
 
