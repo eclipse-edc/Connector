@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":extensions:common:crypto:ldp-verifiable-credentials"))
     implementation(project(":extensions:common:crypto:crypto-core"))
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-service"))
-    implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts-embedded"))
+    implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-embedded"))
     implementation(libs.nimbus.jwt)
 
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))

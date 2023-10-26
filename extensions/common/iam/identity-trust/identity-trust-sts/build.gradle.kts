@@ -18,6 +18,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-embedded"))
+    api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-core"))
     api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api"))
     api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration"))
 }
