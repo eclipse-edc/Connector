@@ -1,0 +1,215 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.test.e2e.sts.api;
+
+import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
+import org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService;
+import org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration;
+import org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore;
+import org.eclipse.edc.iam.oauth2.client.Oauth2ClientImpl;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.iam.identitytrust.sts.store.fixtures.TestFunctions.createClient;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
+
+@EndToEndTest
+public class RemoteStsEndToEndTest {
+
+    public static final int PORT = getFreePort();
+    public static final String STS_TOKEN_PATH = "http://localhost:" + PORT + "/sts/token";
+
+    @RegisterExtension
+    static EdcRuntimeExtension sts = new EdcRuntimeExtension(
+            ":system-tests:sts-api:sts-api-test-runtime",
+            "sts",
+            new HashMap<>() {
+                {
+                    put("web.http.path", "/");
+                    put("web.http.port", String.valueOf(getFreePort()));
+                    put("web.http.sts.path", "/sts");
+                    put("web.http.sts.port", String.valueOf(PORT));
+                }
+            }
+    );
+    private final StsRemoteClientConfiguration config = StsRemoteClientConfiguration.Builder.newInstance()
+            .clientId("client_id")
+            .clientSecret("clientSecret")
+            .tokenUrl(STS_TOKEN_PATH)
+            .build();
+    private RemoteSecureTokenService remoteSecureTokenService;
+
+    @BeforeEach
+    void setup() {
+        var oauth2Client = new Oauth2ClientImpl(testHttpClient(), new TypeManager());
+        remoteSecureTokenService = new RemoteSecureTokenService(oauth2Client, config);
+    }
+
+    @Test
+    void requestToken() {
+        var audience = "audience";
+        var params = Map.of("aud", audience);
+
+        var client = initClient(config.getClientId(), config.getClientSecret());
+
+        assertThat(remoteSecureTokenService.createToken(params, null))
+                .isSucceeded()
+                .extracting(TokenRepresentation::getToken)
+                .extracting(this::parseClaims)
+                .satisfies(claims -> {
+                    assertThat(claims)
+                            .containsEntry(ISSUER, client.getId())
+                            .containsEntry(SUBJECT, client.getId())
+                            .containsEntry(AUDIENCE, List.of(audience))
+                            .containsEntry(CLIENT_ID, client.getClientId())
+                            .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                });
+
+    }
+
+
+    @Test
+    void requestToken_withBearerScope() {
+        var audience = "audience";
+        var bearerAccessScope = "org.test.Member:read org.test.GoldMember:read";
+        var params = Map.of("aud", audience);
+
+        var client = initClient(config.getClientId(), config.getClientSecret());
+
+        assertThat(remoteSecureTokenService.createToken(params, bearerAccessScope))
+                .isSucceeded()
+                .extracting(TokenRepresentation::getToken)
+                .extracting(this::parseClaims)
+                .satisfies(claims -> {
+                    assertThat(claims)
+                            .containsEntry(ISSUER, client.getId())
+                            .containsEntry(SUBJECT, client.getId())
+                            .containsEntry(AUDIENCE, List.of(audience))
+                            .containsEntry(CLIENT_ID, client.getClientId())
+                            .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
+                            .hasEntrySatisfying("access_token", (accessToken) -> {
+                                assertThat(parseClaims((String) accessToken))
+                                        .containsEntry(ISSUER, client.getId())
+                                        .containsEntry(SUBJECT, audience)
+                                        .containsEntry(AUDIENCE, List.of(client.getClientId()))
+                                        .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+
+                            });
+                });
+
+    }
+
+    @Test
+    void requestToken_withAttachedAccessToken() {
+        var audience = "audience";
+        var accessToken = "test_token";
+        var params = Map.of(
+                "aud", audience,
+                "access_token", accessToken);
+
+
+        var client = initClient(config.getClientId(), config.getClientSecret());
+
+
+        assertThat(remoteSecureTokenService.createToken(params, null))
+                .isSucceeded()
+                .extracting(TokenRepresentation::getToken)
+                .extracting(this::parseClaims).satisfies(claims -> {
+                    assertThat(claims)
+                            .containsEntry(ISSUER, client.getId())
+                            .containsEntry(SUBJECT, client.getId())
+                            .containsEntry(AUDIENCE, List.of(audience))
+                            .containsEntry(CLIENT_ID, client.getClientId())
+                            .containsEntry("access_token", accessToken)
+                            .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                });
+    }
+
+    @Test
+    void requestToken_shouldReturnError_whenClientNotFound() {
+        var audience = "audience";
+        var params = Map.of("aud", audience);
+
+        assertThat(remoteSecureTokenService.createToken(params, null)).isFailed()
+                .extracting(Failure::getFailureDetail)
+                .satisfies(failure -> assertThat(failure).contains("Invalid client"));
+
+    }
+    
+    private StsClient initClient(String clientId, String clientSecret) {
+        var store = getClientStore();
+        var vault = getVault();
+        var clientSecretAlias = "client_secret_alias";
+        var client = createClient(clientId, clientSecretAlias);
+
+
+        vault.storeSecret(clientSecretAlias, clientSecret);
+        vault.storeSecret(client.getPrivateKeyAlias(), loadResourceFile("ec-privatekey.pem"));
+        store.create(client);
+
+        return client;
+    }
+
+    private StsClientStore getClientStore() {
+        return sts.getContext().getService(StsClientStore.class);
+    }
+
+    private Vault getVault() {
+        return sts.getContext().getService(Vault.class);
+    }
+
+    /**
+     * Load content from a resource file.
+     */
+    private String loadResourceFile(String file) {
+        try (var resourceAsStream = RemoteStsEndToEndTest.class.getClassLoader().getResourceAsStream(file)) {
+            return new String(Objects.requireNonNull(resourceAsStream).readAllBytes());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Map<String, Object> parseClaims(String token) {
+        try {
+            return SignedJWT.parse(token).getJWTClaimsSet().getClaims();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

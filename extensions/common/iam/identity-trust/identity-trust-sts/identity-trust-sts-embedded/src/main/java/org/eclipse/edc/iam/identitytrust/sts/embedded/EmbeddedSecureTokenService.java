@@ -45,6 +45,7 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
 
     public static final String SCOPE_CLAIM = "scope";
     public static final String ACCESS_TOKEN_CLAIM = "access_token";
+    public static final String BEARER_ACCESS_ALIAS_CLAIM = "bearer_access_alias";
     private static final List<String> ACCESS_TOKEN_INHERITED_CLAIMS = List.of(ISSUER);
     private final TokenGenerationService tokenGenerationService;
     private final Clock clock;
@@ -77,6 +78,7 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         accessTokenClaims.put(SCOPE_CLAIM, bearerAccessScope);
         return addClaim(claims, ISSUER, withClaim(AUDIENCE, accessTokenClaims::put))
                 .compose(v -> addClaim(claims, AUDIENCE, withClaim(SUBJECT, accessTokenClaims::put)))
+                .compose(v -> addOptionalClaim(claims, BEARER_ACCESS_ALIAS_CLAIM, withClaim(SUBJECT, accessTokenClaims::put)))
                 .compose(v -> tokenGenerationService.generate(new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity)));
 
     }
@@ -89,6 +91,11 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         } else {
             return failure(format("Missing %s in the input claims", claim));
         }
+    }
+
+    private Result<Void> addOptionalClaim(Map<String, String> claims, String claim, Consumer<String> consumer) {
+        addClaim(claims, claim, consumer);
+        return Result.success();
     }
 
     private Consumer<String> withClaim(String key, BiConsumer<String, String> consumer) {

@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService.ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService.BEARER_ACCESS_ALIAS_CLAIM;
 import static org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService.SCOPE_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
@@ -117,6 +118,37 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
                 });
     }
 
+    @Test
+    void createToken_withBearerAccessAlias() {
+        var scopes = "email:read";
+        var issuer = "testIssuer";
+        var audience = "audience";
+        var bearerAccessAlias = "alias";
+        var claims = Map.of(ISSUER, issuer, AUDIENCE, audience, BEARER_ACCESS_ALIAS_CLAIM, bearerAccessAlias);
+        var tokenResult = secureTokenService.createToken(claims, scopes);
+
+        assertThat(tokenResult).isSucceeded()
+                .satisfies(tokenRepresentation -> {
+                    var jwt = SignedJWT.parse(tokenRepresentation.getToken());
+                    assertThat(jwt.verify(createVerifier(jwt.getHeader(), keyPair.getPublic()))).isTrue();
+
+                    assertThat(jwt.getJWTClaimsSet().getClaims())
+                            .containsEntry(ISSUER, issuer)
+                            .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
+                            .extractingByKey(ACCESS_TOKEN_CLAIM, as(STRING))
+                            .satisfies(accessToken -> {
+                                var accessTokenJwt = SignedJWT.parse(accessToken);
+                                assertThat(accessTokenJwt.verify(createVerifier(accessTokenJwt.getHeader(), keyPair.getPublic()))).isTrue();
+                                assertThat(accessTokenJwt.getJWTClaimsSet().getClaims())
+                                        .containsEntry(ISSUER, issuer)
+                                        .containsEntry(SUBJECT, bearerAccessAlias)
+                                        .containsEntry(AUDIENCE, List.of(issuer))
+                                        .containsEntry(SCOPE_CLAIM, scopes)
+                                        .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                            });
+                });
+    }
+
 
     @ParameterizedTest
     @ArgumentsSource(ClaimsArguments.class)
@@ -133,7 +165,7 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
     private static class ClaimsArguments implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(Map.of(ISSUER, "iss"), Map.of(AUDIENCE, "aud")).map(Arguments::of);
         }
     }

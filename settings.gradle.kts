@@ -119,6 +119,8 @@ include(":extensions:common:iam:identity-trust:identity-trust-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-embedded")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-core")
+include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote")
+include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
 

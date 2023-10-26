@@ -84,7 +84,6 @@ public class StsClientTokenIssuanceIntegrationTest {
 
         vault.storeSecret(privateKeyAlis, loadResourceFile("ec-privatekey.pem"));
 
-
         var createResult = clientService.create(client);
         assertThat(createResult.succeeded()).isTrue();
 
@@ -99,6 +98,75 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
 
     }
+
+    @Test
+    void authenticateAndGenerateToken_withBearerAccessScope() throws Exception {
+        var id = "id";
+        var clientId = "client_id";
+        var secretAlias = "client_id";
+        var privateKeyAlis = "client_id";
+        var audience = "aud";
+        var scope = "scope:test";
+        var client = createClientBuilder(id)
+                .clientId(clientId)
+                .privateKeyAlias(privateKeyAlis)
+                .secretAlias(secretAlias)
+                .build();
+
+        var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).bearerAccessScope(scope).build();
+
+        vault.storeSecret(privateKeyAlis, loadResourceFile("ec-privatekey.pem"));
+
+        var createResult = clientService.create(client);
+        assertThat(createResult.succeeded()).isTrue();
+
+        var tokenResult = tokenGeneratorService.tokenFor(client, additional);
+        var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
+
+        assertThat(jwt.getJWTClaimsSet().getClaims())
+                .containsEntry(ISSUER, id)
+                .containsEntry(SUBJECT, id)
+                .containsEntry(AUDIENCE, List.of(audience))
+                .containsEntry("client_id", clientId)
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, "access_token");
+
+    }
+
+
+    @Test
+    void authenticateAndGenerateToken_withAccessToken() throws Exception {
+        var id = "id";
+        var clientId = "client_id";
+        var secretAlias = "client_id";
+        var privateKeyAlis = "client_id";
+        var audience = "aud";
+        var accessToken = "tokenTest";
+        var client = createClientBuilder(id)
+                .clientId(clientId)
+                .privateKeyAlias(privateKeyAlis)
+                .secretAlias(secretAlias)
+                .build();
+
+        var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).accessToken(accessToken).build();
+
+        vault.storeSecret(privateKeyAlis, loadResourceFile("ec-privatekey.pem"));
+
+        var createResult = clientService.create(client);
+        assertThat(createResult.succeeded()).isTrue();
+
+        var tokenResult = tokenGeneratorService.tokenFor(client, additional);
+        var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
+
+        assertThat(jwt.getJWTClaimsSet().getClaims())
+                .containsEntry(ISSUER, id)
+                .containsEntry(SUBJECT, id)
+                .containsEntry(AUDIENCE, List.of(audience))
+                .containsEntry("client_id", clientId)
+                .containsEntry("access_token", accessToken)
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+
+    }
+
 
     /**
      * Load content from a resource file.

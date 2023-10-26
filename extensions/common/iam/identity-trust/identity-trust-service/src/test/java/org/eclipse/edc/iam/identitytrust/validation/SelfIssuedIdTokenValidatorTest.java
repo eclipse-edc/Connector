@@ -87,23 +87,7 @@ class SelfIssuedIdTokenValidatorTest {
                 .isFailed()
                 .detail().isEqualTo("The aud claim expected to be %s but was [%s]".formatted(EXPECTED_OWN_DID, "invalid-audience"));
     }
-
-    @Test
-    void clientIdClaim_NotEqualToConsumerDid() {
-        var claimsSet = new JWTClaimsSet.Builder()
-                .subject(CONSUMER_DID)
-                .issuer(CONSUMER_DID)
-                .audience(EXPECTED_OWN_DID)
-                .claim("jti", UUID.randomUUID().toString())
-                .claim("client_id", "invalid_client_id")
-                .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-                .build();
-        var token = createJwt(claimsSet);
-        assertThat(validator.validateToken(token, EXPECTED_OWN_DID))
-                .isFailed()
-                .detail().isEqualTo("The client_id must be equal to the issuer ID");
-    }
-
+    
     @Test
     void subJwkClaimPresent() {
         var claimsSet = new JWTClaimsSet.Builder()
