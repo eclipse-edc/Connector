@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.HTTP_DATA_TYPE;
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.HTTP_DATA_TYPE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

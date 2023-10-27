@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 - 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.dataaddress;
+package org.eclipse.edc.dataaddress.httpdata.spi;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 

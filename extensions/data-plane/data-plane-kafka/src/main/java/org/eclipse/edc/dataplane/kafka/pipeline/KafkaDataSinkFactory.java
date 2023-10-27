@@ -22,15 +22,15 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
-import org.eclipse.edc.validator.dataaddress.KafkaDataAddressValidator;
+import org.eclipse.edc.validator.dataaddress.kafka.KafkaDataAddressValidator;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.KAFKA_TYPE;
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.TOPIC;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.KAFKA_TYPE;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.TOPIC;
 
 public class KafkaDataSinkFactory implements DataSinkFactory {
 

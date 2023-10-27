@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.validator.dataaddress;
+package org.eclipse.edc.validator.dataaddress.httpdata;
 
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -21,8 +21,8 @@ import org.eclipse.edc.validator.spi.Validator;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.BASE_URL;
-import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.HTTP_DATA_TYPE;
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.HTTP_DATA_TYPE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**

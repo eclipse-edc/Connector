@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.KAFKA_PROPERTIES_PREFIX;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.KAFKA_PROPERTIES_PREFIX;
 
 public class KafkaPropertiesFactory {
 

@@ -42,6 +42,8 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.security.KeyPair;
@@ -99,6 +101,9 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     @Inject
     private KeyPairFactory keyPairFactory;
 
+    @Inject
+    private DataAddressValidatorRegistry dataAddressValidatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -113,6 +118,8 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new TokenGenerationServiceImpl(keyPair.getPrivate()), tokenExpirationDateFunction);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorClient, resolver));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, dataPlaneClient));
+
+        dataAddressValidatorRegistry.registerDestinationValidator("HttpProxy", dataAddress -> ValidationResult.success());
     }
 
     private KeyPair keyPairFromConfig(ServiceExtensionContext context) {

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.validator.dataaddress;
+package org.eclipse.edc.validator.dataaddress.kafka;
 
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -21,8 +21,8 @@ import org.eclipse.edc.validator.spi.Validator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.BOOTSTRAP_SERVERS;
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.TOPIC;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.BOOTSTRAP_SERVERS;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.TOPIC;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 public class KafkaDataAddressValidator implements Validator<DataAddress> {

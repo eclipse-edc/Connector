@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.edc.validator.dataaddress;
+package org.eclipse.edc.validator.dataaddress.httpdata;
 
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.HTTP_DATA_TYPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.BASE_URL;
-import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.HTTP_DATA_TYPE;
 
 class HttpDataDataAddressValidatorImplTest {
 

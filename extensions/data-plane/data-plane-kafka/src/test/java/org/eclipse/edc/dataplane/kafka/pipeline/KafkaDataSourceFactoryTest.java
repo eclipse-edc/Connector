@@ -30,9 +30,9 @@ import java.util.Properties;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.BOOTSTRAP_SERVERS;
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.KAFKA_TYPE;
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.TOPIC;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.BOOTSTRAP_SERVERS;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.KAFKA_TYPE;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.TOPIC;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

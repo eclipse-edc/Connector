@@ -30,7 +30,7 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.validator.dataaddress.HttpDataDataAddressValidator;
+import org.eclipse.edc.validator.dataaddress.httpdata.HttpDataDataAddressValidator;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import static java.lang.String.format;

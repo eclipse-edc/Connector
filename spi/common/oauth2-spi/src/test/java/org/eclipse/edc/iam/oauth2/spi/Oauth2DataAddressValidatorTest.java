@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema;
+import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;

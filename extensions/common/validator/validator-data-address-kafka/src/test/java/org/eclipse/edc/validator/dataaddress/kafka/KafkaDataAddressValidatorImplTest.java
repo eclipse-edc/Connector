@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.validator.dataaddress;
+package org.eclipse.edc.validator.dataaddress.kafka;
 
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.ValidationFailure;
@@ -20,9 +20,9 @@ import org.eclipse.edc.validator.spi.Violation;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.BOOTSTRAP_SERVERS;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.TOPIC;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.BOOTSTRAP_SERVERS;
-import static org.eclipse.edc.spi.dataaddress.KafkaDataAddressSchema.TOPIC;
 
 class KafkaDataAddressValidatorImplTest {
 

@@ -3,11 +3,13 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:data-address:data-address-kafka-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(project(":core:common:util"))
     implementation(project(":core:common:validator-core"))
     implementation(project(":core:data-plane:data-plane-util"))
+    implementation(project(":extensions:common:validator:validator-data-address-kafka"))
     implementation(libs.kafkaClients)
 
     testImplementation(project(":core:common:junit"))

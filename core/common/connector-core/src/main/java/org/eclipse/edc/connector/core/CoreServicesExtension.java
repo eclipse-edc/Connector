@@ -51,17 +51,13 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.dataaddress.HttpDataDataAddressValidator;
-import org.eclipse.edc.validator.dataaddress.KafkaDataAddressValidator;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.validator.spi.ValidationResult;
 
 import java.security.PrivateKey;
 import java.time.Duration;
 
 import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
-import static org.eclipse.edc.spi.dataaddress.HttpDataAddressSchema.HTTP_DATA_TYPE;
 
 @BaseExtension
 @Extension(value = CoreServicesExtension.NAME)
@@ -201,15 +197,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public DataAddressValidatorRegistry dataAddressValidatorRegistry(ServiceExtensionContext context) {
-        var validator = new DataAddressValidatorRegistryImpl(context.getMonitor());
-        var httpData = new HttpDataDataAddressValidator();
-        var kafka = new KafkaDataAddressValidator();
-        validator.registerSourceValidator(HTTP_DATA_TYPE, httpData);
-        validator.registerDestinationValidator(HTTP_DATA_TYPE, httpData);
-        validator.registerDestinationValidator("HttpProxy", dataAddress -> ValidationResult.success());
-        validator.registerSourceValidator("Kafka", kafka);
-        validator.registerDestinationValidator("Kafka", kafka);
-        return validator;
+        return new DataAddressValidatorRegistryImpl(context.getMonitor());
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
