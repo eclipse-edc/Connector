@@ -25,11 +25,11 @@ import org.mockito.ArgumentCaptor;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService.ACCESS_TOKEN_PARAM;
 import static org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService.AUDIENCE_PARAM;
-import static org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService.BEARER_ACCESS_ALIAS_PARAM;
-import static org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService.BEARER_ACCESS_SCOPE_PARAM;
 import static org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService.GRANT_TYPE;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_SCOPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +44,7 @@ public class RemoteSecureTokenServiceTest {
             .clientSecret("secret")
             .tokenUrl("url")
             .build();
+    
     private final Oauth2Client oauth2Client = mock();
     private RemoteSecureTokenService secureTokenService;
 
@@ -88,7 +89,7 @@ public class RemoteSecureTokenServiceTest {
             assertThat(request.getClientSecret()).isEqualTo(configuration.getClientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience)
-                    .containsEntry(BEARER_ACCESS_SCOPE_PARAM, bearerAccessScope);
+                    .containsEntry(BEARER_ACCESS_SCOPE, bearerAccessScope);
         });
     }
 
@@ -97,7 +98,7 @@ public class RemoteSecureTokenServiceTest {
         var audience = "aud";
         var accessToken = "accessToken";
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
-        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience, ACCESS_TOKEN_PARAM, accessToken), null)).isSucceeded();
+        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience, ACCESS_TOKEN, accessToken), null)).isSucceeded();
 
         var captor = ArgumentCaptor.forClass(SharedSecretOauth2CredentialsRequest.class);
         verify(oauth2Client).requestToken(captor.capture());
@@ -109,7 +110,7 @@ public class RemoteSecureTokenServiceTest {
             assertThat(request.getClientSecret()).isEqualTo(configuration.getClientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience)
-                    .containsEntry(ACCESS_TOKEN_PARAM, accessToken);
+                    .containsEntry(ACCESS_TOKEN, accessToken);
         });
     }
 
@@ -123,7 +124,7 @@ public class RemoteSecureTokenServiceTest {
 
         var claims = Map.of(
                 AUDIENCE, audience,
-                BEARER_ACCESS_ALIAS_PARAM, bearerAccessAlias);
+                BEARER_ACCESS_ALIAS, bearerAccessAlias);
 
         assertThat(secureTokenService.createToken(claims, bearerAccessScope)).isSucceeded();
 
@@ -137,8 +138,8 @@ public class RemoteSecureTokenServiceTest {
             assertThat(request.getClientSecret()).isEqualTo(configuration.getClientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience)
-                    .containsEntry(BEARER_ACCESS_ALIAS_PARAM, bearerAccessAlias)
-                    .containsEntry(BEARER_ACCESS_SCOPE_PARAM, bearerAccessScope);
+                    .containsEntry(BEARER_ACCESS_ALIAS, bearerAccessAlias)
+                    .containsEntry(BEARER_ACCESS_SCOPE, bearerAccessScope);
         });
     }
 }

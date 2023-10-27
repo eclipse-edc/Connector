@@ -14,30 +14,25 @@
 
 package org.eclipse.edc.test.e2e.sts.api;
 
-import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.remote.RemoteSecureTokenService;
 import org.eclipse.edc.iam.identitytrust.sts.remote.StsRemoteClientConfiguration;
-import org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore;
 import org.eclipse.edc.iam.oauth2.client.Oauth2ClientImpl;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Failure;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.sts.store.fixtures.TestFunctions.createClient;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
@@ -50,7 +45,7 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 @EndToEndTest
-public class RemoteStsEndToEndTest {
+public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
 
     public static final int PORT = getFreePort();
     public static final String STS_TOKEN_PATH = "http://localhost:" + PORT + "/sts/token";
@@ -84,7 +79,7 @@ public class RemoteStsEndToEndTest {
     @Test
     void requestToken() {
         var audience = "audience";
-        var params = Map.of("aud", audience);
+        var params = Map.of(AUDIENCE, audience);
 
         var client = initClient(config.getClientId(), config.getClientSecret());
 
@@ -105,10 +100,11 @@ public class RemoteStsEndToEndTest {
 
 
     @Test
-    void requestToken_withBearerScope() {
+    void requestToken_withBearerScopeAndAlias() {
         var audience = "audience";
         var bearerAccessScope = "org.test.Member:read org.test.GoldMember:read";
-        var params = Map.of("aud", audience);
+        var bearerAccessAlias = "alias";
+        var params = Map.of(AUDIENCE, audience, BEARER_ACCESS_ALIAS, bearerAccessAlias);
 
         var client = initClient(config.getClientId(), config.getClientSecret());
 
@@ -123,10 +119,10 @@ public class RemoteStsEndToEndTest {
                             .containsEntry(AUDIENCE, List.of(audience))
                             .containsEntry(CLIENT_ID, client.getClientId())
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                            .hasEntrySatisfying("access_token", (accessToken) -> {
+                            .hasEntrySatisfying(ACCESS_TOKEN, (accessToken) -> {
                                 assertThat(parseClaims((String) accessToken))
                                         .containsEntry(ISSUER, client.getId())
-                                        .containsEntry(SUBJECT, audience)
+                                        .containsEntry(SUBJECT, bearerAccessAlias)
                                         .containsEntry(AUDIENCE, List.of(client.getClientId()))
                                         .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
 
@@ -140,12 +136,10 @@ public class RemoteStsEndToEndTest {
         var audience = "audience";
         var accessToken = "test_token";
         var params = Map.of(
-                "aud", audience,
-                "access_token", accessToken);
-
+                AUDIENCE, audience,
+                ACCESS_TOKEN, accessToken);
 
         var client = initClient(config.getClientId(), config.getClientSecret());
-
 
         assertThat(remoteSecureTokenService.createToken(params, null))
                 .isSucceeded()
@@ -156,7 +150,7 @@ public class RemoteStsEndToEndTest {
                             .containsEntry(SUBJECT, client.getId())
                             .containsEntry(AUDIENCE, List.of(audience))
                             .containsEntry(CLIENT_ID, client.getClientId())
-                            .containsEntry("access_token", accessToken)
+                            .containsEntry(ACCESS_TOKEN, accessToken)
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
                 });
     }
@@ -164,52 +158,17 @@ public class RemoteStsEndToEndTest {
     @Test
     void requestToken_shouldReturnError_whenClientNotFound() {
         var audience = "audience";
-        var params = Map.of("aud", audience);
+        var params = Map.of(AUDIENCE, audience);
 
         assertThat(remoteSecureTokenService.createToken(params, null)).isFailed()
                 .extracting(Failure::getFailureDetail)
                 .satisfies(failure -> assertThat(failure).contains("Invalid client"));
 
     }
-    
-    private StsClient initClient(String clientId, String clientSecret) {
-        var store = getClientStore();
-        var vault = getVault();
-        var clientSecretAlias = "client_secret_alias";
-        var client = createClient(clientId, clientSecretAlias);
 
-
-        vault.storeSecret(clientSecretAlias, clientSecret);
-        vault.storeSecret(client.getPrivateKeyAlias(), loadResourceFile("ec-privatekey.pem"));
-        store.create(client);
-
-        return client;
+    @Override
+    protected EdcRuntimeExtension getRuntime() {
+        return sts;
     }
 
-    private StsClientStore getClientStore() {
-        return sts.getContext().getService(StsClientStore.class);
-    }
-
-    private Vault getVault() {
-        return sts.getContext().getService(Vault.class);
-    }
-
-    /**
-     * Load content from a resource file.
-     */
-    private String loadResourceFile(String file) {
-        try (var resourceAsStream = RemoteStsEndToEndTest.class.getClassLoader().getResourceAsStream(file)) {
-            return new String(Objects.requireNonNull(resourceAsStream).readAllBytes());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Map<String, Object> parseClaims(String token) {
-        try {
-            return SignedJWT.parse(token).getJWTClaimsSet().getClaims();
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

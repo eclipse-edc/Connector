@@ -14,14 +14,10 @@
 
 package org.eclipse.edc.test.e2e.sts.api;
 
-import com.nimbusds.jwt.SignedJWT;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
-import org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EdcRuntimeExtension;
-import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -30,12 +26,11 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.identitytrust.sts.store.fixtures.TestFunctions.createClient;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
@@ -48,7 +43,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 @EndToEndTest
-public class StsApiEndToEndTest {
+public class StsApiEndToEndTest extends StsEndToEndTestBase {
 
     public static final int PORT = getFreePort();
     public static final String BASE_STS = "http://localhost:" + PORT + "/sts";
@@ -90,9 +85,7 @@ public class StsApiEndToEndTest {
                 .body()
                 .jsonPath().getString("access_token");
 
-        var jwt = SignedJWT.parse(token);
-
-        assertThat(jwt.getJWTClaimsSet().getClaims())
+        assertThat(parseClaims(token))
                 .containsEntry(ISSUER, client.getId())
                 .containsEntry(SUBJECT, client.getId())
                 .containsEntry(AUDIENCE, List.of(audience))
@@ -127,27 +120,18 @@ public class StsApiEndToEndTest {
                 .jsonPath().getString("access_token");
 
 
-        var jwt = SignedJWT.parse(token);
-
-        assertThat(jwt.getJWTClaimsSet().getClaims())
+        assertThat(parseClaims(token))
                 .containsEntry(ISSUER, client.getId())
                 .containsEntry(SUBJECT, client.getId())
                 .containsEntry(AUDIENCE, List.of(audience))
                 .containsEntry(CLIENT_ID, client.getClientId())
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                .hasEntrySatisfying("access_token", (accessToken) -> {
-                    try {
-                        var accessTokenJwt = SignedJWT.parse(((String) accessToken));
-
-                        assertThat(accessTokenJwt.getJWTClaimsSet().getClaims())
-                                .containsEntry(ISSUER, client.getId())
-                                .containsEntry(SUBJECT, audience)
-                                .containsEntry(AUDIENCE, List.of(client.getClientId()))
-                                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
-
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    }
+                .hasEntrySatisfying(ACCESS_TOKEN, (accessToken) -> {
+                    assertThat(parseClaims((String) accessToken))
+                            .containsEntry(ISSUER, client.getId())
+                            .containsEntry(SUBJECT, audience)
+                            .containsEntry(AUDIENCE, List.of(client.getClientId()))
+                            .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
                 });
     }
 
@@ -175,15 +159,13 @@ public class StsApiEndToEndTest {
                 .body()
                 .jsonPath().getString("access_token");
 
-
-        var jwt = SignedJWT.parse(token);
-
-        assertThat(jwt.getJWTClaimsSet().getClaims())
+        
+        assertThat(parseClaims(token))
                 .containsEntry(ISSUER, client.getId())
                 .containsEntry(SUBJECT, client.getId())
                 .containsEntry(AUDIENCE, List.of(audience))
                 .containsEntry(CLIENT_ID, client.getClientId())
-                .containsEntry("access_token", accessToken)
+                .containsEntry(ACCESS_TOKEN, accessToken)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
     }
 
@@ -220,37 +202,9 @@ public class StsApiEndToEndTest {
                 .when();
     }
 
-    private StsClient initClient(String clientSecret) {
-        var store = getClientStore();
-        var vault = getVault();
-        var clientId = "client_id";
-        var clientSecretAlias = "client_secret_alias";
-        var client = createClient(clientId, clientSecretAlias);
-
-
-        vault.storeSecret(clientSecretAlias, clientSecret);
-        vault.storeSecret(client.getPrivateKeyAlias(), loadResourceFile("ec-privatekey.pem"));
-        store.create(client);
-
-        return client;
+    @Override
+    protected EdcRuntimeExtension getRuntime() {
+        return sts;
     }
 
-    private StsClientStore getClientStore() {
-        return sts.getContext().getService(StsClientStore.class);
-    }
-
-    private Vault getVault() {
-        return sts.getContext().getService(Vault.class);
-    }
-
-    /**
-     * Load content from a resource file.
-     */
-    private String loadResourceFile(String file) {
-        try (var resourceAsStream = StsApiEndToEndTest.class.getClassLoader().getResourceAsStream(file)) {
-            return new String(Objects.requireNonNull(resourceAsStream).readAllBytes());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

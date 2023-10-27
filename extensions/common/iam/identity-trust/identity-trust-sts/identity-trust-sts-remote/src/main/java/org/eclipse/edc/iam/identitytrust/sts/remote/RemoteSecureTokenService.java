@@ -26,19 +26,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_SCOPE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 
 public class RemoteSecureTokenService implements SecureTokenService {
 
     public static final String GRANT_TYPE = "client_credentials";
-    public static final String ACCESS_TOKEN_PARAM = "access_token";
     public static final String AUDIENCE_PARAM = "audience";
-    public static final String BEARER_ACCESS_ALIAS_PARAM = "bearer_access_alias";
-    public static final String BEARER_ACCESS_SCOPE_PARAM = "bearer_access_scope";
+
     private static final Map<String, String> CLAIM_MAPPING = Map.of(
             AUDIENCE, AUDIENCE_PARAM,
-            BEARER_ACCESS_ALIAS_PARAM, BEARER_ACCESS_ALIAS_PARAM,
-            ACCESS_TOKEN_PARAM, ACCESS_TOKEN_PARAM);
+            BEARER_ACCESS_ALIAS, BEARER_ACCESS_ALIAS,
+            ACCESS_TOKEN, ACCESS_TOKEN);
+
     private final Oauth2Client oauth2Client;
     private final StsRemoteClientConfiguration configuration;
 
@@ -59,18 +61,14 @@ public class RemoteSecureTokenService implements SecureTokenService {
                 .clientId(configuration.getClientId())
                 .clientSecret(configuration.getClientSecret())
                 .grantType(GRANT_TYPE);
-
-        if (configuration.getScope() != null) {
-            builder.scope(configuration.getScope());
-        }
-
+        
         var additionalParams = claims.entrySet().stream()
                 .filter(entry -> CLAIM_MAPPING.containsKey(entry.getKey()))
                 .map(entry -> Map.entry(CLAIM_MAPPING.get(entry.getKey()), entry.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         if (bearerAccessScope != null) {
-            additionalParams.put(BEARER_ACCESS_SCOPE_PARAM, bearerAccessScope);
+            additionalParams.put(BEARER_ACCESS_SCOPE, bearerAccessScope);
         }
 
         builder.params(additionalParams);

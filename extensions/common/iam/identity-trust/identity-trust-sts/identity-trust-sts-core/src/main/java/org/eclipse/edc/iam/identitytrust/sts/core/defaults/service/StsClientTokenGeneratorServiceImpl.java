@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
@@ -36,8 +38,10 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGeneratorService {
 
-    public static final String ACCESS_TOKEN_CLAIM = "access_token";
-    
+    private static final Map<String, Function<StsClientTokenAdditionalParams, String>> CLAIM_MAPPERS = Map.of(
+            ACCESS_TOKEN, StsClientTokenAdditionalParams::getAccessToken,
+            BEARER_ACCESS_ALIAS, StsClientTokenAdditionalParams::getBearerAccessAlias);
+
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
     private final Clock clock;
@@ -46,7 +50,6 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
         this.tokenGenerationProvider = tokenGenerationProvider;
         this.clock = clock;
         this.tokenExpiration = tokenExpiration;
-
     }
 
     @Override
@@ -59,9 +62,12 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
                 AUDIENCE, additionalParams.getAudience(),
                 CLIENT_ID, client.getClientId());
 
-        var claims = Optional.ofNullable(additionalParams.getAccessToken())
-                .map(enrichClaims(initialClaims))
-                .orElse(initialClaims);
+        var claims = CLAIM_MAPPERS.entrySet().stream()
+                .filter(entry -> entry.getValue().apply(additionalParams) != null)
+                .reduce(initialClaims, (accumulator, entity) ->
+                        Optional.ofNullable(entity.getValue().apply(additionalParams))
+                                .map(enrichClaimsWith(accumulator, entity.getKey()))
+                                .orElse(accumulator), (a, b) -> b);
 
         var tokenResult = embeddedTokenGenerator.createToken(claims, additionalParams.getBearerAccessScope())
                 .map(this::enrichWithExpiration);
@@ -80,10 +86,10 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
                 .build();
     }
 
-    private Function<String, Map<String, String>> enrichClaims(Map<String, String> claims) {
-        return (token) -> {
+    private Function<String, Map<String, String>> enrichClaimsWith(Map<String, String> claims, String claim) {
+        return (claimValue) -> {
             var newClaims = new HashMap<>(claims);
-            newClaims.put(ACCESS_TOKEN_CLAIM, token);
+            newClaims.put(claim, claimValue);
             return Collections.unmodifiableMap(newClaims);
         };
     }

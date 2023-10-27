@@ -38,7 +38,9 @@ import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.sts.store.fixtures.TestFunctions.createClientBuilder;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
@@ -94,7 +96,7 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .containsEntry(ISSUER, id)
                 .containsEntry(SUBJECT, id)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry("client_id", clientId)
+                .containsEntry(CLIENT_ID, clientId)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
 
     }
@@ -127,11 +129,10 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .containsEntry(ISSUER, id)
                 .containsEntry(SUBJECT, id)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry("client_id", clientId)
+                .containsEntry(CLIENT_ID, clientId)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, "access_token");
 
     }
-
 
     @Test
     void authenticateAndGenerateToken_withAccessToken() throws Exception {
@@ -161,12 +162,11 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .containsEntry(ISSUER, id)
                 .containsEntry(SUBJECT, id)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry("client_id", clientId)
-                .containsEntry("access_token", accessToken)
+                .containsEntry(CLIENT_ID, clientId)
+                .containsEntry(ACCESS_TOKEN, accessToken)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
 
     }
-
 
     /**
      * Load content from a resource file.

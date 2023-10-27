@@ -30,8 +30,11 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -43,9 +46,6 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class EmbeddedSecureTokenService implements SecureTokenService {
 
-    public static final String SCOPE_CLAIM = "scope";
-    public static final String ACCESS_TOKEN_CLAIM = "access_token";
-    public static final String BEARER_ACCESS_ALIAS_CLAIM = "bearer_access_alias";
     private static final List<String> ACCESS_TOKEN_INHERITED_CLAIMS = List.of(ISSUER);
     private final TokenGenerationService tokenGenerationService;
     private final Clock clock;
@@ -69,16 +69,16 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
     private Result<Void> createAndAcceptAccessToken(Map<String, String> claims, String scope, BiConsumer<String, String> consumer) {
         return createAccessToken(claims, scope)
                 .compose(tokenRepresentation -> success(tokenRepresentation.getToken()))
-                .onSuccess(withClaim(ACCESS_TOKEN_CLAIM, consumer))
+                .onSuccess(withClaim(ACCESS_TOKEN, consumer))
                 .mapTo();
     }
 
     private Result<TokenRepresentation> createAccessToken(Map<String, String> claims, String bearerAccessScope) {
         var accessTokenClaims = new HashMap<>(accessTokenInheritedClaims(claims));
-        accessTokenClaims.put(SCOPE_CLAIM, bearerAccessScope);
+        accessTokenClaims.put(SCOPE, bearerAccessScope);
         return addClaim(claims, ISSUER, withClaim(AUDIENCE, accessTokenClaims::put))
                 .compose(v -> addClaim(claims, AUDIENCE, withClaim(SUBJECT, accessTokenClaims::put)))
-                .compose(v -> addOptionalClaim(claims, BEARER_ACCESS_ALIAS_CLAIM, withClaim(SUBJECT, accessTokenClaims::put)))
+                .compose(v -> addOptionalClaim(claims, BEARER_ACCESS_ALIAS, withClaim(SUBJECT, accessTokenClaims::put)))
                 .compose(v -> tokenGenerationService.generate(new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity)));
 
     }

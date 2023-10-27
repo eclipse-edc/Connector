@@ -27,7 +27,7 @@ import jakarta.ws.rs.FormParam;
  *  <li>clientSecret:       Authorization secret for the client/</li>
  *  <li>audience:           Audience according to the <a href="https://datatracker.ietf.org/doc/html/draft-tschofenig-oauth-audience-00#section-3">spec</a>.</li>
  *  <li>bearerAccessScope:  Space-delimited scopes to be included in the access_token claim.</li>
- *  <li>bearerAccessAlias:  Alias to be use in the sub of the VP access token (default is audience).</li>
+ *  <li>bearerAccessAlias:  Alias to be used in the sub of the VP access token (default is audience).</li>
  *  <li>accessToken:        VP/VC Access Token to be included as access_token claim.</li>
  *  <li>grantType:          Type of grant. Must be client_credentials.</li>
  * </ul>

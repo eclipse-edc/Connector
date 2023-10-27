@@ -41,8 +41,7 @@ public class StsRemoteClientConfigurationExtension implements ServiceExtension {
     public static final String CLIENT_SECRET_ALIAS = "edc.iam.sts.oauth.client.secret.alias";
 
     protected static final String NAME = "Sts remote client configuration extension";
-
-
+    
     @Inject
     private Vault vault;
 

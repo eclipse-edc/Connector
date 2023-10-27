@@ -20,15 +20,10 @@ import java.util.Objects;
  * Configuration of the OAuth2 client
  */
 public class StsRemoteClientConfiguration {
+
     private String tokenUrl;
     private String clientId;
-
     private String clientSecret;
-    private String scope;
-
-    public String getScope() {
-        return scope;
-    }
 
     public String getClientId() {
         return clientId;
@@ -59,11 +54,6 @@ public class StsRemoteClientConfiguration {
 
         public Builder clientId(String clientId) {
             configuration.clientId = clientId;
-            return this;
-        }
-
-        public Builder scope(String scope) {
-            configuration.scope = scope;
             return this;
         }
 
