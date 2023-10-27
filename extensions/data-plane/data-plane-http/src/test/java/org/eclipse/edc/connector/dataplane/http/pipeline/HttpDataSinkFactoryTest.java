@@ -21,7 +21,7 @@ import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
-import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
+import org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures.createHttpResponse;
+import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.createHttpResponse;
 import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -67,12 +67,12 @@ class HttpDataSinkFactoryTest {
 
     @Test
     void verifyCanHandle() {
-        assertThat(factory.canHandle(HttpTestFixtures.createRequest(HTTP_DATA).build())).isTrue();
+        assertThat(factory.canHandle(TestFunctions.createRequest(HTTP_DATA).build())).isTrue();
     }
 
     @Test
     void verifyCannotHandle() {
-        assertThat(factory.canHandle(HttpTestFixtures.createRequest("dummy").build())).isFalse();
+        assertThat(factory.canHandle(TestFunctions.createRequest("dummy").build())).isFalse();
     }
 
     @Test
@@ -118,7 +118,7 @@ class HttpDataSinkFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "POST", "GET", "PUT" })
+    @ValueSource(strings = {"POST", "GET", "PUT"})
     void verifyCreateMethodDestination(String method) throws IOException {
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);

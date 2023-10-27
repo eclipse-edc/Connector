@@ -32,17 +32,17 @@ import java.util.UUID;
 import static java.util.Collections.emptyMap;
 import static okhttp3.Protocol.HTTP_2;
 
-public class HttpTestFixtures {
+public class TestFunctions {
 
 
-    private HttpTestFixtures() {
+    private TestFunctions() {
     }
 
     public static DataFlowRequest.Builder createRequest(String type) {
         return createRequest(
                 Map.of(DataFlowRequestSchema.METHOD, "GET"),
-                createDataAddress(type, emptyMap()).build(),
-                createDataAddress(type, emptyMap()).build()
+                DataAddress.Builder.newInstance().type(type).properties(emptyMap()).build(),
+                DataAddress.Builder.newInstance().type(type).properties(emptyMap()).build()
         );
     }
 
@@ -54,12 +54,6 @@ public class HttpTestFixtures {
                 .sourceDataAddress(source)
                 .destinationDataAddress(destination)
                 .trackable(true);
-    }
-
-    public static DataAddress.Builder createDataAddress(String type, Map<String, Object> properties) {
-        return DataAddress.Builder.newInstance()
-                .type(type)
-                .properties(properties);
     }
 
     public static Response.Builder createHttpResponse() {

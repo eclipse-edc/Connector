@@ -29,7 +29,7 @@ import java.util.Map;
 import static io.netty.handler.codec.http.HttpMethod.POST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
-import static org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures.formatRequestBodyAsString;
+import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.formatRequestBodyAsString;
 
 class HttpRequestFactoryTest {
 
@@ -41,7 +41,7 @@ class HttpRequestFactoryTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { "\\", "/" })
+    @ValueSource(strings = {"\\", "/"})
     void verifyPathIgnoredWhenNullOrBlank(String p) {
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl(BASE_URL)
