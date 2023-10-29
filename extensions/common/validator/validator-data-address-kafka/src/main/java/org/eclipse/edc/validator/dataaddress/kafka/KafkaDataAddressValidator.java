@@ -25,6 +25,9 @@ import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.BOOTS
 import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.TOPIC;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
+/**
+ * Validator for Kafka DataAddress type
+ */
 public class KafkaDataAddressValidator implements Validator<DataAddress> {
 
     @Override

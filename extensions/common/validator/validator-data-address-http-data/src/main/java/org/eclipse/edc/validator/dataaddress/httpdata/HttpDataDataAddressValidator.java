@@ -26,7 +26,7 @@ import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.HTT
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
- * Validator for HttpData type
+ * Validator for HttpData DataAddress type
  */
 public class HttpDataDataAddressValidator implements Validator<DataAddress> {
 
