@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -184,7 +185,6 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
     @Test
     void queryAsset_byCustomStringProperty() {
-        //insert one asset into the index
         getAssetIndex().create(Asset.Builder.newInstance()
                 .id("test-asset")
                 .contentType("application/octet-stream")
@@ -205,19 +205,16 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
     }
 
     @Test
-    void queryAsset_byCustomComplexProperty_whenJsonPathQuery_expectNoResult() {
-        //insert one asset into the index
+    void queryAsset_byCustomComplexProperty() {
         getAssetIndex().create(Asset.Builder.newInstance()
                 .id("test-asset")
                 .contentType("application/octet-stream")
-                // use a custom, complex object type
-                .property("myProp", new TestObject("test desc", 42))
+                .property("myProp", Map.of("description", "test desc", "number", 42))
                 .dataAddress(createDataAddress().build())
                 .build());
 
         var query = createSingleFilterQuery("myProp.description", "=", "test desc");
 
-        // querying custom complex types in "json-path" style is expected not to work.
         baseRequest()
                 .contentType(ContentType.JSON)
                 .body(query)
@@ -225,7 +222,7 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .then()
                 .log().ifError()
                 .statusCode(200)
-                .body("size()", is(0));
+                .body("size()", is(1));
     }
 
     @Test
@@ -300,5 +297,4 @@ public class AssetApiEndToEndTest extends BaseManagementApiEndToEndTest {
                 .build();
     }
 
-    private record TestObject(String description, int number) { }
 }

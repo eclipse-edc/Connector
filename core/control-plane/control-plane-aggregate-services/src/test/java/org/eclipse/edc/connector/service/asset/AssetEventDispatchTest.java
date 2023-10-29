@@ -25,6 +25,8 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,9 +56,10 @@ public class AssetEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
+    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter, DataAddressValidatorRegistry dataAddressValidatorRegistry) {
+        dataAddressValidatorRegistry.registerSourceValidator("type", a -> ValidationResult.success());
         eventRouter.register(AssetEvent.class, eventSubscriber);
-        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
         var asset = Asset.Builder.newInstance().id("assetId").dataAddress(dataAddress).build();
 
         service.create(asset);

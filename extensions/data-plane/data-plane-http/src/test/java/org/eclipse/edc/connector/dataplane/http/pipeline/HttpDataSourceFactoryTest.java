@@ -19,31 +19,30 @@
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
-import org.eclipse.edc.connector.dataplane.http.testfixtures.HttpTestFixtures;
+import org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
-
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.types.domain.HttpDataAddress.HTTP_DATA;
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.HTTP_DATA_TYPE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class HttpDataSourceFactoryTest {
 
-    private final EdcHttpClient httpClient = mock(EdcHttpClient.class);
-    private final Monitor monitor = mock(Monitor.class);
-    private final HttpRequestParamsProvider provider = mock(HttpRequestParamsProvider.class);
-    private final HttpRequestFactory requestFactory = mock(HttpRequestFactory.class);
+    private final EdcHttpClient httpClient = mock();
+    private final Monitor monitor = mock();
+    private final HttpRequestParamsProvider provider = mock();
+    private final HttpRequestFactory requestFactory = mock();
 
     private HttpDataSourceFactory factory;
 
@@ -54,12 +53,12 @@ class HttpDataSourceFactoryTest {
 
     @Test
     void verifyCanHandle() {
-        assertThat(factory.canHandle(HttpTestFixtures.createRequest(HTTP_DATA).build())).isTrue();
+        assertThat(factory.canHandle(TestFunctions.createRequest(HTTP_DATA_TYPE).build())).isTrue();
     }
 
     @Test
     void verifyCannotHandle() {
-        assertThat(factory.canHandle(HttpTestFixtures.createRequest("dummy").build())).isFalse();
+        assertThat(factory.canHandle(TestFunctions.createRequest("dummy").build())).isFalse();
     }
 
     @Test
@@ -102,11 +101,6 @@ class HttpDataSourceFactoryTest {
     }
 
     private DataFlowRequest createRequest(DataAddress source) {
-        return DataFlowRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(source)
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("Test type").build())
-                .build();
+        return TestFunctions.createRequest(emptyMap(), source, DataAddress.Builder.newInstance().type("Test type").build()).build();
     }
 }

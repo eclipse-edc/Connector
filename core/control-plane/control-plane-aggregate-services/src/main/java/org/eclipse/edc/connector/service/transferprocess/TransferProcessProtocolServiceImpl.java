@@ -37,7 +37,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
@@ -56,7 +56,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final TransactionContext transactionContext;
     private final ContractNegotiationStore negotiationStore;
     private final ContractValidationService contractValidationService;
-    private final DataAddressValidator dataAddressValidator;
+    private final DataAddressValidatorRegistry dataAddressValidator;
     private final TransferProcessObservable observable;
     private final Clock clock;
     private final Monitor monitor;
@@ -65,7 +65,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
-                                              DataAddressValidator dataAddressValidator, TransferProcessObservable observable,
+                                              DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
                                               Clock clock, Monitor monitor, Telemetry telemetry) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
@@ -84,7 +84,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
         var destination = message.getDataDestination();
         if (destination != null) {
-            var validDestination = dataAddressValidator.validate(destination);
+            var validDestination = dataAddressValidator.validateDestination(destination);
             if (validDestination.failed()) {
                 return ServiceResult.badRequest(validDestination.getFailureMessages());
             }

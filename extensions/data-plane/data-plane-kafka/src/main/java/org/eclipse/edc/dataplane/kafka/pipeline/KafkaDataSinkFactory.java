@@ -17,32 +17,33 @@ package org.eclipse.edc.dataplane.kafka.pipeline;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.dataplane.kafka.config.KafkaPropertiesFactory;
-import org.eclipse.edc.dataplane.kafka.pipeline.validation.KafkaSinkDataAddressValidation;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.edc.validator.dataaddress.kafka.KafkaDataAddressValidator;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.dataplane.kafka.schema.KafkaDataAddressSchema.KAFKA_TYPE;
-import static org.eclipse.edc.dataplane.kafka.schema.KafkaDataAddressSchema.TOPIC;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.KAFKA_TYPE;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.TOPIC;
 
 public class KafkaDataSinkFactory implements DataSinkFactory {
 
     private final ExecutorService executorService;
     private final Monitor monitor;
     private final KafkaPropertiesFactory propertiesFactory;
-    private final KafkaSinkDataAddressValidation validation;
+    private final Validator<DataAddress> validation;
 
     public KafkaDataSinkFactory(ExecutorService executorService, Monitor monitor, KafkaPropertiesFactory propertiesFactory) {
         this.executorService = executorService;
         this.monitor = monitor;
         this.propertiesFactory = propertiesFactory;
-        this.validation = new KafkaSinkDataAddressValidation(propertiesFactory);
+        this.validation = new KafkaDataAddressValidator();
     }
 
     @Override
@@ -53,7 +54,7 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowRequest request) {
         var destination = request.getDestinationDataAddress();
-        return validation.apply(destination);
+        return validation.validate(destination).flatMap(ValidationResult::toResult);
     }
 
     @Override
@@ -67,13 +68,10 @@ public class KafkaDataSinkFactory implements DataSinkFactory {
         var producerProps = propertiesFactory.getProducerProperties(destination.getProperties())
                 .orElseThrow(failure -> new IllegalArgumentException(failure.getFailureDetail()));
 
-        var topic = Optional.ofNullable(destination.getStringProperty(TOPIC))
-                .orElseThrow(() -> new IllegalArgumentException(format("Missing `%s` config", TOPIC)));
-
         return KafkaDataSink.Builder.newInstance()
                 .monitor(monitor)
                 .requestId(request.getId())
-                .topic(topic)
+                .topic(destination.getStringProperty(TOPIC))
                 .producerProperties(producerProps)
                 .executorService(executorService)
                 .build();

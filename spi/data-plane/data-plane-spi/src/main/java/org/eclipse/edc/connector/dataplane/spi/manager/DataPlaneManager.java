@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
  * For example:
  * <p>
  * <pre>
- * dataPlaneManager.transfer(sink, flowRequest).whenComplete((result, throwable) -&gt; {
+ * dataPlaneManager.transfer(request).whenComplete((result, throwable) -&gt; {
  *      if (result != null &amp;&amp; result.failed()) {
  *          switch (result.reason()) {
  *              case NOT_FOUND:

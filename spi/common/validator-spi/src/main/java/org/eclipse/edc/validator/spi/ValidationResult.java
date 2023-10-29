@@ -15,6 +15,7 @@
 package org.eclipse.edc.validator.spi;
 
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,5 +47,16 @@ public class ValidationResult extends AbstractResult<Void, ValidationFailure, Va
     @NotNull
     protected <R1 extends AbstractResult<C1, ValidationFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable ValidationFailure failure) {
         return (R1) new ValidationResult(null, failure);
+    }
+
+    public Result<Void> toResult() {
+        if (succeeded()) {
+            return Result.success();
+        } else {
+            var messages = getFailure().getViolations().stream()
+                    .map(it -> "%s. Path: %s. Illegal value: %s".formatted(it.message(), it.path(), it.value()))
+                    .toList();
+            return Result.failure(messages);
+        }
     }
 }

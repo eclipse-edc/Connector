@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":core:common:state-machine"))
     implementation(project(":core:common:transform-core"))
     implementation(project(":core:common:util"))
+    implementation(project(":core:common:validator-core"))
 
     implementation(libs.dnsOverHttps)
     implementation(libs.bouncyCastle.bcpkixJdk18on)

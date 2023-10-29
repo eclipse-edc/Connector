@@ -41,6 +41,7 @@ import java.util.stream.IntStream;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
@@ -111,9 +112,6 @@ public abstract class AssetIndexTestBase {
                 .type("type")
                 .property("key", "value")
                 .build();
-    }
-
-    public record TestObject(String text, int number, boolean bool) {
     }
 
     @Nested
@@ -289,15 +287,15 @@ public abstract class AssetIndexTestBase {
         @Test
         @DisplayName("Verifies an asset query, that contains a filter expression")
         void withFilterExpression() {
-            var expected = createAssetBuilder("id1").property("version", "2.0").property("contenttype", "whatever").build();
-            var differentVersion = createAssetBuilder("id2").property("version", "2.1").property("contenttype", "whatever").build();
-            var differentContentType = createAssetBuilder("id3").property("version", "2.0").property("contenttype", "different").build();
+            var expected = createAssetBuilder("id1").property("version", "2.0").property("contentType", "whatever").build();
+            var differentVersion = createAssetBuilder("id2").property("version", "2.1").property("contentType", "whatever").build();
+            var differentContentType = createAssetBuilder("id3").property("version", "2.0").property("contentType", "different").build();
             getAssetIndex().create(expected);
             getAssetIndex().create(differentVersion);
             getAssetIndex().create(differentContentType);
             var filter = filter(
                     new Criterion("version", "=", "2.0"),
-                    new Criterion("contenttype", "=", "whatever")
+                    new Criterion("contentType", "=", "whatever")
             );
 
             var assets = getAssetIndex().queryAssets(filter);
@@ -306,11 +304,28 @@ public abstract class AssetIndexTestBase {
         }
 
         @Test
+        void shouldFilterByNestedProperty() {
+            var nested = EDC_NAMESPACE + "nested";
+            var version = EDC_NAMESPACE + "version";
+            var expected = createAssetBuilder("id1").property(nested, Map.of(version, "2.0")).build();
+            var differentVersion = createAssetBuilder("id2").property(nested, Map.of(version, "2.1")).build();
+            getAssetIndex().create(expected);
+            getAssetIndex().create(differentVersion);
+
+            var assets = getAssetIndex().queryAssets(filter(criterion("'%s'.'%s'".formatted(nested, version), "=", "2.0")));
+
+            assertThat(assets).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(expected);
+        }
+
+        @Test
         @DisplayName("Verify an asset query based on an Asset property, where the property value is actually a complex object")
         void query_assetPropertyAsObject() {
+            var nested = Map.of("text", "test123", "number", 42, "bool", false);
             var dataAddress = createDataAddress();
-            var asset = createAssetBuilder("id1").dataAddress(dataAddress).build();
-            asset.getProperties().put("testobj", new TestObject("test123", 42, false));
+            var asset = createAssetBuilder("id1")
+                    .dataAddress(dataAddress)
+                    .property("testobj", nested)
+                    .build();
             getAssetIndex().create(asset);
 
             var assetsFound = getAssetIndex().queryAssets(QuerySpec.Builder.newInstance()
@@ -318,7 +333,6 @@ public abstract class AssetIndexTestBase {
                     .build());
 
             assertThat(assetsFound).hasSize(1).first().usingRecursiveComparison().isEqualTo(asset);
-            assertThat(asset.getProperty("testobj")).isInstanceOf(TestObject.class);
         }
 
         @Test
@@ -349,8 +363,8 @@ public abstract class AssetIndexTestBase {
         }
 
         @Test
-        @DisplayName("Query assets using the IN operator, invalid righ-operand")
-        void in_shouldThrowException_whenInvalidRightOperand() {
+        @DisplayName("Query assets using the IN operator, invalid right operand")
+        void shouldThrowException_whenOperatorInAndInvalidRightOperand() {
             var asset1 = getAsset("id1");
             getAssetIndex().create(asset1);
             var asset2 = getAsset("id2");
@@ -409,7 +423,8 @@ public abstract class AssetIndexTestBase {
         @DisplayName("Query assets using the LIKE operator on a json value")
         void likeJson() throws JsonProcessingException {
             var asset = getAsset("id1");
-            asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
+            var nested = Map.of("text", "test123", "number", 42, "bool", false);
+            asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(nested));
             getAssetIndex().create(asset);
             var criterion = new Criterion("myjson", "LIKE", "%test123%");
 
@@ -579,83 +594,5 @@ public abstract class AssetIndexTestBase {
         }
     }
 
-    @Nested
-    class UpdateDataAddress {
-        @Test
-        @DisplayName("Update DataAddress where the Asset does not yet exist")
-        void doesNotExist() {
-            var id = "id1";
-            var assetExpected = getDataAddress();
-            var assetIndex = getAssetIndex();
-
-            var updated = assetIndex.updateDataAddress(id, assetExpected);
-            Assertions.assertThat(updated).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("Update a DataAddress that exists, adding a new property")
-        void exists_addsProperty() {
-            var id = "id1";
-            var asset = getAsset(id);
-            var assetIndex = getAssetIndex();
-            assetIndex.create(asset);
-
-            var updatedDataAddress = getDataAddress();
-            updatedDataAddress.getProperties().put("newKey", "newValue");
-            var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
-
-            Assertions.assertThat(updated).isNotNull();
-
-            var addressFound = getAssetIndex().resolveForAsset("id1");
-
-            assertThat(addressFound).isNotNull();
-            assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
-        }
-
-        @Test
-        @DisplayName("Update a DataAddress that exists, removing a property")
-        void exists_removesProperty() {
-            var id = "id1";
-            var asset = getAsset(id);
-            var assetIndex = getAssetIndex();
-            var dataAddress = getDataAddress();
-            dataAddress.getProperties().put("newKey", "newValue");
-            assetIndex.create(asset);
-
-            var updatedDataAddress = dataAddress;
-            updatedDataAddress.getProperties().remove("newKey");
-            var updated = assetIndex.updateDataAddress(id, updatedDataAddress);
-
-            Assertions.assertThat(updated).isNotNull();
-
-            var addressFound = getAssetIndex().resolveForAsset("id1");
-
-            assertThat(addressFound).isNotNull();
-            assertThat(addressFound).usingRecursiveComparison().isEqualTo(updatedDataAddress);
-            assertThat(addressFound.getProperties()).doesNotContainKeys("newKey");
-        }
-
-        @Test
-        @DisplayName("Update a DataAddress that exists, replacing a property")
-        void exists_replacesProperty() {
-            var id = "id1";
-            var asset = getAsset(id);
-            var assetIndex = getAssetIndex();
-            var dataAddress = getDataAddress();
-            dataAddress.getProperties().put("newKey", "originalValue");
-            assetIndex.create(asset);
-
-            dataAddress.getProperties().put("newKey", "newValue");
-            var updated = assetIndex.updateDataAddress(id, dataAddress);
-
-            Assertions.assertThat(updated).isNotNull();
-
-            var addressFound = getAssetIndex().resolveForAsset("id1");
-
-            assertThat(addressFound).isNotNull();
-            assertThat(addressFound).usingRecursiveComparison().isEqualTo(dataAddress);
-            assertThat(addressFound.getProperties()).containsEntry("newKey", "newValue");
-        }
-    }
 }
 

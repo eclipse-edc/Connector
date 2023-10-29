@@ -22,10 +22,9 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -40,12 +39,12 @@ public class AssetServiceImpl implements AssetService {
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
     private final AssetObservable observable;
-    private final DataAddressValidator dataAddressValidator;
+    private final DataAddressValidatorRegistry dataAddressValidator;
     private final QueryValidator queryValidator;
 
     public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore,
                             TransactionContext transactionContext, AssetObservable observable,
-                            DataAddressValidator dataAddressValidator) {
+                            DataAddressValidatorRegistry dataAddressValidator) {
         this.index = index;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
@@ -76,7 +75,7 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        var validDataAddress = dataAddressValidator.validate(asset.getDataAddress());
+        var validDataAddress = dataAddressValidator.validateSource(asset.getDataAddress());
         if (validDataAddress.failed()) {
             return ServiceResult.badRequest(validDataAddress.getFailureMessages());
         }
@@ -117,6 +116,11 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
+        var validDataAddress = dataAddressValidator.validateSource(asset.getDataAddress());
+        if (validDataAddress.failed()) {
+            return ServiceResult.badRequest(validDataAddress.getFailureMessages());
+        }
+
         return transactionContext.execute(() -> {
             var updatedAsset = index.updateAsset(asset);
             updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));
@@ -124,12 +128,4 @@ public class AssetServiceImpl implements AssetService {
         });
     }
 
-    @Override
-    public ServiceResult<DataAddress> update(String assetId, DataAddress dataAddress) {
-        return transactionContext.execute(() -> {
-            var result = index.updateDataAddress(assetId, dataAddress);
-            result.onSuccess(da -> observable.invokeForEach(l -> l.updated(findById(assetId))));
-            return ServiceResult.from(result);
-        });
-    }
 }

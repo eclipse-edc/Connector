@@ -43,6 +43,18 @@ public interface AssetStatements extends SqlStatements {
         return "asset_id";
     }
 
+    default String getPropertiesColumn() {
+        return "properties";
+    }
+
+    default String getPrivatePropertiesColumn() {
+        return "private_properties";
+    }
+
+    default String getDataAddressColumn() {
+        return "data_address";
+    }
+
     /**
      * The data address table name.
      */
@@ -110,29 +122,14 @@ public interface AssetStatements extends SqlStatements {
     String getInsertAssetTemplate();
 
     /**
-     * INSERT clause for data addresses.
+     * UPDATE clause for assets.
      */
-    String getInsertDataAddressTemplate();
-
-    /**
-     * INSERT clause for properties.
-     */
-    String getInsertPropertyTemplate();
+    String getUpdateAssetTemplate();
 
     /**
      * SELECT COUNT clause for assets.
      */
     String getCountAssetByIdClause();
-
-    /**
-     * SELECT clause for properties.
-     */
-    String getFindPropertyByIdTemplate();
-
-    /**
-     * SELECT clause for data addresses.
-     */
-    String getFindDataAddressByIdTemplate();
 
     /**
      * SELECT clause for all assets.
@@ -145,25 +142,9 @@ public interface AssetStatements extends SqlStatements {
     String getDeleteAssetByIdTemplate();
 
     /**
-     * UPDATE statement for data addresses
-     */
-    String getUpdateDataAddressTemplate();
-
-    /**
-     * DELETE statement for properties of an Asset. Useful for delete-insert (=update) operations
-     */
-    String getDeletePropertyByIdTemplate();
-
-    /**
      * The COUNT variable used in SELECT COUNT queries.
      */
     String getCountVariableName();
-
-    /**
-     * Provides a dynamically assembled SELECT statement for use with
-     * {@link QuerySpec} queries.
-     */
-    String getQuerySubSelectTemplate();
 
     /**
      * Generates a SQL query using sub-select statements out of the query spec.
@@ -178,11 +159,5 @@ public interface AssetStatements extends SqlStatements {
      * @return A {@link SqlQueryStatement} that contains the SQL and statement parameters
      */
     SqlQueryStatement createQuery(List<Criterion> query);
-
-    /**
-     * Select single asset by ID
-     */
-    String getSelectAssetByIdTemplate();
-
 
 }

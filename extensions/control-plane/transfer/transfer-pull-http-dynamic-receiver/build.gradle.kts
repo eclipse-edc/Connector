@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.failsafe.core)
 
+    testImplementation(project(":spi:common:data-address:data-address-http-data-spi"))
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.mockserver.client)
     testImplementation(project(":core:common:junit"))
