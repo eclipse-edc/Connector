@@ -27,6 +27,7 @@ import org.eclipse.edc.policy.model.Prohibition;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -46,6 +47,16 @@ public class TestFunctions {
                 .build();
     }
 
+    public static PolicyDefinition createPolicy(String id, String target, Map<String, Object> privateProperties) {
+        var policy = createPolicyBuilder(id).target(target).build();
+
+        return PolicyDefinition.Builder.newInstance()
+                .createdAt(Clock.systemUTC().millis())
+                .id(id)
+                .policy(policy)
+                .privateProperties(privateProperties)
+                .build();
+    }
 
     public static List<PolicyDefinition> createPolicies(int count) {
         return IntStream.range(0, count).mapToObj(i -> createPolicy("policyDef" + i)).collect(Collectors.toList());

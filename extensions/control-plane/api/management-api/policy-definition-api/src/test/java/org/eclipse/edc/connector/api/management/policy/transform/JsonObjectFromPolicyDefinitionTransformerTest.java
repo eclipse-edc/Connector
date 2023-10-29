@@ -15,15 +15,19 @@
 package org.eclipse.edc.connector.api.management.policy.transform;
 
 import jakarta.json.Json;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -38,6 +42,10 @@ class JsonObjectFromPolicyDefinitionTransformerTest {
 
     private final JsonObjectFromPolicyDefinitionTransformer transformer = new JsonObjectFromPolicyDefinitionTransformer(Json.createBuilderFactory(emptyMap()), createObjectMapper());
     private final TransformerContext context = mock(TransformerContext.class);
+
+
+    private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
+
 
     @Test
     void types() {
@@ -61,4 +69,21 @@ class JsonObjectFromPolicyDefinitionTransformerTest {
         verify(context).transform(policy, JsonObject.class);
     }
 
+    @Test
+    void transform_withPrivateProperties_simpleTypes() {
+        var policy = Policy.Builder.newInstance().build();
+        var input = PolicyDefinition.Builder.newInstance().id("definitionId").policy(policy).privateProperty("some-key", "some-value").build();
+        var policyJson = Json.createObjectBuilder().build();
+        when(context.transform(any(), eq(JsonObject.class))).thenReturn(policyJson);
+
+        var result = transformer.transform(input, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString(ID)).isEqualTo("definitionId");
+        assertThat(result.getString(TYPE)).isEqualTo(EDC_POLICY_DEFINITION_TYPE);
+        assertThat(result.getJsonObject(EDC_POLICY_DEFINITION_POLICY)).isSameAs(policyJson);
+
+        assertThat(result.getJsonObject(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES).getJsonString("some-key").getString()).isEqualTo("some-value");
+        verify(context).transform(policy, JsonObject.class);
+    }
 }

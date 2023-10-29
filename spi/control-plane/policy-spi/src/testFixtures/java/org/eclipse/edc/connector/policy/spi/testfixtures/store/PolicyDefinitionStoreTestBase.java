@@ -30,6 +30,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -95,6 +96,21 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .satisfies(policy -> assertThat(policy.getPolicy().getTarget()).isEqualTo("Target1"))
                     .extracting(PolicyDefinition::getCreatedAt).isEqualTo(policy1.getCreatedAt());
         }
+
+        @Test
+        @DisplayName("Save a single policy that not exists ")
+        void notExisting_with_privateProperties() {
+            var policy = createPolicy(getRandomId(), null, Map.of("key1", "value1", "key2", "value2"));
+
+            getPolicyDefinitionStore().create(policy);
+
+            var policyFromDb = getPolicyDefinitionStore().findById(policy.getUid());
+            assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
+
+            assertThat(policyFromDb.getPrivateProperties()).hasSize(2);
+            assertThat(policyFromDb.getPrivateProperties().get("key1")).usingRecursiveComparison().isEqualTo("value1");
+            assertThat(policyFromDb.getPrivateProperties().get("key2")).usingRecursiveComparison().isEqualTo("value2");
+        }
     }
 
     @Nested
@@ -130,6 +146,74 @@ public abstract class PolicyDefinitionStoreTestBase {
             assertThat(policyFromDb).hasSize(1).first();
             assertThat(result.getContent().getPolicy().getTarget()).isEqualTo("target2");
             assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(newPolicy);
+        }
+
+        @Test
+        @DisplayName("Update an Policy that exists, adding a property")
+        void policyExists_addProperty() {
+            var id = getRandomId();
+            var policy = createPolicyDef(id, "target");
+
+            var store = getPolicyDefinitionStore();
+            store.create(policy);
+
+            var spec = QuerySpec.Builder.newInstance().build();
+            var policyFromDb = store.findAll(spec);
+
+            assertThat(policyFromDb).hasSize(1).first();
+            policy.getPrivateProperties().put("newKey", "newValue");
+            var updated = getPolicyDefinitionStore().update(policy);
+            assertThat(updated).isNotNull();
+
+            var definitionFound = getPolicyDefinitionStore().findById(id);
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
+
+        }
+
+        @Test
+        @DisplayName("Update an Policy that exists, remove a property")
+        void policyExists_removeProperty() {
+            var id = getRandomId();
+            var policy = createPolicyDef(id, "target");
+            policy.getPrivateProperties().put("newKey", "newValue");
+            var created = getPolicyDefinitionStore().create(policy);
+            assertThat(created).isNotNull();
+
+            var definitionFound = getPolicyDefinitionStore().findById(id);
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
+
+            policy.getPrivateProperties().remove("newKey");
+            var updated = getPolicyDefinitionStore().update(policy);
+            assertThat(updated).isNotNull();
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
+            assertThat(definitionFound.getPrivateProperties()).doesNotContainKey("newKey");
+        }
+
+        @Test
+        @DisplayName("Update an Policy that exists, replace a property")
+        void policyExists_replaceProperty() {
+            var id = getRandomId();
+            var policy = createPolicyDef(id, "target");
+            policy.getPrivateProperties().put("newKey", "originalValue");
+            var created = getPolicyDefinitionStore().create(policy);
+            assertThat(created).isNotNull();
+
+            var definitionFound = getPolicyDefinitionStore().findById(id);
+
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
+
+            policy.getPrivateProperties().put("newKey", "newValue");
+            var updated = getPolicyDefinitionStore().update(policy);
+            assertThat(updated).isNotNull();
+            assertThat(definitionFound).isNotNull();
+            assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
+            assertThat(definitionFound.getPrivateProperties()).containsEntry("newKey", "newValue");
         }
 
         @Test
