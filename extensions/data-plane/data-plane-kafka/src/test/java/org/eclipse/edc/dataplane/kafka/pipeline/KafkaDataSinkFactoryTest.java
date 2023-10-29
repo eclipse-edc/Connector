@@ -15,7 +15,6 @@
 package org.eclipse.edc.dataplane.kafka.pipeline;
 
 import org.eclipse.edc.dataplane.kafka.config.KafkaPropertiesFactory;
-import org.eclipse.edc.dataplane.kafka.schema.KafkaDataAddressSchema;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -31,6 +30,9 @@ import java.util.concurrent.ExecutorService;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.BOOTSTRAP_SERVERS;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.KAFKA_TYPE;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.TOPIC;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,7 +56,7 @@ class KafkaDataSinkFactoryTest {
 
     @Test
     void verifyValidateSuccess() {
-        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, Map.of(KafkaDataAddressSchema.TOPIC, "test"));
+        var request = createRequest(KAFKA_TYPE, Map.of(TOPIC, "test", BOOTSTRAP_SERVERS, "any:9183"));
 
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
@@ -66,7 +68,7 @@ class KafkaDataSinkFactoryTest {
 
     @Test
     void verifyValidateReturnsFailedResult_ifMissingTopicProperty() {
-        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, emptyMap());
+        var request = createRequest(KAFKA_TYPE, emptyMap());
 
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
@@ -80,7 +82,7 @@ class KafkaDataSinkFactoryTest {
     @Test
     void verifyValidateReturnsFailedResult_ifKafkaPropertiesFactoryFails() {
         var errorMsg = "test-error";
-        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, Map.of(KafkaDataAddressSchema.TOPIC, "test"));
+        var request = createRequest(KAFKA_TYPE, Map.of(TOPIC, "test"));
 
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.failure(errorMsg));
@@ -88,12 +90,12 @@ class KafkaDataSinkFactoryTest {
         var result = factory.validateRequest(request);
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureDetail()).contains(errorMsg);
+        assertThat(result.getFailureDetail()).contains("kafka.bootstrap.servers");
     }
 
     @Test
     void verifyCreateSinkThrows_ifMissingTopicProperty() {
-        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, emptyMap());
+        var request = createRequest(KAFKA_TYPE, emptyMap());
 
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.success(mock(Properties.class)));
@@ -104,7 +106,7 @@ class KafkaDataSinkFactoryTest {
     @Test
     void verifyCreateSinkThrows_ifKafkaPropertiesFactoryFails() {
         var errorMsg = "test-error";
-        var request = createRequest(KafkaDataAddressSchema.KAFKA_TYPE, Map.of(KafkaDataAddressSchema.TOPIC, "test"));
+        var request = createRequest(KAFKA_TYPE, Map.of(TOPIC, "test"));
 
         when(propertiesFactory.getProducerProperties(request.getDestinationDataAddress().getProperties()))
                 .thenReturn(Result.failure(errorMsg));

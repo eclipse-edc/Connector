@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 class KafkaPropertiesFactoryTest {
 
@@ -28,10 +29,10 @@ class KafkaPropertiesFactoryTest {
     @Test
     void verifyGetConsumerProperties() {
         var properties = Map.<String, Object>of(
-                "kafka.bootstrap.servers", "kafka:9092",
-                "kafka.foo.bar", "value1",
-                "kafka.hello.world", "value2",
-                "non.kafka.property", "value3"
+                EDC_NAMESPACE + "kafka.bootstrap.servers", "kafka:9092",
+                EDC_NAMESPACE + "kafka.foo.bar", "value1",
+                EDC_NAMESPACE + "kafka.hello.world", "value2",
+                EDC_NAMESPACE + "non.kafka.property", "value3"
         );
 
         var result = factory.getConsumerProperties(properties);
@@ -49,10 +50,10 @@ class KafkaPropertiesFactoryTest {
     @Test
     void verifyGetProducerProperties() {
         var properties = Map.<String, Object>of(
-                "kafka.bootstrap.servers", "kafka:9092",
-                "kafka.foo.bar", "value1",
-                "kafka.hello.world", "value2",
-                "non.kafka.property", "value3"
+                EDC_NAMESPACE + "kafka.bootstrap.servers", "kafka:9092",
+                EDC_NAMESPACE + "kafka.foo.bar", "value1",
+                EDC_NAMESPACE + "kafka.hello.world", "value2",
+                EDC_NAMESPACE + "non.kafka.property", "value3"
         );
 
         var result = factory.getProducerProperties(properties);
@@ -67,16 +68,4 @@ class KafkaPropertiesFactoryTest {
                 .containsEntry("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
     }
 
-    @Test
-    void verifyFromFailsIfMissingBootstrapServers() {
-        var properties = Map.<String, Object>of(
-                "kafka.foo.bar", "value1",
-                "kafka.hello.world", "value2"
-        );
-
-        var result = factory.getConsumerProperties(properties);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureDetail()).contains("`bootstrap.servers`");
-    }
 }

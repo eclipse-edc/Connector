@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.util.reflection;
 
+import org.eclipse.edc.spi.types.PathItem;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -47,29 +49,34 @@ public class ReflectionUtil {
         Objects.requireNonNull(propertyName, "propertyName");
         Objects.requireNonNull(object, "object");
 
-        if (propertyName.contains(".")) {
-            var dotIx = propertyName.indexOf(".");
-            var field = propertyName.substring(0, dotIx);
-            var rest = propertyName.substring(dotIx + 1);
-            object = getFieldValue(field, object);
-            if (object == null) {
+        var path = PathItem.parse(propertyName);
+        return getFieldValue(path, object);
+    }
+
+    private static <T> T getFieldValue(List<PathItem> path, Object object) {
+        var first = path.get(0);
+
+        if (path.size() > 1) {
+            var nested = getFieldValue(List.of(first), object);
+            if (nested == null) {
                 return null;
             }
-            return getFieldValue(rest, object);
-        } else if (propertyName.matches(ARRAY_INDEXER_REGEX)) { //array indexer
-            var openingBracketIx = propertyName.indexOf(OPENING_BRACKET);
-            var closingBracketIx = propertyName.indexOf(CLOSING_BRACKET);
-            var propName = propertyName.substring(0, openingBracketIx);
-            var arrayIndex = Integer.parseInt(propertyName.substring(openingBracketIx + 1, closingBracketIx));
+            var rest = path.stream().skip(1).toList();
+            return getFieldValue(rest, nested);
+        } else if (first.toString().matches(ARRAY_INDEXER_REGEX)) { //array indexer
+            var openingBracketIx = first.toString().indexOf(OPENING_BRACKET);
+            var closingBracketIx = first.toString().indexOf(CLOSING_BRACKET);
+            var propName = first.toString().substring(0, openingBracketIx);
+            var arrayIndex = Integer.parseInt(first.toString().substring(openingBracketIx + 1, closingBracketIx));
             var iterableObject = (List) getFieldValue(propName, object);
             return (T) iterableObject.get(arrayIndex);
         } else {
             if (object instanceof Map<?, ?> map) {
-                return (T) map.get(propertyName);
+                return (T) map.get(first.toString());
             } else if (object instanceof List<?> list) {
-                return (T) list.stream().filter(Objects::nonNull).map(it -> getRecursiveValue(propertyName, it)).toList();
+                return (T) list.stream().filter(Objects::nonNull).map(it -> getRecursiveValue(first.toString(), it)).toList();
             } else {
-                return getRecursiveValue(propertyName, object);
+                return getRecursiveValue(first.toString(), object);
             }
         }
     }

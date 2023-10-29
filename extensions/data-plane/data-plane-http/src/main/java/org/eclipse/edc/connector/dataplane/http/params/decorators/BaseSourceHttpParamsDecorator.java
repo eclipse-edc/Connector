@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.http.params.decorators;
 
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpParamsDecorator;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.NotNull;

@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
 import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.edc.connector.core.security.KeyPairFactoryImpl;
+import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
@@ -50,6 +51,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import java.security.PrivateKey;
@@ -191,6 +193,11 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public JsonObjectValidatorRegistry jsonObjectValidator() {
         return new JsonObjectValidatorRegistryImpl();
+    }
+
+    @Provider
+    public DataAddressValidatorRegistry dataAddressValidatorRegistry(ServiceExtensionContext context) {
+        return new DataAddressValidatorRegistryImpl(context.getMonitor());
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {

@@ -71,7 +71,6 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     public DataSourceRegistry dataSourceRegistry(ServiceExtensionContext context) {
         context.getMonitor().warning("No DataSourceRegistry registered, DefaultDataSourceRegistry will be used, not suitable for production environments");
         return new DefaultDataSourceRegistry();
-
     }
 
     @Provider(isDefault = true)

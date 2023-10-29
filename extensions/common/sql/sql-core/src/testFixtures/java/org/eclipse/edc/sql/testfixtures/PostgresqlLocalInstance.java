@@ -56,18 +56,6 @@ public final class PostgresqlLocalInstance {
         }
     }
 
-    public Connection getConnection() {
-        try {
-            return DriverManager.getConnection(jdbcUrlPrefix, username, password);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public String getJdbcUrlPrefix() {
-        return jdbcUrlPrefix;
-    }
-
     private DataSource createTestDataSource(String hostName, int port, String dbName) {
         var dataSource = new PGSimpleDataSource();
         dataSource.setServerNames(new String[]{ hostName });

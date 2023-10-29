@@ -38,7 +38,7 @@ import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,11 +54,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessManager manager;
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
-    private final DataAddressValidator dataAddressValidator;
+    private final DataAddressValidatorRegistry dataAddressValidator;
     private final CommandHandlerRegistry commandHandlerRegistry;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
-                                      TransactionContext transactionContext, DataAddressValidator dataAddressValidator,
+                                      TransactionContext transactionContext, DataAddressValidatorRegistry dataAddressValidator,
                                       CommandHandlerRegistry commandHandlerRegistry) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
@@ -110,9 +110,9 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<TransferProcess> initiateTransfer(TransferRequest request) {
-        var validDestination = dataAddressValidator.validate(request.getDataDestination());
+        var validDestination = dataAddressValidator.validateDestination(request.getDataDestination());
         if (validDestination.failed()) {
-            return ServiceResult.badRequest(validDestination.getFailureMessages().toArray(new String[]{}));
+            return ServiceResult.badRequest(validDestination.getFailureMessages());
         }
 
         return transactionContext.execute(() -> {

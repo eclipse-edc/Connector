@@ -1,5 +1,5 @@
 --
---  Copyright (c) 2022 Daimler TSS GmbH
+--  Copyright (c) 2022 - 2023 Daimler TSS GmbH
 --
 --  This program and the accompanying materials are made available under the
 --  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
 --
 --  Contributors:
 --       Daimler TSS GmbH - Initial SQL Query
+--       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
 --
 
 -- THIS SCHEMA HAS BEEN WRITTEN AND TESTED ONLY FOR POSTGRES
@@ -16,41 +17,14 @@
 -- table: edc_asset
 CREATE TABLE IF NOT EXISTS edc_asset
 (
-    asset_id   VARCHAR NOT NULL,
-    created_at BIGINT  NOT NULL,
+    asset_id           VARCHAR NOT NULL,
+    created_at         BIGINT  NOT NULL,
+    properties         JSON    DEFAULT '{}',
+    private_properties JSON    DEFAULT '{}',
+    data_address       JSON    DEFAULT '{}',
     PRIMARY KEY (asset_id)
 );
 
--- table: edc_asset_dataaddress
-CREATE TABLE IF NOT EXISTS edc_asset_dataaddress
-(
-    asset_id_fk VARCHAR NOT NULL,
-    properties  JSON    NOT NULL,
-    PRIMARY KEY (asset_id_fk),
-    FOREIGN KEY (asset_id_fk) REFERENCES edc_asset (asset_id) ON DELETE CASCADE
-);
-COMMENT ON COLUMN edc_asset_dataaddress.properties IS 'DataAddress properties serialized as JSON';
-
--- table: edc_asset_property
-CREATE TABLE IF NOT EXISTS edc_asset_property
-(
-    asset_id_fk         VARCHAR NOT NULL,
-    property_name       VARCHAR NOT NULL,
-    property_value      VARCHAR NOT NULL,
-    property_type       VARCHAR NOT NULL,
-    property_is_private BOOLEAN NOT NULL,
-    PRIMARY KEY (asset_id_fk, property_name),
-    FOREIGN KEY (asset_id_fk) REFERENCES edc_asset (asset_id) ON DELETE CASCADE
-);
-
-COMMENT ON COLUMN edc_asset_property.property_name IS
-    'Asset property key';
-COMMENT ON COLUMN edc_asset_property.property_value IS
-    'Asset property value';
-COMMENT ON COLUMN edc_asset_property.property_type IS
-    'Asset property class name';
-COMMENT ON COLUMN edc_asset_property.property_is_private IS
-    'Asset property private flag';
-
-CREATE INDEX IF NOT EXISTS idx_edc_asset_property_value
-    ON edc_asset_property (property_name, property_value);
+COMMENT ON COLUMN edc_asset.properties IS 'Asset properties serialized as JSON';
+COMMENT ON COLUMN edc_asset.private_properties IS 'Asset private properties serialized as JSON';
+COMMENT ON COLUMN edc_asset.data_address IS 'Asset DataAddress serialized as JSON';

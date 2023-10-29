@@ -16,7 +16,6 @@
 
 package org.eclipse.edc.connector.store.sql.assetindex;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.AssetStatements;
 import org.eclipse.edc.spi.asset.AssetIndex;
@@ -35,14 +34,13 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.partitioningBy;
-import static java.util.stream.Collectors.toMap;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
 
@@ -61,9 +59,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         return transactionContext.execute(() -> {
             try {
                 var statement = assetStatements.createQuery(querySpec);
-
-                return queryExecutor.query(getConnection(), true, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters())
-                        .map(this::findById);
+                return queryExecutor.query(getConnection(), true, this::mapAsset, statement.getQueryAsString(), statement.getParameters());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -75,39 +71,12 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         Objects.requireNonNull(assetId);
 
         try (var connection = getConnection()) {
-
-            return transactionContext.execute(() -> {
-                if (!existsById(assetId, connection)) {
-                    return null;
-                }
-
-                var selectAssetByIdSql = assetStatements.getSelectAssetByIdTemplate();
-                var findPropertyByIdSql = assetStatements.getFindPropertyByIdTemplate();
-                try (
-                        var createdAtStream = queryExecutor.query(connection, false, this::mapCreatedAt, selectAssetByIdSql, assetId);
-                        var allPropertiesStream = queryExecutor.query(connection, false, this::mapPropertyResultSet, findPropertyByIdSql, assetId)
-                ) {
-                    var createdAt = createdAtStream.findFirst().orElse(0L);
-                    var groupedProperties = allPropertiesStream.collect(partitioningBy(SqlPropertyWrapper::isPrivate));
-                    var assetProperties = groupedProperties.get(false).stream().collect(toMap(SqlPropertyWrapper::getPropertyKey, SqlPropertyWrapper::getPropertyValue));
-                    var assetPrivateProperties = groupedProperties.get(true).stream().collect(toMap(SqlPropertyWrapper::getPropertyKey, SqlPropertyWrapper::getPropertyValue));
-                    var dataAddress = resolveForAsset(assetId);
-                    return Asset.Builder.newInstance()
-                            .id(assetId)
-                            .properties(assetProperties)
-                            .privateProperties(assetPrivateProperties)
-                            .createdAt(createdAt)
-                            .dataAddress(dataAddress)
-                            .build();
-                }
-            });
-
-        } catch (Exception e) {
-            if (e instanceof EdcPersistenceException) {
-                throw (EdcPersistenceException) e;
-            } else {
-                throw new EdcPersistenceException(e.getMessage(), e);
-            }
+            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", assetId)).build();
+            var statement = assetStatements.createQuery(querySpec);
+            return queryExecutor.query(connection, true, this::mapAsset, statement.getQueryAsString(), statement.getParameters())
+                    .findFirst().orElse(null);
+        } catch (SQLException e) {
+            throw new EdcPersistenceException(e);
         }
     }
 
@@ -126,11 +95,13 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     return StoreResult.alreadyExists(msg);
                 }
 
-                queryExecutor.execute(connection, assetStatements.getInsertAssetTemplate(), assetId, asset.getCreatedAt());
-                var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
-                queryExecutor.execute(connection, insertDataAddressTemplate, assetId, toJson(dataAddress.getProperties()));
-
-                insertProperties(asset, assetId, connection);
+                queryExecutor.execute(connection, assetStatements.getInsertAssetTemplate(),
+                        assetId,
+                        asset.getCreatedAt(),
+                        toJson(asset.getProperties()),
+                        toJson(asset.getPrivateProperties()),
+                        toJson(asset.getDataAddress().getProperties())
+                );
 
                 return StoreResult.success();
             } catch (Exception e) {
@@ -178,10 +149,14 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
             try (var connection = getConnection()) {
                 var assetId = asset.getId();
                 if (existsById(assetId, connection)) {
-                    queryExecutor.execute(connection, assetStatements.getDeletePropertyByIdTemplate(), assetId);
-                    insertProperties(asset, assetId, connection);
-                    var updateTemplate = assetStatements.getUpdateDataAddressTemplate();
-                    queryExecutor.execute(connection, updateTemplate, toJson(asset.getDataAddress().getProperties()), assetId);
+
+                    queryExecutor.execute(connection, assetStatements.getUpdateAssetTemplate(),
+                            toJson(asset.getProperties()),
+                            toJson(asset.getPrivateProperties()),
+                            toJson(asset.getDataAddress().getProperties()),
+                            assetId
+                    );
+
                     return StoreResult.success(asset);
                 }
                 return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
@@ -193,66 +168,12 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress) {
-        return transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                if (existsById(assetId, connection)) {
-                    var updateTemplate = assetStatements.getUpdateDataAddressTemplate();
-                    queryExecutor.execute(connection, updateTemplate, toJson(dataAddress.getProperties()), assetId);
-                    return StoreResult.success(dataAddress);
-                }
-                return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
-
-            } catch (Exception e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
-    }
-
-    @Override
     public DataAddress resolveForAsset(String assetId) {
-        Objects.requireNonNull(assetId);
-
-        return transactionContext.execute(() -> {
-            var sql = assetStatements.getFindDataAddressByIdTemplate();
-            try {
-                return queryExecutor.single(getConnection(), true, this::mapDataAddress, sql, assetId);
-            } catch (Exception e) {
-                if (e instanceof EdcPersistenceException) {
-                    throw (EdcPersistenceException) e;
-                } else {
-                    throw new EdcPersistenceException(e.getMessage(), e);
-                }
-            }
-        });
-    }
-
-    private long mapCreatedAt(ResultSet resultSet) throws SQLException {
-        return resultSet.getLong(assetStatements.getCreatedAtColumn());
+        return Optional.ofNullable(findById(assetId)).map(Asset::getDataAddress).orElse(null);
     }
 
     private int mapRowCount(ResultSet resultSet) throws SQLException {
         return resultSet.getInt(assetStatements.getCountVariableName());
-    }
-
-    private SqlPropertyWrapper mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException {
-        var name = resultSet.getString(assetStatements.getAssetPropertyNameColumn());
-        var value = resultSet.getString(assetStatements.getAssetPropertyValueColumn());
-        var type = resultSet.getString(assetStatements.getAssetPropertyTypeColumn());
-        var isPrivate = resultSet.getBoolean(assetStatements.getAssetPropertyIsPrivateColumn());
-        return new SqlPropertyWrapper(isPrivate, new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type)));
-    }
-
-    /**
-     * Deserializes a value into an object using the object mapper. Note: if type is {@code java.lang.String} simply
-     * {@code value.toString()} is returned.
-     */
-    private Object fromPropertyValue(String value, String type) throws ClassNotFoundException {
-        var clazz = Class.forName(type);
-        if (clazz == String.class) {
-            return value;
-        }
-        return fromJson(value, clazz);
     }
 
     private boolean existsById(String assetId, Connection connection) {
@@ -262,57 +183,16 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         }
     }
 
-    private DataAddress mapDataAddress(ResultSet resultSet) throws SQLException {
-        return DataAddress.Builder.newInstance()
-                .properties(fromJson(resultSet.getString(assetStatements.getDataAddressPropertiesColumn()), new TypeReference<>() {
-                }))
+    private Asset mapAsset(ResultSet resultSet) throws SQLException {
+        return Asset.Builder.newInstance()
+                .id(resultSet.getString(assetStatements.getAssetIdColumn()))
+                .createdAt(resultSet.getLong(assetStatements.getCreatedAtColumn()))
+                .properties(fromJson(resultSet.getString(assetStatements.getPropertiesColumn()), getTypeRef()))
+                .privateProperties(fromJson(resultSet.getString(assetStatements.getPrivatePropertiesColumn()), getTypeRef()))
+                .dataAddress(DataAddress.Builder.newInstance()
+                        .properties(fromJson(resultSet.getString(assetStatements.getDataAddressColumn()), getTypeRef()))
+                        .build())
                 .build();
     }
 
-    private String mapAssetIds(ResultSet resultSet) throws SQLException {
-        return resultSet.getString(assetStatements.getAssetIdColumn());
-    }
-
-    private void insertProperties(Asset asset, String assetId, Connection connection) {
-        for (var property : asset.getProperties().entrySet()) {
-            queryExecutor.execute(connection,
-                    assetStatements.getInsertPropertyTemplate(),
-                    assetId,
-                    property.getKey(),
-                    toJson(property.getValue()),
-                    property.getValue().getClass().getName(),
-                    false);
-        }
-        for (var privateProperty : asset.getPrivateProperties().entrySet()) {
-            queryExecutor.execute(connection,
-                    assetStatements.getInsertPropertyTemplate(),
-                    assetId,
-                    privateProperty.getKey(),
-                    toJson(privateProperty.getValue()),
-                    privateProperty.getValue().getClass().getName(),
-                    true);
-        }
-    }
-
-    private static class SqlPropertyWrapper {
-        private final boolean isPrivate;
-        private final AbstractMap.SimpleImmutableEntry<String, Object> property;
-
-        protected SqlPropertyWrapper(boolean isPrivate, AbstractMap.SimpleImmutableEntry<String, Object> kvSimpleImmutableEntry) {
-            this.isPrivate = isPrivate;
-            this.property = kvSimpleImmutableEntry;
-        }
-
-        protected boolean isPrivate() {
-            return isPrivate;
-        }
-
-        protected String getPropertyKey() {
-            return property.getKey();
-        }
-
-        protected Object getPropertyValue() {
-            return property.getValue();
-        }
-    }
 }

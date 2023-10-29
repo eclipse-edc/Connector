@@ -34,7 +34,6 @@ import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionEv
 import org.eclipse.edc.connector.service.contractdefinition.ContractDefinitionServiceImpl;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationServiceImpl;
-import org.eclipse.edc.connector.service.dataaddress.DataAddressValidatorImpl;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionEventListener;
 import org.eclipse.edc.connector.service.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.service.transferprocess.TransferProcessProtocolServiceImpl;
@@ -65,7 +64,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import java.time.Clock;
 
@@ -73,8 +72,6 @@ import java.time.Clock;
 public class ControlPlaneServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Services";
-
-    private final DataAddressValidator dataAddressValidator = new DataAddressValidatorImpl();
 
     @Inject
     private Clock clock;
@@ -135,6 +132,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Inject
     private CommandHandlerRegistry commandHandlerRegistry;
+
+    @Inject
+    private DataAddressValidatorRegistry dataAddressValidator;
 
     @Override
     public String name() {

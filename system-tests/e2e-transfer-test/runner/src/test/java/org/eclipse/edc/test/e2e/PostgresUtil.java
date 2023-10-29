@@ -31,11 +31,11 @@ import static org.eclipse.edc.test.e2e.PostgresConstants.USER;
 
 public class PostgresUtil {
 
-    public static void createDatabase(EndToEndTransferParticipant consumer) throws ClassNotFoundException, SQLException, IOException {
+    public static void createDatabase(EndToEndTransferParticipant participant) throws ClassNotFoundException, SQLException, IOException {
         Class.forName("org.postgresql.Driver");
 
-        var helper = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, consumer.getName());
-        helper.createDatabase(consumer.getName());
+        var helper = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, participant.getName());
+        helper.createDatabase(participant.getName());
 
         var scripts = Stream.of(
                 "extensions/control-plane/store/sql/asset-index-sql",
@@ -50,7 +50,7 @@ public class PostgresUtil {
                 .map(Paths::get)
                 .toList();
 
-        try (var connection = DriverManager.getConnection(consumer.jdbcUrl(), USER, PASSWORD)) {
+        try (var connection = DriverManager.getConnection(participant.jdbcUrl(), USER, PASSWORD)) {
             for (var script : scripts) {
                 var sql = Files.readString(script);
 
