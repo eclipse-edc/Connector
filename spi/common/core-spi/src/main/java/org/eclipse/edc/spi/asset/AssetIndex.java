@@ -46,7 +46,6 @@ public interface AssetIndex extends DataAddressResolver {
      * <pre>
      * filter &gt; sort &gt; limit
      * </pre>
-     * <p>
      *
      * @param querySpec The query spec, e.g. paging, filtering, etc.
      * @return A potentially empty collection of {@link Asset}, never null.

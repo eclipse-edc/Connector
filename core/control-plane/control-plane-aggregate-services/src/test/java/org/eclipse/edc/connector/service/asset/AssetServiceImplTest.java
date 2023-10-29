@@ -32,7 +32,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
@@ -71,11 +71,11 @@ import static org.mockito.Mockito.when;
 
 class AssetServiceImplTest {
 
-    private final AssetIndex index = mock(AssetIndex.class);
-    private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
+    private final AssetIndex index = mock();
+    private final ContractNegotiationStore contractNegotiationStore = mock();
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
-    private final AssetObservable observable = mock(AssetObservable.class);
-    private final DataAddressValidator dataAddressValidator = mock(DataAddressValidator.class);
+    private final AssetObservable observable = mock();
+    private final DataAddressValidatorRegistry dataAddressValidator = mock();
 
     private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext,
             observable, dataAddressValidator);
@@ -134,7 +134,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldCreateAssetIfItDoesNotAlreadyExist() {
-        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
+        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
         var assetId = "assetId";
         var asset = createAsset(assetId);
         when(index.create(asset)).thenReturn(StoreResult.success());
@@ -150,7 +150,7 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldNotCreateAssetIfItAlreadyExists() {
-        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
+        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
         var asset = createAsset("assetId");
         when(index.create(asset)).thenReturn(StoreResult.alreadyExists("test"));
 
@@ -162,7 +162,7 @@ class AssetServiceImplTest {
     @Test
     void createAsset_shouldNotCreateAssetIfDataAddressInvalid() {
         var asset = createAsset("assetId");
-        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.failure(violation("Data address is invalid", "path")));
+        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.failure(violation("Data address is invalid", "path")));
 
         var result = service.create(asset);
 
@@ -178,7 +178,7 @@ class AssetServiceImplTest {
                 .property("property", "value")
                 .privateProperty("property", "other-value")
                 .build();
-        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
+        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
 
         var result = service.create(asset);
 
@@ -249,8 +249,8 @@ class AssetServiceImplTest {
 
     @Test
     void updateAsset_shouldUpdateWhenExists() {
-        var assetId = "assetId";
-        var asset = createAsset(assetId);
+        var asset = createAsset("assetId");
+        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
         when(index.updateAsset(asset)).thenReturn(StoreResult.success(asset));
 
         var updated = service.update(asset);
@@ -263,8 +263,8 @@ class AssetServiceImplTest {
 
     @Test
     void updateAsset_shouldReturnNotFound_whenNotExists() {
-        var assetId = "assetId";
-        var asset = createAsset(assetId);
+        var asset = createAsset("assetId");
+        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
         when(index.updateAsset(eq(asset))).thenReturn(StoreResult.notFound("test"));
 
         var updated = service.update(asset);

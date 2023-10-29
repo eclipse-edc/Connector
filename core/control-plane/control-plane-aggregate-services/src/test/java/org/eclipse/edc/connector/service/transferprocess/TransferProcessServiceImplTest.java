@@ -35,7 +35,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidator;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -72,7 +72,7 @@ class TransferProcessServiceImplTest {
     private final TransferProcessStore store = mock();
     private final TransferProcessManager manager = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
-    private final DataAddressValidator dataAddressValidator = mock();
+    private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final CommandHandlerRegistry commandHandlerRegistry = mock();
 
     private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
@@ -131,7 +131,7 @@ class TransferProcessServiceImplTest {
     void initiateTransfer() {
         var transferRequest = transferRequest();
         var transferProcess = transferProcess();
-        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.success());
+        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
         when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
 
         var result = service.initiateTransfer(transferRequest);
@@ -143,7 +143,7 @@ class TransferProcessServiceImplTest {
 
     @Test
     void initiateTransfer_consumer_invalidDestination_shouldNotInitiateTransfer() {
-        when(dataAddressValidator.validate(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
+        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
         var result = service.initiateTransfer(transferRequest());
 

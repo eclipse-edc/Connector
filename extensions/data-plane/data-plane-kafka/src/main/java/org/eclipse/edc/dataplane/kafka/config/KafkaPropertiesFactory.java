@@ -26,14 +26,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
-import static java.util.Map.entry;
-import static org.eclipse.edc.dataplane.kafka.schema.KafkaDataAddressSchema.KAFKA_PROPERTIES_PREFIX;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.dataaddress.kafka.spi.KafkaDataAddressSchema.KAFKA_PROPERTIES_PREFIX;
 
 public class KafkaPropertiesFactory {
-
-    private static final String BOOTSTRAP_SERVERS_CONFIG = "bootstrap.servers";
 
     public Result<Properties> getConsumerProperties(Map<String, Object> properties) {
         return getCommonProperties(properties)
@@ -54,15 +49,10 @@ public class KafkaPropertiesFactory {
     }
 
     private Result<Properties> getCommonProperties(Map<String, Object> properties) {
-        // TODO applied quick fix to handle json-ld edc namespace. to be fixed with https://github.com/eclipse-edc/Connector/issues/3005
         var props = new Properties();
         properties.entrySet().stream()
-                .map(e -> entry(e.getKey().replace(EDC_NAMESPACE, ""), e.getValue()))
                 .filter(e -> e.getKey().startsWith(KAFKA_PROPERTIES_PREFIX))
                 .forEach(entry -> props.put(entry.getKey().replaceFirst(Pattern.quote(KAFKA_PROPERTIES_PREFIX), ""), entry.getValue()));
-        if (!props.containsKey(BOOTSTRAP_SERVERS_CONFIG)) {
-            return Result.failure(format("Missing `%s` config", BOOTSTRAP_SERVERS_CONFIG));
-        }
         return Result.success(props);
     }
 }

@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
     implementation(project(":extensions:common:api:api-core"))
     implementation(project(":extensions:common:api:management-api-configuration"))
+    implementation(project(":extensions:common:validator:validator-data-address-http-data"))
 
     implementation(libs.jakarta.rsApi)
 

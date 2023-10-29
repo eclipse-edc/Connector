@@ -17,9 +17,9 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:http-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     api(project(":spi:data-plane:data-plane-http-spi"))
-    api(project(":spi:common:http-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":core:data-plane:data-plane-util"))
 

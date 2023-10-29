@@ -49,6 +49,8 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,6 +106,10 @@ public class TransferProcessEventDispatchTest {
         extension.registerServiceMock(PolicyArchive.class, mock(PolicyArchive.class));
         extension.registerServiceMock(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         extension.registerServiceMock(ParticipantAgentService.class, mock(ParticipantAgentService.class));
+        var dataAddressValidatorRegistry = mock(DataAddressValidatorRegistry.class);
+        when(dataAddressValidatorRegistry.validateSource(any())).thenReturn(ValidationResult.success());
+        when(dataAddressValidatorRegistry.validateDestination(any())).thenReturn(ValidationResult.success());
+        extension.registerServiceMock(DataAddressValidatorRegistry.class, dataAddressValidatorRegistry);
     }
 
     @Test
