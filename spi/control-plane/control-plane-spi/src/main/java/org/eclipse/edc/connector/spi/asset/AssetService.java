@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.spi.asset;
 
 import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.stream.Stream;
@@ -63,12 +62,4 @@ public interface AssetService {
      */
     ServiceResult<Asset> update(Asset asset);
 
-    /**
-     * Updates a {@link DataAddress}. If the associated asset does not yet exist, {@link ServiceResult#notFound(String)} will be returned;
-     *
-     * @param assetId     The ID of the asset to update.
-     * @param dataAddress The content of the DataAddress.
-     * @return successful if updated, a failure otherwise.
-     */
-    ServiceResult<DataAddress> update(String assetId, DataAddress dataAddress);
 }

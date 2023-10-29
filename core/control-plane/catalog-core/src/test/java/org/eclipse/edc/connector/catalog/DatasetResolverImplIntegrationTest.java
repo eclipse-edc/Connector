@@ -122,8 +122,8 @@ class DatasetResolverImplIntegrationTest {
 
     @Test
     void shouldLimitResult_insufficientAssets() {
-        var assets1 = range(0, 12).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
-        var assets2 = range(12, 18).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
+        var assets1 = range(0, 12).mapToObj(i -> createAsset("asset" + i).build()).toList();
+        var assets2 = range(12, 18).mapToObj(i -> createAsset("asset" + i).build()).toList();
 
         assets1.forEach(assetIndex::create);
         assets2.forEach(assetIndex::create);
@@ -163,7 +163,7 @@ class DatasetResolverImplIntegrationTest {
     }
 
     private List<Criterion> selectorFrom(Collection<Asset> assets1) {
-        var ids = assets1.stream().map(Asset::getId).collect(Collectors.toList());
+        var ids = assets1.stream().map(Asset::getId).toList();
         return List.of(new Criterion(Asset.PROPERTY_ID, "in", ids));
     }
 

@@ -55,8 +55,6 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension setupExtension) {
         setupExtension.runQuery("DROP TABLE " + sqlStatements.getAssetTable() + " CASCADE");
-        setupExtension.runQuery("DROP TABLE " + sqlStatements.getDataAddressTable() + " CASCADE");
-        setupExtension.runQuery("DROP TABLE " + sqlStatements.getAssetPropertyTable() + " CASCADE");
     }
 
     @Override

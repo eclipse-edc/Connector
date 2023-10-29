@@ -130,22 +130,6 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public StoreResult<DataAddress> updateDataAddress(String assetId, DataAddress dataAddress) {
-        lock.writeLock().lock();
-        try {
-            Objects.requireNonNull(dataAddress, "dataAddress");
-            Objects.requireNonNull(assetId, "asset.getId()");
-            if (dataAddresses.containsKey(assetId)) {
-                dataAddresses.put(assetId, dataAddress);
-                return StoreResult.success(dataAddress);
-            }
-            return StoreResult.notFound(format(DATA_ADDRESS_NOT_FOUND_TEMPLATE, assetId));
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    @Override
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId, "assetId");
         lock.readLock().lock();

@@ -19,6 +19,13 @@ import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
 import org.eclipse.edc.spi.query.CriterionToPredicateConverter;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import static java.util.Map.entry;
+
 /**
  * Extension class that supports converting criterion to predicate looking at the Asset properties.
  */
@@ -26,14 +33,17 @@ public class CriterionToAssetPredicateConverterImpl extends CriterionToPredicate
 
     public Object property(String key, Object object) {
         if (object instanceof Asset asset) {
-            if (asset.getProperties().containsKey(key)) {
-                return asset.getProperty(key);
-            }
-            if (asset.getPrivateProperties().containsKey(key)) {
-                return asset.getPrivateProperty(key);
-            }
+            Stream<Map.Entry<String, Function<Asset, Map<String, Object>>>> mappings = Stream.of(
+                    entry("%s", Asset::getProperties),
+                    entry("'%s'", Asset::getProperties),
+                    entry("%s", Asset::getPrivateProperties),
+                    entry("'%s'", Asset::getPrivateProperties));
 
-            return super.property(key, object);
+            return mappings
+                    .map(entry -> super.property(entry.getKey().formatted(key), entry.getValue().apply(asset)))
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElseGet(() -> super.property(key, asset));
         }
         throw new IllegalArgumentException("Can only handle objects of type " + Asset.class.getSimpleName() + " but received an " + object.getClass().getSimpleName());
     }

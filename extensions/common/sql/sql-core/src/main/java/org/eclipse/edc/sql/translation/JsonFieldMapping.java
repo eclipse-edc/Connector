@@ -14,7 +14,12 @@
 
 package org.eclipse.edc.sql.translation;
 
+import org.eclipse.edc.spi.types.PathItem;
+
+import java.util.List;
+
 import static java.lang.String.format;
+import static java.util.stream.IntStream.range;
 
 public class JsonFieldMapping extends TranslationMapping {
     protected final String columnName;
@@ -24,18 +29,15 @@ public class JsonFieldMapping extends TranslationMapping {
     }
 
     @Override
-    public String getStatement(String canonicalPropertyName, Class<?> type) {
-        var tokens = canonicalPropertyName.split("\\.");
-
+    public String getStatement(List<PathItem> path, Class<?> type) {
         var statementBuilder = new StringBuilder(columnName);
-        var length = tokens.length;
-        for (var i = 0; i < length - 1; i++) {
-            statementBuilder.append(" -> ");
-            statementBuilder.append("'").append(tokens[i]).append("'");
-        }
 
-        statementBuilder.append(" ->> ");
-        statementBuilder.append("'").append(tokens[length - 1]).append("'");
+        var length = path.size();
+        range(0, length - 1)
+                .mapToObj(i -> " -> '%s'".formatted(path.get(i)))
+                .forEach(statementBuilder::append);
+
+        statementBuilder.append(" ->> '%s'".formatted(path.get(length - 1)));
         var statement = statementBuilder.toString();
 
         if (type.equals(Boolean.class)) {

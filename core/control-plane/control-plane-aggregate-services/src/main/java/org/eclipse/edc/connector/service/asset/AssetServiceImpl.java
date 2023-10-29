@@ -22,7 +22,6 @@ import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidator;
@@ -124,12 +123,4 @@ public class AssetServiceImpl implements AssetService {
         });
     }
 
-    @Override
-    public ServiceResult<DataAddress> update(String assetId, DataAddress dataAddress) {
-        return transactionContext.execute(() -> {
-            var result = index.updateDataAddress(assetId, dataAddress);
-            result.onSuccess(da -> observable.invokeForEach(l -> l.updated(findById(assetId))));
-            return ServiceResult.from(result);
-        });
-    }
 }
