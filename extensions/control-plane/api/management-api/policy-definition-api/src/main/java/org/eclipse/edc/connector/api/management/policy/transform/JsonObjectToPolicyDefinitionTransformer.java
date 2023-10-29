@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES;
 
 public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTransformer<JsonObject, PolicyDefinition> {
 
@@ -42,6 +43,11 @@ public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTrans
     private void transformProperty(String key, JsonValue value, PolicyDefinition.Builder builder, TransformerContext context) {
         if (key.equals(EDC_POLICY_DEFINITION_POLICY)) {
             transformArrayOrObject(value, Policy.class, builder::policy, context);
+        } else if (key.equals(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES)) {
+            var props = value.asJsonArray().getJsonObject(0);
+            visitProperties(props, (k, val) -> transformProperty(k, val, builder, context));
+        } else {
+            builder.privateProperty(key, value);
         }
     }
 }

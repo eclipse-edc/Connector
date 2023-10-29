@@ -27,6 +27,7 @@ import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_D
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -35,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromPolicyDefinitionTransformerTest {
 
-    private final JsonObjectFromPolicyDefinitionTransformer transformer = new JsonObjectFromPolicyDefinitionTransformer(Json.createBuilderFactory(emptyMap()));
+    private final JsonObjectFromPolicyDefinitionTransformer transformer = new JsonObjectFromPolicyDefinitionTransformer(Json.createBuilderFactory(emptyMap()), createObjectMapper());
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
