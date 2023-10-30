@@ -19,7 +19,6 @@ plugins {
 dependencies {
     api(project(":spi:common:catalog-spi"))
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:aggregate-service-spi"))
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:common:web-spi"))

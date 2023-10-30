@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.spi.contractdefinition;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 
 import java.util.stream.Stream;
 

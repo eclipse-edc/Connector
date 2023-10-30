@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.edc.service.spi.result;
-
-import org.eclipse.edc.spi.result.Failure;
+package org.eclipse.edc.spi.result;
 
 import java.util.List;
 
+/**
+ * A failure encountered during a service invocation.
+ */
 public class ServiceFailure extends Failure {
     private final Reason reason;
 

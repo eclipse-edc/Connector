@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.api.sts.exception;
 
 import org.eclipse.edc.connector.api.sts.model.StsTokenErrorResponse;
-import org.eclipse.edc.service.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.jetbrains.annotations.Nullable;
 
