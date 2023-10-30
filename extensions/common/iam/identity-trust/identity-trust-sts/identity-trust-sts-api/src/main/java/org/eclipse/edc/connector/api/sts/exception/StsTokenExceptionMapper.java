@@ -18,15 +18,15 @@ package org.eclipse.edc.connector.api.sts.exception;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import org.eclipse.edc.connector.api.sts.model.StsTokenErrorResponse;
-import org.eclipse.edc.service.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.ServiceFailure;
 
 import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 
 /**
  * Exception mapper that catches the `StsTokenException` exception, map it to a response code with a detailed response body

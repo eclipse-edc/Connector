@@ -17,7 +17,7 @@ package org.eclipse.edc.iam.identitytrust.sts.core.defaults.service;
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientService;
 import org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore;
-import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 

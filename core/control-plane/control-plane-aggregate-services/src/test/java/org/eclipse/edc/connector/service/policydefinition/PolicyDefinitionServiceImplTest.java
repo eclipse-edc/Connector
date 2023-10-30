@@ -38,9 +38,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

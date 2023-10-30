@@ -21,12 +21,12 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.spi.asset.AssetService;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.service.spi.result.ServiceFailure;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
@@ -50,10 +50,10 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.AdditionalMatchers.and;
@@ -77,8 +77,7 @@ class AssetServiceImplTest {
     private final AssetObservable observable = mock();
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
 
-    private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext,
-            observable, dataAddressValidator);
+    private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext, observable, dataAddressValidator);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -102,17 +101,9 @@ class AssetServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            Asset.PROPERTY_ID,
-            Asset.PROPERTY_NAME,
-            Asset.PROPERTY_DESCRIPTION,
-            Asset.PROPERTY_VERSION,
-            Asset.PROPERTY_CONTENT_TYPE
-    })
+    @ValueSource(strings = { Asset.PROPERTY_ID, Asset.PROPERTY_NAME, Asset.PROPERTY_DESCRIPTION, Asset.PROPERTY_VERSION, Asset.PROPERTY_CONTENT_TYPE })
     void query_validFilter(String filter) {
-        var query = QuerySpec.Builder.newInstance()
-                .filter(criterion(filter, "=", "somevalue"))
-                .build();
+        var query = QuerySpec.Builder.newInstance().filter(criterion(filter, "=", "somevalue")).build();
 
         service.query(query);
 
@@ -122,14 +113,11 @@ class AssetServiceImplTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidFilters.class)
     void query_invalidFilter(Criterion filter) {
-        var query = QuerySpec.Builder.newInstance()
-                .filter(filter)
-                .build();
+        var query = QuerySpec.Builder.newInstance().filter(filter).build();
 
         var result = service.query(query);
 
-        assertThat(result).isFailed()
-                .extracting(Failure::getMessages).asList().hasSize(1);
+        assertThat(result).isFailed().extracting(Failure::getMessages).asList().hasSize(1);
     }
 
     @Test
@@ -166,25 +154,18 @@ class AssetServiceImplTest {
 
         var result = service.create(asset);
 
-        Assertions.assertThat(result).satisfies(ServiceResult::failed)
-                .extracting(ServiceResult::reason)
-                .isEqualTo(BAD_REQUEST);
+        Assertions.assertThat(result).satisfies(ServiceResult::failed).extracting(ServiceResult::reason).isEqualTo(BAD_REQUEST);
         verifyNoInteractions(index);
     }
 
     @Test
     void createAsset_shouldFail_whenPropertiesAreDuplicated() {
-        var asset = createAssetBuilder("assetId")
-                .property("property", "value")
-                .privateProperty("property", "other-value")
-                .build();
+        var asset = createAssetBuilder("assetId").property("property", "value").privateProperty("property", "other-value").build();
         when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
 
         var result = service.create(asset);
 
-        assertThat(result).isFailed()
-                .extracting(ServiceFailure::getReason)
-                .isEqualTo(BAD_REQUEST);
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         verifyNoInteractions(index);
     }
 
@@ -243,8 +224,7 @@ class AssetServiceImplTest {
 
         var deleted = service.delete("test-asset");
         assertThat(deleted.succeeded()).isTrue();
-        verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 &&
-                argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
+        verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 && argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
     }
 
     @Test
@@ -278,24 +258,18 @@ class AssetServiceImplTest {
 
     @Test
     void updateAsset_shouldFail_whenPropertiesAreDuplicated() {
-        var asset = createAssetBuilder("assetId")
-                .property("property", "value")
-                .privateProperty("property", "other-value")
-                .build();
+        var asset = createAssetBuilder("assetId").property("property", "value").privateProperty("property", "other-value").build();
 
         var result = service.update(asset);
 
-        assertThat(result).isFailed()
-                .extracting(ServiceFailure::getReason)
-                .isEqualTo(BAD_REQUEST);
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
         verifyNoInteractions(index);
     }
 
     private static class InvalidFilters implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("  asset_prop_id", "in", "(foo, bar)")), // invalid leading whitespace
+            return Stream.of(arguments(criterion("  asset_prop_id", "in", "(foo, bar)")), // invalid leading whitespace
                     arguments(criterion(".customProp", "=", "whatever"))  // invalid leading dot
             );
         }

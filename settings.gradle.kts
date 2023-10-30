@@ -189,7 +189,6 @@ include(":launchers:dpf-selector")
 include(":launchers:sts-server")
 
 // extension points for a connector ----------------------------------------------------------------
-include(":spi:common:aggregate-service-spi")
 include(":spi:common:auth-spi")
 include(":spi:common:catalog-spi")
 include(":spi:common:core-spi")

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.spi.message;
 
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.result.ServiceResult;
 
 import java.util.function.BiFunction;
 

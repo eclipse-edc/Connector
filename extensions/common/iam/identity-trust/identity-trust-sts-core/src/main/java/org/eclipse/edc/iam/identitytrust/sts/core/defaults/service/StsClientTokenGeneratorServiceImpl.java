@@ -19,8 +19,8 @@ import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.result.ServiceResult;
 
 import java.time.Clock;
 import java.util.Map;

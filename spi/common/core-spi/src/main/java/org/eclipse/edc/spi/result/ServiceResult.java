@@ -12,21 +12,22 @@
  *
  */
 
-package org.eclipse.edc.service.spi.result;
+package org.eclipse.edc.spi.result;
 
 import org.eclipse.edc.spi.command.CommandResult;
-import org.eclipse.edc.spi.result.AbstractResult;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.BAD_REQUEST;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.CONFLICT;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.service.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 
+/**
+ * Result type for a service invocation.
+ */
 public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceResult<T>> {
 
     protected ServiceResult(T content, ServiceFailure failure) {

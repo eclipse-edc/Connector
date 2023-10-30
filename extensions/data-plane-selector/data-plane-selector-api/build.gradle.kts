@@ -20,7 +20,6 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    api(project(":spi:common:aggregate-service-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":extensions:common:api:management-api-configuration"))
