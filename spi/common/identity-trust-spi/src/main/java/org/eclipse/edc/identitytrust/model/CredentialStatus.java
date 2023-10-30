@@ -17,6 +17,6 @@ package org.eclipse.edc.identitytrust.model;
 import java.util.Map;
 
 public record CredentialStatus(String id, String type, Map<String, Object> additionalProperties) {
-    public static final String CREDENTIAL_STATUS_ID_PROPERTY = "@id";;
+    public static final String CREDENTIAL_STATUS_ID_PROPERTY = "@id";
     public static final String CREDENTIAL_STATUS_TYPE_PROPERTY = "@type";
 }
