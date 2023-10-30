@@ -674,7 +674,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         }
 
         @Test
-        @DisplayName("Delete existing policy with properties")
+        @DisplayName("Delete an existing policy with properties")
         void whenExists_WithProperties() {
             var policy = createPolicy(getRandomId(), null, Map.of("key1", "value1", "key2", "value2"));
             var store = getPolicyDefinitionStore();
