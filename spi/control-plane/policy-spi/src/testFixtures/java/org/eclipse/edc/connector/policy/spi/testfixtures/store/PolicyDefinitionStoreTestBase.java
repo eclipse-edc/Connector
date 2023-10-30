@@ -592,6 +592,19 @@ public abstract class PolicyDefinitionStoreTestBase {
         }
 
         @Test
+        @DisplayName("find all a with property ")
+        void findAll_with_privateProperties() {
+            var policy1 = createPolicy(getRandomId(), null, Map.of("key1", "value1", "key2", "value2"));
+            var policy2 = createPolicy(getRandomId(), null, Map.of("key3", "value3", "key4", "value4"));
+
+            getPolicyDefinitionStore().create(policy1);
+            getPolicyDefinitionStore().create(policy2);
+
+            var list = getPolicyDefinitionStore().findAll(QuerySpec.Builder.newInstance().limit(3).offset(0).build()).collect(Collectors.toList());
+            assertThat(list).hasSize(2).usingRecursiveFieldByFieldElementComparator().isSubsetOf(policy1, policy2);
+        }
+
+        @Test
         void whenEqualFilter() {
             var policy1 = createPolicy(getRandomId());
             var policy2 = createPolicy(getRandomId());
@@ -651,6 +664,19 @@ public abstract class PolicyDefinitionStoreTestBase {
         @DisplayName("Delete existing policy")
         void whenExists() {
             var policy = createPolicy(getRandomId());
+            var store = getPolicyDefinitionStore();
+            store.create(policy);
+
+            var result = store.delete(policy.getUid());
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(policy);
+            assertThat(store.findById(policy.getUid())).isNull();
+        }
+
+        @Test
+        @DisplayName("Delete existing policy with properties")
+        void whenExists_WithProperties() {
+            var policy = createPolicy(getRandomId(), null, Map.of("key1", "value1", "key2", "value2"));
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
