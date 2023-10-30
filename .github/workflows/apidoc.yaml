@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
 
       # merge together all api groups
       - name: Generate API Specs
