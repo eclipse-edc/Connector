@@ -39,12 +39,7 @@ import static org.mockito.Mockito.when;
 
 public class RemoteSecureTokenServiceTest {
 
-    private final StsRemoteClientConfiguration configuration = StsRemoteClientConfiguration.Builder.newInstance()
-            .clientId("id")
-            .clientSecret("secret")
-            .tokenUrl("url")
-            .build();
-    
+    private final StsRemoteClientConfiguration configuration = new StsRemoteClientConfiguration("id", "secret", "url");
     private final Oauth2Client oauth2Client = mock();
     private RemoteSecureTokenService secureTokenService;
 
@@ -63,10 +58,10 @@ public class RemoteSecureTokenServiceTest {
         verify(oauth2Client).requestToken(captor.capture());
 
         assertThat(captor.getValue()).satisfies(request -> {
-            assertThat(request.getUrl()).isEqualTo(configuration.getTokenUrl());
-            assertThat(request.getClientId()).isEqualTo(configuration.getClientId());
+            assertThat(request.getUrl()).isEqualTo(configuration.tokenUrl());
+            assertThat(request.getClientId()).isEqualTo(configuration.clientId());
             assertThat(request.getGrantType()).isEqualTo(GRANT_TYPE);
-            assertThat(request.getClientSecret()).isEqualTo(configuration.getClientSecret());
+            assertThat(request.getClientSecret()).isEqualTo(configuration.clientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience);
         });
@@ -83,10 +78,10 @@ public class RemoteSecureTokenServiceTest {
         verify(oauth2Client).requestToken(captor.capture());
 
         assertThat(captor.getValue()).satisfies(request -> {
-            assertThat(request.getUrl()).isEqualTo(configuration.getTokenUrl());
-            assertThat(request.getClientId()).isEqualTo(configuration.getClientId());
+            assertThat(request.getUrl()).isEqualTo(configuration.tokenUrl());
+            assertThat(request.getClientId()).isEqualTo(configuration.clientId());
             assertThat(request.getGrantType()).isEqualTo(GRANT_TYPE);
-            assertThat(request.getClientSecret()).isEqualTo(configuration.getClientSecret());
+            assertThat(request.getClientSecret()).isEqualTo(configuration.clientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience)
                     .containsEntry(BEARER_ACCESS_SCOPE, bearerAccessScope);
@@ -104,10 +99,10 @@ public class RemoteSecureTokenServiceTest {
         verify(oauth2Client).requestToken(captor.capture());
 
         assertThat(captor.getValue()).satisfies(request -> {
-            assertThat(request.getUrl()).isEqualTo(configuration.getTokenUrl());
-            assertThat(request.getClientId()).isEqualTo(configuration.getClientId());
+            assertThat(request.getUrl()).isEqualTo(configuration.tokenUrl());
+            assertThat(request.getClientId()).isEqualTo(configuration.clientId());
             assertThat(request.getGrantType()).isEqualTo(GRANT_TYPE);
-            assertThat(request.getClientSecret()).isEqualTo(configuration.getClientSecret());
+            assertThat(request.getClientSecret()).isEqualTo(configuration.clientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience)
                     .containsEntry(ACCESS_TOKEN, accessToken);
@@ -132,10 +127,10 @@ public class RemoteSecureTokenServiceTest {
         verify(oauth2Client).requestToken(captor.capture());
 
         assertThat(captor.getValue()).satisfies(request -> {
-            assertThat(request.getUrl()).isEqualTo(configuration.getTokenUrl());
-            assertThat(request.getClientId()).isEqualTo(configuration.getClientId());
+            assertThat(request.getUrl()).isEqualTo(configuration.tokenUrl());
+            assertThat(request.getClientId()).isEqualTo(configuration.clientId());
             assertThat(request.getGrantType()).isEqualTo(GRANT_TYPE);
-            assertThat(request.getClientSecret()).isEqualTo(configuration.getClientSecret());
+            assertThat(request.getClientSecret()).isEqualTo(configuration.clientSecret());
             assertThat(request.getParams())
                     .containsEntry(AUDIENCE_PARAM, audience)
                     .containsEntry(BEARER_ACCESS_ALIAS, bearerAccessAlias)

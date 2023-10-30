@@ -57,9 +57,9 @@ public class StsRemoteClientConfigurationExtensionTest {
         extension.initialize(context);
         assertThat(extension.clientConfiguration(context)).isNotNull()
                 .satisfies(configuration -> {
-                    assertThat(configuration.getTokenUrl()).isEqualTo(tokenUrl);
-                    assertThat(configuration.getClientId()).isEqualTo(clientId);
-                    assertThat(configuration.getClientSecret()).isEqualTo(secretAlias);
+                    assertThat(configuration.tokenUrl()).isEqualTo(tokenUrl);
+                    assertThat(configuration.clientId()).isEqualTo(clientId);
+                    assertThat(configuration.clientSecret()).isEqualTo(secretAlias);
                 });
     }
 

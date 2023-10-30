@@ -63,11 +63,8 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
                 }
             }
     );
-    private final StsRemoteClientConfiguration config = StsRemoteClientConfiguration.Builder.newInstance()
-            .clientId("client_id")
-            .clientSecret("clientSecret")
-            .tokenUrl(STS_TOKEN_PATH)
-            .build();
+    private final StsRemoteClientConfiguration config = new StsRemoteClientConfiguration(STS_TOKEN_PATH, "client_id", "client_secret");
+    
     private RemoteSecureTokenService remoteSecureTokenService;
 
     @BeforeEach
@@ -81,7 +78,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
         var audience = "audience";
         var params = Map.of(AUDIENCE, audience);
 
-        var client = initClient(config.getClientId(), config.getClientSecret());
+        var client = initClient(config.clientId(), config.clientSecret());
 
         assertThat(remoteSecureTokenService.createToken(params, null))
                 .isSucceeded()
@@ -106,7 +103,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
         var bearerAccessAlias = "alias";
         var params = Map.of(AUDIENCE, audience, BEARER_ACCESS_ALIAS, bearerAccessAlias);
 
-        var client = initClient(config.getClientId(), config.getClientSecret());
+        var client = initClient(config.clientId(), config.clientSecret());
 
         assertThat(remoteSecureTokenService.createToken(params, bearerAccessScope))
                 .isSucceeded()
@@ -139,7 +136,7 @@ public class RemoteStsEndToEndTest extends StsEndToEndTestBase {
                 AUDIENCE, audience,
                 ACCESS_TOKEN, accessToken);
 
-        var client = initClient(config.getClientId(), config.getClientSecret());
+        var client = initClient(config.clientId(), config.clientSecret());
 
         assertThat(remoteSecureTokenService.createToken(params, null))
                 .isSucceeded()

@@ -27,11 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(DependencyInjectionExtension.class)
 public class StsRemoteClientExtensionTest {
 
-    private final StsRemoteClientConfiguration configuration = StsRemoteClientConfiguration.Builder.newInstance()
-            .clientId("id")
-            .clientSecret("secret")
-            .tokenUrl("url")
-            .build();
+    private final StsRemoteClientConfiguration configuration = new StsRemoteClientConfiguration("id", "secret", "url");
 
     @BeforeEach
     void setup(ServiceExtensionContext context) {

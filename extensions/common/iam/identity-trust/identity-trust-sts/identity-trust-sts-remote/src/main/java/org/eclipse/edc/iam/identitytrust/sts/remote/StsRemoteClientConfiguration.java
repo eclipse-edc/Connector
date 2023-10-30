@@ -14,59 +14,9 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.remote;
 
-import java.util.Objects;
-
 /**
  * Configuration of the OAuth2 client
  */
-public class StsRemoteClientConfiguration {
-
-    private String tokenUrl;
-    private String clientId;
-    private String clientSecret;
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    public String getTokenUrl() {
-        return tokenUrl;
-    }
-
-    public static class Builder {
-        private final StsRemoteClientConfiguration configuration = new StsRemoteClientConfiguration();
-
-        private Builder() {
-        }
-
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public Builder tokenUrl(String url) {
-            configuration.tokenUrl = url;
-            return this;
-        }
-
-        public Builder clientId(String clientId) {
-            configuration.clientId = clientId;
-            return this;
-        }
-
-        public Builder clientSecret(String clientSecret) {
-            configuration.clientSecret = clientSecret;
-            return this;
-        }
-
-        public StsRemoteClientConfiguration build() {
-            Objects.requireNonNull(configuration.clientId, "Client id");
-            Objects.requireNonNull(configuration.clientSecret, "Client secret");
-            Objects.requireNonNull(configuration.tokenUrl, "Token Url");
-            return configuration;
-        }
-    }
+public record StsRemoteClientConfiguration(String tokenUrl, String clientId, String clientSecret) {
+    
 }

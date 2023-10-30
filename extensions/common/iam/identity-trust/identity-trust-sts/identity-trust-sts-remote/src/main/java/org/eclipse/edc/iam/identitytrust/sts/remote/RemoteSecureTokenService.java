@@ -57,11 +57,11 @@ public class RemoteSecureTokenService implements SecureTokenService {
     @NotNull
     private Oauth2CredentialsRequest createRequest(Map<String, String> claims, @Nullable String bearerAccessScope) {
         var builder = SharedSecretOauth2CredentialsRequest.Builder.newInstance()
-                .url(configuration.getTokenUrl())
-                .clientId(configuration.getClientId())
-                .clientSecret(configuration.getClientSecret())
+                .url(configuration.tokenUrl())
+                .clientId(configuration.clientId())
+                .clientSecret(configuration.clientSecret())
                 .grantType(GRANT_TYPE);
-        
+
         var additionalParams = claims.entrySet().stream()
                 .filter(entry -> CLAIM_MAPPING.containsKey(entry.getKey()))
                 .map(entry -> Map.entry(CLAIM_MAPPING.get(entry.getKey()), entry.getValue()))

@@ -25,6 +25,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.util.Objects;
 
+import static java.lang.String.format;
+
 /**
  * Configuration Extension for the STS OAuth2 client
  */
@@ -41,7 +43,7 @@ public class StsRemoteClientConfigurationExtension implements ServiceExtension {
     public static final String CLIENT_SECRET_ALIAS = "edc.iam.sts.oauth.client.secret.alias";
 
     protected static final String NAME = "Sts remote client configuration extension";
-    
+
     @Inject
     private Vault vault;
 
@@ -53,24 +55,13 @@ public class StsRemoteClientConfigurationExtension implements ServiceExtension {
     @Provider
     public StsRemoteClientConfiguration clientConfiguration(ServiceExtensionContext context) {
 
-        var tokenUrl = removeTrailingSlash(context.getConfig().getString(TOKEN_URL));
+        var tokenUrl = context.getConfig().getString(TOKEN_URL);
         var clientId = context.getConfig().getString(CLIENT_ID);
         var clientSecretAlias = context.getConfig().getString(CLIENT_SECRET_ALIAS);
         var clientSecret = vault.resolveSecret(clientSecretAlias);
-        Objects.requireNonNull(clientSecret, "Client secret could not be retrieved");
+        Objects.requireNonNull(clientSecret, format("Client secret could not be retrieved from the vault with alias %s", clientSecretAlias));
 
-        return StsRemoteClientConfiguration.Builder.newInstance()
-                .tokenUrl(tokenUrl)
-                .clientId(clientId)
-                .clientSecret(clientSecret)
-                .build();
+        return new StsRemoteClientConfiguration(tokenUrl, clientId, clientSecret);
     }
 
-    private String removeTrailingSlash(String path) {
-        var fixedPath = path;
-        if (fixedPath.endsWith("/")) {
-            fixedPath = fixedPath.substring(0, fixedPath.length() - 1);
-        }
-        return fixedPath;
-    }
 }
