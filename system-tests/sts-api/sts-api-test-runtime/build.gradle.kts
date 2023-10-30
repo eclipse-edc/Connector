@@ -19,7 +19,7 @@ plugins {
 dependencies {
     implementation(project(":core:common:jwt-core"))
     implementation(project(":extensions:common:http"))
-    implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts-core"))
+    implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-core"))
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api"))
 }
 

@@ -67,6 +67,7 @@ public class SecureTokenServiceApiController implements SecureTokenServiceApi {
                 .audience(request.getAudience())
                 .accessToken(request.getAccessToken())
                 .bearerAccessScope(request.getBearerAccessScope())
+                .bearerAccessAlias(request.getBearerAccessAlias())
                 .build();
     }
 
