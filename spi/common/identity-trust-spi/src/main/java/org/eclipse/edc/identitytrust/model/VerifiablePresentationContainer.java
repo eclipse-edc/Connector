@@ -22,6 +22,7 @@ package org.eclipse.edc.identitytrust.model;
  * @param presentation the {@link VerifiablePresentation}, as it was deserialized from the raw VP string. Note that JSON-LD and JWT VCs
  *                     have to be deserialized differently
  */
-public record VerifiablePresentationContainer(String rawVp, CredentialFormat format,
+public record VerifiablePresentationContainer(String rawVp,
+                                              CredentialFormat format,
                                               VerifiablePresentation presentation) {
 }

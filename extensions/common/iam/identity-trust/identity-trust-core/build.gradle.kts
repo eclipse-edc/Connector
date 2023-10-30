@@ -6,6 +6,7 @@ plugins {
 dependencies {
     api(project(":spi:common:identity-trust-spi"))
     implementation(project(":spi:common:http-spi"))
+    implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":core:common:util"))
     implementation(project(":core:common:jwt-core"))
     implementation(project(":extensions:common:crypto:jws2020"))
