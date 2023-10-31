@@ -28,7 +28,6 @@ import static org.eclipse.edc.iam.oauth2.spi.Oauth2DataAddressSchema.TOKEN_URL;
  */
 public class Oauth2DataAddressValidator implements Predicate<DataAddress> {
 
-    private final Predicate<DataAddress> isHttpDataType = dataAddress -> "HttpData".equals(dataAddress.getType());
     private final Predicate<DataAddress> hasClientId = dataAddress -> dataAddress.hasProperty(CLIENT_ID);
     private final Predicate<DataAddress> hasClientSecretKey = dataAddress -> dataAddress.hasProperty(CLIENT_SECRET_KEY);
     private final Predicate<DataAddress> hasPrivateKeySecretName = dataAddress -> dataAddress.hasProperty(PRIVATE_KEY_NAME);
@@ -37,11 +36,7 @@ public class Oauth2DataAddressValidator implements Predicate<DataAddress> {
 
     @Override
     public boolean test(DataAddress dataAddress) {
-        return isHttpDataType
-                .and(hasClientId)
-                .and(hasTokenUrl)
-                .and(hasSecretInfo)
-                .test(dataAddress);
+        return hasClientId.and(hasTokenUrl).and(hasSecretInfo).test(dataAddress);
     }
 
 }
