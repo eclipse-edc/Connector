@@ -17,7 +17,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:data-address:data-address-http-data-spi"))
     api(project(":spi:common:jwt-spi"))
 }
 
