@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.contract.spi.types.offer;
+package org.eclipse.edc.spi.types.domain.offer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -102,7 +102,7 @@ public class ContractOffer {
         }
 
         public ContractOffer build() {
-            Objects.requireNonNull(contractOffer.id);
+            Objects.requireNonNull(contractOffer.id, "Id must not be null");
             Objects.requireNonNull(contractOffer.assetId, "Asset id must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
             return contractOffer;

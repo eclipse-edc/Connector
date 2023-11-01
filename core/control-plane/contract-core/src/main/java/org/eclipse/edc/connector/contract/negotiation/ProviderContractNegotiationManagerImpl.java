@@ -20,11 +20,11 @@ package org.eclipse.edc.connector.contract.negotiation;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import static java.lang.String.format;
@@ -72,7 +72,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processOffering(ContractNegotiation negotiation) {
         var currentOffer = negotiation.getLastContractOffer();
-        
+
         var contractOfferMessage = ContractOfferMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())

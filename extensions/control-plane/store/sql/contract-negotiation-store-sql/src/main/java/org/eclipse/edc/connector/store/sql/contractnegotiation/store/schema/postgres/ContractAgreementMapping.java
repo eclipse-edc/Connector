@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.postgres;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.sql.translation.JsonFieldMapping;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 

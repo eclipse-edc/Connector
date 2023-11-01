@@ -15,13 +15,13 @@
 
 package org.eclipse.edc.connector.contract.spi.validation;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -53,7 +53,7 @@ public interface ContractValidationService {
     /**
      * Validates the contract offer for the consumer represented by the given claims.
      *
-     * @param token The {@link ClaimToken} of the consumer
+     * @param token   The {@link ClaimToken} of the consumer
      * @param offerId The initial {@link ContractOffer} id to validate
      * @return The referenced {@link ContractOffer}.
      */
@@ -64,18 +64,18 @@ public interface ContractValidationService {
      * Validates the contract agreement that the consumer referenced in its transfer request.
      * The {@code ClaimToken} must represent the counter-party that is referenced in the contract agreement.
      *
-     * @param token The {@link ClaimToken} of the consumer
+     * @param token     The {@link ClaimToken} of the consumer
      * @param agreement The {@link ContractAgreement} between consumer and provider to validate
      * @return The result of the validation
      */
     @NotNull
     Result<ContractAgreement> validateAgreement(ClaimToken token, ContractAgreement agreement);
-    
+
     /**
      * Validates the request for a contract agreement. Verifies that the requesting party is involved
      * in the contract agreement, but does not perform policy evaluation.
      *
-     * @param token The {@link ClaimToken} of the counter-party
+     * @param token     The {@link ClaimToken} of the counter-party
      * @param agreement The agreement
      * @return The result of the validation
      */
@@ -85,7 +85,7 @@ public interface ContractValidationService {
     /**
      * Validates the request for a contract negotiation.
      *
-     * @param token The {@link ClaimToken} of the consumer
+     * @param token       The {@link ClaimToken} of the consumer
      * @param negotiation The negotiation
      * @return The result of the validation
      */
@@ -95,8 +95,8 @@ public interface ContractValidationService {
     /**
      * When the negotiation has been confirmed by the provider, the consumer must validate it ensuring that it is the same that was sent in the last offer.
      *
-     * @param token The {@link ClaimToken} the provider token
-     * @param agreement The {@link ContractAgreement} between consumer and provider
+     * @param token       The {@link ClaimToken} the provider token
+     * @param agreement   The {@link ContractAgreement} between consumer and provider
      * @param latestOffer The last {@link ContractOffer}
      */
     @NotNull

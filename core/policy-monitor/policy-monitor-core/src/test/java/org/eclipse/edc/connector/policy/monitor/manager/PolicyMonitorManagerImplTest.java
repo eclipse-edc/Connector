@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.policy.monitor.manager;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
@@ -30,6 +29,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

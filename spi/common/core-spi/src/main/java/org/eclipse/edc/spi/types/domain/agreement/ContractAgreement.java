@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.connector.contract.spi.types.agreement;
+package org.eclipse.edc.spi.types.domain.agreement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

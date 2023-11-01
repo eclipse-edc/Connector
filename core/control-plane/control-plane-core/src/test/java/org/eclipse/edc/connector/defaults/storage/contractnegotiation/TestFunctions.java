@@ -15,10 +15,10 @@
 
 package org.eclipse.edc.connector.defaults.storage.contractnegotiation;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
 import java.time.Instant;
 import java.util.List;

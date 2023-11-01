@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.contract.spi.types.offer;
 
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
