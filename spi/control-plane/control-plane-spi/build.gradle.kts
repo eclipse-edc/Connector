@@ -21,7 +21,6 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:transform-spi"))
-    api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-data-plane-spi"))
     api(project(":spi:control-plane:policy-spi"))
