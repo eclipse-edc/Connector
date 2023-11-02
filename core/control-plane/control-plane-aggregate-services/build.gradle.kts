@@ -20,6 +20,9 @@ dependencies {
     implementation(project(":spi:common:validator-spi"))
     implementation(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":core:common:util"))
+    implementation(project(":spi:common:transaction-spi"))
+    implementation(project(":spi:control-plane:asset-spi"))
+    implementation(project(":spi:control-plane:transfer-data-plane-spi"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
