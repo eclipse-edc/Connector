@@ -17,6 +17,8 @@ package org.eclipse.edc.iam.identitytrust.core;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
+import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -102,5 +104,13 @@ class IatpDefaultServicesExtensionTest {
         var ext = factory.constructInstance(IatpDefaultServicesExtension.class);
 
         assertThat(ext.createInMemoryIssuerRegistry()).isInstanceOf(DefaultTrustedIssuerRegistry.class);
+    }
+
+    @Test
+    void verify_defaultCredentialMapperRegistry(ServiceExtensionContext context, IatpDefaultServicesExtension ext) {
+        Monitor mockedMonitor = mock();
+        context.registerService(Monitor.class, mockedMonitor);
+
+        assertThat(ext.scopeExtractorRegistry()).isInstanceOf(IatpScopeExtractorRegistry.class);
     }
 }
