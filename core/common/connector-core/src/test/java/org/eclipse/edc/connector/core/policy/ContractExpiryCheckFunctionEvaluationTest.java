@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.core.policy;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
@@ -29,6 +28,7 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,7 +44,6 @@ import java.util.stream.Stream;
 import static java.time.Duration.ofDays;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
-import static org.eclipse.edc.connector.contract.spi.validation.ContractValidationService.TRANSFER_SCOPE;
 import static org.eclipse.edc.connector.core.policy.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.model.Operator.EQ;
@@ -57,6 +56,7 @@ import static org.junit.jupiter.params.provider.Arguments.of;
 
 @ComponentTest
 class ContractExpiryCheckFunctionEvaluationTest {
+    private static final String TRANSFER_SCOPE = "transfer.process";
 
     private static final Instant NOW = now();
     private final ContractExpiryCheckFunction function = new ContractExpiryCheckFunction();

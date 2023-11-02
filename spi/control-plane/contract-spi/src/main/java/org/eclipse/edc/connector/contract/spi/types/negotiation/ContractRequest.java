@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
 import java.util.ArrayList;
 import java.util.List;

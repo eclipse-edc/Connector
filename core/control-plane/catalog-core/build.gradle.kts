@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:catalog-spi"))
+    api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     testImplementation(project(":core:common:junit"))

@@ -20,10 +20,8 @@ package org.eclipse.edc.connector.contract.validation;
 import org.eclipse.edc.connector.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
@@ -36,7 +34,9 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -347,43 +347,43 @@ class ContractValidationServiceImplTest {
 
         verify(agentService).createFor(eq(token));
     }
-    
+
     @Test
     void validateRequest_shouldReturnSuccess_whenRequestingPartyProvider() {
         var token = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement().build();
         var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, PROVIDER_ID));
-    
+
         when(agentService.createFor(token)).thenReturn(participantAgent);
-        
+
         var result = validationService.validateRequest(token, agreement);
-        
+
         assertThat(result).isSucceeded();
     }
-    
+
     @Test
     void validateRequest_shouldReturnSuccess_whenRequestingPartyConsumer() {
         var token = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement().build();
         var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
-    
+
         when(agentService.createFor(token)).thenReturn(participantAgent);
-    
+
         var result = validationService.validateRequest(token, agreement);
-    
+
         assertThat(result).isSucceeded();
     }
-    
+
     @Test
     void validateRequest_shouldReturnFailure_whenRequestingPartyUnauthorized() {
         var token = ClaimToken.Builder.newInstance().build();
         var agreement = createContractAgreement().build();
         var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, "invalid"));
-    
+
         when(agentService.createFor(token)).thenReturn(participantAgent);
-    
+
         var result = validationService.validateRequest(token, agreement);
-    
+
         assertThat(result).isFailed();
     }
 
