@@ -24,11 +24,11 @@ Settings are retrieved from the ServiceExtensionContext interface.
 ```java
 class ExampleSetting {
 
-    @Setting
-    private final static String EDC_IDS_TITLE = "edc.ids.title";
-
     private final static String DEFAULT_TITLE = "Default Title";
-
+    
+    @Setting(value = "The ids title", defaultValue = DEFAULT_TITLE)
+    private final static String EDC_IDS_TITLE = "edc.ids.title";
+    
     private String getTitle(ServiceExtensionContext context) {
         return context.getSetting(EDC_IDS_TITLE, DEFAULT_TITLE);
     }
@@ -42,4 +42,4 @@ The integration of each configuration extension may vary. Please have a look at 
 
 The following extensions implement the ConfigurationExtension interface.
 
-- [File System Configuration](../../../../extensions/common/configuration/configuration-filesystem/README.md)
+- [File System Configuration](../../extensions/common/configuration/configuration-filesystem/README.md)

@@ -36,13 +36,13 @@ ensure that existing tests continue to function during development until the cha
 
 Support for the Dataspace Protocol will be done in the following steps:
 
-1. Core JSON-LD support will be added as detailed in the [JSON-LD Processing Architecture](./json-ld-processing-architecture.md).
+1. Core JSON-LD support will be added as detailed in the [JSON-LD Processing Architecture](json-ld-processing-architecture.md).
 2. The Dataspace Protocol endpoint and service extensions will be added in parallel to the existing IDS extensions. This work is described in
-   the [IDS Endpoints and Services Architecture](./ids-endpoints-services-architecture.md).
+   the [IDS Endpoints and Services Architecture](ids-endpoints-services-architecture.md).
 3. The contract negotiation manager state machine will be updated to accommodate the Dataspace Protocol protocols as described in
-   the [Contract Negotiation Architecture](./contract-negotiation-architecture.md). If possible, the new state transitions should be retrofitted back to the existing IDS
+   the [Contract Negotiation Architecture](contract-negotiation-architecture.md). If possible, the new state transitions should be retrofitted back to the existing IDS
    extensions. Since the existing contract managers do not implement all state transitions, retrofitting the new states back to the existing IDS protocol should be possible.
-4. The transfer process state machine will be updated to accommodate the Dataspace Protocol protocols as described in [the Transfer Process Architecture](./transfer-process-architecture.md).
+4. The transfer process state machine will be updated to accommodate the Dataspace Protocol protocols as described in [the Transfer Process Architecture](transfer-process-architecture.md).
    Since all new states are nearly 1:1 with existing EDC states, retrofitting to the old IDS protocol should be possible.
 5. When 1-4 are stabilized, the old IDS modules and supporting services will be removed.
 6. An ensuing release will update the Management API
