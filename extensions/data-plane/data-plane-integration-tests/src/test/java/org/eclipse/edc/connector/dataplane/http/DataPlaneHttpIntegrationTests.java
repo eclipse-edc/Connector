@@ -54,7 +54,6 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.createRequest;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.containsString;
@@ -169,13 +168,9 @@ public class DataPlaneHttpIntegrationTests {
         // HTTP Sink Request & Response
         httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
 
-        // Act & Assert
-        // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
-        // Wait for transfer to be completed.
-        await().atMost(timeout).untilAsserted(() -> expectState(processId, COMPLETED));
-
+        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
         // Verify HTTP Source server called exactly once.
         httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.once());
         // Verify HTTP Sink server called exactly once.
@@ -197,13 +192,9 @@ public class DataPlaneHttpIntegrationTests {
         // HTTP Sink Request & Response
         httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
 
-        // Act & Assert
-        // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, queryParams, typeManager));
 
-        // Wait for transfer to be completed.
-        await().atMost(timeout).untilAsserted(() -> expectState(processId, COMPLETED));
-
+        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
         // Verify HTTP Source server called exactly once.
         httpSourceMockServer.verify(getRequest(queryParams, HTTP_API_PATH), VerificationTimes.once());
         // Verify HTTP Sink server called exactly once.
@@ -219,8 +210,6 @@ public class DataPlaneHttpIntegrationTests {
         var processId = UUID.randomUUID().toString();
         var invalidRequest = transferRequestPayload(processId, typeManager).remove("processId");
 
-        // Act & Assert
-        // Initiate transfer
         given()
                 .baseUri(CONTROL_API_HOST)
                 .contentType(ContentType.JSON)
@@ -237,10 +226,8 @@ public class DataPlaneHttpIntegrationTests {
         // HTTP Source Request & Error Response
         httpSourceMockServer.when(getRequest(HTTP_API_PATH)).error(withDropConnection());
 
-        // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
-        // Wait for transfer to be completed.
         await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
         // Verify HTTP Source server called at lest once.
         httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.atLeast(1));
@@ -264,12 +251,9 @@ public class DataPlaneHttpIntegrationTests {
         // HTTP Sink Request & Response
         httpSinkMockServer.when(postRequest(body), once()).respond(successfulResponse());
 
-        // Act & Assert
-        // Initiate transfer
         initiateTransfer(transferRequestPayload(processId, typeManager));
 
-        // Wait for transfer to be completed.
-        await().atMost(timeout).untilAsserted(() -> expectState(processId, COMPLETED));
+        await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
         // Verify HTTP Source server called exactly 3 times.
         httpSourceMockServer.verify(getRequest(HTTP_API_PATH), VerificationTimes.exactly(3));
         // Verify HTTP Sink server called exactly once.
@@ -345,12 +329,6 @@ public class DataPlaneHttpIntegrationTests {
                 .assertThat().statusCode(HttpStatus.SC_OK);
     }
 
-    /**
-     * Fetch transfer state and assert if transfer is completed.
-     *
-     * @param processId     ProcessID of transfer. See {@link DataFlowRequest}
-     * @param expectedState the expected state
-     */
     private void expectState(String processId, DataFlowStates expectedState) {
         given()
                 .baseUri(CONTROL_API_HOST)
