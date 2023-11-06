@@ -1,7 +1,12 @@
 # Developer Documentation
 
 ## Architecture
-- [Architecture](architecture/)
+- [Terminology](terminology.md)
+- [Contracts](contracts.md)
+- [Data Transfer](data-transfer.md)
+- [Identity Management](identity-management.md)
+- [Terminology](terminology.md)
+- [Dataspace Protocol](ids-dataspace-protocol/)
 
 ## Guides
 - [Customize Policy Engine](policy-engine.md)
@@ -13,6 +18,7 @@
 
 ## Deep Dives
 - [Command Queue](command-queue.md)
+- [Configuration](configuration.md)
 - [DPF Selector Concept](dpf_selector.md)
 - [Dynamic SQL Queries](sql_queries.md)
 - [Events](events.md)

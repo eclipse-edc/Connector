@@ -2,7 +2,7 @@
 
 The Dataspace Protocol requires all protocol message types to be serialized as JSON-LD. The IDS REST binding specifications further define how those serialized message types are bound to
 endpoints over HTTPS. Controller endpoints will be added to the EDC that support marshalling and unmarshalling JSON-LD messages as specified
-in [JSON-LD Processing Architecture document](./json-ld-processing-architecture.md)
+in [JSON-LD Processing Architecture document](json-ld-processing-architecture.md)
 
 IDS controller endpoints will be organized in two extensions to support separate deployments of control plane and catalog runtimes:
 
