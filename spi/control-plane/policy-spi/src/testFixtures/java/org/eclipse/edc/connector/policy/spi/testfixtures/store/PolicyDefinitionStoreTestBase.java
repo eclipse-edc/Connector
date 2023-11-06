@@ -188,6 +188,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
             policy.getPrivateProperties().remove("newKey");
             var updated = getPolicyDefinitionStore().update(policy);
+            definitionFound = getPolicyDefinitionStore().findById(id);
             assertThat(updated).isNotNull();
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
@@ -210,6 +211,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
             policy.getPrivateProperties().put("newKey", "newValue");
             var updated = getPolicyDefinitionStore().update(policy);
+            definitionFound = getPolicyDefinitionStore().findById(id);
             assertThat(updated).isNotNull();
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
