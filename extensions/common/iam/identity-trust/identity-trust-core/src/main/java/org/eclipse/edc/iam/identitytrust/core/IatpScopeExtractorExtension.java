@@ -38,7 +38,7 @@ public class IatpScopeExtractorExtension implements ServiceExtension {
     private PolicyEngine policyEngine;
 
     @Inject
-    private ScopeExtractorRegistry scopeMapperRegistry;
+    private ScopeExtractorRegistry scopeExtractorRegistry;
 
     @Inject
     private Monitor monitor;
@@ -50,7 +50,7 @@ public class IatpScopeExtractorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var contextMappingFunction = new IatpScopeExtractorFunction(scopeMapperRegistry, monitor);
+        var contextMappingFunction = new IatpScopeExtractorFunction(scopeExtractorRegistry, monitor);
         policyEngine.registerPreValidator(CATALOG_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPreValidator(NEGOTIATION_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPreValidator(TRANSFER_PROCESS_REQUEST_SCOPE, contextMappingFunction);
