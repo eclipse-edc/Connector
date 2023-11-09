@@ -146,21 +146,21 @@ maven/mavencentral/io.swagger.core.v3/swagger-annotations/2.2.8, Apache-2.0, app
 maven/mavencentral/io.swagger.core.v3/swagger-core-jakarta/2.2.15, Apache-2.0, approved, #5929
 maven/mavencentral/io.swagger.core.v3/swagger-core/2.2.15, Apache-2.0, approved, #9265
 maven/mavencentral/io.swagger.core.v3/swagger-core/2.2.8, Apache-2.0, approved, #9265
-maven/mavencentral/io.swagger.core.v3/swagger-integration-jakarta/2.2.15, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.swagger.core.v3/swagger-integration-jakarta/2.2.15, Apache-2.0, approved, #11475
 maven/mavencentral/io.swagger.core.v3/swagger-integration/2.2.15, Apache-2.0, approved, #10352
-maven/mavencentral/io.swagger.core.v3/swagger-jaxrs2-jakarta/2.2.15, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.swagger.core.v3/swagger-jaxrs2-jakarta/2.2.15, Apache-2.0, approved, #11477
 maven/mavencentral/io.swagger.core.v3/swagger-jaxrs2/2.2.15, Apache-2.0, approved, #9814
 maven/mavencentral/io.swagger.core.v3/swagger-models-jakarta/2.2.15, Apache-2.0, approved, #5919
 maven/mavencentral/io.swagger.core.v3/swagger-models/2.2.15, Apache-2.0, approved, #10353
 maven/mavencentral/io.swagger.core.v3/swagger-models/2.2.8, Apache-2.0, approved, #10353
-maven/mavencentral/io.swagger.parser.v3/swagger-parser-core/2.1.10, None, restricted, #11314
+maven/mavencentral/io.swagger.parser.v3/swagger-parser-core/2.1.10, None, restricted, #11478
 maven/mavencentral/io.swagger.parser.v3/swagger-parser-v2-converter/2.1.10, Apache-2.0, approved, #9330
 maven/mavencentral/io.swagger.parser.v3/swagger-parser-v3/2.1.10, Apache-2.0, approved, #9323
 maven/mavencentral/io.swagger.parser.v3/swagger-parser/2.1.10, None, restricted, #11316
 maven/mavencentral/io.swagger/swagger-annotations/1.6.9, Apache-2.0, approved, #3792
-maven/mavencentral/io.swagger/swagger-compat-spec-parser/1.0.64, None, restricted, #11282
+maven/mavencentral/io.swagger/swagger-compat-spec-parser/1.0.64, None, restricted, #11479
 maven/mavencentral/io.swagger/swagger-core/1.6.9, Apache-2.0, approved, #4358
-maven/mavencentral/io.swagger/swagger-models/1.6.9, LicenseRef-scancode-proprietary-license, restricted, #11330
+maven/mavencentral/io.swagger/swagger-models/1.6.9, LicenseRef-scancode-proprietary-license, restricted, #11476
 maven/mavencentral/io.swagger/swagger-parser/1.0.64, Apache-2.0, approved, #4359
 maven/mavencentral/jakarta.activation/jakarta.activation-api/1.2.1, EPL-2.0 OR BSD-3-Clause OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jaf
 maven/mavencentral/jakarta.activation/jakarta.activation-api/2.1.0, EPL-2.0 OR BSD-3-Clause OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jaf
