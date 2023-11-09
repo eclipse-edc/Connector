@@ -4,7 +4,7 @@
 
 Going forward, all our external APIs will be versioned consistently across all endpoints and controllers. This means,
 that the
-Management API (to name a prominent example) will have the version encoded same URL within the same major version.
+Management API (to name a prominent example) will encode the same version number consistently across all its existing service endpoint URLs, within a major version.
 
 ## Rationale
 
@@ -15,7 +15,7 @@ This can be confusing to developers who want to consume the API, because they no
 every API, they also need to re-check every endpoint when a new version of EDC is released, because every API can change
 individually.
 
-Therefor we will use consistent versioning across _all_ client-facing APIs. At the time of writing, this includes just
+Therefore, we will use consistent versioning across _all_ client-facing APIs. At the time of writing, this includes just
 the Management API.
 
 ## Approach
@@ -46,7 +46,7 @@ API.
 
 ### Delegation mechanism for controllers
 
-Not every endpoint changes from version to version, that means we will have to make the _same_ controller available
+Not every endpoint changes from version to version. We will have to make the _same_ controller available
 under _multiple_ URL paths as we do not want to duplicate controllers. There are several potential ways we could make
 this work:
 
@@ -55,8 +55,8 @@ this work:
 
 These are as yet untested and need further investigation with regard to the following aspects:
 
-- do the come up as individual endpoints in the OpenAPI documentation?
-- is there a significant impact w.r.t. resource consumption?
+- do controllers appear as individual endpoints in the OpenAPI documentation?
+- is there a significant impact w.r.t. resource consumption and response time?
 
 ### Storing and publishing version information
 
