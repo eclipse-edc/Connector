@@ -48,3 +48,5 @@
 - [2023-08-01 Default datasource](2023-08-01-default-datasource)
 - [2023-08-07 Generic properties](./2023-08-07-generic-properties)
 - [2023-09-07 Policy Monitor](./2023-09-07-policy-monitor)
+- [2023-10-04 JSON-LD Scopes](./2023-10-04-json-ld-scopes)
+- [2023-11-09 API Versioning](./2023-11-09-api-versioning)
