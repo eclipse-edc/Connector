@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
@@ -42,7 +43,7 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
     public @Nullable ContractRequest transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var contractRequestBuilder = ContractRequest.Builder.newInstance()
                 .providerId(getProviderId(jsonObject, context))
-                .counterPartyAddress(transformString(jsonObject.get(CONNECTOR_ADDRESS), context))
+                .counterPartyAddress(counterPartyAddressOrConnectorAddress(jsonObject, context))
                 .protocol(transformString(jsonObject.get(PROTOCOL), context));
 
         var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
@@ -69,8 +70,13 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
             return transformString(providerId, context);
         }
 
-        return transformString(jsonObject.get(CONNECTOR_ADDRESS), context);
+        return counterPartyAddressOrConnectorAddress(jsonObject, context);
 
     }
 
+    private String counterPartyAddressOrConnectorAddress(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+        var counterPartyAddress = transformString(jsonObject.get(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS), context);
+        var connectorAddress = transformString(jsonObject.get(CONNECTOR_ADDRESS), context);
+        return connectorAddress != null ? connectorAddress : counterPartyAddress;
+    }
 }

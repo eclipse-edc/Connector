@@ -26,9 +26,12 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
@@ -43,7 +46,7 @@ class ContractRequestValidatorTest {
     @Test
     void shouldSuccess_whenObjectIsValid() {
         var input = Json.createObjectBuilder()
-                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
                 .add(OFFER, createArrayBuilder().add(createObjectBuilder()
@@ -66,7 +69,7 @@ class ContractRequestValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONNECTOR_ADDRESS))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER));
     }
@@ -74,7 +77,7 @@ class ContractRequestValidatorTest {
     @Test
     void shouldFail_whenOfferMandatoryPropertiesAreMissing() {
         var input = Json.createObjectBuilder()
-                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
                 .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
@@ -87,6 +90,24 @@ class ContractRequestValidatorTest {
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + OFFER_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + ASSET_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + POLICY));
+    }
+
+    @Test
+    void shouldSucceed_whenDeprecatedConnectorAddressIsUsed() {
+        var input = Json.createObjectBuilder()
+                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .add(OFFER, createArrayBuilder().add(createObjectBuilder()
+                        .add(OFFER_ID, value("offerId"))
+                        .add(ASSET_ID, value("offerId"))
+                        .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
+                ))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isSucceeded();
     }
 
     private JsonArrayBuilder value(String value) {

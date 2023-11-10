@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.transferprocess.transform;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -26,7 +27,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToTransferRequestTransformerTest {
 
-    private final JsonObjectToTransferRequestTransformer transformer = new JsonObjectToTransferRequestTransformer();
+    private final JsonObjectToTransferRequestTransformer transformer = new JsonObjectToTransferRequestTransformer(mock(Monitor.class));
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
@@ -68,7 +69,7 @@ class JsonObjectToTransferRequestTransformerTest {
         var json = Json.createObjectBuilder()
                 .add(TYPE, TRANSFER_REQUEST_TYPE)
                 .add(ID, "id")
-                .add(TRANSFER_REQUEST_CONNECTOR_ADDRESS, "address")
+                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "address")
                 .add(TRANSFER_REQUEST_CONTRACT_ID, "contractId")
                 .add(TRANSFER_REQUEST_DATA_DESTINATION, dataDestinationJson)
                 .add(TRANSFER_REQUEST_PROPERTIES, propertiesJson)
@@ -82,7 +83,7 @@ class JsonObjectToTransferRequestTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo("id");
-        assertThat(result.getConnectorAddress()).isEqualTo("address");
+        assertThat(result.getCounterPartyAddress()).isEqualTo("address");
         assertThat(result.getContractId()).isEqualTo("contractId");
         assertThat(result.getDataDestination()).isSameAs(dataDestination);
         assertThat(result.getProperties()).containsAllEntriesOf(properties);

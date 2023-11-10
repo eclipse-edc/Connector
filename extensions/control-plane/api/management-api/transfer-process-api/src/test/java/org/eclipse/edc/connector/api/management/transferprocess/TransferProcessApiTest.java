@@ -69,7 +69,7 @@ class TransferProcessApiTest {
 
     @BeforeEach
     void setUp() {
-        transformer.register(new JsonObjectToTransferRequestTransformer());
+        transformer.register(new JsonObjectToTransferRequestTransformer(testServiceExtensionContext().getMonitor()));
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToDataAddressTransformer());
         transformer.register(new JsonObjectToTerminateTransferTransformer());
@@ -89,7 +89,7 @@ class TransferProcessApiTest {
                 .extracting(e -> transformer.transform(e, TransferRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
-                            assertThat(transformed.getConnectorAddress()).isNotBlank();
+                            assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                             assertThat(transformed.getContractId()).isNotBlank();
                             assertThat(transformed.getProtocol()).isNotBlank();
                             assertThat(transformed.getConnectorId()).isNotBlank();

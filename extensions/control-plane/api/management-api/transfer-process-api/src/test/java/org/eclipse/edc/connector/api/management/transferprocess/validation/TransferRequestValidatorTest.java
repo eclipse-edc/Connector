@@ -27,7 +27,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
@@ -44,7 +44,7 @@ class TransferRequestValidatorTest {
     @Test
     void shouldSucceed_whenObjectIsValid() {
         var input = Json.createObjectBuilder()
-                .add(TRANSFER_REQUEST_CONNECTOR_ADDRESS, value("http://connector-address"))
+                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
                 .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
                 .add(TRANSFER_REQUEST_CONNECTOR_ID, value("connectorId"))
@@ -81,7 +81,7 @@ class TransferRequestValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONNECTOR_ADDRESS))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONTRACT_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_PROTOCOL))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONNECTOR_ID))

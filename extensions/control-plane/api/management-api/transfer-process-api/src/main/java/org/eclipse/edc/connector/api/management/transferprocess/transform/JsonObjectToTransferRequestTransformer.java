@@ -19,6 +19,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -32,20 +33,25 @@ import java.util.function.Consumer;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
 import static jakarta.json.JsonValue.ValueType.OBJECT;
+import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROPERTIES;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 
 public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequest> {
+    private final Monitor monitor;
 
-    public JsonObjectToTransferRequestTransformer() {
+    public JsonObjectToTransferRequestTransformer(Monitor monitor) {
         super(JsonObject.class, TransferRequest.class);
+        this.monitor = monitor;
     }
 
     @Override
@@ -54,7 +60,12 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
 
         builder.id(nodeId(input));
         visitProperties(input, k -> switch (k) {
-            case TRANSFER_REQUEST_CONNECTOR_ADDRESS -> v -> builder.connectorAddress(transformString(v, context));
+            case TRANSFER_REQUEST_CONNECTOR_ADDRESS -> v -> {
+                monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
+                        TRANSFER_REQUEST_CONNECTOR_ADDRESS, TRANSFER_REQUEST_TYPE, TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS));
+                builder.counterPartyAddress(transformString(v, context));
+            };
+            case TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS -> v -> builder.counterPartyAddress(transformString(v, context));
             case TRANSFER_REQUEST_CONTRACT_ID -> (v) -> builder.contractId(transformString(v, context));
             case TRANSFER_REQUEST_DATA_DESTINATION ->
                     v -> builder.dataDestination(transformObject(v, DataAddress.class, context));

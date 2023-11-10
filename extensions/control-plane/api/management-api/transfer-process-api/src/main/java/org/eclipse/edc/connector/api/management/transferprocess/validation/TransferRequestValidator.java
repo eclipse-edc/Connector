@@ -16,16 +16,19 @@ package org.eclipse.edc.connector.api.management.transferprocess.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.validation.DataAddressValidator;
+import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 
@@ -34,7 +37,7 @@ public class TransferRequestValidator {
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)
-                .verify(TRANSFER_REQUEST_CONNECTOR_ADDRESS, MandatoryValue::new)
+                .verify(MandatoryCounterPartyAddressOrConnectorAddress::new)
                 .verify(TRANSFER_REQUEST_CONTRACT_ID, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_PROTOCOL, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_CONNECTOR_ID, MandatoryValue::new)
@@ -43,4 +46,23 @@ public class TransferRequestValidator {
                 .verifyObject(TRANSFER_REQUEST_DATA_DESTINATION, DataAddressValidator::instance)
                 .build();
     }
+
+    private record MandatoryCounterPartyAddressOrConnectorAddress(JsonLdPath path) implements Validator<JsonObject> {
+
+        @Override
+        public ValidationResult validate(JsonObject input) {
+            var counterPartyAddress = new MandatoryValue(path.append(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS));
+            var connectorAddress = new MandatoryValue(path.append(TRANSFER_REQUEST_CONNECTOR_ADDRESS));
+
+            var validateCounterParty = counterPartyAddress.validate(input);
+            var validateConnectorAddress = connectorAddress.validate(input);
+
+            if (validateCounterParty.succeeded() || validateConnectorAddress.succeeded()) {
+                return ValidationResult.success();
+            } else {
+                return validateCounterParty;
+            }
+        }
+    }
+
 }
