@@ -37,21 +37,24 @@ public class CatalogRequestValidator {
                 .build();
     }
 
+    /**
+     * This custom validator can be removed once `providerUrl` is deleted and exists only for legacy reasons
+     */
     private record MandatoryCounterPartyAddressOrProviderUrl(JsonLdPath path) implements Validator<JsonObject> {
 
         @Override
         public ValidationResult validate(JsonObject input) {
             var counterPartyAddress = new MandatoryValue(path.append(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS));
-            var providerUrl = new MandatoryValue(path.append(CATALOG_REQUEST_PROVIDER_URL));
-
             var validateCounterParty = counterPartyAddress.validate(input);
-            var validateProviderUrl = providerUrl.validate(input);
-
-            if (validateCounterParty.succeeded() || validateProviderUrl.succeeded()) {
+            if (validateCounterParty.succeeded()) {
                 return ValidationResult.success();
-            } else {
-                return validateCounterParty;
             }
+            var providerUrl = new MandatoryValue(path.append(CATALOG_REQUEST_PROVIDER_URL));
+            var validateProviderUrl = providerUrl.validate(input);
+            if (validateProviderUrl.succeeded()) {
+                return ValidationResult.success();
+            }
+            return validateCounterParty;
         }
     }
 }

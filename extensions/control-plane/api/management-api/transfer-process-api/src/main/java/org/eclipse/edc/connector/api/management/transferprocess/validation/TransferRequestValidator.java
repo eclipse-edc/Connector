@@ -47,21 +47,24 @@ public class TransferRequestValidator {
                 .build();
     }
 
+    /**
+     * This custom validator can be removed once `connectorAddress` is deleted and exists only for legacy reasons
+     */
     private record MandatoryCounterPartyAddressOrConnectorAddress(JsonLdPath path) implements Validator<JsonObject> {
 
         @Override
         public ValidationResult validate(JsonObject input) {
             var counterPartyAddress = new MandatoryValue(path.append(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS));
-            var connectorAddress = new MandatoryValue(path.append(TRANSFER_REQUEST_CONNECTOR_ADDRESS));
-
             var validateCounterParty = counterPartyAddress.validate(input);
-            var validateConnectorAddress = connectorAddress.validate(input);
-
-            if (validateCounterParty.succeeded() || validateConnectorAddress.succeeded()) {
+            if (validateCounterParty.succeeded()) {
                 return ValidationResult.success();
-            } else {
-                return validateCounterParty;
             }
+            var connectorAddress = new MandatoryValue(path.append(TRANSFER_REQUEST_CONNECTOR_ADDRESS));
+            var validateConnectorAddress = connectorAddress.validate(input);
+            if (validateConnectorAddress.succeeded()) {
+                return ValidationResult.success();
+            }
+            return validateCounterParty;
         }
     }
 

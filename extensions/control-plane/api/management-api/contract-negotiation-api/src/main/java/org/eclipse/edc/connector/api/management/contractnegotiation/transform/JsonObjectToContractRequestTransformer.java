@@ -74,9 +74,11 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
 
     }
 
+    /**
+    * This method can be removed once `connectorAddress` is deleted and exists only for legacy reasons
+    */
     private String counterPartyAddressOrConnectorAddress(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var counterPartyAddress = transformString(jsonObject.get(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS), context);
-        var connectorAddress = transformString(jsonObject.get(CONNECTOR_ADDRESS), context);
-        return connectorAddress != null ? connectorAddress : counterPartyAddress;
+        return counterPartyAddress != null ? counterPartyAddress : transformString(jsonObject.get(CONNECTOR_ADDRESS), context);
     }
 }
