@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.core;
+package org.eclipse.edc.iam.identitytrust.core.defaults;
 
 import com.apicatalog.ld.signature.SignatureSuite;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;

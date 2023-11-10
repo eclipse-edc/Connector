@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.identitytrust.core;
+package org.eclipse.edc.iam.identitytrust.core.defaults;
 
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.junit.jupiter.api.Test;
