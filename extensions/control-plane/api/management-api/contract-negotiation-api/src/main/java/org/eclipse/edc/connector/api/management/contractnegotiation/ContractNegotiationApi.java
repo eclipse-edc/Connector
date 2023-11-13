@@ -142,18 +142,14 @@ public interface ContractNegotiationApi {
                     "connectorAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
                     "providerId": "provider-id",
-                    "offer": {
-                        "offerId": "offer-id",
-                        "assetId": "asset-id",
-                        "policy": {
-                            "@context": "http://www.w3.org/ns/odrl.jsonld",
-                            "@type": "Set",
-                            "@id": "offer-id",
-                            "permission": [{
-                                "target": "asset-id",
-                                "action": "display"
-                            }]
-                        }
+                    "policy": {
+                        "@context": "http://www.w3.org/ns/odrl.jsonld",
+                        "@type": "Set",
+                        "@id": "policy-id",
+                        "permission": [{
+                            "target": "asset-id",
+                            "action": "display"
+                        }]
                     },
                     "callbackAddresses": [{
                         "transactional": false,

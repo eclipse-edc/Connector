@@ -66,7 +66,9 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var factory = Json.createBuilderFactory(Map.of());
-        transformerRegistry.register(new JsonObjectToContractRequestTransformer());
+        var monitor = context.getMonitor();
+
+        transformerRegistry.register(new JsonObjectToContractRequestTransformer(monitor));
         transformerRegistry.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
@@ -74,8 +76,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
-
-        var monitor = context.getMonitor();
 
         var controller = new ContractNegotiationApiController(service, transformerRegistry, monitor, validatorRegistry);
         webService.registerResource(config.getContextAlias(), controller);

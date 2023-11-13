@@ -18,6 +18,8 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -26,16 +28,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 
 public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransformer<JsonObject, ContractRequest> {
 
-    public JsonObjectToContractRequestTransformer() {
+    private final Monitor monitor;
+
+    public JsonObjectToContractRequestTransformer(Monitor monitor) {
         super(JsonObject.class, ContractRequest.class);
+        this.monitor = monitor;
     }
 
     @Override
@@ -45,13 +53,22 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
                 .counterPartyAddress(transformString(jsonObject.get(CONNECTOR_ADDRESS), context))
                 .protocol(transformString(jsonObject.get(PROTOCOL), context));
 
+        var policy = transformObject(jsonObject.get(POLICY), Policy.class, context);
+        if (policy != null) {
+            contractRequestBuilder.policy(policy);
+        }
+
         var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(contractOfferDescription.getOfferId())
-                .assetId(contractOfferDescription.getAssetId())
-                .policy(contractOfferDescription.getPolicy())
-                .build();
-        contractRequestBuilder.contractOffer(contractOffer);
+        if (contractOfferDescription != null) {
+            monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
+                    OFFER, CONTRACT_REQUEST_TYPE, POLICY));
+            var contractOffer = ContractOffer.Builder.newInstance()
+                    .id(contractOfferDescription.getOfferId())
+                    .assetId(contractOfferDescription.getAssetId())
+                    .policy(contractOfferDescription.getPolicy())
+                    .build();
+            contractRequestBuilder.contractOffer(contractOffer);
+        }
 
         var callbackAddress = jsonObject.get(CALLBACK_ADDRESSES);
         if (callbackAddress != null) {

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
@@ -32,13 +33,16 @@ public class ContractRequest {
     public static final String CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
     public static final String PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String PROVIDER_ID = EDC_NAMESPACE + "providerId";
+    @Deprecated(since = "0.3.2")
     public static final String OFFER = EDC_NAMESPACE + "offer";
+    public static final String POLICY = EDC_NAMESPACE + "policy";
     public static final String CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
 
     private String providerId;
     private String protocol;
     private String counterPartyAddress;
     private ContractOffer contractOffer;
+    private Policy policy;
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     public List<CallbackAddress> getCallbackAddresses() {
@@ -59,6 +63,10 @@ public class ContractRequest {
 
     public ContractOffer getContractOffer() {
         return contractOffer;
+    }
+
+    public Policy getPolicy() {
+        return policy;
     }
 
     public static class Builder {
@@ -97,10 +105,20 @@ public class ContractRequest {
             return this;
         }
 
+        public Builder policy(Policy policy) {
+            contractRequest.policy = policy;
+            return this;
+        }
+
         public ContractRequest build() {
             Objects.requireNonNull(contractRequest.protocol, "protocol");
             Objects.requireNonNull(contractRequest.counterPartyAddress, "counterPartyAddress");
-            Objects.requireNonNull(contractRequest.contractOffer, "contractOffer");
+            if (contractRequest.contractOffer == null) {
+                Objects.requireNonNull(contractRequest.policy, "policy");
+            }
+            if (contractRequest.policy == null) {
+                Objects.requireNonNull(contractRequest.contractOffer, "contractOffer");
+            }
             return contractRequest;
         }
     }

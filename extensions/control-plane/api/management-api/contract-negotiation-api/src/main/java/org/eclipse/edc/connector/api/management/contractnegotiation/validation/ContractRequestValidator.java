@@ -16,15 +16,10 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.validation;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
-import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 
 public class ContractRequestValidator {
@@ -32,12 +27,6 @@ public class ContractRequestValidator {
         return JsonObjectValidator.newValidator()
                 .verify(CONNECTOR_ADDRESS, MandatoryValue::new)
                 .verify(PROTOCOL, MandatoryValue::new)
-                .verify(OFFER, MandatoryObject::new)
-                .verifyObject(OFFER, v -> v
-                        .verify(OFFER_ID, MandatoryValue::new)
-                        .verify(ASSET_ID, MandatoryValue::new)
-                        .verify(POLICY, MandatoryObject::new)
-                )
                 .build();
     }
 }

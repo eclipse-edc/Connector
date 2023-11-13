@@ -27,7 +27,7 @@ import static org.eclipse.edc.connector.api.management.contractnegotiation.model
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
 
-
+@Deprecated(since = "0.3.2")
 public class JsonObjectToContractOfferDescriptionTransformer extends AbstractJsonLdTransformer<JsonObject, ContractOfferDescription> {
 
     public JsonObjectToContractOfferDescriptionTransformer() {
