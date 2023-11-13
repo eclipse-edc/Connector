@@ -73,7 +73,8 @@ class LdpIssuerTest {
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/v1", ccl.getResource("credentials.v1.json").toURI());
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/examples/v1", ccl.getResource("examples.v1.json").toURI());
             issuer = LdpIssuer.Builder.newInstance()
-                    .jsonLdService(jsonLd)
+                    .jsonLd(jsonLd)
+                    .monitor(mock())
                     .build();
         }
 
