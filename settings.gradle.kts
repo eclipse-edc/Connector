@@ -123,6 +123,7 @@ include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote-core")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-api")
 include(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-client-configuration")
+include(":extensions:common:iam:identity-trust:identity-trust-issuers-configuration")
 
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
