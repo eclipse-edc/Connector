@@ -176,10 +176,11 @@ class KafkaDataSource implements DataSource {
 
         @Override
         public ConsumerRecords<String, byte[]> next() {
-            var records = consumer.poll(Duration.ZERO);
-            while (active.get() && records.isEmpty()) {
+            ConsumerRecords<String, byte[]> records;
+            do {
                 records = consumer.poll(pollDuration);
-            }
+            } while (active.get() && records.isEmpty());
+
             return records;
         }
 
