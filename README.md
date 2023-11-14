@@ -202,7 +202,7 @@ Contains implementations for communication protocols a connector might use, such
 ## Releases
 
 GitHub releases are listed [here](https://github.com/eclipse-edc/Connector/releases).
-Please find more information about releases in our [release approach](https://github.com/eclipse-edc/.github/blob/main/docs/developer/releases.md).
+Please find more information about releases in our [release approach](https://github.com/eclipse-edc/docs/blob/main/developer/releases.md).
 
 ### Roadmap
 
