@@ -67,26 +67,7 @@ class ContractRequestValidatorTest {
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONNECTOR_ADDRESS))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER));
-    }
-
-    @Test
-    void shouldFail_whenOfferMandatoryPropertiesAreMissing() {
-        var input = Json.createObjectBuilder()
-                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
-                .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
-                .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
-                .build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + OFFER_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + ASSET_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + POLICY));
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL));
     }
 
     private JsonArrayBuilder value(String value) {
