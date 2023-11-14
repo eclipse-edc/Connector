@@ -21,7 +21,5 @@ dependencies {
     api(project(":spi:common:identity-trust-spi"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":extensions:common:json-ld"))
-
 }
 
