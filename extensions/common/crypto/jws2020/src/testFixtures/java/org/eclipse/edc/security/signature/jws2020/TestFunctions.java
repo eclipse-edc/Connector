@@ -38,7 +38,7 @@ public class TestFunctions {
         return new JwkMethod(id, type, null, jwk);
     }
 
-    static JsonObject readResourceAsJson(String name) {
+    public static JsonObject readResourceAsJson(String name) {
         try {
             return MAPPER.readValue(getResourceFileContentAsString(name), JsonObject.class);
         } catch (IOException e) {
