@@ -69,8 +69,8 @@ class TokenBasedAuthenticationServiceTest {
     }
 
     @Test
-    void isAuthorized_multipleValues_oneAuthorized() {
+    void isAuthorized_multipleValues_oneAuthorized_shouldReturnFalse() {
         var map = Map.of("x-api-key", List.of("invalid_api_key", TEST_API_KEY));
-        assertThat(service.isAuthenticated(map)).isTrue();
+        assertThat(service.isAuthenticated(map)).isFalse();
     }
 }
