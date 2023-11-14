@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - prefix monitoring
  *
  */
 
@@ -62,6 +63,10 @@ public interface Monitor {
         return Optional.ofNullable(supplier.get())
                 .map(msg -> msg.replaceAll("([\\r\\n])", " "))
                 .orElse(null);
+    }
+
+    default PrefixMonitor withPrefix(String prefix) {
+        return new PrefixMonitor(this, prefix);
     }
 
 }
