@@ -50,6 +50,6 @@ public class TokenBasedAuthenticationService implements AuthenticationService {
     }
 
     private boolean checkApiKeyValid(List<String> apiKeys) {
-        return apiKeys.stream().anyMatch(hardCodedApiKey::equalsIgnoreCase);
+        return apiKeys.size() == 1 && apiKeys.stream().allMatch(hardCodedApiKey::equalsIgnoreCase);
     }
 }
