@@ -19,11 +19,13 @@ import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -33,17 +35,19 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class IdentityAndTrustExtensionTest {
 
-    private IdentityAndTrustExtension extension;
     private ServiceExtensionContext spiedContext;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         spiedContext = spy(context);
         spiedContext.registerService(SecureTokenService.class, mock());
+        TypeManager mockedTm = mock();
+        when(mockedTm.getMapper(eq(JSON_LD))).thenReturn(mock());
+        spiedContext.registerService(TypeManager.class, mockedTm);
     }
 
     @Test
-    void verifyCorrectService(IdentityAndTrustExtension extension, ServiceExtensionContext context) {
+    void verifyCorrectService(IdentityAndTrustExtension extension) {
         var configMock = mock(Config.class);
         when(configMock.getString(eq(IdentityAndTrustExtension.ISSUER_DID_PROPERTY))).thenReturn("did:web:test");
         when(spiedContext.getConfig()).thenReturn(configMock);
