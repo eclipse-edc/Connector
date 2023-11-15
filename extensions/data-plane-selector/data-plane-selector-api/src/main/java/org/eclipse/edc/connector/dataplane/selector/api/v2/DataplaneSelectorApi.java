@@ -26,7 +26,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.DataPlaneInstanceSchema;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.SelectionRequestSchema;
@@ -34,6 +33,7 @@ import org.eclipse.edc.connector.dataplane.selector.api.v2.schemas.SelectionRequ
 @OpenAPIDefinition
 @Tag(name = "Dataplane Selector")
 public interface DataplaneSelectorApi {
+
     @Operation(method = "POST",
             description = "Finds the best fitting data plane instance for a particular query",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SelectionRequestSchema.class))),
@@ -45,12 +45,10 @@ public interface DataplaneSelectorApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             })
     @POST
-    @Path("select")
     JsonObject find(JsonObject request);
 
-
     @Operation(method = "POST",
-            description = "Adds one datatplane instance to the internal database of the selector",
+            description = "Adds one dataplane instance to the internal database of the selector",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneInstanceSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Entry was added successfully to the database", content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
@@ -64,12 +62,10 @@ public interface DataplaneSelectorApi {
             description = "Returns a list of all currently registered data plane instances",
             responses = {
                     @ApiResponse(responseCode = "200", description = "A (potentially empty) list of currently registered data plane instances",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = DataPlaneInstanceSchema.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = DataPlaneInstanceSchema.class))))
             }
     )
     @GET
     JsonArray getAll();
-
 
 }
