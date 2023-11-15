@@ -51,7 +51,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private SecureTokenService secureTokenService;
 
-    @Inject
     private PresentationVerifier presentationVerifier;
 
     @Inject
@@ -79,7 +78,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), context.getParticipantId(), presentationVerifier,
+        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), context.getParticipantId(), getPresentationVerifier(context),
                 credentialServiceClient, getJwtValidator(), getJwtVerifier(), registry, clock);
     }
 
@@ -92,17 +91,20 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     }
 
     @Provider
-    public PresentationVerifier createPresentationVerifier(ServiceExtensionContext context) {
-        var mapper = typeManager.getMapper(JSON_LD);
+    public PresentationVerifier getPresentationVerifier(ServiceExtensionContext context) {
+        if (presentationVerifier == null) {
+            var mapper = typeManager.getMapper(JSON_LD);
 
-        var jwtVerifier = new JwtPresentationVerifier(getJwtVerifier(), mapper);
-        var ldpVerifier = LdpVerifier.Builder.newInstance()
-                .signatureSuites(signatureSuiteRegistry)
-                .jsonLd(jsonLd)
-                .objectMapper(mapper)
-                .build();
+            var jwtVerifier = new JwtPresentationVerifier(getJwtVerifier(), mapper);
+            var ldpVerifier = LdpVerifier.Builder.newInstance()
+                    .signatureSuites(signatureSuiteRegistry)
+                    .jsonLd(jsonLd)
+                    .objectMapper(mapper)
+                    .build();
 
-        return new MultiFormatPresentationVerifier(getOwnDid(context), jwtVerifier, ldpVerifier);
+            presentationVerifier = new MultiFormatPresentationVerifier(getOwnDid(context), jwtVerifier, ldpVerifier);
+        }
+        return presentationVerifier;
     }
 
     @Provider
