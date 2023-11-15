@@ -25,6 +25,7 @@ dependencies {
 
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:transform-core")) //for the TransformerContextImpl
+    testImplementation(project(":core:common:junit")) //for the TestUtils
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
 }
 
