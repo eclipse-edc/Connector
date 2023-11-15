@@ -74,7 +74,7 @@ public class ConsumerPullDataPlaneProxyResolver {
     private Result<String> generateAccessToken(DataAddress source, String contractId) {
         var encryptedDataAddress = dataEncrypter.encrypt(typeManager.writeValueAsString(source));
         return tokenExpirationDateFunction.expiresAt(source, contractId)
-                .compose(expiration -> tokenGenerationService.generate(new ConsumerPullDataPlaneProxyTokenDecorator(expiration, contractId, encryptedDataAddress)))
+                .compose(expiration -> tokenGenerationService.generate(new ConsumerPullDataPlaneProxyTokenDecorator(expiration, encryptedDataAddress)))
                 .map(TokenRepresentation::getToken);
     }
 }

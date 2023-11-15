@@ -33,7 +33,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
@@ -89,7 +88,6 @@ class ConsumerPullDataPlaneProxyResolverTest {
         var decorator = captor.getValue();
 
         assertThat(decorator.claims())
-                .containsEntry(CONTRACT_ID, request.getContractId())
                 .containsEntry(DATA_ADDRESS, encryptedAddress)
                 .containsEntry(EXPIRATION_TIME, expiration);
     }
