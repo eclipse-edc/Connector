@@ -30,6 +30,7 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.policy.model.Policy;
 
 import java.util.List;
 
@@ -131,7 +132,10 @@ public interface ContractNegotiationApi {
             String connectorAddress,
             @Schema(requiredMode = REQUIRED)
             String providerId,
+            @Deprecated(since = "0.3.2")
+            @Schema(deprecated = true, description = "please use policy instead of offer")
             ContractOfferDescriptionSchema offer,
+            Policy policy,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
         // policy example took from https://w3c.github.io/odrl/bp/
