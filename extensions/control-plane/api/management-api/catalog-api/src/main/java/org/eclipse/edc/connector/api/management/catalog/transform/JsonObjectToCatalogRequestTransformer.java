@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.catalog.transform;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -25,31 +24,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 
 public class JsonObjectToCatalogRequestTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequest> {
 
-    private final Monitor monitor;
-
-    public JsonObjectToCatalogRequestTransformer(Monitor monitor) {
+    public JsonObjectToCatalogRequestTransformer() {
         super(JsonObject.class, CatalogRequest.class);
-        this.monitor = monitor;
     }
 
     @Override
     public @Nullable CatalogRequest transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var counterPartyAddress = Optional.of(object)
                 .map(it -> it.get(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS))
-                .orElseGet(() -> {
-                    monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
-                            CATALOG_REQUEST_PROVIDER_URL, CATALOG_REQUEST_TYPE, CATALOG_REQUEST_COUNTER_PARTY_ADDRESS));
-                    return object.get(CATALOG_REQUEST_PROVIDER_URL);
-                });
+                .orElseGet(() -> object.get(CATALOG_REQUEST_PROVIDER_URL));
 
         var querySpec = Optional.of(object)
                 .map(it -> it.get(CATALOG_REQUEST_QUERY_SPEC))

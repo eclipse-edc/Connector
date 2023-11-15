@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.catalog.validation;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -33,10 +34,11 @@ import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_S
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
+import static org.mockito.Mockito.mock;
 
 class CatalogRequestValidatorTest {
 
-    private final Validator<JsonObject> validator = CatalogRequestValidator.instance();
+    private final Validator<JsonObject> validator = CatalogRequestValidator.instance(mock(Monitor.class));
 
     @Test
     void shouldSucceed_whenInputIsValid() {

@@ -41,7 +41,7 @@ class JsonObjectToCatalogRequestTransformerTest {
 
     private final TransformerContext context = mock();
     private final Monitor monitor = mock();
-    private final JsonObjectToCatalogRequestTransformer transformer = new JsonObjectToCatalogRequestTransformer(monitor);
+    private final JsonObjectToCatalogRequestTransformer transformer = new JsonObjectToCatalogRequestTransformer();
 
     @Test
     void types() {

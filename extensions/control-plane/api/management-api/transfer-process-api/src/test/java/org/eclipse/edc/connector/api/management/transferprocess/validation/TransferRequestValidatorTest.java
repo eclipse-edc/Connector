@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.transferprocess.validation;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -36,10 +37,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
+import static org.mockito.Mockito.mock;
 
 class TransferRequestValidatorTest {
 
-    private final Validator<JsonObject> validator = TransferRequestValidator.instance();
+    private final Validator<JsonObject> validator = TransferRequestValidator.instance(mock(Monitor.class));
 
     @Test
     void shouldSucceed_whenObjectIsValid() {

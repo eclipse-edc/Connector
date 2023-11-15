@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.validation;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -36,10 +37,11 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.Mockito.mock;
 
 class ContractRequestValidatorTest {
 
-    private final Validator<JsonObject> validator = ContractRequestValidator.instance();
+    private final Validator<JsonObject> validator = ContractRequestValidator.instance(mock(Monitor.class));
 
     @Test
     void shouldSuccess_whenObjectIsValid() {

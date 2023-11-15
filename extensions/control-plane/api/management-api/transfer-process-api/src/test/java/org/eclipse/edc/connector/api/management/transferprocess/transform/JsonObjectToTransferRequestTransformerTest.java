@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.transferprocess.transform;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToTransferRequestTransformerTest {
 
-    private final JsonObjectToTransferRequestTransformer transformer = new JsonObjectToTransferRequestTransformer(mock(Monitor.class));
+    private final JsonObjectToTransferRequestTransformer transformer = new JsonObjectToTransferRequestTransformer();
     private final TransformerContext context = mock(TransformerContext.class);
 
     @Test
