@@ -30,10 +30,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
@@ -51,7 +53,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private SecureTokenService secureTokenService;
 
-    private PresentationVerifier presentationVerifier;
 
     @Inject
     private CredentialServiceClient credentialServiceClient;
@@ -71,10 +72,18 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private JsonLd jsonLd;
 
-    private JwtValidator jwtValidator;
-    private JwtVerifier jwtVerifier;
     @Inject
     private Clock clock;
+
+    @Inject
+    private TypeTransformerRegistry typeTransformerRegistry;
+
+    @Inject
+    private EdcHttpClient httpClient;
+
+    private JwtValidator jwtValidator;
+    private JwtVerifier jwtVerifier;
+    private PresentationVerifier presentationVerifier;
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
@@ -113,6 +122,12 @@ public class IdentityAndTrustExtension implements ServiceExtension {
             jwtVerifier = new SelfIssuedIdTokenVerifier(resolverRegistry);
         }
         return jwtVerifier;
+    }
+
+    @Provider
+    public CredentialServiceClient createClient(ServiceExtensionContext context) {
+        context.getMonitor().warning("Using a dummy CredentialServiceClient, that'll return null always. Don't use this in production use cases!");
+        return (csUrl, siTokenJwt, scopes) -> null;
     }
 
     private String getOwnDid(ServiceExtensionContext context) {
