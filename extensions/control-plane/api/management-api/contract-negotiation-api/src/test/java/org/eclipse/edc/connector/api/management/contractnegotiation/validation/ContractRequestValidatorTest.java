@@ -37,11 +37,14 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ContractRequestValidatorTest {
 
-    private final Validator<JsonObject> validator = ContractRequestValidator.instance(mock(Monitor.class));
+    private final Monitor monitor = mock();
+    private final Validator<JsonObject> validator = ContractRequestValidator.instance(monitor);
 
     @Test
     void shouldSuccess_whenObjectIsValid() {
@@ -106,8 +109,8 @@ class ContractRequestValidatorTest {
                 .build();
 
         var result = validator.validate(input);
-
         assertThat(result).isSucceeded();
+        verify(monitor).warning(anyString());
     }
 
     private JsonArrayBuilder value(String value) {

@@ -34,11 +34,14 @@ import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_S
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class CatalogRequestValidatorTest {
 
-    private final Validator<JsonObject> validator = CatalogRequestValidator.instance(mock(Monitor.class));
+    private final Monitor monitor = mock();
+    private final Validator<JsonObject> validator = CatalogRequestValidator.instance(monitor);
 
     @Test
     void shouldSucceed_whenInputIsValid() {
@@ -62,6 +65,7 @@ class CatalogRequestValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isSucceeded();
+        verify(monitor).warning(anyString());
     }
 
     @Test
