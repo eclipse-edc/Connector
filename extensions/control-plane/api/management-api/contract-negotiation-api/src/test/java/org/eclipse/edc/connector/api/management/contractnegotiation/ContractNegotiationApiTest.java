@@ -65,7 +65,7 @@ class ContractNegotiationApiTest {
 
     @Test
     void contractRequestExample() throws JsonProcessingException {
-        var validator = ContractRequestValidator.instance();
+        var validator = ContractRequestValidator.instance(monitor);
 
         var jsonObject = objectMapper.readValue(CONTRACT_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

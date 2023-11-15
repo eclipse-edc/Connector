@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mock;
 class ContractRequestValidatorTest {
 
     private final Monitor monitor = mock();
-    private final Validator<JsonObject> validator = ContractRequestValidator.instance();
+    private final Validator<JsonObject> validator = ContractRequestValidator.instance(monitor);
 
     @Test
     void shouldSuccess_whenObjectIsValid() {
