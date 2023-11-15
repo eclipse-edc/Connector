@@ -147,7 +147,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void cryptographicError() {
             when(mockedVerifier.verifyPresentation(any())).thenReturn(Result.failure("Cryptographic error"));
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(createPresentationContainer()));
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(createPresentationContainer())));
             var token = createJwt();
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().detail().isEqualTo("Cryptographic error");
@@ -163,7 +163,7 @@ class IdentityAndTrustServiceTest {
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
             when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().messages()
@@ -184,7 +184,7 @@ class IdentityAndTrustServiceTest {
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
             when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().messages()
@@ -209,7 +209,7 @@ class IdentityAndTrustServiceTest {
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
             when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
-            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(vpContainer));
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             var token = createJwt(consumerDid, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(token, "test-audience");
             assertThat(result).isFailed().messages()

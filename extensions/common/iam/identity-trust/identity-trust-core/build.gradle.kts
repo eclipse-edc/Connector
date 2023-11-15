@@ -17,8 +17,9 @@ dependencies {
     implementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-embedded"))
     implementation(libs.nimbus.jwt)
 
-    testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
     testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
     testImplementation(libs.nimbus.jwt)
+    testImplementation(project(":extensions:common:json-ld"))
 }
 

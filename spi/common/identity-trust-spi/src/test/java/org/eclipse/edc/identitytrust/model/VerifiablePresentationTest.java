@@ -50,6 +50,6 @@ class VerifiablePresentationTest {
                 .types(List.of("test-type"))
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith("must have at least one presentation.");
+                .hasMessageEndingWith("must have at least one credential.");
     }
 }

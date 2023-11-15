@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import jakarta.json.Json;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultCredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator;
 import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVerifier;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
@@ -41,6 +43,7 @@ import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
 
 import java.time.Clock;
+import java.util.Map;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
@@ -126,8 +129,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Provider
     public CredentialServiceClient createClient(ServiceExtensionContext context) {
-        context.getMonitor().warning("Using a dummy CredentialServiceClient, that'll return null always. Don't use this in production use cases!");
-        return (csUrl, siTokenJwt, scopes) -> null;
+        return new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
+                typeManager.getMapper(JSON_LD), typeTransformerRegistry, jsonLd, context.getMonitor());
     }
 
     private String getOwnDid(ServiceExtensionContext context) {
