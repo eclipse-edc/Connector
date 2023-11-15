@@ -146,10 +146,10 @@ public interface ContractNegotiationApi {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "Set",
                         "@id": "policy-id",
-                        "permission": [{
-                            "target": "asset-id",
-                            "action": "display"
-                        }]
+                        "permission": [],
+                        "prohibition": [],
+                        "obligation": [],
+                        "target": "assetId"
                     },
                     "callbackAddresses": [{
                         "transactional": false,

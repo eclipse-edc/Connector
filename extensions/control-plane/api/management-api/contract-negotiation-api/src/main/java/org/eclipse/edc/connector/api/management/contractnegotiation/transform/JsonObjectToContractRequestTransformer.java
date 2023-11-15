@@ -53,15 +53,17 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
                 .counterPartyAddress(transformString(jsonObject.get(CONNECTOR_ADDRESS), context))
                 .protocol(transformString(jsonObject.get(PROTOCOL), context));
 
-        var policy = transformObject(jsonObject.get(POLICY), Policy.class, context);
-        if (policy != null) {
+        var policyJson = jsonObject.get(POLICY);
+        if (policyJson != null) {
+            var policy = transformObject(jsonObject.get(POLICY), Policy.class, context);
             contractRequestBuilder.policy(policy);
         }
 
-        var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
-        if (contractOfferDescription != null) {
+        var offerJson = jsonObject.get(OFFER);
+        if (offerJson != null) {
             monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
                     OFFER, CONTRACT_REQUEST_TYPE, POLICY));
+            var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
             var contractOffer = ContractOffer.Builder.newInstance()
                     .id(contractOfferDescription.getOfferId())
                     .assetId(contractOfferDescription.getAssetId())

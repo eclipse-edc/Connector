@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.validation;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -35,9 +36,11 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.Mockito.mock;
 
 class ContractRequestValidatorTest {
 
+    private final Monitor monitor = mock();
     private final Validator<JsonObject> validator = ContractRequestValidator.instance();
 
     @Test
@@ -56,6 +59,41 @@ class ContractRequestValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void shouldFail_whenOfferMandatoryPropertiesAreMissing() {
+        var input = Json.createObjectBuilder()
+                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + OFFER_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + ASSET_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + POLICY));
+    }
+
+    @Test
+    void shouldFail_whenOfferAndPolicyAreMissing() {
+        var input = Json.createObjectBuilder()
+                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.message()).contains(OFFER))
+                .anySatisfy(violation -> assertThat(violation.message()).contains(POLICY));
     }
 
     @Test
