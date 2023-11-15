@@ -28,10 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
@@ -61,8 +59,6 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
 
         var offerJson = jsonObject.get(OFFER);
         if (offerJson != null) {
-            monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
-                    OFFER, CONTRACT_REQUEST_TYPE, POLICY));
             var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
             var contractOffer = ContractOffer.Builder.newInstance()
                     .id(contractOfferDescription.getOfferId())

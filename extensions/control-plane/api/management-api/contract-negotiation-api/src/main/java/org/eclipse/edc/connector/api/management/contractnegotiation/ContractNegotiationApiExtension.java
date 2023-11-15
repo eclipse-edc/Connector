@@ -74,7 +74,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         transformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
 
-        validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
+        validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance(monitor));
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
 
         var controller = new ContractNegotiationApiController(service, transformerRegistry, monitor, validatorRegistry);
