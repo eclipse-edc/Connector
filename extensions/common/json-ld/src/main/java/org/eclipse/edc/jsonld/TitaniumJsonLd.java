@@ -205,7 +205,7 @@ public class TitaniumJsonLd implements JsonLd {
             try {
                 documentCache.put(uri, loader.loadDocument(uri, new DocumentLoaderOptions()));
             } catch (JsonLdError e) {
-                throw new EdcException(e);
+                throw new EdcException("Error in caching json ld context %s from URI %s".formatted(contextUrl, uri), e);
             }
         }
 
