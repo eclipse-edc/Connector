@@ -33,11 +33,6 @@ class PrefixMonitorTest {
     private final Monitor mockMonitor = Mockito.mock();
     private final Monitor prefixMonitor = new PrefixMonitor(mockMonitor, TEST_PREFIX);
 
-    @BeforeEach
-    public void beforeEach() {
-        reset(mockMonitor);
-    }
-
     @Test
     void logSevere_byMessageSupplier_logIsDelegated() {
         prefixMonitor.severe(() -> TEST_MESSAGE);
