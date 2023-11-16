@@ -20,7 +20,6 @@ import org.mockito.Mockito;
 
 import java.util.function.Supplier;
 
-import static java.lang.String.format;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
