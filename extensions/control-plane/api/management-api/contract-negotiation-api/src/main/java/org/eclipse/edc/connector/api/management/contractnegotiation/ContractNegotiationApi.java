@@ -30,7 +30,6 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiSchema;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.policy.model.Policy;
 
 import java.util.List;
 
