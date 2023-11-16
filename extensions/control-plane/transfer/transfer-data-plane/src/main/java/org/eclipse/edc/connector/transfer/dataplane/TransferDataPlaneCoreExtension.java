@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.transfer.dataplane;
 
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
@@ -25,7 +24,6 @@ import org.eclipse.edc.connector.transfer.dataplane.flow.ProviderPushTransferDat
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
-import org.eclipse.edc.connector.transfer.dataplane.validation.ContractValidationRule;
 import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateValidationRule;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
@@ -58,9 +56,6 @@ import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConf
 public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Data Plane Core";
-
-    @Inject
-    private ContractNegotiationStore contractNegotiationStore;
 
     @Inject
     private Vault vault;
@@ -114,7 +109,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var keyPair = keyPairFromConfig(context);
         var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(keyPair.getPublic()), dataEncrypter, typeManager);
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
-        
+
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new TokenGenerationServiceImpl(keyPair.getPrivate()), tokenExpirationDateFunction);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorClient, resolver));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, dataPlaneClient));
@@ -137,7 +132,6 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     private TokenValidationService tokenValidationService(PublicKey publicKey) {
         var registry = new TokenValidationRulesRegistryImpl();
-        registry.addRule(new ContractValidationRule(contractNegotiationStore, clock));
         registry.addRule(new ExpirationDateValidationRule(clock));
         return new TokenValidationServiceImpl(id -> publicKey, registry);
     }

@@ -5,6 +5,9 @@ changelog:
     labels:
       - no-changelog
   categories:
+    - title: Breaking changes
+      labels:
+        - breaking-change
     - title: Bugfixes
       labels:
         - bug

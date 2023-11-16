@@ -23,7 +23,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
@@ -40,7 +39,7 @@ class ConsumerPullDataPlaneProxyTokenDecoratorTest {
         expiration = Date.from(Instant.now().plusSeconds(ThreadLocalRandom.current().nextInt(1, 10)));
         contractId = UUID.randomUUID().toString();
         encryptedDataAddress = UUID.randomUUID().toString();
-        decorator = new ConsumerPullDataPlaneProxyTokenDecorator(expiration, contractId, encryptedDataAddress);
+        decorator = new ConsumerPullDataPlaneProxyTokenDecorator(expiration, encryptedDataAddress);
     }
 
     @Test
@@ -48,7 +47,6 @@ class ConsumerPullDataPlaneProxyTokenDecoratorTest {
         var result = decorator.claims();
 
         assertThat(result)
-                .containsEntry(CONTRACT_ID, contractId)
                 .containsEntry(DATA_ADDRESS, encryptedDataAddress)
                 .containsEntry(EXPIRATION_TIME, expiration);
     }

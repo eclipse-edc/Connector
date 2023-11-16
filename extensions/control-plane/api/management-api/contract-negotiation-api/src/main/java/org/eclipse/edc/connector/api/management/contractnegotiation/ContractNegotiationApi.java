@@ -127,8 +127,11 @@ public interface ContractNegotiationApi {
             String type,
             @Schema(requiredMode = REQUIRED)
             String protocol,
-            @Schema(requiredMode = REQUIRED)
+            @Deprecated(since = "0.3.2")
+            @Schema(deprecated = true, description = "please use counterPartyAddress instead")
             String connectorAddress,
+            @Schema(requiredMode = REQUIRED)
+            String counterPartyAddress,
             @Schema(requiredMode = REQUIRED)
             String providerId,
             @Deprecated(since = "0.3.2")
@@ -142,7 +145,7 @@ public interface ContractNegotiationApi {
                 {
                     "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequest",
-                    "connectorAddress": "http://provider-address",
+                    "counterPartyAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
                     "providerId": "provider-id",
                     "policy": {
