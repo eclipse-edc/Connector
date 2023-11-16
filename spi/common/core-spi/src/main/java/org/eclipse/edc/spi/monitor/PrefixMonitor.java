@@ -17,7 +17,7 @@ package org.eclipse.edc.spi.monitor;
 import java.util.function.Supplier;
 
 /**
- * Monitor implementation which will prefix a supplied text to any log message.
+ * Monitor implementation which will prefix a supplied text to all log messages.
  * Note that this monitor will delegate the actual log execution to the underlying monitor provided by the context.
  */
 public class PrefixMonitor implements Monitor {
