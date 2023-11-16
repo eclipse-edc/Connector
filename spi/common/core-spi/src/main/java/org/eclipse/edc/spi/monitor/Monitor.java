@@ -65,7 +65,7 @@ public interface Monitor {
                 .orElse(null);
     }
 
-    default PrefixMonitor withPrefix(String prefix) {
+    default Monitor withPrefix(String prefix) {
         return new PrefixMonitor(this, prefix);
     }
 

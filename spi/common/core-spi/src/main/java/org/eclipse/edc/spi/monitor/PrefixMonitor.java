@@ -20,59 +20,55 @@ import java.util.function.Supplier;
  * Monitor implementation which will prefix a supplied text to all log messages.
  * Note that this monitor will delegate the actual log execution to the underlying monitor provided by the context.
  */
-public class PrefixMonitor implements Monitor {
+class PrefixMonitor implements Monitor {
 
     private static final String MESSAGE_FORMAT = "[%s]: %s";
 
     private final Monitor monitor;
     private final String prefix;
 
-    public PrefixMonitor(Monitor monitor, String prefix) {
+    PrefixMonitor(Monitor monitor, String prefix) {
         this.monitor = monitor;
         this.prefix = prefix;
     }
 
     @Override
     public void severe(Supplier<String> supplier, Throwable... errors) {
-        monitor.severe(() -> formatMessage(supplier.get(), prefix), errors);
+        monitor.severe(() -> MESSAGE_FORMAT.formatted(prefix, supplier.get()), errors);
     }
 
     @Override
     public void severe(String message, Throwable... errors) {
-        monitor.severe(formatMessage(message, prefix), errors);
+        monitor.severe(MESSAGE_FORMAT.formatted(prefix, message), errors);
     }
 
     @Override
     public void warning(Supplier<String> supplier, Throwable... errors) {
-        monitor.warning(() -> formatMessage(supplier.get(), prefix), errors);
+        monitor.warning(() -> MESSAGE_FORMAT.formatted(prefix, supplier.get()), errors);
     }
 
     @Override
     public void warning(String message, Throwable... errors) {
-        monitor.warning(formatMessage(message, prefix), errors);
+        monitor.warning(MESSAGE_FORMAT.formatted(prefix, message), errors);
     }
 
     @Override
     public void info(Supplier<String> supplier, Throwable... errors) {
-        monitor.info(() -> formatMessage(supplier.get(), prefix), errors);
+        monitor.info(() -> MESSAGE_FORMAT.formatted(prefix, supplier.get()), errors);
     }
 
     @Override
     public void info(String message, Throwable... errors) {
-        monitor.info(formatMessage(message, prefix), errors);
+        monitor.info(MESSAGE_FORMAT.formatted(prefix, message), errors);
     }
 
     @Override
     public void debug(Supplier<String> supplier, Throwable... errors) {
-        monitor.debug(() -> formatMessage(supplier.get(), prefix), errors);
+        monitor.debug(() -> MESSAGE_FORMAT.formatted(prefix, supplier.get()), errors);
     }
 
     @Override
     public void debug(String message, Throwable... errors) {
-        monitor.debug(formatMessage(message, prefix), errors);
-    }
-
-    private static String formatMessage(String message, String prefix) {
-        return String.format(MESSAGE_FORMAT, prefix, message);
+        monitor.debug(MESSAGE_FORMAT.formatted(prefix, message), errors);
     }
 }
