@@ -65,22 +65,10 @@ class ContractRequestValidatorTest {
     }
 
     @Test
-    void shouldFail_whenMandatoryPropertiesAreMissing() {
-        var input = Json.createObjectBuilder().build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER));
-    }
-
-    @Test
     void shouldFail_whenOfferMandatoryPropertiesAreMissing() {
         var input = Json.createObjectBuilder()
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
                 .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
@@ -90,9 +78,54 @@ class ContractRequestValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + OFFER_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + ASSET_ID))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER + "/" + POLICY));
+                .anySatisfy(violation -> assertThat(violation.path()).contains(OFFER_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).contains(ASSET_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).contains(POLICY));
+    }
+
+    @Test
+    void shouldFail_whenOfferAndPolicyAreMissing() {
+        var input = Json.createObjectBuilder()
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.message()).contains(OFFER))
+                .anySatisfy(violation -> assertThat(violation.message()).contains(POLICY));
+    }
+
+    @Test
+    void shouldFail_whenMandatoryPropertiesAreMissing() {
+        var input = Json.createObjectBuilder().build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL));
+    }
+
+    @Test
+    void shouldSucceed_whenDeprecatedOfferIsUsed() {
+        var input = Json.createObjectBuilder()
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .add(OFFER, createArrayBuilder().add(createObjectBuilder()
+                        .add(OFFER_ID, value("offerId"))
+                        .add(ASSET_ID, value("offerId"))
+                        .add(POLICY, createArrayBuilder().add(createObjectBuilder()))))
+                .build();
+
+        var result = validator.validate(input);
+        assertThat(result).isSucceeded();
+        verify(monitor).warning(anyString());
     }
 
     @Test
@@ -101,11 +134,7 @@ class ContractRequestValidatorTest {
                 .add(CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
-                .add(OFFER, createArrayBuilder().add(createObjectBuilder()
-                        .add(OFFER_ID, value("offerId"))
-                        .add(ASSET_ID, value("offerId"))
-                        .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
-                ))
+                .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
                 .build();
 
         var result = validator.validate(input);

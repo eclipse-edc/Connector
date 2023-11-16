@@ -58,10 +58,11 @@ class JsonObjectToContractRequestTransformerTest {
     private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private final TransformerContext context = mock();
     private JsonObjectToContractRequestTransformer transformer;
+    private final Monitor monitor = mock();
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToContractRequestTransformer();
+        transformer = new JsonObjectToContractRequestTransformer(monitor);
     }
 
     @Test

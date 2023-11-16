@@ -18,6 +18,8 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -30,13 +32,17 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 
 public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransformer<JsonObject, ContractRequest> {
 
-    public JsonObjectToContractRequestTransformer() {
+    private final Monitor monitor;
+
+    public JsonObjectToContractRequestTransformer(Monitor monitor) {
         super(JsonObject.class, ContractRequest.class);
+        this.monitor = monitor;
     }
 
     @Override
@@ -46,13 +52,22 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
                 .counterPartyAddress(counterPartyAddressOrConnectorAddress(jsonObject, context))
                 .protocol(transformString(jsonObject.get(PROTOCOL), context));
 
-        var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
-        var contractOffer = ContractOffer.Builder.newInstance()
-                .id(contractOfferDescription.getOfferId())
-                .assetId(contractOfferDescription.getAssetId())
-                .policy(contractOfferDescription.getPolicy())
-                .build();
-        contractRequestBuilder.contractOffer(contractOffer);
+        var policyJson = jsonObject.get(POLICY);
+        if (policyJson != null) {
+            var policy = transformObject(jsonObject.get(POLICY), Policy.class, context);
+            contractRequestBuilder.policy(policy);
+        }
+
+        var offerJson = jsonObject.get(OFFER);
+        if (offerJson != null) {
+            var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
+            var contractOffer = ContractOffer.Builder.newInstance()
+                    .id(contractOfferDescription.getOfferId())
+                    .assetId(contractOfferDescription.getAssetId())
+                    .policy(contractOfferDescription.getPolicy())
+                    .build();
+            contractRequestBuilder.contractOffer(contractOffer);
+        }
 
         var callbackAddress = jsonObject.get(CALLBACK_ADDRESSES);
         if (callbackAddress != null) {
