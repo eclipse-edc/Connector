@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 class PrefixMonitor implements Monitor {
 
-    private static final String MESSAGE_FORMAT = "[%s]: %s";
+    private static final String MESSAGE_FORMAT = "[%s] %s";
 
     private final Monitor monitor;
     private final String prefix;

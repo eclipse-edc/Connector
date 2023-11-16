@@ -30,61 +30,60 @@ class PrefixMonitorTest {
 
     private static final String TEST_PREFIX = "Test Prefix";
     private static final String TEST_MESSAGE = "Test Message";
-    private static final String MESSAGE_FORMAT = "[%s]: %s";
-    private static final String EXPECTED_MESSAGE = format(MESSAGE_FORMAT, TEST_PREFIX, TEST_MESSAGE);
-    private final Monitor consoleMonitor = Mockito.mock(ConsoleMonitor.class);
-    private final Monitor prefixMonitor = new PrefixMonitor(consoleMonitor, TEST_PREFIX);
+    private static final String EXPECTED_MESSAGE = "[Test Prefix] Test Message";
+    private final Monitor mockMonitor = Mockito.mock();
+    private final Monitor prefixMonitor = new PrefixMonitor(mockMonitor, TEST_PREFIX);
 
     @BeforeEach
     public void beforeEach() {
-        reset(consoleMonitor);
+        reset(mockMonitor);
     }
 
     @Test
     void logSevere_byMessageSupplier_logIsDelegated() {
         prefixMonitor.severe(() -> TEST_MESSAGE);
-        verify(consoleMonitor).severe(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
+        verify(mockMonitor).severe(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
     }
 
     @Test
     void logSevere_byMessageString_logIsDelegated() {
         prefixMonitor.severe(TEST_MESSAGE);
-        verify(consoleMonitor).severe(eq(EXPECTED_MESSAGE));
+        verify(mockMonitor).severe(eq(EXPECTED_MESSAGE));
     }
 
     @Test
     void logWarning_byMessageSupplier_logIsDelegated() {
         prefixMonitor.warning(() -> TEST_MESSAGE);
-        verify(consoleMonitor).warning(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
+        verify(mockMonitor).warning(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
     }
 
     @Test
     void logWarning_byMessageString_logIsDelegated() {
         prefixMonitor.warning(TEST_MESSAGE);
-        verify(consoleMonitor).warning(eq(EXPECTED_MESSAGE));
+        verify(mockMonitor).warning(eq(EXPECTED_MESSAGE));
     }
 
     @Test
     void logInfo_byMessageSupplier_logIsDelegated() {
         prefixMonitor.info(() -> TEST_MESSAGE);
-        verify(consoleMonitor).info(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
+        verify(mockMonitor).info(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
     }
 
     @Test
     void logInfo_byMessageString_logIsDelegated() {
         prefixMonitor.info(TEST_MESSAGE);
-        verify(consoleMonitor).info(eq(EXPECTED_MESSAGE));
+        verify(mockMonitor).info(eq(EXPECTED_MESSAGE));
     }
 
     @Test
     void logDebug_byMessageSupplier_logIsDelegated() {
         prefixMonitor.debug(() -> TEST_MESSAGE);
-        verify(consoleMonitor).debug(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
+        verify(mockMonitor).debug(argThat((Supplier<String> supplier) -> EXPECTED_MESSAGE.equals(supplier.get())));
     }
 
     @Test
     void logDebug_byMessageString_logIsDelegated() {
         prefixMonitor.debug(TEST_MESSAGE);
-        verify(consoleMonitor).debug(eq(EXPECTED_MESSAGE));
+        verify(mockMonitor).debug(eq(EXPECTED_MESSAGE));
     }
 }
