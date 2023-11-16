@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.spi.monitor;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -22,7 +21,6 @@ import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 class PrefixMonitorTest {
