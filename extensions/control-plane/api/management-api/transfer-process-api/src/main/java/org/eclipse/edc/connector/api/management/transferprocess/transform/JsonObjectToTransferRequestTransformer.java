@@ -37,6 +37,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANS
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROPERTIES;
@@ -54,7 +55,7 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
 
         builder.id(nodeId(input));
         visitProperties(input, k -> switch (k) {
-            case TRANSFER_REQUEST_CONNECTOR_ADDRESS -> v -> builder.connectorAddress(transformString(v, context));
+            case TRANSFER_REQUEST_CONNECTOR_ADDRESS, TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS -> v -> builder.counterPartyAddress(transformString(v, context));
             case TRANSFER_REQUEST_CONTRACT_ID -> (v) -> builder.contractId(transformString(v, context));
             case TRANSFER_REQUEST_DATA_DESTINATION ->
                     v -> builder.dataDestination(transformObject(v, DataAddress.class, context));
@@ -91,9 +92,7 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
             return;
         }
         var properties = new HashMap<String, Object>();
-        visitProperties(jsonObject, (k, v) -> {
-            properties.put(k, transformString(v, context));
-        });
+        visitProperties(jsonObject, (k, v) -> properties.put(k, transformString(v, context)));
         consumer.accept(properties);
     }
 
@@ -114,9 +113,7 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
             return;
         }
         var properties = new HashMap<String, String>();
-        visitProperties(jsonObject, (k, v) -> {
-            properties.put(k, transformString(v, context));
-        });
+        visitProperties(jsonObject, (k, v) -> properties.put(k, transformString(v, context)));
         consumer.accept(properties);
     }
 }

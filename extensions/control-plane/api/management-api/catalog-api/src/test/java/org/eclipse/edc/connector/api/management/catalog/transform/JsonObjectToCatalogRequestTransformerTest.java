@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.api.management.catalog.transform;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.CatalogRequest;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,6 @@ import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_S
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -40,8 +38,7 @@ import static org.mockito.Mockito.when;
 class JsonObjectToCatalogRequestTransformerTest {
 
     private final TransformerContext context = mock();
-    private final Monitor monitor = mock();
-    private final JsonObjectToCatalogRequestTransformer transformer = new JsonObjectToCatalogRequestTransformer(monitor);
+    private final JsonObjectToCatalogRequestTransformer transformer = new JsonObjectToCatalogRequestTransformer();
 
     @Test
     void types() {
@@ -89,7 +86,6 @@ class JsonObjectToCatalogRequestTransformerTest {
         assertThat(result.getCounterPartyAddress()).isEqualTo("http://provider/url");
         assertThat(result.getQuerySpec()).isEqualTo(querySpec);
         verify(context).transform(querySpecJson, QuerySpec.class);
-        verify(monitor).warning(anyString());
     }
 
     @Test

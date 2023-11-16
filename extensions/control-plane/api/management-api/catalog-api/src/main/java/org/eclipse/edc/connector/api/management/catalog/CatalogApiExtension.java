@@ -58,12 +58,12 @@ public class CatalogApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        transformerRegistry.register(new JsonObjectToCatalogRequestTransformer(context.getMonitor()));
+        transformerRegistry.register(new JsonObjectToCatalogRequestTransformer());
         transformerRegistry.register(new JsonObjectToDatasetRequestTransformer());
 
         webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, validatorRegistry));
 
-        validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance());
+        validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(context.getMonitor()));
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
     }
 }

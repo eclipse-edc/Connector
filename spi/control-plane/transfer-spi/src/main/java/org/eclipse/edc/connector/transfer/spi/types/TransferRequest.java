@@ -27,7 +27,9 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class TransferRequest {
 
     public static final String TRANSFER_REQUEST_TYPE = EDC_NAMESPACE + "TransferRequest";
+    @Deprecated(since = "0.3.2")
     public static final String TRANSFER_REQUEST_CONNECTOR_ADDRESS = EDC_NAMESPACE + "connectorAddress";
+    public static final String TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     @Deprecated(since = "0.2.0")
@@ -40,7 +42,7 @@ public class TransferRequest {
 
     private String id;
     private String protocol;
-    private String connectorAddress;
+    private String counterPartyAddress;
     private String connectorId;
     private String contractId;
     private String assetId;
@@ -50,8 +52,8 @@ public class TransferRequest {
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     public String getId() {
@@ -102,8 +104,8 @@ public class TransferRequest {
             return new Builder();
         }
 
-        public Builder connectorAddress(String connectorAddress) {
-            request.connectorAddress = connectorAddress;
+        public Builder counterPartyAddress(String counterPartyAddress) {
+            request.counterPartyAddress = counterPartyAddress;
             return this;
         }
 

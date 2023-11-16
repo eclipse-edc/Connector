@@ -247,7 +247,7 @@ public class Participant {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "ContractRequestDto")
                 .add("providerId", provider.id)
-                .add("connectorAddress", provider.protocolEndpoint.url.toString())
+                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", DSP_PROTOCOL)
                 .add("offer", createObjectBuilder()
                         .add("offerId", offerId)
@@ -292,7 +292,7 @@ public class Participant {
                 .add("assetId", assetId)
                 .add("contractId", contractAgreementId)
                 .add("connectorId", provider.id)
-                .add("connectorAddress", provider.protocolEndpoint.url.toString())
+                .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("privateProperties", privateProperties)
                 .build();
 
