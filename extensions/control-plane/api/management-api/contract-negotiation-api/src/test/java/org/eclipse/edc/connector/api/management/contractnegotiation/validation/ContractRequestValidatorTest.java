@@ -37,8 +37,8 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class ContractRequestValidatorTest {
@@ -67,6 +67,7 @@ class ContractRequestValidatorTest {
     @Test
     void shouldFail_whenOfferMandatoryPropertiesAreMissing() {
         var input = Json.createObjectBuilder()
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
@@ -77,9 +78,9 @@ class ContractRequestValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(OFFER));
+                .anySatisfy(violation -> assertThat(violation.path()).contains(OFFER_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).contains(ASSET_ID))
+                .anySatisfy(violation -> assertThat(violation.path()).contains(POLICY));
     }
 
     @Test
@@ -88,7 +89,6 @@ class ContractRequestValidatorTest {
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
-                .add(OFFER, createArrayBuilder().add(createObjectBuilder()))
                 .build();
 
         var result = validator.validate(input);
@@ -107,8 +107,25 @@ class ContractRequestValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONNECTOR_ADDRESS))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL));
+    }
+
+    @Test
+    void shouldSucceed_whenDeprecatedOfferIsUsed() {
+        var input = Json.createObjectBuilder()
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .add(OFFER, createArrayBuilder().add(createObjectBuilder()
+                        .add(OFFER_ID, value("offerId"))
+                        .add(ASSET_ID, value("offerId"))
+                        .add(POLICY, createArrayBuilder().add(createObjectBuilder()))))
+                .build();
+
+        var result = validator.validate(input);
+        assertThat(result).isSucceeded();
+        verify(monitor).warning(anyString());
     }
 
     @Test
@@ -117,11 +134,7 @@ class ContractRequestValidatorTest {
                 .add(CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
-                .add(OFFER, createArrayBuilder().add(createObjectBuilder()
-                        .add(OFFER_ID, value("offerId"))
-                        .add(ASSET_ID, value("offerId"))
-                        .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
-                ))
+                .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
                 .build();
 
         var result = validator.validate(input);

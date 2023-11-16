@@ -66,8 +66,9 @@ public class ContractRequestValidator {
             }
 
             return ValidationResult.failure(Violation.violation(format("'%s' or '%s' must not be empty", OFFER, POLICY), path.toString()));
+        }
     }
-          
+
     /**
      * This custom validator can be removed once `connectorAddress` is deleted and exists only for legacy reasons
      */
