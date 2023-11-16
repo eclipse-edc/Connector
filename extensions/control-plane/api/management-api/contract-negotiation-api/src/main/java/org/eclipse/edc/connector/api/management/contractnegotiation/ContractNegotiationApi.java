@@ -135,7 +135,7 @@ public interface ContractNegotiationApi {
             @Deprecated(since = "0.3.2")
             @Schema(deprecated = true, description = "please use policy instead of offer")
             ContractOfferDescriptionSchema offer,
-            Policy policy,
+            ManagementApiSchema.PolicySchema policy,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
         // policy example took from https://w3c.github.io/odrl/bp/
