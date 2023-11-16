@@ -27,6 +27,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.document.JarLoader;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
@@ -177,7 +178,8 @@ public class TitaniumJsonLd implements JsonLd {
 
     private static class CachedDocumentLoader implements DocumentLoader {
 
-        private final Map<String, URI> cache = new HashMap<>();
+        private final Map<String, URI> uriCache = new HashMap<>();
+        private final Map<URI, Document> documentCache = new HashMap<>();
         private final DocumentLoader loader;
 
         CachedDocumentLoader(JsonLdConfiguration configuration) {
@@ -191,14 +193,20 @@ public class TitaniumJsonLd implements JsonLd {
         @Override
         public Document loadDocument(URI url, DocumentLoaderOptions options) throws JsonLdError {
             var uri = Optional.of(url.toString())
-                    .map(cache::get)
+                    .map(uriCache::get)
                     .orElse(url);
 
-            return loader.loadDocument(uri, options);
+            return Optional.of(documentCache.get(uri))
+                    .orElse(loader.loadDocument(uri, options));
         }
 
         public void register(String contextUrl, URI uri) {
-            cache.put(contextUrl, uri);
+            uriCache.put(contextUrl, uri);
+            try {
+                documentCache.put(uri, loader.loadDocument(uri, new DocumentLoaderOptions()));
+            } catch (JsonLdError e) {
+                throw new EdcException(e);
+            }
         }
 
     }
