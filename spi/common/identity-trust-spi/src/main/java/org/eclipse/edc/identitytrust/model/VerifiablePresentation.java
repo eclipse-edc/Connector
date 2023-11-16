@@ -95,10 +95,6 @@ public class VerifiablePresentation {
             if (instance.types == null || instance.types.isEmpty()) {
                 throw new IllegalArgumentException("VerifiablePresentation must have at least one type.");
             }
-            // these next two aren't mandated by the spec, but there is no point in having a VP without credentials or a proof.
-            if (instance.credentials == null || instance.credentials.isEmpty()) {
-                throw new IllegalArgumentException("VerifiablePresentation must have at least one credential.");
-            }
             return instance;
         }
     }

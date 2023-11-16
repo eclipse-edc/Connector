@@ -130,6 +130,8 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     private Result<VerifiablePresentationContainer> parseJwtVp(String rawJwt) {
         try {
             var jwt = SignedJWT.parse(rawJwt);
+            var claims = jwt.getJWTClaimsSet();
+            var vp = claims.getClaim("vp");
             //todo: parse JWT VP
             return success(new VerifiablePresentationContainer(rawJwt, CredentialFormat.JWT, null));
         } catch (ParseException e) {

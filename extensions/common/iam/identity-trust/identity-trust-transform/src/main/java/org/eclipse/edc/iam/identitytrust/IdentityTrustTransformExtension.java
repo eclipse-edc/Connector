@@ -16,6 +16,8 @@ package org.eclipse.edc.iam.identitytrust;
 
 import org.eclipse.edc.iam.identitytrust.transform.from.JsonObjectFromPresentationQueryTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToPresentationQueryTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiableCredentialTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiablePresentationTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -57,6 +59,8 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
 
         typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));
         typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer());
+        typeTransformerRegistry.register(new JwtToVerifiablePresentationTransformer(context.getMonitor(), typeManager.getMapper(JSON_LD)));
+        typeTransformerRegistry.register(new JwtToVerifiableCredentialTransformer(context.getMonitor()));
     }
 
     @NotNull
