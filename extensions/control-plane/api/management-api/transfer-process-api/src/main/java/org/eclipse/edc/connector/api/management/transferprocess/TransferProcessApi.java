@@ -128,8 +128,11 @@ public interface TransferProcessApi {
             String type,
             @Schema(requiredMode = REQUIRED)
             String protocol,
-            @Schema(requiredMode = REQUIRED)
+            @Deprecated(since = "0.3.2")
+            @Schema(deprecated = true, description = "please use counterPartyAddress instead")
             String connectorAddress,
+            @Schema(requiredMode = REQUIRED)
+            String counterPartyAddress,
             @Schema(requiredMode = REQUIRED)
             String connectorId,
             @Schema(requiredMode = REQUIRED)
@@ -149,7 +152,7 @@ public interface TransferProcessApi {
                     "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TransferRequest",
                     "protocol": "dataspace-protocol-http",
-                    "connectorAddress": "http://provider-address",
+                    "counterPartyAddress": "http://provider-address",
                     "connectorId": "provider-id",
                     "contractId": "contract-id",
                     "assetId": "asset-id",

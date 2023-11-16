@@ -30,6 +30,7 @@ import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class ContractNegotiationApiTest {
 
@@ -62,7 +64,7 @@ class ContractNegotiationApiTest {
 
     @Test
     void contractRequestExample() throws JsonProcessingException {
-        var validator = ContractRequestValidator.instance();
+        var validator = ContractRequestValidator.instance(mock(Monitor.class));
 
         var jsonObject = objectMapper.readValue(CONTRACT_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -72,9 +74,7 @@ class ContractNegotiationApiTest {
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
                 .extracting(e -> transformer.transform(e, ContractRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
-                        .satisfies(transformed -> {
-                            assertThat(transformed.getProviderId()).isNotBlank();
-                        }));
+                        .satisfies(transformed -> assertThat(transformed.getProviderId()).isNotBlank()));
     }
 
     @Test

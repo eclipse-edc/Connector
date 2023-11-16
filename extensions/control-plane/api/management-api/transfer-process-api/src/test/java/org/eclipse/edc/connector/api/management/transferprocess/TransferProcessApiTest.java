@@ -30,6 +30,7 @@ import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTrans
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class TransferProcessApiTest {
 
@@ -78,7 +80,7 @@ class TransferProcessApiTest {
 
     @Test
     void transferRequestExample() throws JsonProcessingException {
-        var validator = TransferRequestValidator.instance();
+        var validator = TransferRequestValidator.instance(mock(Monitor.class));
 
         var jsonObject = objectMapper.readValue(TRANSFER_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -89,7 +91,7 @@ class TransferProcessApiTest {
                 .extracting(e -> transformer.transform(e, TransferRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
-                            assertThat(transformed.getConnectorAddress()).isNotBlank();
+                            assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                             assertThat(transformed.getContractId()).isNotBlank();
                             assertThat(transformed.getProtocol()).isNotBlank();
                             assertThat(transformed.getConnectorId()).isNotBlank();
@@ -112,9 +114,7 @@ class TransferProcessApiTest {
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
                 .extracting(e -> transformer.transform(e, TerminateTransfer.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
-                        .satisfies(transformed -> {
-                            assertThat(transformed.reason()).isNotBlank();
-                        }));
+                        .satisfies(transformed -> assertThat(transformed.reason()).isNotBlank()));
     }
 
     @Test

@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
-import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
@@ -32,12 +31,10 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 class ConsumerPullDataPlaneProxyTokenDecorator implements JwtDecorator {
 
     private final Date expirationDate;
-    private final String contractId;
     private final String encryptedDataAddress;
 
-    ConsumerPullDataPlaneProxyTokenDecorator(Date expirationDate, String contractId, String encryptedDataAddress) {
+    ConsumerPullDataPlaneProxyTokenDecorator(Date expirationDate, String encryptedDataAddress) {
         this.expirationDate = expirationDate;
-        this.contractId = contractId;
         this.encryptedDataAddress = encryptedDataAddress;
     }
 
@@ -45,7 +42,6 @@ class ConsumerPullDataPlaneProxyTokenDecorator implements JwtDecorator {
     public Map<String, Object> claims() {
         return Map.of(
                 EXPIRATION_TIME, expirationDate,
-                CONTRACT_ID, contractId,
                 DATA_ADDRESS, encryptedDataAddress
         );
     }

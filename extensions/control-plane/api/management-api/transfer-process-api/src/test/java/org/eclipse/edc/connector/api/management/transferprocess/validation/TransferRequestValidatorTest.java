@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.management.transferprocess.validation;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -30,19 +31,42 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANS
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class TransferRequestValidatorTest {
 
-    private final Validator<JsonObject> validator = TransferRequestValidator.instance();
+    private final Monitor monitor = mock();
+    private final Validator<JsonObject> validator = TransferRequestValidator.instance(monitor);
 
     @Test
     void shouldSucceed_whenObjectIsValid() {
+        var input = Json.createObjectBuilder()
+                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
+                .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
+                .add(TRANSFER_REQUEST_CONNECTOR_ID, value("connectorId"))
+                .add(TRANSFER_REQUEST_ASSET_ID, value("assetId"))
+                .add(TRANSFER_REQUEST_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
+                        .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("type"))
+                ))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void shouldSucceed_whenDeprecatedConnectorAddressIsUsed() {
         var input = Json.createObjectBuilder()
                 .add(TRANSFER_REQUEST_CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
@@ -57,6 +81,7 @@ class TransferRequestValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isSucceeded();
+        verify(monitor).warning(anyString());
     }
 
     @Test
@@ -81,7 +106,7 @@ class TransferRequestValidatorTest {
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONNECTOR_ADDRESS))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONTRACT_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_PROTOCOL))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONNECTOR_ID))

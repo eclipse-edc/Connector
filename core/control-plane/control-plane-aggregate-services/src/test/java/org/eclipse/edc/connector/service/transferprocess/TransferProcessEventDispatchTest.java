@@ -224,7 +224,7 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .protocol("test")
-                .connectorAddress("http://an/address")
+                .counterPartyAddress("http://an/address")
                 .contractId("contractId")
                 .build();
     }
