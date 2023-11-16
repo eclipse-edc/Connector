@@ -36,7 +36,6 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
-    @Deprecated(since = "0.3.1")
     public static final String TRANSFER_REQUEST_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
@@ -44,7 +43,6 @@ public class TransferRequest {
     private String id;
     private String protocol;
     private String counterPartyAddress;
-    @Deprecated(since = "0.3.1")
     private String connectorId;
     private String contractId;
     private String assetId;
