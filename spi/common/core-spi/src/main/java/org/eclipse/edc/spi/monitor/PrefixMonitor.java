@@ -11,6 +11,7 @@
  *       Mercedes-Benz Tech Innovation GmbH -  initial implementation
  *
  */
+
 package org.eclipse.edc.spi.monitor;
 
 import java.util.function.Supplier;
