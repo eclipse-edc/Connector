@@ -35,9 +35,11 @@ import java.util.Map;
 import static java.util.Optional.ofNullable;
 
 public class JwtToVerifiableCredentialTransformer implements TypeTransformer<String, VerifiableCredential> {
-    public static final String TYPE_CLAIM = "type";
     public static final String EXPIRATION_DATE_PROPERTY = "expirationDate";
     public static final String ISSUANCE_DATE_PROPERTY = "issuanceDate";
+    public static final String ID_PROPERTY = "id";
+    public static final String TYPE_PROPERTY = "type";
+    public static final String TYPE_CLAIM = TYPE_PROPERTY;
     private static final String VC_CLAIM = "vc";
     private static final String SUBJECT_CLAIM = "credentialSubject";
     private static final String CREDENTIAL_STATUS_PROPERTY = "credentialStatus";
@@ -103,8 +105,8 @@ public class JwtToVerifiableCredentialTransformer implements TypeTransformer<Str
         if (status == null || status.isEmpty()) {
             return null;
         }
-        var id = status.remove("id").toString();
-        var type = status.remove("type").toString();
+        var id = status.remove(ID_PROPERTY).toString();
+        var type = status.remove(TYPE_PROPERTY).toString();
 
         return new CredentialStatus(id, type, status);
     }
