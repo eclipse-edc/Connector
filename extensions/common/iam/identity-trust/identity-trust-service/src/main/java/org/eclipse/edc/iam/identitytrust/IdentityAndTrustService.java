@@ -122,8 +122,6 @@ public class IdentityAndTrustService implements IdentityService {
             return issuerResult.mapTo();
         }
 
-        //todo: implement actual VP request, currently it's a stub
-        // https://github.com/eclipse-edc/Connector/issues/3495
         var vpResponse = credentialServiceClient.requestPresentation(null, null, null);
 
         if (vpResponse.failed()) {

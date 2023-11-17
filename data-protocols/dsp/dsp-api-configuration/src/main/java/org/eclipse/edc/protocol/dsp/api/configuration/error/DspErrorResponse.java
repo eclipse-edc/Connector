@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.api.configuration.error;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.protocol.dsp.DspError;
-import org.eclipse.edc.service.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

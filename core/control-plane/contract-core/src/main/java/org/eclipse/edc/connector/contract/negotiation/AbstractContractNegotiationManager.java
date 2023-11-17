@@ -18,7 +18,6 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
@@ -27,6 +26,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 
@@ -49,7 +49,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
     abstract ContractNegotiation.Type type();
 
     protected Processor processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
-        var filter = new Criterion[] { hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name()) };
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name()) };
         return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)

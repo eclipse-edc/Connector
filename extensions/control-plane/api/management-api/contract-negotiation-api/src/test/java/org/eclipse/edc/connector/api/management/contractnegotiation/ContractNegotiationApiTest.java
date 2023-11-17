@@ -30,6 +30,7 @@ import org.eclipse.edc.core.transform.transformer.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,16 +45,18 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class ContractNegotiationApiTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new JsonLdExtension().createJsonLdService(testServiceExtensionContext());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final Monitor monitor = mock();
 
     @BeforeEach
     void setUp() {
-        transformer.register(new JsonObjectToContractRequestTransformer());
+        transformer.register(new JsonObjectToContractRequestTransformer(monitor));
         transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
@@ -62,7 +65,7 @@ class ContractNegotiationApiTest {
 
     @Test
     void contractRequestExample() throws JsonProcessingException {
-        var validator = ContractRequestValidator.instance();
+        var validator = ContractRequestValidator.instance(monitor);
 
         var jsonObject = objectMapper.readValue(CONTRACT_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -72,9 +75,7 @@ class ContractNegotiationApiTest {
                 .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
                 .extracting(e -> transformer.transform(e, ContractRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
-                        .satisfies(transformed -> {
-                            assertThat(transformed.getProviderId()).isNotBlank();
-                        }));
+                        .satisfies(transformed -> assertThat(transformed.getProviderId()).isNotBlank()));
     }
 
     @Test

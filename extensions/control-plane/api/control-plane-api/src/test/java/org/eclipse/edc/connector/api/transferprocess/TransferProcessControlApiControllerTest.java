@@ -18,7 +18,7 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.junit.annotations.ApiTest;
-import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -58,7 +58,7 @@ public class TransferProcessControlApiControllerTest extends RestControllerTestB
                     "errorMessage": "testError"
                 }
                 """;
-        
+
         when(transferProcessService.terminate(any())).thenReturn(ServiceResult.success());
         baseRequest()
                 .contentType(JSON)

@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.spi.contractagreement;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 
 import java.util.stream.Stream;
 

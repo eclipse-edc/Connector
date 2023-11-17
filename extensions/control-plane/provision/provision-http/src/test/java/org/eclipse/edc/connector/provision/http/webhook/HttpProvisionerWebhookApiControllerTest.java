@@ -18,7 +18,7 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.junit.annotations.ApiTest;
-import org.eclipse.edc.service.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;

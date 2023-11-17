@@ -56,7 +56,6 @@ public class SelfIssuedIdTokenValidator implements JwtValidator {
             var iss = claims.getIssuer();
             var aud = claims.getAudience();
             var jti = claims.getClaim("jti");
-            var clientId = claims.getClaim("client_id");
             var sub = claims.getSubject();
             var exp = claims.getExpirationTime();
             var subJwk = claims.getClaim("sub_jwk");
@@ -69,9 +68,6 @@ public class SelfIssuedIdTokenValidator implements JwtValidator {
             }
             if (!aud.contains(audience)) {
                 return failure("The aud claim expected to be %s but was %s".formatted(audience, aud));
-            }
-            if (!Objects.equals(clientId, iss)) {
-                return failure("The client_id must be equal to the issuer ID");
             }
             if (jti == null) {
                 return failure("The jti claim is mandatory.");

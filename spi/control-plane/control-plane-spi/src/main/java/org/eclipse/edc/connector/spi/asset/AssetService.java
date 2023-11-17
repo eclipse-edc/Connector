@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.spi.asset;
 
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.stream.Stream;

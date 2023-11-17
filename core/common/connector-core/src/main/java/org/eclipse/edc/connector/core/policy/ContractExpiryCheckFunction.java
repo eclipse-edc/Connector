@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.connector.core.policy;
 
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 
 import java.time.Duration;
 import java.time.Instant;

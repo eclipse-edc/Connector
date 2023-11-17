@@ -132,7 +132,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .assetId(transferRequest.getAssetId())
                 .connectorId(transferRequest.getConnectorId())
                 .dataDestination(transferRequest.getDataDestination())
-                .connectorAddress(transferRequest.getConnectorAddress())
+                .connectorAddress(transferRequest.getCounterPartyAddress())
                 .contractId(transferRequest.getContractId())
                 .destinationType(transferRequest.getDataDestination().getType())
                 .protocol(transferRequest.getProtocol())

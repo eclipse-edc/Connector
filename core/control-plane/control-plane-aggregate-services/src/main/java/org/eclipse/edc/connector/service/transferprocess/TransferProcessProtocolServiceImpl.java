@@ -30,10 +30,10 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessa
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;

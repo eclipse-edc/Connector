@@ -36,7 +36,7 @@ import static org.eclipse.edc.connector.api.management.contractnegotiation.model
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
@@ -58,17 +58,18 @@ class JsonObjectToContractRequestTransformerTest {
     private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private final TransformerContext context = mock();
     private JsonObjectToContractRequestTransformer transformer;
+    private final Monitor monitor = mock();
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToContractRequestTransformer();
+        transformer = new JsonObjectToContractRequestTransformer(monitor);
     }
 
     @Test
     void transform() {
         var jsonObject = Json.createObjectBuilder()
                 .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
-                .add(CONNECTOR_ADDRESS, "test-address")
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
                 .add(PROTOCOL, "test-protocol")
                 .add(PROVIDER_ID, "test-provider-id")
                 .add(CALLBACK_ADDRESSES, createCallbackAddress())
@@ -109,10 +110,10 @@ class JsonObjectToContractRequestTransformerTest {
     }
 
     @Test
-    void transform_shouldSetProviderIdAsConnectorAddress_whenProviderIdNotDefined() {
+    void transform_shouldSetProviderIdAsCounterPartyAddress_whenProviderIdNotDefined() {
         var jsonObject = Json.createObjectBuilder()
                 .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
-                .add(CONNECTOR_ADDRESS, "test-address")
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
                 .add(PROTOCOL, "test-protocol")
                 .add(OFFER, Json.createObjectBuilder()
                         .add(OFFER_ID, "test-offer-id")

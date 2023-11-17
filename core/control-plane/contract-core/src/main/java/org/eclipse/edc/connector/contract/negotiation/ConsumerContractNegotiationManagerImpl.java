@@ -20,13 +20,13 @@ package org.eclipse.edc.connector.contract.negotiation;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import java.util.UUID;

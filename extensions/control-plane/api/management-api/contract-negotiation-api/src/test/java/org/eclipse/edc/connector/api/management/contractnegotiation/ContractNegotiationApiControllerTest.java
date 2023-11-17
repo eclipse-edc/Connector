@@ -21,18 +21,18 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -327,7 +327,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void initiate() {
+    void initiate_with_contractOffer() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         var contractNegotiation = createContractNegotiation("cn1");
         var responseBody = createObjectBuilder().add(TYPE, ID_RESPONSE_TYPE).add(ID, contractNegotiation.getId()).build();
@@ -342,6 +342,39 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
                                 .assetId(randomUUID().toString())
                                 .policy(Policy.Builder.newInstance().build())
                                 .build())
+                        .build()));
+
+        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
+        when(service.initiateNegotiation(any(ContractRequest.class))).thenReturn(contractNegotiation);
+
+        when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
+
+        baseRequest()
+                .contentType(JSON)
+                .body(createObjectBuilder().build())
+                .post()
+                .then()
+                .statusCode(200)
+                .body(ID, is(contractNegotiation.getId()));
+
+        verify(service).initiateNegotiation(any());
+        verify(transformerRegistry).transform(any(JsonObject.class), eq(ContractRequest.class));
+        verify(transformerRegistry).transform(any(IdResponse.class), eq(JsonObject.class));
+        verifyNoMoreInteractions(transformerRegistry, service);
+    }
+
+    @Test
+    void initiate_with_policy() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        var contractNegotiation = createContractNegotiation("cn1");
+        var responseBody = createObjectBuilder().add(TYPE, ID_RESPONSE_TYPE).add(ID, contractNegotiation.getId()).build();
+
+        when(transformerRegistry.transform(any(JsonObject.class), eq(ContractRequest.class))).thenReturn(Result.success(
+                ContractRequest.Builder.newInstance()
+                        .protocol("test-protocol")
+                        .providerId("test-provider-id")
+                        .counterPartyAddress("test-cb")
+                        .policy(Policy.Builder.newInstance().build())
                         .build()));
 
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));

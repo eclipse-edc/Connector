@@ -19,6 +19,8 @@ plugins {
 dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":spi:common:identity-trust-sts-spi"))
+    testImplementation(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote"))
+    testImplementation(project(":extensions:common:iam:oauth2:oauth2-client"))
 
     testImplementation(libs.restAssured)
     testImplementation(libs.assertj)

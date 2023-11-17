@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.web.spi.exception;
 
-import org.eclipse.edc.service.spi.result.ServiceFailure;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

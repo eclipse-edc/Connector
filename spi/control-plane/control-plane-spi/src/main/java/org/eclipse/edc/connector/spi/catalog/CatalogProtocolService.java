@@ -17,8 +17,8 @@ package org.eclipse.edc.connector.spi.catalog;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
 
 /**

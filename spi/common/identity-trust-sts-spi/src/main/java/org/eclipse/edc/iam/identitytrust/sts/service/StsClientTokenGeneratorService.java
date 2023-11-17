@@ -17,8 +17,8 @@ package org.eclipse.edc.iam.identitytrust.sts.service;
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.service.spi.result.ServiceResult;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.result.ServiceResult;
 
 /**
  * Self-Issued ID Token minting interface.

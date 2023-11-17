@@ -20,7 +20,6 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:aggregate-service-spi"))
     api(project(":spi:common:jwt-spi"))
 
     testFixturesImplementation(libs.bundles.jupiter)

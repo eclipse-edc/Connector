@@ -25,6 +25,9 @@ import java.util.Objects;
 public class StsClientTokenAdditionalParams {
 
     private String bearerAccessScope;
+
+    private String bearerAccessAlias;
+
     private String audience;
     private String accessToken;
 
@@ -42,6 +45,10 @@ public class StsClientTokenAdditionalParams {
 
     public String getAccessToken() {
         return accessToken;
+    }
+
+    public String getBearerAccessAlias() {
+        return bearerAccessAlias;
     }
 
     public static class Builder {
@@ -64,6 +71,11 @@ public class StsClientTokenAdditionalParams {
 
         public Builder bearerAccessScope(String bearerAccessScope) {
             params.bearerAccessScope = bearerAccessScope;
+            return this;
+        }
+
+        public Builder bearerAccessAlias(String bearerAccessAlias) {
+            params.bearerAccessAlias = bearerAccessAlias;
             return this;
         }
 

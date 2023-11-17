@@ -17,7 +17,6 @@
 package org.eclipse.edc.connector.service.transferprocess;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
@@ -49,6 +48,7 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
@@ -224,7 +224,7 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .protocol("test")
-                .connectorAddress("http://an/address")
+                .counterPartyAddress("http://an/address")
                 .contractId("contractId")
                 .build();
     }

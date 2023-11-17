@@ -20,7 +20,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
+    api(project(":spi:common:policy-engine-spi"))
     api(libs.iron.vc) {
         //this is not on MavenCentral, and we don't really need it anyway
         exclude("com.github.multiformats")

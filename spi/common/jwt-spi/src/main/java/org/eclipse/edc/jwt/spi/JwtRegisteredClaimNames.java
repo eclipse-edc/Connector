@@ -76,6 +76,13 @@ public final class JwtRegisteredClaimNames {
      */
 
     public static final String CLIENT_ID = "client_id";
+    
+    /**
+     * "scope" (Scopes) Claim
+     *
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc8693#name-scope-scopes-claim">RFC 8693 "scope" (Scopes) Claim</a>
+     */
+    public static final String SCOPE = "scope";
 
     private JwtRegisteredClaimNames() {
     }
