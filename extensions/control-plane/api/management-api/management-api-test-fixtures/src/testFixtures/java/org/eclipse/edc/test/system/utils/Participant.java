@@ -249,11 +249,7 @@ public class Participant {
                 .add("providerId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", DSP_PROTOCOL)
-                .add("offer", createObjectBuilder()
-                        .add("offerId", offerId)
-                        .add("assetId", assetId)
-                        .add("policy", jsonLd.compact(policy).getContent())
-                )
+                .add("policy", jsonLd.compact(policy).getContent())
                 .build();
 
         var negotiationId = managementEndpoint.baseRequest()

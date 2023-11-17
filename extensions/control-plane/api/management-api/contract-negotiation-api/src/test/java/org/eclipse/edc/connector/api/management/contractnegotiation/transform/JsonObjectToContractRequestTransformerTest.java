@@ -40,6 +40,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
@@ -58,15 +59,48 @@ class JsonObjectToContractRequestTransformerTest {
     private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private final TransformerContext context = mock();
     private JsonObjectToContractRequestTransformer transformer;
-    private final Monitor monitor = mock();
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToContractRequestTransformer(monitor);
+        transformer = new JsonObjectToContractRequestTransformer();
     }
 
     @Test
     void transform() {
+        var offerPolicy = createPolicy();
+        var jsonObject = Json.createObjectBuilder()
+                .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
+                .add(PROTOCOL, "test-protocol")
+                .add(PROVIDER_ID, "test-provider-id")
+                .add(CALLBACK_ADDRESSES, createCallbackAddress())
+                .add(POLICY, offerPolicy)
+                .build();
+        var policy = Policy.Builder.newInstance().target("test-asset").build();
+        when(context.transform(any(JsonObject.class), eq(CallbackAddress.class))).thenReturn(CallbackAddress.Builder.newInstance()
+                .uri("http://test.local")
+                .events(Set.of("foo", "bar"))
+                .transactional(true)
+                .build());
+        when(context.transform(any(JsonValue.class), eq(Policy.class))).thenReturn(policy);
+        
+        var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
+
+        assertThat(request).isNotNull();
+        assertThat(request.getProviderId()).isEqualTo("test-provider-id");
+        assertThat(request.getCallbackAddresses()).isNotEmpty();
+        assertThat(request.getProtocol()).isEqualTo("test-protocol");
+        assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
+        assertThat(request.getContractOffer()).isNotNull().satisfies(contractOffer -> {
+            assertThat(contractOffer.getId()).isEqualTo("test-offer-id");
+            assertThat(contractOffer.getAssetId()).isEqualTo("test-asset");
+            assertThat(contractOffer.getPolicy()).isEqualTo(policy);
+        });
+    }
+
+    @Deprecated(since = "0.3.2")
+    @Test
+    void deprecated_transform_contractOfferFromOfferAttribute() {
         var jsonObject = Json.createObjectBuilder()
                 .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
@@ -93,7 +127,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .events(Set.of("foo", "bar"))
                 .transactional(true)
                 .build());
-        
+
         var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
         assertThat(request).isNotNull();
@@ -150,6 +184,8 @@ class JsonObjectToContractRequestTransformerTest {
         var dutyJson = getJsonObject("duty");
         return Json.createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
+                .add(ID, "test-offer-id")
+                .add("target", "test-asset")
                 .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
                 .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
                 .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)

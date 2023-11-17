@@ -18,7 +18,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -73,14 +72,13 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
 
         var requestJson = Json.createObjectBuilder()
                 .add(TYPE, EDC_NAMESPACE + "ContractRequest")
-                .add(EDC_NAMESPACE + "connectorAddress", "test-address")
+                .add(EDC_NAMESPACE + "counterPartyAddress", "test-address")
                 .add(EDC_NAMESPACE + "protocol", "test-protocol")
                 .add(EDC_NAMESPACE + "providerId", "test-provider-id")
                 .add(EDC_NAMESPACE + "consumerId", "test-consumer-id")
-                .add(EDC_NAMESPACE + "offer", Json.createObjectBuilder()
-                        .add(EDC_NAMESPACE + "offerId", "test-offer-id")
-                        .add(EDC_NAMESPACE + "assetId", "test-asset")
-                        .add(EDC_NAMESPACE + "policy", noConstraintPolicy())
+                .add(EDC_NAMESPACE + "policy", Json.createObjectBuilder()
+                        .add(TYPE, "use")
+                        .add(EDC_NAMESPACE + "target", "test-asset")
                         .build())
                 .build();
 
@@ -128,9 +126,4 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                 .collect(Collectors.toList());
     }
 
-    private JsonObject noConstraintPolicy() {
-        return Json.createObjectBuilder()
-                .add(TYPE, "use")
-                .build();
-    }
 }

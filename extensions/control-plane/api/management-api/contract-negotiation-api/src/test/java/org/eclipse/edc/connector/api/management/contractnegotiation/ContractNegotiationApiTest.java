@@ -56,7 +56,7 @@ class ContractNegotiationApiTest {
 
     @BeforeEach
     void setUp() {
-        transformer.register(new JsonObjectToContractRequestTransformer(monitor));
+        transformer.register(new JsonObjectToContractRequestTransformer());
         transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());

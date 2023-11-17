@@ -68,7 +68,7 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         var factory = Json.createBuilderFactory(Map.of());
         var monitor = context.getMonitor();
 
-        transformerRegistry.register(new JsonObjectToContractRequestTransformer(monitor));
+        transformerRegistry.register(new JsonObjectToContractRequestTransformer());
         transformerRegistry.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         transformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));

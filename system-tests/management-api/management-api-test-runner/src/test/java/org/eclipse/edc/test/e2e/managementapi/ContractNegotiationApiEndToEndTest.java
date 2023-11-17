@@ -130,15 +130,11 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
         var requestJson = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                 .add(TYPE, "ContractRequest")
-                .add("connectorAddress", "test-address")
+                .add("counterPartyAddress", "test-address")
                 .add("protocol", "test-protocol")
                 .add("providerId", "test-provider-id")
                 .add("callbackAddresses", createCallbackAddress())
-                .add("offer", createObjectBuilder()
-                        .add("offerId", "test-offer-id")
-                        .add("assetId", "test-asset")
-                        .add("policy", createPolicy())
-                        .build())
+                .add("policy", createPolicy())
                 .build();
 
         var id = baseRequest()
