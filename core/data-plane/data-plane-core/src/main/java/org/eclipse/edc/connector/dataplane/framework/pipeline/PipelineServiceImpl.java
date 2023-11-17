@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.pipeline;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
@@ -51,8 +52,7 @@ public class PipelineServiceImpl implements PipelineService {
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return getSourceFactory(request) != null &&
-                getSinkFactory(request) != null;
+        return getSourceFactory(request) != null && getSinkFactory(request) != null;
     }
 
     @Override
@@ -97,6 +97,18 @@ public class PipelineServiceImpl implements PipelineService {
         sources.put(request.getProcessId(), source);
 
         var sink = sinkFactory.createSink(request);
+        monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
+        return sink.transfer(source);
+    }
+
+    @Override
+    public CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request, DataSink sink) {
+        var sourceFactory = getSourceFactory(request);
+        if (sourceFactory == null) {
+            return noSourceFactory(request);
+        }
+        var source = sourceFactory.createSource(request);
+        sources.put(request.getProcessId(), source);
         monitor.debug(() -> format("Transferring from %s to %s.", request.getSourceDataAddress().getType(), request.getDestinationDataAddress().getType()));
         return sink.transfer(source);
     }

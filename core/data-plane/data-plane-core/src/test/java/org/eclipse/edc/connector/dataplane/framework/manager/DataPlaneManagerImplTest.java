@@ -73,7 +73,6 @@ class DataPlaneManagerImplTest {
     private final DataPlaneStore store = mock();
     private final DataFlowRequest request = createRequest();
     private final TransferServiceRegistry registry = mock();
-
     private DataPlaneManagerImpl manager;
 
     @BeforeEach

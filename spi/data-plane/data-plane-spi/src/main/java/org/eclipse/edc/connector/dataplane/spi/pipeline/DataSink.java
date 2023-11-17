@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A data sink.
  */
+@FunctionalInterface
 public interface DataSink {
 
     /**

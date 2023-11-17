@@ -81,6 +81,18 @@ public class EndpointDataReference {
         return properties;
     }
 
+    @Override
+    public String toString() {
+        return "EndpointDataReference{" +
+                "properties=" + properties +
+                ", id='" + id + '\'' +
+                ", contractId='" + contractId + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                ", authKey='" + authKey + '\'' +
+                ", authCode='" + authCode + '\'' +
+                '}';
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final EndpointDataReference edr;

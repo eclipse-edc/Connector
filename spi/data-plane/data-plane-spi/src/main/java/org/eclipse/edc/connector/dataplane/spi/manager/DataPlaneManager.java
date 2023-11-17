@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.spi.manager;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
@@ -62,7 +63,12 @@ public interface DataPlaneManager extends StateEntityManager {
     void initiate(DataFlowRequest dataRequest);
 
     /**
-     * Performs a data transfer using the supplied data sink.
+     * Transfers data from a source to a destination asynchronously using the provided DataFlowRequest. The {@link org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource}
+     * and {@link DataSink} will be resolved from the supplied DataFlowRequest, more specifically the source and destination address
+     * within.
+     *
+     * @param request The DataFlowRequest that specifies the source, destination, and other necessary details.
+     * @return A CompletableFuture that completes with a StreamResult indicating the success or failure of the transfer.
      */
     CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request);
 
