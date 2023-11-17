@@ -45,7 +45,6 @@ import static org.eclipse.edc.connector.api.management.transferprocess.model.Tra
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TransferState.TRANSFER_STATE_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CALLBACK_ADDRESSES;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CORRELATION_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CREATED_AT;
@@ -94,7 +93,6 @@ class TransferProcessApiTest {
                             assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                             assertThat(transformed.getContractId()).isNotBlank();
                             assertThat(transformed.getProtocol()).isNotBlank();
-                            assertThat(transformed.getConnectorId()).isNotBlank();
                             assertThat(transformed.getAssetId()).isNotBlank();
                             assertThat(transformed.getDataDestination()).isNotNull();
                             assertThat(transformed.getPrivateProperties()).asInstanceOf(map(String.class, Object.class)).isNotEmpty();
@@ -130,7 +128,6 @@ class TransferProcessApiTest {
             assertThat(content.getJsonArray(TRANSFER_PROCESS_STATE).getJsonObject(0).getString(VALUE)).isNotBlank();
             assertThat(content.getJsonArray(TRANSFER_PROCESS_STATE_TIMESTAMP).getJsonObject(0).getJsonNumber(VALUE).longValue()).isGreaterThan(0);
             assertThat(content.getJsonArray(TRANSFER_PROCESS_ASSET_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(TRANSFER_PROCESS_CONNECTOR_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
             assertThat(content.getJsonArray(TRANSFER_PROCESS_CONTRACT_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
             assertThat(content.getJsonArray(TRANSFER_PROCESS_PRIVATE_PROPERTIES).getJsonObject(0)).asInstanceOf(map(String.class, Object.class)).isNotEmpty();
             assertThat(content.getJsonArray(TRANSFER_PROCESS_TYPE_TYPE).getJsonObject(0).getString(VALUE)).isNotBlank();

@@ -45,6 +45,7 @@ public class TransferRequest {
     private String id;
     private String protocol;
     private String counterPartyAddress;
+    @Deprecated(since = "0.3.2")
     private String connectorId;
     private String contractId;
     private String assetId;
@@ -86,7 +87,7 @@ public class TransferRequest {
     /**
      * The provider connector id.
      *
-     * @deprecated Connector id is not needed because counter-party id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
+     * @deprecated Provider connector id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
      */
     @Deprecated(since = "0.3.2")
     public String getConnectorId() {

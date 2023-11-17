@@ -76,7 +76,7 @@ public class DataRequest implements Polymorphic {
     /**
      * The provider connector id.
      *
-     * @deprecated Connector id is not needed because counter-party id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
+     * @deprecated Provider connector id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
      *
      */
     @Deprecated(since = "0.3.2")
@@ -152,7 +152,7 @@ public class DataRequest implements Polymorphic {
         /**
          * The provider connector id.
          *
-         * @deprecated Connector id is not needed because counter-party id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
+         * @deprecated Provider connector id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
          */
         @Deprecated(since = "0.3.2")
         public Builder connectorId(String connectorId) {
