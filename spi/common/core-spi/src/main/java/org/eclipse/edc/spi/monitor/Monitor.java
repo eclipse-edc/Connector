@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Mercedes-Benz Tech Innovation GmbH - prefix monitoring
  *
  */
 
