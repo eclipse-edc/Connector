@@ -31,7 +31,7 @@ import java.util.Map;
 import static org.eclipse.edc.identitytrust.issuer.configuration.TrustedIssuerConfigurationExtension.NAME;
 
 /**
- * This IATP extension makes it possible configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
+ * This IATP extension makes it possible to configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
  */
 @Extension(NAME)
 public class TrustedIssuerConfigurationExtension implements ServiceExtension {
