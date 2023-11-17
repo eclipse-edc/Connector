@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -36,6 +37,7 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    @Deprecated(since = "0.3.2")
     public static final String TRANSFER_REQUEST_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
@@ -81,6 +83,12 @@ public class TransferRequest {
         return protocol;
     }
 
+    /**
+     * The provider connector id.
+     *
+     * @deprecated Connector id is not needed because counter-party id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
+     */
+    @Deprecated(since = "0.3.2")
     public String getConnectorId() {
         return connectorId;
     }

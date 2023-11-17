@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -373,6 +374,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         dataRequest.updateDestination(dataAddress);
     }
 
+    /**
+     * The provider connector id.
+     *
+     * @deprecated Connector id is not needed because counter-party id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
+     */
+    @Deprecated(since = "0.3.2")
     @JsonIgnore
     public String getConnectorId() {
         return dataRequest.getConnectorId();

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -215,7 +216,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .protocol(resultSet.getString(statements.getProtocolColumn()))
                 .dataDestination(fromJson(resultSet.getString(statements.getDataDestinationColumn()), DataAddress.class))
-                .connectorId(resultSet.getString(statements.getConnectorIdColumn()))
                 .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
                 .processId(resultSet.getString(statements.getProcessIdColumn()))
@@ -268,7 +268,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 dataRequest.getProcessId(),
                 dataRequest.getConnectorAddress(),
                 dataRequest.getProtocol(),
-                dataRequest.getConnectorId(),
                 dataRequest.getAssetId(),
                 dataRequest.getContractId(),
                 toJson(dataRequest.getDataDestination()),
@@ -324,7 +323,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 dr.getId(),
                 dr.getProcessId(),
                 dr.getConnectorAddress(),
-                dr.getConnectorId(),
                 dr.getAssetId(),
                 dr.getContractId(),
                 toJson(dr.getDataDestination()),

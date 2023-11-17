@@ -80,3 +80,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS data_request_id_uindex
 CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
     ON edc_lease (lease_id);
 
+ALTER TABLE DROP COLUMN connector_id;

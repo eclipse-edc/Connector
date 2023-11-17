@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -31,6 +32,7 @@ public class DataRequest implements Polymorphic {
     private String processId;
     private String connectorAddress;
     private String protocol;
+    @Deprecated(since = "0.3.2")
     private String connectorId;
     private String assetId;
     private String contractId;
@@ -73,7 +75,11 @@ public class DataRequest implements Polymorphic {
 
     /**
      * The provider connector id.
+     *
+     * @deprecated Connector id is not needed because counter-party id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
+     *
      */
+    @Deprecated(since = "0.3.2")
     public String getConnectorId() {
         return connectorId;
     }
@@ -143,6 +149,12 @@ public class DataRequest implements Polymorphic {
             return this;
         }
 
+        /**
+         * The provider connector id.
+         *
+         * @deprecated Connector id is not needed because counter-party id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
+         */
+        @Deprecated
         public Builder connectorId(String connectorId) {
             request.connectorId = connectorId;
             return this;
