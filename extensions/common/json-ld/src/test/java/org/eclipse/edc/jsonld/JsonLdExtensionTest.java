@@ -49,7 +49,7 @@ class JsonLdExtensionTest {
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("cache", documentLoader);
+        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"));
     }
@@ -65,7 +65,7 @@ class JsonLdExtensionTest {
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("cache", documentLoader);
+        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"));
     }
@@ -82,7 +82,7 @@ class JsonLdExtensionTest {
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("cache", documentLoader);
+        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"));
         assertThat(cache).containsEntry("http://bar.org/doc.json", new URI("file:/tmp/bar/doc.json"));
@@ -99,7 +99,7 @@ class JsonLdExtensionTest {
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("cache", documentLoader);
+        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"))
                 .noneSatisfy((s, uri) -> assertThat(s).isEqualTo("http://bar.org/doc.json"));
@@ -117,7 +117,7 @@ class JsonLdExtensionTest {
         var service = (TitaniumJsonLd) extension.createJsonLdService(context);
 
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
-        Map<String, URI> cache = getFieldValue("cache", documentLoader);
+        Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
         assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"))
                 .noneSatisfy((s, uri) -> assertThat(s).isEqualTo("http://bar.org/doc.json"));

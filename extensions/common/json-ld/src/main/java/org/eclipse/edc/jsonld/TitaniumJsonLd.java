@@ -27,7 +27,6 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.document.JarLoader;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
@@ -69,7 +68,7 @@ public class TitaniumJsonLd implements JsonLd {
 
     public TitaniumJsonLd(Monitor monitor, JsonLdConfiguration configuration) {
         this.monitor = monitor;
-        this.documentLoader = new CachedDocumentLoader(configuration);
+        this.documentLoader = new CachedDocumentLoader(configuration, monitor);
     }
 
     @Override
@@ -181,13 +180,15 @@ public class TitaniumJsonLd implements JsonLd {
         private final Map<String, URI> uriCache = new HashMap<>();
         private final Map<URI, Document> documentCache = new HashMap<>();
         private final DocumentLoader loader;
+        private final Monitor monitor;
 
-        CachedDocumentLoader(JsonLdConfiguration configuration) {
+        CachedDocumentLoader(JsonLdConfiguration configuration, Monitor monitor) {
             loader = new SchemeRouter()
                     .set("http", configuration.isHttpEnabled() ? HttpLoader.defaultInstance() : null)
                     .set("https", configuration.isHttpsEnabled() ? HttpLoader.defaultInstance() : null)
                     .set("file", new FileLoader())
                     .set("jar", new JarLoader());
+            this.monitor = monitor;
         }
 
         @Override
@@ -205,7 +206,7 @@ public class TitaniumJsonLd implements JsonLd {
             try {
                 documentCache.put(uri, loader.loadDocument(uri, new DocumentLoaderOptions()));
             } catch (JsonLdError e) {
-                throw new EdcException("Error caching Json-Ld context %s from URI %s".formatted(contextUrl, uri), e);
+                monitor.warning("Error caching context URL '%s' for URI '%s'. Subsequent attempts to expand this context URL may fail.".formatted(contextUrl, uri));
             }
         }
 
