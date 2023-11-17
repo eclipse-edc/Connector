@@ -19,6 +19,7 @@ import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformer;
@@ -29,16 +30,19 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("unchecked")
 public class JwtToVerifiablePresentationTransformer implements TypeTransformer<String, VerifiablePresentation> {
     private static final String VP_CLAIM = "vp";
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
+    private final JsonLd jsonLd;
 
-    public JwtToVerifiablePresentationTransformer(Monitor monitor, ObjectMapper objectMapper) {
+    public JwtToVerifiablePresentationTransformer(Monitor monitor, ObjectMapper objectMapper, JsonLd jsonLd) {
         this.monitor = monitor;
         this.objectMapper = objectMapper;
+        this.jsonLd = jsonLd;
     }
 
     @Override
@@ -92,8 +96,14 @@ public class JwtToVerifiablePresentationTransformer implements TypeTransformer<S
                 return context.transform(obj.toString(), VerifiableCredential.class);
             } else { // VC is LDP
                 var input = objectMapper.convertValue(obj, JsonObject.class);
-                return context.transform(input, VerifiableCredential.class);
+                var expansion = jsonLd.expand(input);
+                if (expansion.succeeded()) {
+                    return context.transform(expansion.getContent(), VerifiableCredential.class);
+                }
+                context.reportProblem("Error expanding embedded VC: %s".formatted(expansion.getFailureDetail()));
+                return null;
             }
-        }).toList();
+
+        }).filter(Objects::nonNull).toList();
     }
 }

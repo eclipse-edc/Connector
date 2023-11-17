@@ -59,7 +59,7 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
 
         typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));
         typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer());
-        typeTransformerRegistry.register(new JwtToVerifiablePresentationTransformer(context.getMonitor(), typeManager.getMapper(JSON_LD)));
+        typeTransformerRegistry.register(new JwtToVerifiablePresentationTransformer(context.getMonitor(), typeManager.getMapper(JSON_LD), jsonLdService));
         typeTransformerRegistry.register(new JwtToVerifiableCredentialTransformer(context.getMonitor()));
     }
 
