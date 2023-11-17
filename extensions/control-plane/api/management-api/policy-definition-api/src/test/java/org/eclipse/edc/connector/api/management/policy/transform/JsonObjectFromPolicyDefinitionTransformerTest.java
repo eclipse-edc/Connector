@@ -86,4 +86,26 @@ class JsonObjectFromPolicyDefinitionTransformerTest {
         assertThat(result.getJsonObject(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES).getJsonString("some-key").getString()).isEqualTo("some-value");
         verify(context).transform(policy, JsonObject.class);
     }
+
+
+    @Test
+    void transform_withPrivateProperties_complexTypes() {
+        var policy = Policy.Builder.newInstance().build();
+        var input = PolicyDefinition.Builder.newInstance().id("definitionId").policy(policy).privateProperty("root", Map.of("key1", "value1", "nested1", Map.of("key2", "value2", "key3", Map.of("theKey", "theValue, this is what we're looking for")))).build();
+        var policyJson = Json.createObjectBuilder().build();
+        when(context.transform(any(), eq(JsonObject.class))).thenReturn(policyJson);
+
+        var result = transformer.transform(input, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString(ID)).isEqualTo("definitionId");
+        assertThat(result.getString(TYPE)).isEqualTo(EDC_POLICY_DEFINITION_TYPE);
+        assertThat(result.getJsonObject(EDC_POLICY_DEFINITION_POLICY)).isSameAs(policyJson);
+
+        assertThat(result.getJsonObject(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES).getJsonObject("root").getJsonString("key1").getString()).isEqualTo("value1");
+        assertThat(result.getJsonObject(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES).getJsonObject("root").getJsonObject("nested1").getJsonString("key2").getString()).isEqualTo("value2");
+        assertThat(result.getJsonObject(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES).getJsonObject("root").getJsonObject("nested1").getJsonObject("key3").getJsonString("theKey").getString()).isEqualTo("theValue, this is what we're looking for");
+
+        verify(context).transform(policy, JsonObject.class);
+    }
 }
