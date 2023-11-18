@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
 import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Response;
@@ -45,7 +44,6 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileConten
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +56,7 @@ class DefaultCredentialServiceClientTest {
     @BeforeEach
     void setup() {
         var registry = mock(TypeTransformerRegistry.class);
-        when(registry.transform(isA(JsonObject.class), eq(VerifiablePresentation.class)))
+        when(registry.transform(any(), eq(VerifiablePresentation.class)))
                 .thenReturn(success(createPresentation()));
         var jsonLdMock = mock(JsonLd.class);
         when(jsonLdMock.expand(any())).thenAnswer(a -> success(a.getArgument(0)));

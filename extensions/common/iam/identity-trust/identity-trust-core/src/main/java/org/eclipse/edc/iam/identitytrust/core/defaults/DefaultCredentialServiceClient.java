@@ -16,7 +16,6 @@ package org.eclipse.edc.iam.identitytrust.core.defaults;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -38,7 +37,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -128,18 +126,9 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     }
 
     private Result<VerifiablePresentationContainer> parseJwtVp(String rawJwt) {
-        try {
-            var jwt = SignedJWT.parse(rawJwt);
-            var claims = jwt.getJWTClaimsSet();
-            var vp = claims.getClaim("vp");
+        return transformerRegistry.transform(rawJwt, VerifiablePresentation.class)
+                .map(pres -> new VerifiablePresentationContainer(rawJwt, CredentialFormat.JWT, pres));
 
-            return transformerRegistry.transform(rawJwt, VerifiablePresentation.class)
-                    .map(pres -> new VerifiablePresentationContainer(rawJwt, CredentialFormat.JWT, null));
-
-        } catch (ParseException e) {
-            monitor.warning("Failed to parse JWT VP", e);
-            return failure("Failed to parse JWT VP: %s".formatted(e.getMessage()));
-        }
     }
 
     private JsonObject createPresentationQuery(List<String> scopes) {
