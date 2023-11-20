@@ -29,7 +29,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
@@ -45,13 +45,13 @@ import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions
 @Produces(MediaType.APPLICATION_JSON)
 public class DataPlanePublicApiController implements DataPlanePublicApi {
 
-    private final DataPlaneManager dataPlaneManager;
+    private final PipelineService pipelineService;
     private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
 
-    public DataPlanePublicApiController(DataPlaneManager dataPlaneManager,
+    public DataPlanePublicApiController(PipelineService pipelineService,
                                         DataAddressResolver dataAddressResolver) {
-        this.dataPlaneManager = dataPlaneManager;
+        this.pipelineService = pipelineService;
         this.dataAddressResolver = dataAddressResolver;
         this.requestSupplier = new DataFlowRequestSupplier();
     }
@@ -121,7 +121,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         var dataAddress = extractSourceDataAddress(token);
         var dataFlowRequest = requestSupplier.apply(contextApi, dataAddress);
 
-        var validationResult = dataPlaneManager.validate(dataFlowRequest);
+        var validationResult = pipelineService.validate(dataFlowRequest);
         if (validationResult.failed()) {
             var errorMsg = validationResult.getFailureMessages().isEmpty() ?
                     format("Failed to validate request with id: %s", dataFlowRequest.getId()) :
@@ -130,7 +130,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
             return;
         }
 
-        dataPlaneManager.transfer(dataFlowRequest)
+        pipelineService.transfer(dataFlowRequest)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         if (result.succeeded()) {

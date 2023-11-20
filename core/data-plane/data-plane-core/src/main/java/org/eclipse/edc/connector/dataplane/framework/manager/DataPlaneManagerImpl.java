@@ -19,10 +19,8 @@ import org.eclipse.edc.connector.core.entity.AbstractStateEntityManager;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -34,7 +32,6 @@ import org.eclipse.edc.statemachine.StateMachineManager;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -88,15 +85,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .build();
 
         update(dataFlow);
-    }
-
-    @Override
-    public CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request) {
-        var transferService = transferServiceRegistry.resolveTransferService(request);
-        if (transferService == null) {
-            return CompletableFuture.failedFuture(new EdcException("No TransferService available for request " + request.getProcessId()));
-        }
-        return transferService.transfer(request);
     }
 
     @Override
