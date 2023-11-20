@@ -19,11 +19,11 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.model.Contra
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
-import org.eclipse.edc.validator.spi.Violation;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
@@ -34,6 +34,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
 public class ContractRequestValidator {
 
@@ -60,12 +61,15 @@ public class ContractRequestValidator {
                         ).build().validate(input);
             }
 
-            var policyValidity = new MandatoryObject(path.append(POLICY)).validate(input);
-            if (policyValidity.succeeded()) {
-                return ValidationResult.success();
-            }
+            var validator = JsonObjectValidator.newValidator()
+                    .verify(POLICY, MandatoryObject::new)
+                    .verifyObject(POLICY, builder -> builder
+                            .verifyId(MandatoryIdNotBlank::new)
+                            .verify(ODRL_TARGET_ATTRIBUTE, MandatoryObject::new)
+                            .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new)))
+                    .build();
 
-            return ValidationResult.failure(Violation.violation(format("'%s' or '%s' must not be empty", OFFER, POLICY), path.toString()));
+            return validator.validate(input);
         }
     }
 

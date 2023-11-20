@@ -18,15 +18,11 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
@@ -38,11 +34,8 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 
 public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransformer<JsonObject, ContractRequest> {
 
-    private final Monitor monitor;
-
-    public JsonObjectToContractRequestTransformer(Monitor monitor) {
+    public JsonObjectToContractRequestTransformer() {
         super(JsonObject.class, ContractRequest.class);
-        this.monitor = monitor;
     }
 
     @Override
@@ -52,31 +45,33 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
                 .counterPartyAddress(counterPartyAddressOrConnectorAddress(jsonObject, context))
                 .protocol(transformString(jsonObject.get(PROTOCOL), context));
 
-        var policyJson = jsonObject.get(POLICY);
-        if (policyJson != null) {
-            var policy = transformObject(jsonObject.get(POLICY), Policy.class, context);
-            contractRequestBuilder.policy(policy);
+        contractRequestBuilder.contractOffer(contractOffer(jsonObject, context));
+
+        var callbackAddress = jsonObject.get(CALLBACK_ADDRESSES);
+        if (callbackAddress != null) {
+            contractRequestBuilder.callbackAddresses(transformArray(callbackAddress, CallbackAddress.class, context));
+        }
+
+        return contractRequestBuilder.build();
+    }
+
+    private ContractOffer contractOffer(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+        var policy = jsonObject.get(POLICY);
+        if (policy != null) {
+            return transformObject(policy, ContractOffer.class, context);
         }
 
         var offerJson = jsonObject.get(OFFER);
         if (offerJson != null) {
             var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
-            var contractOffer = ContractOffer.Builder.newInstance()
+            return ContractOffer.Builder.newInstance()
                     .id(contractOfferDescription.getOfferId())
                     .assetId(contractOfferDescription.getAssetId())
                     .policy(contractOfferDescription.getPolicy())
                     .build();
-            contractRequestBuilder.contractOffer(contractOffer);
         }
 
-        var callbackAddress = jsonObject.get(CALLBACK_ADDRESSES);
-        if (callbackAddress != null) {
-            var addresses = new ArrayList<CallbackAddress>();
-            transformArrayOrObject(callbackAddress, CallbackAddress.class, addresses::add, context);
-            contractRequestBuilder.callbackAddresses(addresses);
-        }
-
-        return contractRequestBuilder.build();
+        return null;
     }
 
     private String getProviderId(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
