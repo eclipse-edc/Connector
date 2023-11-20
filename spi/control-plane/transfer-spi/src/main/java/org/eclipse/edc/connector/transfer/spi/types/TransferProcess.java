@@ -113,8 +113,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public static final String TRANSFER_PROCESS_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
     public static final String TRANSFER_PROCESS_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_PROCESS_CONTRACT_ID = EDC_NAMESPACE + "contractId";
-    @Deprecated(since = "0.3.2")
-    public static final String TRANSFER_PROCESS_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String TRANSFER_PROCESS_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_PROCESS_TYPE_TYPE = EDC_NAMESPACE + "type";
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
@@ -373,17 +371,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     @JsonIgnore
     public void updateDestination(DataAddress dataAddress) {
         dataRequest.updateDestination(dataAddress);
-    }
-
-    /**
-     * The provider connector id.
-     *
-     * @deprecated Provider connector id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
-     */
-    @Deprecated(since = "0.3.2")
-    @JsonIgnore
-    public String getConnectorId() {
-        return dataRequest.getConnectorId();
     }
 
     @JsonIgnore

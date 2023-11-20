@@ -32,8 +32,6 @@ public class DataRequest implements Polymorphic {
     private String processId;
     private String connectorAddress;
     private String protocol;
-    @Deprecated(since = "0.3.2")
-    private String connectorId;
     private String assetId;
     private String contractId;
     private DataAddress dataDestination;
@@ -71,17 +69,6 @@ public class DataRequest implements Polymorphic {
      */
     public String getConnectorAddress() {
         return connectorAddress;
-    }
-
-    /**
-     * The provider connector id.
-     *
-     * @deprecated Provider connector id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
-     *
-     */
-    @Deprecated(since = "0.3.2")
-    public String getConnectorId() {
-        return connectorId;
     }
 
     /**
@@ -146,17 +133,6 @@ public class DataRequest implements Polymorphic {
 
         public Builder protocol(String protocol) {
             request.protocol = protocol;
-            return this;
-        }
-
-        /**
-         * The provider connector id.
-         *
-         * @deprecated Provider connector id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
-         */
-        @Deprecated(since = "0.3.2")
-        public Builder connectorId(String connectorId) {
-            request.connectorId = connectorId;
             return this;
         }
 

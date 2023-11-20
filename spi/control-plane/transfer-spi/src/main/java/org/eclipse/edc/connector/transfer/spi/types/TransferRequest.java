@@ -45,8 +45,6 @@ public class TransferRequest {
     private String id;
     private String protocol;
     private String counterPartyAddress;
-    @Deprecated(since = "0.3.2")
-    private String connectorId;
     private String contractId;
     private String assetId;
     private DataAddress dataDestination;
@@ -82,16 +80,6 @@ public class TransferRequest {
 
     public String getProtocol() {
         return protocol;
-    }
-
-    /**
-     * The provider connector id.
-     *
-     * @deprecated Provider connector id is stored in the {@link org.eclipse.edc.spi.types.domain.agreement.ContractAgreement}
-     */
-    @Deprecated(since = "0.3.2")
-    public String getConnectorId() {
-        return connectorId;
     }
 
     public String getAssetId() {
@@ -146,11 +134,6 @@ public class TransferRequest {
 
         public Builder protocol(String protocol) {
             request.protocol = protocol;
-            return this;
-        }
-
-        public Builder connectorId(String connectorId) {
-            request.connectorId = connectorId;
             return this;
         }
 
