@@ -18,14 +18,11 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
@@ -34,7 +31,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 
 public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransformer<JsonObject, ContractRequest> {
 
@@ -53,24 +49,16 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
 
         var callbackAddress = jsonObject.get(CALLBACK_ADDRESSES);
         if (callbackAddress != null) {
-            var addresses = new ArrayList<CallbackAddress>();
-            transformArrayOrObject(callbackAddress, CallbackAddress.class, addresses::add, context);
-            contractRequestBuilder.callbackAddresses(addresses);
+            contractRequestBuilder.callbackAddresses(transformArray(callbackAddress, CallbackAddress.class, context));
         }
 
         return contractRequestBuilder.build();
     }
 
     private ContractOffer contractOffer(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var policyJson = jsonObject.get(POLICY);
-        if (policyJson != null && !policyJson.asJsonArray().isEmpty()) {
-            var policy = transformObject(policyJson, Policy.class, context);
-            var offerId = transformString(policyJson.asJsonArray().getJsonObject(0).get(ID), context);
-            return ContractOffer.Builder.newInstance()
-                    .id(offerId)
-                    .assetId(policy.getTarget())
-                    .policy(policy)
-                    .build();
+        var policy = jsonObject.get(POLICY);
+        if (policy != null) {
+            return transformObject(policy, ContractOffer.class, context);
         }
 
         var offerJson = jsonObject.get(OFFER);

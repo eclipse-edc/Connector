@@ -37,8 +37,10 @@ import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -71,14 +73,17 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
         traceCollectorServer.when(HttpRequest.request()).respond(HttpResponse.response().withStatusCode(200));
 
         var requestJson = Json.createObjectBuilder()
-                .add(TYPE, EDC_NAMESPACE + "ContractRequest")
-                .add(EDC_NAMESPACE + "counterPartyAddress", "test-address")
-                .add(EDC_NAMESPACE + "protocol", "test-protocol")
-                .add(EDC_NAMESPACE + "providerId", "test-provider-id")
-                .add(EDC_NAMESPACE + "consumerId", "test-consumer-id")
-                .add(EDC_NAMESPACE + "policy", Json.createObjectBuilder()
+                .add(CONTEXT, Json.createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, "ContractRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("protocol", "test-protocol")
+                .add("providerId", "test-provider-id")
+                .add("consumerId", "test-consumer-id")
+                .add("policy", Json.createObjectBuilder()
+                        .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
                         .add(TYPE, "use")
-                        .add(EDC_NAMESPACE + "target", "test-asset")
+                        .add(ID, "offer-id")
+                        .add("target", "test-asset")
                         .build())
                 .build();
 
@@ -89,6 +94,7 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                 .body(requestJson)
                 .post("/management/v2/contractnegotiations")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);

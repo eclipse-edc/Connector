@@ -35,7 +35,9 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -52,11 +54,9 @@ class ContractRequestValidatorTest {
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
-                .add(OFFER, createArrayBuilder().add(createObjectBuilder()
-                        .add(OFFER_ID, value("offerId"))
-                        .add(ASSET_ID, value("offerId"))
-                        .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
-                ))
+                .add(POLICY, createArrayBuilder().add(createObjectBuilder()
+                        .add(ID, "offer-id")
+                        .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target")))))
                 .build();
 
         var result = validator.validate(input);
@@ -64,6 +64,66 @@ class ContractRequestValidatorTest {
         assertThat(result).isSucceeded();
     }
 
+    @Test
+    void shouldFail_whenPolicyMissesId() {
+        var input = Json.createObjectBuilder()
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.message()).contains(ID));
+    }
+
+    @Test
+    void shouldFail_whenPolicyMissesTarget() {
+        var input = Json.createObjectBuilder()
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .add(POLICY, createArrayBuilder().add(createObjectBuilder().add(ID, "offer-id")))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.message()).contains(ODRL_TARGET_ATTRIBUTE));
+    }
+
+    @Test
+    void shouldFail_whenOfferAndPolicyAreMissing() {
+        var input = Json.createObjectBuilder()
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
+                .add(PROTOCOL, value("protocol"))
+                .add(PROVIDER_ID, value("connector-id"))
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.message()).contains(POLICY));
+    }
+
+    @Test
+    void shouldFail_whenMandatoryPropertiesAreMissing() {
+        var input = Json.createObjectBuilder().build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL));
+    }
+
+    @Deprecated(since = "0.3.2")
     @Test
     void shouldFail_whenOfferMandatoryPropertiesAreMissing() {
         var input = Json.createObjectBuilder()
@@ -83,34 +143,7 @@ class ContractRequestValidatorTest {
                 .anySatisfy(violation -> assertThat(violation.path()).contains(POLICY));
     }
 
-    @Test
-    void shouldFail_whenOfferAndPolicyAreMissing() {
-        var input = Json.createObjectBuilder()
-                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
-                .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
-                .build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.message()).contains(OFFER))
-                .anySatisfy(violation -> assertThat(violation.message()).contains(POLICY));
-    }
-
-    @Test
-    void shouldFail_whenMandatoryPropertiesAreMissing() {
-        var input = Json.createObjectBuilder().build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(PROTOCOL));
-    }
-
+    @Deprecated(since = "0.3.2")
     @Test
     void shouldSucceed_whenDeprecatedOfferIsUsed() {
         var input = Json.createObjectBuilder()
@@ -128,13 +161,16 @@ class ContractRequestValidatorTest {
         verify(monitor).warning(anyString());
     }
 
+    @Deprecated(since = "0.3.2")
     @Test
     void shouldSucceed_whenDeprecatedConnectorAddressIsUsed() {
         var input = Json.createObjectBuilder()
                 .add(CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
-                .add(POLICY, createArrayBuilder().add(createObjectBuilder()))
+                .add(POLICY, createArrayBuilder().add(createObjectBuilder()
+                        .add(ID, "offer-id")
+                        .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target")))))
                 .build();
 
         var result = validator.validate(input);

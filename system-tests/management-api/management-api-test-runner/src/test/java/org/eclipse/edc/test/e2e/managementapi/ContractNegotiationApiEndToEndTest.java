@@ -151,6 +151,38 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
         assertThat(store.findById(id)).isNotNull();
     }
 
+    @Deprecated(since = "0.3.2")
+    @Test
+    void deprecated_initiateNegotiation() {
+
+        var requestJson = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "ContractRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("protocol", "test-protocol")
+                .add("providerId", "test-provider-id")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("offer", createObjectBuilder()
+                        .add("offerId", "offer-id")
+                        .add("assetId", "assetId")
+                        .add("policy", createPolicy()))
+                .build();
+
+        var id = baseRequest()
+                .contentType(JSON)
+                .body(requestJson)
+                .post("/v2/contractnegotiations")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().jsonPath().getString(ID);
+
+        var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
+
+        assertThat(store.findById(id)).isNotNull();
+    }
+
     @Test
     void terminate() {
         var store = controlPlane.getContext().getService(ContractNegotiationStore.class);
@@ -222,9 +254,11 @@ public class ContractNegotiationApiEndToEndTest extends BaseManagementApiEndToEn
         return createObjectBuilder()
                 .add(CONTEXT, "http://www.w3.org/ns/odrl.jsonld")
                 .add(TYPE, "Offer")
+                .add(ID, "offer-id")
                 .add("permission", permissionJson)
                 .add("prohibition", prohibitionJson)
                 .add("obligation", dutyJson)
+                .add("target", "asset-id")
                 .build();
     }
 
