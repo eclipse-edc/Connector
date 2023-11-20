@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 
 public class JsonObjectToIssuerTransformer extends AbstractJsonLdTransformer<JsonObject, Issuer> {
-    protected JsonObjectToIssuerTransformer() {
+    public JsonObjectToIssuerTransformer() {
         super(JsonObject.class, Issuer.class);
     }
 
