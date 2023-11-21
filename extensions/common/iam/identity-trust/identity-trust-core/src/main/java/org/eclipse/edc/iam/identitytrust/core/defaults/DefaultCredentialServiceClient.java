@@ -52,18 +52,20 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLd;
     private final Monitor monitor;
+    private final String credentialServiceUrl;
 
-    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, Monitor monitor) {
+    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, Monitor monitor, String credentialServiceUrl) {
         this.httpClient = httpClient;
         this.jsonFactory = jsonFactory;
         this.objectMapper = jsonLdMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;
         this.monitor = monitor;
+        this.credentialServiceUrl = credentialServiceUrl;
     }
 
     @Override
-    public Result<List<VerifiablePresentationContainer>> requestPresentation(String credentialServiceUrl, String selfIssuedTokenJwt, List<String> scopes) {
+    public Result<List<VerifiablePresentationContainer>> requestPresentation(String selfIssuedTokenJwt, List<String> scopes) {
         var query = createPresentationQuery(scopes);
 
         try {
