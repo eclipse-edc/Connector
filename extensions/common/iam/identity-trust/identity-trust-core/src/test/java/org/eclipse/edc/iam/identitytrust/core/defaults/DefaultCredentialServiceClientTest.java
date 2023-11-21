@@ -61,7 +61,7 @@ class DefaultCredentialServiceClientTest {
         var jsonLdMock = mock(JsonLd.class);
         when(jsonLdMock.expand(any())).thenAnswer(a -> success(a.getArgument(0)));
         client = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
-                createObjectMapper(), registry, jsonLdMock, mock());
+                createObjectMapper(), registry, jsonLdMock, mock(), CS_URL);
     }
 
     @Test
@@ -70,7 +70,7 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation("foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JSON_LD);
     }
@@ -81,7 +81,7 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("single_jwt-vp.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation("foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JWT);
     }
@@ -92,7 +92,7 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_mixed.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation("foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD))
@@ -105,7 +105,7 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_ldp.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation("foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD));
@@ -117,7 +117,7 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("multiple_vp-token_jwt.json")));
 
-        var result = client.requestPresentation(CS_URL, "foo", List.of());
+        var result = client.requestPresentation("foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
@@ -129,7 +129,7 @@ class DefaultCredentialServiceClientTest {
         when(httpClientMock.execute(any()))
                 .thenReturn(response(httpCode, "Test failure"));
 
-        var res = client.requestPresentation(CS_URL, "foo", List.of());
+        var res = client.requestPresentation("foo", List.of());
         assertThat(res.failed()).isTrue();
         assertThat(res.getFailureDetail()).isEqualTo("Presentation Query failed: HTTP %s, message: Test failure".formatted(httpCode));
     }
