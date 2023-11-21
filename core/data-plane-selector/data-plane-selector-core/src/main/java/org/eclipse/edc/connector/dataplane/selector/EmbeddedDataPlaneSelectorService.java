@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,11 +58,6 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
             throw new IllegalArgumentException("Strategy " + selectionStrategy + " was not found");
         }
         return selector.select(source, destination, strategy);
-    }
-
-    @Override
-    public Collection<String> getAllStrategies() {
-        return selectionStrategyRegistry.getAll();
     }
 
     @Override

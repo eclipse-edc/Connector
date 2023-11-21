@@ -15,12 +15,10 @@
 package org.eclipse.edc.connector.transfer.spi.flow;
 
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -63,18 +61,4 @@ public interface DataFlowManager {
     @NotNull
     StatusResult<Void> terminate(TransferProcess transferProcess);
 
-    /**
-     * Initiates a data flow.
-     *
-     * @param dataRequest    the data to transfer
-     * @param contentAddress the address to resolve the asset contents. This may be the original asset address or an address resolving to generated content.
-     * @param policy         the contract agreement usage policy for the asset being transferred
-     * @deprecated please use {@link #initiate(TransferProcess, Policy)}
-     */
-    @NotNull
-    @Deprecated(since = "0.2.1", forRemoval = true)
-    default StatusResult<DataFlowResponse> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
-        var transferProcess = TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(contentAddress).build();
-        return initiate(transferProcess, policy);
-    }
 }

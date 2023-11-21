@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.client;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;

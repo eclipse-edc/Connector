@@ -19,7 +19,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ProviderPushTransferDataFlowController;

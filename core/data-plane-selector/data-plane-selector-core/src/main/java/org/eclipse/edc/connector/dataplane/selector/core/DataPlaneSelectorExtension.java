@@ -38,7 +38,6 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     @Inject
     private TransactionContext transactionContext;
 
-
     @Override
     public void initialize(ServiceExtensionContext context) {
         var selector = new DataPlaneSelectorImpl(instanceStore);

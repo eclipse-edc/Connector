@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import dev.failsafe.RetryPolicy;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -38,7 +39,7 @@ class DataPlaneClientExtensionTest {
 
         var extension = factory.constructInstance(DataPlaneClientExtension.class);
 
-        var client = extension.dataPlaneClient(context);
+        var client = extension.dataPlaneClientFactory(context).createClient(createDataPlaneInstance());
 
         assertThat(client).isInstanceOf(EmbeddedDataPlaneClient.class);
     }
@@ -53,8 +54,12 @@ class DataPlaneClientExtensionTest {
 
         var extension = factory.constructInstance(DataPlaneClientExtension.class);
 
-        var client = extension.dataPlaneClient(context);
+        var client = extension.dataPlaneClientFactory(context).createClient(createDataPlaneInstance());
 
         assertThat(client).isInstanceOf(RemoteDataPlaneClient.class);
+    }
+
+    private DataPlaneInstance createDataPlaneInstance() {
+        return DataPlaneInstance.Builder.newInstance().url("http://any").build();
     }
 }

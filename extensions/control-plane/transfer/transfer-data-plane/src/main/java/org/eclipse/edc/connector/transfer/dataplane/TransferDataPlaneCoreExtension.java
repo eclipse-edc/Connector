@@ -16,8 +16,8 @@
 package org.eclipse.edc.connector.transfer.dataplane;
 
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ProviderPushTransferDataFlowController;
@@ -76,13 +76,13 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private DataEncrypter dataEncrypter;
 
     @Inject
-    private DataPlaneClient dataPlaneClient;
-
-    @Inject
     private ControlApiConfiguration controlApiConfiguration;
 
     @Inject
     private DataPlaneSelectorClient selectorClient;
+
+    @Inject
+    private DataPlaneClientFactory clientFactory;
 
     @Inject
     private ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction;
@@ -112,7 +112,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new TokenGenerationServiceImpl(keyPair.getPrivate()), tokenExpirationDateFunction);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorClient, resolver));
-        dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, dataPlaneClient));
+        dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorClient, clientFactory));
 
         dataAddressValidatorRegistry.registerDestinationValidator("HttpProxy", dataAddress -> ValidationResult.success());
     }
@@ -135,4 +135,5 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         registry.addRule(new ExpirationDateValidationRule(clock));
         return new TokenValidationServiceImpl(id -> publicKey, registry);
     }
+
 }
