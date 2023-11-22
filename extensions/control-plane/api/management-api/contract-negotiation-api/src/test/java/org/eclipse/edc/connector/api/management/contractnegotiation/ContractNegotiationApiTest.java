@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferDescriptionTransformer;
+import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.api.management.contractnegotiation.validation.ContractRequestValidator;
@@ -52,10 +53,12 @@ class ContractNegotiationApiTest {
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new JsonLdExtension().createJsonLdService(testServiceExtensionContext());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final Monitor monitor = mock();
 
     @BeforeEach
     void setUp() {
         transformer.register(new JsonObjectToContractRequestTransformer());
+        transformer.register(new JsonObjectToContractOfferTransformer());
         transformer.register(new JsonObjectToContractOfferDescriptionTransformer());
         transformer.register(new JsonObjectToCallbackAddressTransformer());
         transformer.register(new JsonObjectToTerminateNegotiationCommandTransformer());
@@ -64,7 +67,7 @@ class ContractNegotiationApiTest {
 
     @Test
     void contractRequestExample() throws JsonProcessingException {
-        var validator = ContractRequestValidator.instance(mock(Monitor.class));
+        var validator = ContractRequestValidator.instance(monitor);
 
         var jsonObject = objectMapper.readValue(CONTRACT_REQUEST_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

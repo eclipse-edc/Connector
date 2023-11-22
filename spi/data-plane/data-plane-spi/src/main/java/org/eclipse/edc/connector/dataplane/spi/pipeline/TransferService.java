@@ -37,9 +37,21 @@ public interface TransferService {
     Result<Boolean> validate(DataFlowRequest request);
 
     /**
-     * Transfers data from source to destination.
+     * Transfers data from a source to a destination using the provided data flow request.
+     *
+     * @param request The data flow request containing the necessary information for the transfer.
+     * @return A CompletableFuture wrapping a StreamResult indicating the success or failure of the transfer.
      */
     CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request);
+
+    /**
+     * Transfers data from a source to a destination using the provided data flow request and data sink.
+     *
+     * @param request The data flow request containing the necessary information for the transfer.
+     * @param sink    The data sink that will receive the transferred data.
+     * @return A CompletableFuture wrapping a StreamResult indicating the success or failure of the transfer.
+     */
+    CompletableFuture<StreamResult<Object>> transfer(DataFlowRequest request, DataSink sink);
 
     /**
      * Terminate a data flow.

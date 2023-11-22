@@ -134,7 +134,10 @@ public interface ContractNegotiationApi {
             String counterPartyAddress,
             @Schema(requiredMode = REQUIRED)
             String providerId,
+            @Deprecated(since = "0.3.2")
+            @Schema(deprecated = true, description = "please use policy instead of offer")
             ContractOfferDescriptionSchema offer,
+            ManagementApiSchema.PolicySchema policy,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
         // policy example took from https://w3c.github.io/odrl/bp/
@@ -145,18 +148,14 @@ public interface ContractNegotiationApi {
                     "counterPartyAddress": "http://provider-address",
                     "protocol": "dataspace-protocol-http",
                     "providerId": "provider-id",
-                    "offer": {
-                        "offerId": "offer-id",
-                        "assetId": "asset-id",
-                        "policy": {
-                            "@context": "http://www.w3.org/ns/odrl.jsonld",
-                            "@type": "Set",
-                            "@id": "offer-id",
-                            "permission": [{
-                                "target": "asset-id",
-                                "action": "display"
-                            }]
-                        }
+                    "policy": {
+                        "@context": "http://www.w3.org/ns/odrl.jsonld",
+                        "@type": "Set",
+                        "@id": "policy-id",
+                        "permission": [],
+                        "prohibition": [],
+                        "obligation": [],
+                        "target": "assetId"
                     },
                     "callbackAddresses": [{
                         "transactional": false,

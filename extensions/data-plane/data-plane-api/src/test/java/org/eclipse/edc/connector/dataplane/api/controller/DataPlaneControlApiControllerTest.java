@@ -14,18 +14,29 @@
 
 package org.eclipse.edc.connector.dataplane.api.controller;
 
+import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +44,50 @@ import static org.mockito.Mockito.when;
 class DataPlaneControlApiControllerTest extends RestControllerTestBase {
 
     private final DataPlaneManager manager = mock();
+
+    @Test
+    void should_callDataPlaneManager_if_requestIsValid() {
+        var flowRequest = DataFlowRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(testDestAddress())
+                .destinationDataAddress(testDestAddress())
+                .build();
+
+        when(manager.validate(isA(DataFlowRequest.class))).thenReturn(Result.success(Boolean.TRUE));
+
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(flowRequest)
+                .post("/transfer")
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+
+        verify(manager).initiate(isA(DataFlowRequest.class));
+    }
+
+    @Test
+    void should_returnBadRequest_if_requestIsInValid() {
+        var errorMsg = "test error message";
+        var flowRequest = DataFlowRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .processId(UUID.randomUUID().toString())
+                .sourceDataAddress(testDestAddress())
+                .destinationDataAddress(testDestAddress())
+                .build();
+
+        when(manager.validate(isA(DataFlowRequest.class))).thenReturn(Result.failure(errorMsg));
+
+        baseRequest()
+                .contentType(ContentType.JSON)
+                .body(flowRequest)
+                .post("/transfer")
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .body("errors", CoreMatchers.equalTo(List.of(errorMsg)));
+
+        verify(manager, never()).initiate(any());
+    }
 
     @Test
     void delete_shouldReturnOk_whenTerminationSucceeds() {
@@ -68,5 +123,9 @@ class DataPlaneControlApiControllerTest extends RestControllerTestBase {
                 .baseUri("http://localhost:" + port)
                 .header(HttpHeaders.AUTHORIZATION, "auth")
                 .when();
+    }
+
+    private DataAddress testDestAddress() {
+        return DataAddress.Builder.newInstance().type("test").build();
     }
 }

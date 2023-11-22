@@ -1,0 +1,77 @@
+{
+  "@id": "http://example.edu/credentials/3732",
+  "@type": [
+    "https://www.w3.org/2018/credentials#VerifiableCredential",
+    "https://example.org/examples#UniversityDegreeCredential"
+  ],
+  "https://www.w3.org/2018/credentials#issuer": [
+    {
+      "@id": "https://example.edu/issuers/14"
+    }
+  ],
+  "https://www.w3.org/2018/credentials#issuanceDate": [
+    {
+      "@value": "2010-01-01T19:23:24Z",
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  ],
+  "https://www.w3.org/2018/credentials#credentialSubject": [
+    {
+      "@id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
+      "https://example.org/examples#degree": [
+        {
+          "@type": [
+            "https://example.org/examples#BachelorDegree"
+          ],
+          "http://schema.org/name": [
+            {
+              "@value": "Bachelor of Science and Arts",
+              "@type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "https://www.w3.org/2018/credentials#credentialStatus": [
+    {
+      "@id": "https://example.edu/status/24",
+      "@type": [
+        "CredentialStatusList2017"
+      ]
+    }
+  ],
+  "https://w3id.org/security#proof": [
+    {
+      "@graph": [
+        {
+          "@type": [
+            "https://w3id.org/security#Ed25519Signature2020"
+          ],
+          "http://purl.org/dc/terms/created": [
+            {
+              "@value": "2022-02-25T14:58:43Z",
+              "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+            }
+          ],
+          "https://w3id.org/security#verificationMethod": [
+            {
+              "@id": "https://example.edu/issuers/14#key-1"
+            }
+          ],
+          "https://w3id.org/security#proofPurpose": [
+            {
+              "@id": "https://w3id.org/security#assertionMethod"
+            }
+          ],
+          "https://w3id.org/security#proofValue": [
+            {
+              "@value": "z3BXsFfx1qJ5NsTkKqREjQ3AGh6RAmCwvgu1HcDSzK3P5QEg2TAw8ufktJBw8QkAQRciMGyBf5T2AHyRg2w13Uvhp",
+              "@type": "https://w3id.org/security#multibase"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
