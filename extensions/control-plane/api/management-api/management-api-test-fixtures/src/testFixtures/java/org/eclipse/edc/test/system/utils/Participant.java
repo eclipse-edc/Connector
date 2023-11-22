@@ -237,23 +237,17 @@ public class Participant {
      * Initiate negotiation with a provider.
      *
      * @param provider data provider
-     * @param offerId  contract definition id
-     * @param assetId  asset id
      * @param policy   policy
      * @return id of the contract agreement.
      */
-    public String negotiateContract(Participant provider, String offerId, String assetId, JsonObject policy) {
+    public String negotiateContract(Participant provider, JsonObject policy) {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "ContractRequestDto")
                 .add("providerId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
                 .add("protocol", DSP_PROTOCOL)
-                .add("offer", createObjectBuilder()
-                        .add("offerId", offerId)
-                        .add("assetId", assetId)
-                        .add("policy", jsonLd.compact(policy).getContent())
-                )
+                .add("policy", jsonLd.compact(policy).getContent())
                 .build();
 
         var negotiationId = managementEndpoint.baseRequest()
@@ -262,6 +256,7 @@ public class Participant {
                 .when()
                 .post("/v2/contractnegotiations")
                 .then()
+                .log().ifError()
                 .statusCode(200)
                 .extract().body().jsonPath().getString(ID);
 
@@ -322,9 +317,7 @@ public class Participant {
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
         var dataset = getDatasetForAsset(provider, assetId);
         var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
-        var contractDefinitionId = ContractOfferId.parseId(policy.getString(ID))
-                .orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
-        var contractAgreementId = negotiateContract(provider, contractDefinitionId.toString(), assetId, policy);
+        var contractAgreementId = negotiateContract(provider, policy);
         var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination);
         assertThat(transferProcessId).isNotNull();
         return transferProcessId;

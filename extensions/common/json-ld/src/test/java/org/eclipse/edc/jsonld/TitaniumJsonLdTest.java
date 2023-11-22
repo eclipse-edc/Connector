@@ -264,7 +264,6 @@ class TitaniumJsonLdTest {
                 .add("test:key", "value")
                 .build();
         var service = defaultService();
-        service.registerCachedDocument("http//any.other/url", URI.create("any:uri"));
 
         var expanded = service.expand(jsonObject);
 
@@ -280,7 +279,7 @@ class TitaniumJsonLdTest {
                 .add("test:key", "value")
                 .build();
         var service = httpEnabledService();
-        service.registerCachedDocument("http//any.other/url", URI.create("any:uri"));
+        service.registerCachedDocument("http//any.other/url", URI.create("http://localhost:" + server.getLocalPort()));
 
         var expanded = service.expand(jsonObject);
 

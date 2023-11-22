@@ -25,6 +25,8 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,11 +42,13 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
@@ -72,6 +76,35 @@ class JsonObjectToContractRequestTransformerTest {
                 .add(PROTOCOL, "test-protocol")
                 .add(PROVIDER_ID, "test-provider-id")
                 .add(CALLBACK_ADDRESSES, createCallbackAddress())
+                .add(POLICY, createPolicy())
+                .build();
+        when(context.transform(any(JsonObject.class), eq(CallbackAddress.class))).thenReturn(CallbackAddress.Builder.newInstance()
+                .uri("http://test.local")
+                .events(Set.of("foo", "bar"))
+                .transactional(true)
+                .build());
+        var offer = createContractOffer();
+        when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(offer);
+        
+        var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
+
+        assertThat(request).isNotNull();
+        assertThat(request.getProviderId()).isEqualTo("test-provider-id");
+        assertThat(request.getCallbackAddresses()).isNotEmpty();
+        assertThat(request.getProtocol()).isEqualTo("test-protocol");
+        assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
+        assertThat(request.getContractOffer()).isSameAs(offer);
+    }
+
+    @Deprecated(since = "0.3.2")
+    @Test
+    void deprecated_transform_contractOfferFromOfferAttribute() {
+        var jsonObject = Json.createObjectBuilder()
+                .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
+                .add(PROTOCOL, "test-protocol")
+                .add(PROVIDER_ID, "test-provider-id")
+                .add(CALLBACK_ADDRESSES, createCallbackAddress())
                 .add(OFFER, Json.createObjectBuilder()
                         .add(OFFER_ID, "test-offer-id")
                         .add(ASSET_ID, "test-asset")
@@ -85,6 +118,8 @@ class JsonObjectToContractRequestTransformerTest {
                 .assetId("assetId")
                 .policy(policy)
                 .build();
+        when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(null);
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
         when(context.transform(any(JsonValue.class), eq(ContractOfferDescription.class))).thenReturn(contractOfferDescription);
 
         when(context.transform(any(JsonObject.class), eq(CallbackAddress.class))).thenReturn(CallbackAddress.Builder.newInstance()
@@ -92,7 +127,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .events(Set.of("foo", "bar"))
                 .transactional(true)
                 .build());
-        
+
         var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
         assertThat(request).isNotNull();
@@ -114,25 +149,19 @@ class JsonObjectToContractRequestTransformerTest {
                 .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
                 .add(PROTOCOL, "test-protocol")
-                .add(OFFER, Json.createObjectBuilder()
-                        .add(OFFER_ID, "test-offer-id")
-                        .add(ASSET_ID, "test-asset")
-                        .add(POLICY, createPolicy())
-                        .build())
+                .add(POLICY, createPolicy())
                 .build();
-
-        var policy = Policy.Builder.newInstance().build();
-        var contractOfferDescription = ContractOfferDescription.Builder.newInstance()
-                .offerId("offerId")
-                .assetId("assetId")
-                .policy(policy)
-                .build();
-        when(context.transform(any(JsonValue.class), eq(ContractOfferDescription.class))).thenReturn(contractOfferDescription);
+        when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(createContractOffer());
 
         var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
 
         assertThat(request).isNotNull();
         assertThat(request.getProviderId()).isEqualTo("test-address");
+    }
+
+    private ContractOffer createContractOffer() {
+        var policy = Policy.Builder.newInstance().target("test-asset").build();
+        return ContractOffer.Builder.newInstance().id("offer-id").assetId("asset-id").policy(policy).build();
     }
 
     private JsonArrayBuilder createCallbackAddress() {
@@ -149,6 +178,8 @@ class JsonObjectToContractRequestTransformerTest {
         var dutyJson = getJsonObject("duty");
         return Json.createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
+                .add(ID, "test-offer-id")
+                .add(ODRL_TARGET_ATTRIBUTE, "test-asset")
                 .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
                 .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
                 .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)

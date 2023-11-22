@@ -68,7 +68,7 @@ public class TitaniumJsonLd implements JsonLd {
 
     public TitaniumJsonLd(Monitor monitor, JsonLdConfiguration configuration) {
         this.monitor = monitor;
-        this.documentLoader = new CachedDocumentLoader(configuration);
+        this.documentLoader = new CachedDocumentLoader(configuration, monitor);
     }
 
     @Override
@@ -177,28 +177,37 @@ public class TitaniumJsonLd implements JsonLd {
 
     private static class CachedDocumentLoader implements DocumentLoader {
 
-        private final Map<String, URI> cache = new HashMap<>();
+        private final Map<String, URI> uriCache = new HashMap<>();
+        private final Map<URI, Document> documentCache = new HashMap<>();
         private final DocumentLoader loader;
+        private final Monitor monitor;
 
-        CachedDocumentLoader(JsonLdConfiguration configuration) {
+        CachedDocumentLoader(JsonLdConfiguration configuration, Monitor monitor) {
             loader = new SchemeRouter()
                     .set("http", configuration.isHttpEnabled() ? HttpLoader.defaultInstance() : null)
                     .set("https", configuration.isHttpsEnabled() ? HttpLoader.defaultInstance() : null)
                     .set("file", new FileLoader())
                     .set("jar", new JarLoader());
+            this.monitor = monitor;
         }
 
         @Override
         public Document loadDocument(URI url, DocumentLoaderOptions options) throws JsonLdError {
             var uri = Optional.of(url.toString())
-                    .map(cache::get)
+                    .map(uriCache::get)
                     .orElse(url);
 
-            return loader.loadDocument(uri, options);
+            return Optional.ofNullable(documentCache.get(uri))
+                    .orElse(loader.loadDocument(uri, options));
         }
 
         public void register(String contextUrl, URI uri) {
-            cache.put(contextUrl, uri);
+            uriCache.put(contextUrl, uri);
+            try {
+                documentCache.put(uri, loader.loadDocument(uri, new DocumentLoaderOptions()));
+            } catch (JsonLdError e) {
+                monitor.warning("Error caching context URL '%s' for URI '%s'. Subsequent attempts to expand this context URL may fail.".formatted(contextUrl, uri));
+            }
         }
 
     }

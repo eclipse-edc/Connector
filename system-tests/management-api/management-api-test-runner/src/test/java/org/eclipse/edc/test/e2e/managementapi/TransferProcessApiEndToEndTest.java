@@ -109,7 +109,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 )
                 .add("callbackAddresses", createCallbackAddress())
                 .add("protocol", "dataspace-protocol-http")
-                .add("connectorAddress", "http://connector-address")
+                .add("counterPartyAddress", "http://connector-address")
                 .add("contractId", "contractId")
                 .add("assetId", "assetId")
                 .build();

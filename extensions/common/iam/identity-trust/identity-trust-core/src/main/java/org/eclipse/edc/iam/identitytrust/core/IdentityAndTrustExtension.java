@@ -30,12 +30,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
@@ -49,6 +47,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Setting(value = "DID of this connector", required = true)
     public static final String ISSUER_DID_PROPERTY = "edc.iam.issuer.id";
+
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -75,11 +74,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    @Inject
-    private TypeTransformerRegistry typeTransformerRegistry;
-
-    @Inject
-    private EdcHttpClient httpClient;
 
     private JwtValidator jwtValidator;
     private JwtVerifier jwtVerifier;
@@ -124,11 +118,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         return jwtVerifier;
     }
 
-    @Provider
-    public CredentialServiceClient createClient(ServiceExtensionContext context) {
-        context.getMonitor().warning("Using a dummy CredentialServiceClient, that'll return null always. Don't use this in production use cases!");
-        return (csUrl, siTokenJwt, scopes) -> null;
-    }
 
     private String getOwnDid(ServiceExtensionContext context) {
         // todo: this must be config value

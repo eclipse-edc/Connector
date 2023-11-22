@@ -122,13 +122,14 @@ public class IdentityAndTrustService implements IdentityService {
             return issuerResult.mapTo();
         }
 
-        var vpResponse = credentialServiceClient.requestPresentation(null, null, null);
+        // todo: create SI Token, extract scope strings
+        var vpResponse = credentialServiceClient.requestPresentation(null, null);
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();
         }
 
-        var verifiablePresentation = vpResponse.getContent();
+        var verifiablePresentation = vpResponse.getContent().get(0);
         var credentials = verifiablePresentation.presentation().getCredentials();
         // verify, that the VP and all VPs are cryptographically OK
         var result = presentationVerifier.verifyPresentation(verifiablePresentation)

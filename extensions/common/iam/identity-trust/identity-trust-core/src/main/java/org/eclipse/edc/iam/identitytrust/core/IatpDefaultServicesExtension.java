@@ -14,28 +14,38 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import jakarta.json.Json;
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultCredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
+import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.security.KeyPair;
 import java.time.Clock;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension("Identity And Trust Extension to register default services")
 public class IatpDefaultServicesExtension implements ServiceExtension {
@@ -44,11 +54,12 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     public static final String STS_PRIVATE_KEY_ALIAS = "edc.iam.sts.privatekey.alias";
     @Setting(value = "Alias of public key used for verifying the tokens, retrieved from the vault", defaultValue = "A random EC public key")
     public static final String STS_PUBLIC_KEY_ALIAS = "edc.iam.sts.publickey.alias";
+    @Setting(value = "URL of the CredentialService used to present credentials", required = true)
+    public static final String CREDENTIALSERVICE_URL_PROPERTY = "edc.iam.credentialservice.url";
     // not a setting, it's defined in Oauth2ServiceExtension
     private static final String OAUTH_TOKENURL_PROPERTY = "edc.oauth.token.url";
     @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + IatpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
     private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
-
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
 
     @Inject
@@ -57,6 +68,18 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private TypeTransformerRegistry typeTransformerRegistry;
+
+    @Inject
+    private EdcHttpClient httpClient;
+
+    @Inject
+    private TypeManager typeManager;
+
+    @Inject
+    private JsonLd jsonLd;
+    
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
         context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
@@ -85,6 +108,13 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public ScopeExtractorRegistry scopeExtractorRegistry() {
         return new IatpScopeExtractorRegistry();
+    }
+
+    @Provider(isDefault = true)
+    public CredentialServiceClient createClient(ServiceExtensionContext context) {
+        return new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
+                typeManager.getMapper(JSON_LD), typeTransformerRegistry, jsonLd, context.getMonitor(),
+                context.getConfig().getString(CREDENTIALSERVICE_URL_PROPERTY));
     }
 
     private KeyPair keyPairFromConfig(ServiceExtensionContext context) {
