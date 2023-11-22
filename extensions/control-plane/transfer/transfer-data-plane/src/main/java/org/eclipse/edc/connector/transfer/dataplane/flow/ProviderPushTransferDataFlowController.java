@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
@@ -32,10 +32,10 @@ import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlane
 public class ProviderPushTransferDataFlowController implements DataFlowController {
 
     private final ControlApiUrl callbackUrl;
-    private final DataPlaneSelectorClient selectorClient;
+    private final DataPlaneSelectorService selectorClient;
     private final DataPlaneClientFactory clientFactory;
 
-    public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorClient selectorClient, DataPlaneClientFactory clientFactory) {
+    public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataPlaneClientFactory clientFactory) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.clientFactory = clientFactory;
@@ -57,7 +57,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
                 .build();
 
-        var dataPlaneInstance = selectorClient.find(transferProcess.getContentDataAddress(), transferProcess.getDataDestination());
+        var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination());
         return clientFactory.createClient(dataPlaneInstance)
                 .transfer(dataFlowRequest)
                 .map(it -> DataFlowResponse.Builder.newInstance().build());

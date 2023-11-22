@@ -62,7 +62,7 @@ class DataPlaneSelectorApiExtensionTest {
         context.registerService(TypeManager.class, new TypeManager());
         context.registerService(WebService.class, webService);
         context.registerService(ManagementApiConfiguration.class, managementApiConfiguration);
-        context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(mock(DataPlaneSelector.class),
+        context.registerService(DataPlaneSelectorService.class, new EmbeddedDataPlaneSelectorService(mock(DataPlaneSelector.class),
                 mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class), new NoopTransactionContext()));
 
         context.registerService(ManagementApiTypeTransformerRegistry.class, transformerRegistry);

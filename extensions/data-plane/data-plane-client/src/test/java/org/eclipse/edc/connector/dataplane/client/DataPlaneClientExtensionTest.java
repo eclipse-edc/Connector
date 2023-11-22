@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.client;
 
 import dev.failsafe.RetryPolicy;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -49,7 +48,6 @@ class DataPlaneClientExtensionTest {
         context.registerService(DataPlaneManager.class, null);
         context.registerService(EdcHttpClient.class, mock(EdcHttpClient.class));
         context.registerService(RetryPolicy.class, mock(RetryPolicy.class));
-        context.registerService(DataPlaneSelectorClient.class, mock(DataPlaneSelectorClient.class));
         context.registerService(TypeManager.class, new TypeManager());
 
         var extension = factory.constructInstance(DataPlaneClientExtension.class);

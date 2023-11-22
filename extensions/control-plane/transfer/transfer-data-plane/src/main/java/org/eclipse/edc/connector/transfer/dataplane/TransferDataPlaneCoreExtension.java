@@ -16,8 +16,8 @@
 package org.eclipse.edc.connector.transfer.dataplane;
 
 import org.eclipse.edc.connector.api.control.configuration.ControlApiConfiguration;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.transfer.dataplane.api.ConsumerPullTransferTokenValidationApiController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ConsumerPullTransferDataFlowController;
 import org.eclipse.edc.connector.transfer.dataplane.flow.ProviderPushTransferDataFlowController;
@@ -79,7 +79,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private ControlApiConfiguration controlApiConfiguration;
 
     @Inject
-    private DataPlaneSelectorClient selectorClient;
+    private DataPlaneSelectorService selectorService;
 
     @Inject
     private DataPlaneClientFactory clientFactory;
@@ -111,8 +111,8 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new TokenGenerationServiceImpl(keyPair.getPrivate()), tokenExpirationDateFunction);
-        dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorClient, resolver));
-        dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorClient, clientFactory));
+        dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
+        dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorService, clientFactory));
 
         dataAddressValidatorRegistry.registerDestinationValidator("HttpProxy", dataAddress -> ValidationResult.success());
     }

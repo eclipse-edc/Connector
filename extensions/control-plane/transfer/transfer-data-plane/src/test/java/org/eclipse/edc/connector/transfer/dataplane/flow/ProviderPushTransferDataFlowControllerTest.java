@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
@@ -44,9 +44,9 @@ class ProviderPushTransferDataFlowControllerTest {
 
     private final DataPlaneClient dataPlaneClient = mock();
     private final DataPlaneClientFactory dataPlaneClientFactory = mock();
-    private final DataPlaneSelectorClient dataPlaneSelectorClient = mock();
+    private final DataPlaneSelectorService selectorService = mock();
     private final ProviderPushTransferDataFlowController flowController =
-            new ProviderPushTransferDataFlowController(() -> URI.create("http://localhost"), dataPlaneSelectorClient, dataPlaneClientFactory);
+            new ProviderPushTransferDataFlowController(() -> URI.create("http://localhost"), selectorService, dataPlaneClientFactory);
 
     @Test
     void canHandle() {
@@ -65,7 +65,7 @@ class ProviderPushTransferDataFlowControllerTest {
 
         when(dataPlaneClient.transfer(any(DataFlowRequest.class))).thenReturn(StatusResult.success());
         var dataPlaneInstance = createDataPlaneInstance();
-        when(dataPlaneSelectorClient.find(any(), any())).thenReturn(dataPlaneInstance);
+        when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
         var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
@@ -92,7 +92,7 @@ class ProviderPushTransferDataFlowControllerTest {
 
         when(dataPlaneClient.transfer(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
         var dataPlaneInstance = createDataPlaneInstance();
-        when(dataPlaneSelectorClient.find(any(), any())).thenReturn(dataPlaneInstance);
+        when(selectorService.select(any(), any())).thenReturn(dataPlaneInstance);
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
         var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());
@@ -113,7 +113,7 @@ class ProviderPushTransferDataFlowControllerTest {
         when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
         var dataPlaneInstance = createDataPlaneInstance();
         when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-        when(dataPlaneSelectorClient.getAll()).thenReturn(List.of(dataPlaneInstance));
+        when(selectorService.getAll()).thenReturn(List.of(dataPlaneInstance));
 
         var result = flowController.terminate(transferProcess);
 

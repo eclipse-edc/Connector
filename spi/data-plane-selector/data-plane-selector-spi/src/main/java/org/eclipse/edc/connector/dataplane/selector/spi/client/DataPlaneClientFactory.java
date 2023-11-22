@@ -17,13 +17,16 @@ package org.eclipse.edc.connector.dataplane.selector.spi.client;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 
 /**
- * TODO: docs
+ * Factory for {@link DataPlaneClient} instances.
  */
 @FunctionalInterface
 public interface DataPlaneClientFactory {
 
     /**
-     * TODO: docs
+     * Create a {@link DataPlaneClient} that points to the {@link DataPlaneInstance}
+     *
+     * @param dataPlaneInstance the data plane instance.
+     * @return the data plane client.
      */
     DataPlaneClient createClient(DataPlaneInstance dataPlaneInstance);
 

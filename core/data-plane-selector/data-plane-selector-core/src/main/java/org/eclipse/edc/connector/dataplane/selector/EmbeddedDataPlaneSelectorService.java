@@ -27,14 +27,14 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
+public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
 
     private final DataPlaneSelector selector;
     private final DataPlaneInstanceStore store;
     private final SelectionStrategyRegistry selectionStrategyRegistry;
     private final TransactionContext transactionContext;
 
-    public DataPlaneSelectorServiceImpl(DataPlaneSelector selector, DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
+    public EmbeddedDataPlaneSelectorService(DataPlaneSelector selector, DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
         this.selector = selector;
         this.store = store;
         this.selectionStrategyRegistry = selectionStrategyRegistry;

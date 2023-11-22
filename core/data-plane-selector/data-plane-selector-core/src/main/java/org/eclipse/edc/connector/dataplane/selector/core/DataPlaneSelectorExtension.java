@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.core;
 
-import org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorServiceImpl;
+import org.eclipse.edc.connector.dataplane.selector.EmbeddedDataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -23,12 +23,13 @@ import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrate
 import org.eclipse.edc.connector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-@Provides({ DataPlaneSelector.class, SelectionStrategyRegistry.class, DataPlaneSelectorService.class })
+@Provides({ DataPlaneSelector.class, SelectionStrategyRegistry.class })
 @Extension(value = "DataPlane core selector")
 public class DataPlaneSelectorExtension implements ServiceExtension {
 
@@ -38,6 +39,8 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     @Inject
     private TransactionContext transactionContext;
 
+    private DataPlaneSelectorService dataPlaneSelectorService;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var selector = new DataPlaneSelectorImpl(instanceStore);
@@ -45,9 +48,15 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
         var strategy = new DefaultSelectionStrategyRegistry();
         strategy.add(new RandomSelectionStrategy());
 
+        dataPlaneSelectorService = new EmbeddedDataPlaneSelectorService(selector, instanceStore, strategy, transactionContext);
+
         context.registerService(DataPlaneSelector.class, selector);
         context.registerService(SelectionStrategyRegistry.class, strategy);
-        context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(selector, instanceStore, strategy, transactionContext));
+    }
+
+    @Provider(isDefault = true)
+    public DataPlaneSelectorService dataPlaneSelectorService() {
+        return dataPlaneSelectorService;
     }
 
 }

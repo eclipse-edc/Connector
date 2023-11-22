@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
@@ -33,11 +33,11 @@ import static org.eclipse.edc.spi.response.StatusResult.failure;
 
 public class ConsumerPullTransferDataFlowController implements DataFlowController {
 
-    private final DataPlaneSelectorClient selectorClient;
+    private final DataPlaneSelectorService selectorService;
     private final ConsumerPullDataPlaneProxyResolver resolver;
 
-    public ConsumerPullTransferDataFlowController(DataPlaneSelectorClient selectorClient, ConsumerPullDataPlaneProxyResolver resolver) {
-        this.selectorClient = selectorClient;
+    public ConsumerPullTransferDataFlowController(DataPlaneSelectorService selectorService, ConsumerPullDataPlaneProxyResolver resolver) {
+        this.selectorService = selectorService;
         this.resolver = resolver;
     }
 
@@ -50,7 +50,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     public @NotNull StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy) {
         var contentAddress = transferProcess.getContentDataAddress();
         var dataRequest = transferProcess.getDataRequest();
-        return Optional.ofNullable(selectorClient.find(contentAddress, dataRequest.getDataDestination()))
+        return Optional.ofNullable(selectorService.select(contentAddress, dataRequest.getDataDestination()))
                 .map(instance -> resolver.toDataAddress(dataRequest, contentAddress, instance)
                         .map(this::toResponse)
                         .map(StatusResult::success)
