@@ -67,9 +67,9 @@ public interface Monitor {
 
     /**
      * Creates a prefixed {@link Monitor} which will prepend the supplied prefix parameter to the actual log message
-     * in the format of: <i>[LOGLEVEL] [TIMESTAMP] [[PREFIX]] [MESSAGE]</i>
+     * in the format of: <strong>[LOGLEVEL] [TIMESTAMP] [[PREFIX]] [MESSAGE]</strong>
      * <br>
-     * Example output: <i>INFO 2023-11-08T15:53:39.989025 [JerseyExtension]: Registered Web API context alias: protocol</i>
+     * Example output: <strong>INFO 2023-11-08T15:53:39.989025 [JerseyExtension]: Registered Web API context alias: protocol</strong>
      *
      * @param prefix string value to be prefixed
      * @return the prefixed monitor
