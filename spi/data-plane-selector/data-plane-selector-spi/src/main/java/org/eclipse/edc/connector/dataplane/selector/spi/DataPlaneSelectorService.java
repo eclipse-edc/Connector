@@ -36,7 +36,9 @@ public interface DataPlaneSelectorService {
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the configured
      * strategy.
      */
-    DataPlaneInstance select(DataAddress source, DataAddress destination);
+    default DataPlaneInstance select(DataAddress source, DataAddress destination) {
+        return select(source, destination, "random");
+    }
 
     /**
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the passed

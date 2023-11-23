@@ -38,8 +38,7 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneSelectorService dataPlaneSelectorService() {
-        var selector = new DataPlaneSelectorImpl(instanceStore);
-        return new EmbeddedDataPlaneSelectorService(selector, instanceStore, selectionStrategyRegistry, transactionContext);
+        return new EmbeddedDataPlaneSelectorService(instanceStore, selectionStrategyRegistry, transactionContext);
     }
 
 }

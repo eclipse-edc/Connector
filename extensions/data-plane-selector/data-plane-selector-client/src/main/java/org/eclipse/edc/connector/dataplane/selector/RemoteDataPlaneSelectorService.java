@@ -85,11 +85,6 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     }
 
     @Override
-    public DataPlaneInstance select(DataAddress source, DataAddress destination) {
-        return select(source, destination, selectionStrategy);
-    }
-
-    @Override
     public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
         var srcAddress = typeTransformerRegistry.transform(source, JsonObject.class).orElseThrow(f -> new EdcException(f.getFailureDetail()));
         var dstAddress = typeTransformerRegistry.transform(destination, JsonObject.class).orElseThrow(f -> new EdcException(f.getFailureDetail()));
@@ -98,9 +93,13 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
                 .add(TYPE, EDC_NAMESPACE + "SelectionRequest")
                 .add(EDC_NAMESPACE + "source", srcAddress)
                 .add(EDC_NAMESPACE + "destination", dstAddress);
+
         if (selectionStrategy != null) {
             jsonObject.add(EDC_NAMESPACE + "strategy", selectionStrategy);
+        } else {
+            jsonObject.add(EDC_NAMESPACE + "strategy", this.selectionStrategy);
         }
+
         var body = RequestBody.create(jsonObject.build().toString(), TYPE_JSON);
 
         var request = new Request.Builder().post(body).url(url + SELECT_PATH).build();

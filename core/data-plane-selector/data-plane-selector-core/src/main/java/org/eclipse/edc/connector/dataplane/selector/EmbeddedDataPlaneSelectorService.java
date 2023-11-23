@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -29,13 +28,11 @@ import java.util.stream.Collectors;
 
 public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
 
-    private final DataPlaneSelector selector;
     private final DataPlaneInstanceStore store;
     private final SelectionStrategyRegistry selectionStrategyRegistry;
     private final TransactionContext transactionContext;
 
-    public EmbeddedDataPlaneSelectorService(DataPlaneSelector selector, DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
-        this.selector = selector;
+    public EmbeddedDataPlaneSelectorService(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
         this.store = store;
         this.selectionStrategyRegistry = selectionStrategyRegistry;
         this.transactionContext = transactionContext;
@@ -47,17 +44,13 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     }
 
     @Override
-    public DataPlaneInstance select(DataAddress source, DataAddress destination) {
-        return selector.select(source, destination);
-    }
-
-    @Override
     public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
         var strategy = selectionStrategyRegistry.find(selectionStrategy);
         if (strategy == null) {
             throw new IllegalArgumentException("Strategy " + selectionStrategy + " was not found");
         }
-        return selector.select(source, destination, strategy);
+        var dataPlanes = store.getAll().filter(dataPlane -> dataPlane.canHandle(source, destination)).toList();
+        return strategy.apply(dataPlanes);
     }
 
     @Override
