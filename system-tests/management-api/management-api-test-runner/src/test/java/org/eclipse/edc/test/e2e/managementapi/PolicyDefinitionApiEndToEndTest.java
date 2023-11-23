@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.is;
 @EndToEndTest
 public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
+
     @Test
     void shouldStorePolicyDefinition() {
         var requestBody = createObjectBuilder()
@@ -61,6 +62,48 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
         assertThat(store().findById(id)).isNotNull()
                 .extracting(PolicyDefinition::getPolicy).isNotNull()
                 .extracting(Policy::getPermissions).asList().hasSize(1);
+
+        baseRequest()
+                .get("/v2/policydefinitions/" + id)
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body(ID, is(id))
+                .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
+                .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
+                .log().all()
+                .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
+    }
+
+    @Test
+    void shouldStorePolicyDefinitionWithPrivateProperties() {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add("edc", EDC_NAMESPACE)
+                        .build())
+                .add(TYPE, "PolicyDefinition")
+                .add("policy", sampleOdrlPolicy())
+                .add("privateProperties", createObjectBuilder()
+                        .add("newKey", "newValue")
+                        .build())
+                .build();
+
+        var id = baseRequest()
+                .body(requestBody)
+                .contentType(JSON)
+                .post("/v2/policydefinitions")
+                .then()
+                .contentType(JSON)
+                .extract().jsonPath().getString(ID);
+
+        PolicyDefinition result = store().findById(id);
+        assertThat(result).isNotNull()
+                .extracting(PolicyDefinition::getPolicy).isNotNull()
+                .extracting(Policy::getPermissions).asList().hasSize(1);
+
+        assertThat(result).isNotNull()
+                .extracting(PolicyDefinition::getPrivateProperties)
+                .asList().hasSize(1).contains("newValue");
 
         baseRequest()
                 .get("/v2/policydefinitions/" + id)
