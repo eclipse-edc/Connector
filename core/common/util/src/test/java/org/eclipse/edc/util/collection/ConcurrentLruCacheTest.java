@@ -14,29 +14,25 @@
 
 package org.eclipse.edc.util.collection;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class LruCacheTest {
-    private LruCache<String, String> cache;
+class ConcurrentLruCacheTest {
+    private final ConcurrentLruCache<String, String> cache = new ConcurrentLruCache<>(2);
 
     @Test
     void verifyEviction() {
         cache.put("foo", "foo");
         cache.put("bar", "bar");
-        assertThat(cache.containsKey("foo")).isTrue();
-        assertThat(cache.containsKey("bar")).isTrue();
+        assertThat(cache)
+                .containsKey("foo")
+                .containsKey("bar");
 
         cache.put("baz", "baz");
-        assertThat(cache.containsKey("baz")).isTrue();
-        assertThat(cache.containsKey("bar")).isTrue();
-        assertThat(cache.containsKey("foo")).isFalse();
-    }
-
-    @BeforeEach
-    void setUp() {
-        cache = new LruCache<>(2);
+        assertThat(cache)
+                .containsKey("baz")
+                .containsKey("bar")
+                .doesNotContainKey("foo");
     }
 }

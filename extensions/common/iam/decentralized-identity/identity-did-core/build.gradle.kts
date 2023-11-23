@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:identity-did-spi"))
+    implementation(project(":core:common:util"))
     implementation(project(":extensions:common:iam:decentralized-identity:identity-did-crypto"))
 
     implementation(libs.jakarta.rsApi)
