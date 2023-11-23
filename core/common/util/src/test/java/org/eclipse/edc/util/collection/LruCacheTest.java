@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LruCacheTest {
-    private LruCache<String, String> cache;
+    private ConcurrentLruCache<String, String> cache;
 
     @Test
     void verifyEviction() {
@@ -37,6 +37,6 @@ class LruCacheTest {
 
     @BeforeEach
     void setUp() {
-        cache = new LruCache<>(2);
+        cache = new ConcurrentLruCache<>(2);
     }
 }
