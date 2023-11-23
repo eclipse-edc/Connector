@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import jakarta.json.Json;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultCredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator;
 import org.eclipse.edc.iam.identitytrust.verification.MultiFormatPresentationVerifier;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
@@ -30,15 +32,18 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
 
 import java.time.Clock;
+import java.util.Map;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
@@ -46,7 +51,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Setting(value = "DID of this connector", required = true)
-    public static final String ISSUER_DID_PROPERTY = "edc.iam.issuer.id";
+    public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
 
 
     @Inject
@@ -73,6 +78,10 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
+    @Inject
+    private EdcHttpClient httpClient;
+    @Inject
+    private TypeTransformerRegistry typeTransformerRegistry;
 
 
     private JwtValidator jwtValidator;
@@ -81,8 +90,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        return new IdentityAndTrustService(secureTokenService, getIssuerDid(context), context.getParticipantId(), getPresentationVerifier(context),
-                credentialServiceClient, getJwtValidator(), getJwtVerifier(), registry, clock);
+        return new IdentityAndTrustService(secureTokenService, getOwnDid(context), context.getParticipantId(), getPresentationVerifier(context),
+                getCredentialServiceclient(context), getJwtValidator(), getJwtVerifier(), registry, clock);
     }
 
     @Provider
@@ -91,6 +100,15 @@ public class IdentityAndTrustExtension implements ServiceExtension {
             jwtValidator = new SelfIssuedIdTokenValidator();
         }
         return jwtValidator;
+    }
+
+    @Provider
+    public CredentialServiceClient getCredentialServiceclient(ServiceExtensionContext context) {
+        if (credentialServiceClient == null) {
+            credentialServiceClient = new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
+                    typeManager.getMapper(JSON_LD), typeTransformerRegistry, jsonLd, context.getMonitor());
+        }
+        return credentialServiceClient;
     }
 
     @Provider
@@ -120,11 +138,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
 
     private String getOwnDid(ServiceExtensionContext context) {
-        // todo: this must be config value
-        return null;
-    }
-
-    private String getIssuerDid(ServiceExtensionContext context) {
-        return context.getConfig().getString(ISSUER_DID_PROPERTY);
+        return context.getConfig().getString(CONNECTOR_DID_PROPERTY);
     }
 }

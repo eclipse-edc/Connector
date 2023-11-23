@@ -73,6 +73,13 @@ public interface TestData {
                   "statusPurpose": "revocation",
                   "statusListIndex": "94567",
                   "statusListCredential": "https://university.example/credentials/status/3"
+              },
+              "proof": {
+                  "type": "Ed25519Signature2020",
+                  "created": "2022-02-25T14:58:42Z",
+                  "verificationMethod": "https://example.edu/issuers/565049#key-1",
+                  "proofPurpose": "assertionMethod",
+                  "proofValue": "z3FXQjecWufY46yg5abdVZsXqLhxhueuSoZgNSARiKBk9czhSePTFehP8c3PGfb6a22gkfUKods5D2UAUL5n2Brbx"
               }
             }
             """;

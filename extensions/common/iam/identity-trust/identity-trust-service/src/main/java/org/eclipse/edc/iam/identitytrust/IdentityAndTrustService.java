@@ -123,7 +123,7 @@ public class IdentityAndTrustService implements IdentityService {
         }
 
         // todo: create SI Token, extract scope strings
-        var vpResponse = credentialServiceClient.requestPresentation(null, null);
+        var vpResponse = credentialServiceClient.requestPresentation(null, null, null);
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();

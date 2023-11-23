@@ -46,6 +46,9 @@ public class JsonObjectToVerifiablePresentationTransformer extends AbstractJsonL
                     vpBuilder.holder(transformString(jsonValue, context));
             case VerifiablePresentation.VERIFIABLE_PRESENTATION_VC_PROPERTY ->
                     transformCredential(jsonValue, vpBuilder, context);
+            case VerifiablePresentation.VERIFIABLE_PRESENTATION_PROOF_PROPERTY -> {
+                //noop
+            }
             default ->
                     context.reportProblem("Unknown property: %s type: %s".formatted(key, jsonValue.getValueType().name()));
         }
