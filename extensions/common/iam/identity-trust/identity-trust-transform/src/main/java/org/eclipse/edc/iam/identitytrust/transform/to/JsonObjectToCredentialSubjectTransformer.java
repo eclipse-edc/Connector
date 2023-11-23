@@ -30,6 +30,7 @@ public class JsonObjectToCredentialSubjectTransformer extends AbstractJsonLdTran
     public @Nullable CredentialSubject transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var builder = CredentialSubject.Builder.newInstance();
 
+        builder.id(nodeId(jsonObject));
         visitProperties(jsonObject, (s, jsonValue) -> {
             if (s.equals(CredentialSubject.CREDENTIAL_SUBJECT_ID_PROPERTY)) {
                 builder.id(transformString(jsonValue, context));

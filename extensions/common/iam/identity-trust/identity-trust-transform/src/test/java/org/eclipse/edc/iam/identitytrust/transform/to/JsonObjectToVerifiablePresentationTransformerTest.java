@@ -32,8 +32,11 @@ import java.net.URISyntaxException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.transform.TestData.EXAMPLE_VP_JSONLD;
 import static org.eclipse.edc.identitytrust.VcConstants.VC_PREFIX;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class JsonObjectToVerifiablePresentationTransformerTest {
     public static final ObjectMapper OBJECT_MAPPER = JacksonJsonLd.createObjectMapper();
@@ -67,5 +70,6 @@ class JsonObjectToVerifiablePresentationTransformerTest {
         assertThat(vp.getHolder()).isEqualTo("did:web:test-holder");
         assertThat(vp.getCredentials()).isNotNull().isNotEmpty().hasSize(1);
         assertThat(vp.getTypes()).isNotEmpty().containsExactly(VC_PREFIX + "VerifiablePresentation");
+        verify(context, never()).reportProblem(any());
     }
 }

@@ -26,6 +26,7 @@ import static org.eclipse.edc.identitytrust.VcConstants.VC_PREFIX;
 public class VerifiablePresentation {
     public static final String VERIFIABLE_PRESENTATION_HOLDER_PROPERTY = VC_PREFIX + "holder";
     public static final String VERIFIABLE_PRESENTATION_VC_PROPERTY = VC_PREFIX + "verifiableCredential";
+    public static final String VERIFIABLE_PRESENTATION_PROOF_PROPERTY = "https://w3id.org/security#proof";
     private List<VerifiableCredential> credentials = new ArrayList<>();
     private String id;
     private List<String> types = new ArrayList<>();
