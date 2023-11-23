@@ -143,7 +143,13 @@ class EndToEndKafkaTransferTest {
         destinationServer.clear(request)
                 .when(request).respond(response());
         await().pollDelay(5, SECONDS).atMost(TIMEOUT).untilAsserted(() -> {
-            destinationServer.verify(request, never());
+            try {
+                destinationServer.verify(request, never());
+            } catch (AssertionError assertionError) {
+                destinationServer.clear(request)
+                        .when(request).respond(response());
+                throw assertionError;
+            }
         });
 
         stopQuietly(destinationServer);
