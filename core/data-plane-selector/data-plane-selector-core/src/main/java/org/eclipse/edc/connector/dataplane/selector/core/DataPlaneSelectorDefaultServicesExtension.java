@@ -15,7 +15,10 @@
 package org.eclipse.edc.connector.dataplane.selector.core;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.dataplane.selector.spi.strategy.RandomSelectionStrategy;
+import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.connector.dataplane.selector.store.InMemoryDataPlaneInstanceStore;
+import org.eclipse.edc.connector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -36,5 +39,12 @@ public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtensi
     @Provider(isDefault = true)
     public DataPlaneInstanceStore instanceStore() {
         return new InMemoryDataPlaneInstanceStore();
+    }
+
+    @Provider(isDefault = true)
+    public SelectionStrategyRegistry selectionStrategyRegistry() {
+        var strategy = new DefaultSelectionStrategyRegistry();
+        strategy.add(new RandomSelectionStrategy());
+        return strategy;
     }
 }
