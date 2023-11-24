@@ -19,6 +19,7 @@ import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsRevoked;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
+import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.model.Issuer;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -67,6 +69,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final JwtVerifier jwtVerifier;
     private final TrustedIssuerRegistry trustedIssuerRegistry;
     private final Clock clock;
+    private final CredentialServiceUrlResolver credentialServiceUrlResolver;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -76,7 +79,7 @@ public class IdentityAndTrustService implements IdentityService {
      */
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
-                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier, TrustedIssuerRegistry trustedIssuerRegistry, Clock clock) {
+                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier, TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.participantId = participantId;
@@ -86,6 +89,7 @@ public class IdentityAndTrustService implements IdentityService {
         this.jwtVerifier = jwtVerifier;
         this.trustedIssuerRegistry = trustedIssuerRegistry;
         this.clock = clock;
+        this.credentialServiceUrlResolver = csUrlResolver;
     }
 
     @Override
@@ -116,14 +120,17 @@ public class IdentityAndTrustService implements IdentityService {
         // verify and validate incoming SI Token
         var issuerResult = jwtVerifier.verify(tokenRepresentation.getToken(), audience)
                 .compose(v -> jwtValidator.validateToken(tokenRepresentation, audience))
-                .compose(claimToken -> success(claimToken.getStringClaim("iss")));
+                .compose(claimToken -> success(claimToken.getStringClaim(ISSUER)));
 
         if (issuerResult.failed()) {
             return issuerResult.mapTo();
         }
 
-        // todo: create SI Token, extract scope strings
-        var vpResponse = credentialServiceClient.requestPresentation(null, null, null);
+
+        // get CS Url, execute VP request
+        var issuer = issuerResult.getContent(); // the issuer is a DID
+        var vpResponse = credentialServiceUrlResolver.resolve(issuer)
+                .compose(url -> credentialServiceClient.requestPresentation(url, null, null));
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();
@@ -137,7 +144,7 @@ public class IdentityAndTrustService implements IdentityService {
                     // in addition, verify that all VCs are valid
                     var filters = new ArrayList<>(List.of(
                             new IsNotExpired(clock),
-                            new HasValidSubjectIds(issuerResult.getContent()),
+                            new HasValidSubjectIds(issuer),
                             new IsRevoked(null),
                             new HasValidIssuer(getTrustedIssuerIds())));
 
@@ -151,6 +158,7 @@ public class IdentityAndTrustService implements IdentityService {
         // so we need to make sure that `iss == sub == DID`
         return result.map(u -> extractClaimToken(credentials));
     }
+
 
     private ClaimToken extractClaimToken(List<VerifiableCredential> credentials) {
         return null;

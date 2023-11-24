@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.core;
 
 import jakarta.json.Json;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.identitytrust.DidCredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultCredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.validation.SelfIssuedIdTokenValidator;
@@ -82,7 +83,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private EdcHttpClient httpClient;
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
-
+    @Inject
+    private DidResolverRegistry didResolverRegistry;
 
     private JwtValidator jwtValidator;
     private JwtVerifier jwtVerifier;
@@ -90,8 +92,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
+        var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context), context.getParticipantId(), getPresentationVerifier(context),
-                getCredentialServiceclient(context), getJwtValidator(), getJwtVerifier(), registry, clock);
+                getCredentialServiceClient(context), getJwtValidator(), getJwtVerifier(), registry, clock, credentialServiceUrlResolver);
     }
 
     @Provider
@@ -103,7 +106,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     }
 
     @Provider
-    public CredentialServiceClient getCredentialServiceclient(ServiceExtensionContext context) {
+    public CredentialServiceClient getCredentialServiceClient(ServiceExtensionContext context) {
         if (credentialServiceClient == null) {
             credentialServiceClient = new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
                     typeManager.getMapper(JSON_LD), typeTransformerRegistry, jsonLd, context.getMonitor());
