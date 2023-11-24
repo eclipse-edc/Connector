@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.core;
 
 import jakarta.json.Json;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.DidCredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
@@ -63,9 +64,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private CredentialServiceClient credentialServiceClient;
 
     @Inject
-    private DidResolverRegistry resolverRegistry;
-
-    @Inject
     private TrustedIssuerRegistry registry;
 
     @Inject
@@ -79,10 +77,16 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
+
     @Inject
     private EdcHttpClient httpClient;
+
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
+
+    @Inject
+    private DidPublicKeyResolver didPublicKeyResolver;
+
     @Inject
     private DidResolverRegistry didResolverRegistry;
 
@@ -134,7 +138,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Provider
     public JwtVerifier getJwtVerifier() {
         if (jwtVerifier == null) {
-            jwtVerifier = new SelfIssuedIdTokenVerifier(resolverRegistry);
+            jwtVerifier = new SelfIssuedIdTokenVerifier(didPublicKeyResolver);
         }
         return jwtVerifier;
     }
