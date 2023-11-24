@@ -19,7 +19,10 @@ import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.SignatureSuite;
 import com.apicatalog.ld.signature.method.MethodResolver;
 import com.apicatalog.ld.signature.method.VerificationMethod;
+import com.apicatalog.vc.VcTag;
+import com.apicatalog.vc.integrity.DataIntegrityKeyPair;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.spi.EdcException;
 
 import java.net.URI;
 
@@ -32,7 +35,18 @@ public class DidMethodResolver implements MethodResolver {
 
     @Override
     public VerificationMethod resolve(URI id, DocumentLoader loader, SignatureSuite suite) throws DocumentError {
-        return null;
+        var didDocument = resolverRegistry.resolve(id.toString())
+                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
+
+        return didDocument.getVerificationMethod().stream()
+                .map(verificationMethod -> DataIntegrityKeyPair.createVerificationKey(
+                        URI.create(verificationMethod.getId()),
+                        URI.create(verificationMethod.getController()),
+                        URI.create(verificationMethod.getType()),
+                        verificationMethod.serializePublicKey())
+                )
+                .findFirst()
+                .orElseThrow(() -> new DocumentError(DocumentError.ErrorType.Unknown, suite.getSchema().tagged(VcTag.VerificationMethod.name()).term()));
     }
 
     @Override

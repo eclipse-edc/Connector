@@ -15,98 +15,121 @@
 package org.eclipse.edc.iam.did.spi.document;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.nimbusds.jose.jwk.JWK;
+import org.eclipse.edc.spi.EdcException;
 
+import java.text.ParseException;
 import java.util.Map;
 
 @JsonDeserialize(builder = VerificationMethod.Builder.class)
 public class VerificationMethod {
     private String id;
-    private String controller;
     private String type;
+    private String controller;
+    private String publicKeyMultibase;
     private Map<String, Object> publicKeyJwk;
 
-    @JsonProperty("id")
+    private VerificationMethod() {
+
+    }
+
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    @JsonProperty("controller")
-    public String getController() {
-        return controller;
-    }
-
-    public void setController(String controller) {
-        this.controller = controller;
-    }
-
-    @JsonProperty("type")
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public String getController() {
+        return controller;
     }
 
-    @JsonProperty("publicKeyJwk")
+    public String getPublicKeyMultibase() {
+        return publicKeyMultibase;
+    }
+
     public Map<String, Object> getPublicKeyJwk() {
         return publicKeyJwk;
     }
 
-    public void setPublicKeyJwk(Map<String, Object> publicKeyJwk) {
-        this.publicKeyJwk = publicKeyJwk;
+    /**
+     * Serializes the public key of the VerificationMethod.
+     * If publicKeyJwt is not null, it serializes it to a JSON string and returns its bytes.
+     * If publicKeyMultibase is not null, it simply returns its bytes.
+     * If both are null, an {@link IllegalStateException} is thrown.
+     *
+     * @return the serialized public key as a byte array
+     * @throws EdcException if an error occurs during serialization
+     */
+    public byte[] serializePublicKey() {
+        if (publicKeyJwk != null) {
+            try {
+                var jwk = JWK.parse(publicKeyJwk);
+                return jwk.toJSONString().getBytes();
+            } catch (ParseException e) {
+                throw new EdcException(e);
+            }
+        } else if (publicKeyMultibase != null) {
+            return publicKeyMultibase.getBytes();
+        }
+
+        throw new IllegalStateException("Either publicKeyJwk or publicKeyMultibase must be present, not both, not neither.");
     }
 
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private String id;
-        private String controller;
-        private String type;
-        private Map<String, Object> publicKeyJwk;
+        private final VerificationMethod method;
 
         private Builder() {
+            method = new VerificationMethod();
         }
 
         @JsonCreator
-        public static Builder create() {
+        public static Builder newInstance() {
             return new Builder();
         }
 
         public Builder id(String id) {
-            this.id = id;
+            this.method.id = id;
             return this;
         }
 
         public Builder controller(String controller) {
-            this.controller = controller;
+            this.method.controller = controller;
             return this;
         }
 
         public Builder type(String type) {
-            this.type = type;
+            this.method.type = type;
             return this;
         }
 
-        public Builder publicKeyJwk(Map<String, Object> publicKeyJwk) {
-            this.publicKeyJwk = publicKeyJwk;
+        public Builder publicKeyJwk(Map<String, Object> jwk) {
+            this.method.publicKeyJwk = jwk;
+            return this;
+        }
+
+        public Builder publicKeyMultibase(String multibase) {
+            this.method.publicKeyMultibase = multibase;
             return this;
         }
 
         public VerificationMethod build() {
-            VerificationMethod verificationMethod = new VerificationMethod();
-            verificationMethod.setId(id);
-            verificationMethod.setController(controller);
-            verificationMethod.setType(type);
-            verificationMethod.setPublicKeyJwk(publicKeyJwk);
-            return verificationMethod;
+            if (method.publicKeyMultibase != null && method.publicKeyJwk != null) {
+                throw new IllegalArgumentException("Invalid public key material. Only one of publicKeyMultibase or publicKeyJwk should be provided.");
+            }
+
+            if (method.publicKeyMultibase == null && method.publicKeyJwk == null) {
+                throw new IllegalArgumentException("One of publicKeyMultibase and publicKeyJwk must be provided.");
+            }
+            return this.method;
         }
+
     }
+
+
 }
