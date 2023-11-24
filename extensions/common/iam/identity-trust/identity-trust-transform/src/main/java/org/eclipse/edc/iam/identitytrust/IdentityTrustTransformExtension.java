@@ -15,7 +15,12 @@
 package org.eclipse.edc.iam.identitytrust;
 
 import org.eclipse.edc.iam.identitytrust.transform.from.JsonObjectFromPresentationQueryTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialStatusTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialSubjectTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToIssuerTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToPresentationQueryTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToVerifiableCredentialTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToVerifiablePresentationTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiableCredentialTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiablePresentationTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -59,6 +64,11 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
 
         typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));
         typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer());
+        typeTransformerRegistry.register(new JsonObjectToVerifiablePresentationTransformer());
+        typeTransformerRegistry.register(new JsonObjectToVerifiableCredentialTransformer());
+        typeTransformerRegistry.register(new JsonObjectToIssuerTransformer());
+        typeTransformerRegistry.register(new JsonObjectToCredentialSubjectTransformer());
+        typeTransformerRegistry.register(new JsonObjectToCredentialStatusTransformer());
         typeTransformerRegistry.register(new JwtToVerifiablePresentationTransformer(context.getMonitor(), typeManager.getMapper(JSON_LD), jsonLdService));
         typeTransformerRegistry.register(new JwtToVerifiableCredentialTransformer(context.getMonitor()));
     }
