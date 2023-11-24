@@ -46,7 +46,7 @@ public final class CommonsConnectionPool implements ConnectionPool, AutoCloseabl
     }
 
     private static GenericObjectPoolConfig<Connection> getGenericObjectPoolConfig(CommonsConnectionPoolConfig commonsConnectionPoolConfig) {
-        GenericObjectPoolConfig<Connection> genericObjectPoolConfig = new GenericObjectPoolConfig<>();
+        var genericObjectPoolConfig = new GenericObjectPoolConfig<Connection>();
 
         // no need for JMX
         genericObjectPoolConfig.setJmxEnabled(false);
