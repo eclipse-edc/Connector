@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.identitytrust.service;
 
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
+import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
@@ -71,11 +72,13 @@ class IdentityAndTrustServiceTest {
     private final JwtValidator jwtValidatorMock = mock();
     private final JwtVerifier jwtVerfierMock = mock();
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
+    private final CredentialServiceUrlResolver resolverMock = mock();
     private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient,
-            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock, Clock.systemUTC());
+            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock, Clock.systemUTC(), resolverMock);
 
     @BeforeEach
     void setup() {
+        when(resolverMock.resolve(any())).thenReturn(success("foobar"));
         when(jwtValidatorMock.validateToken(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance().claim("iss", CONSUMER_DID).build()));
         when(jwtVerfierMock.verify(any(), any())).thenReturn(success());
     }
@@ -235,6 +238,17 @@ class IdentityAndTrustServiceTest {
                     .isFailed()
                     .messages().hasSize(1)
                     .containsExactly("test-failure");
+        }
+
+        @Test
+        void cannotResolveCredentialServiceUrl() {
+            when(resolverMock.resolve(any())).thenReturn(Result.failure("test-failure"));
+            assertThat(service.verifyJwtToken(createJwt(), "test-audience"))
+                    .isFailed()
+                    .detail()
+                    .isEqualTo("test-failure");
+
+            verifyNoInteractions(mockedClient);
         }
     }
 }
