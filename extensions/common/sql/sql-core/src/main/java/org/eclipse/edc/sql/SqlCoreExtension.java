@@ -39,4 +39,9 @@ public class SqlCoreExtension implements ServiceExtension {
         var configuration = new SqlQueryExecutorConfiguration(fetchSize);
         return new SqlQueryExecutor(configuration);
     }
+
+    @Provider(isDefault = true)
+    public ConnectionFactory connectionFactory() {
+        return new DriverManagerConnectionFactory();
+    }
 }

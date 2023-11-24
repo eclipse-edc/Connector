@@ -205,8 +205,7 @@ public abstract class AssetIndexTestBase {
 
             var result = getAssetIndex().queryAssets(QuerySpec.none());
 
-            var result1 = result.toList();
-            assertThat(result1).hasSize(5).usingRecursiveFieldByFieldElementComparator().containsAll(assets);
+            assertThat(result).hasSize(5).usingRecursiveFieldByFieldElementComparator().containsAll(assets);
         }
 
         @Test
