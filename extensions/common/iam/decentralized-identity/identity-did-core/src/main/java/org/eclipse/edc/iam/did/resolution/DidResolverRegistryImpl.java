@@ -20,6 +20,7 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.collection.ConcurrentLruCache;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,28 +62,28 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
         if (!isSupported(didKey)) {
             return Result.failure("This DID is not supported by any of the resolvers: %s".formatted(didKey));
         }
-        // no need to validate the token length here
-        var tokens = didKey.split(DID_SEPARATOR);
-        var methodName = tokens[DID_METHOD_NAME];
 
-        var resolver = resolvers.get(methodName);
-        if (resolver == null) {
-            return Result.failure("No resolver registered for DID Method: " + methodName);
-        }
+        var resolver = getResolverFor(didKey);
         return resolveCachedDocument(didKey, resolver);
     }
 
     @Override
     public boolean isSupported(String didKey) {
+        var res = getResolverFor(didKey);
+        return res != null;
+    }
+
+    @Nullable
+    private DidResolver getResolverFor(String didKey) {
         var tokens = didKey.split(DID_SEPARATOR);
         if (tokens.length < 3) {
-            return false;
+            return null;
         }
         if (!DID.equalsIgnoreCase(tokens[DID_PREFIX])) {
-            return false;
+            return null;
         }
         var methodName = tokens[DID_METHOD_NAME];
-        return resolvers.containsKey(methodName);
+        return resolvers.get(methodName);
     }
 
     @NotNull

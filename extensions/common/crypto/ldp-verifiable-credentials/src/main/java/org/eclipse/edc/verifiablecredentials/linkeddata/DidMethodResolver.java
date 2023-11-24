@@ -26,6 +26,10 @@ import org.eclipse.edc.spi.EdcException;
 
 import java.net.URI;
 
+/**
+ * This class implements the MethodResolver interface and is responsible for resolving verification methods for a given DID by
+ * delegating to the {@link DidResolverRegistry}.
+ */
 public class DidMethodResolver implements MethodResolver {
     private final DidResolverRegistry resolverRegistry;
 
@@ -49,6 +53,12 @@ public class DidMethodResolver implements MethodResolver {
                 .orElseThrow(() -> new DocumentError(DocumentError.ErrorType.Unknown, suite.getSchema().tagged(VcTag.VerificationMethod.name()).term()));
     }
 
+    /**
+     * Determines whether the given ID is accepted by checking if it is supported by the resolverRegistry.
+     *
+     * @param id The ID to check.
+     * @return {@code true} if the ID is supported, {@code false} otherwise.
+     */
     @Override
     public boolean isAccepted(URI id) {
         return resolverRegistry.isSupported(id.toString());
