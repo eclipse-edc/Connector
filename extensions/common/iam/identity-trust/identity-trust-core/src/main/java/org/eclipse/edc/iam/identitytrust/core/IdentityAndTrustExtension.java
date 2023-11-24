@@ -41,6 +41,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
+import org.eclipse.edc.verifiablecredentials.linkeddata.DidMethodResolver;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
 
@@ -128,6 +129,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
                     .signatureSuites(signatureSuiteRegistry)
                     .jsonLd(jsonLd)
                     .objectMapper(mapper)
+                    .methodResolver(new DidMethodResolver(didResolverRegistry))
                     .build();
 
             presentationVerifier = new MultiFormatPresentationVerifier(getOwnDid(context), jwtVerifier, ldpVerifier);

@@ -46,7 +46,7 @@ class SelfIssuedIdTokenVerifierTest {
                 .keyID("#my-key1")
                 .generate();
 
-        var vm = VerificationMethod.Builder.create()
+        var vm = VerificationMethod.Builder.newInstance()
                 .id("#my-key1")
                 .type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019)
                 .publicKeyJwk(didVerificationMethod.toPublicJWK().toJSONObject())

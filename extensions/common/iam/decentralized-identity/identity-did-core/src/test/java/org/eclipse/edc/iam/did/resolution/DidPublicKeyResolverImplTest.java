@@ -56,7 +56,7 @@ class DidPublicKeyResolverImplTest {
     public void setUp() throws JOSEException, IOException {
         var eckey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
 
-        var vm = VerificationMethod.Builder.create()
+        var vm = VerificationMethod.Builder.newInstance()
                 .id(KEYID)
                 .type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019)
                 .publicKeyJwk(eckey.toPublicJWK().toJSONObject())
@@ -102,7 +102,7 @@ class DidPublicKeyResolverImplTest {
     @Test
     void resolve_didContainsMultipleKeysWithSameKeyId() throws JOSEException, IOException {
         var publicKey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
-        var vm = VerificationMethod.Builder.create().id(KEYID).type(DidConstants.JSON_WEB_KEY_2020).controller("")
+        var vm = VerificationMethod.Builder.newInstance().id(KEYID).type(DidConstants.JSON_WEB_KEY_2020).controller("")
                 .publicKeyJwk(publicKey.toJSONObject())
                 .build();
         didDocument.getVerificationMethod().add(vm);
@@ -118,7 +118,7 @@ class DidPublicKeyResolverImplTest {
     @Test
     void resolve_publicKeyNotInPemFormat() {
         didDocument.getVerificationMethod().clear();
-        var vm = VerificationMethod.Builder.create().id("second-key").type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019).controller("")
+        var vm = VerificationMethod.Builder.newInstance().id("second-key").type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019).controller("")
                 .publicKeyJwk(Map.of("kty", "EC"))
                 .build();
         didDocument.getVerificationMethod().add(vm);
@@ -134,7 +134,7 @@ class DidPublicKeyResolverImplTest {
     @Test
     void resolve_keyIdNullMultipleKeys() throws JOSEException, IOException {
         var publicKey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
-        var vm = VerificationMethod.Builder.create().id("#my-key2").type(DidConstants.JSON_WEB_KEY_2020).controller("")
+        var vm = VerificationMethod.Builder.newInstance().id("#my-key2").type(DidConstants.JSON_WEB_KEY_2020).controller("")
                 .publicKeyJwk(publicKey.toJSONObject())
                 .build();
         didDocument.getVerificationMethod().add(vm);

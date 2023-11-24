@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,6 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DidResolverRegistryImplTest {
     public static final String FOO_METHOD = "foo";
     private DidResolverRegistryImpl registry;
+
+    @BeforeEach
+    void setUp() {
+        registry = new DidResolverRegistryImpl();
+    }
 
     @Test
     void verifyResolveInvalidDid() {
@@ -54,9 +60,11 @@ class DidResolverRegistryImplTest {
         assertNotNull(result.getContent());
     }
 
-    @BeforeEach
-    void setUp() {
-        registry = new DidResolverRegistryImpl();
+    @Test
+    void isSupported() {
+        registry.register(new MockResolver());
+        assertThat(registry.isSupported("did:%s:whatever".formatted(FOO_METHOD))).isTrue();
+        assertThat(registry.isSupported("did:unsupported:whatever")).isFalse();
     }
 
     /**

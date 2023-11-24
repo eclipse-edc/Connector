@@ -20,6 +20,7 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.collection.ConcurrentLruCache;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.util.Objects;
  * Default implementation, that delegates to several {@link DidResolver} objects, caching the results in a {@link ConcurrentLruCache}
  */
 public class DidResolverRegistryImpl implements DidResolverRegistry {
+    public static final String DID_SEPARATOR = ":";
     private static final String DID = "did";
     private static final int DID_PREFIX = 0;
     private static final int DID_METHOD_NAME = 1;
@@ -57,27 +59,38 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
     public Result<DidDocument> resolve(String didKey) {
         Objects.requireNonNull(didKey);
 
-        // for the definition of DID syntax, .cf https://www.w3.org/TR/did-core/#did-syntax
-        var tokens = didKey.split(":");
+        if (!isSupported(didKey)) {
+            return Result.failure("This DID is not supported by any of the resolvers: %s".formatted(didKey));
+        }
+
+        var resolver = getResolverFor(didKey);
+        return resolveCachedDocument(didKey, resolver);
+    }
+
+    @Override
+    public boolean isSupported(String didKey) {
+        var res = getResolverFor(didKey);
+        return res != null;
+    }
+
+    @Nullable
+    private DidResolver getResolverFor(String didKey) {
+        var tokens = didKey.split(DID_SEPARATOR);
         if (tokens.length < 3) {
-            return Result.failure("Invalid DID format. The DID must be in the form:  \"did:\" method-name \":\" method-specific-id");
+            return null;
         }
         if (!DID.equalsIgnoreCase(tokens[DID_PREFIX])) {
-            return Result.failure("Invalid DID prefix");
+            return null;
         }
         var methodName = tokens[DID_METHOD_NAME];
-
-        return resolveCachedDocument(didKey, methodName);
+        return resolvers.get(methodName);
     }
 
     @NotNull
-    private Result<DidDocument> resolveCachedDocument(String didKey, String methodName) {
+    private Result<DidDocument> resolveCachedDocument(String didKey, DidResolver resolver) {
         var didDocument = didCache.get(didKey);
         if (didDocument == null) {
-            var resolver = resolvers.get(methodName);
-            if (resolver == null) {
-                return Result.failure("No resolver registered for DID Method: " + methodName);
-            }
+
             var resolveResult = resolver.resolve(didKey);
             if (resolveResult.failed()) {
                 return resolveResult;
