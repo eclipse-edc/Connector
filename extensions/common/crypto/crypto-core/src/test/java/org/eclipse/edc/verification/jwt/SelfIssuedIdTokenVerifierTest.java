@@ -19,18 +19,14 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.edc.iam.did.crypto.key.KeyConverter;
 import org.eclipse.edc.iam.did.spi.document.DidConstants;
-import org.eclipse.edc.iam.did.spi.document.DidDocument;
-import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -40,8 +36,8 @@ import static org.mockito.Mockito.when;
 
 class SelfIssuedIdTokenVerifierTest {
 
-    private final DidResolverRegistry didResolverRegistry = mock();
-    private final SelfIssuedIdTokenVerifier verifier = new SelfIssuedIdTokenVerifier(didResolverRegistry);
+    private final DidPublicKeyResolver pkResolver = mock();
+    private final SelfIssuedIdTokenVerifier verifier = new SelfIssuedIdTokenVerifier(pkResolver);
     private ECKey didVerificationMethod;
 
     @BeforeEach
@@ -56,10 +52,8 @@ class SelfIssuedIdTokenVerifierTest {
                 .publicKeyJwk(didVerificationMethod.toPublicJWK().toJSONObject())
                 .build();
 
-        when(didResolverRegistry.resolve(any())).thenReturn(Result.success(DidDocument.Builder.newInstance()
-                .verificationMethod(List.of(vm))
-                .service(Collections.singletonList(new Service("#my-service1", "MyService", "http://doesnotexi.st")))
-                .build()));
+        var publicKeyWrapper = KeyConverter.toPublicKeyWrapper(didVerificationMethod.toPublicJWK().toJSONObject(), "#my-key1");
+        when(pkResolver.resolvePublicKey(any(), any())).thenReturn(publicKeyWrapper);
     }
 
     @Test
@@ -71,22 +65,6 @@ class SelfIssuedIdTokenVerifierTest {
                 .expirationTime(new Date(new Date().getTime() + 60 * 1000))
                 .build();
         assertThat(verifier.verify(createJwt(claimsSet, didVerificationMethod).getToken(), "test-audience")).isSucceeded();
-    }
-
-    @Test
-    void verify_didResolutionFailed() {
-        when(didResolverRegistry.resolve(any())).thenReturn(Result.failure("test failure"));
-        var jwt = createJwt();
-        assertThat(verifier.verify(jwt.getToken(), "test-audience")).isFailed()
-                .detail()
-                .isEqualTo("Unable to resolve DID: test failure");
-    }
-
-    @Test
-    void verify_publicKeyNotFound() {
-        assertThat(verifier.verify(createJwt().getToken(), "test-audience")).isFailed()
-                .detail()
-                .isEqualTo("Public Key not found in DID Document.");
     }
 
     @Test
