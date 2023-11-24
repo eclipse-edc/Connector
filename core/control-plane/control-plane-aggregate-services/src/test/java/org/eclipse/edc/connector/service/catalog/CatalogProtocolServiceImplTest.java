@@ -29,6 +29,8 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -43,16 +45,21 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CatalogProtocolServiceImplTest {
 
-    private final DatasetResolver datasetResolver = mock(DatasetResolver.class);
-    private final ParticipantAgentService participantAgentService = mock(ParticipantAgentService.class);
-    private final DataServiceRegistry dataServiceRegistry = mock(DataServiceRegistry.class);
+    private final DatasetResolver datasetResolver = mock();
+    private final ParticipantAgentService participantAgentService = mock();
+    private final DataServiceRegistry dataServiceRegistry = mock();
     private final IdentityService identityService = mock();
-    private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, identityService, mock(), "participantId");
+    private final TransactionContext transactionContext = spy(new NoopTransactionContext());
+
+    private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
+            participantAgentService, dataServiceRegistry, identityService, mock(), "participantId",
+            transactionContext);
 
     @Test
     void getCatalog_shouldReturnCatalogWithConnectorDataServiceAndItsDataset() {
@@ -76,6 +83,7 @@ class CatalogProtocolServiceImplTest {
         });
         verify(datasetResolver).query(eq(participantAgent), eq(querySpec));
         verify(participantAgentService).createFor(token);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
@@ -108,6 +116,7 @@ class CatalogProtocolServiceImplTest {
         assertThat(result).isSucceeded().isEqualTo(dataset);
         verify(participantAgentService).createFor(claimToken);
         verify(datasetResolver).getById(participantAgent, "datasetId");
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
