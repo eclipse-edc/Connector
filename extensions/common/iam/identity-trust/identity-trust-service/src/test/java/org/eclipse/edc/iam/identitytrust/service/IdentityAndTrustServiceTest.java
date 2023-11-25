@@ -77,7 +77,7 @@ class IdentityAndTrustServiceTest {
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
     private final CredentialServiceUrlResolver credentialServiceUrlResolverMock = mock();
     private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient,
-            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock);
+            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock, i -> i);
 
     @BeforeEach
     void setup() {
