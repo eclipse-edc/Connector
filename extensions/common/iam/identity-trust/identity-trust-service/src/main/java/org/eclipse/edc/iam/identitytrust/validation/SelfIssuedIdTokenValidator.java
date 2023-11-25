@@ -24,6 +24,7 @@ import java.text.ParseException;
 import java.util.Objects;
 
 import static java.time.Instant.now;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -77,6 +78,9 @@ public class SelfIssuedIdTokenValidator implements JwtValidator {
             }
             if (exp.toInstant().plusSeconds(EPSILON).isBefore(now())) {
                 return failure("The token must not be expired.");
+            }
+            if (claims.getClaim(PRESENTATION_ACCESS_TOKEN_CLAIM) == null) {
+                return failure("The 'access_token' claim is mandatory.");
             }
             var bldr = ClaimToken.Builder.newInstance();
             jwt.getJWTClaimsSet().getClaims().forEach(bldr::claim);

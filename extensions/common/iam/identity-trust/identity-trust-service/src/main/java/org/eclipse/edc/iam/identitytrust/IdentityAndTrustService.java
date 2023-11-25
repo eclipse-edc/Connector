@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust;
 
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
@@ -35,14 +36,22 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
+import java.text.ParseException;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
 import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
+import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -50,7 +59,7 @@ import static org.eclipse.edc.spi.result.Result.success;
  * Implements an {@link IdentityService}, that:
  * <ul>
  *     <li>Obtains an SI token from a SecureTokenService</li>
- *     <li>Establishes proof-of-original possession, by extracting the access_token, and re-packaging it into a new SI token</li>
+ *     <li>Establishes proof-of-original possession, by extracting the PRESENTATION_ACCESS_TOKEN_CLAIM, and re-packaging it into a new SI token</li>
  *     <li>Performs a presentation request against a CredentialService</li>
  *     <li>Validates and verifies the VerifiablePresentation</li>
  * </ul>
@@ -59,7 +68,6 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class IdentityAndTrustService implements IdentityService {
     private static final String SCOPE_STRING_REGEX = "(.+):(.+):(read|write|\\*)";
-
     private final SecureTokenService secureTokenService;
     private final String myOwnDid;
     private final String participantId;
@@ -118,19 +126,45 @@ public class IdentityAndTrustService implements IdentityService {
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
 
         // verify and validate incoming SI Token
-        var issuerResult = jwtVerifier.verify(tokenRepresentation.getToken(), audience)
-                .compose(v -> jwtValidator.validateToken(tokenRepresentation, audience))
-                .compose(claimToken -> success(claimToken.getStringClaim(ISSUER)));
+        var claimTokenResult = jwtVerifier.verify(tokenRepresentation.getToken(), participantId)
+                .compose(v -> jwtValidator.validateToken(tokenRepresentation, participantId)) // audience must be set to my own participant ID
+                .compose(Result::success);
 
-        if (issuerResult.failed()) {
-            return issuerResult.mapTo();
+        if (claimTokenResult.failed()) {
+            return claimTokenResult.mapTo();
         }
 
+        // create our own SI token, to request the VPs
+        var claimToken = claimTokenResult.getContent();
+        var accessToken = claimToken.getStringClaim(PRESENTATION_ACCESS_TOKEN_CLAIM);
+        var issuer = claimToken.getStringClaim(ISSUER);
+        var intendedAudience = claimToken.getStringClaim("client_id");
+
+        /* TODO: DEMO the scopes should be extracted elsewhere. replace this section!!############################*/
+        var scopes = new ArrayList<String>();
+        try {
+            var scope = SignedJWT.parse(accessToken).getJWTClaimsSet().getStringClaim("scope");
+            scopes.add(scope);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        /* TODO: END DEMO ########################################################################################*/
+
+        var siTokenClaims = Map.of(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken,
+                ISSUED_AT, Instant.now().toString(),
+                AUDIENCE, intendedAudience,
+                ISSUER, myOwnDid,
+                SUBJECT, myOwnDid,
+                EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).toString());
+        var siToken = secureTokenService.createToken(siTokenClaims, null);
+        if (siToken.failed()) {
+            return siToken.mapTo();
+        }
+        var siTokenString = siToken.getContent().getToken();
 
         // get CS Url, execute VP request
-        var issuer = issuerResult.getContent(); // the issuer is a DID
         var vpResponse = credentialServiceUrlResolver.resolve(issuer)
-                .compose(url -> credentialServiceClient.requestPresentation(url, null, null));
+                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, scopes));
 
         if (vpResponse.failed()) {
             return vpResponse.mapTo();

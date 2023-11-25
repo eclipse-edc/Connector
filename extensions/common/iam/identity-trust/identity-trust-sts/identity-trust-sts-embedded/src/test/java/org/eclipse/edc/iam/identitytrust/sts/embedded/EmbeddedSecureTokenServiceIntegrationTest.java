@@ -40,8 +40,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
@@ -83,7 +83,7 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
                     assertThat(jwt.getJWTClaimsSet().getClaims())
                             .containsEntry(ISSUER, issuer)
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                            .doesNotContainKey(ACCESS_TOKEN);
+                            .doesNotContainKey(PRESENTATION_ACCESS_TOKEN_CLAIM);
                 });
 
     }
@@ -104,7 +104,7 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
                     assertThat(jwt.getJWTClaimsSet().getClaims())
                             .containsEntry(ISSUER, issuer)
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                            .extractingByKey(ACCESS_TOKEN, as(STRING))
+                            .extractingByKey(PRESENTATION_ACCESS_TOKEN_CLAIM, as(STRING))
                             .satisfies(accessToken -> {
                                 var accessTokenJwt = SignedJWT.parse(accessToken);
                                 assertThat(accessTokenJwt.verify(createVerifier(accessTokenJwt.getHeader(), keyPair.getPublic()))).isTrue();
@@ -135,7 +135,7 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
                     assertThat(jwt.getJWTClaimsSet().getClaims())
                             .containsEntry(ISSUER, issuer)
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                            .extractingByKey(ACCESS_TOKEN, as(STRING))
+                            .extractingByKey(PRESENTATION_ACCESS_TOKEN_CLAIM, as(STRING))
                             .satisfies(accessToken -> {
                                 var accessTokenJwt = SignedJWT.parse(accessToken);
                                 assertThat(accessTokenJwt.verify(createVerifier(accessTokenJwt.getHeader(), keyPair.getPublic()))).isTrue();
@@ -148,7 +148,7 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
                             });
                 });
     }
-    
+
     @ParameterizedTest
     @ArgumentsSource(ClaimsArguments.class)
     void createToken_shouldFail_withMissingClaims(Map<String, String> claims) {

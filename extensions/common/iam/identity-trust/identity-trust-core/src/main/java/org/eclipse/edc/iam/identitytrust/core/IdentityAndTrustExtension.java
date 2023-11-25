@@ -60,10 +60,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private SecureTokenService secureTokenService;
 
-
-    @Inject
-    private CredentialServiceClient credentialServiceClient;
-
     @Inject
     private TrustedIssuerRegistry registry;
 
@@ -94,7 +90,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private JwtValidator jwtValidator;
     private JwtVerifier jwtVerifier;
     private PresentationVerifier presentationVerifier;
-
+    private CredentialServiceClient credentialServiceClient;
+    
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
         var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
