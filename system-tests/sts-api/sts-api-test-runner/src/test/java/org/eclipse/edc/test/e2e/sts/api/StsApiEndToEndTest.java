@@ -30,7 +30,7 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
@@ -126,7 +126,7 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
                 .containsEntry(AUDIENCE, List.of(audience))
                 .containsEntry(CLIENT_ID, client.getClientId())
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                .hasEntrySatisfying(ACCESS_TOKEN, (accessToken) -> {
+                .hasEntrySatisfying(PRESENTATION_ACCESS_TOKEN_CLAIM, (accessToken) -> {
                     assertThat(parseClaims((String) accessToken))
                             .containsEntry(ISSUER, client.getId())
                             .containsEntry(SUBJECT, audience)
@@ -159,13 +159,13 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
                 .body()
                 .jsonPath().getString("access_token");
 
-        
+
         assertThat(parseClaims(token))
                 .containsEntry(ISSUER, client.getId())
                 .containsEntry(SUBJECT, client.getId())
                 .containsEntry(AUDIENCE, List.of(audience))
                 .containsEntry(CLIENT_ID, client.getClientId())
-                .containsEntry(ACCESS_TOKEN, accessToken)
+                .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
     }
 
