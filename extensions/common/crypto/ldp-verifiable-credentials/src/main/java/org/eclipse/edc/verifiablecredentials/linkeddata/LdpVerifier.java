@@ -30,7 +30,6 @@ import com.apicatalog.ld.signature.SignatureSuiteProvider;
 import com.apicatalog.ld.signature.VerificationError;
 import com.apicatalog.ld.signature.VerificationError.Code;
 import com.apicatalog.ld.signature.key.VerificationKey;
-import com.apicatalog.ld.signature.method.DidUrlMethodResolver;
 import com.apicatalog.ld.signature.method.HttpMethodResolver;
 import com.apicatalog.ld.signature.method.MethodResolver;
 import com.apicatalog.ld.signature.method.VerificationMethod;
@@ -67,7 +66,7 @@ public class LdpVerifier implements CredentialVerifier {
     private ObjectMapper jsonLdMapper;
     private SignatureSuiteProvider suiteProvider;
     private Map<String, Object> params;
-    private Collection<MethodResolver> methodResolvers = new ArrayList<>(List.of(new DidUrlMethodResolver(), new HttpMethodResolver()));
+    private Collection<MethodResolver> methodResolvers = new ArrayList<>(List.of(new HttpMethodResolver()));
     private DocumentLoader loader;
     private URI base;
 

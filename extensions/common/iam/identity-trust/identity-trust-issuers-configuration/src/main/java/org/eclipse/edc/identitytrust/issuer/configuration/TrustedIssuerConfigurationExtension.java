@@ -19,6 +19,7 @@ import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -29,12 +30,20 @@ import java.util.Map;
 
 import static org.eclipse.edc.identitytrust.issuer.configuration.TrustedIssuerConfigurationExtension.NAME;
 
+/**
+ * This IATP extension makes it possible to configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
+ */
 @Extension(NAME)
 public class TrustedIssuerConfigurationExtension implements ServiceExtension {
 
     public static final String CONFIG_PREFIX = "edc.iam.trusted-issuer";
+    public static final String CONFIG_ALIAS = CONFIG_PREFIX + ".<issuerAlias>.";
+
+    @Setting(context = CONFIG_ALIAS, value = "Additional properties of the issuer.")
     public static final String PROPERTIES_SUFFIX = "properties";
+    @Setting(context = CONFIG_ALIAS, value = "ID of the issuer.", required = true)
     public static final String ID_SUFFIX = "id";
+
     protected static final String NAME = "Trusted Issuers Configuration Extensions";
 
     @Inject

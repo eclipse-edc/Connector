@@ -35,6 +35,7 @@ import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABL
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_ISSUANCEDATE_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_ISSUER_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_NAME_PROPERTY;
+import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_PROOF_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_STATUS_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.VerifiableCredential.VERIFIABLE_CREDENTIAL_VALIDFROM_PROPERTY;
@@ -75,7 +76,9 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
             case VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY ->
                     vcBuilder.credentialSubjects(transformArray(jsonValue, CredentialSubject.class, context));
             case VERIFIABLE_CREDENTIAL_NAME_PROPERTY -> vcBuilder.name(transformString(jsonValue, context));
-
+            case VERIFIABLE_CREDENTIAL_PROOF_PROPERTY -> {
+                //noop
+            }
             default ->
                     context.reportProblem("Unknown property: %s type: %s".formatted(key, jsonValue.getValueType().name()));
         }

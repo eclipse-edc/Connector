@@ -19,32 +19,28 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import org.eclipse.edc.iam.did.spi.document.DidConstants;
-import org.eclipse.edc.iam.did.spi.document.DidDocument;
-import org.eclipse.edc.iam.did.spi.document.Service;
-import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
+import static org.eclipse.edc.spi.result.Result.success;
+import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKeyWrapper;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class JwtPresentationVerifierTest {
 
-    private final DidResolverRegistry didRegistryMock = mock();
+    private final DidPublicKeyResolver publicKeyResolverMock = mock();
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
+    private final JwtPresentationVerifier verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(publicKeyResolverMock), mapper);
     private ECKey vpSigningKey;
     private ECKey vcSigningKey;
 
@@ -58,28 +54,13 @@ class JwtPresentationVerifierTest {
                 .keyID(TestConstants.CENTRAL_ISSUER_KEY_ID)
                 .generate();
 
+        var vpKeyWrapper = createPublicKeyWrapper(vpSigningKey);
+        when(publicKeyResolverMock.resolvePublicKey(eq(TestConstants.VP_HOLDER_ID), eq(TestConstants.PRESENTER_KEY_ID)))
+                .thenReturn(success(vpKeyWrapper));
 
-        // the DID document of the VP presenter (i.e. a participant agent)
-        var vpPresenterDid = DidDocument.Builder.newInstance()
-                .verificationMethod(List.of(VerificationMethod.Builder.create()
-                        .id(TestConstants.PRESENTER_KEY_ID)
-                        .type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019)
-                        .publicKeyJwk(vpSigningKey.toPublicJWK().toJSONObject())
-                        .build()))
-                .service(Collections.singletonList(new Service("#my-service1", "MyService", "http://doesnotexi.st")))
-                .build();
-
-        // the DID document of the central issuer, e.g. a government body, etc.
-        var vcIssuerDid = DidDocument.Builder.newInstance()
-                .verificationMethod(List.of(VerificationMethod.Builder.create()
-                        .id(TestConstants.CENTRAL_ISSUER_KEY_ID)
-                        .type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019)
-                        .publicKeyJwk(vcSigningKey.toPublicJWK().toJSONObject())
-                        .build()))
-                .build();
-
-        when(didRegistryMock.resolve(eq(TestConstants.VP_HOLDER_ID))).thenReturn(Result.success(vpPresenterDid));
-        when(didRegistryMock.resolve(eq(TestConstants.CENTRAL_ISSUER_DID))).thenReturn(Result.success(vcIssuerDid));
+        var vcKeyWrapper = createPublicKeyWrapper(vcSigningKey);
+        when(publicKeyResolverMock.resolvePublicKey(eq(TestConstants.CENTRAL_ISSUER_DID), eq(TestConstants.CENTRAL_ISSUER_KEY_ID)))
+                .thenReturn(success(vcKeyWrapper));
     }
 
     @Test
@@ -88,7 +69,7 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of());
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
+        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(publicKeyResolverMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -103,7 +84,6 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("")));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -122,7 +102,6 @@ class JwtPresentationVerifierTest {
                 }
                 """));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -140,7 +119,6 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -162,7 +140,6 @@ class JwtPresentationVerifierTest {
         var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "testSub", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vpContent)));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), mapper);
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -184,7 +161,6 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -205,7 +181,6 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(spoofedKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vcJwt1)));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), mapper);
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -223,7 +198,6 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, null, TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vcJwt1)));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -241,7 +215,6 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "test-subject", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -259,7 +232,6 @@ class JwtPresentationVerifierTest {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "test-pres-sub", "invalid-vp-audience", Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vcJwt1)));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)
@@ -281,7 +253,6 @@ class JwtPresentationVerifierTest {
         var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
         var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "testSub", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vpContent)));
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(didRegistryMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
                 .audience(TestConstants.MY_OWN_DID)

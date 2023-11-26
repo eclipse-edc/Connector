@@ -31,9 +31,6 @@ import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.RSAKey;
 import org.eclipse.edc.spi.EdcException;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.text.ParseException;
 import java.util.Collections;
 
@@ -117,12 +114,11 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
     }
 
     private JWK deserialize(byte[] privateKey) {
-        var bis = new ByteArrayInputStream(privateKey);
+        var str = new String(privateKey);
         try {
-            var in = new ObjectInputStream(bis);
-            return (JWK) in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            return null;
+            return JWK.parse(str);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
     }
 }

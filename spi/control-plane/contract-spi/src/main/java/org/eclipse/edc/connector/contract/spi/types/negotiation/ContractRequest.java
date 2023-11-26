@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
@@ -44,7 +43,6 @@ public class ContractRequest {
     private String protocol;
     private String counterPartyAddress;
     private ContractOffer contractOffer;
-    private Policy policy;
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
     public List<CallbackAddress> getCallbackAddresses() {
@@ -65,10 +63,6 @@ public class ContractRequest {
 
     public ContractOffer getContractOffer() {
         return contractOffer;
-    }
-
-    public Policy getPolicy() {
-        return policy;
     }
 
     public static class Builder {
@@ -107,20 +101,10 @@ public class ContractRequest {
             return this;
         }
 
-        public Builder policy(Policy policy) {
-            contractRequest.policy = policy;
-            return this;
-        }
-
         public ContractRequest build() {
             Objects.requireNonNull(contractRequest.protocol, "protocol");
             Objects.requireNonNull(contractRequest.counterPartyAddress, "counterPartyAddress");
-            if (contractRequest.contractOffer == null) {
-                Objects.requireNonNull(contractRequest.policy, "policy");
-            }
-            if (contractRequest.policy == null) {
-                Objects.requireNonNull(contractRequest.contractOffer, "contractOffer");
-            }
+            Objects.requireNonNull(contractRequest.contractOffer, "contractOffer");
             return contractRequest;
         }
     }

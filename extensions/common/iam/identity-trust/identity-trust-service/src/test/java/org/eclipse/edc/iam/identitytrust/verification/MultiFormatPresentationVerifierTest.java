@@ -21,11 +21,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import org.eclipse.edc.iam.did.spi.document.DidConstants;
-import org.eclipse.edc.iam.did.spi.document.DidDocument;
-import org.eclipse.edc.iam.did.spi.document.Service;
-import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
@@ -34,7 +30,6 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
 import org.eclipse.edc.security.signature.jws2020.TestDocumentLoader;
 import org.eclipse.edc.security.signature.jws2020.TestFunctions;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtCreationUtils;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
@@ -52,10 +47,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.Result.success;
+import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKeyWrapper;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_DID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_KEY_ID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.MY_OWN_DID;
@@ -66,6 +62,7 @@ import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestDat
 import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestData.VP_CONTENT_TEMPLATE;
 import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestData.createMembershipCredential;
 import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestData.createNameCredential;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -73,13 +70,13 @@ import static org.mockito.Mockito.when;
 
 class MultiFormatPresentationVerifierTest {
     public static final String INVALID_SIGNATURE = "Invalid signature";
-    private static final DidResolverRegistry DID_RESOLVER_REGISTRY = mock();
     private static final SignatureSuiteRegistry SIGNATURE_SUITE_REGISTRY = mock();
     private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
     private static final JwsSignature2020Suite JWS_SIGNATURE_SUITE = new JwsSignature2020Suite(MAPPER);
     private static ECKey vpSigningKey;
     private static ECKey vcSigningKey;
     private static TitaniumJsonLd jsonLd;
+    private final DidPublicKeyResolver publicKeyResolverMock = mock();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
     private MultiFormatPresentationVerifier multiFormatVerifier;
 
@@ -95,37 +92,19 @@ class MultiFormatPresentationVerifierTest {
 
         vpSigningKey = new ECKeyGenerator(Curve.P_256).keyID(PRESENTER_KEY_ID).generate();
         vcSigningKey = new ECKeyGenerator(Curve.P_256).keyID(CENTRAL_ISSUER_KEY_ID).generate();
-        // the DID document of the VP presenter (i.e. a participant agent)
-        var vpPresenterDid = DidDocument.Builder.newInstance()
-                .verificationMethod(List.of(VerificationMethod.Builder.create()
-                        .id(PRESENTER_KEY_ID)
-                        .type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019)
-                        .publicKeyJwk(vpSigningKey.toPublicJWK().toJSONObject())
-                        .build()))
-                .service(Collections.singletonList(new Service("#my-service1", "MyService", "http://doesnotexi.st")))
-                .build();
-
-        // the DID document of the central issuer, e.g. a government body, etc.
-        var vcIssuerDid = DidDocument.Builder.newInstance()
-                .verificationMethod(List.of(VerificationMethod.Builder.create()
-                        .id(CENTRAL_ISSUER_KEY_ID)
-                        .type(DidConstants.ECDSA_SECP_256_K_1_VERIFICATION_KEY_2019)
-                        .publicKeyJwk(vcSigningKey.toPublicJWK().toJSONObject())
-                        .build()))
-                .build();
-
-        when(DID_RESOLVER_REGISTRY.resolve(eq(VP_HOLDER_ID))).thenReturn(Result.success(vpPresenterDid));
-        when(DID_RESOLVER_REGISTRY.resolve(eq(CENTRAL_ISSUER_DID))).thenReturn(Result.success(vcIssuerDid));
     }
 
     @BeforeEach
     void setup() {
+        when(publicKeyResolverMock.resolvePublicKey(any(), eq(PRESENTER_KEY_ID))).thenReturn(success(createPublicKeyWrapper(vpSigningKey.toPublicJWK())));
+        when(publicKeyResolverMock.resolvePublicKey(any(), eq(CENTRAL_ISSUER_KEY_ID))).thenReturn(success(createPublicKeyWrapper(vcSigningKey.toPublicJWK())));
+
         var ldpVerifier = LdpVerifier.Builder.newInstance()
                 .signatureSuites(SIGNATURE_SUITE_REGISTRY)
                 .jsonLd(jsonLd)
                 .objectMapper(MAPPER)
                 .build();
-        multiFormatVerifier = new MultiFormatPresentationVerifier(MY_OWN_DID, new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(DID_RESOLVER_REGISTRY), MAPPER), ldpVerifier);
+        multiFormatVerifier = new MultiFormatPresentationVerifier(MY_OWN_DID, new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(publicKeyResolverMock), MAPPER), ldpVerifier);
     }
 
     private DataIntegrityProofOptions generateEmbeddedProofOptions(ECKey vcKey, String proofPurpose) {

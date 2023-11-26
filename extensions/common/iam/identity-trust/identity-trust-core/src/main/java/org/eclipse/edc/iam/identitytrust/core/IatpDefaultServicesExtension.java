@@ -18,6 +18,7 @@ import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegis
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
+import org.eclipse.edc.identitytrust.AudienceResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
@@ -48,7 +49,6 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     private static final String OAUTH_TOKENURL_PROPERTY = "edc.oauth.token.url";
     @Setting(value = "Self-issued ID Token expiration in minutes. By default is 5 minutes", defaultValue = "" + IatpDefaultServicesExtension.DEFAULT_STS_TOKEN_EXPIRATION_MIN)
     private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
-
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
 
     @Inject
@@ -85,6 +85,11 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public ScopeExtractorRegistry scopeExtractorRegistry() {
         return new IatpScopeExtractorRegistry();
+    }
+
+    @Provider(isDefault = true)
+    public AudienceResolver identityResolver() {
+        return identity -> identity;
     }
 
     private KeyPair keyPairFromConfig(ServiceExtensionContext context) {

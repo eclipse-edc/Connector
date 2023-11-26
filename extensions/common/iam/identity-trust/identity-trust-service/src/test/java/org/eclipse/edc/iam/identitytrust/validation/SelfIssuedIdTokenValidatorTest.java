@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
@@ -43,6 +44,7 @@ class SelfIssuedIdTokenValidatorTest {
                 .issuer(CONSUMER_DID)
                 .audience(EXPECTED_OWN_DID)
                 .claim("jti", UUID.randomUUID().toString())
+                .claim(PRESENTATION_ACCESS_TOKEN_CLAIM, "foobar")
                 .claim("client_id", CONSUMER_DID)
                 .expirationTime(new Date(new Date().getTime() + 60 * 1000))
                 .build();
@@ -87,7 +89,7 @@ class SelfIssuedIdTokenValidatorTest {
                 .isFailed()
                 .detail().isEqualTo("The aud claim expected to be %s but was [%s]".formatted(EXPECTED_OWN_DID, "invalid-audience"));
     }
-    
+
     @Test
     void subJwkClaimPresent() {
         var claimsSet = new JWTClaimsSet.Builder()

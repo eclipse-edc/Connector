@@ -40,7 +40,7 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
     public StatusResult<Void> transfer(DataFlowRequest request) {
         var result = dataPlaneManager.validate(request);
         if (result.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, String.join(", ", result.getFailureMessages()));
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, result.getFailureDetail());
         }
         dataPlaneManager.initiate(request);
         return StatusResult.success();

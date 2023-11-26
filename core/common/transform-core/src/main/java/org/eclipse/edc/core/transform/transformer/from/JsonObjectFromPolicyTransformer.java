@@ -157,7 +157,11 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                     .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
                     .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
 
-            Optional.ofNullable(policy.getTarget()).ifPresent(it -> builder.add(ODRL_TARGET_ATTRIBUTE, it));
+            Optional.ofNullable(policy.getTarget())
+                    .ifPresent(target -> builder.add(
+                            ODRL_TARGET_ATTRIBUTE,
+                            jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder().add(ID, target)))
+                    );
 
             return builder.build();
         }

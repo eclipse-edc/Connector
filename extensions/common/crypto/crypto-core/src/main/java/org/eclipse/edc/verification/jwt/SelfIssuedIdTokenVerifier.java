@@ -16,11 +16,10 @@ package org.eclipse.edc.verification.jwt;
 
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.did.crypto.JwtUtils;
-import org.eclipse.edc.iam.did.crypto.key.KeyConverter;
 import org.eclipse.edc.iam.did.spi.document.DidConstants;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +41,10 @@ import java.util.Optional;
  * This is done by the {@link SelfIssuedIdTokenVerifier}.
  */
 public class SelfIssuedIdTokenVerifier implements JwtVerifier {
-    private final DidResolverRegistry resolverRegistry;
+    private final DidPublicKeyResolver publicKeyResolver;
 
-    public SelfIssuedIdTokenVerifier(DidResolverRegistry resolverRegistry) {
-        this.resolverRegistry = resolverRegistry;
+    public SelfIssuedIdTokenVerifier(DidPublicKeyResolver publicKeyResolver) {
+        this.publicKeyResolver = publicKeyResolver;
     }
 
     @Override
@@ -54,26 +53,7 @@ public class SelfIssuedIdTokenVerifier implements JwtVerifier {
         SignedJWT jwt;
         try {
             jwt = SignedJWT.parse(serializedJwt);
-            var didResult = resolverRegistry.resolve(jwt.getJWTClaimsSet().getIssuer());
-            if (didResult.failed()) {
-                return Result.failure("Unable to resolve DID: %s".formatted(didResult.getFailureDetail()));
-            }
-
-            // this will return the _first_ public key entry
-            var keyId = jwt.getHeader().getKeyID();
-
-            //either get the first verification method, or the one specified by the key id
-            var publicKey = Optional.ofNullable(keyId)
-                    .map(kid -> getVerificationMethod(didResult.getContent(), kid))
-                    .orElseGet(() -> firstVerificationMethod(didResult.getContent()));
-
-            if (publicKey.isEmpty()) {
-                return Result.failure("Public Key not found in DID Document.");
-            }
-
-            //convert the POJO into a usable PK-wrapper:
-            var publicKeyJwk = publicKey.get().getPublicKeyJwk();
-            var publicKeyWrapperResult = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
+            var publicKeyWrapperResult = publicKeyResolver.resolvePublicKey(jwt.getJWTClaimsSet().getIssuer(), jwt.getHeader().getKeyID());
             if (publicKeyWrapperResult.failed()) {
                 return publicKeyWrapperResult.mapTo();
             }

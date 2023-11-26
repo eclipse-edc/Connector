@@ -38,7 +38,7 @@ import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.sts.store.fixtures.TestFunctions.createClientBuilder;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
@@ -163,7 +163,7 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .containsEntry(SUBJECT, id)
                 .containsEntry(AUDIENCE, List.of(audience))
                 .containsEntry(CLIENT_ID, clientId)
-                .containsEntry(ACCESS_TOKEN, accessToken)
+                .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
 
     }

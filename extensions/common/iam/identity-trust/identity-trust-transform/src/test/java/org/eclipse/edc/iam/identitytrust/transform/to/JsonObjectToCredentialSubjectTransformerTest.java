@@ -46,6 +46,22 @@ class JsonObjectToCredentialSubjectTransformerTest {
     }
 
     @Test
+    void transform_simpleClaims_withoutId() {
+        var json = Json.createObjectBuilder()
+                .add(TEST_NAMESPACE + "simpleclaim1", "value1")
+                .add(TEST_NAMESPACE + "simpleclaim2", "value2")
+                .build();
+        when(context.transform(isA(JsonObject.class), eq(Object.class))).thenAnswer(a -> ((JsonObject) a.getArgument(0)).getString(VALUE));
+        var subj = transformer.transform(jsonLdService.expand(json).getContent(), context);
+
+        assertThat(subj).isNotNull();
+        assertThat(subj.getId()).isNull();
+        assertThat(subj.getClaims())
+                .containsEntry(TEST_NAMESPACE + "simpleclaim1", "value1")
+                .containsEntry(TEST_NAMESPACE + "simpleclaim2", "value2");
+    }
+
+    @Test
     void transform_simpleClaims() {
         var json = Json.createObjectBuilder()
                 .add(CREDENTIAL_SUBJECT_ID_PROPERTY, "test-id")

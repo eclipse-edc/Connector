@@ -73,7 +73,7 @@ public class WebDidResolver implements DidResolver {
                 if (body == null) {
                     return Result.failure("DID response contained an empty body: " + didKey);
                 }
-                DidDocument didDocument = mapper.readValue(body.string(), DidDocument.class);
+                var didDocument = mapper.readValue(body.string(), DidDocument.class);
                 return Result.success(didDocument);
             }
         } catch (IOException e) {

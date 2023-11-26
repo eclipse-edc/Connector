@@ -28,4 +28,5 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:crypto:crypto-core"))
     testFixturesImplementation(libs.nimbus.jwt)
+    testFixturesImplementation(project(":spi:common:identity-did-spi"))
 }

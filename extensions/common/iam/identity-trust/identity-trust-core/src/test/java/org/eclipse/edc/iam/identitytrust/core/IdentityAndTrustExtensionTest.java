@@ -27,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -49,12 +50,12 @@ class IdentityAndTrustExtensionTest {
     @Test
     void verifyCorrectService(IdentityAndTrustExtension extension) {
         var configMock = mock(Config.class);
-        when(configMock.getString(eq(IdentityAndTrustExtension.ISSUER_DID_PROPERTY))).thenReturn("did:web:test");
+        when(configMock.getString(eq(IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY))).thenReturn("did:web:test");
         when(spiedContext.getConfig()).thenReturn(configMock);
 
         var is = extension.createIdentityService(spiedContext);
 
         assertThat(is).isInstanceOf(IdentityAndTrustService.class);
-        verify(configMock).getString(eq(IdentityAndTrustExtension.ISSUER_DID_PROPERTY));
+        verify(configMock, atLeastOnce()).getString(eq(IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY));
     }
 }
