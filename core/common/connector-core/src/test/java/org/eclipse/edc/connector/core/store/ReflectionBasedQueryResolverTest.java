@@ -63,7 +63,7 @@ class ReflectionBasedQueryResolverTest {
                 IntStream.range(5, 10).mapToObj(i -> new FakeItem(i, "Bob")));
 
         var spec = QuerySpec.Builder.newInstance().filter(List.of(criterion("name", "=", "Alice"), criterion("name", "=", "Bob"))).build();
-        assertThat(queryResolver.query(stream, spec, Predicate::or)).hasSize(10).extracting(FakeItem::getName).containsOnly("Bob", "Alice");
+        assertThat(queryResolver.query(stream, spec, Predicate::or, x -> false)).hasSize(10).extracting(FakeItem::getName).containsOnly("Bob", "Alice");
     }
 
     @Test

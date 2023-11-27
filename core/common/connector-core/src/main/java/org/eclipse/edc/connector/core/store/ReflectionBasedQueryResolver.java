@@ -59,11 +59,10 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
      * @return stream result from queries.
      */
     @Override
-    public Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator) {
+    public Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback) {
         var andPredicate = spec.getFilterExpression().stream()
                 .map(predicateConverter::convert)
-                .reduce(accumulator)
-                .orElse(x -> true);
+                .reduce(fallback, accumulator);
 
         var filteredStream = stream.filter(andPredicate);
 

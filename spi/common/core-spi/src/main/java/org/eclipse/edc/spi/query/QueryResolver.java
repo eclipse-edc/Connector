@@ -34,7 +34,7 @@ public interface QueryResolver<T> {
      * @return stream result from queries.
      */
     default Stream<T> query(Stream<T> stream, QuerySpec spec) {
-        return query(stream, spec, Predicate::and);
+        return query(stream, spec, Predicate::and, x -> true);
     }
 
     /**
@@ -45,5 +45,5 @@ public interface QueryResolver<T> {
      * @param accumulator binary accumulation operator, e.g. Predicate::and, Predicate::or, etc.
      * @return stream result from queries.
      */
-    Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator);
+    Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback);
 }

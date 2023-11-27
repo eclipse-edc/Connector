@@ -202,7 +202,7 @@ public class IdentityAndTrustService implements IdentityService {
 
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
-        return result.compose(u -> extractClaimToken(credentials, issuer));
+        return result.compose(u -> extractClaimToken(credentials, intendedAudience));
     }
 
 
