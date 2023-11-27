@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.did.spi.resolution;
 import org.eclipse.edc.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Resolves a public key contained in a DID document associated with a DID.
@@ -25,8 +26,14 @@ import org.eclipse.edc.spi.result.Result;
 public interface DidPublicKeyResolver {
 
     /**
-     * Resolves the public key.
+     * Resolves a public key contained in a DID document.
+     *
+     * @param did   The DID (Decentralized Identifier) that references a DID document that contains the public key.
+     * @param keyId The optional key ID of the public key to resolve. Can <strong>only</strong> be omitted, if the DID document
+     *              contains exactly 1 public key. If the key ID is omitted, but the DID document contains >1 public key, an error
+     *              is returned.
+     * @return A Result object containing a {@link PublicKeyWrapper} if the resolution is successful, or a Failure object if it fails.
      */
-    Result<PublicKeyWrapper> resolvePublicKey(String did);
+    Result<PublicKeyWrapper> resolvePublicKey(String did, @Nullable String keyId);
 
 }

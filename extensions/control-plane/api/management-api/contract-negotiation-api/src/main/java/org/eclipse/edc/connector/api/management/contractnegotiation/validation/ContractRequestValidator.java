@@ -15,9 +15,11 @@
 package org.eclipse.edc.connector.api.management.contractnegotiation.validation;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -26,25 +28,49 @@ import org.eclipse.edc.validator.spi.Validator;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.ASSET_ID;
 import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.OFFER_ID;
-import static org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONNECTOR_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.OFFER;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 
 public class ContractRequestValidator {
+
     public static Validator<JsonObject> instance(Monitor monitor) {
         return JsonObjectValidator.newValidator()
                 .verify(path -> new MandatoryCounterPartyAddressOrConnectorAddress(path, monitor))
                 .verify(PROTOCOL, MandatoryValue::new)
-                .verify(OFFER, MandatoryObject::new)
-                .verifyObject(OFFER, v -> v
-                        .verify(OFFER_ID, MandatoryValue::new)
-                        .verify(ASSET_ID, MandatoryValue::new)
-                        .verify(POLICY, MandatoryObject::new)
-                )
+                .verify(path -> new MandatoryOfferOrPolicy(path, monitor))
                 .build();
+    }
+
+    private record MandatoryOfferOrPolicy(JsonLdPath path, Monitor monitor) implements Validator<JsonObject> {
+        @Override
+        public ValidationResult validate(JsonObject input) {
+            var offerValidity = new MandatoryObject(path.append(OFFER)).validate(input);
+            if (offerValidity.succeeded()) {
+                monitor.warning(format("The attribute %s has been deprecated in type %s, please use %s",
+                        OFFER, CONTRACT_REQUEST_TYPE, POLICY));
+                return JsonObjectValidator.newValidator()
+                        .verifyObject(OFFER, v -> v
+                                .verify(OFFER_ID, MandatoryValue::new)
+                                .verify(ASSET_ID, MandatoryValue::new)
+                                .verify(ContractOfferDescription.POLICY, MandatoryObject::new)
+                        ).build().validate(input);
+            }
+
+            var validator = JsonObjectValidator.newValidator()
+                    .verify(POLICY, MandatoryObject::new)
+                    .verifyObject(POLICY, builder -> builder
+                            .verifyId(MandatoryIdNotBlank::new)
+                            .verify(ODRL_TARGET_ATTRIBUTE, MandatoryObject::new)
+                            .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new)))
+                    .build();
+
+            return validator.validate(input);
+        }
     }
 
     /**

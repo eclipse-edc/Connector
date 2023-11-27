@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.ACCESS_TOKEN;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
+import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
@@ -39,7 +39,7 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGeneratorService {
 
     private static final Map<String, Function<StsClientTokenAdditionalParams, String>> CLAIM_MAPPERS = Map.of(
-            ACCESS_TOKEN, StsClientTokenAdditionalParams::getAccessToken,
+            PRESENTATION_ACCESS_TOKEN_CLAIM, StsClientTokenAdditionalParams::getAccessToken,
             BEARER_ACCESS_ALIAS, StsClientTokenAdditionalParams::getBearerAccessAlias);
 
     private final long tokenExpiration;

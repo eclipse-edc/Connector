@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.dataplane.selector.spi.strategy;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 
 import java.util.List;
 import java.util.function.Function;
 
 /**
- * Interface for different algorithms by which the {@link DataPlaneSelector}
+ * Interface for different algorithms by which the {@link DataPlaneSelectorService}
  * selects a particular {@link DataPlaneInstance}
  */
 public interface SelectionStrategy extends Function<List<DataPlaneInstance>, DataPlaneInstance> {

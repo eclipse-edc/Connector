@@ -18,7 +18,7 @@ and will be used by the consumer connector to dispatch the EDR
     "@type": "DataAddress",
     "type": "HttpProxy"
   },
-  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
+  "counterPartyAddress": "http://localhost:8282/api/v1/ids/data",
   "connectorId": "consumer",
   "privateProperties": {
     "receiverHttpEndpoint" : "http://localhost:9999"

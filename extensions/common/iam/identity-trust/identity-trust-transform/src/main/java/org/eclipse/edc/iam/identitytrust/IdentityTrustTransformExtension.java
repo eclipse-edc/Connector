@@ -14,13 +14,22 @@
 
 package org.eclipse.edc.iam.identitytrust;
 
+import org.eclipse.edc.iam.identitytrust.transform.from.JsonObjectFromPresentationQueryTransformer;
 import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialStatusTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToCredentialSubjectTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToIssuerTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToPresentationQueryTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToVerifiableCredentialTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JsonObjectToVerifiablePresentationTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiableCredentialTransformer;
+import org.eclipse.edc.iam.identitytrust.transform.to.JwtToVerifiablePresentationTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +38,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
 @Extension(value = IdentityTrustTransformExtension.NAME, categories = { "iam", "transform", "jsonld" })
 public class IdentityTrustTransformExtension implements ServiceExtension {
@@ -39,6 +49,8 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
 
     @Inject
     private JsonLd jsonLdService;
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -50,7 +62,15 @@ public class IdentityTrustTransformExtension implements ServiceExtension {
                 .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v1", uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
+        typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager.getMapper(JSON_LD)));
+        typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer());
+        typeTransformerRegistry.register(new JsonObjectToVerifiablePresentationTransformer());
+        typeTransformerRegistry.register(new JsonObjectToVerifiableCredentialTransformer());
+        typeTransformerRegistry.register(new JsonObjectToIssuerTransformer());
+        typeTransformerRegistry.register(new JsonObjectToCredentialSubjectTransformer());
         typeTransformerRegistry.register(new JsonObjectToCredentialStatusTransformer());
+        typeTransformerRegistry.register(new JwtToVerifiablePresentationTransformer(context.getMonitor(), typeManager.getMapper(JSON_LD), jsonLdService));
+        typeTransformerRegistry.register(new JwtToVerifiableCredentialTransformer(context.getMonitor()));
     }
 
     @NotNull

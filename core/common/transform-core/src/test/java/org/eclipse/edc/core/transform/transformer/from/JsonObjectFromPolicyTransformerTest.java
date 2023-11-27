@@ -17,6 +17,8 @@ package org.eclipse.edc.core.transform.transformer.from;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
@@ -90,7 +93,14 @@ class JsonObjectFromPolicyTransformerTest {
         
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(OdrlNamespace.ODRL_SCHEMA + "Set");
-        assertThat(result.getString(ODRL_TARGET_ATTRIBUTE)).isEqualTo("target");
+        assertThat(result.get(ODRL_TARGET_ATTRIBUTE))
+                .isNotNull()
+                .isInstanceOf(JsonArray.class)
+                .extracting(JsonValue::asJsonArray)
+                .matches(it -> !it.isEmpty())
+                .asList().first()
+                .asInstanceOf(type(JsonObject.class))
+                .matches(it -> it.getString(ID).equals("target"));
     
         assertThat(result.get(ODRL_PERMISSION_ATTRIBUTE))
                 .isNotNull()

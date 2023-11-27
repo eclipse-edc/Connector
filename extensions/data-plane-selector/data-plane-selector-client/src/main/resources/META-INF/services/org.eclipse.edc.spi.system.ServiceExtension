@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.connector.dataplane.selector.DataPlaneInstanceClientExtension
+org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorClientExtension

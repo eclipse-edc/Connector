@@ -18,7 +18,7 @@ import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistry;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
+import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
@@ -62,7 +62,7 @@ class DataPlaneSelectorApiExtensionTest {
         context.registerService(TypeManager.class, new TypeManager());
         context.registerService(WebService.class, webService);
         context.registerService(ManagementApiConfiguration.class, managementApiConfiguration);
-        context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(mock(DataPlaneSelector.class),
+        context.registerService(DataPlaneSelectorService.class, new EmbeddedDataPlaneSelectorService(
                 mock(DataPlaneInstanceStore.class), mock(SelectionStrategyRegistry.class), new NoopTransactionContext()));
 
         context.registerService(ManagementApiTypeTransformerRegistry.class, transformerRegistry);

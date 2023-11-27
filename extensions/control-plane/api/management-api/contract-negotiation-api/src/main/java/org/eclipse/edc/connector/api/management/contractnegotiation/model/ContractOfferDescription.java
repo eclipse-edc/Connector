@@ -19,6 +19,7 @@ import org.eclipse.edc.policy.model.Policy;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
+@Deprecated(since = "0.3.2")
 public class ContractOfferDescription {
 
     public static final String CONTRACT_OFFER_DESCRIPTION_TYPE = EDC_NAMESPACE + "ContractOfferDescription";

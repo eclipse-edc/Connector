@@ -59,6 +59,13 @@ abstract class BaseDecentralizedIdentityServiceTest {
         this.keyPair = keyPair;
     }
 
+    private static TokenParameters defaultTokenParameters() {
+        return TokenParameters.Builder.newInstance()
+                .scope("Foo")
+                .audience("Bar")
+                .build();
+    }
+
     @BeforeEach
     void setUp() {
         identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), privateKeyWrapper(keyPair), DID_URL, Clock.systemUTC());
@@ -118,17 +125,16 @@ abstract class BaseDecentralizedIdentityServiceTest {
         assertThat(verificationResult.getFailureDetail()).contains(errorMsg);
     }
 
-    private static TokenParameters defaultTokenParameters() {
-        return TokenParameters.Builder.newInstance()
-                .scope("Foo")
-                .audience("Bar")
-                .build();
-    }
+    @NotNull
+    protected abstract JWK generateKeyPair();
+
+    @NotNull
+    protected abstract PrivateKeyWrapper privateKeyWrapper(JWK keyPair);
 
     private DidDocument createDidDocument(JWK keyPair) {
         try {
             var did = new ObjectMapper().readValue(DID_DOCUMENT, DidDocument.class);
-            var verificationMethod = VerificationMethod.Builder.create()
+            var verificationMethod = VerificationMethod.Builder.newInstance()
                     .type("JsonWebKey2020")
                     .id("test-key")
                     .publicKeyJwk(keyPair.toPublicJWK().toJSONObject())
@@ -139,10 +145,4 @@ abstract class BaseDecentralizedIdentityServiceTest {
             throw new AssertionError(e);
         }
     }
-
-    @NotNull
-    protected abstract JWK generateKeyPair();
-
-    @NotNull
-    protected abstract PrivateKeyWrapper privateKeyWrapper(JWK keyPair);
 }

@@ -38,6 +38,7 @@ public class VerifiableCredential {
     public static final String VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY = VC_PREFIX + "credentialSubject";
     public static final String VERIFIABLE_CREDENTIAL_NAME_PROPERTY = SCHEMA_ORG_NAMESPACE + "name";
     public static final String VERIFIABLE_CREDENTIAL_DESCRIPTION_PROPERTY = SCHEMA_ORG_NAMESPACE + "description";
+    public static final String VERIFIABLE_CREDENTIAL_PROOF_PROPERTY = "https://w3id.org/security#proof";
     private List<CredentialSubject> credentialSubject = new ArrayList<>();
     private String id; // must be URI, but URI is less efficient at runtime
     private List<String> types = new ArrayList<>();

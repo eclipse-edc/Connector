@@ -22,8 +22,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.EdcException;
@@ -32,7 +32,6 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -43,35 +42,28 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class RemoteDataPlaneClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
-    private final DataPlaneSelectorClient selectorClient;
-    private final String selectorStrategy;
     private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
+    private final DataPlaneInstance dataPlane;
 
-    public RemoteDataPlaneClient(EdcHttpClient httpClient, DataPlaneSelectorClient selectorClient, String selectorStrategy, ObjectMapper mapper) {
-        this.selectorClient = Objects.requireNonNull(selectorClient, "Data plane selector client");
-        this.selectorStrategy = Objects.requireNonNull(selectorStrategy, "Selector strategy");
-        this.httpClient = Objects.requireNonNull(httpClient, "Http client");
-        this.mapper = Objects.requireNonNull(mapper, "Object mapper");
+    public RemoteDataPlaneClient(EdcHttpClient httpClient, ObjectMapper mapper, DataPlaneInstance dataPlane) {
+        this.httpClient = httpClient;
+        this.mapper = mapper;
+        this.dataPlane = dataPlane;
     }
 
     @WithSpan
     @Override
     public StatusResult<Void> transfer(DataFlowRequest dataFlowRequest) {
-        var instance = selectorClient.find(dataFlowRequest.getSourceDataAddress(), dataFlowRequest.getDestinationDataAddress(), selectorStrategy);
-        if (instance == null) {
-            return StatusResult.failure(FATAL_ERROR, "Failed to find data plane instance supporting request: " + dataFlowRequest.getId());
-        }
-
         RequestBody body;
         try {
             body = RequestBody.create(mapper.writeValueAsString(dataFlowRequest), TYPE_JSON);
         } catch (JsonProcessingException e) {
             throw new EdcException(e);
         }
-        var rq = new Request.Builder().post(body).url(instance.getUrl()).build();
+        var request = new Request.Builder().post(body).url(dataPlane.getUrl()).build();
 
-        try (var response = httpClient.execute(rq)) {
+        try (var response = httpClient.execute(request)) {
             return handleResponse(response, dataFlowRequest.getId());
         } catch (IOException e) {
             return StatusResult.failure(FATAL_ERROR, e.getMessage());
@@ -80,18 +72,13 @@ public class RemoteDataPlaneClient implements DataPlaneClient {
 
     @Override
     public StatusResult<Void> terminate(String transferProcessId) {
-        return selectorClient.getAll().stream()
-                .map(dataPlane -> {
-                    var request = new Request.Builder().delete().url(dataPlane.getUrl() + "/" + transferProcessId).build();
+        var request = new Request.Builder().delete().url(dataPlane.getUrl() + "/" + transferProcessId).build();
 
-                    try (var response = httpClient.execute(request)) { // TODO: should retry when status is 409 (???)
-                        return handleResponse(response, transferProcessId);
-                    } catch (IOException e) {
-                        return StatusResult.<Void>failure(FATAL_ERROR, e.getMessage());
-                    }
-                })
-                .findAny()
-                .orElse(StatusResult.success());
+        try (var response = httpClient.execute(request)) {
+            return handleResponse(response, transferProcessId);
+        } catch (IOException e) {
+            return StatusResult.<Void>failure(FATAL_ERROR, e.getMessage());
+        }
     }
 
     private StatusResult<Void> handleResponse(Response response, String requestId) {

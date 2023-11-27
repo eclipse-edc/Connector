@@ -33,6 +33,8 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -85,8 +87,34 @@ class PipelineServiceImplTest {
     }
 
     @Test
+    void transfer_withCustomSink_shouldNotInvokeSinkFactory() throws Exception {
+        var flowRequest = DataFlow.Builder.newInstance().id("dataFlowId")
+                .source(DataAddress.Builder.newInstance().type("source").build())
+                .destination(DataAddress.Builder.newInstance().type("custom-destination").build())
+                .build()
+                .toRequest();
+
+        when(sourceFactory.canHandle(any())).thenReturn(true);
+        when(sourceFactory.createSource(any())).thenReturn(source);
+
+        var customSink = new DataSink() {
+            @Override
+            public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
+                return CompletableFuture.completedFuture(StreamResult.success("test-response"));
+            }
+        };
+        var future = service.transfer(flowRequest, customSink);
+
+        assertThat(future).succeedsWithin(Duration.ofSeconds(5))
+                .satisfies(res -> assertThat(res).isSucceeded().satisfies(obj -> assertThat(obj).isEqualTo("test-response")));
+
+        verify(sourceFactory).createSource(flowRequest);
+        verifyNoInteractions(sinkFactory);
+    }
+
+    @Test
     void terminate_shouldCloseDataSource() throws Exception {
-        var dataFlow = DataFlow.Builder.newInstance().id("dataFlowId")
+        var dataFlow = DataFlow.Builder.newInstance().id("dPIataFlowId")
                 .source(DataAddress.Builder.newInstance().type("source").build())
                 .destination(DataAddress.Builder.newInstance().type("destination").build())
                 .build();

@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.connector.dataplane.selector.core.DataPlaneSelectorExtension
-org.eclipse.edc.connector.dataplane.selector.core.DataPlaneSelectorDefaultServicesExtension
+org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension
+org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorDefaultServicesExtension

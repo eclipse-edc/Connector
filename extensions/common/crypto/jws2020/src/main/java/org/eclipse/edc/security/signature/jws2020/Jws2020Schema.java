@@ -75,7 +75,7 @@ class Jws2020Schema {
                 type(JSON_WEB_SIGNATURE_TYPE).required(),
                 property(CREATED, xsdDateTime())
                         .test(created -> Instant.now().isAfter(created))
-                        .required(),
+                        .optional(),
                 property(CONTROLLER, link()),
                 property(PURPOSE, link()).required().test(uri -> uri.toString().equals("https://w3id.org/security#assertionMethod")),
                 verificationMethod(VERIFICATION_METHOD, getVerificationMethod(mapper).map(new JwkAdapter())).required(),

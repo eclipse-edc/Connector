@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.client;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -40,7 +40,7 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
     public StatusResult<Void> transfer(DataFlowRequest request) {
         var result = dataPlaneManager.validate(request);
         if (result.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, String.join(", ", result.getFailureMessages()));
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, result.getFailureDetail());
         }
         dataPlaneManager.initiate(request);
         return StatusResult.success();

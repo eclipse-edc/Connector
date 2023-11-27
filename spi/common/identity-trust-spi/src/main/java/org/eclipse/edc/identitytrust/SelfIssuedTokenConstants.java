@@ -22,7 +22,7 @@ public final class SelfIssuedTokenConstants {
     /**
      * VP access token claim
      */
-    public static final String ACCESS_TOKEN = "access_token";
+    public static final String PRESENTATION_ACCESS_TOKEN_CLAIM = "access_token";
 
     /**
      * Alias to be used in the sub of the VP access token
@@ -33,7 +33,7 @@ public final class SelfIssuedTokenConstants {
      * Scopes to be encoded in the VP access token
      */
     public static final String BEARER_ACCESS_SCOPE = "bearer_access_scope";
-    
+
     private SelfIssuedTokenConstants() {
 
     }

@@ -65,7 +65,16 @@ public interface Monitor {
                 .orElse(null);
     }
 
-    default PrefixMonitor withPrefix(String prefix) {
+    /**
+     * Creates a prefixed {@link Monitor} which will prepend the supplied prefix parameter to the actual log message
+     * in the format of: <strong>[LOGLEVEL] [TIMESTAMP] [[PREFIX]] [MESSAGE]</strong>
+     * <br>
+     * Example output: <strong>INFO 2023-11-08T15:53:39.989025 [JerseyExtension]: Registered Web API context alias: protocol</strong>
+     *
+     * @param prefix string value to be prefixed
+     * @return the prefixed monitor
+     */
+    default Monitor withPrefix(String prefix) {
         return new PrefixMonitor(this, prefix);
     }
 

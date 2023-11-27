@@ -46,10 +46,8 @@ class VerifiablePresentationTest {
 
     @Test
     void build_noCredentials() {
-        assertThatThrownBy(() -> VerifiablePresentation.Builder.newInstance()
+        assertThatNoException().isThrownBy(() -> VerifiablePresentation.Builder.newInstance()
                 .types(List.of("test-type"))
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith("must have at least one presentation.");
+                .build());
     }
 }

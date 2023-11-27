@@ -28,7 +28,6 @@ dependencies {
     implementation(project(":extensions:data-plane:data-plane-client"))
 
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
-    implementation(project(":extensions:data-plane-selector:data-plane-selector-client"))
 }
 
 edcBuild {

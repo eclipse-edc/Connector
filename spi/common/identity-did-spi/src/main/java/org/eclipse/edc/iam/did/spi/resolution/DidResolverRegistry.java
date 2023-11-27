@@ -34,4 +34,11 @@ public interface DidResolverRegistry {
      */
     Result<DidDocument> resolve(String didKey);
 
+    /**
+     * Checks if the given DID ID is supported.
+     *
+     * @param didKey The DID key to check. This string must contain the "did" keyword, followed by the DID method, followed by the identifier, separated by a ":".
+     * @return {@code true} if the given DID key is supported, {@code false} otherwise.
+     */
+    boolean isSupported(String didKey);
 }
