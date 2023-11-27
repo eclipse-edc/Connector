@@ -202,12 +202,12 @@ public class IdentityAndTrustService implements IdentityService {
 
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
-        return result.compose(u -> extractClaimToken(credentials));
+        return result.compose(u -> extractClaimToken(credentials, issuer));
     }
 
 
     @NotNull
-    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials) {
+    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials, String issuer) {
         if (credentials.isEmpty()) {
             return failure("No VerifiableCredentials were found on VP");
         }
@@ -216,6 +216,7 @@ public class IdentityAndTrustService implements IdentityService {
                 .map(CredentialSubject::getClaims)
                 .forEach(claimSet -> claimSet.forEach(b::claim));
 
+        b.claim("client_id", issuer);
         return success(b.build());
     }
 
