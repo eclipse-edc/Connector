@@ -400,6 +400,16 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         transitionTo(end.code());
     }
 
+    /**
+     * Set the correlationId, operation that's needed on the consumer side when it receives the first message with the
+     * provider process id.
+     *
+     * @param correlationId the correlation id.
+     */
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
     public enum Type {
         CONSUMER, PROVIDER
     }

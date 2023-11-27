@@ -18,7 +18,6 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +28,9 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 
 /**
@@ -46,28 +47,17 @@ public class JsonObjectFromContractNegotiationEventMessageTransformer extends Ab
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractNegotiationEventMessage eventMessage, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
-        builder.add(ID, eventMessage.getId());
-        builder.add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE);
-
-        builder.add(DSPACE_PROPERTY_PROCESS_ID, eventMessage.getProcessId());
-
-        builder.add(DSPACE_PROPERTY_EVENT_TYPE, eventType(eventMessage));
-
-        return builder.build();
-    }
-
-    @NotNull
-    private String eventType(ContractNegotiationEventMessage message) {
-        switch (message.getType()) {
-            case ACCEPTED:
-                return DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
-            case FINALIZED:
-                return DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
-            default:
-                // this cannot happen
-                throw new EdcException("Unknown event type: " + message.getType());
-        }
+        return jsonFactory.createObjectBuilder()
+                .add(ID, eventMessage.getId())
+                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, eventMessage.getConsumerPid())
+                .add(DSPACE_PROPERTY_PROVIDER_PID, eventMessage.getProviderPid())
+                .add(DSPACE_PROPERTY_PROCESS_ID, eventMessage.getProcessId())
+                .add(DSPACE_PROPERTY_EVENT_TYPE, switch (eventMessage.getType()) {
+                    case ACCEPTED -> DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
+                    case FINALIZED -> DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
+                })
+                .build();
     }
 
 }

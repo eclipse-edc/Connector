@@ -33,7 +33,9 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
 
 
@@ -52,11 +54,17 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
     @Override
     public @Nullable JsonObject transform(@NotNull ContractNegotiation contractNegotiation, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
-                .add(ID, contractNegotiation.getCorrelationId())
+                .add(ID, pidFor(contractNegotiation, contractNegotiation.getType()))
                 .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION)
-                .add(DSPACE_PROPERTY_PROCESS_ID, contractNegotiation.getCorrelationId())
+                .add(DSPACE_PROPERTY_CONSUMER_PID, pidFor(contractNegotiation, ContractNegotiation.Type.CONSUMER))
+                .add(DSPACE_PROPERTY_PROVIDER_PID, pidFor(contractNegotiation, ContractNegotiation.Type.PROVIDER))
+                .add(DSPACE_PROPERTY_PROCESS_ID, pidFor(contractNegotiation, ContractNegotiation.Type.CONSUMER))
                 .add(DSPACE_PROPERTY_STATE, state(contractNegotiation.getState(), context))
                 .build();
+    }
+
+    private String pidFor(@NotNull ContractNegotiation contractNegotiation, ContractNegotiation.Type type) {
+        return contractNegotiation.getType() == type ? contractNegotiation.getId() : contractNegotiation.getCorrelationId();
     }
 
     private String state(Integer state, TransformerContext context) {
@@ -69,29 +77,16 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
                     .report();
             return null;
         }
-        switch (negotiationState) {
-            case REQUESTING:
-            case REQUESTED:
-                return DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
-            case OFFERING:
-            case OFFERED:
-                return DSPACE_VALUE_NEGOTIATION_STATE_OFFERED;
-            case ACCEPTING:
-            case ACCEPTED:
-                return DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED;
-            case AGREEING:
-            case AGREED:
-                return DSPACE_VALUE_NEGOTIATION_STATE_AGREED;
-            case VERIFYING:
-            case VERIFIED:
-                return DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED;
-            case FINALIZING:
-            case FINALIZED:
-                return DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED;
-            case TERMINATING:
-            case TERMINATED:
-                return DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED;
-            default:
+
+        return switch (negotiationState) {
+            case REQUESTING, REQUESTED -> DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
+            case OFFERING, OFFERED -> DSPACE_VALUE_NEGOTIATION_STATE_OFFERED;
+            case ACCEPTING, ACCEPTED -> DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED;
+            case AGREEING, AGREED -> DSPACE_VALUE_NEGOTIATION_STATE_AGREED;
+            case VERIFYING, VERIFIED -> DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED;
+            case FINALIZING, FINALIZED -> DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED;
+            case TERMINATING, TERMINATED -> DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED;
+            default -> {
                 context.problem()
                         .unexpectedType()
                         .type(ContractNegotiation.class)
@@ -99,8 +94,9 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
                         .actual(negotiationState.toString())
                         .expected(ContractNegotiationStates.class)
                         .report();
-                return null;
-        }
+                yield null;
+            }
+        };
     }
 
 }

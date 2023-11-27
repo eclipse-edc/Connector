@@ -86,8 +86,8 @@ class ContractNegotiationIntegrationTest {
     private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore(clock);
     private final InMemoryContractNegotiationStore consumerStore = new InMemoryContractNegotiationStore(clock);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
-    private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-    private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
+    private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock();
+    private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock();
     private final IdentityService identityService = mock();
     protected ClaimToken token = ClaimToken.Builder.newInstance().build();
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
