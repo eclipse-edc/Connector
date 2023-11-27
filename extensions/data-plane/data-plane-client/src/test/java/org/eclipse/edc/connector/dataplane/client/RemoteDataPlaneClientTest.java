@@ -16,9 +16,8 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -43,10 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.once;
 import static org.mockserver.model.HttpResponse.response;
@@ -62,8 +57,8 @@ class RemoteDataPlaneClientTest {
     private static final String DATA_PLANE_PATH = "/transfer";
     private static final String DATA_PLANE_API_URI = "http://localhost:" + DATA_PLANE_API_PORT + DATA_PLANE_PATH;
     private static ClientAndServer dataPlane;
-    private final DataPlaneSelectorClient selectorClient = mock();
-    private final DataPlaneClient dataPlaneClient = new RemoteDataPlaneClient(testHttpClient(), selectorClient, "test", MAPPER);
+    private final DataPlaneInstance instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
+    private final DataPlaneClient dataPlaneClient = new RemoteDataPlaneClient(testHttpClient(), MAPPER, instance);
 
     @BeforeAll
     public static void setUp() {
@@ -81,24 +76,8 @@ class RemoteDataPlaneClientTest {
     }
 
     @Test
-    void transfer_verifyReturnsFatalErrorIfNoDataPlaneInstanceFound() {
-        var flowRequest = createDataFlowRequest();
-        when(selectorClient.find(any(), any(), any())).thenReturn(null);
-
-        var result = dataPlaneClient.transfer(flowRequest);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
-        assertThat(result.getFailureMessages())
-                .anySatisfy(s -> assertThat(s).contains("Failed to find data plane instance supporting request: " + flowRequest.getId()));
-    }
-
-    @Test
     void transfer_verifyReturnFatalErrorIfReceiveResponseWithNullBody() throws JsonProcessingException {
         var flowRequest = createDataFlowRequest();
-
-        var instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-        when(selectorClient.find(any(), any(), any())).thenReturn(instance);
 
         var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(flowRequest));
         dataPlane.when(httpRequest, once()).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
@@ -118,9 +97,6 @@ class RemoteDataPlaneClientTest {
     @Test
     void transfer_verifyReturnFatalErrorIfReceiveErrorInResponse() throws JsonProcessingException {
         var flowRequest = createDataFlowRequest();
-
-        var instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-        when(selectorClient.find(any(), any(), any())).thenReturn(instance);
 
         var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(flowRequest));
         var errorMsg = UUID.randomUUID().toString();
@@ -142,9 +118,6 @@ class RemoteDataPlaneClientTest {
     void transfer_verifyTransferSuccess() throws JsonProcessingException {
         var flowRequest = createDataFlowRequest();
 
-        var instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-        when(selectorClient.find(any(), any(), any())).thenReturn(instance);
-
         var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(flowRequest));
         dataPlane.when(httpRequest, once()).respond(response().withStatusCode(HttpStatusCode.OK_200.code()));
 
@@ -157,22 +130,17 @@ class RemoteDataPlaneClientTest {
 
     @Test
     void terminate_shouldCallTerminateOnAllTheAvailableDataPlanes() {
-        var instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-        when(selectorClient.getAll()).thenReturn(List.of(instance));
         var httpRequest = new HttpRequest().withMethod("DELETE").withPath(DATA_PLANE_PATH + "/processId");
         dataPlane.when(httpRequest, once()).respond(response().withStatusCode(NO_CONTENT_204.code()));
 
         var result = dataPlaneClient.terminate("processId");
 
         assertThat(result).isSucceeded();
-        verify(selectorClient).getAll();
         dataPlane.verify(httpRequest, VerificationTimes.once());
     }
 
     @Test
     void terminate_shouldFail_whenConflictResponse() {
-        var instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
-        when(selectorClient.getAll()).thenReturn(List.of(instance));
         var httpRequest = new HttpRequest().withMethod("DELETE").withPath(DATA_PLANE_PATH + "/processId");
         dataPlane.when(httpRequest, once()).respond(response().withStatusCode(CONFLICT_409.code()));
 

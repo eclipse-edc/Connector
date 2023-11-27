@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,13 +8,12 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector;
+package org.eclipse.edc.connector.dataplane.selector.service;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelector;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -24,19 +23,16 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
+public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
 
-    private final DataPlaneSelector selector;
     private final DataPlaneInstanceStore store;
     private final SelectionStrategyRegistry selectionStrategyRegistry;
     private final TransactionContext transactionContext;
 
-    public DataPlaneSelectorServiceImpl(DataPlaneSelector selector, DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
-        this.selector = selector;
+    public EmbeddedDataPlaneSelectorService(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
         this.store = store;
         this.selectionStrategyRegistry = selectionStrategyRegistry;
         this.transactionContext = transactionContext;
@@ -48,22 +44,13 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     }
 
     @Override
-    public DataPlaneInstance select(DataAddress source, DataAddress destination) {
-        return selector.select(source, destination);
-    }
-
-    @Override
     public DataPlaneInstance select(DataAddress source, DataAddress destination, String selectionStrategy) {
         var strategy = selectionStrategyRegistry.find(selectionStrategy);
         if (strategy == null) {
             throw new IllegalArgumentException("Strategy " + selectionStrategy + " was not found");
         }
-        return selector.select(source, destination, strategy);
-    }
-
-    @Override
-    public Collection<String> getAllStrategies() {
-        return selectionStrategyRegistry.getAll();
+        var dataPlanes = store.getAll().filter(dataPlane -> dataPlane.canHandle(source, destination)).toList();
+        return strategy.apply(dataPlanes);
     }
 
     @Override

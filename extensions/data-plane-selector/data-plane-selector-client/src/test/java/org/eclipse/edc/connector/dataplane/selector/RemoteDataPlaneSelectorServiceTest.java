@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.dataplane.selector.client;
+package org.eclipse.edc.connector.dataplane.selector;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiController;
@@ -44,23 +44,21 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstance;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testHttpClient;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class RemoteDataPlaneSelectorClientTest extends RestControllerTestBase {
+class RemoteDataPlaneSelectorServiceTest extends RestControllerTestBase {
 
     private static final String BASE_URL = "http://localhost:%d/v2/dataplanes";
     private static final DataPlaneSelectorService SELECTOR_SERVICE_MOCK = mock();
     private static final TypeManager TYPE_MANAGER = new TypeManager();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
-    private final JsonObjectValidatorRegistry validator = mock(JsonObjectValidatorRegistry.class);
-    private RemoteDataPlaneSelectorClient client;
+    private final JsonObjectValidatorRegistry validator = mock();
+    private RemoteDataPlaneSelectorService service;
 
     @BeforeAll
     public static void prepare() {
@@ -78,14 +76,15 @@ class RemoteDataPlaneSelectorClientTest extends RestControllerTestBase {
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(objectMapper));
         var url = format(BASE_URL, port);
-        client = new RemoteDataPlaneSelectorClient(testHttpClient(), url, JacksonJsonLd.createObjectMapper(), typeTransformerRegistry);
+        service = new RemoteDataPlaneSelectorService(testHttpClient(), url, JacksonJsonLd.createObjectMapper(), typeTransformerRegistry, "selectionStrategy");
     }
 
     @Test
     void getAll() {
-
         when(SELECTOR_SERVICE_MOCK.getAll()).thenReturn(List.of(createInstance("test-inst1"), createInstance("test-inst2")));
-        var result = client.getAll();
+
+        var result = service.getAll();
+
         assertThat(result).hasSize(2).extracting(DataPlaneInstance::getId).containsExactlyInAnyOrder("test-inst1", "test-inst2");
     }
 
@@ -93,17 +92,11 @@ class RemoteDataPlaneSelectorClientTest extends RestControllerTestBase {
     void find() {
         var expected = createInstance("some-instance");
         when(SELECTOR_SERVICE_MOCK.select(any(), any())).thenReturn(expected);
-        var result = client.find(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build());
+
+        var result = service.select(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test2").build());
+
         assertThat(result).usingRecursiveComparison().isEqualTo(expected);
 
-    }
-
-    @Test
-    void find_withStrategy() {
-        var expected = createInstance("some-instance");
-        when(SELECTOR_SERVICE_MOCK.select(any(), any(), eq("test-strategy"))).thenReturn(expected);
-        var result = client.find(DataAddress.Builder.newInstance().type("test1").build(), DataAddress.Builder.newInstance().type("test1").build(), "test-strategy");
-        assertThat(result).usingRecursiveComparison().isEqualTo(expected);
     }
 
     @Override
@@ -114,5 +107,12 @@ class RemoteDataPlaneSelectorClientTest extends RestControllerTestBase {
     @Override
     protected Object additionalResource() {
         return new JerseyJsonLdInterceptor(new TitaniumJsonLd(mock()), JacksonJsonLd.createObjectMapper(), "scope");
+    }
+
+    private DataPlaneInstance createInstance(String id) {
+        return DataPlaneInstance.Builder.newInstance()
+                .id(id)
+                .url("http://somewhere.com:1234/api/v1")
+                .build();
     }
 }

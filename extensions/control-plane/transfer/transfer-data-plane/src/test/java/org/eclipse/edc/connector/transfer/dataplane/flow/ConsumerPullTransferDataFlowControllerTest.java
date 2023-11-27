@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
@@ -37,10 +37,10 @@ import static org.mockito.Mockito.when;
 
 class ConsumerPullTransferDataFlowControllerTest {
 
-    private final DataPlaneSelectorClient selectorClient = mock(DataPlaneSelectorClient.class);
-    private final ConsumerPullDataPlaneProxyResolver resolver = mock(ConsumerPullDataPlaneProxyResolver.class);
+    private final DataPlaneSelectorService selectorService = mock();
+    private final ConsumerPullDataPlaneProxyResolver resolver = mock();
 
-    private final ConsumerPullTransferDataFlowController flowController = new ConsumerPullTransferDataFlowController(selectorClient, resolver);
+    private final ConsumerPullTransferDataFlowController flowController = new ConsumerPullTransferDataFlowController(selectorService, resolver);
 
     @Test
     void verifyCanHandle() {
@@ -57,7 +57,7 @@ class ConsumerPullTransferDataFlowControllerTest {
                 .contentDataAddress(dataAddress())
                 .build();
 
-        when(selectorClient.find(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
+        when(selectorService.select(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
         when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.success(proxyAddress));
 
         var result = flowController.initiateFlow(transferProcess, null);
@@ -90,7 +90,7 @@ class ConsumerPullTransferDataFlowControllerTest {
                 .contentDataAddress(dataAddress())
                 .build();
 
-        when(selectorClient.find(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
+        when(selectorService.select(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
         when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.failure(errorMsg));
 
         var result = flowController.initiateFlow(transferProcess, Policy.Builder.newInstance().build());

@@ -14,7 +14,8 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.flow;
 
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
@@ -31,11 +32,13 @@ import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlane
 public class ProviderPushTransferDataFlowController implements DataFlowController {
 
     private final ControlApiUrl callbackUrl;
-    private final DataPlaneClient dataPlaneClient;
+    private final DataPlaneSelectorService selectorClient;
+    private final DataPlaneClientFactory clientFactory;
 
-    public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneClient dataPlaneClient) {
+    public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataPlaneClientFactory clientFactory) {
         this.callbackUrl = callbackUrl;
-        this.dataPlaneClient = dataPlaneClient;
+        this.selectorClient = selectorClient;
+        this.clientFactory = clientFactory;
     }
 
     @Override
@@ -54,12 +57,18 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
                 .build();
 
-        return dataPlaneClient.transfer(dataFlowRequest).map(it -> DataFlowResponse.Builder.newInstance().build());
+        var dataPlaneInstance = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getDataDestination());
+        return clientFactory.createClient(dataPlaneInstance)
+                .transfer(dataFlowRequest)
+                .map(it -> DataFlowResponse.Builder.newInstance().build());
     }
 
     @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return dataPlaneClient.terminate(transferProcess.getId());
+        return selectorClient.getAll().stream().map(clientFactory::createClient)
+                .map(client -> client.terminate(transferProcess.getId()))
+                .reduce(StatusResult::merge)
+                .orElse(StatusResult.success());
     }
 
 }

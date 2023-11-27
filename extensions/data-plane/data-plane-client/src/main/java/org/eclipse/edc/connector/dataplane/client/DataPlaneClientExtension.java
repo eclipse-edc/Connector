@@ -14,13 +14,11 @@
 
 package org.eclipse.edc.connector.dataplane.client;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneSelectorClient;
-import org.eclipse.edc.connector.dataplane.spi.client.DataPlaneClient;
+import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -37,14 +35,8 @@ import java.util.Objects;
 public class DataPlaneClientExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Client";
 
-    @Setting(value = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime")
-    private static final String DPF_SELECTOR_STRATEGY = "edc.dataplane.client.selector.strategy";
-
     @Inject(required = false)
     private DataPlaneManager dataPlaneManager;
-
-    @Inject(required = false)
-    private DataPlaneSelectorClient dataPlaneSelectorClient;
 
     @Inject(required = false)
     private EdcHttpClient httpClient;
@@ -58,17 +50,16 @@ public class DataPlaneClientExtension implements ServiceExtension {
     }
 
     @Provider
-    public DataPlaneClient dataPlaneClient(ServiceExtensionContext context) {
+    public DataPlaneClientFactory dataPlaneClientFactory(ServiceExtensionContext context) {
         if (dataPlaneManager != null) {
             // Data plane manager is embedded in the current runtime
             context.getMonitor().debug(() -> "Using embedded Data Plane client.");
-            return new EmbeddedDataPlaneClient(dataPlaneManager);
+            return instance -> new EmbeddedDataPlaneClient(dataPlaneManager);
         }
 
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
         Objects.requireNonNull(httpClient, "To use remote Data Plane client, an EdcHttpClient instance must be registered");
-        var selectionStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
-        return new RemoteDataPlaneClient(httpClient, dataPlaneSelectorClient, selectionStrategy, typeManager.getMapper());
+        return instance -> new RemoteDataPlaneClient(httpClient, typeManager.getMapper(), instance);
     }
 }
 
