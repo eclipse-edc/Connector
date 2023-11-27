@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.protocol.dsp.message.DspRequestHandlerImpl;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.result.Result;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -68,5 +70,15 @@ class DspHttpCoreExtensionTest {
         dispatcher.dispatch(String.class, new TestMessage("protocol", "address"));
 
         verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope().equals("test-scope")));
+    }
+
+    @Test
+    @DisplayName("Assert creation of a DspRequestHandlerImpl")
+    void createDspRequestHandler(DspHttpCoreExtension extension) {
+
+        var handler = extension.dspRequestHandler();
+
+        assertThat(handler).isInstanceOf(DspRequestHandlerImpl.class);
+
     }
 }

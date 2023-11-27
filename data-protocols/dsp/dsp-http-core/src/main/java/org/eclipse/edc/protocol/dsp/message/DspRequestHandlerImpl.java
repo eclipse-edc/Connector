@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.api.configuration.message;
+package org.eclipse.edc.protocol.dsp.message;
 
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
@@ -32,7 +32,7 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.eclipse.edc.protocol.dsp.api.configuration.error.DspErrorResponse.type;
+import static org.eclipse.edc.protocol.dsp.spi.error.DspErrorResponse.type;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 public class DspRequestHandlerImpl implements DspRequestHandler {
@@ -163,7 +163,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                         return Objects.equals(request.getProcessId(), processRemoteMessage.getProcessId())
                                 ? Result.success(message)
                                 : Result.failure("DSP: Invalid process ID. Expected: %s, actual: %s"
-                                    .formatted(request.getProcessId(), processRemoteMessage.getProcessId()));
+                                .formatted(request.getProcessId(), processRemoteMessage.getProcessId()));
                     } else {
                         return Result.success(message);
                     }

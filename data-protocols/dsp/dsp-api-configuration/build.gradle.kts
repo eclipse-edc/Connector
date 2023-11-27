@@ -23,9 +23,6 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
     implementation(project(":core:common:jersey-providers"))
     implementation(project(":core:common:transform-core"))
-    implementation(project(":extensions:common:http"))
-
-    implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
 }

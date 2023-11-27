@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.api.configuration.message;
+package org.eclipse.edc.protocol.dsp.message;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;

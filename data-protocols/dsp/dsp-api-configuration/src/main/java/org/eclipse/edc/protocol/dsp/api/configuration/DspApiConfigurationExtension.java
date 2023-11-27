@@ -37,18 +37,14 @@ import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTrans
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.protocol.dsp.api.configuration.message.DspRequestHandlerImpl;
-import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.jersey.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
@@ -76,7 +72,7 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
  * parameters.
  */
 @Extension(value = DspApiConfigurationExtension.NAME)
-@Provides({ DspApiConfiguration.class, ProtocolWebhook.class, DspRequestHandler.class })
+@Provides({ DspApiConfiguration.class, ProtocolWebhook.class })
 public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
@@ -108,10 +104,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     private JsonLd jsonLd;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
-    @Inject
-    private IdentityService identityService;
-    @Inject
-    private JsonObjectValidatorRegistry validatorRegistry;
 
     @Override
     public String name() {
@@ -124,7 +116,6 @@ public class DspApiConfigurationExtension implements ServiceExtension {
         var dspWebhookAddress = context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS);
         context.registerService(DspApiConfiguration.class, new DspApiConfiguration(config.getContextAlias(), dspWebhookAddress));
         context.registerService(ProtocolWebhook.class, () -> dspWebhookAddress);
-        context.registerService(DspRequestHandler.class, new DspRequestHandlerImpl(context.getMonitor(), dspWebhookAddress, identityService, validatorRegistry, transformerRegistry));
 
         var jsonLdMapper = typeManager.getMapper(JSON_LD);
 
