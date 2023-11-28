@@ -46,6 +46,7 @@ import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class DefaultCredentialServiceClient implements CredentialServiceClient {
+    public static final String PRESENTATION_ENDPOINT = "/presentation/query";
     private final EdcHttpClient httpClient;
     private final JsonBuilderFactory jsonFactory;
     private final ObjectMapper objectMapper;
@@ -63,14 +64,16 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     }
 
     @Override
-    public Result<List<VerifiablePresentationContainer>> requestPresentation(String credentialServiceUrl, String selfIssuedTokenJwt, List<String> scopes) {
+    public Result<List<VerifiablePresentationContainer>> requestPresentation(String credentialServiceBaseUrl, String selfIssuedTokenJwt, List<String> scopes) {
         var query = createPresentationQuery(scopes);
+
+        var url = credentialServiceBaseUrl + PRESENTATION_ENDPOINT;
 
         try {
             var requestJson = objectMapper.writeValueAsString(query);
             var request = new Request.Builder()
                     .post(RequestBody.create(requestJson, MediaType.parse("application/json")))
-                    .url(credentialServiceUrl)
+                    .url(url)
                     .addHeader("Authorization", "%s".formatted(selfIssuedTokenJwt))
                     .build();
 
