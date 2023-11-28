@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS edc_policydefinitions
     assignee              VARCHAR,
     target                VARCHAR,
     policy_type           VARCHAR NOT NULL,
+    private_properties    JSON,
     PRIMARY KEY (policy_id)
 );
 
