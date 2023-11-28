@@ -43,8 +43,10 @@ import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DefaultCredentialServiceClientTest {
@@ -73,6 +75,7 @@ class DefaultCredentialServiceClientTest {
         var result = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JSON_LD);
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
     }
 
     @Test
@@ -84,6 +87,7 @@ class DefaultCredentialServiceClientTest {
         var result = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).allMatch(vpc -> vpc.format() == CredentialFormat.JWT);
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
     }
 
     @Test
@@ -97,6 +101,7 @@ class DefaultCredentialServiceClientTest {
         assertThat(result.getContent()).hasSize(2)
                 .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD))
                 .anySatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
     }
 
     @Test
@@ -109,6 +114,7 @@ class DefaultCredentialServiceClientTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JSON_LD));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
     }
 
     @Test
@@ -121,6 +127,7 @@ class DefaultCredentialServiceClientTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(2)
                 .allSatisfy(vp -> assertThat(vp.format()).isEqualTo(CredentialFormat.JWT));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
     }
 
     @ParameterizedTest(name = "CS returns HTTP error code {0}")
@@ -132,6 +139,7 @@ class DefaultCredentialServiceClientTest {
         var res = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(res.failed()).isTrue();
         assertThat(res.getFailureDetail()).isEqualTo("Presentation Query failed: HTTP %s, message: Test failure".formatted(httpCode));
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
     }
 
     @DisplayName("CS returns an empty array, because no VC was found")
@@ -143,6 +151,7 @@ class DefaultCredentialServiceClientTest {
         var res = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(res.succeeded()).isTrue();
         assertThat(res.getContent()).isNotNull().doesNotContainNull().isEmpty();
+        verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith("/presentation/query")));
     }
 
     private VerifiablePresentation createPresentation() {
