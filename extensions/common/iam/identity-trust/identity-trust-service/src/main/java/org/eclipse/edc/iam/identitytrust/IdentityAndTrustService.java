@@ -24,6 +24,7 @@ import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
+import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
@@ -36,6 +37,7 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.time.Clock;
@@ -111,7 +113,7 @@ public class IdentityAndTrustService implements IdentityService {
                 .scope(parameters.getScope())
                 .additional(parameters.getAdditional())
                 .build();
-        
+
         var scope = parameters.getScope();
         var scopeValidationResult = validateScope(scope);
 
@@ -200,12 +202,22 @@ public class IdentityAndTrustService implements IdentityService {
 
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
-        return result.map(u -> extractClaimToken(credentials));
+        return result.compose(u -> extractClaimToken(credentials, intendedAudience));
     }
 
 
-    private ClaimToken extractClaimToken(List<VerifiableCredential> credentials) {
-        return null;
+    @NotNull
+    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials, String issuer) {
+        if (credentials.isEmpty()) {
+            return failure("No VerifiableCredentials were found on VP");
+        }
+        var b = ClaimToken.Builder.newInstance();
+        credentials.stream().flatMap(vc -> vc.getCredentialSubject().stream())
+                .map(CredentialSubject::getClaims)
+                .forEach(claimSet -> claimSet.forEach(b::claim));
+
+        b.claim("client_id", issuer);
+        return success(b.build());
     }
 
     private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
