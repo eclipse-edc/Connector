@@ -31,8 +31,10 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.protocol.dsp.dispatcher.DspHttpRemoteMessageDispatcherImpl;
+import org.eclipse.edc.protocol.dsp.message.DspRequestHandlerImpl;
 import org.eclipse.edc.protocol.dsp.serialization.JsonLdRemoteMessageSerializerImpl;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRemoteMessageDispatcher;
+import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -41,10 +43,13 @@ import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import static org.eclipse.edc.protocol.dsp.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
@@ -94,6 +99,15 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Inject
     private PolicyEngine policyEngine;
 
+    @Inject
+    private Monitor monitor;
+
+    @Inject
+    private ProtocolWebhook dspWebhookAddress;
+
+    @Inject
+    private JsonObjectValidatorRegistry validatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -115,6 +129,11 @@ public class DspHttpCoreExtension implements ServiceExtension {
         registerCatalogPolicyScopes(dispatcher);
         dispatcherRegistry.register(dispatcher);
         return dispatcher;
+    }
+
+    @Provider
+    public DspRequestHandler dspRequestHandler() {
+        return new DspRequestHandlerImpl(monitor, dspWebhookAddress.url(), identityService, validatorRegistry, transformerRegistry);
     }
 
     @Provider
