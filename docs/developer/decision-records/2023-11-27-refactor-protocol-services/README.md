@@ -8,7 +8,7 @@ to the protocol service layer.
 ## Rationale
 
 Implementations of `IdentityService`s may need additional context/request information when verifying the JWT token. At the
-DSP (or other protocols) layer we don't have such information. Moving the security checks on the protocol services layer will 
+DSP (or other protocols) layer we don't have such information. Moving the security checks to the protocol services layer will 
 allow us to attach contextual information to a specific request (e.g. current policy if any).
 
 ## Approach
