@@ -20,7 +20,6 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -38,16 +37,11 @@ import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPA
 public class DspRequestHandlerImpl implements DspRequestHandler {
 
     private final Monitor monitor;
-    private final String callbackAddress;
-    private final IdentityService identityService;
     private final JsonObjectValidatorRegistry validatorRegistry;
     private final TypeTransformerRegistry transformerRegistry;
 
-    public DspRequestHandlerImpl(Monitor monitor, String callbackAddress, IdentityService identityService,
-                                 JsonObjectValidatorRegistry validatorRegistry, TypeTransformerRegistry transformerRegistry) {
+    public DspRequestHandlerImpl(Monitor monitor, JsonObjectValidatorRegistry validatorRegistry, TypeTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
-        this.callbackAddress = callbackAddress;
-        this.identityService = identityService;
         this.validatorRegistry = validatorRegistry;
         this.transformerRegistry = transformerRegistry;
     }
@@ -57,14 +51,8 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(request.getToken()).build();
-        var claimTokenResult = identityService.verifyJwtToken(tokenRepresentation, callbackAddress);
 
-        if (claimTokenResult.failed()) {
-            monitor.debug(() -> "DSP: Unauthorized: %s".formatted(claimTokenResult.getFailureDetail()));
-            return type(request.getErrorType()).unauthorized();
-        }
-
-        var serviceResult = request.getServiceCall().apply(request.getId(), claimTokenResult.getContent());
+        var serviceResult = request.getServiceCall().apply(request.getId(), tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return type(request.getErrorType()).processId(request.getId()).from(serviceResult.getFailure());
@@ -90,12 +78,6 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 request.getProcessId() != null ? ": " + request.getProcessId() : ""));
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(request.getToken()).build();
-        var claimTokenResult = identityService.verifyJwtToken(tokenRepresentation, callbackAddress);
-
-        if (claimTokenResult.failed()) {
-            monitor.debug(() -> "DSP: Unauthorized: %s".formatted(claimTokenResult.getFailureDetail()));
-            return type(request.getErrorType()).unauthorized();
-        }
 
         var validation = validatorRegistry.validate(request.getExpectedMessageType(), request.getMessage());
         if (validation.failed()) {
@@ -116,7 +98,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             return type(request.getErrorType()).badRequest();
         }
 
-        var serviceResult = request.getServiceCall().apply(inputTransformation.getContent(), claimTokenResult.getContent());
+        var serviceResult = request.getServiceCall().apply(inputTransformation.getContent(), tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return type(request.getErrorType()).from(serviceResult.getFailure());
@@ -142,12 +124,6 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 request.getProcessId() != null ? ": " + request.getProcessId() : ""));
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(request.getToken()).build();
-        var claimTokenResult = identityService.verifyJwtToken(tokenRepresentation, callbackAddress);
-
-        if (claimTokenResult.failed()) {
-            monitor.debug(() -> "DSP: Unauthorized: %s".formatted(claimTokenResult.getFailureDetail()));
-            return type(request.getErrorType()).processId(request.getProcessId()).unauthorized();
-        }
 
         var validation = validatorRegistry.validate(request.getExpectedMessageType(), request.getMessage());
         if (validation.failed()) {
@@ -175,7 +151,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         }
 
         return request.getServiceCall()
-                .apply(inputTransformation.getContent(), claimTokenResult.getContent())
+                .apply(inputTransformation.getContent(), tokenRepresentation)
                 .map(it -> Response.ok().type(MediaType.APPLICATION_JSON_TYPE).build())
                 .orElse(failure -> {
                     monitor.debug(() -> "DSP: Service call failed: %s".formatted(failure.getFailureDetail()));

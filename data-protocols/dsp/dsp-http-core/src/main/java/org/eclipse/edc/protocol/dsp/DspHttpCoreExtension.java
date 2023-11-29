@@ -44,7 +44,6 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -103,9 +102,6 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Inject
-    private ProtocolWebhook dspWebhookAddress;
-
-    @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
 
     @Override
@@ -133,7 +129,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspRequestHandler dspRequestHandler() {
-        return new DspRequestHandlerImpl(monitor, dspWebhookAddress.url(), identityService, validatorRegistry, transformerRegistry);
+        return new DspRequestHandlerImpl(monitor, validatorRegistry, transformerRegistry);
     }
 
     @Provider

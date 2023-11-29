@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.spi.message;
 
-import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
 import java.util.function.BiFunction;
@@ -27,7 +27,7 @@ public class DspRequest<I, R> {
     protected final Class<I> inputClass;
     protected String token;
     protected String errorType;
-    protected BiFunction<I, ClaimToken, ServiceResult<R>> serviceCall;
+    protected BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall;
 
     public DspRequest(Class<I> inputClass, Class<R> resultClass) {
         this.inputClass = inputClass;
@@ -46,7 +46,7 @@ public class DspRequest<I, R> {
         return resultClass;
     }
 
-    public BiFunction<I, ClaimToken, ServiceResult<R>> getServiceCall() {
+    public BiFunction<I, TokenRepresentation, ServiceResult<R>> getServiceCall() {
         return serviceCall;
     }
 
@@ -67,7 +67,7 @@ public class DspRequest<I, R> {
             return self();
         }
 
-        public B serviceCall(BiFunction<I, ClaimToken, ServiceResult<R>> serviceCall) {
+        public B serviceCall(BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall) {
             message.serviceCall = serviceCall;
             return self();
         }

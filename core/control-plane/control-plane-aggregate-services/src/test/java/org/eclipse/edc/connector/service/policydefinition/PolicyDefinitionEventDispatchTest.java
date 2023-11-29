@@ -25,6 +25,7 @@ import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,7 @@ public class PolicyDefinitionEventDispatchTest {
     void setUp(EdcExtension extension) {
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
+        extension.registerServiceMock(IdentityService.class, mock());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api")

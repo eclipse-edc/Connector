@@ -34,6 +34,8 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -78,6 +80,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     private final int dataPort = getFreePort();
     private final Interceptor delegate = mock(Interceptor.class);
     private final ContractValidationService contractValidationService = mock();
+    private final IdentityService identityService = mock();
 
     @BeforeEach
     void setup(EdcExtension extension) {
@@ -92,6 +95,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerServiceMock(EdcHttpClient.class, testHttpClient(delegate));
         extension.registerServiceMock(ContractValidationService.class, contractValidationService);
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
+        extension.registerServiceMock(IdentityService.class, identityService);
         var dataAddressValidatorRegistry = mock(DataAddressValidatorRegistry.class);
         when(dataAddressValidatorRegistry.validateSource(any())).thenReturn(ValidationResult.success());
         when(dataAddressValidatorRegistry.validateDestination(any())).thenReturn(ValidationResult.success());
@@ -121,7 +125,9 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .thenAnswer(invocation -> createResponse(503, invocation))
                 .thenAnswer(invocation -> createResponse(200, invocation));
 
-        var result = protocolService.notifyRequested(createTransferRequestMessage(), ClaimToken.Builder.newInstance().build());
+        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
+
+        var result = protocolService.notifyRequested(createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
 
         assertThat(result).isSucceeded();
         await().untilAsserted(() -> {
