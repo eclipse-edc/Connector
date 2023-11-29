@@ -15,13 +15,14 @@
 package org.eclipse.edc.connector.transfer.spi.flow;
 
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 /**
  * Handles a data flow.
@@ -57,32 +58,9 @@ public interface DataFlowController {
     StatusResult<Void> terminate(TransferProcess transferProcess);
 
     /**
-     * Returns true if the manager can handle the data type.
+     * Returns transfer types that the controller can handle for the specified Asset.
      *
-     * @param dataRequest    the request
-     * @param contentAddress the address to resolve the asset contents. This may be the original asset address or an address resolving to generated content.
-     * @deprecated please use {@link #canHandle(TransferProcess)}
+     * @return transfer type set.
      */
-    @Deprecated(since = "0.2.1", forRemoval = true)
-    default boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
-        return canHandle(TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(contentAddress).build());
-    }
-
-    /**
-     * Initiate a data flow.
-     *
-     * <p>Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, set {@link ResponseStatus#ERROR_RETRY} in the
-     * response. If an exception occurs and re-tries should not be re-attempted, set {@link ResponseStatus#FATAL_ERROR} in the response. </p>
-     *
-     * @param dataRequest    the request
-     * @param contentAddress the address to resolve the asset contents. This may be the original asset address or an address resolving to generated content.
-     * @param policy         the contract agreement usage policy for the asset being transferred
-     * @deprecated please use {@link #initiateFlow(TransferProcess, Policy)}
-     */
-    @NotNull
-    @Deprecated(since = "0.2.1", forRemoval = true)
-    default StatusResult<DataFlowResponse> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
-        return initiateFlow(TransferProcess.Builder.newInstance().dataRequest(dataRequest).contentDataAddress(contentAddress).build(), policy);
-    }
-
+    Set<String> transferTypesFor(Asset asset);
 }

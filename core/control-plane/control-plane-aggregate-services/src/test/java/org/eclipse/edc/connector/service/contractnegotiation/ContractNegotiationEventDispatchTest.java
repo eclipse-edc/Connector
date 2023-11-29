@@ -61,7 +61,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 class ContractNegotiationEventDispatchTest {
     private static final String CONSUMER = "consumer";
-    private static final String PROVIDER = "provider";
 
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim(ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY, CONSUMER).build();

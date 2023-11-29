@@ -23,6 +23,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -108,6 +109,15 @@ class ConsumerPullTransferDataFlowControllerTest {
         var result = flowController.terminate(transferProcess);
 
         assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void transferTypes_shouldReturnHttpPull() {
+        var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("any").build()).build();
+
+        var transferTypes = flowController.transferTypesFor(asset);
+
+        assertThat(transferTypes).hasSize(1).contains("Http-PULL");
     }
 
     private TransferProcess transferProcess(String destinationType) {

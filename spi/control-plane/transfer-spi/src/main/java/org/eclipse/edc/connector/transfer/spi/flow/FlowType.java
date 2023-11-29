@@ -12,21 +12,12 @@
  *
  */
 
-package org.eclipse.edc.catalog.spi;
-
-import org.eclipse.edc.spi.types.domain.asset.Asset;
-
-import java.util.List;
+package org.eclipse.edc.connector.transfer.spi.flow;
 
 /**
- * Resolves the {@link Distribution}s
+ * Data Flow types, generally they can be Push (provider pushing data to the consumer) and Pull (consumer pulling data
+ * from the provider)
  */
-public interface DistributionResolver {
-
-    /**
-     * Return all the {@link Distribution}s for the given {@link Asset}.
-     *
-     * @return a list of Distributions, always not null
-     */
-    List<Distribution> getDistributions(Asset asset);
+public enum FlowType {
+    PUSH, PULL
 }
