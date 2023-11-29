@@ -20,8 +20,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 
-import java.util.function.Function;
-
 /**
  * Base class for all protocol service implementation. This will contain common logic such as validating the JWT token
  * and extracting the {@link ClaimToken}
@@ -41,10 +39,9 @@ public abstract class BaseProtocolService {
      * Validate and extract the {@link ClaimToken} from the input {@link TokenRepresentation} by using the {@link IdentityService}
      *
      * @param tokenRepresentation The input {@link TokenRepresentation}
-     * @param callback            The callback to invoke once the token has been validated and extracted
-     * @return The result of the callback invocation
+     * @return The {@link ClaimToken} if success, failure otherwise
      */
-    public <T> ServiceResult<T> withClaimToken(TokenRepresentation tokenRepresentation, Function<ClaimToken, ServiceResult<T>> callback) {
+    public ServiceResult<ClaimToken> verifyToken(TokenRepresentation tokenRepresentation) {
         // TODO: since we are pushing here the invocation of the IdentityService we don't know the audience here
         //  The audience removal will be tackle next. IdentityService that relies on this parameter would not work
         //  for the time being.
@@ -54,6 +51,6 @@ public abstract class BaseProtocolService {
             monitor.debug(() -> "Unauthorized: %s".formatted(result.getFailureDetail()));
             return ServiceResult.unauthorized("Unauthorized");
         }
-        return callback.apply(result.getContent());
+        return ServiceResult.success(result.getContent());
     }
 }

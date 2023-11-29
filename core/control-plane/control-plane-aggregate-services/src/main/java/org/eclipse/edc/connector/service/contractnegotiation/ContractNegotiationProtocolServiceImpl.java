@@ -72,7 +72,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> validateOffer(message, claimToken)
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> validateOffer(message, claimToken)
                 .compose(validatedOffer -> getNegotiation(message)
                         .recover(f -> createNegotiation(message, validatedOffer))
                         .onSuccess(n -> n.addContractOffer(validatedOffer.getOffer()))
@@ -89,7 +89,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> getNegotiation(message)
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> getNegotiation(message)
                 .compose(negotiation -> validateRequest(claimToken, negotiation))
                 .onSuccess(negotiation -> {
                     negotiation.addContractOffer(message.getContractOffer());
@@ -103,7 +103,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyAccepted(ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> getNegotiation(message)
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> getNegotiation(message)
                 .compose(negotiation -> validateRequest(claimToken, negotiation))
                 .onSuccess(negotiation -> {
                     negotiation.transitionAccepted();
@@ -117,7 +117,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> getNegotiation(message)
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> getNegotiation(message)
                 .compose(negotiation -> validateAgreed(message, claimToken, negotiation))
                 .onSuccess(negotiation -> {
                     negotiation.setContractAgreement(message.getContractAgreement());
@@ -131,7 +131,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyVerified(ContractAgreementVerificationMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> getNegotiation(message)
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> getNegotiation(message)
                 .compose(negotiation -> validateRequest(claimToken, negotiation))
                 .onSuccess(negotiation -> {
                     negotiation.transitionVerified();
@@ -144,7 +144,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyFinalized(ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> getNegotiation(message)
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> getNegotiation(message)
                 .compose(negotiation -> validateRequest(claimToken, negotiation))
                 .onSuccess(negotiation -> {
                     negotiation.transitionFinalized();
@@ -157,7 +157,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> notifyTerminated(ContractNegotiationTerminationMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> getNegotiation(message)
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> getNegotiation(message)
                 .compose(negotiation -> validateRequest(claimToken, negotiation))
                 .onSuccess(negotiation -> {
                     negotiation.transitionTerminated();
@@ -170,7 +170,7 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> Optional.ofNullable(store.findById(id))
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> Optional.ofNullable(store.findById(id))
                 .map(negotiation -> validateRequest(claimToken, negotiation))
                 .orElse(ServiceResult.notFound("No negotiation with id %s found".formatted(id)))));
     }

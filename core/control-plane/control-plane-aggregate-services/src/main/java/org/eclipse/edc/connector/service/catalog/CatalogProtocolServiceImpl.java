@@ -57,26 +57,24 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, (claimToken) -> {
+        return verifyToken(tokenRepresentation).map(claimToken -> {
             var agent = participantAgentService.createFor(claimToken);
 
             try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
                 var dataServices = dataServiceRegistry.getDataServices();
 
-                var catalog = Catalog.Builder.newInstance()
+                return Catalog.Builder.newInstance()
                         .dataServices(dataServices)
                         .datasets(datasets.collect(toList()))
                         .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
                         .build();
-
-                return ServiceResult.success(catalog);
             }
         });
     }
 
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, (claimToken) -> {
+        return verifyToken(tokenRepresentation).compose(claimToken -> {
             var agent = participantAgentService.createFor(claimToken);
 
             var dataset = datasetResolver.getById(agent, datasetId);

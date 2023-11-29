@@ -87,7 +87,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, (claimToken -> {
+        return verifyToken(tokenRepresentation).compose(claimToken -> {
             var destination = message.getDataDestination();
             if (destination != null) {
                 var validDestination = dataAddressValidator.validateDestination(destination);
@@ -101,7 +101,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
                             .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
                             .map(agreement -> requestedAction(message, agreement.getAssetId()))
                             .orElse(ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"))));
-        }));
+        });
 
     }
 
@@ -109,28 +109,28 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> onMessageDo(message, claimToken, transferProcess -> startedAction(message, transferProcess)));
+        return verifyToken(tokenRepresentation).compose(claimToken -> onMessageDo(message, claimToken, transferProcess -> startedAction(message, transferProcess)));
     }
 
     @Override
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> onMessageDo(message, claimToken, transferProcess -> completedAction(message, transferProcess)));
+        return verifyToken(tokenRepresentation).compose(claimToken -> onMessageDo(message, claimToken, transferProcess -> completedAction(message, transferProcess)));
     }
 
     @Override
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> onMessageDo(message, claimToken, transferProcess -> terminatedAction(message, transferProcess)));
+        return verifyToken(tokenRepresentation).compose(claimToken -> onMessageDo(message, claimToken, transferProcess -> terminatedAction(message, transferProcess)));
     }
 
     @Override
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation) {
-        return withClaimToken(tokenRepresentation, claimToken -> transactionContext.execute(() -> Optional.ofNullable(transferProcessStore.findById(id))
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> Optional.ofNullable(transferProcessStore.findById(id))
                 .map(tp -> validateCounterParty(claimToken, tp))
                 .orElse(notFound(id))));
     }
