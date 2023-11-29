@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -51,7 +52,7 @@ class JsonLdExtensionTest {
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
         Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
-        assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"));
+        assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI());
     }
 
     @Test
@@ -67,7 +68,7 @@ class JsonLdExtensionTest {
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
         Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
-        assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"));
+        assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI());
     }
 
     @Test
@@ -84,8 +85,8 @@ class JsonLdExtensionTest {
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
         Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
-        assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"));
-        assertThat(cache).containsEntry("http://bar.org/doc.json", new URI("file:/tmp/bar/doc.json"));
+        assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI());
+        assertThat(cache).containsEntry("http://bar.org/doc.json", new File("/tmp/bar/doc.json").toURI());
     }
 
     @Test
@@ -101,7 +102,7 @@ class JsonLdExtensionTest {
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
         Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
-        assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"))
+        assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI())
                 .noneSatisfy((s, uri) -> assertThat(s).isEqualTo("http://bar.org/doc.json"));
 
     }
@@ -119,7 +120,7 @@ class JsonLdExtensionTest {
         DocumentLoader documentLoader = getFieldValue("documentLoader", service);
         Map<String, URI> cache = getFieldValue("uriCache", documentLoader);
 
-        assertThat(cache).containsEntry("http://foo.org/doc.json", new URI("file:/tmp/foo/doc.json"))
+        assertThat(cache).containsEntry("http://foo.org/doc.json", new File("/tmp/foo/doc.json").toURI())
                 .noneSatisfy((s, uri) -> assertThat(s).isEqualTo("http://bar.org/doc.json"));
 
     }
