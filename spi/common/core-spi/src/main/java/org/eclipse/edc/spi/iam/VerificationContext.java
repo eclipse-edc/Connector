@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Representation an additional context for {@link IdentityService} verifiers.
+ * Provides additional context for {@link IdentityService} verifiers.
  */
 public class VerificationContext {
 
