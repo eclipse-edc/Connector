@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *
+ *       Mercedes-Benz Tech Innovation GmbH - publish public api context into dedicated swagger hub page
  */
 
 plugins {
@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":extensions:data-plane:data-plane-http"))
     implementation(project(":extensions:data-plane:data-plane-kafka"))
     implementation(project(":extensions:data-plane:data-plane-http-oauth2"))
-    implementation(project(":extensions:data-plane:data-plane-api"))
+    implementation(project(":extensions:data-plane:data-plane-control-api"))
     implementation(project(":extensions:common:vault:vault-filesystem"))
 }
 
