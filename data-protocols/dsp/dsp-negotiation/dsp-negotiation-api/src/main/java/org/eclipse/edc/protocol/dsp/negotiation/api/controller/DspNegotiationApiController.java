@@ -35,7 +35,7 @@ import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationProt
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
-import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -279,11 +279,11 @@ public class DspNegotiationApiController {
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> validateAndProcessRequest(ContractRequestMessage message, ClaimToken claimToken) {
+    private ServiceResult<ContractNegotiation> validateAndProcessRequest(ContractRequestMessage message, TokenRepresentation tokenRepresentation) {
         if (message.getCallbackAddress() == null) {
             throw new InvalidRequestException(format("ContractRequestMessage must contain a '%s' property", DSPACE_PROPERTY_CALLBACK_ADDRESS));
         }
-        return protocolService.notifyRequested(message, claimToken);
+        return protocolService.notifyRequested(message, tokenRepresentation);
     }
 
 }

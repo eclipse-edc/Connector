@@ -19,9 +19,12 @@ import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.DatasetResolver;
+import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.spi.agent.ParticipantAgentService;
-import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +32,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
-public class CatalogProtocolServiceImpl implements CatalogProtocolService {
+public class CatalogProtocolServiceImpl extends BaseProtocolService implements CatalogProtocolService {
 
     private static final String PARTICIPANT_ID_PROPERTY_KEY = "participantId";
 
@@ -40,7 +43,11 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       ParticipantAgentService participantAgentService,
-                                      DataServiceRegistry dataServiceRegistry, String participantId) {
+                                      DataServiceRegistry dataServiceRegistry,
+                                      IdentityService identityService,
+                                      Monitor monitor,
+                                      String participantId) {
+        super(identityService, monitor);
         this.datasetResolver = datasetResolver;
         this.participantAgentService = participantAgentService;
         this.dataServiceRegistry = dataServiceRegistry;
@@ -49,32 +56,34 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     @Override
     @NotNull
-    public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ClaimToken claimToken) {
-        var agent = participantAgentService.createFor(claimToken);
+    public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
+        return verifyToken(tokenRepresentation).map(claimToken -> {
+            var agent = participantAgentService.createFor(claimToken);
 
-        try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
-            var dataServices = dataServiceRegistry.getDataServices();
+            try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
+                var dataServices = dataServiceRegistry.getDataServices();
 
-            var catalog = Catalog.Builder.newInstance()
-                    .dataServices(dataServices)
-                    .datasets(datasets.collect(toList()))
-                    .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
-                    .build();
-
-            return ServiceResult.success(catalog);
-        }
+                return Catalog.Builder.newInstance()
+                        .dataServices(dataServices)
+                        .datasets(datasets.collect(toList()))
+                        .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
+                        .build();
+            }
+        });
     }
 
     @Override
-    public @NotNull ServiceResult<Dataset> getDataset(String datasetId, ClaimToken claimToken) {
-        var agent = participantAgentService.createFor(claimToken);
+    public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation) {
+        return verifyToken(tokenRepresentation).compose(claimToken -> {
+            var agent = participantAgentService.createFor(claimToken);
 
-        var dataset = datasetResolver.getById(agent, datasetId);
+            var dataset = datasetResolver.getById(agent, datasetId);
 
-        if (dataset == null) {
-            return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));
-        }
+            if (dataset == null) {
+                return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));
+            }
 
-        return ServiceResult.success(dataset);
+            return ServiceResult.success(dataset);
+        });
     }
 }
