@@ -17,8 +17,10 @@ package org.eclipse.edc.iam.oauth2.daps;
 
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,7 +84,12 @@ class DapsIntegrationTest {
 
         assertThat(tokenResult.succeeded()).withFailMessage(tokenResult::getFailureDetail).isTrue();
 
-        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent(), "audience");
+        var verificationContext = VerificationContext.Builder.newInstance()
+                .audience("audience")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+
+        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent(), verificationContext);
 
         assertThat(verificationResult.succeeded()).withFailMessage(verificationResult::getFailureDetail).isTrue();
     }

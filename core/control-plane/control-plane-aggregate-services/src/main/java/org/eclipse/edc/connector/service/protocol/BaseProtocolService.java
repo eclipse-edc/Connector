@@ -14,9 +14,11 @@
 
 package org.eclipse.edc.connector.service.protocol;
 
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 
@@ -45,7 +47,13 @@ public abstract class BaseProtocolService {
         // TODO: since we are pushing here the invocation of the IdentityService we don't know the audience here
         //  The audience removal will be tackle next. IdentityService that relies on this parameter would not work
         //  for the time being.
-        var result = identityService.verifyJwtToken(tokenRepresentation, null);
+
+        // TODO: policy extractors will be handled next
+        var verificationContext = VerificationContext.Builder.newInstance()
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+
+        var result = identityService.verifyJwtToken(tokenRepresentation, verificationContext);
 
         if (result.failed()) {
             monitor.debug(() -> "Unauthorized: %s".formatted(result.getFailureDetail()));

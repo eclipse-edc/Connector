@@ -30,6 +30,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,7 +77,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
         return tokenValidationService.validate(tokenRepresentation);
     }
 
