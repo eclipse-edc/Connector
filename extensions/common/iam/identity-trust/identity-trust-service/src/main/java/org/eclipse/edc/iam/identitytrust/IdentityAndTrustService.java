@@ -48,6 +48,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
@@ -182,27 +183,32 @@ public class IdentityAndTrustService implements IdentityService {
             return vpResponse.mapTo();
         }
 
-        var verifiablePresentation = vpResponse.getContent().get(0);
-        var credentials = verifiablePresentation.presentation().getCredentials();
-        // verify, that the VP and all VPs are cryptographically OK
-        var result = presentationVerifier.verifyPresentation(verifiablePresentation)
-                .compose(u -> {
-                    // in addition, verify that all VCs are valid
-                    var filters = new ArrayList<>(List.of(
-                            new IsNotExpired(clock),
-                            new HasValidSubjectIds(issuer),
-                            new IsRevoked(null),
-                            new HasValidIssuer(getTrustedIssuerIds())));
-
-                    filters.addAll(getAdditionalValidations());
-                    var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
-
-                    return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
-                });
-
+        var presentations = vpResponse.getContent();
+        var result = presentations.stream().map(verifiablePresentation -> {
+            var credentials = verifiablePresentation.presentation().getCredentials();
+            // verify, that the VP and all VPs are cryptographically OK
+            return presentationVerifier.verifyPresentation(verifiablePresentation)
+                    .compose(u -> validateVerifiableCredentials(credentials, issuer));
+        }).reduce(Result.success(), Result::merge);
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
-        return result.compose(u -> extractClaimToken(credentials, intendedAudience));
+        return result.compose(u -> extractClaimToken(presentations.stream().map(p -> p.presentation().getCredentials().stream())
+                .reduce(Stream.empty(), Stream::concat)
+                .toList(), intendedAudience));
+    }
+
+    @NotNull
+    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, String issuer) {
+        // in addition, verify that all VCs are valid
+        var filters = new ArrayList<>(List.of(
+                new IsNotExpired(clock),
+                new HasValidSubjectIds(issuer),
+                new IsRevoked(null),
+                new HasValidIssuer(getTrustedIssuerIds())));
+
+        filters.addAll(getAdditionalValidations());
+        var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
+        return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
     }
 
 
