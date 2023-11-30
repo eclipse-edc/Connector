@@ -37,7 +37,7 @@ public class VerificationContext {
     }
 
     /**
-     * Returns the audience if existent otherwise null.
+     * Returns the audience or null if not available.
      */
     public String getAudience() {
         return audience;
