@@ -15,8 +15,6 @@
 package org.eclipse.edc.protocol.dsp.api.configuration;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.protocol.dsp.api.configuration.message.DspRequestHandlerImpl;
-import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -46,7 +44,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DspApiConfigurationExtensionTest {
-    
+
     private final WebServiceConfigurer configurer = mock();
     private final WebServer webServer = mock();
     private final WebService webService = mock();
@@ -67,20 +65,20 @@ class DspApiConfigurationExtensionTest {
         when(configurer.configure(any(), any(), any())).thenReturn(webServiceConfiguration);
         when(typeManager.getMapper(any())).thenReturn(mock());
     }
-    
+
     @Test
     void initialize_noSettingsProvided_useDspDefault(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
         when(context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS)).thenReturn(DEFAULT_DSP_CALLBACK_ADDRESS);
-        
+
         extension.initialize(context);
-        
+
         verify(configurer).configure(context, webServer, SETTINGS);
         var apiConfig = context.getService(DspApiConfiguration.class);
         assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
         assertThat(apiConfig.getDspCallbackAddress()).isEqualTo(DEFAULT_DSP_CALLBACK_ADDRESS);
     }
-    
+
     @Test
     void initialize_settingsProvided_useSettings(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
         var webhookAddress = "http://webhook";
@@ -89,9 +87,9 @@ class DspApiConfigurationExtensionTest {
                 "web.http.protocol.path", "/path"))
         );
         when(context.getSetting(DSP_CALLBACK_ADDRESS, DEFAULT_DSP_CALLBACK_ADDRESS)).thenReturn(webhookAddress);
-        
+
         extension.initialize(context);
-    
+
         verify(configurer).configure(context, webServer, SETTINGS);
         var apiConfig = context.getService(DspApiConfiguration.class);
         assertThat(apiConfig.getContextAlias()).isEqualTo(CONTEXT_ALIAS);
@@ -105,11 +103,5 @@ class DspApiConfigurationExtensionTest {
         verify(webService).registerResource(eq(CONTEXT_ALIAS), isA(ObjectMapperProvider.class));
         verify(webService).registerResource(eq(CONTEXT_ALIAS), isA(JerseyJsonLdInterceptor.class));
     }
-
-    @Test
-    void initialize_shouldProvideServices(DspApiConfigurationExtension extension, ServiceExtensionContext context) {
-        extension.initialize(context);
-
-        verify(context).registerService(eq(DspRequestHandler.class), isA(DspRequestHandlerImpl.class));
-    }
+    
 }

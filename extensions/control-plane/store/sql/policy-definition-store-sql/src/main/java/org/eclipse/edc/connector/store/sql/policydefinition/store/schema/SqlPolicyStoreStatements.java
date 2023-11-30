@@ -94,5 +94,9 @@ public interface SqlPolicyStoreStatements extends SqlStatements {
         return "created_at";
     }
 
+    default String getPrivatePropertiesColumn() {
+        return "private_properties";
+    }
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 }

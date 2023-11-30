@@ -19,7 +19,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -39,7 +42,9 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class PolicyDefinition extends Entity {
     public static final String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + "PolicyDefinition";
     public static final String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
+    public static final String EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     private Policy policy;
+    private final Map<String, Object> privateProperties = new HashMap<>();
 
     private PolicyDefinition() {
     }
@@ -50,7 +55,7 @@ public class PolicyDefinition extends Entity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(Objects.hash(id), policy.hashCode());
+        return Objects.hash(Objects.hash(id), policy.hashCode(), privateProperties);
     }
 
     @Override
@@ -69,6 +74,15 @@ public class PolicyDefinition extends Entity {
         return id;
     }
 
+    @NotNull
+    public Map<String, Object> getPrivateProperties() {
+        return privateProperties;
+    }
+
+    public Object getPrivateProperty(String key) {
+        return privateProperties.get(key);
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder extends Entity.Builder<PolicyDefinition, Builder> {
 
@@ -83,6 +97,17 @@ public class PolicyDefinition extends Entity {
 
         public Builder policy(Policy policy) {
             entity.policy = policy;
+            return this;
+        }
+
+        public Builder privateProperty(String key, Object value) {
+            entity.privateProperties.put(key, value);
+            return this;
+        }
+
+        public Builder privateProperties(Map<String, Object> privateProperties) {
+            Objects.requireNonNull(privateProperties);
+            entity.privateProperties.putAll(privateProperties);
             return this;
         }
 

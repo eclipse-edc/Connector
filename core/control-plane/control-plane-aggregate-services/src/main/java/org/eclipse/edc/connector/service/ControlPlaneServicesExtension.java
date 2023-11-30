@@ -58,6 +58,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
+import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -136,6 +137,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private DataAddressValidatorRegistry dataAddressValidator;
 
+    @Inject
+    private IdentityService identityService;
+
     @Override
     public String name() {
         return NAME;
@@ -155,7 +159,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public CatalogProtocolService catalogProtocolService(ServiceExtensionContext context) {
-        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, context.getParticipantId());
+        return new CatalogProtocolServiceImpl(datasetResolver, participantAgentService, dataServiceRegistry, identityService, monitor, context.getParticipantId());
     }
 
     @Provider
@@ -178,7 +182,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ContractNegotiationProtocolService contractNegotiationProtocolService() {
         return new ContractNegotiationProtocolServiceImpl(contractNegotiationStore,
-                transactionContext, contractValidationService, contractNegotiationObservable,
+                transactionContext, contractValidationService, identityService, contractNegotiationObservable,
                 monitor, telemetry);
     }
 
@@ -198,6 +202,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessProtocolService transferProcessProtocolService() {
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
-                contractValidationService, dataAddressValidator, transferProcessObservable, clock, monitor, telemetry);
+                contractValidationService, identityService, dataAddressValidator, transferProcessObservable, clock, monitor, telemetry);
     }
 }

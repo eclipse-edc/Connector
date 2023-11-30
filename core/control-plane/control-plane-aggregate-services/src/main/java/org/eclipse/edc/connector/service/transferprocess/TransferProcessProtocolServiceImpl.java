@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.service.transferprocess;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.service.protocol.BaseProtocolService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.transfer.spi.observe.TransferProcessStartedData;
@@ -31,6 +32,8 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMess
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -50,7 +53,7 @@ import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlane
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.PROVIDER;
 
-public class TransferProcessProtocolServiceImpl implements TransferProcessProtocolService {
+public class TransferProcessProtocolServiceImpl extends BaseProtocolService implements TransferProcessProtocolService {
 
     private final TransferProcessStore transferProcessStore;
     private final TransactionContext transactionContext;
@@ -65,8 +68,10 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
+                                              IdentityService identityService,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
                                               Clock clock, Monitor monitor, Telemetry telemetry) {
+        super(identityService, monitor);
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -81,50 +86,53 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ClaimToken claimToken) {
-        var destination = message.getDataDestination();
-        if (destination != null) {
-            var validDestination = dataAddressValidator.validateDestination(destination);
-            if (validDestination.failed()) {
-                return ServiceResult.badRequest(validDestination.getFailureMessages());
+    public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, TokenRepresentation tokenRepresentation) {
+        return verifyToken(tokenRepresentation).compose(claimToken -> {
+            var destination = message.getDataDestination();
+            if (destination != null) {
+                var validDestination = dataAddressValidator.validateDestination(destination);
+                if (validDestination.failed()) {
+                    return ServiceResult.badRequest(validDestination.getFailureMessages());
+                }
             }
-        }
 
-        return transactionContext.execute(() ->
-                Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
-                        .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
-                        .map(agreement -> requestedAction(message, agreement.getAssetId()))
-                        .orElse(ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"))));
+            return transactionContext.execute(() ->
+                    Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
+                            .filter(agreement -> contractValidationService.validateAgreement(claimToken, agreement).succeeded())
+                            .map(agreement -> requestedAction(message, agreement.getAssetId()))
+                            .orElse(ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"))));
+        });
+
     }
 
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, ClaimToken claimToken) {
-        return onMessageDo(message, claimToken, transferProcess -> startedAction(message, transferProcess));
+    public ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, TokenRepresentation tokenRepresentation) {
+        return verifyToken(tokenRepresentation).compose(claimToken -> onMessageDo(message, claimToken, transferProcess -> startedAction(message, transferProcess)));
     }
 
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, ClaimToken claimToken) {
-        return onMessageDo(message, claimToken, transferProcess -> completedAction(message, transferProcess));
+    public ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, TokenRepresentation tokenRepresentation) {
+        return verifyToken(tokenRepresentation).compose(claimToken -> onMessageDo(message, claimToken, transferProcess -> completedAction(message, transferProcess)));
     }
 
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, ClaimToken claimToken) {
-        return onMessageDo(message, claimToken, transferProcess -> terminatedAction(message, transferProcess));
+    public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, TokenRepresentation tokenRepresentation) {
+        return verifyToken(tokenRepresentation).compose(claimToken -> onMessageDo(message, claimToken, transferProcess -> terminatedAction(message, transferProcess)));
     }
 
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> findById(String id, ClaimToken claimToken) {
-        return transactionContext.execute(() -> Optional.ofNullable(transferProcessStore.findById(id))
+    public ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation) {
+        return verifyToken(tokenRepresentation).compose(claimToken -> transactionContext.execute(() -> Optional.ofNullable(transferProcessStore.findById(id))
                 .map(tp -> validateCounterParty(claimToken, tp))
-                .orElse(notFound(id)));
+                .orElse(notFound(id))));
     }
 
     @NotNull

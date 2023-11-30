@@ -23,10 +23,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import java.util.Objects;
-
-import static java.lang.String.format;
-
 public class MockIdentityService implements IdentityService {
     private final String region;
     private final TypeManager typeManager;
@@ -53,9 +49,6 @@ public class MockIdentityService implements IdentityService {
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
         var token = typeManager.readValue(tokenRepresentation.getToken(), MockToken.class);
-        if (!Objects.equals(token.audience, audience)) {
-            return Result.failure(format("Mismatched audience: expected %s, got %s", audience, token.audience));
-        }
         return Result.success(ClaimToken.Builder.newInstance()
                 .claim("region", token.region)
                 .claim("client_id", token.clientId)

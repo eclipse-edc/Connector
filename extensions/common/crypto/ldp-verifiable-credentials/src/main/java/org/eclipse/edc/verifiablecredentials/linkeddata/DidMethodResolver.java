@@ -45,8 +45,8 @@ public class DidMethodResolver implements MethodResolver {
         return didDocument.getVerificationMethod().stream()
                 .map(verificationMethod -> DataIntegrityKeyPair.createVerificationKey(
                         URI.create(verificationMethod.getId()),
-                        URI.create(verificationMethod.getController()),
                         URI.create(verificationMethod.getType()),
+                        URI.create(verificationMethod.getController()),
                         verificationMethod.serializePublicKey())
                 )
                 .findFirst()

@@ -78,6 +78,33 @@ class JsonObjectToPresentationQueryTransformerTest {
     }
 
     @Test
+    void transform_withScopes_separatedByWhitespace() throws JsonProcessingException {
+        var obj = """
+                {
+                  "@context": [
+                    "https://identity.foundation/presentation-exchange/submission/v1",
+                    "https://w3id.org/tractusx-trust/v0.8"
+                  ],
+                  "@type": "Query",
+                  "scope": [
+                    "org.eclipse.edc.vc.type:TestCredential:read org.eclipse.edc.vc.type:AnotherCredential:all"
+                  ]
+                }
+                """;
+        var json = mapper.readValue(obj, JsonObject.class);
+        var jo = jsonLd.expand(json);
+        assertThat(jo.succeeded()).withFailMessage(jo::getFailureDetail).isTrue();
+
+        var query = transformer.transform(jo.getContent(), context);
+        assertThat(query).isNotNull();
+        assertThat(query.getScopes()).hasSize(2)
+                .containsExactlyInAnyOrder(
+                        "org.eclipse.edc.vc.type:TestCredential:read",
+                        "org.eclipse.edc.vc.type:AnotherCredential:all");
+        assertThat(query.getPresentationDefinition()).isNull();
+    }
+
+    @Test
     void transform_withPresentationDefinition() throws JsonProcessingException {
         var json = """
                 {

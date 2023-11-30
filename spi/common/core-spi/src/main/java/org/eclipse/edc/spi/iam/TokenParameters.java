@@ -16,7 +16,6 @@ package org.eclipse.edc.spi.iam;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Parameter Object for {@link IdentityService#obtainClientCredentials(TokenParameters)}.
@@ -73,7 +72,6 @@ public class TokenParameters {
         }
 
         public TokenParameters build() {
-            Objects.requireNonNull(result.audience, "audience");
             return result;
         }
     }
