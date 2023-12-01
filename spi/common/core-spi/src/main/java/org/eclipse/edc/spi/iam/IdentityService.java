@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.spi.iam;
 
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 
@@ -42,4 +43,22 @@ public interface IdentityService {
      * @return Result of the validation.
      */
     Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context);
+
+    /**
+     * Verifies a JWT bearer token.
+     *
+     * @param tokenRepresentation A token representation including the token to verify.
+     * @param audience            The audience.
+     * @return Result of the validation.
+     * @deprecated please use {@link #verifyJwtToken(TokenRepresentation, VerificationContext)}
+     */
+
+    @Deprecated(since = "0.4.2", forRemoval = true)
+    default Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
+        var context = VerificationContext.Builder.newInstance()
+                .audience(audience)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+        return verifyJwtToken(tokenRepresentation, context);
+    }
 }
