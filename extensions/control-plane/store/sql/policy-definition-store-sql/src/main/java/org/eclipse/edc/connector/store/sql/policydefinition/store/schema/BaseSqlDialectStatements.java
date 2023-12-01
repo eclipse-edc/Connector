@@ -40,6 +40,7 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
                 .column(getTargetColumn())
                 .column(getTypeColumn())
                 .column(getCreatedAtColumn())
+                .jsonColumn(getPrivatePropertiesColumn())
                 .insertInto(getPolicyTable());
     }
 
@@ -55,6 +56,7 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
                 .column(getAssigneeColumn())
                 .column(getTargetColumn())
                 .column(getTypeColumn())
+                .jsonColumn(getPrivatePropertiesColumn())
                 .update(getPolicyTable(), getPolicyIdColumn());
 
     }

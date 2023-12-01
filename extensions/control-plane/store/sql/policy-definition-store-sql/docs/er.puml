@@ -23,5 +23,6 @@ entity edc_policydefinitions {
   target: string
   type: string
   extensible_properties: string <<json>>
+  private_properties: string <<json>>
 }
 @enduml

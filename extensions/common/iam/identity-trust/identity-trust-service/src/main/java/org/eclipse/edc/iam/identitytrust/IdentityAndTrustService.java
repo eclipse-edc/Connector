@@ -24,6 +24,7 @@ import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
+import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
@@ -36,6 +37,7 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.time.Clock;
@@ -46,6 +48,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
@@ -111,7 +114,7 @@ public class IdentityAndTrustService implements IdentityService {
                 .scope(parameters.getScope())
                 .additional(parameters.getAdditional())
                 .build();
-        
+
         var scope = parameters.getScope();
         var scopeValidationResult = validateScope(scope);
 
@@ -180,32 +183,47 @@ public class IdentityAndTrustService implements IdentityService {
             return vpResponse.mapTo();
         }
 
-        var verifiablePresentation = vpResponse.getContent().get(0);
-        var credentials = verifiablePresentation.presentation().getCredentials();
-        // verify, that the VP and all VPs are cryptographically OK
-        var result = presentationVerifier.verifyPresentation(verifiablePresentation)
-                .compose(u -> {
-                    // in addition, verify that all VCs are valid
-                    var filters = new ArrayList<>(List.of(
-                            new IsNotExpired(clock),
-                            new HasValidSubjectIds(issuer),
-                            new IsRevoked(null),
-                            new HasValidIssuer(getTrustedIssuerIds())));
-
-                    filters.addAll(getAdditionalValidations());
-                    var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
-
-                    return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
-                });
-
+        var presentations = vpResponse.getContent();
+        var result = presentations.stream().map(verifiablePresentation -> {
+            var credentials = verifiablePresentation.presentation().getCredentials();
+            // verify, that the VP and all VPs are cryptographically OK
+            return presentationVerifier.verifyPresentation(verifiablePresentation)
+                    .compose(u -> validateVerifiableCredentials(credentials, issuer));
+        }).reduce(Result.success(), Result::merge);
         //todo: at this point we have established what the other participant's DID is, and that it's authentic
         // so we need to make sure that `iss == sub == DID`
-        return result.map(u -> extractClaimToken(credentials));
+        return result.compose(u -> extractClaimToken(presentations.stream().map(p -> p.presentation().getCredentials().stream())
+                .reduce(Stream.empty(), Stream::concat)
+                .toList(), intendedAudience));
+    }
+
+    @NotNull
+    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, String issuer) {
+        // in addition, verify that all VCs are valid
+        var filters = new ArrayList<>(List.of(
+                new IsNotExpired(clock),
+                new HasValidSubjectIds(issuer),
+                new IsRevoked(null),
+                new HasValidIssuer(getTrustedIssuerIds())));
+
+        filters.addAll(getAdditionalValidations());
+        var results = credentials.stream().map(c -> filters.stream().reduce(t -> Result.success(), CredentialValidationRule::and).apply(c)).reduce(Result::merge);
+        return results.orElseGet(() -> failure("Could not determine the status of the VC validation"));
     }
 
 
-    private ClaimToken extractClaimToken(List<VerifiableCredential> credentials) {
-        return null;
+    @NotNull
+    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials, String issuer) {
+        if (credentials.isEmpty()) {
+            return failure("No VerifiableCredentials were found on VP");
+        }
+        var b = ClaimToken.Builder.newInstance();
+        credentials.stream().flatMap(vc -> vc.getCredentialSubject().stream())
+                .map(CredentialSubject::getClaims)
+                .forEach(claimSet -> claimSet.forEach(b::claim));
+
+        b.claim("client_id", issuer);
+        return success(b.build());
     }
 
     private Collection<? extends CredentialValidationRule> getAdditionalValidations() {

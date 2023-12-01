@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.service;
 
 
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
@@ -46,8 +47,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.identitytrust.TestFunctions.TRUSTED_ISSUER;
 import static org.eclipse.edc.identitytrust.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
 import static org.eclipse.edc.identitytrust.TestFunctions.createPresentationBuilder;
@@ -257,6 +260,107 @@ class IdentityAndTrustServiceTest {
                     .isEqualTo("test-failure");
 
             verifyNoInteractions(mockedClient);
+        }
+
+        @Test
+        void verify_singlePresentation_singleCredential() {
+            var presentation = createPresentationBuilder()
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                            .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                    .id(CONSUMER_DID)
+                                    .claim("some-claim", "some-val")
+                                    .build()))
+                            .build()))
+                    .build();
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
+            when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
+            var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
+            var result = service.verifyJwtToken(token, "test-audience");
+            assertThat(result).isSucceeded()
+                    .satisfies(ct -> Assertions.assertThat(ct.getClaims()).containsEntry("some-claim", "some-val"));
+        }
+
+        @Test
+        void verify_singlePresentation_multipleCredentials() {
+            var presentation = createPresentationBuilder()
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                                    .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                            .id(CONSUMER_DID)
+                                            .claim("some-claim", "some-val")
+                                            .build()))
+                                    .build(),
+                            createCredentialBuilder()
+                                    .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                            .id(CONSUMER_DID)
+                                            .claim("some-other-claim", "some-other-val")
+                                            .build()))
+                                    .build()))
+                    .build();
+            var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation);
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
+            when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
+            var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
+            var result = service.verifyJwtToken(token, "test-audience");
+            assertThat(result).isSucceeded()
+                    .satisfies(ct -> Assertions.assertThat(ct.getClaims())
+                            .containsEntry("some-claim", "some-val")
+                            .containsEntry("some-other-claim", "some-other-val"));
+        }
+
+        @Test
+        void verify_multiplePresentations_multipleCredentialsEach() {
+            var presentation1 = createPresentationBuilder()
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                                    .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                            .id(CONSUMER_DID)
+                                            .claim("some-claim", "some-val")
+                                            .build()))
+                                    .build(),
+                            createCredentialBuilder()
+                                    .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                            .id(CONSUMER_DID)
+                                            .claim("some-other-claim", "some-other-val")
+                                            .build()))
+                                    .build()))
+                    .build();
+            var vpContainer1 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation1);
+
+            var presentation2 = createPresentationBuilder()
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                                    .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                            .id(CONSUMER_DID)
+                                            .claim("some-claim-2", "some-val-2")
+                                            .build()))
+                                    .build(),
+                            createCredentialBuilder()
+                                    .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                            .id(CONSUMER_DID)
+                                            .claim("some-other-claim-2", "some-other-val-2")
+                                            .build()))
+                                    .build()))
+                    .build();
+            var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.JSON_LD, presentation2);
+
+            when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
+            when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer1, vpContainer2)));
+            when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
+
+
+            var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
+            var result = service.verifyJwtToken(token, "test-audience");
+            assertThat(result).isSucceeded()
+                    .satisfies(ct -> Assertions.assertThat(ct.getClaims())
+                            .containsEntry("some-claim", "some-val")
+                            .containsEntry("some-other-claim", "some-other-val")
+                            .containsEntry("some-claim-2", "some-val-2")
+                            .containsEntry("some-other-claim-2", "some-other-val-2"));
         }
     }
 }

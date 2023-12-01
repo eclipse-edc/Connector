@@ -27,6 +27,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Transforms a JsonObject into a PresentationQuery object.
  */
@@ -47,7 +49,7 @@ public class JsonObjectToPresentationQueryTransformer extends AbstractJsonLdTran
                 case PresentationQuery.PRESENTATION_QUERY_DEFINITION_PROPERTY ->
                         bldr.presentationDefinition(readPresentationDefinition(v, context));
                 case PresentationQuery.PRESENTATION_QUERY_SCOPE_PROPERTY ->
-                        transformArrayOrObject(v, Object.class, o -> bldr.scope(o.toString()), context);
+                        transformArrayOrObject(v, Object.class, o -> bldr.scopes(List.of(o.toString().split(" "))), context);
                 default -> context.reportProblem("Unknown property '%s'".formatted(k));
             }
         });

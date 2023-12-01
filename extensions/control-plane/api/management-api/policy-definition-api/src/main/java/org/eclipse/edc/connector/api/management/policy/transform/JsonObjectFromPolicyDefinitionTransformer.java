@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.policy.transform;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -29,11 +30,13 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
 
 public class JsonObjectFromPolicyDefinitionTransformer extends AbstractJsonLdTransformer<PolicyDefinition, JsonObject> {
 
+    private final ObjectMapper mapper;
     private final JsonBuilderFactory jsonFactory;
 
-    public JsonObjectFromPolicyDefinitionTransformer(JsonBuilderFactory jsonFactory) {
+    public JsonObjectFromPolicyDefinitionTransformer(JsonBuilderFactory jsonFactory, ObjectMapper jsonLdMapper) {
         super(PolicyDefinition.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
+        this.mapper = jsonLdMapper;
     }
 
     @Override
@@ -46,6 +49,11 @@ public class JsonObjectFromPolicyDefinitionTransformer extends AbstractJsonLdTra
 
         var policy = context.transform(input.getPolicy(), JsonObject.class);
         objectBuilder.add(EDC_POLICY_DEFINITION_POLICY, policy);
+        if (!input.getPrivateProperties().isEmpty()) {
+            var privatePropBuilder = jsonFactory.createObjectBuilder();
+            transformProperties(input.getPrivateProperties(), privatePropBuilder, mapper, context);
+            objectBuilder.add(PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES, privatePropBuilder);
+        }
 
         return objectBuilder.build();
     }

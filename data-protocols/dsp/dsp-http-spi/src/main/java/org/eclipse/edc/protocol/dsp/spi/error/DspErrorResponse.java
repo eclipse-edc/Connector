@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.api.configuration.error;
+package org.eclipse.edc.protocol.dsp.spi.error;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Utility class for building DSP error {@link jakarta.ws.rs.core.Response}
+ * Utility class for building DSP error {@link Response}
  */
 public class DspErrorResponse {
 
