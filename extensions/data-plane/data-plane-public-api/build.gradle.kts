@@ -39,7 +39,7 @@ dependencies {
 }
 edcBuild {
     swagger {
-        apiGroup.set("public")
+        apiGroup.set("public-api")
     }
 }
 

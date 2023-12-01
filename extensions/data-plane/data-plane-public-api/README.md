@@ -1,25 +1,14 @@
-# Data Plane API
+# Data Plane Public API
 
 This extension provides the interfaces and implementations for the Data Plane Public API which is essentially a data 
 proxy enabling a consumer to actively query data out from the provider data source.
 
 ### Scope
 
-See Data Plane scope [here](../data-plane-control-api/README.md#scope).
-
-### Use Cases
-
-See Data Plane use cases [here](../data-plane-control-api/README.md#use-cases).
-
-## Technical Details
-
-### Interfaces
-
-OpenApi documentation can be found [here](../../../resources/openapi/yaml/data-plane-api.yaml).
+Consumer Data Pull: the consumer backend applications use the Data Plane to proxy data request until the provided data source.
+This data transfer type is exclusively built around the Data Plane Public API.
 
 ### Dependencies
-
-_Provide some information about dependencies, e.g., used extensions._
 
 | Name    | Description                                  |
 |:--------|:---------------------------------------------|
@@ -33,7 +22,7 @@ _Provide some information about dependencies, e.g., used extensions._
 
 ## Design Principles
 
-This API relies on the `DataPlaneManager` for executing the actual data transfer, see [Data Plane Framework](../../../core/data-plane/data-plane-framework/README.md) for more details.
+This API relies on the `DataPlaneManager` for executing the actual data transfer, see [Data Plane Module](../../../core/data-plane/README.md) for more details.
 
 The Data Plane public API takes an access token in input from the `Authorization` header, which is validated and decode by calling the
 validation server. If the validation is successful, then the Data Plane is executed in order to query the data from the data address returned by the validation server.
