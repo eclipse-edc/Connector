@@ -81,7 +81,7 @@ class DatasetResolverImplTest {
         when(contractDefinitionResolver.definitionsFor(any())).thenReturn(Stream.of(contractDefinition));
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(createAsset("assetId").property("key", "value").build()));
         when(policyStore.findById("contractPolicyId")).thenReturn(PolicyDefinition.Builder.newInstance().policy(contractPolicy).build());
-        when(distributionResolver.getDistributions(isA(Asset.class), any())).thenReturn(List.of(distribution));
+        when(distributionResolver.getDistributions(isA(Asset.class))).thenReturn(List.of(distribution));
 
         var datasets = datasetResolver.query(createParticipantAgent(), QuerySpec.none());
 

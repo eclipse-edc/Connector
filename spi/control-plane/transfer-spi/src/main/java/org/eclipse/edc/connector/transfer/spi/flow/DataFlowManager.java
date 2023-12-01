@@ -19,7 +19,10 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 /**
  * Manages data flows and dispatches to {@link DataFlowController}s.
@@ -61,4 +64,11 @@ public interface DataFlowManager {
     @NotNull
     StatusResult<Void> terminate(TransferProcess transferProcess);
 
+    /**
+     * Returns the transfer types available for a specific asset.
+     *
+     * @param asset the asset.
+     * @return tranfer types list.
+     */
+    Set<String> transferTypesFor(Asset asset);
 }

@@ -66,7 +66,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 class ContractNegotiationEventDispatchTest {
     private static final String CONSUMER = "consumer";
-    private static final String PROVIDER = "provider";
 
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
     private final IdentityService identityService = mock();

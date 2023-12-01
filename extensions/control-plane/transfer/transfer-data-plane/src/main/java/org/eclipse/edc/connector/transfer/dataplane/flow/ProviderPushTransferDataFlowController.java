@@ -16,18 +16,24 @@ package org.eclipse.edc.connector.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
+import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PUSH;
 
 public class ProviderPushTransferDataFlowController implements DataFlowController {
 
@@ -69,6 +75,16 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .map(client -> client.terminate(transferProcess.getId()))
                 .reduce(StatusResult::merge)
                 .orElse(StatusResult.success());
+    }
+
+    @Override
+    public Set<String> transferTypesFor(Asset asset) {
+        return selectorClient.getAll().stream()
+                .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
+                .map(DataPlaneInstance::getAllowedDestTypes)
+                .flatMap(Collection::stream)
+                .map(it -> "%s-%s".formatted(it, PUSH))
+                .collect(toSet());
     }
 
 }
