@@ -14,12 +14,9 @@
 
 package org.eclipse.edc.sql.testfixtures;
 
-import org.postgresql.ds.PGSimpleDataSource;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import javax.sql.DataSource;
 
 import static java.lang.String.format;
 
@@ -29,40 +26,27 @@ public final class PostgresqlLocalInstance {
     private final String username;
     private final String databaseName;
 
-    public PostgresqlLocalInstance(String user, String password, String jdbcUrlPrefix, String db) {
-        username = user;
+    public PostgresqlLocalInstance(String username, String password, String jdbcUrlPrefix, String databaseName) {
+        this.username = username;
         this.password = password;
         this.jdbcUrlPrefix = jdbcUrlPrefix;
-        databaseName = db;
+        this.databaseName = databaseName;
     }
 
     public void createDatabase() {
-        createDatabase(databaseName);
-    }
-
-    public void createDatabase(String name) {
-        try (var connection = DriverManager.getConnection(jdbcUrlPrefix + username, username, password)) {
-            connection.createStatement().execute(format("create database %s;", name));
+        try (var connection = getConnection("postgres")) {
+            connection.createStatement().execute(format("create database %s;", databaseName));
         } catch (SQLException e) {
             // database could already exist
         }
     }
 
-    public Connection getTestConnection(String hostName, int port, String dbName) {
+    public Connection getConnection(String databaseName) {
         try {
-            return createTestDataSource(hostName, port, dbName).getConnection();
+            return DriverManager.getConnection(jdbcUrlPrefix + databaseName, username, password);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private DataSource createTestDataSource(String hostName, int port, String dbName) {
-        var dataSource = new PGSimpleDataSource();
-        dataSource.setServerNames(new String[]{ hostName });
-        dataSource.setPortNumbers(new int[]{ port });
-        dataSource.setUser(username);
-        dataSource.setPassword(password);
-        dataSource.setDatabaseName(dbName);
-        return dataSource;
-    }
 }
