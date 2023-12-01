@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -44,6 +45,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -70,7 +72,7 @@ class CatalogProtocolServiceImplTest {
         var participantAgent = createParticipantAgent();
         var dataService = DataService.Builder.newInstance().build();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), any())).thenReturn(Result.success(token));
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
         when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
         when(datasetResolver.query(any(), any())).thenReturn(Stream.of(createDataset()));
         when(participantAgentService.createFor(any())).thenReturn(participantAgent);
@@ -92,7 +94,7 @@ class CatalogProtocolServiceImplTest {
         var message = CatalogRequestMessage.Builder.newInstance().protocol("protocol").querySpec(querySpec).build();
         var tokenRepresentation = createTokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), any())).thenReturn(Result.failure("unauthorized"));
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.failure("unauthorized"));
 
         var result = service.getCatalog(message, tokenRepresentation);
 
@@ -107,7 +109,7 @@ class CatalogProtocolServiceImplTest {
         var participantAgent = createParticipantAgent();
         var dataset = createDataset();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), any())).thenReturn(Result.success(claimToken));
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
         when(participantAgentService.createFor(any())).thenReturn(participantAgent);
         when(datasetResolver.getById(any(), any())).thenReturn(dataset);
 
@@ -125,7 +127,7 @@ class CatalogProtocolServiceImplTest {
         var tokenRepresentation = createTokenRepresentation();
         var participantAgent = createParticipantAgent();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), any())).thenReturn(Result.success(claimToken));
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
         when(participantAgentService.createFor(any())).thenReturn(participantAgent);
         when(datasetResolver.getById(any(), any())).thenReturn(null);
 
@@ -139,7 +141,7 @@ class CatalogProtocolServiceImplTest {
         var querySpec = QuerySpec.none();
         var tokenRepresentation = createTokenRepresentation();
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), any())).thenReturn(Result.failure("unauthorized"));
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.failure("unauthorized"));
 
         var result = service.getDataset("datasetId", tokenRepresentation);
 

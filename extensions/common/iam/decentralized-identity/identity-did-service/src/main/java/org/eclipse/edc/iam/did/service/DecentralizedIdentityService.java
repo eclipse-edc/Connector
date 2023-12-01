@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +66,7 @@ public class DecentralizedIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
         try {
             var jwt = SignedJWT.parse(tokenRepresentation.getToken());
             monitor.debug("Starting verification...");
@@ -92,7 +93,7 @@ public class DecentralizedIdentityService implements IdentityService {
             }
 
             monitor.debug("Verifying JWT with public key...");
-            var verified = JwtUtils.verify(jwt, publicKeyWrapperResult.getContent(), audience);
+            var verified = JwtUtils.verify(jwt, publicKeyWrapperResult.getContent(), context.getAudience());
             if (verified.failed()) {
                 monitor.debug(() -> "Failure in token verification: " + verified.getFailureDetail());
                 return Result.failure("Token could not be verified!");

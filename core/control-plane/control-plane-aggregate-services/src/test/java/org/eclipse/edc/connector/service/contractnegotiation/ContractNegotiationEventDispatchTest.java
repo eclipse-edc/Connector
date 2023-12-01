@@ -35,6 +35,7 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -59,6 +60,7 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,7 +99,7 @@ class ContractNegotiationEventDispatchTest {
                                                                        AssetIndex assetIndex) {
         dispatcherRegistry.register(succeedingDispatcher());
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), any())).thenReturn(Result.success(token));
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
         var contractDefinition = ContractDefinition.Builder.newInstance()
