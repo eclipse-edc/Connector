@@ -26,10 +26,10 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 public class CatalogProtocolServiceImpl extends BaseProtocolService implements CatalogProtocolService {
@@ -40,50 +40,53 @@ public class CatalogProtocolServiceImpl extends BaseProtocolService implements C
     private final ParticipantAgentService participantAgentService;
     private final DataServiceRegistry dataServiceRegistry;
     private final String participantId;
+    private final TransactionContext transactionContext;
 
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       ParticipantAgentService participantAgentService,
                                       DataServiceRegistry dataServiceRegistry,
                                       IdentityService identityService,
                                       Monitor monitor,
-                                      String participantId) {
+                                      String participantId,
+                                      TransactionContext transactionContext) {
         super(identityService, monitor);
         this.datasetResolver = datasetResolver;
         this.participantAgentService = participantAgentService;
         this.dataServiceRegistry = dataServiceRegistry;
         this.participantId = participantId;
+        this.transactionContext = transactionContext;
     }
 
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return verifyToken(tokenRepresentation).map(claimToken -> {
-            var agent = participantAgentService.createFor(claimToken);
+        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
+                .map(participantAgentService::createFor)
+                .map(agent -> {
+                    try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
+                        var dataServices = dataServiceRegistry.getDataServices();
 
-            try (var datasets = datasetResolver.query(agent, message.getQuerySpec())) {
-                var dataServices = dataServiceRegistry.getDataServices();
-
-                return Catalog.Builder.newInstance()
-                        .dataServices(dataServices)
-                        .datasets(datasets.collect(toList()))
-                        .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
-                        .build();
-            }
-        });
+                        return Catalog.Builder.newInstance()
+                                .dataServices(dataServices)
+                                .datasets(datasets.toList())
+                                .property(EDC_NAMESPACE + PARTICIPANT_ID_PROPERTY_KEY, participantId)
+                                .build();
+                    }
+                })
+        );
     }
 
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation) {
-        return verifyToken(tokenRepresentation).compose(claimToken -> {
-            var agent = participantAgentService.createFor(claimToken);
+        return transactionContext.execute(() -> verifyToken(tokenRepresentation)
+                .map(participantAgentService::createFor)
+                .map(agent -> datasetResolver.getById(agent, datasetId))
+                .compose(dataset -> {
+                    if (dataset == null) {
+                        return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));
+                    }
 
-            var dataset = datasetResolver.getById(agent, datasetId);
-
-            if (dataset == null) {
-                return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));
-            }
-
-            return ServiceResult.success(dataset);
-        });
+                    return ServiceResult.success(dataset);
+                }));
     }
 }
