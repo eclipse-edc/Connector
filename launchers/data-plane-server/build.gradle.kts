@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":extensions:common:configuration:configuration-filesystem"))
     implementation(project(":extensions:data-plane:data-plane-http"))
     implementation(project(":extensions:data-plane:data-plane-control-api"))
+    implementation(project(":extensions:data-plane:data-plane-public-api"))
 }
 
 application {
