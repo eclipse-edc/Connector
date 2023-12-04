@@ -32,15 +32,15 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
+import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
 import java.util.List;
 
+import static jakarta.ws.rs.core.Response.status;
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.internalErrors;
-import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.validationError;
 
 @Path("{any:.*}")
 @Produces(MediaType.APPLICATION_JSON)
@@ -115,7 +115,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
         var contextApi = new ContainerRequestContextApiImpl(context);
         var token = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
         if (token == null) {
-            response.resume(validationError("Missing bearer token"));
+            response.resume(badRequest(("Missing bearer token")));
             return;
         }
 
@@ -127,7 +127,7 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
             var errorMsg = validationResult.getFailureMessages().isEmpty() ?
                     format("Failed to validate request with id: %s", dataFlowRequest.getId()) :
                     join(",", validationResult.getFailureMessages());
-            response.resume(validationError(errorMsg));
+            response.resume(badRequest(errorMsg));
             return;
         }
 
@@ -137,10 +137,10 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
                         if (result.succeeded()) {
                             response.resume(Response.ok(result.getContent()).build());
                         } else {
-                            response.resume(internalErrors(result.getFailureMessages()));
+                            response.resume(internalServerError(result.getFailureMessages()));
                         }
                     } else {
-                        response.resume(internalErrors(List.of("Unhandled exception occurred during data transfer: " + throwable.getMessage())));
+                        response.resume(internalServerError("Unhandled exception occurred during data transfer: " + throwable.getMessage()));
                     }
                 });
     }
@@ -158,5 +158,21 @@ public class DataPlanePublicApiController implements DataPlanePublicApi {
             throw new NotAuthorizedException(String.join(", ", result.getFailureMessages()));
         }
         return result.getContent();
+    }
+
+    private Response badRequest(String error) {
+        return badRequest(List.of(error));
+    }
+
+    private Response badRequest(List<String> errors) {
+        return status(Response.Status.BAD_REQUEST).entity(new TransferErrorResponse(errors)).build();
+    }
+
+    private Response internalServerError(String error) {
+        return internalServerError(List.of(error));
+    }
+
+    private Response internalServerError(List<String> errors) {
+        return status(Response.Status.INTERNAL_SERVER_ERROR).entity(new TransferErrorResponse(errors)).build();
     }
 }

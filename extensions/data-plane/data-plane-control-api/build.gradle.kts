@@ -24,7 +24,6 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":extensions:common:api:control-api-configuration"))
-    implementation(project(":extensions:data-plane:data-plane-common"))
 
     implementation(libs.jakarta.rsApi)
 

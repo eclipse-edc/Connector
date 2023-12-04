@@ -26,7 +26,6 @@ dependencies {
     api(project(":spi:data-plane:data-plane-spi"))
 
     implementation(project(":core:data-plane:data-plane-util"))
-    implementation(project(":extensions:data-plane:data-plane-common"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":extensions:common:http"))

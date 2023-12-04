@@ -171,7 +171,6 @@ include(":extensions:control-plane:callback:callback-static-endpoint")
 
 
 include(":extensions:data-plane:data-plane-client")
-include(":extensions:data-plane:data-plane-common")
 include(":extensions:data-plane:data-plane-control-api")
 include(":extensions:data-plane:data-plane-public-api")
 

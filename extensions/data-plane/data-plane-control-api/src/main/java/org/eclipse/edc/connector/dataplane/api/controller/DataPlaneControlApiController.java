@@ -27,11 +27,13 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
+import java.util.List;
+
+import static jakarta.ws.rs.core.Response.status;
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.validationError;
-import static org.eclipse.edc.connector.dataplane.api.response.ResponseFunctions.validationErrors;
 
 @Path("/transfer")
 @Consumes({MediaType.APPLICATION_JSON})
@@ -53,8 +55,8 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
             response.resume(Response.ok().build());
         } else {
             var resp = result.getFailureMessages().isEmpty() ?
-                    validationError(format("Failed to validate request: %s", request.getId())) :
-                    validationErrors(result.getFailureMessages());
+                    badRequest(format("Failed to validate request: %s", request.getId())) :
+                    badRequest(result.getFailureMessages());
             response.resume(resp);
         }
     }
@@ -72,7 +74,14 @@ public class DataPlaneControlApiController implements DataPlaneControlApi {
     public void terminateTransfer(@PathParam("transferProcessId") String transferProcessId, @Suspended AsyncResponse response) {
         dataPlaneManager.terminate(transferProcessId)
                 .onSuccess(r -> response.resume(Response.noContent().build()))
-                .onFailure(f -> response.resume(validationError("Cannot terminate transfer: " + f.getFailureDetail())));
+                .onFailure(f -> response.resume(badRequest(List.of("Cannot terminate transfer: " + f.getFailureDetail()))));
     }
 
+    private Response badRequest(String error) {
+        return badRequest(List.of(error));
+    }
+
+    private Response badRequest(List<String> errors) {
+        return status(Response.Status.BAD_REQUEST).entity(new TransferErrorResponse(errors)).build();
+    }
 }
