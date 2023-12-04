@@ -318,7 +318,7 @@ public abstract class AssetIndexTestBase {
 
         @Test
         @DisplayName("Verify an asset query based on an Asset property, where the property value is actually a complex object")
-        void query_assetPropertyAsObject() {
+        void assetPropertyAsObject() {
             var nested = Map.of("text", "test123", "number", 42, "bool", false);
             var dataAddress = createDataAddress();
             var asset = createAssetBuilder("id1")

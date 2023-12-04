@@ -18,6 +18,8 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -34,12 +36,24 @@ public interface ContractDefinitionService {
     ContractDefinition findById(String contractDefinitionId);
 
     /**
-     * Query contract definitions
+     * Search contract definitions
      *
      * @param query request
      * @return the collection of contract definitions that match the query
      */
-    ServiceResult<Stream<ContractDefinition>> query(QuerySpec query);
+    ServiceResult<List<ContractDefinition>> search(QuerySpec query);
+
+    /**
+     * Query contract definitions
+     *
+     * @param query request
+     * @return the collection of contract definitions that match the query
+     * @deprecated please use {@link #search(QuerySpec)}
+     */
+    @Deprecated(since = "0.4.1")
+    default ServiceResult<Stream<ContractDefinition>> query(QuerySpec query) {
+        return search(query).map(Collection::stream);
+    }
 
     /**
      * Create a contract definition with its related data address. If a definition with the same id exists, returns

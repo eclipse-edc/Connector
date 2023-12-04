@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -35,12 +37,24 @@ public interface ContractAgreementService {
     ContractAgreement findById(String contractAgreementId);
 
     /**
-     * Query contract agreements
+     * Search contract agreements
      *
      * @param query request
      * @return the collection of contract agreements that match the query
      */
-    ServiceResult<Stream<ContractAgreement>> query(QuerySpec query);
+    ServiceResult<List<ContractAgreement>> search(QuerySpec query);
+
+    /**
+     * Query contract agreements
+     *
+     * @param query request
+     * @return the collection of contract agreements that match the query
+     * @deprecated please use {{@link #search(QuerySpec)}}
+     */
+    @Deprecated(since = "0.4.1")
+    default ServiceResult<Stream<ContractAgreement>> query(QuerySpec query) {
+        return search(query).map(Collection::stream);
+    }
 
     /**
      * Returns a contract negotiation by the agreement id.

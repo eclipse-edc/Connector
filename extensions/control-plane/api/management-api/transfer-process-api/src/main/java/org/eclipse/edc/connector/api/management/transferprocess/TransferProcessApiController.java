@@ -82,14 +82,12 @@ public class TransferProcessApiController implements TransferProcessApi {
                     .orElseThrow(InvalidRequestException::new);
         }
 
-        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(TransferProcess.class))) {
-            return stream
-                    .map(transferProcess -> transformerRegistry.transform(transferProcess, JsonObject.class)
-                            .onFailure(f -> monitor.warning(f.getFailureDetail())))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(toJsonArray());
-        }
+        return service.search(querySpec).orElseThrow(exceptionMapper(TransferProcess.class)).stream()
+                .map(transferProcess -> transformerRegistry.transform(transferProcess, JsonObject.class)
+                        .onFailure(f -> monitor.warning(f.getFailureDetail())))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
     }
 
     @GET
