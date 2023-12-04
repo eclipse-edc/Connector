@@ -76,13 +76,11 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
                     .orElseThrow(InvalidRequestException::new);
         }
 
-        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class))) {
-            return stream
-                    .map(policyDefinition -> transformerRegistry.transform(policyDefinition, JsonObject.class))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(toJsonArray());
-        }
+        return service.search(querySpec).orElseThrow(exceptionMapper(PolicyDefinition.class)).stream()
+                .map(policyDefinition -> transformerRegistry.transform(policyDefinition, JsonObject.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
     }
 
     @GET

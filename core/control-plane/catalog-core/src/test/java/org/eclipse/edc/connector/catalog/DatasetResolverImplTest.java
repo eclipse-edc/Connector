@@ -73,7 +73,7 @@ class DatasetResolverImplTest {
     }
 
     @Test
-    void query_shouldReturnOneDatasetPerAsset() {
+    void search_shouldReturnOneDatasetPerAsset() {
         var dataService = createDataService();
         var contractDefinition = contractDefinitionBuilder("definitionId").contractPolicyId("contractPolicyId").build();
         var contractPolicy = Policy.Builder.newInstance().build();

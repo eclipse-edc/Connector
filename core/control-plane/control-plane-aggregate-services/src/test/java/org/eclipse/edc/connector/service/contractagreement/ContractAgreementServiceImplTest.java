@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.service.contractagreement;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
@@ -40,9 +41,9 @@ import static org.mockito.Mockito.when;
 
 class ContractAgreementServiceImplTest {
 
-    private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
+    private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractAgreementServiceImpl service = new ContractAgreementServiceImpl(store, transactionContext);
+    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext);
 
     @Test
     void findById_filtersById() {
@@ -64,11 +65,11 @@ class ContractAgreementServiceImplTest {
     }
 
     @Test
-    void query_filtersBySpec() {
+    void search_filtersBySpec() {
         var agreement = createContractAgreement("agreementId");
         when(store.queryAgreements(isA(QuerySpec.class))).thenReturn(Stream.of(agreement));
 
-        var result = service.query(QuerySpec.none());
+        var result = service.search(QuerySpec.none());
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).first().matches(it -> it.getId().equals("agreementId"));

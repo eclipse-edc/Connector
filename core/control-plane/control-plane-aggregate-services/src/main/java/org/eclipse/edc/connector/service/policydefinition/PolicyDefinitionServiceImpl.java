@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -64,15 +63,13 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     }
 
     @Override
-    public ServiceResult<Stream<PolicyDefinition>> query(QuerySpec query) {
-        var result = queryValidator.validate(query);
-
-        if (result.failed()) {
-            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
-        }
-        return ServiceResult.success(transactionContext.execute(() -> policyStore.findAll(query)));
+    public ServiceResult<List<PolicyDefinition>> search(QuerySpec query) {
+        return queryValidator.validate(query)
+                .flatMap(validation -> validation.failed()
+                        ? ServiceResult.badRequest(format("Error validating schema: %s", validation.getFailureDetail()))
+                        : ServiceResult.success(queryPolicyDefinitions(query))
+                );
     }
-
 
     @Override
     public @NotNull ServiceResult<PolicyDefinition> deleteById(String policyId) {
@@ -117,6 +114,14 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
             var updateResult = policyStore.update(policyDefinition);
             updateResult.onSuccess(p -> observable.invokeForEach(l -> l.updated(p)));
             return ServiceResult.from(updateResult);
+        });
+    }
+
+    private List<PolicyDefinition> queryPolicyDefinitions(QuerySpec query) {
+        return transactionContext.execute(() -> {
+            try (var stream = policyStore.findAll(query)) {
+                return stream.toList();
+            }
         });
     }
 

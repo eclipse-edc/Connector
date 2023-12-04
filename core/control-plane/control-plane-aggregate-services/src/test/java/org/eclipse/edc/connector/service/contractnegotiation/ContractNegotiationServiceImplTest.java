@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
@@ -59,7 +60,8 @@ class ContractNegotiationServiceImplTest {
     private final ConsumerContractNegotiationManager consumerManager = mock();
     private final CommandHandlerRegistry commandHandlerRegistry = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractNegotiationServiceImpl service = new ContractNegotiationServiceImpl(store, consumerManager, transactionContext, commandHandlerRegistry);
+
+    private final ContractNegotiationService service = new ContractNegotiationServiceImpl(store, consumerManager, transactionContext, commandHandlerRegistry);
 
     @Test
     void findById_filtersById() {
@@ -81,11 +83,11 @@ class ContractNegotiationServiceImplTest {
     }
 
     @Test
-    void query_filtersBySpec() {
+    void search_filtersBySpec() {
         var negotiation = createContractNegotiation("negotiationId");
         when(store.queryNegotiations(isA(QuerySpec.class))).thenReturn(Stream.of(negotiation));
 
-        var result = service.query(QuerySpec.none());
+        var result = service.search(QuerySpec.none());
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).hasSize(1).first().matches(it -> it.getId().equals("negotiationId"));
@@ -93,24 +95,24 @@ class ContractNegotiationServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(InvalidFilters.class)
-    void query_invalidFilter(Criterion invalidFilter) {
+    void search_invalidFilter(Criterion invalidFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(invalidFilter)
                 .build();
 
-        var result = service.query(query);
+        var result = service.search(query);
 
         assertThat(result).isFailed();
     }
 
     @ParameterizedTest
     @ArgumentsSource(ValidFilters.class)
-    void query_validFilter(Criterion validFilter) {
+    void search_validFilter(Criterion validFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(validFilter)
                 .build();
 
-        var result = service.query(query);
+        var result = service.search(query);
 
         assertThat(result).isSucceeded();
         verify(store).queryNegotiations(query);

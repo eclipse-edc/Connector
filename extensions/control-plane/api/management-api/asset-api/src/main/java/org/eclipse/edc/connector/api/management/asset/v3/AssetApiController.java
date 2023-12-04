@@ -94,14 +94,12 @@ public class AssetApiController implements AssetApi {
                     .orElseThrow(InvalidRequestException::new);
         }
 
-        try (var assets = service.query(querySpec).orElseThrow(exceptionMapper(QuerySpec.class, null))) {
-            return assets
-                    .map(it -> transformerRegistry.transform(it, JsonObject.class))
-                    .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(toJsonArray());
-        }
+        return service.search(querySpec).orElseThrow(exceptionMapper(QuerySpec.class, null)).stream()
+                .map(it -> transformerRegistry.transform(it, JsonObject.class))
+                .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
     }
 
     @GET

@@ -28,8 +28,8 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -57,13 +57,12 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     }
 
     @Override
-    public ServiceResult<Stream<ContractNegotiation>> query(QuerySpec query) {
-        var result = queryValidator.validate(query);
-
-        if (result.failed()) {
-            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
-        }
-        return ServiceResult.success(transactionContext.execute(() -> store.queryNegotiations(query)));
+    public ServiceResult<List<ContractNegotiation>> search(QuerySpec query) {
+        return queryValidator.validate(query)
+                .flatMap(validation -> validation.failed()
+                        ? ServiceResult.badRequest(format("Error validating schema: %s", validation.getFailureDetail()))
+                        : ServiceResult.success(queryNegotiations(query))
+                );
     }
 
     @Override
@@ -90,6 +89,14 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     @Override
     public ServiceResult<Void> terminate(TerminateNegotiationCommand command) {
         return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
+    }
+
+    private List<ContractNegotiation> queryNegotiations(QuerySpec query) {
+        return transactionContext.execute(() -> {
+            try (var stream = store.queryNegotiations(query)) {
+                return stream.toList();
+            }
+        });
     }
 
 }

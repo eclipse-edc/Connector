@@ -20,6 +20,8 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -38,13 +40,24 @@ public interface PolicyDefinitionService {
     PolicyDefinition findById(String policyId);
 
     /**
-     * Query policies
+     * Search policies
      *
      * @param query request
      * @return the stream of policies that match the query
      */
+    ServiceResult<List<PolicyDefinition>> search(QuerySpec query);
 
-    ServiceResult<Stream<PolicyDefinition>> query(QuerySpec query);
+    /**
+     * Query policies
+     *
+     * @param query request
+     * @return the stream of policies that match the query
+     * @deprecated please use {@link #search(QuerySpec)}
+     */
+    @Deprecated(since = "0.4.1")
+    default ServiceResult<Stream<PolicyDefinition>> query(QuerySpec query) {
+        return search(query).map(Collection::stream);
+    }
 
     /**
      * Delete a policy
