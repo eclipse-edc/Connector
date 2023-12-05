@@ -35,10 +35,6 @@ public interface ContractDefinitionStatements extends SqlStatements {
         return getAssetsSelectorColumn() + "_alias";
     }
 
-    default String getPrivatePropertiesAlias() {
-        return getPrivatePropertiesColumn() + "_alias";
-    }
-
     default String getAccessPolicyIdColumn() {
         return "access_policy_id";
     }

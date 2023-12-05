@@ -606,6 +606,78 @@ public abstract class PolicyDefinitionStoreTestBase {
             assertThat(list).hasSize(2).usingRecursiveFieldByFieldElementComparator().isSubsetOf(policy1, policy2);
         }
 
+
+        @Test
+        void shouldReturn_with_private_propertiesFilter() {
+            var policy1 = createPolicy(getRandomId(), null, Map.of("key1", "value1", "key2", "value2"));
+            var policy2 = createPolicy(getRandomId(), null, Map.of("key3", "value3", "key4", "value4"));
+
+
+            getPolicyDefinitionStore().create(policy1);
+            getPolicyDefinitionStore().create(policy2);
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key1", "=", "value1"))
+                    .build();
+
+            var definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key2", "=", "value2"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key3", "=", "value3"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.key3", "=", "value4"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(0);
+        }
+
+        @Test
+        void shouldReturn_with_complex_private_propertiesFilter() {
+
+
+            var policy1 = createPolicy(getRandomId(), null, Map.of("myProp", Map.of("description", "test desc 1", "number", 42)));
+            var policy2 = createPolicy(getRandomId(), null, Map.of("myProp", Map.of("description", "test desc 2", "number", 42)));
+
+
+            getPolicyDefinitionStore().create(policy1);
+            getPolicyDefinitionStore().create(policy2);
+
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 1"))
+                    .build();
+
+            var definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 2"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 3"))
+                    .build();
+
+            definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(0);
+        }
+
         @Test
         void whenEqualFilter() {
             var policy1 = createPolicy(getRandomId());
