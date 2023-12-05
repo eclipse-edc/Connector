@@ -499,21 +499,21 @@ public abstract class ContractDefinitionStoreTestBase {
 
 
             var spec = QuerySpec.Builder.newInstance()
-                    .filter(new Criterion("'key1'", "=", "value1"))
+                    .filter(new Criterion("privateProperties.key1", "=", "value1"))
                     .build();
 
             var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
             assertThat(definitionsRetrieved).isNotNull().hasSize(1);
 
             spec = QuerySpec.Builder.newInstance()
-                    .filter(new Criterion("'key2'", "=", "value2"))
+                    .filter(new Criterion("privateProperties.key2", "=", "value2"))
                     .build();
 
             definitionsRetrieved = getContractDefinitionStore().findAll(spec);
             assertThat(definitionsRetrieved).isNotNull().hasSize(1);
 
             spec = QuerySpec.Builder.newInstance()
-                    .filter(new Criterion("'key1'", "=", "value2"))
+                    .filter(new Criterion("privateProperties.key1", "=", "value2"))
                     .build();
 
             definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -522,28 +522,29 @@ public abstract class ContractDefinitionStoreTestBase {
 
         @Test
         void shouldReturn_with_complex_private_propertiesFilter() {
-            var definition1 = createContractDefinition("definition1", "policyId", "contractId", Map.of("key1", "value1"));
+
+            var definition1 = createContractDefinition("definition1", "policyId", "contractId", Map.of("myProp", Map.of("description", "test desc 1", "number", 42)));
             getContractDefinitionStore().save(definition1);
-            var definition2 = createContractDefinition("definition2", "policyId", "contractId", Map.of("key2", "value2"));
+            var definition2 = createContractDefinition("definition2", "policyId", "contractId", Map.of("myProp", Map.of("description", "test desc 2", "number", 42)));
             getContractDefinitionStore().save(definition2);
 
 
             var spec = QuerySpec.Builder.newInstance()
-                    .filter(new Criterion("'key1'", "=", "value1"))
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 1"))
                     .build();
 
             var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
             assertThat(definitionsRetrieved).isNotNull().hasSize(1);
 
             spec = QuerySpec.Builder.newInstance()
-                    .filter(new Criterion("'key2'", "=", "value2"))
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 2"))
                     .build();
 
             definitionsRetrieved = getContractDefinitionStore().findAll(spec);
             assertThat(definitionsRetrieved).isNotNull().hasSize(1);
 
             spec = QuerySpec.Builder.newInstance()
-                    .filter(new Criterion("'key1'", "=", "value2"))
+                    .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 3"))
                     .build();
 
             definitionsRetrieved = getContractDefinitionStore().findAll(spec);
