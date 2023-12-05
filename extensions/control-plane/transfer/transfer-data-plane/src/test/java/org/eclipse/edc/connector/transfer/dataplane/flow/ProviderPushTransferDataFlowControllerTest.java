@@ -24,7 +24,9 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -121,8 +123,27 @@ class ProviderPushTransferDataFlowControllerTest {
         verify(dataPlaneClient).terminate("transferProcessId");
     }
 
+    @Test
+    void transferTypes_shouldReturnTypesForSpecifiedAsset() {
+        when(selectorService.getAll()).thenReturn(List.of(
+                dataPlaneInstanceBuilder().allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
+                dataPlaneInstanceBuilder().allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
+                dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
+        ));
+        var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
+
+        var transferTypes = flowController.transferTypesFor(asset);
+
+        assertThat(transferTypes).containsExactly("TargetDest-PUSH", "AnotherTargetDest-PUSH");
+    }
+
     private DataPlaneInstance createDataPlaneInstance() {
-        return DataPlaneInstance.Builder.newInstance().url("http://any").build();
+        return dataPlaneInstanceBuilder().build();
+    }
+
+    @NotNull
+    private static DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
+        return DataPlaneInstance.Builder.newInstance().url("http://any");
     }
 
     private DataAddress testDataAddress() {

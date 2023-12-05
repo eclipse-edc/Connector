@@ -37,7 +37,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -73,7 +72,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
     @ValueSource(strings = { "", "{}" })
     void queryAllContractDefinitions(String body) {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(createContractDefinition().build())));
+        when(service.search(any())).thenReturn(ServiceResult.success(List.of(createContractDefinition().build())));
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
         when(transformerRegistry.transform(any(ContractDefinition.class), eq(JsonObject.class))).thenReturn(Result.success(createExpandedJsonObject()));
 
@@ -85,7 +84,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .body("size()", greaterThan(0));
 
-        verify(service).query(eq(QuerySpec.Builder.newInstance().build()));
+        verify(service).search(eq(QuerySpec.Builder.newInstance().build()));
         if (!body.isEmpty()) {
             verify(validatorRegistry).validate(eq(EDC_QUERY_SPEC_TYPE), any());
         }
@@ -109,7 +108,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
     void queryAll_queryTransformationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.failure("test-failure"));
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(createContractDefinition().build())));
+        when(service.search(any())).thenReturn(ServiceResult.success(List.of(createContractDefinition().build())));
 
         baseRequest()
                 .contentType(JSON)
@@ -126,7 +125,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
     void queryAll_serviceBadRequest() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("test-message"));
+        when(service.search(any())).thenReturn(ServiceResult.badRequest("test-message"));
 
         var error = baseRequest()
                 .contentType(JSON)
@@ -141,7 +140,7 @@ class ContractDefinitionApiControllerTest extends RestControllerTestBase {
         assertThat(error.getMessage()).contains("test-message");
 
         verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpec.class));
-        verify(service).query(eq(QuerySpec.Builder.newInstance().build()));
+        verify(service).search(eq(QuerySpec.Builder.newInstance().build()));
         verifyNoMoreInteractions(transformerRegistry);
     }
 

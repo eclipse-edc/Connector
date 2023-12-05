@@ -82,14 +82,12 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
                     .orElseThrow(InvalidRequestException::new);
         }
 
-        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractNegotiation.class, null))) {
-            return stream
-                    .map(it -> transformerRegistry.transform(it, JsonObject.class))
-                    .peek(this::logIfError)
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(toJsonArray());
-        }
+        return service.search(querySpec).orElseThrow(exceptionMapper(ContractNegotiation.class, null)).stream()
+                .map(it -> transformerRegistry.transform(it, JsonObject.class))
+                .peek(this::logIfError)
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
     }
 
     @GET

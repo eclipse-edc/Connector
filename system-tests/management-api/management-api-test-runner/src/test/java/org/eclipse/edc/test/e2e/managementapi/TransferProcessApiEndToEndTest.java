@@ -158,7 +158,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
     }
 
     @Test
-    void query_byState() throws JsonProcessingException {
+    void request_byState() throws JsonProcessingException {
 
         var state = DEPROVISIONED;
         var tp = createTransferProcessBuilder("test-tp")

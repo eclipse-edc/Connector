@@ -205,8 +205,7 @@ public abstract class AssetIndexTestBase {
 
             var result = getAssetIndex().queryAssets(QuerySpec.none());
 
-            var result1 = result.toList();
-            assertThat(result1).hasSize(5).usingRecursiveFieldByFieldElementComparator().containsAll(assets);
+            assertThat(result).hasSize(5).usingRecursiveFieldByFieldElementComparator().containsAll(assets);
         }
 
         @Test
@@ -319,7 +318,7 @@ public abstract class AssetIndexTestBase {
 
         @Test
         @DisplayName("Verify an asset query based on an Asset property, where the property value is actually a complex object")
-        void query_assetPropertyAsObject() {
+        void assetPropertyAsObject() {
             var nested = Map.of("text", "test123", "number", 42, "bool", false);
             var dataAddress = createDataAddress();
             var asset = createAssetBuilder("id1")

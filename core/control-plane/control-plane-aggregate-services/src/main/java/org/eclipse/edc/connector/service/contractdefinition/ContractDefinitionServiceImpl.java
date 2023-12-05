@@ -23,7 +23,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import static java.lang.String.format;
 
@@ -46,13 +46,12 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     }
 
     @Override
-    public ServiceResult<Stream<ContractDefinition>> query(QuerySpec query) {
-        var result = queryValidator.validate(query);
-
-        if (result.failed()) {
-            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
-        }
-        return ServiceResult.success(transactionContext.execute(() -> store.findAll(query)));
+    public ServiceResult<List<ContractDefinition>> search(QuerySpec query) {
+        return queryValidator.validate(query)
+                .flatMap(validation -> validation.failed()
+                        ? ServiceResult.badRequest(format("Error validating schema: %s", validation.getFailureDetail()))
+                        : ServiceResult.success(queryContractDefinitions(query))
+                );
     }
 
     @Override
@@ -86,6 +85,14 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
             serviceResult.onSuccess(deleted -> observable.invokeForEach(l -> l.deleted(deleted)));
             return serviceResult;
+        });
+    }
+
+    private List<ContractDefinition> queryContractDefinitions(QuerySpec query) {
+        return transactionContext.execute(() -> {
+            try (var stream = store.findAll(query)) {
+                return stream.toList();
+            }
         });
     }
 }

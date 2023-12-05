@@ -15,7 +15,7 @@
 package org.eclipse.edc.sql.pool.commons;
 
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.edc.sql.DriverManagerConnectionFactory;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -33,18 +33,13 @@ import static org.mockito.Mockito.mockStatic;
 public class DriverManagerConnectionFactoryTest {
     private static final String DS_NAME = "datasource";
     private final Connection connection = mock();
-    private DriverManagerConnectionFactory factory;
-
-    @BeforeEach
-    void setup() {
-        factory = new DriverManagerConnectionFactory(DS_NAME, new Properties());
-    }
+    private final DriverManagerConnectionFactory factory = new DriverManagerConnectionFactory();
 
     @Test
     void create() throws SQLException {
         try (var driverManagerMock = mockStatic(DriverManager.class)) {
             driverManagerMock.when(() -> DriverManager.getConnection(eq(DS_NAME), any(Properties.class))).thenReturn(connection);
-            try (var conn = factory.create()) {
+            try (var conn = factory.create(DS_NAME, new Properties())) {
                 assertThat(conn).isEqualTo(connection);
             }
         }
@@ -55,7 +50,8 @@ public class DriverManagerConnectionFactoryTest {
         try (var driverManagerMock = mockStatic(DriverManager.class)) {
             driverManagerMock.when(() -> DriverManager.getConnection(eq(DS_NAME), any(Properties.class)))
                     .thenThrow(SQLException.class);
-            assertThatThrownBy(() -> factory.create()).isInstanceOf(EdcPersistenceException.class);
+
+            assertThatThrownBy(() -> factory.create(DS_NAME, new Properties())).isInstanceOf(EdcPersistenceException.class);
         }
     }
 }

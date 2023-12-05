@@ -90,11 +90,11 @@ class AssetServiceImplTest {
     }
 
     @Test
-    void query_shouldRelyOnAssetIndex() {
+    void search_shouldRelyOnAssetIndex() {
         var asset = createAsset("assetId");
         when(index.queryAssets(any(QuerySpec.class))).thenReturn(Stream.of(asset));
 
-        var assets = service.query(QuerySpec.none());
+        var assets = service.search(QuerySpec.none());
 
         assertThat(assets.succeeded()).isTrue();
         assertThat(assets.getContent()).hasSize(1).first().matches(hasId("assetId"));
@@ -102,20 +102,20 @@ class AssetServiceImplTest {
 
     @ParameterizedTest
     @ValueSource(strings = { Asset.PROPERTY_ID, Asset.PROPERTY_NAME, Asset.PROPERTY_DESCRIPTION, Asset.PROPERTY_VERSION, Asset.PROPERTY_CONTENT_TYPE })
-    void query_validFilter(String filter) {
+    void search_validFilter(String filter) {
         var query = QuerySpec.Builder.newInstance().filter(criterion(filter, "=", "somevalue")).build();
 
-        service.query(query);
+        service.search(query);
 
         verify(index).queryAssets(query);
     }
 
     @ParameterizedTest
     @ArgumentsSource(InvalidFilters.class)
-    void query_invalidFilter(Criterion filter) {
+    void search_invalidFilter(Criterion filter) {
         var query = QuerySpec.Builder.newInstance().filter(filter).build();
 
-        var result = service.query(query);
+        var result = service.search(query);
 
         assertThat(result).isFailed().extracting(Failure::getMessages).asList().hasSize(1);
     }

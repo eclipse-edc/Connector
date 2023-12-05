@@ -99,8 +99,8 @@ public class SqlQueryExecutor implements QueryExecutor {
     }
 
     private void setArguments(PreparedStatement statement, Object[] arguments) throws SQLException {
-        for (int index = 0; index < arguments.length; index++) {
-            int position = index + 1;
+        for (var index = 0; index < arguments.length; index++) {
+            var position = index + 1;
             setArgument(statement, position, arguments[index]);
         }
     }
@@ -118,7 +118,7 @@ public class SqlQueryExecutor implements QueryExecutor {
 
     @NotNull
     private <T> Spliterators.AbstractSpliterator<T> createSpliterator(ResultSetMapper<T> resultSetMapper, ResultSet resultSet) {
-        return new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED) {
+        return new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE, Spliterator.ORDERED) {
             @Override
             public boolean tryAdvance(Consumer<? super T> action) {
                 try {

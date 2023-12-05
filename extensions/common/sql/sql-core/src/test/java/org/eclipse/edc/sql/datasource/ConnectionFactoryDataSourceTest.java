@@ -17,145 +17,102 @@ package org.eclipse.edc.sql.datasource;
 import org.eclipse.edc.sql.ConnectionFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class ConnectionFactoryDataSourceTest {
 
-    @Test
-    void constructor() {
-        Assertions.assertThrows(NullPointerException.class, () -> new ConnectionFactoryDataSource(null));
-
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
-
-        new ConnectionFactoryDataSource(connectionFactory);
-
-        Mockito.verifyNoInteractions(connectionFactory);
-    }
+    private final ConnectionFactory connectionFactory = mock();
+    private final Connection connection = mock();
+    private final ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(
+            connectionFactory, "jdbcUrl", new Properties());
 
     @Test
     void getConnection() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
-        Mockito.when(connectionFactory.create()).thenReturn(connection);
+        when(connectionFactory.create(any(), any())).thenReturn(connection);
 
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
+        var result = connectionFactoryDataSource.getConnection();
 
-        Connection result = connectionFactoryDataSource.getConnection();
-
-        Assertions.assertEquals(connection, result);
-
-        Mockito.verify(connectionFactory, Mockito.times(1)).create();
+        assertThat(result).isSameAs(connection);
+        verify(connectionFactory, times(1)).create(any(), any());
     }
 
     @Test
     void getConnectionWithArgument() throws SQLException {
-        Connection connection = Mockito.mock(Connection.class);
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
-        Mockito.when(connectionFactory.create()).thenReturn(connection);
+        when(connectionFactory.create(any(), any())).thenReturn(connection);
 
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
+        var result = connectionFactoryDataSource.getConnection(null, null);
 
-        Connection result = connectionFactoryDataSource.getConnection(null, null);
-
-        Assertions.assertEquals(connection, result);
-
-        Mockito.verify(connectionFactory, Mockito.times(1)).create();
+        assertThat(result).isSameAs(connection);
+        verify(connectionFactory, times(1)).create(any(), any());
     }
 
     @Test
     void getLogWriter() {
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
+        assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::getLogWriter);
 
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        Assertions.assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::getLogWriter);
-
-        Mockito.verifyNoInteractions(connectionFactory);
+        verifyNoInteractions(connectionFactory);
     }
 
     @Test
     void setLogWriter() {
-        PrintWriter printWriter = Mockito.mock(PrintWriter.class);
+        assertThrows(SQLFeatureNotSupportedException.class, () -> connectionFactoryDataSource.setLogWriter(mock()));
 
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
-
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        Assertions.assertThrows(SQLFeatureNotSupportedException.class, () -> connectionFactoryDataSource.setLogWriter(printWriter));
-
-        Mockito.verifyNoInteractions(connectionFactory);
+        verifyNoInteractions(connectionFactory);
     }
 
     @Test
     void setLoginTimeout() {
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
+        assertThrows(SQLFeatureNotSupportedException.class, () -> connectionFactoryDataSource.setLoginTimeout(1));
 
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        Assertions.assertThrows(SQLFeatureNotSupportedException.class, () -> connectionFactoryDataSource.setLoginTimeout(1));
-
-        Mockito.verifyNoInteractions(connectionFactory);
+        verifyNoInteractions(connectionFactory);
     }
 
     @Test
     void getLoginTimeout() {
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
+        assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::getLoginTimeout);
 
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        Assertions.assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::getLoginTimeout);
-
-        Mockito.verifyNoInteractions(connectionFactory);
+        verifyNoInteractions(connectionFactory);
     }
 
     @Test
     void getParentLogger() {
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
+        assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::getParentLogger);
 
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        Assertions.assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::getParentLogger);
-
-        Mockito.verifyNoInteractions(connectionFactory);
+        verifyNoInteractions(connectionFactory);
     }
 
     @Test
     void unwrap() {
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
+        assertThrows(SQLFeatureNotSupportedException.class, () -> connectionFactoryDataSource.unwrap(Class.class));
 
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        Assertions.assertThrows(SQLFeatureNotSupportedException.class, () -> connectionFactoryDataSource.unwrap(Class.class));
-
-        Mockito.verifyNoInteractions(connectionFactory);
+        verifyNoInteractions(connectionFactory);
     }
 
     @Test
     void isWrapperFor() throws SQLException {
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
-
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        boolean result = connectionFactoryDataSource.isWrapperFor(Class.class);
+        var result = connectionFactoryDataSource.isWrapperFor(Class.class);
 
         Assertions.assertFalse(result);
 
-        Mockito.verifyNoInteractions(connectionFactory);
+        verifyNoInteractions(connectionFactory);
     }
 
     @Test
     void createConnectionBuilder() {
-        ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
-
-        ConnectionFactoryDataSource connectionFactoryDataSource = new ConnectionFactoryDataSource(connectionFactory);
-
-        Assertions.assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::createConnectionBuilder);
-
-        Mockito.verifyNoInteractions(connectionFactory);
+        assertThrows(SQLFeatureNotSupportedException.class, connectionFactoryDataSource::createConnectionBuilder);
+        verifyNoInteractions(connectionFactory);
     }
 }
