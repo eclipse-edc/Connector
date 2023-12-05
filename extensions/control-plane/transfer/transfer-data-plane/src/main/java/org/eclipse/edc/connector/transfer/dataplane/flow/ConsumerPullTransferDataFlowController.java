@@ -22,12 +22,15 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
+import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PULL;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.response.StatusResult.failure;
 
@@ -61,6 +64,11 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
         return StatusResult.success();
+    }
+
+    @Override
+    public Set<String> transferTypesFor(Asset asset) {
+        return Set.of("%s-%s".formatted("Http", PULL));
     }
 
     private DataFlowResponse toResponse(DataAddress address) {

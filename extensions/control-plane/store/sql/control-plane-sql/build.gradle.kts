@@ -25,6 +25,12 @@ dependencies {
     implementation(project(":extensions:control-plane:store:sql:contract-negotiation-store-sql"))
     implementation(project(":extensions:control-plane:store:sql:policy-definition-store-sql"))
     implementation(project(":extensions:control-plane:store:sql:transfer-process-store-sql"))
+
+    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:control-plane:catalog-core"))
+    testImplementation(project(":core:control-plane:contract-core"))
+    testImplementation(project(":core:control-plane:control-plane-core"))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-core")))
 }
 
 

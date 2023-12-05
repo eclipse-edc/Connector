@@ -33,11 +33,12 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static java.util.Collections.emptyList;
 import static org.eclipse.edc.connector.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -133,14 +134,14 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldReturnQueriedTransferProcesses() {
+    void search_shouldReturnQueriedTransferProcesses() {
         var querySpec = QuerySpec.none();
         var expandedRequestBody = Json.createObjectBuilder().build();
         var transferProcess = createTransferProcess().id("id").build();
         var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
+        when(service.search(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -156,14 +157,14 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .body("[0].id", is("id"))
                 .body("[0].createdAt", is(1234));
         verify(transformerRegistry).transform(expandedRequestBody, QuerySpec.class);
-        verify(service).query(querySpec);
+        verify(service).search(querySpec);
         verify(transformerRegistry).transform(transferProcess, JsonObject.class);
     }
 
     @Test
-    void query_shouldNotReturnError_whenEmptyBody() {
+    void search_shouldNotReturnError_whenEmptyBody() {
         var querySpec = QuerySpec.none();
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.empty()));
+        when(service.search(any())).thenReturn(ServiceResult.success(emptyList()));
 
         given()
                 .port(port)
@@ -174,12 +175,12 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body("size()", is(0));
 
-        verify(service).query(querySpec);
+        verify(service).search(querySpec);
         verifyNoInteractions(validatorRegistry, transformerRegistry);
     }
 
     @Test
-    void query_shouldReturnBadRequest_whenValidationFails() {
+    void search_shouldReturnBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -196,7 +197,7 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldReturn400_whenQuerySpecTransformFails() {
+    void search_shouldReturn400_whenQuerySpecTransformFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
@@ -212,11 +213,11 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldReturnBadRequest_whenServiceReturnsBadRequest() {
+    void search_shouldReturnBadRequest_whenServiceReturnsBadRequest() {
         var querySpec = QuerySpec.none();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("error"));
+        when(service.search(any())).thenReturn(ServiceResult.badRequest("error"));
         var requestBody = Json.createObjectBuilder().build();
 
         given()
@@ -230,12 +231,12 @@ class TransferProcessApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldFilterOutResults_whenTransformFails() {
+    void search_shouldFilterOutResults_whenTransformFails() {
         var querySpec = QuerySpec.none();
         var transferProcess = createTransferProcess().id("id").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(transferProcess)));
+        when(service.search(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
 

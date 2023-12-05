@@ -15,6 +15,7 @@
 package org.eclipse.edc.sql;
 
 import java.sql.Connection;
+import java.util.Properties;
 
 /**
  * A ConnectionFactory combines a set of connection configuration
@@ -24,9 +25,11 @@ import java.sql.Connection;
 public interface ConnectionFactory {
 
     /**
-     * Creates a fresh connection.
+     * Creates a fresh connection to the specified database
      *
-     * @return connection created from a defined set of connection configuration parameters.
+     * @param jdbcUrl the JDBC url.
+     * @param properties the properties.
+     * @return a new Connection.
      */
-    Connection create();
+    Connection create(String jdbcUrl, Properties properties);
 }

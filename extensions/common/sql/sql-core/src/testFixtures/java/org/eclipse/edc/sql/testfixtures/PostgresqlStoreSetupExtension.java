@@ -14,13 +14,15 @@
 
 package org.eclipse.edc.sql.testfixtures;
 
+import org.eclipse.edc.sql.DriverManagerConnectionFactory;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.SqlQueryExecutor;
+import org.eclipse.edc.sql.datasource.ConnectionFactoryDataSource;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.transaction.datasource.spi.DefaultDataSourceRegistry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -30,60 +32,46 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
-import javax.sql.DataSource;
 
 import static java.lang.String.format;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 /**
  * Extension for running PG SQL store implementation. It automatically creates a test database and provided all the base data structure
  * for a SQL store to run such as {@link DataSourceRegistry}, {@link TransactionContext} and data source name which is automatically generated
  */
-public class PostgresqlStoreSetupExtension implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback, ParameterResolver {
+public class PostgresqlStoreSetupExtension implements BeforeEachCallback, BeforeAllCallback, AfterAllCallback, ParameterResolver {
 
-    public static final String POSTGRES_IMAGE_NAME = "postgres:14.2";
+    public static final String POSTGRES_IMAGE_NAME = "postgres:16.1";
     public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_IMAGE_NAME)
             .withExposedPorts(5432)
             .withUsername("postgres")
             .withPassword("password")
             .withDatabaseName("itest");
-    private final String datasourceName;
+    private static PostgresqlLocalInstance postgres;
     private final QueryExecutor queryExecutor = new SqlQueryExecutor();
-    private DataSourceRegistry dataSourceRegistry = null;
-    private DataSource dataSource = null;
-    private Connection connection = null;
-    private TransactionContext transactionContext = null;
-    private PostgresqlLocalInstance helper;
-
-    @SuppressWarnings("unused")
-    public PostgresqlStoreSetupExtension() {
-        this(UUID.randomUUID().toString());
-    }
-
-    public PostgresqlStoreSetupExtension(String datasourceName) {
-        this.datasourceName = datasourceName;
-    }
-
-    public DataSource getDataSource() {
-        return dataSource;
-    }
+    private final TransactionContext transactionContext = new NoopTransactionContext();
+    private final DataSourceRegistry dataSourceRegistry = new DefaultDataSourceRegistry();
+    private final String datasourceName = UUID.randomUUID().toString();
+    private String jdbcUrlPrefix;
 
     public String getDatasourceName() {
         return datasourceName;
     }
 
     public Connection getConnection() {
-        return connection;
+        try {
+            return dataSourceRegistry.resolve(datasourceName).getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public int runQuery(String query) {
-        return transactionContext.execute(() -> queryExecutor.execute(connection, query));
+        return transactionContext.execute(() -> queryExecutor.execute(getConnection(), query));
     }
 
     public TransactionContext getTransactionContext() {
@@ -95,29 +83,22 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, AfterE
     }
 
     @Override
-    public void beforeEach(ExtensionContext context) throws Exception {
-        transactionContext = new NoopTransactionContext();
-        dataSourceRegistry = mock(DataSourceRegistry.class);
-        dataSource = mock(DataSource.class);
-        connection = spy(helper.getTestConnection(postgreSQLContainer.getHost(), postgreSQLContainer.getFirstMappedPort(), postgreSQLContainer.getDatabaseName()));
-
-        when(dataSourceRegistry.resolve(datasourceName)).thenReturn(dataSource);
-        when(dataSource.getConnection()).thenReturn(connection);
-        doNothing().when(connection).close();
-    }
-
-    @Override
-    public void afterEach(ExtensionContext context) throws Exception {
-        doCallRealMethod().when(connection).close();
-        connection.close();
-    }
-
-    @Override
     public void beforeAll(ExtensionContext context) {
         postgreSQLContainer.start();
-        var jdbcUrlPrefix = format("jdbc:postgresql://%s:%s/", postgreSQLContainer.getHost(), postgreSQLContainer.getFirstMappedPort());
-        helper = new PostgresqlLocalInstance(postgreSQLContainer.getUsername(), postgreSQLContainer.getPassword(), jdbcUrlPrefix, postgreSQLContainer.getDatabaseName());
-        helper.createDatabase();
+        jdbcUrlPrefix = format("jdbc:postgresql://%s:%s/", postgreSQLContainer.getHost(), postgreSQLContainer.getFirstMappedPort());
+        postgres = new PostgresqlLocalInstance(postgreSQLContainer.getUsername(), postgreSQLContainer.getPassword(), jdbcUrlPrefix, postgreSQLContainer.getDatabaseName());
+        postgres.createDatabase();
+    }
+
+    @Override
+    public void beforeEach(ExtensionContext context) {
+        var properties = new Properties();
+        properties.put("user", postgreSQLContainer.getUsername());
+        properties.put("password", postgreSQLContainer.getPassword());
+        var connectionFactory = new DriverManagerConnectionFactory();
+        var jdbcUrl = jdbcUrlPrefix + postgreSQLContainer.getDatabaseName();
+        var dataSource = new ConnectionFactoryDataSource(connectionFactory, jdbcUrl, properties);
+        dataSourceRegistry.register(datasourceName, dataSource);
     }
 
     @Override
@@ -138,12 +119,13 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, AfterE
         if (type.equals(PostgresqlStoreSetupExtension.class)) {
             return this;
         } else if (type.equals(Connection.class)) {
-            return connection;
+            return getConnection();
         } else if (type.equals(QueryExecutor.class)) {
             return queryExecutor;
         } else if (type.equals(PostgresqlLocalInstance.class)) {
-            return helper;
+            return postgres;
         }
         return null;
     }
+
 }

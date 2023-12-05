@@ -29,9 +29,11 @@ import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.identitytrust.validation.JwtValidator;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -94,6 +96,13 @@ class IdentityAndTrustServiceTest {
         when(mockedSts.createToken(any(), any())).thenReturn(success(TokenRepresentation.Builder.newInstance().build()));
     }
 
+    private VerificationContext verificationContext() {
+        return VerificationContext.Builder.newInstance()
+                .audience("test-audience")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
     @Nested
     class ObtainClientCredentials {
         @ParameterizedTest(name = "{0}")
@@ -151,7 +160,7 @@ class IdentityAndTrustServiceTest {
         void presentationRequestFails() {
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(failure("test-failure"));
             var token = createJwt();
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("test-failure");
             verifyNoInteractions(mockedVerifier);
             verify(mockedClient).requestPresentation(any(), any(), any());
@@ -163,7 +172,7 @@ class IdentityAndTrustServiceTest {
             when(mockedVerifier.verifyPresentation(any())).thenReturn(Result.failure("Cryptographic error"));
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(createPresentationContainer())));
             var token = createJwt();
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("Cryptographic error");
         }
 
@@ -179,7 +188,7 @@ class IdentityAndTrustServiceTest {
             when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isFailed().messages()
                     .hasSizeGreaterThanOrEqualTo(1)
                     .contains("Credential is not yet valid.");
@@ -200,7 +209,7 @@ class IdentityAndTrustServiceTest {
             when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isFailed().messages()
                     .hasSizeGreaterThanOrEqualTo(1)
                     .contains("Not all subject IDs match the expected subject ID %s".formatted(CONSUMER_DID));
@@ -225,7 +234,7 @@ class IdentityAndTrustServiceTest {
             when(mockedVerifier.verifyPresentation(any())).thenReturn(success());
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             var token = createJwt(consumerDid, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isFailed().messages()
                     .hasSizeGreaterThanOrEqualTo(1)
                     .contains("Issuer 'invalid-issuer' is not in the list of trusted issuers");
@@ -235,7 +244,7 @@ class IdentityAndTrustServiceTest {
         void jwtTokenNotValid() {
             when(jwtValidatorMock.validateToken(any(), any())).thenReturn(failure("test failure"));
             var token = createJwt();
-            assertThat(service.verifyJwtToken(token, "test-audience"))
+            assertThat(service.verifyJwtToken(token, verificationContext()))
                     .isFailed()
                     .messages().hasSize(1)
                     .containsExactly("test failure");
@@ -245,7 +254,7 @@ class IdentityAndTrustServiceTest {
         void jwtTokenNotVerified() {
             when(jwtVerfierMock.verify(any(), any())).thenReturn(failure("test-failure"));
             var token = createJwt();
-            assertThat(service.verifyJwtToken(token, "test-audience"))
+            assertThat(service.verifyJwtToken(token, verificationContext()))
                     .isFailed()
                     .messages().hasSize(1)
                     .containsExactly("test-failure");
@@ -254,7 +263,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void cannotResolveCredentialServiceUrl() {
             when(credentialServiceUrlResolverMock.resolve(any())).thenReturn(Result.failure("test-failure"));
-            assertThat(service.verifyJwtToken(createJwt(), "test-audience"))
+            assertThat(service.verifyJwtToken(createJwt(), verificationContext()))
                     .isFailed()
                     .detail()
                     .isEqualTo("test-failure");
@@ -278,7 +287,7 @@ class IdentityAndTrustServiceTest {
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isSucceeded()
                     .satisfies(ct -> Assertions.assertThat(ct.getClaims()).containsEntry("some-claim", "some-val"));
         }
@@ -305,7 +314,7 @@ class IdentityAndTrustServiceTest {
             when(mockedClient.requestPresentation(any(), any(), any())).thenReturn(success(List.of(vpContainer)));
             when(trustedIssuerRegistryMock.getTrustedIssuers()).thenReturn(Set.of(TRUSTED_ISSUER));
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isSucceeded()
                     .satisfies(ct -> Assertions.assertThat(ct.getClaims())
                             .containsEntry("some-claim", "some-val")
@@ -354,7 +363,7 @@ class IdentityAndTrustServiceTest {
 
 
             var token = createJwt(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, "test-audience");
+            var result = service.verifyJwtToken(token, verificationContext());
             assertThat(result).isSucceeded()
                     .satisfies(ct -> Assertions.assertThat(ct.getClaims())
                             .containsEntry("some-claim", "some-val")

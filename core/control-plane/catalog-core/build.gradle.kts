@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:common:catalog-spi"))
     api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))

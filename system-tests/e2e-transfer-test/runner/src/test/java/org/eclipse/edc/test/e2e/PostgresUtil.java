@@ -21,7 +21,6 @@ import org.eclipse.edc.test.e2e.participant.EndToEndTransferParticipant;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.stream.Stream;
 
@@ -34,8 +33,8 @@ public class PostgresUtil {
     public static void createDatabase(EndToEndTransferParticipant participant) throws ClassNotFoundException, SQLException, IOException {
         Class.forName("org.postgresql.Driver");
 
-        var helper = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, participant.getName());
-        helper.createDatabase(participant.getName());
+        var postgres = new PostgresqlLocalInstance(USER, PASSWORD, JDBC_URL_PREFIX, participant.getName());
+        postgres.createDatabase();
 
         var scripts = Stream.of(
                 "extensions/control-plane/store/sql/asset-index-sql",
@@ -50,7 +49,7 @@ public class PostgresUtil {
                 .map(Paths::get)
                 .toList();
 
-        try (var connection = DriverManager.getConnection(participant.jdbcUrl(), USER, PASSWORD)) {
+        try (var connection = postgres.getConnection(participant.getName())) {
             for (var script : scripts) {
                 var sql = Files.readString(script);
 

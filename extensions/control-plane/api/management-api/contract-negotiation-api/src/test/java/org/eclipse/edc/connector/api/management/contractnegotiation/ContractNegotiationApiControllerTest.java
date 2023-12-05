@@ -40,7 +40,6 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -76,7 +75,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
 
     @Test
     void getAll() {
-        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
+        when(service.search(any(QuerySpec.class))).thenReturn(ServiceResult.success(List.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
         )));
@@ -94,7 +93,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
                 .body("size()", is(2));
 
         verifyNoInteractions(validatorRegistry);
-        verify(service).query(any(QuerySpec.class));
+        verify(service).search(any(QuerySpec.class));
         verify(transformerRegistry, times(2)).transform(any(ContractNegotiation.class), eq(JsonObject.class));
     }
 
@@ -116,7 +115,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     @Test
     void getAll_queryTransformationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
+        when(service.search(any(QuerySpec.class))).thenReturn(ServiceResult.success(List.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
         )));
@@ -138,7 +137,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     @Test
     void getAll_dtoTransformationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
+        when(service.search(any(QuerySpec.class))).thenReturn(ServiceResult.success(List.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
         )));
@@ -153,12 +152,12 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body("size()", is(0));
 
-        verify(service).query(any(QuerySpec.class));
+        verify(service).search(any(QuerySpec.class));
     }
 
     @Test
     void getAll_singleFailure_shouldLogError() {
-        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
+        when(service.search(any(QuerySpec.class))).thenReturn(ServiceResult.success(List.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
         )));
@@ -174,7 +173,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body("size()", is(1));
 
-        verify(service).query(any(QuerySpec.class));
+        verify(service).search(any(QuerySpec.class));
         verify(transformerRegistry, times(2)).transform(any(ContractNegotiation.class), eq(JsonObject.class));
         verify(monitor).warning(contains("test-failure"));
     }
@@ -182,7 +181,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
     @Test
     void getAll_jsonObjectTransformationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(service.query(any(QuerySpec.class))).thenReturn(ServiceResult.success(Stream.of(
+        when(service.search(any(QuerySpec.class))).thenReturn(ServiceResult.success(List.of(
                 createContractNegotiation("cn1"),
                 createContractNegotiation("cn2")
         )));
@@ -200,7 +199,7 @@ class ContractNegotiationApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body("size()", is(0));
 
-        verify(service).query(any(QuerySpec.class));
+        verify(service).search(any(QuerySpec.class));
         verify(transformerRegistry).transform(any(JsonObject.class), eq(QuerySpec.class));
         verify(transformerRegistry, times(2)).transform(any(ContractNegotiation.class), eq(JsonObject.class));
     }

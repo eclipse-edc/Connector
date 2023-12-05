@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinit
 import org.eclipse.edc.connector.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -55,12 +56,12 @@ import static org.mockito.Mockito.when;
 
 class ContractDefinitionServiceImplTest {
 
-    private final ContractDefinitionStore store = mock(ContractDefinitionStore.class);
+    private final ContractDefinitionStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final ContractDefinitionObservable observable = new ContractDefinitionObservableImpl();
-    private final ContractDefinitionListener listener = mock(ContractDefinitionListener.class);
+    private final ContractDefinitionListener listener = mock();
 
-    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, transactionContext, observable);
+    private final ContractDefinitionService service = new ContractDefinitionServiceImpl(store, transactionContext, observable);
 
     @BeforeEach
     void setUp() {
@@ -87,33 +88,37 @@ class ContractDefinitionServiceImplTest {
     }
 
     @Test
-    void query() {
+    void search() {
         var definition = createContractDefinition();
         when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.of(definition));
 
-        var result = service.query(QuerySpec.none());
+        var result = service.search(QuerySpec.none());
 
-        String id = definition.getId();
         assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).hasSize(1).first().matches(hasId(id));
+        assertThat(result.getContent()).hasSize(1).first().matches(hasId(definition.getId()));
     }
 
     @ParameterizedTest
     @ArgumentsSource(InvalidFilters.class)
-    void query_invalidFilter(Criterion invalidFilter) {
+    void search_invalidFilter(Criterion invalidFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(invalidFilter)
                 .build();
-        assertThat(service.query(query).failed()).isTrue();
+
+        var result = service.search(query);
+
+        assertThat(result.failed()).isTrue();
     }
 
     @ParameterizedTest
     @ArgumentsSource(ValidFilters.class)
-    void query_validFilter(Criterion validFilter) {
+    void search_validFilter(Criterion validFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(validFilter)
                 .build();
-        service.query(query);
+
+        service.search(query);
+
         verify(store).findAll(query);
     }
 

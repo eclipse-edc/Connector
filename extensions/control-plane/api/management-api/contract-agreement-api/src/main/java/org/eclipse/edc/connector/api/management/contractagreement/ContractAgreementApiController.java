@@ -71,14 +71,12 @@ public class ContractAgreementApiController implements ContractAgreementApi {
                     .orElseThrow(InvalidRequestException::new);
         }
 
-        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class, null))) {
-            return stream
-                    .map(it -> transformerRegistry.transform(it, JsonObject.class))
-                    .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(toJsonArray());
-        }
+        return service.search(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class, null)).stream()
+                .map(it -> transformerRegistry.transform(it, JsonObject.class))
+                .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
     }
 
     @GET

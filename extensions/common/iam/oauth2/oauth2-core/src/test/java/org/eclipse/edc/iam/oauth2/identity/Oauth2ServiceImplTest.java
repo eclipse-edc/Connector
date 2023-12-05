@@ -37,9 +37,11 @@ import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
@@ -72,6 +74,11 @@ class Oauth2ServiceImplTest {
     private static final String PUBLIC_CERTIFICATE_ALIAS = "cert-test";
     private static final String PROVIDER_AUDIENCE = "audience-test";
     private static final String ENDPOINT_AUDIENCE = "endpoint-audience-test";
+
+    private static final VerificationContext VERIFICATION_CONTEXT = VerificationContext.Builder.newInstance()
+            .audience(ENDPOINT_AUDIENCE)
+            .policy(Policy.Builder.newInstance().build())
+            .build();
     private static final String OAUTH2_SERVER_URL = "http://oauth2-server.com";
 
     private final Instant now = Instant.now();
@@ -191,7 +198,7 @@ class Oauth2ServiceImplTest {
     void verifyNoAudienceToken() {
         var jwt = createJwt(null, Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, VERIFICATION_CONTEXT);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -201,7 +208,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAudienceToken() {
         var jwt = createJwt("different.audience", Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, VERIFICATION_CONTEXT);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -211,7 +218,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAttemptUseNotBeforeToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.plusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, VERIFICATION_CONTEXT);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -221,7 +228,7 @@ class Oauth2ServiceImplTest {
     void verifyExpiredToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), Date.from(now.minusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, VERIFICATION_CONTEXT);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -231,7 +238,7 @@ class Oauth2ServiceImplTest {
     void verifyValidJwt() {
         var jwt = createJwt(ENDPOINT_AUDIENCE, Date.from(now.minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
 
-        var result = authService.verifyJwtToken(jwt, ENDPOINT_AUDIENCE);
+        var result = authService.verifyJwtToken(jwt, VERIFICATION_CONTEXT);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims()).hasSize(3).containsKeys(AUDIENCE, NOT_BEFORE, EXPIRATION_TIME);

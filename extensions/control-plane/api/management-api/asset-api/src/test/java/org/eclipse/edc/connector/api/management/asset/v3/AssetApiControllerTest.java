@@ -32,8 +32,8 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -89,8 +89,8 @@ class AssetApiControllerTest extends RestControllerTestBase {
 
     @Test
     void requestAsset() {
-        when(service.query(any()))
-                .thenReturn(ServiceResult.success(Stream.of(Asset.Builder.newInstance().build())));
+        when(service.search(any()))
+                .thenReturn(ServiceResult.success(List.of(Asset.Builder.newInstance().build())));
         when(transformerRegistry.transform(isA(Asset.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(createAssetJson().build()));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
@@ -106,15 +106,15 @@ class AssetApiControllerTest extends RestControllerTestBase {
                 .statusCode(200)
                 .contentType(JSON)
                 .body("size()", is(1));
-        verify(service).query(argThat(s -> s.getOffset() == 10));
+        verify(service).search(argThat(s -> s.getOffset() == 10));
         verify(transformerRegistry).transform(isA(Asset.class), eq(JsonObject.class));
         verify(transformerRegistry).transform(isA(JsonObject.class), eq(QuerySpec.class));
     }
 
     @Test
     void requestAsset_filtersOutFailedTransforms() {
-        when(service.query(any()))
-                .thenReturn(ServiceResult.success(Stream.of(Asset.Builder.newInstance().build())));
+        when(service.search(any()))
+                .thenReturn(ServiceResult.success(List.of(Asset.Builder.newInstance().build())));
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(Asset.class), eq(JsonObject.class)))
@@ -133,7 +133,7 @@ class AssetApiControllerTest extends RestControllerTestBase {
     @Test
     void requestAsset_shouldReturnBadRequest_whenQueryIsInvalid() {
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("test-message"));
+        when(service.search(any())).thenReturn(ServiceResult.badRequest("test-message"));
         when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
 
         baseRequest()
@@ -148,7 +148,7 @@ class AssetApiControllerTest extends RestControllerTestBase {
     void requestAsset_shouldReturnBadRequest_whenQueryTransformFails() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
                 .thenReturn(Result.failure("error"));
-        when(service.query(any())).thenReturn(ServiceResult.success());
+        when(service.search(any())).thenReturn(ServiceResult.success());
         when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
 
         baseRequest()
@@ -163,7 +163,7 @@ class AssetApiControllerTest extends RestControllerTestBase {
     void requestAsset_shouldReturnBadRequest_whenServiceReturnsBadRequest() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
-        when(service.query(any())).thenReturn(ServiceResult.badRequest());
+        when(service.search(any())).thenReturn(ServiceResult.badRequest());
         when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
 
         baseRequest()
