@@ -18,14 +18,18 @@ package org.eclipse.edc.connector.defaults.storage.contractdefinition;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.core.store.ReflectionBasedQueryResolver;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -36,11 +40,36 @@ import static java.lang.String.format;
  */
 public class InMemoryContractDefinitionStore implements ContractDefinitionStore {
     private final Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
-    private final QueryResolver<ContractDefinition> queryResolver = new ReflectionBasedQueryResolver<>(ContractDefinition.class);
+    private final CriterionToContractDefinitionPredicateConverterImpl predicateConverter = new CriterionToContractDefinitionPredicateConverterImpl();
+
+    private final ReentrantReadWriteLock lock;
+
+    public InMemoryContractDefinitionStore() {
+        // fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
+        lock = new ReentrantReadWriteLock(true);
+    }
 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
-        return queryResolver.query(cache.values().stream(), spec);
+
+        lock.readLock().lock();
+        try {
+
+            return filterBy(spec.getFilterExpression())
+                    .skip(spec.getOffset()).limit(spec.getLimit());
+
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    private Stream<ContractDefinition> filterBy(List<Criterion> criteria) {
+        var predicate = criteria.stream()
+                .map(predicateConverter::convert)
+                .reduce(x -> true, Predicate::and);
+
+        return cache.values().stream()
+                .filter(predicate);
     }
 
     @Override

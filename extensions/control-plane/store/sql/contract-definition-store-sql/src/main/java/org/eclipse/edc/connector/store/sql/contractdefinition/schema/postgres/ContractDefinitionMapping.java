@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.store.sql.contractdefinition.schema.postgres;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.store.sql.contractdefinition.schema.ContractDefinitionStatements;
+import org.eclipse.edc.spi.types.PathItem;
 import org.eclipse.edc.sql.translation.JsonFieldMapping;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
@@ -31,5 +32,22 @@ public class ContractDefinitionMapping extends TranslationMapping {
         add("contractPolicyId", statements.getContractPolicyIdColumn());
         add("contractPolicy", statements.getContractPolicyIdColumn());
         add("assetsSelector", new JsonFieldMapping(statements.getAssetsSelectorAlias()));
+        add("privateProperties", new JsonFieldMapping(statements.getPrivatePropertiesColumn()));
     }
+
+
+    @Override
+    public String getStatement(String canonicalPropertyName, Class<?> type) {
+        var standardPath = getStatement(PathItem.parse(canonicalPropertyName), type);
+
+        if (standardPath == null) {
+            var amendedCanonicalPropertyName = canonicalPropertyName.contains("'")
+                    ? "privateProperties.%s".formatted(canonicalPropertyName)
+                    : "privateProperties.'%s'".formatted(canonicalPropertyName);
+            return getStatement(amendedCanonicalPropertyName, type);
+        }
+
+        return standardPath;
+    }
+
 }

@@ -488,6 +488,67 @@ public abstract class ContractDefinitionStoreTestBase {
             var definitionsRetrieved = getContractDefinitionStore().findAll(QuerySpec.max());
             assertThat(definitionsRetrieved).isNotNull().hasSize(2);
         }
+
+
+        @Test
+        void shouldReturn_with_private_propertiesFilter() {
+            var definition1 = createContractDefinition("definition1", "policyId", "contractId", Map.of("key1", "value1"));
+            getContractDefinitionStore().save(definition1);
+            var definition2 = createContractDefinition("definition2", "policyId", "contractId", Map.of("key2", "value2"));
+            getContractDefinitionStore().save(definition2);
+
+
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("'key1'", "=", "value1"))
+                    .build();
+
+            var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("'key2'", "=", "value2"))
+                    .build();
+
+            definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("'key1'", "=", "value2"))
+                    .build();
+
+            definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(0);
+        }
+
+        @Test
+        void shouldReturn_with_complex_private_propertiesFilter() {
+            var definition1 = createContractDefinition("definition1", "policyId", "contractId", Map.of("key1", "value1"));
+            getContractDefinitionStore().save(definition1);
+            var definition2 = createContractDefinition("definition2", "policyId", "contractId", Map.of("key2", "value2"));
+            getContractDefinitionStore().save(definition2);
+
+
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("'key1'", "=", "value1"))
+                    .build();
+
+            var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("'key2'", "=", "value2"))
+                    .build();
+
+            definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+
+            spec = QuerySpec.Builder.newInstance()
+                    .filter(new Criterion("'key1'", "=", "value2"))
+                    .build();
+
+            definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(0);
+        }
     }
 
     @Nested
