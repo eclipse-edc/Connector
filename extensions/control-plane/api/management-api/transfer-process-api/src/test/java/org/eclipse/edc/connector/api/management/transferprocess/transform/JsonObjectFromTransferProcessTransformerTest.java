@@ -31,7 +31,6 @@ import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CALLBACK_ADDRESSES;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CORRELATION_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_DATA_DESTINATION;
@@ -76,7 +75,6 @@ class JsonObjectFromTransferProcessTransformerTest {
                         .id("correlationId")
                         .assetId("assetId")
                         .contractId("contractId")
-                        .connectorId("connectorId")
                         .dataDestination(DataAddress.Builder.newInstance().type("any").properties(Map.of("bar", "foo")).build())
                         .build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
@@ -93,7 +91,6 @@ class JsonObjectFromTransferProcessTransformerTest {
         assertThat(result.getJsonNumber(TRANSFER_PROCESS_STATE_TIMESTAMP).longValue()).isEqualTo(1234L);
         assertThat(result.getString(TRANSFER_PROCESS_ASSET_ID)).isEqualTo("assetId");
         assertThat(result.getString(TRANSFER_PROCESS_CONTRACT_ID)).isEqualTo("contractId");
-        assertThat(result.getString(TRANSFER_PROCESS_CONNECTOR_ID)).isEqualTo("connectorId");
         assertThat(result.getString(TRANSFER_PROCESS_TYPE_TYPE)).isEqualTo(CONSUMER.toString());
         assertThat(result.getJsonObject(TRANSFER_PROCESS_DATA_DESTINATION)).isSameAs(dataDestinationJson);
         assertThat(result.getJsonArray(TRANSFER_PROCESS_CALLBACK_ADDRESSES).get(0)).isSameAs(callbackAddressJson);

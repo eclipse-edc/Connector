@@ -26,7 +26,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
@@ -74,7 +73,6 @@ class JsonObjectToTransferRequestTransformerTest {
                 .add(TRANSFER_REQUEST_PROPERTIES, propertiesJson)
                 .add(TRANSFER_REQUEST_PRIVATE_PROPERTIES, privatePropertiesJson)
                 .add(TRANSFER_REQUEST_PROTOCOL, "protocol")
-                .add(TRANSFER_REQUEST_CONNECTOR_ID, "connectorId")
                 .add(TRANSFER_REQUEST_ASSET_ID, "assetId")
                 .build();
 
@@ -88,7 +86,6 @@ class JsonObjectToTransferRequestTransformerTest {
         assertThat(result.getProperties()).containsAllEntriesOf(properties);
         assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProtocol()).isEqualTo("protocol");
-        assertThat(result.getConnectorId()).isEqualTo("connectorId");
         assertThat(result.getAssetId()).isEqualTo("assetId");
     }
 

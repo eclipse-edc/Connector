@@ -133,7 +133,8 @@ public interface TransferProcessApi {
             String connectorAddress,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
-            @Schema(requiredMode = REQUIRED)
+            @Deprecated(since = "0.3.2")
+            @Schema(deprecated = true, description = "Provider connector id is stored in the contract agreement")
             String connectorId,
             @Schema(requiredMode = REQUIRED)
             String contractId,
@@ -153,7 +154,6 @@ public interface TransferProcessApi {
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TransferRequest",
                     "protocol": "dataspace-protocol-http",
                     "counterPartyAddress": "http://provider-address",
-                    "connectorId": "provider-id",
                     "contractId": "contract-id",
                     "assetId": "asset-id",
                     "dataDestination": {
@@ -203,7 +203,6 @@ public interface TransferProcessApi {
                     "state": "STARTED",
                     "stateTimestamp": 1688465655,
                     "assetId": "asset-id",
-                    "connectorId": "connectorId",
                     "contractId": "contractId",
                     "dataDestination": {
                         "type": "data-destination-type"
