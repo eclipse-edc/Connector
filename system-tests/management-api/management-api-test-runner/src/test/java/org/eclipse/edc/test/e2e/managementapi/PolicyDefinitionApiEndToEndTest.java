@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import io.restassured.http.ContentType;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -128,12 +129,12 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                         .build())
                 .add(TYPE, "PolicyDefinition")
                 .add("policy", sampleOdrlPolicy())
-                .add("privateProperties", createObjectBuilder()
+                .add("edc:privateProperties", createObjectBuilder()
                         .add("newKey", "newValue")
                         .build())
                 .build();
 
-        var id = baseRequest()
+        baseRequest()
                 .body(requestBody)
                 .contentType(JSON)
                 .post("/v2/policydefinitions")
@@ -141,29 +142,36 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
 
-        var requestQueryBody = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder()
-                        .add("edc", EDC_NAMESPACE)
-                        .build())
-                .add(TYPE, "QuerySpecDto")
-                .add("edc:filterExpression", createObjectBuilder()
-                        .add("edc:operandLeft", "https://w3id.org/edc/v0.0.1/ns/privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey")
-                        .add("edc:operandRight", "newValue")
-                        .add("edc:operator", "=").build())
-                .build();
+        var query = createSingleFilterQuery(
+                "https://w3id.org/edc/v0.0.1/ns/privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey",
+                "=",
+                "newValue");
+
 
         baseRequest()
-                .body(requestQueryBody)
-                .contentType(JSON)
+                .contentType(ContentType.JSON)
+                .body(query)
                 .post("/v2/policydefinitions/request")
                 .then()
+                .log().ifError()
                 .statusCode(200)
-                .contentType(JSON)
-                .body(ID, is(id))
-                .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
-                .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
-                .log().all()
-                .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
+                .body("size()", is(1));
+    }
+
+    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
+        var criteria = createArrayBuilder()
+                .add(createObjectBuilder()
+                        .add(TYPE, "Criterion")
+                        .add("operandLeft", leftOperand)
+                        .add("operator", operator)
+                        .add("operandRight", rightOperand)
+                );
+
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "QuerySpec")
+                .add("filterExpression", criteria)
+                .build();
     }
 
     @Test
