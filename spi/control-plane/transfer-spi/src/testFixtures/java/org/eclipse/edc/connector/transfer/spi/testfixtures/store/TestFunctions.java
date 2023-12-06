@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -52,7 +53,6 @@ public class TestFunctions {
                         .build())
                 .connectorAddress("http://some-connector.com")
                 .protocol("protocol")
-                .connectorId("some-connector")
                 .contractId("some-contract")
                 .assetId(Asset.Builder.newInstance().id("asset-id").build().getId())
                 .processId("test-process-id");

@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
@@ -53,7 +52,6 @@ class TransferRequestValidatorTest {
                 .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
                 .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
                 .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
-                .add(TRANSFER_REQUEST_CONNECTOR_ID, value("connectorId"))
                 .add(TRANSFER_REQUEST_ASSET_ID, value("assetId"))
                 .add(TRANSFER_REQUEST_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
                         .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("type"))
@@ -71,7 +69,6 @@ class TransferRequestValidatorTest {
                 .add(TRANSFER_REQUEST_CONNECTOR_ADDRESS, value("http://connector-address"))
                 .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
                 .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
-                .add(TRANSFER_REQUEST_CONNECTOR_ID, value("connectorId"))
                 .add(TRANSFER_REQUEST_ASSET_ID, value("assetId"))
                 .add(TRANSFER_REQUEST_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
                         .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("type"))
@@ -109,7 +106,6 @@ class TransferRequestValidatorTest {
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONTRACT_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_PROTOCOL))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_CONNECTOR_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_ASSET_ID))
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TRANSFER_REQUEST_DATA_DESTINATION));
     }
