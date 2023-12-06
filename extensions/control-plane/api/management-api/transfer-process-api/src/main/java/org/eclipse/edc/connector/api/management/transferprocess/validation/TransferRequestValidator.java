@@ -28,7 +28,6 @@ import org.eclipse.edc.validator.spi.Validator;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ADDRESS;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONNECTOR_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
@@ -43,7 +42,6 @@ public class TransferRequestValidator {
                 .verify(path -> new MandatoryCounterPartyAddressOrConnectorAddress(path, monitor))
                 .verify(TRANSFER_REQUEST_CONTRACT_ID, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_PROTOCOL, MandatoryValue::new)
-                .verify(TRANSFER_REQUEST_CONNECTOR_ID, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_ASSET_ID, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_DATA_DESTINATION, MandatoryObject::new)
                 .verifyObject(TRANSFER_REQUEST_DATA_DESTINATION, DataAddressValidator::instance)

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -31,7 +32,6 @@ public class DataRequest implements Polymorphic {
     private String processId;
     private String connectorAddress;
     private String protocol;
-    private String connectorId;
     private String assetId;
     private String contractId;
     private DataAddress dataDestination;
@@ -69,13 +69,6 @@ public class DataRequest implements Polymorphic {
      */
     public String getConnectorAddress() {
         return connectorAddress;
-    }
-
-    /**
-     * The provider connector id.
-     */
-    public String getConnectorId() {
-        return connectorId;
     }
 
     /**
@@ -140,11 +133,6 @@ public class DataRequest implements Polymorphic {
 
         public Builder protocol(String protocol) {
             request.protocol = protocol;
-            return this;
-        }
-
-        public Builder connectorId(String connectorId) {
-            request.connectorId = connectorId;
             return this;
         }
 
