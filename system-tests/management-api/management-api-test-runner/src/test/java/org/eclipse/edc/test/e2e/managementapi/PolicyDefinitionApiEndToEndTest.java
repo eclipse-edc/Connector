@@ -154,6 +154,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
         baseRequest()
                 .body(requestQueryBody)
+                .contentType(JSON)
                 .post("/v2/policydefinitions/request")
                 .then()
                 .statusCode(200)
