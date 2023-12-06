@@ -121,6 +121,51 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
     }
 
     @Test
+    void queryPolicyDefinitionWithSimplePrivateProperties() {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add("edc", EDC_NAMESPACE)
+                        .build())
+                .add(TYPE, "PolicyDefinition")
+                .add("policy", sampleOdrlPolicy())
+                .add("privateProperties", createObjectBuilder()
+                        .add("newKey", "newValue")
+                        .build())
+                .build();
+
+        var id = baseRequest()
+                .body(requestBody)
+                .contentType(JSON)
+                .post("/v2/policydefinitions")
+                .then()
+                .contentType(JSON)
+                .extract().jsonPath().getString(ID);
+
+        var requestQueryBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add("edc", EDC_NAMESPACE)
+                        .build())
+                .add(TYPE, "QuerySpecDto")
+                .add("edc:filterExpression", createObjectBuilder()
+                        .add("edc:operandLeft", "https://w3id.org/edc/v0.0.1/ns/privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey")
+                        .add("edc:operandRight", "newValue")
+                        .add("edc:operator", "=").build())
+                .build();
+
+        baseRequest()
+                .body(requestQueryBody)
+                .post("/v2/policydefinitions/request")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body(ID, is(id))
+                .body(CONTEXT, hasEntry(EDC_PREFIX, EDC_NAMESPACE))
+                .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
+                .log().all()
+                .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
+    }
+
+    @Test
     void shouldUpdate() {
         var requestBody = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder()
