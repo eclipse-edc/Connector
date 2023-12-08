@@ -129,7 +129,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                         .build())
                 .add(TYPE, "PolicyDefinition")
                 .add("policy", sampleOdrlPolicy())
-                .add("edc:privateProperties", createObjectBuilder()
+                .add("privateProperties", createObjectBuilder()
                         .add("newKey", "newValue")
                         .build())
                 .build();
@@ -143,20 +143,30 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .extract().jsonPath().getString(ID);
 
 
+        var createdAt = baseRequest()
+                .contentType(JSON)
+                .post("/v2/policydefinitions/request")
+                .then()
+                .statusCode(200)
+                .extract().as(JsonArray.class)
+                .get(0).asJsonObject()
+                .getJsonNumber("createdAt").longValue();
+
         var query = createSingleFilterQuery(
                 "edc:privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
                 "=",
                 "newValue");
 
 
-        var resp = baseRequest()
+        var ret = baseRequest()
                 .body(query)
-                .contentType(ContentType.JSON)
-                .post("/v2/policydefinitions/request");
-        resp.then().log().all();
-
-        resp.getBody().print();
-        assertThat(toString()).isEqualTo("");
+                .contentType(JSON)
+                .post("/v2/policydefinitions/request")
+                .then()
+                .statusCode(200)
+                .extract().as(JsonArray.class)
+                .get(0).asJsonObject()
+                .getJsonNumber("createdAt").longValue();
     }
 
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
