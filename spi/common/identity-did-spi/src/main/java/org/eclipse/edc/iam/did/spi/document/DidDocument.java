@@ -28,6 +28,7 @@ import java.util.List;
 @JsonDeserialize(builder = DidDocument.Builder.class)
 public class DidDocument {
 
+    public static final String DID_RESOLUTION_CONTEXT = "https://w3id.org/did-resolution/v1";
     private final List<Service> service = new ArrayList<>();
     @JsonProperty("@context")
     private final List<Object> context = new ArrayList<>();
@@ -100,8 +101,9 @@ public class DidDocument {
         }
 
         public DidDocument build() {
-            if (document.context.isEmpty())
-                document.context.add("https://w3id.org/did-resolution/v1");
+            if (!document.context.contains(DID_RESOLUTION_CONTEXT)) {
+                document.context.add(DID_RESOLUTION_CONTEXT);
+            }
             return document;
         }
     }
