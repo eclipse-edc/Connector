@@ -142,6 +142,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
 
+
         var query = createSingleFilterQuery(
                 "https://w3id.org/edc/v0.0.1/ns/privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey",
                 "=",
@@ -152,7 +153,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .contentType(ContentType.JSON)
                 .body(query)
                 .post("/v2/policydefinitions/request");
-        System.out.println(resp.getBody().toString());
+        assertThat(resp.getBody().toString()).isEqualTo("");
     }
 
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
