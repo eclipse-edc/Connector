@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
-import io.restassured.http.ContentType;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -129,7 +128,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                         .build())
                 .add(TYPE, "PolicyDefinition")
                 .add("policy", sampleOdrlPolicy())
-                .add("privateProperties", createObjectBuilder()
+                .add("edc:privateProperties", createObjectBuilder()
                         .add("newKey", "newValue")
                         .build())
                 .build();
@@ -153,16 +152,18 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .getJsonNumber("createdAt").longValue();
 
         var query = createSingleFilterQuery(
-                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
+                "https://w3id.org/edc/v0.0.1/ns/privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
                 "=",
                 "newValue");
 
-        var ret = baseRequest()
+        baseRequest()
                 .body(query)
                 .contentType(JSON)
                 .post("/v2/policydefinitions/request")
                 .then()
-                .statusCode(200);
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(1));
     }
 
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
