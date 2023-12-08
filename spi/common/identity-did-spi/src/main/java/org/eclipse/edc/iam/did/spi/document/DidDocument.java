@@ -28,12 +28,12 @@ import java.util.List;
 @JsonDeserialize(builder = DidDocument.Builder.class)
 public class DidDocument {
 
-    private String id;
     private final List<Service> service = new ArrayList<>();
     @JsonProperty("@context")
-    private final List<Object> context = new ArrayList<>(List.of("https://w3id.org/did-resolution/v1"));
+    private final List<Object> context = new ArrayList<>();
     private final List<VerificationMethod> verificationMethod = new ArrayList<>();
     private final List<String> authentication = new ArrayList<>();
+    private String id;
 
     public String getId() {
         return id;
@@ -100,6 +100,8 @@ public class DidDocument {
         }
 
         public DidDocument build() {
+            if (document.context.isEmpty())
+                document.context.add("https://w3id.org/did-resolution/v1");
             return document;
         }
     }
