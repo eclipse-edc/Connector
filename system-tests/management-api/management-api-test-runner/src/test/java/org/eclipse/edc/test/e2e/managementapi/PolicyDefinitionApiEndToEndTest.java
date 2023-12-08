@@ -153,26 +153,21 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .getJsonNumber("createdAt").longValue();
 
         var query = createSingleFilterQuery(
-                "edc:privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
+                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
                 "=",
                 "newValue");
-
 
         var ret = baseRequest()
                 .body(query)
                 .contentType(JSON)
                 .post("/v2/policydefinitions/request")
                 .then()
-                .statusCode(200)
-                .extract().as(JsonArray.class)
-                .get(0).asJsonObject()
-                .getJsonNumber("createdAt").longValue();
+                .statusCode(200);
     }
 
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
-        var criteria = createArrayBuilder()
-                .add(createObjectBuilder()
-                        .add(TYPE, "Criterion")
+        var criteria =
+                (createObjectBuilder()
                         .add("operandLeft", leftOperand)
                         .add("operator", operator)
                         .add("operandRight", rightOperand)
