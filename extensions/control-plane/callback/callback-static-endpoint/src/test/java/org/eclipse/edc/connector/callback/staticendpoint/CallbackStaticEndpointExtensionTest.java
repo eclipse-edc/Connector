@@ -39,7 +39,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.callback.staticendpoint.CallbackStaticEndpointExtension.EDC_CALLBACK_SETTING_PREFIX;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,20 +46,16 @@ import static org.mockito.Mockito.when;
 public class CallbackStaticEndpointExtensionTest {
 
     CallbackStaticEndpointExtension extension;
-
     CallbackRegistry callbackRegistry = mock(CallbackRegistry.class);
-
-    ServiceExtensionContext context;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(CallbackRegistry.class, callbackRegistry);
         extension = factory.constructInstance(CallbackStaticEndpointExtension.class);
-        this.context = spy(context);
     }
 
     @Test
-    void initialize_shouldConfigureMultipleCallbacks() {
+    void initialize_shouldConfigureMultipleCallbacks(ServiceExtensionContext context) {
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("http://url2")
                 .transactional(false)
@@ -91,7 +86,7 @@ public class CallbackStaticEndpointExtensionTest {
 
     @ParameterizedTest
     @ArgumentsSource(CallbackArgumentProvider.class)
-    void initialize_shouldThrow_WhenWrongConfiguration(Map<String, String> callbackConfig) {
+    void initialize_shouldThrow_WhenWrongConfiguration(Map<String, String> callbackConfig, ServiceExtensionContext context) {
 
         var cfg = ConfigFactory.fromMap(callbackConfig);
 
