@@ -50,7 +50,6 @@ import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConf
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,7 +63,6 @@ class TransferDataPlaneCoreExtensionTest {
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final KeyPairFactory keyPairFactory = mock();
     private KeyPair keypair;
-    private ServiceExtensionContext context;
     private TransferDataPlaneCoreExtension extension;
 
     private static KeyPair keyPair() throws JOSEException {
@@ -99,14 +97,13 @@ class TransferDataPlaneCoreExtensionTest {
         context.registerService(Vault.class, vault);
         context.registerService(KeyPairFactory.class, keyPairFactory);
 
-        this.context = spy(context); //used to inject the config
-        when(this.context.getMonitor()).thenReturn(monitor);
+        when(context.getMonitor()).thenReturn(monitor);
 
         extension = factory.constructInstance(TransferDataPlaneCoreExtension.class);
     }
 
     @Test
-    void verifyInitializeSuccess() throws IOException, JOSEException {
+    void verifyInitializeSuccess(ServiceExtensionContext context) throws IOException {
         var publicKeyAlias = "publicKey";
         var privateKeyAlias = "privateKey";
         var config = mock(Config.class);
