@@ -141,25 +141,19 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
 
-
-        var resp = baseRequest()
-                .contentType(JSON)
-                .post("/v2/policydefinitions/request");
-
-        assertThat(resp.getBody().asPrettyString()).isEqualTo("tesyt");
-
         var query = createSingleFilterQuery(
-                "https://w3id.org/edc/v0.0.1/ns/newKey/privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey",
+                "privateProperties.newKey",
                 "=",
                 "newValue");
 
-        resp = baseRequest()
+        baseRequest()
                 .body(query)
                 .contentType(JSON)
-                .post("/v2/policydefinitions/request");
-        System.out.println(resp.getBody().asPrettyString());
-
-        assertThat(resp.getBody().asPrettyString()).isEqualTo("tesyt");
+                .post("/v2/policydefinitions/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(1));
     }
 
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
