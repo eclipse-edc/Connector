@@ -160,9 +160,9 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .body(query)
                 .contentType(JSON)
                 .post("/v2/policydefinitions/request");
-        System.out.println(resp.getBody().toString());
+        System.out.println(resp.getBody().asPrettyString());
 
-        assertThat(resp.getBody().toString()).isEqualTo("tesyt");
+        assertThat(resp.getBody().asPrettyString()).isEqualTo("tesyt");
     }
 
     private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
