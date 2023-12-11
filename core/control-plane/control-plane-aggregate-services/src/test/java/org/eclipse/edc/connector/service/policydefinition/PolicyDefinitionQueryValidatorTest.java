@@ -40,22 +40,12 @@ class PolicyDefinitionQueryValidatorTest {
             Expression.class, List.of(LiteralExpression.class)
     ));
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "someCustomVal",
-            "_anotherValidVal",
-
-    })
-    void validate_validProperty(String key) {
-        var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion(key, "=", "someval"))).build();
-        assertThat(validator.validate(query).succeeded()).isTrue();
-    }
 
     @ParameterizedTest
     @ValueSource(strings = {
 
-            "/someValue", //leading slash
-            "42ValidValues" //leading number
+            ".someValue", //leading slash
+            "<42ValidValues" //leading number
     })
     void validate_invalidProperty(String key) {
         var query = QuerySpec.Builder.newInstance()

@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
-
 public class PolicyDefinitionQueryValidator extends QueryValidator {
     private static final Pattern VALID_QUERY_PATH_REGEX = Pattern.compile("^[A-Za-z_]+.*$");
 
@@ -38,10 +36,11 @@ public class PolicyDefinitionQueryValidator extends QueryValidator {
      */
     @Override
     protected Result<Void> isValid(String path) {
-        if (VALID_QUERY_PATH_REGEX.matcher(path).matches()) {
+        if (path.contains("privateProperties.") && VALID_QUERY_PATH_REGEX.matcher(path).matches()) {
             return Result.success();
+        } else {
+            return super.isValid(path);
         }
-        return Result.failure(format("The query path must start with a letter or an '_' but was '%s'", path));
     }
 
 }

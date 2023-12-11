@@ -90,6 +90,18 @@ class PolicyDefinitionServiceImplTest {
         assertThat(result).isFailed();
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(ValidFilters.class)
+    void search_validExpression_privateProperties(Criterion validFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(validFilter)
+                .build();
+
+        var result = policyServiceImpl.search(query);
+
+        assertThat(result).isSucceeded();
+    }
+
     @Test
     void createPolicy_shouldCreatePolicyIfItDoesNotAlreadyExist() {
         var policy = createPolicy("policyId");
@@ -237,6 +249,19 @@ class PolicyDefinitionServiceImplTest {
                     arguments(criterion("policy.permissions.action.constraint.noexist", "=", "123455")), // wrong property
                     arguments(criterion("permissions.action.constraint.leftExpression", "=", "123455")), // missing root
                     arguments(criterion("policy.permissions.action.leftExpression", "=", "123455")) // skips path element
+            );
+        }
+    }
+
+    private static class ValidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("privateProperties", "=", "123455")), // skips path element
+                    arguments(criterion("privateProperties.key", "=", "123455")), // skips path element
+                    arguments(criterion("https://w3id.org/edc/v0.0.1/ns/privateProperties.key", "=", "123455")), // skips path element
+                    arguments(criterion("https://w3id.org/edc/v0.0.1/ns/privateProperties.https://w3id.org/edc/v0.0.1/ns/privateProperties/key", "=", "123455")) // skips path element
+
             );
         }
     }

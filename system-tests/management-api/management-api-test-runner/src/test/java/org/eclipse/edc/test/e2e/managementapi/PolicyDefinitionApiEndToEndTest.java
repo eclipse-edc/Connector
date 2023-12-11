@@ -152,7 +152,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .getJsonNumber("createdAt").longValue();
 
         var query = createSingleFilterQuery(
-                "privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey",
+                "https://w3id.org/edc/v0.0.1/ns/newKey/privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey",
                 "=",
                 "newValue");
 
