@@ -30,19 +30,12 @@ import static java.lang.String.format;
  * Parses a {@link Criterion} and provides methods to validate it and extract SQL prepared statement placeholders and
  * parameters.
  */
-public class SqlConditionExpression {
-
+public record SqlConditionExpression(Criterion criterion) {
     private static final String IN_OPERATOR = "in";
     private static final String LIKE_OPERATOR = "like";
     private static final String EQUALS_OPERATOR = "=";
     private static final List<String> SUPPORTED_PREPARED_STATEMENT_OPERATORS = List.of(EQUALS_OPERATOR, LIKE_OPERATOR, IN_OPERATOR);
     private static final String PREPARED_STATEMENT_PLACEHOLDER = "?";
-    private final Criterion criterion;
-
-    public SqlConditionExpression(Criterion criterion) {
-
-        this.criterion = criterion;
-    }
 
     /**
      * Returns condition expression SQL representation.
