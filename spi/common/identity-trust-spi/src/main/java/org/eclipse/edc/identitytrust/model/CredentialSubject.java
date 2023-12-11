@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.identitytrust.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,8 +30,14 @@ public class CredentialSubject {
     private Map<String, Object> claims = new HashMap<>();
     private String id;
 
+    @JsonAnyGetter
     public Map<String, Object> getClaims() {
         return claims;
+    }
+
+    @JsonAnySetter
+    public void setClaim(String name, Object value) {
+        claims.put(name, value);
     }
 
     public String getId() {
