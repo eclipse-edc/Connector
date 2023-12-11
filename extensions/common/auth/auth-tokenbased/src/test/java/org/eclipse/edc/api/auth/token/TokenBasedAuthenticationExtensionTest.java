@@ -17,7 +17,6 @@ package org.eclipse.edc.api.auth.token;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,78 +26,55 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class TokenBasedAuthenticationExtensionTest {
 
-    private TokenBasedAuthenticationExtension extension;
-
     private static final String AUTH_SETTING_APIKEY = "edc.api.auth.key";
-
     private static final String AUTH_SETTING_APIKEY_ALIAS = "edc.api.auth.key.alias";
-
     private static final String VAULT_KEY = "foo";
 
-    private Vault vaultMock;
-    private ServiceExtensionContext serviceExtensionContextMock;
+    private final Vault vault = mock();
 
     @BeforeEach
-    void setup(ServiceExtensionContext context, ObjectFactory factory) {
+    void setup(ServiceExtensionContext context) {
+        context.registerService(Vault.class, vault);
 
-        serviceExtensionContextMock = spy(context); //used to inject the config
-        vaultMock = mock(Vault.class);
-
-        context.registerService(Vault.class, vaultMock);
-        context.registerService(ServiceExtensionContext.class, serviceExtensionContextMock);
-
-        when(vaultMock.resolveSecret(VAULT_KEY)).thenReturn("foo");
-
-        extension = factory.constructInstance(TokenBasedAuthenticationExtension.class);
+        when(vault.resolveSecret(VAULT_KEY)).thenReturn("foo");
     }
 
     @Test
-    public void testPrimaryMethod_loadKeyFromVault() {
-        setAuthSettingApiKeyAlias(VAULT_KEY);
-        setAuthSettingApiKey("bar");
+    public void testPrimaryMethod_loadKeyFromVault(ServiceExtensionContext context, TokenBasedAuthenticationExtension extension) {
+        when(context.getSetting(eq(AUTH_SETTING_APIKEY_ALIAS), isNull())).thenReturn(VAULT_KEY);
+        when(context.getSetting(eq(AUTH_SETTING_APIKEY), anyString())).thenReturn("bar");
 
-        extension.initialize(serviceExtensionContextMock);
+        extension.initialize(context);
 
-        verify(serviceExtensionContextMock, never())
+        verify(context, never())
                 .getSetting(eq(AUTH_SETTING_APIKEY), anyString());
 
-        verify(serviceExtensionContextMock)
+        verify(context)
                 .getSetting(AUTH_SETTING_APIKEY_ALIAS, null);
 
-        verify(vaultMock).resolveSecret(VAULT_KEY);
+        verify(vault).resolveSecret(VAULT_KEY);
     }
 
     @Test
-    public void testSecondaryMethod_loadKeyFromConfig() {
+    public void testSecondaryMethod_loadKeyFromConfig(ServiceExtensionContext context, TokenBasedAuthenticationExtension extension) {
+        when(context.getSetting(eq(AUTH_SETTING_APIKEY_ALIAS), isNull())).thenReturn(null);
+        when(context.getSetting(eq(AUTH_SETTING_APIKEY), anyString())).thenReturn("bar");
 
-        setAuthSettingApiKeyAlias(null);
-        setAuthSettingApiKey("bar");
+        extension.initialize(context);
 
-        extension.initialize(serviceExtensionContextMock);
-
-        verify(serviceExtensionContextMock)
+        verify(context)
                 .getSetting(eq(AUTH_SETTING_APIKEY), anyString());
 
-        verify(serviceExtensionContextMock)
+        verify(context)
                 .getSetting(AUTH_SETTING_APIKEY_ALIAS, null);
 
-        verify(vaultMock, never()).resolveSecret(anyString());
+        verify(vault, never()).resolveSecret(anyString());
     }
 
-    private void setAuthSettingApiKey(String value) {
-        when(serviceExtensionContextMock.getSetting(eq(AUTH_SETTING_APIKEY), anyString()))
-                .thenReturn(value);
-    }
-
-    private void setAuthSettingApiKeyAlias(String value) {
-        when(serviceExtensionContextMock.getSetting(eq(AUTH_SETTING_APIKEY_ALIAS), isNull()))
-                .thenReturn(value);
-    }
 }
