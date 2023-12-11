@@ -128,7 +128,7 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                         .build())
                 .add(TYPE, "PolicyDefinition")
                 .add("policy", sampleOdrlPolicy())
-                .add("edc:privateProperties", createObjectBuilder()
+                .add("privateProperties", createObjectBuilder()
                         .add("newKey", "newValue")
                         .build())
                 .build();
@@ -142,21 +142,18 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .extract().jsonPath().getString(ID);
 
 
-        var createdAt = baseRequest()
+        var resp = baseRequest()
                 .contentType(JSON)
-                .post("/v2/policydefinitions/request")
-                .then()
-                .statusCode(200)
-                .extract().as(JsonArray.class)
-                .get(0).asJsonObject()
-                .getJsonNumber("createdAt").longValue();
+                .post("/v2/policydefinitions/request");
+
+        assertThat(resp.getBody().asPrettyString()).isEqualTo("tesyt");
 
         var query = createSingleFilterQuery(
                 "https://w3id.org/edc/v0.0.1/ns/newKey/privateProperties.https://w3id.org/edc/v0.0.1/ns/newKey",
                 "=",
                 "newValue");
 
-        var resp = baseRequest()
+        resp = baseRequest()
                 .body(query)
                 .contentType(JSON)
                 .post("/v2/policydefinitions/request");
