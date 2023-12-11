@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(libs.jackson.annotations)
     api(libs.jackson.databind)
+    api(libs.jetbrains.annotations)
 }
 
 
