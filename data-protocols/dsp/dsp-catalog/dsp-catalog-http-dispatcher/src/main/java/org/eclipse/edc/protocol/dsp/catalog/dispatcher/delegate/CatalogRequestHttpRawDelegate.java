@@ -42,9 +42,8 @@ public class CatalogRequestHttpRawDelegate extends DspHttpDispatcherDelegate<byt
     public Function<Response, byte[]> parseResponse() {
         return response -> {
             try {
-                assert response.body() != null;
+                //noinspection DataFlowIssue
                 return response.body().bytes();
-
             } catch (NullPointerException e) {
                 throw new EdcException("Failed to read response body, as body was null.", e);
             } catch (IOException e) {

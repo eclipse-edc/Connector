@@ -43,7 +43,7 @@ public class ContractRequestMessageHttpDelegate extends DspHttpDispatcherDelegat
     public Function<Response, Object> parseResponse() {
         return response -> {
             try {
-                assert response.body() != null;
+                //noinspection DataFlowIssue
                 var jsonObject = mapper.readValue(response.body().bytes(), JsonObject.class);
                 return jsonLdService.expand(jsonObject).map(jo -> jo).orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
             } catch (NullPointerException e) {
