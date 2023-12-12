@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
@@ -34,6 +35,7 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 
 @EndToEndTest
 public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
@@ -57,6 +59,65 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
 
         var criteria = body.getJsonObject(0).getJsonArray("assetsSelector");
         assertThat(criteria).hasSize(2);
+    }
+
+    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
+        var criteria =
+                (createObjectBuilder()
+                        .add("operandLeft", leftOperand)
+                        .add("operator", operator)
+                        .add("operandRight", rightOperand)
+                );
+
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "QuerySpec")
+                .add("filterExpression", criteria)
+                .build();
+    }
+
+    @Test
+    void queryPolicyDefinitionWithSimplePrivateProperties() {
+        var requestJson = createDefinitionBuilderWithPrivateProperties()
+                .build();
+
+        baseRequest()
+                .contentType(JSON)
+                .body(requestJson)
+                .post("/v2/contractdefinitions")
+                .then()
+                .statusCode(200)
+                .body("@id", equalTo(TEST_ID));
+
+
+        var query = createSingleFilterQuery(
+                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
+                "=",
+                "newValue");
+
+        baseRequest()
+                .body(query)
+                .contentType(JSON)
+                .post("/v2/contractdefinitions/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(1));
+
+
+        query = createSingleFilterQuery(
+                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
+                "=",
+                "somethingElse");
+
+        baseRequest()
+                .body(query)
+                .contentType(JSON)
+                .post("/v2/contractdefinitions/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(0));
     }
 
     @Test
@@ -143,6 +204,21 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .add("assetsSelector", createArrayBuilder()
                         .add(createCriterionBuilder("foo", "=", "bar"))
                         .add(createCriterionBuilder("bar", "=", "baz")).build());
+    }
+
+    private JsonObjectBuilder createDefinitionBuilderWithPrivateProperties() {
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
+                .add(ID, TEST_ID)
+                .add("accessPolicyId", TEST_AP_ID)
+                .add("contractPolicyId", TEST_CP_ID)
+                .add("assetsSelector", createArrayBuilder()
+                        .add(createCriterionBuilder("foo", "=", "bar"))
+                        .add(createCriterionBuilder("bar", "=", "baz")).build())
+                .add("edc:privateProperties", createObjectBuilder()
+                        .add("newKey", "newValue")
+                        .build());
     }
 
     private static JsonObjectBuilder createCriterionBuilder(String left, String operator, String right) {
