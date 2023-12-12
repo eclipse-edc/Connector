@@ -48,7 +48,7 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
     @BeforeEach
     void setUp() {
         jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
-        delegate = new ContractRequestMessageHttpDelegate(serializer, mapper, jsonLdService);
+        delegate = new ContractRequestMessageHttpDelegate(mapper, jsonLdService);
     }
 
     @Test
@@ -80,7 +80,7 @@ class ContractRequestMessageHttpDelegateTest extends DspHttpDispatcherDelegateTe
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<ContractRequestMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 

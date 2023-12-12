@@ -26,7 +26,7 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
 
     @BeforeEach
     void setUp() {
-        delegate = new TransferRequestDelegate(serializer);
+        delegate = new TransferRequestDelegate();
     }
 
     @Test
@@ -35,7 +35,7 @@ class TransferRequestDelegateTest extends DspHttpDispatcherDelegateTestBase<Tran
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<TransferRequestMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 
