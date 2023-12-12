@@ -42,6 +42,7 @@ public class DatasetRequestHttpRawDelegate extends DspHttpDispatcherDelegate<byt
     public Function<Response, byte[]> parseResponse() {
         return response -> {
             try {
+                assert response.body() != null;
                 return response.body().bytes();
 
             } catch (NullPointerException e) {
