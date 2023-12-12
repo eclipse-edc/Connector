@@ -1,7 +1,8 @@
+Data Plane Signaling and Access Control Architecture
 
 # Decision
 
-EDC will implement the Data Plane Signaling Protocol as described [here](). The Signaling Protocol defines how a control plane starts, suspends, and terminates a data flow in a data plane.
+EDC will implement the Data Plane Signaling Protocol as described [here](../../data-plane-signaling/data-plane-signaling.md). The Signaling Protocol defines how a control plane starts, suspends, and terminates a data flow in a data plane.
 
 # Rationale
 
