@@ -15,18 +15,16 @@
 package org.eclipse.edc.protocol.dsp.negotiation.dispatcher.delegate;
 
 import okhttp3.Response;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
-import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 
 import java.util.function.Function;
 
 /**
  * Delegate for dispatching contract offer message as defined in the dataspace protocol specification.
  */
-public class ContractOfferMessageHttpDelegate extends DspHttpDispatcherDelegate<ContractOfferMessage, Object> {
-    
-    public ContractOfferMessageHttpDelegate(JsonLdRemoteMessageSerializer serializer) {
+public class ContractOfferMessageHttpDelegate extends DspHttpDispatcherDelegate<Object> {
+
+    public ContractOfferMessageHttpDelegate() {
         super();
     }
 

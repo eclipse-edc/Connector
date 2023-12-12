@@ -35,7 +35,7 @@ class TransferCompletionDelegateTest extends DspHttpDispatcherDelegateTestBase<T
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<TransferCompletionMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 }

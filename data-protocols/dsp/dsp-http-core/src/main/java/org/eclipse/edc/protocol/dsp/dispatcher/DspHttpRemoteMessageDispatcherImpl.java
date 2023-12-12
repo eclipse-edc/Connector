@@ -108,11 +108,11 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @Override
-    public <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<M, R> delegate) {
+    public <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<R> delegate) {
         handlers.put(clazz, new Handlers<>(requestFactory, delegate));
     }
 
-    private record Handlers<M extends RemoteMessage, R>(DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<M, R> delegate) { }
+    private record Handlers<M extends RemoteMessage, R>(DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<R> delegate) { }
 
     private record PolicyScope<M extends RemoteMessage>(Class<M> messageClass, String scope, Function<M, Policy> policyProvider) {}
 

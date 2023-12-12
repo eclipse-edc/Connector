@@ -57,7 +57,7 @@ class DatasetRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<DatasetRequestMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 
