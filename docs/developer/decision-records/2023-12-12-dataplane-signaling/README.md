@@ -6,7 +6,7 @@ EDC will implement the Data Plane Signaling Protocol as described [here](../../d
 
 # Rationale
 
-The EDC control plane currently implements an unspecified communication protocol when initiating flows in its proprietary data plane implementation, the DPF. In addition to being proprietary and undocumented, the communication has significant limitations. these include the inability to suspend flows and lack of adequate access token management.  
+The EDC control plane currently implements an unspecified communication protocol when initiating flows in its proprietary data plane implementation, the DPF. In addition to being proprietary and undocumented, the communication has significant limitations. These include the inability to suspend flows and lack of adequate access token management.  
 
 The Data Plane Signaling Protocol will be the foundation for the EDC control plane to interoperate with third-party data planes. It defines standardized messages and access control behavior that allow third-party data planes to work out-of-the-box with EDC-based control planes.
 
