@@ -14,8 +14,13 @@
 
 package org.eclipse.edc.identitytrust.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CredentialSubjectTest {
@@ -30,5 +35,24 @@ class CredentialSubjectTest {
                 .claims(null)
                 .build())
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void serDes() throws JsonProcessingException {
+        var mapper = new ObjectMapper();
+        var cred = CredentialSubject.Builder.newInstance()
+                .claim("key", "val")
+                .claim("complex", Map.of("sub", "subval"))
+                .build();
+
+        var json = mapper.writeValueAsString(cred);
+
+        assertThat(json).containsIgnoringWhitespaces("sub\": \"subval");
+
+        var deserialized = mapper.readValue(json, CredentialSubject.class);
+        assertThat(deserialized.getClaims()).hasSize(2)
+                .containsEntry("key", "val")
+                .containsKey("complex")
+                .hasEntrySatisfying("complex", o -> assertThat(o).isInstanceOf(Map.class));
     }
 }

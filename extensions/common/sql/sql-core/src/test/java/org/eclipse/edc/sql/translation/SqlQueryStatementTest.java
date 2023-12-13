@@ -121,6 +121,15 @@ class SqlQueryStatementTest {
         assertThat(t.getParameters()).containsExactly("testid1", customParameter, 50, 0);
     }
 
+    @Test
+    void expression_withUnsupportedOperator_noValidate() {
+        var criterion = new Criterion("field1", "??", "testid1");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping(), false);
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 ?? ? LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsOnly("testid1", 50, 0);
+    }
+
     private QuerySpec.Builder queryBuilder(Criterion... criterion) {
         return QuerySpec.Builder.newInstance().filter(List.of(criterion));
     }

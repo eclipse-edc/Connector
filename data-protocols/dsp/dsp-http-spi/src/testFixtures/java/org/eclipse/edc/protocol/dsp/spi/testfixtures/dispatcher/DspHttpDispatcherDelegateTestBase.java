@@ -55,7 +55,7 @@ public abstract class DspHttpDispatcherDelegateTestBase<M extends RemoteMessage>
      *
      * @return the delegate
      */
-    protected abstract DspHttpDispatcherDelegate<M, ?> delegate();
+    protected abstract DspHttpDispatcherDelegate<?> delegate();
 
     /**
      * Checks that a delegate throws an exception when the response body is missing. Only relevant
