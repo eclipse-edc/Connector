@@ -20,6 +20,8 @@ import org.eclipse.edc.spi.result.Failure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,6 +43,11 @@ public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCh
     public static HealthCheckResult failed(String... errors) {
         var errorList = Stream.of(errors).filter(Objects::nonNull).collect(Collectors.toList());
         return new HealthCheckResult(false, new Failure(errorList));
+    }
+
+    public static HealthCheckResult failed(List<String> errors) {
+        errors.removeIf(Objects::nonNull);
+        return new HealthCheckResult(false, new Failure(errors));
     }
 
     @JsonProperty("isHealthy")

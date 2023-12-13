@@ -14,45 +14,36 @@
 
 package org.eclipse.edc.vault.hashicorp.model;
 
-public class HealthResponse {
+public class HealthCheckResponse {
 
-    private HealthResponsePayload payload;
+    private HealthCheckResponsePayload payload;
     private int code;
 
-    private HealthResponse() {
+    private HealthCheckResponse() {
     }
 
     public int getCode() {
         return code;
     }
 
-    public HashiCorpVaultHealthResponseCode getCodeAsEnum() {
-        switch (code) {
-            case 200:
-                return HashiCorpVaultHealthResponseCode
-                        .INITIALIZED_UNSEALED_AND_ACTIVE;
-            case 429:
-                return HashiCorpVaultHealthResponseCode.UNSEALED_AND_STANDBY;
-            case 472:
-                return HashiCorpVaultHealthResponseCode
-                        .DISASTER_RECOVERY_MODE_REPLICATION_SECONDARY_AND_ACTIVE;
-            case 473:
-                return HashiCorpVaultHealthResponseCode.PERFORMANCE_STANDBY;
-            case 501:
-                return HashiCorpVaultHealthResponseCode.NOT_INITIALIZED;
-            case 503:
-                return HashiCorpVaultHealthResponseCode.SEALED;
-            default:
-                return HashiCorpVaultHealthResponseCode.UNSPECIFIED;
-        }
+    public HashicorpVaultHealthResponseCode getCodeAsEnum() {
+        return switch (code) {
+            case 200 -> HashicorpVaultHealthResponseCode.INITIALIZED_UNSEALED_AND_ACTIVE;
+            case 429 -> HashicorpVaultHealthResponseCode.UNSEALED_AND_STANDBY;
+            case 472 -> HashicorpVaultHealthResponseCode.DISASTER_RECOVERY_MODE_REPLICATION_SECONDARY_AND_ACTIVE;
+            case 473 -> HashicorpVaultHealthResponseCode.PERFORMANCE_STANDBY;
+            case 501 -> HashicorpVaultHealthResponseCode.NOT_INITIALIZED;
+            case 503 -> HashicorpVaultHealthResponseCode.SEALED;
+            default -> HashicorpVaultHealthResponseCode.UNSPECIFIED;
+        };
     }
 
-    public HealthResponsePayload getPayload() {
+    public HealthCheckResponsePayload getPayload() {
         return payload;
     }
 
 
-    public enum HashiCorpVaultHealthResponseCode {
+    public enum HashicorpVaultHealthResponseCode {
         UNSPECIFIED, // undefined status codes
         INITIALIZED_UNSEALED_AND_ACTIVE, // status code 200
         UNSEALED_AND_STANDBY, // status code 429
@@ -64,17 +55,17 @@ public class HealthResponse {
 
     public static final class Builder {
 
-        private final HealthResponse response;
+        private final HealthCheckResponse response;
 
         private Builder() {
-            response = new HealthResponse();
+            response = new HealthCheckResponse();
         }
 
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder payload(HealthResponsePayload payload) {
+        public Builder payload(HealthCheckResponsePayload payload) {
             this.response.payload = payload;
             return this;
         }
@@ -84,7 +75,7 @@ public class HealthResponse {
             return this;
         }
 
-        public HealthResponse build() {
+        public HealthCheckResponse build() {
             return response;
         }
     }

@@ -22,7 +22,7 @@ import okhttp3.ResponseBody;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.HealthResponse;
+import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,17 +60,17 @@ class HashicorpVaultClientTest {
         var vaultUrl = "https://mock.url";
         var vaultToken = UUID.randomUUID().toString();
         var config =
-                HashicorpVaultClientConfig.Builder.newInstance()
-                        .vaultUrl(vaultUrl)
-                        .vaultApiSecretPath(CUSTOM_SECRET_PATH)
-                        .vaultApiHealthPath(HEALTH_PATH)
-                        .isVaultApiHealthStandbyOk(false)
-                        .vaultToken(vaultToken)
+                HashicorpVaultConfig.Builder.newInstance()
+                        .url(vaultUrl)
+                        .secretPath(CUSTOM_SECRET_PATH)
+                        .healthCheckPath(HEALTH_PATH)
+                        .healthStandbyOk(false)
+                        .token(vaultToken)
                         .timeout(TIMEOUT)
                         .build();
 
 
-        var vaultClient = new HashicorpVaultClient(config, edcClientMock, OBJECT_MAPPER);
+        var vaultClient = new HashicorpVaultClient(config, edcClientMock, OBJECT_MAPPER, monitor);
         var response = mock(Response.class);
         var body = mock(ResponseBody.class);
         var payload = new GetEntryResponsePayload();
@@ -97,16 +97,16 @@ class HashicorpVaultClientTest {
         var vaultToken = UUID.randomUUID().toString();
         var secretValue = UUID.randomUUID().toString();
         var hashicorpVaultClientConfig =
-                HashicorpVaultClientConfig.Builder.newInstance()
-                        .vaultUrl(vaultUrl)
-                        .vaultApiSecretPath(CUSTOM_SECRET_PATH)
-                        .vaultApiHealthPath(HEALTH_PATH)
-                        .isVaultApiHealthStandbyOk(false)
-                        .vaultToken(vaultToken)
+                HashicorpVaultConfig.Builder.newInstance()
+                        .url(vaultUrl)
+                        .secretPath(CUSTOM_SECRET_PATH)
+                        .healthCheckPath(HEALTH_PATH)
+                        .healthStandbyOk(false)
+                        .token(vaultToken)
                         .timeout(TIMEOUT)
                         .build();
 
-        var vaultClient = new HashicorpVaultClient(hashicorpVaultClientConfig, edcClientMock, OBJECT_MAPPER);
+        var vaultClient = new HashicorpVaultClient(hashicorpVaultClientConfig, edcClientMock, OBJECT_MAPPER, monitor);
         var payload = new CreateEntryResponsePayload();
 
         var call = mock(Call.class);
@@ -135,17 +135,17 @@ class HashicorpVaultClientTest {
         var vaultUrl = "https://mock.url";
         var vaultToken = UUID.randomUUID().toString();
         var hashicorpVaultClientConfig =
-                HashicorpVaultClientConfig.Builder.newInstance()
-                        .vaultUrl(vaultUrl)
-                        .vaultApiSecretPath(CUSTOM_SECRET_PATH)
-                        .vaultApiHealthPath(HEALTH_PATH)
-                        .isVaultApiHealthStandbyOk(false)
-                        .vaultToken(vaultToken)
+                HashicorpVaultConfig.Builder.newInstance()
+                        .url(vaultUrl)
+                        .secretPath(CUSTOM_SECRET_PATH)
+                        .healthCheckPath(HEALTH_PATH)
+                        .healthStandbyOk(false)
+                        .token(vaultToken)
                         .timeout(TIMEOUT)
                         .build();
 
         var vaultClient =
-                new HashicorpVaultClient(hashicorpVaultClientConfig, edcClientMock, OBJECT_MAPPER);
+                new HashicorpVaultClient(hashicorpVaultClientConfig, edcClientMock, OBJECT_MAPPER, monitor);
 
         var response = mock(Response.class);
         var body = mock(ResponseBody.class);
@@ -170,7 +170,7 @@ class HashicorpVaultClientTest {
                                 " }");
 
         // invoke
-        var result = vaultClient.getHealth();
+        var result = vaultClient.doHealthCheck();
 
         // verify
         assertNotNull(result);
@@ -181,7 +181,7 @@ class HashicorpVaultClientTest {
                         request.url().queryParameter("perfstandbyok").equals("false")));
         assertEquals(200, result.getCode());
         assertEquals(
-                HealthResponse.HashiCorpVaultHealthResponseCode
+                HealthCheckResponse.HashicorpVaultHealthResponseCode
                         .INITIALIZED_UNSEALED_AND_ACTIVE,
                 result.getCodeAsEnum());
 
@@ -206,16 +206,16 @@ class HashicorpVaultClientTest {
         var vaultUrl = "https://mock.url";
         var vaultToken = UUID.randomUUID().toString();
         var hashicorpVaultClientConfig =
-                HashicorpVaultClientConfig.Builder.newInstance()
-                        .vaultUrl(vaultUrl)
-                        .vaultApiSecretPath(CUSTOM_SECRET_PATH)
-                        .vaultApiHealthPath(HEALTH_PATH)
-                        .isVaultApiHealthStandbyOk(false)
-                        .vaultToken(vaultToken)
+                HashicorpVaultConfig.Builder.newInstance()
+                        .url(vaultUrl)
+                        .secretPath(CUSTOM_SECRET_PATH)
+                        .healthCheckPath(HEALTH_PATH)
+                        .healthStandbyOk(false)
+                        .token(vaultToken)
                         .timeout(TIMEOUT)
                         .build();
 
-        var vaultClient = new HashicorpVaultClient(hashicorpVaultClientConfig, edcClientMock, OBJECT_MAPPER);
+        var vaultClient = new HashicorpVaultClient(hashicorpVaultClientConfig, edcClientMock, OBJECT_MAPPER, monitor);
 
         var response = mock(Response.class);
         var body = mock(ResponseBody.class);

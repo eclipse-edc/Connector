@@ -16,8 +16,8 @@ package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.vault.hashicorp.model.HealthResponse;
-import org.eclipse.edc.vault.hashicorp.model.HealthResponsePayload;
+import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponse;
+import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponsePayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,8 +44,8 @@ class HashicorpVaultHealthCheckTest {
 
     @Test
     void shouldSucceed_whenClientReturns200() {
-        var response = HealthResponse.Builder.newInstance().payload(new HealthResponsePayload()).code(200).build();
-        when(client.getHealth()).thenReturn(response);
+        var response = HealthCheckResponse.Builder.newInstance().payload(new HealthCheckResponsePayload()).code(200).build();
+        when(client.doHealthCheck()).thenReturn(response);
 
         var result = healthCheck.get();
 
@@ -55,8 +55,8 @@ class HashicorpVaultHealthCheckTest {
     @ParameterizedTest
     @ValueSource(ints = {409, 472, 473, 501, 503, 999})
     void shouldFail_whenClientReturnsErrorCodes(int code) {
-        var response = HealthResponse.Builder.newInstance().payload(new HealthResponsePayload()).code(code).build();
-        when(client.getHealth()).thenReturn(response);
+        var response = HealthCheckResponse.Builder.newInstance().payload(new HealthCheckResponsePayload()).code(code).build();
+        when(client.doHealthCheck()).thenReturn(response);
 
         var result = healthCheck.get();
 
@@ -66,7 +66,7 @@ class HashicorpVaultHealthCheckTest {
 
     @Test
     void testResponseFromException() {
-        when(client.getHealth()).thenThrow(new EdcException("foo-bar"));
+        when(client.doHealthCheck()).thenThrow(new EdcException("foo-bar"));
 
         var result = healthCheck.get();
 

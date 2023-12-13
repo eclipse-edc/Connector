@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
+ *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
  *
  */
 
@@ -20,15 +21,16 @@ import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.eclipse.edc.spi.system.health.StartupStatusProvider;
-import org.eclipse.edc.vault.hashicorp.model.HealthResponse;
+import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponse;
+
+import java.util.ArrayList;
 
 import static java.lang.String.format;
 
 public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessProvider, StartupStatusProvider {
 
-    private static final String HEALTH_CHECK_ERROR_TEMPLATE = "HashiCorp Vault HealthCheck unsuccessful. %s %s";
-    private static final String COMPONENT_NAME = "HashiCorpVault";
-
+    private static final String HEALTH_CHECK_ERROR_TEMPLATE = "Healthcheck unsuccessful: %s %s";
+    private static final String COMPONENT_NAME = "Hashicorp Vault";
     private final HashicorpVaultClient client;
     private final Monitor monitor;
 
@@ -40,10 +42,11 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
     @Override
     public HealthCheckResult get() {
 
-        HealthResponse response;
-        HealthCheckResult result;
+        HealthCheckResponse response;
+        var errors = new ArrayList<String>(0);
+
         try {
-            response = client.getHealth();
+            response = client.doHealthCheck();
         } catch (EdcException e) {  // can be thrown by the client, e.g. on JSON parsing error, etc.
             var exceptionMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "EdcException: " + e.getMessage(), "");
             monitor.severe(exceptionMsg, e);
@@ -52,39 +55,49 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
 
         switch (response.getCodeAsEnum()) {
             case INITIALIZED_UNSEALED_AND_ACTIVE -> {
-                result = HealthCheckResult.success();
+                // do nothing
             }
             case UNSEALED_AND_STANDBY -> {
                 var standbyMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in standby", response.getPayload());
                 monitor.warning(standbyMsg);
-                result = HealthCheckResult.failed(standbyMsg);
+                errors.add(standbyMsg);
             }
             case DISASTER_RECOVERY_MODE_REPLICATION_SECONDARY_AND_ACTIVE -> {
                 var recoveryModeMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in recovery mode", response.getPayload());
                 monitor.warning(recoveryModeMsg);
-                result = HealthCheckResult.failed(recoveryModeMsg);
+                errors.add(recoveryModeMsg);
             }
             case PERFORMANCE_STANDBY -> {
                 var performanceStandbyMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is in performance standby", response.getPayload());
                 monitor.warning(performanceStandbyMsg);
-                result = HealthCheckResult.failed(performanceStandbyMsg);
+                errors.add(performanceStandbyMsg);
             }
             case NOT_INITIALIZED -> {
                 var notInitializedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is not initialized", response.getPayload());
                 monitor.warning(notInitializedMsg);
-                result = HealthCheckResult.failed(notInitializedMsg);
+                errors.add(notInitializedMsg);
             }
             case SEALED -> {
                 var sealedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Vault is sealed", response.getPayload());
                 monitor.warning(sealedMsg);
-                result = HealthCheckResult.failed(sealedMsg);
+                errors.add(sealedMsg);
             }
             default -> {
                 var unspecifiedMsg = format(HEALTH_CHECK_ERROR_TEMPLATE, "Unspecified response from vault. Code: " + response.getCode(), response.getPayload());
                 monitor.warning(unspecifiedMsg);
-                result = HealthCheckResult.failed(unspecifiedMsg);
+                errors.add(unspecifiedMsg);
             }
         }
+
+        var tokenLookUpResult = client.lookUpToken();
+
+        if (tokenLookUpResult.failed()) {
+            var tokenNotValidMsg = "Token look up failed: %s".formatted(tokenLookUpResult.getFailureDetail());
+            monitor.warning(tokenNotValidMsg);
+            errors.add(tokenNotValidMsg);
+        }
+
+        var result = errors.isEmpty() ? HealthCheckResult.success() : HealthCheckResult.failed(errors);
         return result.forComponent(COMPONENT_NAME);
     }
 }
