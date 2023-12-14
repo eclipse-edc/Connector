@@ -16,13 +16,12 @@ package org.eclipse.edc.protocol.dsp.transferprocess.dispatcher.delegate;
 
 import jakarta.json.JsonObject;
 import okhttp3.Response;
-import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpDispatcherDelegate;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 
 import java.util.function.Function;
 
-public class TransferCompletionDelegate extends DspHttpDispatcherDelegate<TransferCompletionMessage, JsonObject> {
+public class TransferCompletionDelegate extends DspHttpDispatcherDelegate<JsonObject> {
 
     public TransferCompletionDelegate(JsonLdRemoteMessageSerializer serializer) {
         super();

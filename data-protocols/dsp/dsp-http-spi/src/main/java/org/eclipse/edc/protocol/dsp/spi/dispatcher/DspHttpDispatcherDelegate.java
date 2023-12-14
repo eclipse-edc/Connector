@@ -29,10 +29,9 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 /**
  * Delegate for sending a specific type of {@link RemoteMessage} using the dataspace protocol.
  *
- * @param <M> the type of message
  * @param <R> the response type
  */
-public abstract class DspHttpDispatcherDelegate<M extends RemoteMessage, R> {
+public abstract class DspHttpDispatcherDelegate<R> {
 
     protected DspHttpDispatcherDelegate() {
     }

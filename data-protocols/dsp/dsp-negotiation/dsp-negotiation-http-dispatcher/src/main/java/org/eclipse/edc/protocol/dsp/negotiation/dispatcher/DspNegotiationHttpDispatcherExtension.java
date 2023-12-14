@@ -70,22 +70,22 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
         messageDispatcher.registerMessage(
                 ContractAgreementMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + AGREEMENT),
-                new ContractAgreementMessageHttpDelegate(remoteMessageSerializer)
+                new ContractAgreementMessageHttpDelegate()
         );
         messageDispatcher.registerMessage(
                 ContractAgreementVerificationMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + AGREEMENT + VERIFICATION),
-                new ContractAgreementVerificationMessageHttpDelegate(remoteMessageSerializer)
+                new ContractAgreementVerificationMessageHttpDelegate()
         );
         messageDispatcher.registerMessage(
                 ContractNegotiationEventMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + EVENT),
-                new ContractNegotiationEventMessageHttpDelegate(remoteMessageSerializer)
+                new ContractNegotiationEventMessageHttpDelegate()
         );
         messageDispatcher.registerMessage(
                 ContractNegotiationTerminationMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TERMINATION),
-                new ContractNegotiationTerminationMessageHttpDelegate(remoteMessageSerializer)
+                new ContractNegotiationTerminationMessageHttpDelegate()
         );
         messageDispatcher.registerMessage(
                 ContractRequestMessage.class,
@@ -96,12 +96,12 @@ public class DspNegotiationHttpDispatcherExtension implements ServiceExtension {
                         return BASE_PATH + m.getProcessId() + CONTRACT_REQUEST;
                     }
                 }),
-                new ContractRequestMessageHttpDelegate(remoteMessageSerializer, typeManager.getMapper(JSON_LD), jsonLdService)
+                new ContractRequestMessageHttpDelegate(typeManager.getMapper(JSON_LD), jsonLdService)
         );
         messageDispatcher.registerMessage(
                 ContractOfferMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + CONTRACT_OFFER),
-                new ContractOfferMessageHttpDelegate(remoteMessageSerializer)
+                new ContractOfferMessageHttpDelegate()
         );
     }
 }

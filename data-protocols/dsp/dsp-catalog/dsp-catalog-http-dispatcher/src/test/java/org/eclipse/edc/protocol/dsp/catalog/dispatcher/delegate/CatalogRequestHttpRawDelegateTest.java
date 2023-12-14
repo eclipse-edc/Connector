@@ -57,7 +57,7 @@ class CatalogRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<CatalogRequestMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 

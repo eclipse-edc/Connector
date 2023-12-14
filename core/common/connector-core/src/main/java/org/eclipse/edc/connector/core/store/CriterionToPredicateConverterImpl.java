@@ -81,9 +81,13 @@ public class CriterionToPredicateConverterImpl implements CriterionToPredicateCo
                 return false;
             }
 
-            if (property.getClass().isEnum() && criterion.getOperandRight() instanceof String) {
+            if (property.getClass().isEnum()) {
                 var enumProperty = (Enum<?>) property;
-                return Objects.equals(enumProperty.name(), criterion.getOperandRight());
+                if (criterion.getOperandRight() instanceof String) {
+                    return Objects.equals(enumProperty.name(), criterion.getOperandRight());
+                } else if (criterion.getOperandRight() instanceof Number) {
+                    return Objects.equals(enumProperty.ordinal(), criterion.getOperandRight());
+                }
             }
 
             if (property instanceof Number c1 && criterion.getOperandRight() instanceof Number c2) {

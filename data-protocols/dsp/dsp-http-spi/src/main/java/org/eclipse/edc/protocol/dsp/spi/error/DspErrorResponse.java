@@ -47,10 +47,6 @@ public class DspErrorResponse {
         return internalBuild(code, failure.getMessages());
     }
 
-    public Response unauthorized() {
-        return internalBuild(Response.Status.UNAUTHORIZED, List.of("Token validation failed."));
-    }
-
     public Response badRequest() {
         return internalBuild(Response.Status.BAD_REQUEST, List.of("Bad request."));
     }

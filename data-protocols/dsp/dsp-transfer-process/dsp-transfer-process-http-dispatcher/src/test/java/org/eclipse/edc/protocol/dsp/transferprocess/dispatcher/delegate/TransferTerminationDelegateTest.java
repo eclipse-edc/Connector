@@ -26,7 +26,7 @@ class TransferTerminationDelegateTest extends DspHttpDispatcherDelegateTestBase<
 
     @BeforeEach
     void setUp() {
-        delegate = new TransferTerminationDelegate(serializer);
+        delegate = new TransferTerminationDelegate();
     }
 
     @Test
@@ -35,7 +35,7 @@ class TransferTerminationDelegateTest extends DspHttpDispatcherDelegateTestBase<
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<TransferTerminationMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 }
