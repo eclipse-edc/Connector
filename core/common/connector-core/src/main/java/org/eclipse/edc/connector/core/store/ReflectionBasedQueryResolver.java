@@ -36,16 +36,28 @@ import static java.lang.String.format;
 public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
     private final Class<T> typeParameterClass;
-    private final CriterionToPredicateConverter predicateConverter = new CriterionToPredicateConverterImpl();
+    private final CriterionToPredicateConverter predicateConverter;
 
     /**
-     * Constructor for StreamQueryResolver
+     * Constructor for ReflectionBasedQueryResolver
      *
      * @param typeParameterClass class of the type parameter. Used in reflection operation to recursively fetch a property from an object.
      */
     public ReflectionBasedQueryResolver(Class<T> typeParameterClass) {
-        this.typeParameterClass = typeParameterClass;
+        this(typeParameterClass, new CriterionToPredicateConverterImpl());
     }
+
+    /**
+     * Constructor for ReflectionBasedQueryResolver
+     *
+     * @param typeParameterClass            class of the type parameter. Used in reflection operation to recursively fetch a property from an object.
+     * @param criterionToPredicateConverter converts from a criterion to a predicate
+     */
+    public ReflectionBasedQueryResolver(Class<T> typeParameterClass, CriterionToPredicateConverter criterionToPredicateConverter) {
+        this.typeParameterClass = typeParameterClass;
+        this.predicateConverter = criterionToPredicateConverter;
+    }
+
 
     /**
      * Method to query a stream by provided specification.

@@ -60,7 +60,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     private final PolicyEngine policyEngine = mock();
     private final TokenDecorator tokenDecorator = mock();
     private final DspHttpRequestFactory<TestMessage> requestFactory = mock();
-    private final DspHttpDispatcherDelegate<TestMessage, String> delegate = mock();
+    private final DspHttpDispatcherDelegate<String> delegate = mock();
     private final Duration timeout = Duration.of(5, SECONDS);
 
     private DspHttpRemoteMessageDispatcher dispatcher;

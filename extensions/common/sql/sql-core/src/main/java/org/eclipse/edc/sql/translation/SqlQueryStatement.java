@@ -42,10 +42,9 @@ public class SqlQueryStatement {
     private final String selectStatement;
     private final List<String> whereClauses = new ArrayList<>();
     private final List<Object> parameters = new ArrayList<>();
-
-    private String orderByClause = "";
     private final int limit;
     private final int offset;
+    private String orderByClause = "";
 
     /**
      * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
@@ -56,16 +55,30 @@ public class SqlQueryStatement {
      *                        model/format
      */
     public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel) {
+        this(selectStatement, query, rootModel, true);
+    }
+
+    /**
+     * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
+     *
+     * @param selectStatement  The SELECT clause, e.g. {@code SELECT * FROM your_table}
+     * @param query            a {@link QuerySpec} that contains a query in the canonical format
+     * @param rootModel        A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
+     *                         model/format
+     * @param validateOperator Determines whether the operator should be validated, and an {@link IllegalArgumentException}
+     *                         raised when an unknown/unsupported operator is found.
+     */
+    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, boolean validateOperator) {
         this(selectStatement, query.getLimit(), query.getOffset());
-        initialize(query, rootModel);
+        initialize(query, rootModel, validateOperator);
     }
 
     /**
      * Initializes this SQL Query Statement with a SELECT clause, LIMIT and OFFSET values.
      *
      * @param selectStatement The SELECT clause, e.g. {@code SELECT * FROM your_table}
-     * @param limit the limit value.
-     * @param offset the offset value.
+     * @param limit           the limit value.
+     * @param offset          the offset value.
      */
     public SqlQueryStatement(String selectStatement, int limit, int offset) {
         this.selectStatement = selectStatement;
@@ -104,7 +117,7 @@ public class SqlQueryStatement {
     /**
      * Add where clause with related parameters. If it contains multiple clauses better wrap it with parenthesis
      *
-     * @param clause the SQL where clause.
+     * @param clause     the SQL where clause.
      * @param parameters the parameters.
      * @return self.
      */
@@ -136,9 +149,9 @@ public class SqlQueryStatement {
         parameters.add(parameter);
     }
 
-    private void initialize(QuerySpec query, TranslationMapping rootModel) {
+    private void initialize(QuerySpec query, TranslationMapping rootModel, boolean strictOperator) {
         query.getFilterExpression().stream()
-                .map(criterion -> parseExpression(criterion, rootModel))
+                .map(criterion -> parseExpression(criterion, rootModel, strictOperator))
                 .forEach(conditionExpression -> {
                     whereClauses.add(conditionExpression.toSql());
 
@@ -163,7 +176,7 @@ public class SqlQueryStatement {
     }
 
     @NotNull
-    private SqlConditionExpression parseExpression(Criterion criterion, TranslationMapping rootModel) {
+    private SqlConditionExpression parseExpression(Criterion criterion, TranslationMapping rootModel, boolean validateOperator) {
         var newCriterion = Optional.ofNullable(criterion.getOperandLeft())
                 .map(Object::toString)
                 .map(it -> rootModel.getStatement(it, criterion.getOperandRight().getClass()))
@@ -172,8 +185,10 @@ public class SqlQueryStatement {
 
         var conditionExpression = new SqlConditionExpression(newCriterion);
 
-        conditionExpression.isValidExpression()
-                .orElseThrow(f -> new IllegalArgumentException("This expression is not valid: " + f.getFailureDetail()));
+        if (validateOperator) {
+            conditionExpression.isValidExpression()
+                    .orElseThrow(f -> new IllegalArgumentException("This expression is not valid: " + f.getFailureDetail()));
+        }
 
         return conditionExpression;
     }

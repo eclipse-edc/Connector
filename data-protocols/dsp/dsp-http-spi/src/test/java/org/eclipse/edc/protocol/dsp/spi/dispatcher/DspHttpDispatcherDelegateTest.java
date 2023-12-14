@@ -21,7 +21,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.protocol.dsp.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.response.ResponseFailure;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -88,7 +87,7 @@ class DspHttpDispatcherDelegateTest {
         verifyNoInteractions(parser);
     }
 
-    private class TestDspHttpDispatcherDelegate extends DspHttpDispatcherDelegate<RemoteMessage, Object> {
+    private class TestDspHttpDispatcherDelegate extends DspHttpDispatcherDelegate<Object> {
 
         TestDspHttpDispatcherDelegate() {
             super();

@@ -57,15 +57,8 @@ class DatasetRequestHttpRawDelegateTest extends DspHttpDispatcherDelegateTestBas
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<DatasetRequestMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 
-    private DatasetRequestMessage message() {
-        return DatasetRequestMessage.Builder.newInstance()
-                .datasetId("dataset-id")
-                .counterPartyAddress("http://connector")
-                .protocol("protocol")
-                .build();
-    }
 }
