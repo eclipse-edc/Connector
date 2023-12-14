@@ -22,6 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+
+/**
+ * Validates that a particular PolicyDefinition query is valid,
+ * i.e. when query left-hand operand does not contain string "privateProperties" then
+ * conforms is it in the canonical format,
+ * If it contains privateProperties then just validate whether pattern is correct.
+ */
 public class PolicyDefinitionQueryValidator extends QueryValidator {
     private static final Pattern VALID_QUERY_PATH_REGEX = Pattern.compile("^[A-Za-z_]+.*$");
 

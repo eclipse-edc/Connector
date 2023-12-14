@@ -254,14 +254,19 @@ class PolicyDefinitionServiceImplTest {
     }
 
     private static class ValidFilters implements ArgumentsProvider {
+        private static final String PRIVATE_PROPERTIES = "privateProperties";
+        private static final String EDC_NAMESPACE = "https://w3id.org/edc/v0.0.1/ns/";
+        private static final String KEY = "key";
+
+        private static final String VALUE = "123455";
+
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    arguments(criterion("privateProperties", "=", "123455")), // skips path element
-                    arguments(criterion("privateProperties.key", "=", "123455")), // skips path element
-                    arguments(criterion("https://w3id.org/edc/v0.0.1/ns/privateProperties.key", "=", "123455")), // skips path element
-                    arguments(criterion("https://w3id.org/edc/v0.0.1/ns/privateProperties.https://w3id.org/edc/v0.0.1/ns/privateProperties/key", "=", "123455")) // skips path element
-
+                    arguments(criterion(PRIVATE_PROPERTIES, "=", VALUE)), // skips path element
+                    arguments(criterion(PRIVATE_PROPERTIES + "." + KEY, "=", VALUE)), // skips path element
+                    arguments(criterion(EDC_NAMESPACE + PRIVATE_PROPERTIES + "." + KEY, "=", VALUE)), // skips path element
+                    arguments(criterion(EDC_NAMESPACE + PRIVATE_PROPERTIES + "." + EDC_NAMESPACE + KEY, "=", VALUE)) // skips path element
             );
         }
     }

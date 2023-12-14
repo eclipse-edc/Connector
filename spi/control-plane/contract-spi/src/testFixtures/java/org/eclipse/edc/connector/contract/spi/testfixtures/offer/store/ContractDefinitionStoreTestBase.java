@@ -489,7 +489,6 @@ public abstract class ContractDefinitionStoreTestBase {
             assertThat(definitionsRetrieved).isNotNull().hasSize(2);
         }
 
-
         @Test
         void shouldReturn_with_private_propertiesFilter() {
             var definition1 = createContractDefinition("definition1", "policyId", "contractId", Map.of("key1", "value1"));

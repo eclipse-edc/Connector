@@ -33,17 +33,14 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PolicyDefinitionQueryValidatorTest {
-
     private final PolicyDefinitionQueryValidator validator = new PolicyDefinitionQueryValidator(Map.of(
             Constraint.class, List.of(MultiplicityConstraint.class, AtomicConstraint.class),
             MultiplicityConstraint.class, List.of(AndConstraint.class, OrConstraint.class, XoneConstraint.class),
             Expression.class, List.of(LiteralExpression.class)
     ));
 
-
     @ParameterizedTest
     @ValueSource(strings = {
-
             ".someValue", //leading slash
             "<42ValidValues" //leading number
     })
@@ -54,5 +51,4 @@ class PolicyDefinitionQueryValidatorTest {
 
         assertThat(validator.validate(query).failed()).isTrue();
     }
-
 }

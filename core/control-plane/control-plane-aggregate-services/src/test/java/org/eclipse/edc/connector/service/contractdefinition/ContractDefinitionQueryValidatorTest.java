@@ -24,13 +24,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ContractDefinitionQueryValidatorTest {
-
     private final ContractDefinitionQueryValidator validator = new ContractDefinitionQueryValidator();
-
 
     @ParameterizedTest
     @ValueSource(strings = {
-
             ".someValue", //leading slash
             "<42ValidValues" //leading number
     })
@@ -41,5 +38,4 @@ class ContractDefinitionQueryValidatorTest {
 
         assertThat(validator.validate(query).failed()).isTrue();
     }
-
 }

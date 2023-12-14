@@ -20,6 +20,13 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.util.regex.Pattern;
 
+
+/**
+ * Validates that a particular ContractDefinition query is valid,
+ * i.e. when query left-hand operand does not contain string "privateProperties" then
+ * conforms is it in the canonical format,
+ * If it contains privateProperties then just validate whether pattern is correct.
+ */
 public class ContractDefinitionQueryValidator extends QueryValidator {
     private static final Pattern VALID_QUERY_PATH_REGEX = Pattern.compile("^[A-Za-z_]+.*$");
 

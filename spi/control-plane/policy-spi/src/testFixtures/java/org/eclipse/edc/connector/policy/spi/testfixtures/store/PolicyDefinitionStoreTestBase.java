@@ -647,11 +647,8 @@ public abstract class PolicyDefinitionStoreTestBase {
 
         @Test
         void shouldReturn_with_complex_private_propertiesFilter() {
-
-
             var policy1 = createPolicy(getRandomId(), null, Map.of("myProp", Map.of("description", "test desc 1", "number", 42)));
             var policy2 = createPolicy(getRandomId(), null, Map.of("myProp", Map.of("description", "test desc 2", "number", 42)));
-
 
             getPolicyDefinitionStore().create(policy1);
             getPolicyDefinitionStore().create(policy2);
