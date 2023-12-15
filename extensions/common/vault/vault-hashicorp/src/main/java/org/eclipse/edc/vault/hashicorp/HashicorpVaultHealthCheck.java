@@ -23,8 +23,6 @@ import org.eclipse.edc.spi.system.health.StartupStatusProvider;
 
 import java.util.ArrayList;
 
-import static java.lang.String.format;
-
 public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessProvider, StartupStatusProvider {
 
     private static final String HEALTH_CHECK_ERROR = "Failed to perform Healthcheck";

@@ -217,6 +217,7 @@ class HashicorpVaultExtensionTest {
     /**
      * Helper class which allows to capture the construction of {@link HashicorpVaultClient} inside private method
      * {@link HashicorpVaultExtension#initHashicorpVaultClient(HashicorpVaultConfig, Monitor)}.
+     *
      * @param mockInitializer defines how the mocked client should behave
      */
     private record MockedClient(MockedConstruction.MockInitializer<HashicorpVaultClient> mockInitializer) implements Consumer<Consumer<MockedConstruction<HashicorpVaultClient>>> {

@@ -46,7 +46,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 class HashicorpVaultClient {
-    private static final String VAULT_DATA_ENTRY_NAME = "content";
+    static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
     private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");

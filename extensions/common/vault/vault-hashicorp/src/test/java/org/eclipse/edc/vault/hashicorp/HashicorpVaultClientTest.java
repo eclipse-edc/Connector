@@ -10,6 +10,7 @@
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial Test
  *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *
  */
 
 package org.eclipse.edc.vault.hashicorp;
@@ -49,8 +50,8 @@ import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -87,6 +88,7 @@ class HashicorpVaultClientTest {
     void beforeEach() {
         reset(monitor);
     }
+
     @Nested
     class HealthCheck {
         @Test
@@ -147,7 +149,7 @@ class HashicorpVaultClientTest {
         }
 
         @Test
-        void returnsFailedResult_whenIOExceptionIsThrown() throws IOException {
+        void returnsFailedResult_whenIoExceptionIsThrown() throws IOException {
             // prepare
             when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
 
@@ -211,7 +213,7 @@ class HashicorpVaultClientTest {
             }
 
             @Test
-            void returnsFailedResult_whenIOExceptionIsThrown() throws IOException {
+            void returnsFailedResult_whenIoExceptionIsThrown() throws IOException {
                 when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
 
                 var tokenLookUpResult = vaultClient.lookUpToken();
@@ -264,7 +266,7 @@ class HashicorpVaultClientTest {
             }
 
             @Test
-            void returnsFailedResult_whenIOExceptionIsThrown() throws IOException {
+            void returnsFailedResult_whenIoExceptionIsThrown() throws IOException {
                 when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
 
                 var tokenLookUpResult = vaultClient.renewToken();
@@ -310,7 +312,7 @@ class HashicorpVaultClientTest {
                     runnable.run();
 
                     verifyNoMoreInteractions(scheduledExecutorService);
-                    verify(vaultClientSpy, atMost(2                            )).scheduleNextTokenRenewal(anyLong());
+                    verify(vaultClientSpy, atMost(2)).scheduleNextTokenRenewal(anyLong());
                     verify(monitor).info(matches("Token was renewed successfully"));
                     verify(monitor).info(matches("Next token renewal scheduled in 00h:08m:20s"));
                 }
