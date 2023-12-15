@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -382,7 +383,6 @@ public abstract class TransferProcessStoreTestBase {
                             .assetId("new-asset")
                             .contractId("new-contract")
                             .protocol("test-protocol")
-                            .connectorId("new-connector")
                             .build())
                     .build();
             getTransferProcessStore().save(t2);

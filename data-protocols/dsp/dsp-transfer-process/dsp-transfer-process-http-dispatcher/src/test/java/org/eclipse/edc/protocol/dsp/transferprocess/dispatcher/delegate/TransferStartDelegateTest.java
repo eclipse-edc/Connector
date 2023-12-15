@@ -26,7 +26,7 @@ class TransferStartDelegateTest extends DspHttpDispatcherDelegateTestBase<Transf
 
     @BeforeEach
     void setUp() {
-        delegate = new TransferStartDelegate(serializer);
+        delegate = new TransferStartDelegate();
     }
 
     @Test
@@ -35,7 +35,7 @@ class TransferStartDelegateTest extends DspHttpDispatcherDelegateTestBase<Transf
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<TransferStartMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 }

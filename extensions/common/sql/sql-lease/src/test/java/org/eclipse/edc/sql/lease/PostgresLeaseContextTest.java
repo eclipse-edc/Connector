@@ -32,21 +32,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -160,15 +153,7 @@ class PostgresLeaseContextTest {
     }
 
     @Test
-    void acquireLease_whenExpiredLeasePresent_shouldDeleteOldLeaseAndAcquireNewLease(Connection connection) throws SQLException {
-        var preparedStatementReference = new AtomicReference<PreparedStatement>();
-        when(connection.prepareStatement(dialect.getDeleteLeaseTemplate(), PreparedStatement.RETURN_GENERATED_KEYS)).thenAnswer((mocks) -> {
-            PreparedStatement preparedStatement = (PreparedStatement) mocks.callRealMethod();
-            PreparedStatement spy = spy(preparedStatement);
-            preparedStatementReference.set(spy);
-            return spy;
-        });
-
+    void acquireLease_whenExpiredLeasePresent_shouldDeleteOldLeaseAndAcquireNewLease(Connection connection) {
         var entityId = "test-entity";
         insertTestEntity(entityId, connection);
         var leaseContext = builder.by("someone-else").withConnection(connection);
@@ -188,8 +173,6 @@ class PostgresLeaseContextTest {
         var newLease = twoMinutesAheadContext.getLease(entityId);
         assertThat(newLease).isNotNull();
         assertThat(newLease.getLeaseId()).isNotEqualTo(leaseId);
-        verify(connection, times(2)).prepareStatement(dialect.getDeleteLeaseTemplate(), PreparedStatement.RETURN_GENERATED_KEYS);
-        verify(preparedStatementReference.get(), times(1)).setString(1, leaseId);
     }
 
     protected boolean isLeased(String entityId, Connection connection) {

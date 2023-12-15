@@ -47,6 +47,7 @@ import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.util.uri.UriUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -132,7 +133,7 @@ public class LdpVerifier implements CredentialVerifier {
             if (issuerUri.isEmpty()) {
                 return failure("Document must contain an 'issuer' property.");
             }
-            if (!issuerUri.get().equals(verificationMethod.id())) {
+            if (!UriUtils.equalsIgnoreFragment(issuerUri.get(), verificationMethod.id())) {
                 return failure("Issuer and proof.verificationMethod mismatch: %s <> %s".formatted(issuerUri.get(), verificationMethod.id()));
             }
         } catch (InvalidJsonLdValue e) {

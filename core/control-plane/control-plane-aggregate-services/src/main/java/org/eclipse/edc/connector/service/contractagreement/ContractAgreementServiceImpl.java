@@ -23,7 +23,7 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -45,14 +45,12 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
     }
 
     @Override
-    public ServiceResult<Stream<ContractAgreement>> query(QuerySpec query) {
-        var result = queryValidator.validate(query);
-
-        if (result.failed()) {
-            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
-        }
-
-        return ServiceResult.success(transactionContext.execute(() -> store.queryAgreements(query)));
+    public ServiceResult<List<ContractAgreement>> search(QuerySpec query) {
+        return queryValidator.validate(query)
+                .flatMap(validation -> validation.failed()
+                        ? ServiceResult.badRequest(format("Error validating schema: %s", validation.getFailureDetail()))
+                        : ServiceResult.success(queryAgreements(query))
+                );
     }
 
     @Override
@@ -60,5 +58,13 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
         var criterion = criterion("contractAgreement.id", "=", contractAgreementId);
         var query = QuerySpec.Builder.newInstance().filter(criterion).build();
         return transactionContext.execute(() -> store.queryNegotiations(query).findFirst().orElse(null));
+    }
+
+    private List<ContractAgreement> queryAgreements(QuerySpec query) {
+        return transactionContext.execute(() -> {
+            try (var stream = store.queryAgreements(query)) {
+                return stream.toList();
+            }
+        });
     }
 }

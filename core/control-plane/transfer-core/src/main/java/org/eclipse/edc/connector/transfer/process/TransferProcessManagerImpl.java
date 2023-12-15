@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *       SAP SE - refactoring
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -130,7 +131,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .assetId(transferRequest.getAssetId())
-                .connectorId(transferRequest.getConnectorId())
                 .dataDestination(transferRequest.getDataDestination())
                 .connectorAddress(transferRequest.getCounterPartyAddress())
                 .contractId(transferRequest.getContractId())

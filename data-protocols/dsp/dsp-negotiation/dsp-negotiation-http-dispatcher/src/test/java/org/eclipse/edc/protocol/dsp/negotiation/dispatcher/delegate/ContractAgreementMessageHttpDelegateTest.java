@@ -26,7 +26,7 @@ class ContractAgreementMessageHttpDelegateTest extends DspHttpDispatcherDelegate
 
     @BeforeEach
     void setUp() {
-        delegate = new ContractAgreementMessageHttpDelegate(serializer);
+        delegate = new ContractAgreementMessageHttpDelegate();
     }
 
     @Test
@@ -35,7 +35,7 @@ class ContractAgreementMessageHttpDelegateTest extends DspHttpDispatcherDelegate
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<ContractAgreementMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 }

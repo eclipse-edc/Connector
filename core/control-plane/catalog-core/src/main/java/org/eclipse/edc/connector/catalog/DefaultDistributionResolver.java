@@ -18,29 +18,24 @@ package org.eclipse.edc.connector.catalog;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DefaultDistributionResolver implements DistributionResolver {
 
     private final DataServiceRegistry dataServiceRegistry;
-    private final DataPlaneInstanceStore dataPlaneInstanceStore;
+    private final DataFlowManager dataFlowManager;
 
-    public DefaultDistributionResolver(DataServiceRegistry dataServiceRegistry, DataPlaneInstanceStore dataPlaneInstanceStore) {
+    public DefaultDistributionResolver(DataServiceRegistry dataServiceRegistry, DataFlowManager dataFlowManager) {
         this.dataServiceRegistry = dataServiceRegistry;
-        this.dataPlaneInstanceStore = dataPlaneInstanceStore;
+        this.dataFlowManager = dataFlowManager;
     }
 
     @Override
-    public List<Distribution> getDistributions(Asset asset, DataAddress dataAddress) {
-        return dataPlaneInstanceStore.getAll()
-                .flatMap(it -> it.getAllowedDestTypes().stream())
-                .map(this::createDistribution)
-                .collect(Collectors.toList());
+    public List<Distribution> getDistributions(Asset asset) {
+        return dataFlowManager.transferTypesFor(asset).stream().map(this::createDistribution).toList();
     }
     
     private Distribution createDistribution(String format) {

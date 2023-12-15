@@ -45,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -74,13 +73,12 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public ServiceResult<Stream<TransferProcess>> query(QuerySpec query) {
-        var result = queryValidator.validate(query);
-
-        if (result.failed()) {
-            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
-        }
-        return ServiceResult.success(transactionContext.execute(() -> transferProcessStore.findAll(query)));
+    public ServiceResult<List<TransferProcess>> search(QuerySpec query) {
+        return queryValidator.validate(query)
+                .flatMap(validation -> validation.failed()
+                        ? ServiceResult.badRequest(format("Error validating schema: %s", validation.getFailureDetail()))
+                        : ServiceResult.success(queryTransferProcesses(query))
+                );
     }
 
     @Override
@@ -135,6 +133,14 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     public ServiceResult<Void> addProvisionedResource(String transferProcessId, ProvisionResponse response) {
         var command = new AddProvisionedResourceCommand(transferProcessId, response);
         return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
+    }
+
+    private List<TransferProcess> queryTransferProcesses(QuerySpec query) {
+        return transactionContext.execute(() -> {
+            try (var stream = transferProcessStore.findAll(query)) {
+                return stream.toList();
+            }
+        });
     }
 
     private Map<Class<?>, List<Class<?>>> getSubtypes() {

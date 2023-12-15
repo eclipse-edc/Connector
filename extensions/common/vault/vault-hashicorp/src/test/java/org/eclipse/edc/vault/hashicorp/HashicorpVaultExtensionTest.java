@@ -27,7 +27,6 @@ import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN;
 import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_URL;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -35,26 +34,22 @@ class HashicorpVaultExtensionTest {
 
     private HashicorpVaultExtension extension;
 
-    // mocks
-    private ServiceExtensionContext context;
-
     @BeforeEach
     void setUp(ObjectFactory factory, ServiceExtensionContext context) {
-        this.context = spy(context);
         var healthCheckService = mock(HealthCheckService.class);
         context.registerService(HealthCheckService.class, healthCheckService);
         extension = factory.constructInstance(HashicorpVaultExtension.class);
     }
 
     @Test
-    void throwsHashicorpVaultExceptionOnVaultUrlUndefined() {
+    void throwsHashicorpVaultExceptionOnVaultUrlUndefined(ServiceExtensionContext context) {
         when(context.getSetting(VAULT_URL, null)).thenReturn(null);
 
         assertThrows(EdcException.class, () -> extension.initialize(context));
     }
 
     @Test
-    void throwsHashicorpVaultExceptionOnVaultTokenUndefined() {
+    void throwsHashicorpVaultExceptionOnVaultTokenUndefined(ServiceExtensionContext context) {
         when(context.getSetting(VAULT_TOKEN, null)).thenReturn(null);
         assertThrows(EdcException.class, () -> extension.initialize(context));
     }

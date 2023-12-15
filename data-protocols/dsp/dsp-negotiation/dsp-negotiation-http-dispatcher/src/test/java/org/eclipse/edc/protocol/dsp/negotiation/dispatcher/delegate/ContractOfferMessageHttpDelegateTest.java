@@ -21,21 +21,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ContractOfferMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractOfferMessage> {
-    
+
     private ContractOfferMessageHttpDelegate delegate;
-    
+
     @BeforeEach
     void setUp() {
-        delegate = new ContractOfferMessageHttpDelegate(serializer);
+        delegate = new ContractOfferMessageHttpDelegate();
     }
 
     @Test
     void parseResponse_shouldReturnNullFunction() {
         testParseResponse_shouldReturnNullFunction_whenResponseBodyNotProcessed();
     }
-    
+
     @Override
-    protected DspHttpDispatcherDelegate<ContractOfferMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 

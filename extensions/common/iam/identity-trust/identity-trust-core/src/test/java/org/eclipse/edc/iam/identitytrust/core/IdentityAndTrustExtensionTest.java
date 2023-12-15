@@ -29,31 +29,27 @@ import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class IdentityAndTrustExtensionTest {
 
-    private ServiceExtensionContext spiedContext;
-
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        spiedContext = spy(context);
-        spiedContext.registerService(SecureTokenService.class, mock());
+        context.registerService(SecureTokenService.class, mock());
         TypeManager mockedTm = mock();
         when(mockedTm.getMapper(eq(JSON_LD))).thenReturn(mock());
-        spiedContext.registerService(TypeManager.class, mockedTm);
+        context.registerService(TypeManager.class, mockedTm);
     }
 
     @Test
-    void verifyCorrectService(IdentityAndTrustExtension extension) {
+    void verifyCorrectService(IdentityAndTrustExtension extension, ServiceExtensionContext context) {
         var configMock = mock(Config.class);
         when(configMock.getString(eq(IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY))).thenReturn("did:web:test");
-        when(spiedContext.getConfig()).thenReturn(configMock);
+        when(context.getConfig()).thenReturn(configMock);
 
-        var is = extension.createIdentityService(spiedContext);
+        var is = extension.createIdentityService(context);
 
         assertThat(is).isInstanceOf(IdentityAndTrustService.class);
         verify(configMock, atLeastOnce()).getString(eq(IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY));

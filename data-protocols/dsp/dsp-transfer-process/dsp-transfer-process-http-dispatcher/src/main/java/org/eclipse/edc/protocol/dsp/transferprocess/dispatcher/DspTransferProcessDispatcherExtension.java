@@ -61,7 +61,7 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
         messageDispatcher.registerMessage(
                 TransferRequestMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + TRANSFER_INITIAL_REQUEST),
-                new TransferRequestDelegate(remoteMessageSerializer)
+                new TransferRequestDelegate()
         );
         messageDispatcher.registerMessage(
                 TransferCompletionMessage.class,
@@ -71,12 +71,12 @@ public class DspTransferProcessDispatcherExtension implements ServiceExtension {
         messageDispatcher.registerMessage(
                 TransferStartMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_START),
-                new TransferStartDelegate(remoteMessageSerializer)
+                new TransferStartDelegate()
         );
         messageDispatcher.registerMessage(
                 TransferTerminationMessage.class,
                 new PostDspHttpRequestFactory<>(remoteMessageSerializer, m -> BASE_PATH + m.getProcessId() + TRANSFER_TERMINATION),
-                new TransferTerminationDelegate(remoteMessageSerializer)
+                new TransferTerminationDelegate()
         );
     }
 }

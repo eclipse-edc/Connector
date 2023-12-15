@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
 
@@ -30,19 +31,23 @@ import javax.sql.DataSource;
 public class ConnectionFactoryDataSource implements DataSource {
 
     private final ConnectionFactory connectionFactory;
+    private final String jdbcUrl;
+    private final Properties properties;
 
-    public ConnectionFactoryDataSource(ConnectionFactory connectionFactory) {
+    public ConnectionFactoryDataSource(ConnectionFactory connectionFactory, String jdbcUrl, Properties properties) {
         this.connectionFactory = Objects.requireNonNull(connectionFactory);
+        this.jdbcUrl = jdbcUrl;
+        this.properties = properties;
     }
 
     @Override
     public Connection getConnection() throws SQLException {
-        return connectionFactory.create();
+        return connectionFactory.create(jdbcUrl, properties);
     }
 
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        return connectionFactory.create();
+        return connectionFactory.create(jdbcUrl, properties);
     }
 
     @Override

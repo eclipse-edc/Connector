@@ -69,10 +69,10 @@ class PolicyDefinitionServiceImplTest {
     }
 
     @Test
-    void query_shouldRelyOnPolicyStore() {
+    void search_shouldRelyOnPolicyStore() {
         var policy = createPolicy("policyId");
         when(policyStore.findAll(any(QuerySpec.class))).thenReturn(Stream.of(policy));
-        var policies = policyServiceImpl.query(QuerySpec.none());
+        var policies = policyServiceImpl.search(QuerySpec.none());
 
         assertThat(policies.succeeded()).isTrue();
         assertThat(policies.getContent()).containsExactly(policy);
@@ -80,12 +80,12 @@ class PolicyDefinitionServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(InvalidFilters.class)
-    void query_invalidExpression_raiseException(Criterion invalidFilter) {
+    void search_invalidExpression_raiseException(Criterion invalidFilter) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(invalidFilter)
                 .build();
 
-        var result = policyServiceImpl.query(query);
+        var result = policyServiceImpl.search(query);
 
         assertThat(result).isFailed();
     }

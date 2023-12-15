@@ -22,6 +22,7 @@ import org.eclipse.edc.util.reflection.ReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
+import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -35,16 +36,28 @@ import static java.lang.String.format;
 public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
 
     private final Class<T> typeParameterClass;
-    private final CriterionToPredicateConverter predicateConverter = new CriterionToPredicateConverterImpl();
+    private final CriterionToPredicateConverter predicateConverter;
 
     /**
-     * Constructor for StreamQueryResolver
+     * Constructor for ReflectionBasedQueryResolver
      *
      * @param typeParameterClass class of the type parameter. Used in reflection operation to recursively fetch a property from an object.
      */
     public ReflectionBasedQueryResolver(Class<T> typeParameterClass) {
-        this.typeParameterClass = typeParameterClass;
+        this(typeParameterClass, new CriterionToPredicateConverterImpl());
     }
+
+    /**
+     * Constructor for ReflectionBasedQueryResolver
+     *
+     * @param typeParameterClass            class of the type parameter. Used in reflection operation to recursively fetch a property from an object.
+     * @param criterionToPredicateConverter converts from a criterion to a predicate
+     */
+    public ReflectionBasedQueryResolver(Class<T> typeParameterClass, CriterionToPredicateConverter criterionToPredicateConverter) {
+        this.typeParameterClass = typeParameterClass;
+        this.predicateConverter = criterionToPredicateConverter;
+    }
+
 
     /**
      * Method to query a stream by provided specification.
@@ -52,17 +65,18 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
      * Applies sorting. When sort field is not found returns empty stream.
      * Applies offset and limit on the query result.
      *
-     * @param stream stream to be queried.
-     * @param spec query specification.
+     * @param stream      stream to be queried.
+     * @param spec        query specification.
+     * @param accumulator accumulation operation, e.g. Predicate::and, Predicate::or, etc.
      * @return stream result from queries.
      */
     @Override
-    public Stream<T> query(Stream<T> stream, QuerySpec spec) {
+    public Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback) {
         var andPredicate = spec.getFilterExpression().stream()
                 .map(predicateConverter::convert)
-                .reduce(x -> true, Predicate::and);
+                .reduce(fallback, accumulator);
 
-        var filteredStream  = stream.filter(andPredicate);
+        var filteredStream = stream.filter(andPredicate);
 
         // sort
         var sortField = spec.getSortField();
@@ -89,10 +103,9 @@ public class ReflectionBasedQueryResolver<T> implements QueryResolver<T> {
                 return 0;
             }
 
-            if (!(o1 instanceof Comparable)) {
+            if (!(o1 instanceof Comparable comp1)) {
                 throw new IllegalArgumentException("A property '" + property + "' is not comparable!");
             }
-            var comp1 = (Comparable) o1;
             var comp2 = (Comparable) o2;
             return isAscending ? comp1.compareTo(comp2) : comp2.compareTo(comp1);
         };

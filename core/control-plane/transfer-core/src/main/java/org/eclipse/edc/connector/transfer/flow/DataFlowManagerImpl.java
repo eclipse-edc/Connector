@@ -21,14 +21,18 @@ import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -61,6 +65,15 @@ public class DataFlowManagerImpl implements DataFlowManager {
     @Override
     public @NotNull StatusResult<Void> terminate(TransferProcess transferProcess) {
         return chooseControllerAndApply(transferProcess, controller -> controller.terminate(transferProcess));
+    }
+
+    @Override
+    public Set<String> transferTypesFor(Asset asset) {
+        return controllers.stream()
+                .map(it -> it.controller)
+                .map(it -> it.transferTypesFor(asset))
+                .flatMap(Collection::stream)
+                .collect(toSet());
     }
 
     @NotNull

@@ -62,7 +62,6 @@ CREATE TABLE IF NOT EXISTS edc_data_request
     process_id          VARCHAR NOT NULL,
     connector_address   VARCHAR NOT NULL,
     protocol            VARCHAR NOT NULL,
-    connector_id        VARCHAR,
     asset_id            VARCHAR NOT NULL,
     contract_id         VARCHAR NOT NULL,
     data_destination    JSON    NOT NULL,
@@ -79,4 +78,3 @@ CREATE UNIQUE INDEX IF NOT EXISTS data_request_id_uindex
 
 CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
     ON edc_lease (lease_id);
-

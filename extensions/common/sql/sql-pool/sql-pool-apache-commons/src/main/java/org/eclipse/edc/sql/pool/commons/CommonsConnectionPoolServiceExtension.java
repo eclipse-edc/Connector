@@ -58,6 +58,9 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     @Inject
     private Monitor monitor;
 
+    @Inject
+    private ConnectionFactory connectionFactory;
+
     @Override
     public String name() {
         return NAME;
@@ -65,24 +68,22 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        Config config = context.getConfig(EDC_DATASOURCE_PREFIX);
+        var config = context.getConfig(EDC_DATASOURCE_PREFIX);
 
-        Map<String, CommonsConnectionPool> namedConnectionPools = createConnectionPools(config);
+        var namedConnectionPools = createConnectionPools(config);
 
-        for (Map.Entry<String, CommonsConnectionPool> entry : namedConnectionPools.entrySet()) {
-            String dataSourceName = entry.getKey();
-            CommonsConnectionPool commonsConnectionPool = entry.getValue();
+        for (var entry : namedConnectionPools.entrySet()) {
+            var dataSourceName = entry.getKey();
+            var commonsConnectionPool = entry.getValue();
             commonsConnectionPools.add(commonsConnectionPool);
-            ConnectionPoolDataSource connectionPoolDataSource = new ConnectionPoolDataSource(commonsConnectionPool);
+            var connectionPoolDataSource = new ConnectionPoolDataSource(commonsConnectionPool);
             dataSourceRegistry.register(dataSourceName, connectionPoolDataSource);
         }
     }
 
     @Override
     public void shutdown() {
-        for (CommonsConnectionPool commonsConnectionPool : commonsConnectionPools) {
-            commonsConnectionPool.close();
-        }
+        commonsConnectionPools.forEach(CommonsConnectionPool::close);
     }
 
     public List<CommonsConnectionPool> getCommonsConnectionPools() {
@@ -115,30 +116,28 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     private Map<String, CommonsConnectionPool> createConnectionPools(Config parent) {
         Map<String, CommonsConnectionPool> commonsConnectionPools = new HashMap<>();
-        for (Config config : parent.partition().toList()) {
-            String dataSourceName = config.currentNode();
+        for (var config : parent.partition().toList()) {
+            var dataSourceName = config.currentNode();
 
-            DataSource dataSource = createDataSource(config);
+            var dataSource = createDataSource(config);
 
-            CommonsConnectionPool commonsConnectionPool = createConnectionPool(dataSource, config);
+            var commonsConnectionPool = createConnectionPool(dataSource, config);
             commonsConnectionPools.put(dataSourceName, commonsConnectionPool);
         }
         return commonsConnectionPools;
     }
 
     private DataSource createDataSource(Config config) {
-        String jdbcUrl = Objects.requireNonNull(config.getString(URL));
+        var jdbcUrl = Objects.requireNonNull(config.getString(URL));
 
-        Properties properties = new Properties();
+        var properties = new Properties();
         properties.putAll(config.getRelativeEntries());
 
-        ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(jdbcUrl, properties);
-
-        return new ConnectionFactoryDataSource(connectionFactory);
+        return new ConnectionFactoryDataSource(connectionFactory, jdbcUrl, properties);
     }
 
     private CommonsConnectionPool createConnectionPool(DataSource unPooledDataSource, Config config) {
-        CommonsConnectionPoolConfig.Builder builder = CommonsConnectionPoolConfig.Builder.newInstance();
+        var builder = CommonsConnectionPoolConfig.Builder.newInstance();
 
         setIfProvidedInt(POOL_CONNECTIONS_MAX_IDLE, builder::maxIdleConnections, config);
         setIfProvidedInt(POOL_CONNECTIONS_MAX_TOTAL, builder::maxTotalConnections, config);

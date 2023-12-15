@@ -92,24 +92,32 @@ class TransferProcessServiceImplTest {
     }
 
     @Test
-    void query() {
+    void search() {
         when(store.findAll(query)).thenReturn(Stream.of(process1, process2));
-        assertThat(service.query(query).getContent()).containsExactly(process1, process2);
+
+        var result = service.search(query);
+
+        assertThat(result.getContent()).containsExactly(process1, process2);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @ParameterizedTest
     @ArgumentsSource(InvalidFilters.class)
-    void query_invalidFilter_raiseException(Criterion invalidFilter) {
+    void search_invalidFilter_raiseException(Criterion invalidFilter) {
         var spec = QuerySpec.Builder.newInstance().filter(invalidFilter).build();
-        assertThat(service.query(spec).failed()).isTrue();
+
+        var result = service.search(spec);
+
+        assertThat(result.failed()).isTrue();
     }
 
     @ParameterizedTest
     @ArgumentsSource(ValidFilters.class)
-    void query_validFilter(Criterion validFilter) {
+    void search_validFilter(Criterion validFilter) {
         var spec = QuerySpec.Builder.newInstance().filter(validFilter).build();
-        service.query(spec);
+
+        service.search(spec);
+
         verify(store).findAll(spec);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }

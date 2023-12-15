@@ -37,6 +37,9 @@ import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
@@ -85,7 +88,9 @@ class ContractNegotiationIntegrationTest {
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
+    private final IdentityService identityService = mock();
     protected ClaimToken token = ClaimToken.Builder.newInstance().build();
+    protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
     private final ProtocolWebhook protocolWebhook = () -> "http://dummy";
     private String consumerNegotiationId;
 
@@ -119,8 +124,9 @@ class ContractNegotiationIntegrationTest {
                 .protocolWebhook(protocolWebhook)
                 .build();
 
-        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, new ContractNegotiationObservableImpl(), monitor, mock(Telemetry.class));
-        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, new ContractNegotiationObservableImpl(), monitor, mock(Telemetry.class));
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
+        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, new NoopTransactionContext(), validationService, identityService, new ContractNegotiationObservableImpl(), monitor, mock(Telemetry.class));
+        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, new NoopTransactionContext(), validationService, identityService, new ContractNegotiationObservableImpl(), monitor, mock(Telemetry.class));
     }
 
     @AfterEach
@@ -261,7 +267,7 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractRequestMessage request = i.getArgument(1);
             consumerNegotiationId = request.getProcessId();
-            var result = providerService.notifyRequested(request, token);
+            var result = providerService.notifyRequested(request, tokenRepresentation);
             return toFuture(result);
         };
     }
@@ -270,7 +276,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onConsumerSentRejection() {
         return i -> {
             ContractNegotiationTerminationMessage request = i.getArgument(1);
-            var result = providerService.notifyTerminated(request, token);
+            var result = providerService.notifyTerminated(request, tokenRepresentation);
             return toFuture(result);
         };
     }
@@ -279,7 +285,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentAgreementRequest() {
         return i -> {
             ContractAgreementMessage request = i.getArgument(1);
-            var result = consumerService.notifyAgreed(request, token);
+            var result = consumerService.notifyAgreed(request, tokenRepresentation);
             return toFuture(result);
         };
     }
@@ -288,7 +294,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentNegotiationEventMessage() {
         return i -> {
             ContractNegotiationEventMessage request = i.getArgument(1);
-            var result = consumerService.notifyFinalized(request, token);
+            var result = consumerService.notifyFinalized(request, tokenRepresentation);
             return toFuture(result);
         };
     }
@@ -297,7 +303,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onConsumerSentAgreementVerification() {
         return i -> {
             ContractAgreementVerificationMessage request = i.getArgument(1);
-            var result = providerService.notifyVerified(request, token);
+            var result = providerService.notifyVerified(request, tokenRepresentation);
             return toFuture(result);
         };
     }
@@ -306,7 +312,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentRejection() {
         return i -> {
             ContractNegotiationTerminationMessage request = i.getArgument(1);
-            var result = consumerService.notifyTerminated(request, token);
+            var result = consumerService.notifyTerminated(request, tokenRepresentation);
             return toFuture(result);
         };
     }

@@ -12,6 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *       ZF Friedrichshafen AG - add dependency & reorder entries
  *       Fraunhofer Institute for Software and Systems Engineering - refactoring
+ *       Mercedes-Benz Tech Innovation GmbH - publish public api context into dedicated swagger hub page
  *
  */
 
@@ -169,8 +170,9 @@ include(":extensions:control-plane:callback:callback-http-dispatcher")
 include(":extensions:control-plane:callback:callback-static-endpoint")
 
 
-include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:data-plane-client")
+include(":extensions:data-plane:data-plane-control-api")
+include(":extensions:data-plane:data-plane-public-api")
 
 include(":extensions:data-plane:data-plane-http")
 include(":extensions:data-plane:data-plane-http-oauth2")

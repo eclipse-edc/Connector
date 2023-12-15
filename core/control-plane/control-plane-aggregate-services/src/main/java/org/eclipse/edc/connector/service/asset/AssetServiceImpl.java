@@ -27,7 +27,6 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -59,14 +58,12 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public ServiceResult<Stream<Asset>> query(QuerySpec query) {
-        var result = queryValidator.validate(query);
-
-        if (result.failed()) {
-            return ServiceResult.badRequest(result.getFailureMessages());
-        }
-
-        return ServiceResult.success(transactionContext.execute(() -> index.queryAssets(query)));
+    public ServiceResult<List<Asset>> search(QuerySpec query) {
+        return queryValidator.validate(query)
+                .flatMap(validation -> validation.failed()
+                        ? ServiceResult.badRequest(validation.getFailureMessages())
+                        : ServiceResult.success(queryAssets(query))
+                );
     }
 
     @Override
@@ -125,6 +122,14 @@ public class AssetServiceImpl implements AssetService {
             var updatedAsset = index.updateAsset(asset);
             updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));
             return ServiceResult.from(updatedAsset);
+        });
+    }
+
+    private List<Asset> queryAssets(QuerySpec query) {
+        return transactionContext.execute(() -> {
+            try (var stream = index.queryAssets(query)) {
+                return stream.toList();
+            }
         });
     }
 

@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,6 +38,7 @@ class PolicyDefinitionSerializationTest {
                 .id("test-policy-id")
                 .createdAt(12345L)
                 .policy(createPolicy())
+                .privateProperties(Map.of("key1", "value2"))
                 .build();
 
         var json = typeManager.writeValueAsString(policyDef);

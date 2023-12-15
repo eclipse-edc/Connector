@@ -110,7 +110,6 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                 .add("callbackAddresses", createCallbackAddress())
                 .add("protocol", "dataspace-protocol-http")
                 .add("counterPartyAddress", "http://connector-address")
-                .add("connectorId", "connectorId")
                 .add("contractId", "contractId")
                 .add("assetId", "assetId")
                 .build();
@@ -158,7 +157,7 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
     }
 
     @Test
-    void query_byState() throws JsonProcessingException {
+    void request_byState() throws JsonProcessingException {
 
         var state = DEPROVISIONED;
         var tp = createTransferProcessBuilder("test-tp")
@@ -218,7 +217,6 @@ public class TransferProcessApiEndToEndTest extends BaseManagementApiEndToEndTes
                                 .build())
                         .protocol("dataspace-protocol-http")
                         .assetId("asset-id")
-                        .connectorId("connector-id")
                         .contractId("contractId")
                         .connectorAddress("http://connector/address")
                         .processId(id)

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.catalog.spi;
 
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.util.List;
@@ -25,9 +24,9 @@ import java.util.List;
 public interface DistributionResolver {
 
     /**
-     * Return all the {@link Distribution}s for the given {@link Asset} and {@link DataAddress}
+     * Return all the {@link Distribution}s for the given {@link Asset}.
      *
      * @return a list of Distributions, always not null
      */
-    List<Distribution> getDistributions(Asset asset, DataAddress dataAddress);
+    List<Distribution> getDistributions(Asset asset);
 }

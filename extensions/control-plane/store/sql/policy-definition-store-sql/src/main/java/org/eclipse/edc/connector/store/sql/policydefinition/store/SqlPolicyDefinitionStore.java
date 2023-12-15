@@ -10,6 +10,7 @@
  *  Contributors:
  *       ZF Friedrichshafen AG - Initial API and Implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       SAP SE - add private properties to contract definition
  *
  */
 
@@ -55,6 +56,9 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     private final TypeReference<PolicyType> policyType = new TypeReference<>() {
     };
     private final TypeReference<Map<String, Object>> extensiblePropertiesType = new TypeReference<>() {
+    };
+
+    private static final TypeReference<Map<String, Object>> PRIVATE_PROPERTIES_TYPE = new TypeReference<>() {
     };
 
     public SqlPolicyDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
@@ -149,7 +153,8 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                         policy.getAssignee(),
                         policy.getTarget(),
                         toJson(policy.getType(), policyType),
-                        def.getCreatedAt());
+                        def.getCreatedAt(),
+                        toJson(def.getPrivateProperties()));
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -171,6 +176,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                         policy.getAssignee(),
                         policy.getTarget(),
                         toJson(policy.getType(), policyType),
+                        toJson(def.getPrivateProperties()),
                         id);
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
@@ -195,6 +201,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                 .id(resultSet.getString(statements.getPolicyIdColumn()))
                 .policy(policy)
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
+                .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), PRIVATE_PROPERTIES_TYPE))
                 .build();
     }
 

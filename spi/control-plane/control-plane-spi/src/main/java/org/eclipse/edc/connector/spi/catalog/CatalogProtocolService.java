@@ -18,6 +18,7 @@ import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,20 +30,20 @@ public interface CatalogProtocolService {
     /**
      * Returns a catalog given a {@link CatalogRequestMessage} and a {@link ClaimToken}
      *
-     * @param message the request message.
-     * @param token the claim token.
+     * @param message             the request message.
+     * @param tokenRepresentation the claim token.
      * @return succeeded result with the {@link Catalog}, failed result otherwise.
      */
     @NotNull
-    ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ClaimToken token);
+    ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Returns a dataset given its id and a {@link ClaimToken}
      *
-     * @param datasetId the dataset id.
-     * @param claimToken the claim token.
+     * @param datasetId           the dataset id.
+     * @param tokenRepresentation the claim token.
      * @return succeeded result with the {@link Dataset}, failed result otherwise.
      */
     @NotNull
-    ServiceResult<Dataset> getDataset(String datasetId, ClaimToken claimToken);
+    ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation);
 }

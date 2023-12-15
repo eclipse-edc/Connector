@@ -31,7 +31,7 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -319,13 +319,13 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldReturnQueriedPolicyDefinitions() {
+    void search_shouldReturnQueriedPolicyDefinitions() {
         var querySpec = QuerySpec.none();
         var policyDefinition = createPolicyDefinition().id("id").build();
         var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
+        when(service.search(any())).thenReturn(ServiceResult.success(List.of(policyDefinition)));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -343,12 +343,12 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
 
         verify(validatorRegistry).validate(eq(EDC_QUERY_SPEC_TYPE), any());
         verify(transformerRegistry).transform(isA(JsonObject.class), eq(QuerySpec.class));
-        verify(service).query(querySpec);
+        verify(service).search(querySpec);
         verify(transformerRegistry).transform(policyDefinition, JsonObject.class);
     }
 
     @Test
-    void query_shouldBadRequest_whenValidationFails() {
+    void search_shouldBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
         var requestBody = Json.createObjectBuilder().build();
 
@@ -365,7 +365,7 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldReturn400_whenInvalidQuery() {
+    void search_shouldReturn400_whenInvalidQuery() {
         var requestBody = Json.createObjectBuilder()
                 .add("offset", -1)
                 .build();
@@ -387,7 +387,7 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldReturnBadRequest_whenQuerySpecTransformFails() {
+    void search_shouldReturnBadRequest_whenQuerySpecTransformFails() {
         var requestBody = Json.createObjectBuilder().build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.failure("error"));
@@ -404,11 +404,11 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldReturnBadRequest_whenServiceReturnsBadRequest() {
+    void search_shouldReturnBadRequest_whenServiceReturnsBadRequest() {
         var querySpec = QuerySpec.none();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
-        when(service.query(any())).thenReturn(ServiceResult.badRequest("error"));
+        when(service.search(any())).thenReturn(ServiceResult.badRequest("error"));
         var requestBody = Json.createObjectBuilder().build();
 
         given()
@@ -422,12 +422,12 @@ class PolicyDefinitionApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void query_shouldFilterOutResults_whenTransformFails() {
+    void search_shouldFilterOutResults_whenTransformFails() {
         var querySpec = QuerySpec.none();
         var policyDefinition = createPolicyDefinition().id("id").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
-        when(service.query(any())).thenReturn(ServiceResult.success(Stream.of(policyDefinition)));
+        when(service.search(any())).thenReturn(ServiceResult.success(List.of(policyDefinition)));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder().build();
 

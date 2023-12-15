@@ -32,8 +32,6 @@ import java.util.UUID;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -64,7 +62,7 @@ public class SqlQueryExecutorIntegrationTest {
         var result = executor.query(connection, false, mapper, sql);
 
         assertThat(result).isNotNull().hasSize(1).contains(1L);
-        verify(connection, never()).close();
+        assertThat(connection.isClosed()).isFalse();
     }
 
     @Test
@@ -75,7 +73,7 @@ public class SqlQueryExecutorIntegrationTest {
         var result = executor.query(connection, true, mapper, sql);
 
         assertThat(result).isNotNull().hasSize(1).contains(1L);
-        verify(connection).close();
+        assertThat(connection.isClosed()).isTrue();
     }
 
     @Test

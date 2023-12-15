@@ -38,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,7 +45,6 @@ import static org.mockito.Mockito.when;
 class HttpWebhookExtensionTest {
 
     private HttpWebhookExtension extension;
-    private ServiceExtensionContext context;
     private final WebService webService = mock(WebService.class);
     private final Monitor monitor = mock(Monitor.class);
 
@@ -63,14 +61,13 @@ class HttpWebhookExtensionTest {
         context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
         context.registerService(ManagementApiConfiguration.class, new ManagementApiConfiguration(webServiceConfiguration));
 
-        this.context = spy(context); //used to inject the config
-        when(this.context.getMonitor()).thenReturn(monitor);
+        when(context.getMonitor()).thenReturn(monitor);
 
         extension = factory.constructInstance(HttpWebhookExtension.class);
     }
 
     @Test
-    void initialize_shouldBeRegisteredAsManagementApiService() {
+    void initialize_shouldBeRegisteredAsManagementApiService(ServiceExtensionContext context) {
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
 
         extension.initialize(context);

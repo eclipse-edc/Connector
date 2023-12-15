@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES;
 
 public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTransformer<JsonObject, PolicyDefinition> {
 
@@ -35,13 +36,22 @@ public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTrans
     public @Nullable PolicyDefinition transform(@NotNull JsonObject input, @NotNull TransformerContext context) {
         var builder = PolicyDefinition.Builder.newInstance();
         builder.id(nodeId(input));
-        visitProperties(input, (key, value) -> transformProperty(key, value, builder, context));
+        visitProperties(input, (key, value) -> transformProperties(key, value, builder, context));
         return builder.build();
     }
 
-    private void transformProperty(String key, JsonValue value, PolicyDefinition.Builder builder, TransformerContext context) {
-        if (key.equals(EDC_POLICY_DEFINITION_POLICY)) {
-            transformArrayOrObject(value, Policy.class, builder::policy, context);
+    private void transformProperties(String key, JsonValue jsonValue, PolicyDefinition.Builder builder, TransformerContext context) {
+        switch (key) {
+            case EDC_POLICY_DEFINITION_POLICY ->
+                    transformArrayOrObject(jsonValue, Policy.class, builder::policy, context);
+            case EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES -> {
+                var props = jsonValue.asJsonArray().getJsonObject(0);
+                visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
+            }
+            default -> {
+                builder.privateProperty(key, transformGenericProperty(jsonValue, context));
+            }
         }
+
     }
 }

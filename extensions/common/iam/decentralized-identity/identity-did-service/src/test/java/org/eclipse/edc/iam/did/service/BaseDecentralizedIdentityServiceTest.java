@@ -22,7 +22,9 @@ import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +81,7 @@ abstract class BaseDecentralizedIdentityServiceTest {
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
         assertThat(result.succeeded()).isTrue();
 
-        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), verificationContext("Bar"));
         assertThat(verificationResult.succeeded()).isTrue();
 
         var claimToken = verificationResult.getContent();
@@ -96,7 +98,7 @@ abstract class BaseDecentralizedIdentityServiceTest {
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
         assertThat(result.succeeded()).isTrue();
 
-        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), verificationContext("Bar"));
         assertThat(verificationResult.failed()).isTrue();
         assertThat(verificationResult.getFailureMessages()).contains("Token could not be verified!");
     }
@@ -107,7 +109,7 @@ abstract class BaseDecentralizedIdentityServiceTest {
 
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
 
-        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar2");
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), verificationContext("Bar2"));
         assertThat(verificationResult.failed()).isTrue();
     }
 
@@ -120,7 +122,7 @@ abstract class BaseDecentralizedIdentityServiceTest {
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
         assertThat(result.succeeded()).isTrue();
 
-        var verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
+        var verificationResult = identityService.verifyJwtToken(result.getContent(), verificationContext("Bar"));
         assertThat(verificationResult.failed()).isTrue();
         assertThat(verificationResult.getFailureDetail()).contains(errorMsg);
     }
@@ -144,5 +146,12 @@ abstract class BaseDecentralizedIdentityServiceTest {
         } catch (JsonProcessingException e) {
             throw new AssertionError(e);
         }
+    }
+
+    private VerificationContext verificationContext(String audience) {
+        return VerificationContext.Builder.newInstance()
+                .audience(audience)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
 }

@@ -47,6 +47,25 @@ class CriterionToPredicateConverterImplTest {
     }
 
     @Test
+    void equal_enumShouldCheckOrdinal() {
+        var predicate = converter.convert(new Criterion("enumValue", "=", ENTRY2.ordinal()));
+
+        assertThat(predicate)
+                .accepts(new TestObject("any", ENTRY2))
+                .rejects(new TestObject("any", ENTRY1), new TestObject("any", null));
+    }
+
+    @Test
+    void equal_enumShouldRejectInvalidOrdinal() {
+        var predicate = converter.convert(new Criterion("enumValue", "=", -42));
+
+        assertThat(predicate)
+                .rejects(new TestObject("any", ENTRY2))
+                .rejects(new TestObject("any", ENTRY1), new TestObject("any", null));
+    }
+
+
+    @Test
     void equal_integerAndDouble() {
         var predicate = converter.convert(new Criterion("intValue", "=", 42));
 

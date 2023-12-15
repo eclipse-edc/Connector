@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Mercedes-Benz Tech Innovation GmbH - connector id removal
  *
  */
 
@@ -112,7 +113,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public static final String TRANSFER_PROCESS_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
     public static final String TRANSFER_PROCESS_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_PROCESS_CONTRACT_ID = EDC_NAMESPACE + "contractId";
-    public static final String TRANSFER_PROCESS_CONNECTOR_ID = EDC_NAMESPACE + "connectorId";
     public static final String TRANSFER_PROCESS_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_PROCESS_TYPE_TYPE = EDC_NAMESPACE + "type";
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
@@ -371,11 +371,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     @JsonIgnore
     public void updateDestination(DataAddress dataAddress) {
         dataRequest.updateDestination(dataAddress);
-    }
-
-    @JsonIgnore
-    public String getConnectorId() {
-        return dataRequest.getConnectorId();
     }
 
     @JsonIgnore

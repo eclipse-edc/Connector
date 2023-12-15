@@ -34,7 +34,7 @@ public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher 
      * @param <M> the type of message
      * @param <R> the response type
      */
-    <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<M, R> delegate);
+    <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<R> delegate);
 
     /**
      * Registers a {@link Policy} scope to be evaluated for certain types of messages

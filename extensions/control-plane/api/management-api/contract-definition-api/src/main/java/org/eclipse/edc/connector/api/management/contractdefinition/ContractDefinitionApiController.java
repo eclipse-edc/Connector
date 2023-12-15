@@ -75,14 +75,12 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
                     .orElseThrow(InvalidRequestException::new);
         }
 
-        try (var stream = service.query(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class))) {
-            return stream
-                    .map(contractDefinition -> transformerRegistry.transform(contractDefinition, JsonObject.class))
-                    .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
-                    .filter(Result::succeeded)
-                    .map(Result::getContent)
-                    .collect(toJsonArray());
-        }
+        return service.search(querySpec).orElseThrow(exceptionMapper(ContractDefinition.class)).stream()
+                .map(contractDefinition -> transformerRegistry.transform(contractDefinition, JsonObject.class))
+                .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
     }
 
     @GET

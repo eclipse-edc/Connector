@@ -21,12 +21,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ContractNegotiationEventMessageHttpDelegateTest extends DspHttpDispatcherDelegateTestBase<ContractNegotiationEventMessage> {
-    
+
     private ContractNegotiationEventMessageHttpDelegate delegate;
 
     @BeforeEach
     void setUp() {
-        delegate = new ContractNegotiationEventMessageHttpDelegate(serializer);
+        delegate = new ContractNegotiationEventMessageHttpDelegate();
     }
 
     @Test
@@ -35,7 +35,7 @@ class ContractNegotiationEventMessageHttpDelegateTest extends DspHttpDispatcherD
     }
 
     @Override
-    protected DspHttpDispatcherDelegate<ContractNegotiationEventMessage, ?> delegate() {
+    protected DspHttpDispatcherDelegate<?> delegate() {
         return delegate;
     }
 }

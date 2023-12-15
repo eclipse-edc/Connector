@@ -43,10 +43,14 @@ import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
@@ -59,6 +63,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -68,6 +73,8 @@ import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -80,6 +87,7 @@ public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+    private final IdentityService identityService = mock();
 
     @NotNull
     private static RemoteMessageDispatcher getTestDispatcher() {
@@ -101,6 +109,7 @@ public class TransferProcessEventDispatchTest {
         extension.setConfiguration(configuration);
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerServiceMock(EventExecutorServiceContainer.class, new EventExecutorServiceContainer(newSingleThreadExecutor()));
+        extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(ProtocolWebhook.class, () -> "http://dummy");
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(PolicyArchive.class, mock(PolicyArchive.class));
@@ -122,6 +131,10 @@ public class TransferProcessEventDispatchTest {
                                                            ParticipantAgentService agentService) {
 
         var token = ClaimToken.Builder.newInstance().build();
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
+
+        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
+
         var agent = mock(ParticipantAgent.class);
         var agreement = mock(ContractAgreement.class);
         var providerId = "ProviderId";
@@ -154,7 +167,7 @@ public class TransferProcessEventDispatchTest {
                 .dataAddress(dataAddress)
                 .build();
 
-        protocolService.notifyStarted(startMessage, token);
+        protocolService.notifyStarted(startMessage, tokenRepresentation);
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             ArgumentCaptor<EventEnvelope<TransferProcessStarted>> captor = ArgumentCaptor.forClass(EventEnvelope.class);

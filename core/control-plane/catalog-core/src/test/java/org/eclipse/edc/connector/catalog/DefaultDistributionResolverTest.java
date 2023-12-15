@@ -16,38 +16,36 @@ package org.eclipse.edc.connector.catalog;
 
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class DefaultDistributionResolverTest {
 
     private final DataService dataService = DataService.Builder.newInstance().build();
-    private DataServiceRegistry dataServiceRegistry = mock(DataServiceRegistry.class);
-    private final DataPlaneInstanceStore dataPlaneInstanceStore = mock(DataPlaneInstanceStore.class);
+    private final DataServiceRegistry dataServiceRegistry = mock();
+    private final DataFlowManager dataFlowManager = mock();
 
-    private final DefaultDistributionResolver resolver = new DefaultDistributionResolver(dataServiceRegistry, dataPlaneInstanceStore);
+    private final DefaultDistributionResolver resolver = new DefaultDistributionResolver(dataServiceRegistry, dataFlowManager);
 
     @Test
-    void shouldReturnDistributionForEverySupportedDestType() {
+    void shouldReturnDistributionsForEveryTransferType() {
         when(dataServiceRegistry.getDataServices()).thenReturn(List.of(dataService));
-        
-        var dataPlane1 = DataPlaneInstance.Builder.newInstance().url("http://data-plane-one").allowedDestType("type1").build();
-        var dataPlane2 = DataPlaneInstance.Builder.newInstance().url("http://data-plane-two").allowedDestType("type2").build();
-        when(dataPlaneInstanceStore.getAll()).thenReturn(Stream.of(dataPlane1, dataPlane2));
-        var asset = Asset.Builder.newInstance().build();
-        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        when(dataFlowManager.transferTypesFor(any())).thenReturn(Set.of("type1", "type2"));
 
-        var distributions = resolver.getDistributions(asset, dataAddress);
+        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        var asset = Asset.Builder.newInstance().dataAddress(dataAddress).build();
+
+        var distributions = resolver.getDistributions(asset);
 
         assertThat(distributions).hasSize(2)
                 .anySatisfy(distribution -> {
