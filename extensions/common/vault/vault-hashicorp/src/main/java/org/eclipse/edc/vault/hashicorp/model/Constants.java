@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
  *
  */
 

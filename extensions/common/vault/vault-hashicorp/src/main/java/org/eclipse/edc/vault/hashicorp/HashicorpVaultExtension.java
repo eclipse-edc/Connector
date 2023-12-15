@@ -52,6 +52,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     private PrivateKeyResolver privateKeyResolver;
     private ScheduledExecutorService scheduledExecutorService;
     private HashicorpVaultClient hashicorpVaultClient;
+    private boolean isTokenRenewable;
 
     @Override
     public String name() {
@@ -76,8 +77,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), NAME);
-        // TODO:
-        var monitor = context.getMonitor();//.withPrefix(NAME);
+        var monitor = context.getMonitor().withPrefix(NAME);
         var config = HashicorpVaultConfig.create(context);
         initHashicorpVaultClient(config, monitor);
         vault = new HashicorpVault(hashicorpVaultClient, monitor);
@@ -87,14 +87,15 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        if (hashicorpVaultClient.isTokenRenewable()) {
+        if (isTokenRenewable) {
             var tokenRenewResult = hashicorpVaultClient.renewToken();
 
             if (tokenRenewResult.failed()) {
                 throw new EdcException("[%s] Initial token renewal failed: %s".formatted(NAME, tokenRenewResult.getFailureDetail()));
             }
 
-            hashicorpVaultClient.scheduleNextTokenRenewal();
+            var token = tokenRenewResult.getContent();
+            hashicorpVaultClient.scheduleNextTokenRenewal(token.getTimeToLive());
         }
     }
 
@@ -113,6 +114,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
         }
 
         monitor.info("Token is valid");
-        hashicorpVaultClient.inspectToken();
+
+        var token = tokenLookUpResult.getContent();
+        hashicorpVaultClient.inspectToken(token);
+        isTokenRenewable = token.isRenewable();
     }
 }

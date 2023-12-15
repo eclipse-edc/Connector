@@ -16,14 +16,12 @@
 package org.eclipse.edc.vault.hashicorp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -33,9 +31,10 @@ import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponse;
 import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponsePayloadData;
+import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponsePayloadToken;
 import org.eclipse.edc.vault.hashicorp.model.TokenRenewalRequestPayload;
 import org.eclipse.edc.vault.hashicorp.model.TokenRenewalResponsePayload;
+import org.eclipse.edc.vault.hashicorp.model.TokenRenewalResponsePayloadToken;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -47,7 +46,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 class HashicorpVaultClient {
-    static final String VAULT_DATA_ENTRY_NAME = "content";
+    private static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
     private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
@@ -57,6 +56,7 @@ class HashicorpVaultClient {
     private static final String TOKEN_LOOK_UP_SELF_PATH = "/v1/auth/token/lookup-self";
     private static final String TOKEN_RENEW_SELF_PATH = "/v1/auth/token/renew-self";
     private static final int HTTP_CODE_404 = 404;
+    private static final String TIME_FORMAT = "%02dh:%02dm:%02ds";
 
     @NotNull
     private final HashicorpVaultConfig hashicorpVaultConfig;
@@ -68,7 +68,6 @@ class HashicorpVaultClient {
     private final ObjectMapper objectMapper;
     @NotNull
     private final Monitor monitor;
-    private TokenLookUpResponsePayloadData token;
 
     HashicorpVaultClient(@NotNull HashicorpVaultConfig hashicorpVaultConfig,
                          @NotNull EdcHttpClient httpClient,
@@ -82,32 +81,26 @@ class HashicorpVaultClient {
         this.monitor = monitor;
     }
 
-    HealthCheckResponse doHealthCheck() {
-        var healthResponseBuilder = HealthCheckResponse.Builder.newInstance();
+    Result<HealthCheckResponse> doHealthCheck() {
         var requestUri = getHealthCheckUrl();
         var request = httpGet(requestUri);
 
         try (var response = httpClient.execute(request)) {
             var code = response.code();
-            healthResponseBuilder.code(code);
-
-            try {
-                var responseBody = Objects.requireNonNull(response.body()).string();
-                var responsePayload = objectMapper.readValue(responseBody, HealthCheckResponsePayload.class);
-                healthResponseBuilder.payload(responsePayload);
-            } catch (JsonMappingException e) {
-                // ignore. status code not checked, so it may be possible that no payload was
-                // provided
-            }
+            var responseBody = Objects.requireNonNull(response.body()).string();
+            var responsePayload = objectMapper.readValue(responseBody, HealthCheckResponsePayload.class);
+            var healthCheckResponse = HealthCheckResponse.Builder
+                    .newInstance()
+                    .code(code)
+                    .payload(responsePayload)
+                    .build();
+            return Result.success(healthCheckResponse);
         } catch (IOException e) {
-            throw new EdcException(e);
+            return Result.failure(e.getMessage());
         }
-
-        return healthResponseBuilder.build();
     }
 
-
-    void inspectToken() {
+    void inspectToken(TokenLookUpResponsePayloadToken token) {
         if (token.isRootToken()) {
             monitor.warning("Root token detected. Don't use root tokens in production environment!");
         } else {
@@ -125,13 +118,14 @@ class HashicorpVaultClient {
             }
 
             if (token.hasExplicitMaxTimeToLive()) {
-                // TODO: Time conversion
-                monitor.warning("Token has explicit expiration time at %s".formatted(token.getIssueTime() + token.getExplicitMaxTimeToLive()));
+                var explicitMaxTtl = token.getExplicitMaxTimeToLive();
+                var formattedTime = TIME_FORMAT.formatted(explicitMaxTtl / 3600, (explicitMaxTtl % 3600) / 60, explicitMaxTtl % 60);
+                monitor.warning("Token will ultimately expire in %s".formatted(formattedTime));
             }
         }
     }
 
-    Result<Void> lookUpToken() {
+    Result<TokenLookUpResponsePayloadToken> lookUpToken() {
         var uri = Objects.requireNonNull(HttpUrl.parse(hashicorpVaultConfig.vaultUrl()))
                 .newBuilder()
                 .addPathSegment(PathUtil.trimLeadingOrEndingSlash(TOKEN_LOOK_UP_SELF_PATH))
@@ -142,8 +136,7 @@ class HashicorpVaultClient {
             if (response.isSuccessful()) {
                 var responseBody = Objects.requireNonNull(response.body()).string();
                 var payload = objectMapper.readValue(responseBody, TokenLookUpResponsePayload.class);
-                token = payload.getData();
-                return Result.success();
+                return Result.success(payload.getToken());
             } else {
                 return Result.failure("%d".formatted(response.code()));
             }
@@ -152,11 +145,7 @@ class HashicorpVaultClient {
         }
     }
 
-    boolean isTokenRenewable() {
-        return token.isRenewable();
-    }
-
-    Result<Void> renewToken() {
+    Result<TokenRenewalResponsePayloadToken> renewToken() {
         var uri = Objects.requireNonNull(HttpUrl.parse(hashicorpVaultConfig.vaultUrl()))
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(TOKEN_RENEW_SELF_PATH))
@@ -172,8 +161,7 @@ class HashicorpVaultClient {
                 var responseBody = Objects.requireNonNull(response.body()).string();
                 var payload = objectMapper.readValue(responseBody, TokenRenewalResponsePayload.class);
                 payload.getWarnings().forEach(monitor::warning);
-                token.setTimeToLive(payload.getAuth().getTimeToLive());
-                return Result.success();
+                return Result.success(payload.getToken());
             } else {
                 return Result.failure("%d".formatted(response.code()));
             }
@@ -182,24 +170,23 @@ class HashicorpVaultClient {
         }
     }
 
-    void scheduleNextTokenRenewal() {
-        var delay = token.getTimeToLive() - hashicorpVaultConfig.renewBuffer();
+    void scheduleNextTokenRenewal(long timeToLive) {
+        var delay = timeToLive - hashicorpVaultConfig.renewBuffer();
 
-        scheduledExecutorService.schedule(
-                () -> {
-                    var tokenRenewalResult = renewToken();
+        scheduledExecutorService.schedule(() -> {
+            var tokenRenewResult = renewToken();
 
-                    if (tokenRenewalResult.succeeded()) {
-                        monitor.info("Token was renewed successfully");
-                        scheduleNextTokenRenewal();
-                    } else {
-                        monitor.warning("Failed to renew token: %s".formatted(tokenRenewalResult.getFailureDetail()));
-                    }
-                },
-                delay,
-                TimeUnit.SECONDS);
+            if (tokenRenewResult.succeeded()) {
+                monitor.info("Token was renewed successfully");
+                var token = tokenRenewResult.getContent();
+                scheduleNextTokenRenewal(token.getTimeToLive());
+            } else {
+                monitor.warning("Failed to renew token: %s".formatted(tokenRenewResult.getFailureDetail()));
+            }
+        }, delay, TimeUnit.SECONDS);
 
-        monitor.info("Next token renewal scheduled in %d seconds".formatted(delay));
+        var formattedTime = TIME_FORMAT.formatted(delay / 3600, (delay % 3600) / 60, delay % 60);
+        monitor.info("Next token renewal scheduled in %s".formatted(formattedTime));
     }
 
     Result<String> getSecretValue(@NotNull String key) {
@@ -338,5 +325,4 @@ class HashicorpVaultClient {
         }
         return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
     }
-
 }

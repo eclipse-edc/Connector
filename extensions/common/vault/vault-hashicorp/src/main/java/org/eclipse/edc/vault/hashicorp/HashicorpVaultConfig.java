@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
+ *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
  *
  */
 

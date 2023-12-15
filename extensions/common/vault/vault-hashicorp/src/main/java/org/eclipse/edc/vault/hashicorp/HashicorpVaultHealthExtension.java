@@ -52,7 +52,7 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();//.withPrefix(NAME);
+        var monitor = context.getMonitor().withPrefix(NAME);
         var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
         if (healthCheckEnabled) {
             var healthCheck = new HashicorpVaultHealthCheck(client, context.getMonitor());
