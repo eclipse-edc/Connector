@@ -43,7 +43,7 @@ All requests must support idempotent behavior. Data planes must therefore perfor
 
 ##### 1. `START` 
 
-During the transfer process `STARTING` phase, a data plane will be selected by the default push and pull `DataFlowControllers`, which will then send a `DataFlowStartMessage` (renamed `DataFlowRequest`) to the data plane. 
+During the transfer process `STARTING` phase, a data plane will be selected by the default push and pull `DataFlowControllers`, which will then send a `DataFlowStartMessage` (renamed from `DataFlowRequest`) to the data plane. 
 
 The control plane (`DataFlowController`) will record which data plane was selected for the transfer process so that it can properly route subsequent, start, stop, and terminate requests.
 
