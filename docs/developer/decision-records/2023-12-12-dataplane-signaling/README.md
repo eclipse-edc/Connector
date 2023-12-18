@@ -4,7 +4,7 @@
 
 EDC will implement the Data Plane Signaling Protocol as described [here](../../data-plane-signaling/data-plane-signaling.md). The Signaling Protocol defines how a control plane starts, suspends, and terminates a data flow in a data plane.
 
-# Rationale
+## Rationale
 
 The EDC control plane currently implements an unspecified communication protocol when initiating flows in its proprietary data plane implementation, the DPF. In addition to being proprietary and undocumented, the communication has significant limitations. These include the inability to suspend flows and lack of adequate access token management.  
 
