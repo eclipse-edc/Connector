@@ -92,7 +92,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                     var policyDefinition = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
                     if (policyDefinition != null) {
                         var contractId = ContractOfferId.create(contractDefinition.getId(), asset.getId());
-                        datasetBuilder.offer(contractId.toString(), policyDefinition.getPolicy().withTarget(asset.getId()));
+                        datasetBuilder.offer(contractId.toString(), policyDefinition.getPolicy());
                     }
                 });
 

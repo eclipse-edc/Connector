@@ -90,7 +90,7 @@ class DatasetResolverImplTest {
             assertThat(dataset.getDistributions()).hasSize(1).first().isEqualTo(distribution);
             assertThat(dataset.getOffers()).hasSize(1).allSatisfy((id, policy) -> {
                 assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).asString().isEqualTo("definitionId");
-                assertThat(policy.getTarget()).isEqualTo("assetId");
+                assertThat(policy.getTarget()).isEqualTo(null);
             });
             assertThat(dataset.getProperties()).contains(entry("key", "value"));
         });
