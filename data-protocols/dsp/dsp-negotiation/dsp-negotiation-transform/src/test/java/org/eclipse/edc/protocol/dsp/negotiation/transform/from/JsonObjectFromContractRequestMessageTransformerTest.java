@@ -17,9 +17,10 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +52,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     private static final String PROCESS_ID = "processId";
     private static final String PROTOCOL = "DSP";
     private static final String DATASET_ID = "datasetId";
-    private static final String CONTRACT_OFFER_ID = "contractOffer1";
+    private static final String CONTRACT_OFFER_ID = ContractOfferId.create("definitionId", "assetId").toString();
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
@@ -76,7 +77,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
         assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
         assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(PROCESS_ID);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_DATASET).getString()).isEqualTo(DATASET_ID);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_DATASET).getString()).isEqualTo("assetId");
         assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(CALLBACK_ADDRESS);
         assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER)).isNotNull();
         assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
@@ -131,7 +132,6 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(CONTRACT_OFFER_ID)
-                .assetId(DATASET_ID)
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -34,7 +35,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -143,7 +143,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure("Invalid provider credentials");
         }
 
-        if (!policyEquality.test(agreement.getPolicy().withTarget(latestOffer.getAssetId()), latestOffer.getPolicy())) {
+        if (!policyEquality.test(agreement.getPolicy(), latestOffer.getPolicy().withTarget(agreement.getAssetId()))) {
             return failure("Policy in the contract agreement is not equal to the one in the contract offer");
         }
 
@@ -183,7 +183,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
         }
 
-        var policy = policyDefinition.getPolicy().withTarget(contractOfferId.assetIdPart());
+        var policy = policyDefinition.getPolicy();
         var policyContext = PolicyContextImpl.Builder.newInstance().additional(ParticipantAgent.class, agent).build();
         var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, policy, policyContext);
         if (policyResult.failed()) {
@@ -197,7 +197,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         return ContractOffer.Builder.newInstance()
                 .id(contractOfferId.toString())
                 .policy(policy)
-                .assetId(contractOfferId.assetIdPart())
                 .build();
     }
 

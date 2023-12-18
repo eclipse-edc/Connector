@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,7 +28,6 @@ class ContractRequestMessageTest {
     public static final String PROCESS_ID = "123";
     public static final String DATASET = "dataset1";
     public static final String ID = "id1";
-    public static final String ASSET_ID = "asset1";
     public static final String PROTOCOL = "DPS";
 
     @Test
@@ -78,7 +77,6 @@ class ContractRequestMessageTest {
                 .protocol(PROTOCOL)
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(ID)
-                        .assetId(ASSET_ID)
                         .policy(Policy.Builder.newInstance().build())
                         .build())
                 .dataset(DATASET)

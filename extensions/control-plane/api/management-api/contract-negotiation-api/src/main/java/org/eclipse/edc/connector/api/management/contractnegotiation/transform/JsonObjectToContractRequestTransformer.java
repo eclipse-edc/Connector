@@ -17,9 +17,9 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +66,6 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
             var contractOfferDescription = transformObject(jsonObject.get(OFFER), ContractOfferDescription.class, context);
             return ContractOffer.Builder.newInstance()
                     .id(contractOfferDescription.getOfferId())
-                    .assetId(contractOfferDescription.getAssetId())
                     .policy(contractOfferDescription.getPolicy())
                     .build();
         }

@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
@@ -54,7 +55,8 @@ class JsonObjectToContractRequestMessageTransformerTest {
     private static final String DATASET_ID = "datasetId";
     private static final String CALLBACK = "https://test.com";
     private static final String OBJECT_ID = "id1";
-    private static final String CONTRACT_OFFER_ID = "contractOfferId";
+    private static final String ASSET_ID = "assetId";
+    private static final String CONTRACT_OFFER_ID = ContractOfferId.create("definitionId", ASSET_ID).toString();
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
@@ -92,7 +94,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
         assertThat(contractOffer).isNotNull();
         assertThat(contractOffer.getId()).isNotNull();
         assertThat(contractOffer.getPolicy()).isNotNull();
-        assertThat(contractOffer.getAssetId()).isEqualTo("target");
+        assertThat(contractOffer.getAssetId()).isEqualTo(ASSET_ID);
 
         verify(context, never()).reportProblem(anyString());
     }

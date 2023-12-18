@@ -16,9 +16,9 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +65,6 @@ public class JsonObjectToContractOfferMessageTransformer extends AbstractJsonLdT
             }
             var offer = ContractOffer.Builder.newInstance()
                     .id(id)
-                    .assetId(policy.getTarget())
                     .policy(policy)
                     .build();
             builder.contractOffer(offer);

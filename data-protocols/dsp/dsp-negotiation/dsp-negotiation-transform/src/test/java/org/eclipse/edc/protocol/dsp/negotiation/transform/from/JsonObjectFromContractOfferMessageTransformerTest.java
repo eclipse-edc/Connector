@@ -18,8 +18,8 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,7 +108,6 @@ class JsonObjectFromContractOfferMessageTransformerTest {
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(CONTRACT_OFFER_ID)
-                .assetId("assetId")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

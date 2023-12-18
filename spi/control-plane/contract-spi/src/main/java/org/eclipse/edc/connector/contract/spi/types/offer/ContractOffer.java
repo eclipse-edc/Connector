@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,15 +8,16 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
-package org.eclipse.edc.spi.types.domain.offer;
+package org.eclipse.edc.connector.contract.spi.types.offer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +36,6 @@ public class ContractOffer {
      */
     private Policy policy;
 
-    /**
-     * The offered asset
-     */
-    private String assetId;
-
     @NotNull
     public String getId() {
         return id;
@@ -47,7 +43,8 @@ public class ContractOffer {
 
     @NotNull
     public String getAssetId() {
-        return assetId;
+        return ContractOfferId.parseId(id).map(ContractOfferId::assetIdPart)
+                .orElseThrow(it -> new IllegalArgumentException("Cannot get assetId from the contract offer id"));
     }
 
     @NotNull
@@ -57,7 +54,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, assetId);
+        return Objects.hash(id, policy);
     }
 
     @Override
@@ -69,7 +66,7 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assetId, that.assetId);
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -91,11 +88,6 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder assetId(String assetId) {
-            contractOffer.assetId = assetId;
-            return this;
-        }
-
         public Builder policy(Policy policy) {
             contractOffer.policy = policy;
             return this;
@@ -103,7 +95,6 @@ public class ContractOffer {
 
         public ContractOffer build() {
             Objects.requireNonNull(contractOffer.id, "Id must not be null");
-            Objects.requireNonNull(contractOffer.assetId, "Asset id must not be null");
             Objects.requireNonNull(contractOffer.policy, "Policy must not be null");
             return contractOffer;
         }

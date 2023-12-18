@@ -130,7 +130,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .contractSigningDate(clock.instant().getEpochSecond())
                     .providerId(participantId)
                     .consumerId(negotiation.getCounterPartyId())
-                    .policy(lastOffer.getPolicy())
+                    .policy(lastOffer.getPolicy().withTarget(lastOffer.getAssetId()))
                     .assetId(lastOffer.getAssetId())
                     .build();
         } else {

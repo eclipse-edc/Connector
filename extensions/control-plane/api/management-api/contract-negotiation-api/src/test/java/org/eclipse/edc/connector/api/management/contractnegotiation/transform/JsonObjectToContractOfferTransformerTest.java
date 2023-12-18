@@ -16,10 +16,10 @@ package org.eclipse.edc.connector.api.management.contractnegotiation.transform;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -40,7 +39,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToContractOfferTransformerTest {
 
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
+    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TransformerContext context = mock();
     private JsonObjectToContractOfferTransformer transformer;
 
@@ -51,10 +50,10 @@ class JsonObjectToContractOfferTransformerTest {
 
     @Test
     void transform() {
+        var contractId = ContractOfferId.create("definitionId", "assetId").toString();
         var offerPolicy = createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
-                .add(ID, "test-offer-id")
-                .add(ODRL_TARGET_ATTRIBUTE, "test-asset")
+                .add(ID, contractId)
                 .add(ODRL_PERMISSION_ATTRIBUTE, getJsonObject("permission"))
                 .add(ODRL_PROHIBITION_ATTRIBUTE, getJsonObject("prohibition"))
                 .add(ODRL_OBLIGATION_ATTRIBUTE, getJsonObject("duty"))
@@ -66,8 +65,8 @@ class JsonObjectToContractOfferTransformerTest {
         var result = transformer.transform(jsonLd.expand(offerPolicy).getContent(), context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo("test-offer-id");
-        assertThat(result.getAssetId()).isEqualTo("test-asset");
+        assertThat(result.getId()).isEqualTo(contractId);
+        assertThat(result.getAssetId()).isEqualTo("assetId");
     }
 
     @Test

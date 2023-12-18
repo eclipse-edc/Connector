@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.offer.ContractDefinitionResolver;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
@@ -36,7 +37,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,12 +77,12 @@ class ContractValidationServiceImplTest {
 
     private final Instant now = Instant.now();
 
-    private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
-    private final ContractDefinitionResolver definitionResolver = mock(ContractDefinitionResolver.class);
-    private final AssetIndex assetIndex = mock(AssetIndex.class);
-    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
-    private final PolicyEngine policyEngine = mock(PolicyEngine.class);
-    private final PolicyEquality policyEquality = mock(PolicyEquality.class);
+    private final ParticipantAgentService agentService = mock();
+    private final ContractDefinitionResolver definitionResolver = mock();
+    private final AssetIndex assetIndex = mock();
+    private final PolicyDefinitionStore policyStore = mock();
+    private final PolicyEngine policyEngine = mock();
+    private final PolicyEquality policyEquality = mock();
     private ContractValidationServiceImpl validationService;
 
     private static ContractDefinition.Builder createContractDefinitionBuilder() {
@@ -485,7 +485,6 @@ class ContractValidationServiceImplTest {
     private ContractOffer createContractOffer(Asset asset, Policy policy) {
         return ContractOffer.Builder.newInstance()
                 .id(ContractOfferId.create("1", asset.getId()).toString())
-                .assetId(asset.getId())
                 .policy(policy)
                 .build();
     }

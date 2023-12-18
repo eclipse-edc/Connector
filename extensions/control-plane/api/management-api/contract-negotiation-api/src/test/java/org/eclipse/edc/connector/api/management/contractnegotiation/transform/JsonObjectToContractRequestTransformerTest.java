@@ -19,16 +19,15 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.api.management.contractnegotiation.model.ContractOfferDescription;
+import org.eclipse.edc.connector.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -48,7 +47,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OBLIGATION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
@@ -59,14 +57,9 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToContractRequestTransformerTest {
 
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
+    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TransformerContext context = mock();
-    private JsonObjectToContractRequestTransformer transformer;
-
-    @BeforeEach
-    void setUp() {
-        transformer = new JsonObjectToContractRequestTransformer();
-    }
+    private final JsonObjectToContractRequestTransformer transformer = new JsonObjectToContractRequestTransformer();
 
     @Test
     void transform() {
@@ -99,6 +92,7 @@ class JsonObjectToContractRequestTransformerTest {
     @Deprecated(since = "0.3.2")
     @Test
     void deprecated_transform_contractOfferFromOfferAttribute() {
+        var offerId = ContractOfferId.create("definitionId", "test-asset").toString();
         var jsonObject = Json.createObjectBuilder()
                 .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
@@ -106,7 +100,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .add(PROVIDER_ID, "test-provider-id")
                 .add(CALLBACK_ADDRESSES, createCallbackAddress())
                 .add(OFFER, Json.createObjectBuilder()
-                        .add(OFFER_ID, "test-offer-id")
+                        .add(OFFER_ID, offerId)
                         .add(ASSET_ID, "test-asset")
                         .add(POLICY, createPolicy())
                         .build())
@@ -114,8 +108,8 @@ class JsonObjectToContractRequestTransformerTest {
 
         var policy = Policy.Builder.newInstance().build();
         var contractOfferDescription = ContractOfferDescription.Builder.newInstance()
-                .offerId("offerId")
-                .assetId("assetId")
+                .offerId(offerId)
+                .assetId("test-asset")
                 .policy(policy)
                 .build();
         when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(null);
@@ -136,8 +130,8 @@ class JsonObjectToContractRequestTransformerTest {
         assertThat(request.getProtocol()).isEqualTo("test-protocol");
         assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
         assertThat(request.getContractOffer()).isNotNull().satisfies(contractOffer -> {
-            assertThat(contractOffer.getId()).isEqualTo("offerId");
-            assertThat(contractOffer.getAssetId()).isEqualTo("assetId");
+            assertThat(contractOffer.getId()).isEqualTo(offerId);
+            assertThat(contractOffer.getAssetId()).isEqualTo("test-asset");
             assertThat(contractOffer.getPolicy()).isSameAs(policy);
         });
 
@@ -161,7 +155,7 @@ class JsonObjectToContractRequestTransformerTest {
 
     private ContractOffer createContractOffer() {
         var policy = Policy.Builder.newInstance().target("test-asset").build();
-        return ContractOffer.Builder.newInstance().id("offer-id").assetId("asset-id").policy(policy).build();
+        return ContractOffer.Builder.newInstance().id("offer-id").policy(policy).build();
     }
 
     private JsonArrayBuilder createCallbackAddress() {
@@ -178,8 +172,7 @@ class JsonObjectToContractRequestTransformerTest {
         var dutyJson = getJsonObject("duty");
         return Json.createObjectBuilder()
                 .add(TYPE, ODRL_POLICY_TYPE_SET)
-                .add(ID, "test-offer-id")
-                .add(ODRL_TARGET_ATTRIBUTE, "test-asset")
+                .add(ID, ContractOfferId.create("definitionId", "test-asset").toString())
                 .add(ODRL_PERMISSION_ATTRIBUTE, permissionJson)
                 .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionJson)
                 .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)

@@ -17,7 +17,7 @@ package org.eclipse.edc.catalog.spi;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 
 import java.util.ArrayList;
 import java.util.HashMap;

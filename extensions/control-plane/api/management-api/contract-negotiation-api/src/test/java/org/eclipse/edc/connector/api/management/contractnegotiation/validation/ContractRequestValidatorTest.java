@@ -37,7 +37,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -55,8 +54,8 @@ class ContractRequestValidatorTest {
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
                 .add(POLICY, createArrayBuilder().add(createObjectBuilder()
-                        .add(ID, "offer-id")
-                        .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target")))))
+                        .add(ID, "offer-id"))
+                )
                 .build();
 
         var result = validator.validate(input);
@@ -78,22 +77,6 @@ class ContractRequestValidatorTest {
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .isNotEmpty()
                 .anySatisfy(violation -> assertThat(violation.message()).contains(ID));
-    }
-
-    @Test
-    void shouldFail_whenPolicyMissesTarget() {
-        var input = Json.createObjectBuilder()
-                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, value("http://connector-address"))
-                .add(PROTOCOL, value("protocol"))
-                .add(PROVIDER_ID, value("connector-id"))
-                .add(POLICY, createArrayBuilder().add(createObjectBuilder().add(ID, "offer-id")))
-                .build();
-
-        var result = validator.validate(input);
-
-        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .isNotEmpty()
-                .anySatisfy(violation -> assertThat(violation.message()).contains(ODRL_TARGET_ATTRIBUTE));
     }
 
     @Test
@@ -169,8 +152,8 @@ class ContractRequestValidatorTest {
                 .add(PROTOCOL, value("protocol"))
                 .add(PROVIDER_ID, value("connector-id"))
                 .add(POLICY, createArrayBuilder().add(createObjectBuilder()
-                        .add(ID, "offer-id")
-                        .add(ODRL_TARGET_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "target")))))
+                        .add(ID, "offer-id"))
+                )
                 .build();
 
         var result = validator.validate(input);

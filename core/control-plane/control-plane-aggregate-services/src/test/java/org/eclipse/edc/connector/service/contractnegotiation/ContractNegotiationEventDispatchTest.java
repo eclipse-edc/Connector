@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.NegotiationWaitStrateg
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -43,7 +44,6 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -123,7 +123,6 @@ class ContractNegotiationEventDispatchTest {
     private ContractRequestMessage createContractOfferRequest(Policy policy, String assetId) {
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(ContractOfferId.create("contractDefinitionId", assetId).toString())
-                .assetId("assetId")
                 .policy(policy)
                 .build();
 
