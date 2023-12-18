@@ -10,7 +10,7 @@ The EDC control plane currently implements an unspecified communication protocol
 
 The Data Plane Signaling Protocol will be the foundation for the EDC control plane to interoperate with third-party data planes. It defines standardized messages and access control behavior that allow third-party data planes to work out-of-the-box with EDC-based control planes.
 
-# Impact
+## Impact
 
 The architecture and detailed refactoring requirements are defined in the Data Plane Signaling and Access Control Architecture referenced above.
 
