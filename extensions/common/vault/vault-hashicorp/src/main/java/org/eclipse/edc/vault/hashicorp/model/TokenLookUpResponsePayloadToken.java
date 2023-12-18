@@ -16,6 +16,8 @@ package org.eclipse.edc.vault.hashicorp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.List;
@@ -35,6 +37,7 @@ public class TokenLookUpResponsePayloadToken {
     private Long period;
 
     @JsonProperty("policies")
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private List<String> policies;
 
     public long getExplicitMaxTimeToLive() {
