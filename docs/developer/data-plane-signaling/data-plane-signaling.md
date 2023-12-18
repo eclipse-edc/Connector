@@ -29,7 +29,7 @@ When the control plane signals to the data plane to start a client pull transfer
 
 This `DataAddress` is returned to the client control plane. If the client control plane is an EDC implementation, the `DataAddress` will be transformed into an `EndpointDataAddress` (EDR) which contains additional metadata associated with the transfer, such as the asset id and contract id. 
 
-Since a transfer process may be `STARTED` multiple times (e.g., after it is temporarily `SUSPENDED`), the client may receive multiple `DataAddresses` as part of the start messages. The client must always create a new `EDR` from these messages and remove the previous `EDR`. Data plane implementations may choose to pass the same `DataAddress` or an updated one. 
+Since a transfer process may be `STARTED` multiple times (e.g., after it is temporarily `SUSPENDED`), the client may receive a different `DataAddress` as part of each start message. The client must always create a new `EDR` from these messages and remove the previous `EDR`. Data plane implementations may choose to pass the same `DataAddress` or an updated one. 
 
 Note that start signaling can be used to change a data plane's endpoint address, for example, after an upgrade (in this case the transfer process would transition back into the `STARTED` state).
 
