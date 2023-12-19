@@ -51,4 +51,5 @@
 - [2023-10-04 JSON-LD Scopes](./2023-10-04-json-ld-scopes)
 - [2023-11-09 API Versioning](./2023-11-09-api-versioning)
 - [2023-11-20 Transfer_Type](./2023-11-20-transfer-type)
-- [2023-11-27 Protocol Services Refactor](./2023-11-27-refactor-protocol-services)
+- [2023-11-09 Protocol Services Refactor](./2023-11-27-refactor-protocol-services)
+- [2023-12-12 Data Plane Signaling and Access Control Architecture](./2023-12-12-dataplane-signaling)
