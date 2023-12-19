@@ -144,6 +144,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
                 .protocol(message.getProtocol())
                 .connectorAddress(message.getCallbackAddress())
                 .dataDestination(destination)
+                .transferType(message.getTransferType())
                 .assetId(assetId)
                 .contractId(message.getContractId())
                 .build();

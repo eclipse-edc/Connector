@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS edc_data_request
     protocol            VARCHAR NOT NULL,
     asset_id            VARCHAR NOT NULL,
     contract_id         VARCHAR NOT NULL,
+    transfer_type       VARCHAR         ,
     data_destination    JSON    NOT NULL,
     transfer_process_id VARCHAR NOT NULL
         CONSTRAINT data_request_transfer_process_id_fk

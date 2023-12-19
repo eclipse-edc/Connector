@@ -91,6 +91,17 @@ public abstract class TransferProcessStoreTestBase {
         }
 
         @Test
+        void verifyTransferType() {
+            var t = createTransferProcessBuilder("test-id").dataRequest(createDataRequestBuilder().transferType("transferType").build()).build();
+            getTransferProcessStore().save(t);
+
+            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(all).containsExactly(t);
+            assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
+            assertThat(all.get(0).getTransferType()).isEqualTo("transferType");
+        }
+
+        @Test
         void withSameIdExists_shouldReplace() {
             var t = createTransferProcess("id1", INITIAL);
             getTransferProcessStore().save(t);

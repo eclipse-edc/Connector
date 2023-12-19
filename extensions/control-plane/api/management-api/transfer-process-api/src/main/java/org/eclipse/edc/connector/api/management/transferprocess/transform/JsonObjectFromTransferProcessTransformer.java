@@ -35,6 +35,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANS
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ERROR_DETAIL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE_TIMESTAMP;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -69,6 +70,7 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
                 .add(TRANSFER_PROCESS_CALLBACK_ADDRESSES, callbackAddresses)
                 .add(TRANSFER_PROCESS_DATA_DESTINATION, dataDestination);
 
+        Optional.ofNullable(input.getTransferType()).ifPresent(it -> builder.add(TRANSFER_PROCESS_TRANSFER_TYPE, it));
         Optional.ofNullable(input.getErrorDetail()).ifPresent(it -> builder.add(TRANSFER_PROCESS_ERROR_DETAIL, it));
 
         return builder.build();

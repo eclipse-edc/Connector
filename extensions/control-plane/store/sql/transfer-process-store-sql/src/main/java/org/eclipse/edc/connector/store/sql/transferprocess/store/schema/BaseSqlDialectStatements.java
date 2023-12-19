@@ -110,6 +110,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .jsonColumn(getDataDestinationColumn())
                 .column(getTransferProcessIdFkColumn())
                 .column(getProtocolColumn())
+                .column(getTransferTypeColumn())
                 .insertInto(getDataRequestTable());
     }
 

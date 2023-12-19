@@ -41,6 +41,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANS
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROPERTIES;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 
 public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransformer<JsonObject, TransferRequest> {
 
@@ -54,7 +55,8 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
 
         builder.id(nodeId(input));
         visitProperties(input, k -> switch (k) {
-            case TRANSFER_REQUEST_CONNECTOR_ADDRESS, TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS -> v -> builder.counterPartyAddress(transformString(v, context));
+            case TRANSFER_REQUEST_CONNECTOR_ADDRESS, TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS ->
+                    v -> builder.counterPartyAddress(transformString(v, context));
             case TRANSFER_REQUEST_CONTRACT_ID -> (v) -> builder.contractId(transformString(v, context));
             case TRANSFER_REQUEST_DATA_DESTINATION ->
                     v -> builder.dataDestination(transformObject(v, DataAddress.class, context));
@@ -67,6 +69,7 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
             case TRANSFER_REQUEST_PRIVATE_PROPERTIES ->
                     (v) -> transformProperties(v, builder::privateProperties, context);
             case TRANSFER_REQUEST_PROTOCOL -> (v) -> builder.protocol(transformString(v, context));
+            case TRANSFER_REQUEST_TRANSFER_TYPE -> (v) -> builder.transferType(transformString(v, context));
             case TRANSFER_REQUEST_ASSET_ID -> (v) -> builder.assetId(transformString(v, context));
             default -> doNothing();
         });

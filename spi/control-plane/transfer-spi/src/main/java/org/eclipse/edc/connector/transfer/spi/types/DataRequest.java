@@ -34,6 +34,7 @@ public class DataRequest implements Polymorphic {
     private String protocol;
     private String assetId;
     private String contractId;
+    private String transferType;
     private DataAddress dataDestination;
 
     /**
@@ -98,6 +99,13 @@ public class DataRequest implements Polymorphic {
     public DataAddress getDataDestination() {
         return dataDestination;
     }
+    
+    /**
+     * The transfer type to use for the requested data
+     */
+    public String getTransferType() {
+        return transferType;
+    }
 
     public void updateDestination(DataAddress dataAddress) {
         dataDestination = dataAddress;
@@ -153,6 +161,11 @@ public class DataRequest implements Polymorphic {
             } else {
                 request.dataDestination.setType(type);
             }
+            return this;
+        }
+
+        public Builder transferType(String transferType) {
+            request.transferType = transferType;
             return this;
         }
 

@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.transfer.dataplane.proxy.ConsumerPullDataPlaneProxyResolver;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.types.DataFlowResponse;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -39,6 +40,8 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     private final DataPlaneSelectorService selectorService;
     private final ConsumerPullDataPlaneProxyResolver resolver;
 
+    private final Set<String> transferTypes = Set.of("%s-%s".formatted("Http", PULL));
+
     public ConsumerPullTransferDataFlowController(DataPlaneSelectorService selectorService, ConsumerPullDataPlaneProxyResolver resolver) {
         this.selectorService = selectorService;
         this.resolver = resolver;
@@ -46,19 +49,33 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
 
     @Override
     public boolean canHandle(TransferProcess transferProcess) {
-        return HTTP_PROXY.equals(transferProcess.getDestinationType());
+        // Backward compatibility: can handle if destination type is `HttpProxy` or the transfer type is `Http-PULL`
+        return HTTP_PROXY.equals(transferProcess.getDestinationType()) ||
+                (Optional.ofNullable(transferProcess.getTransferType()).map(transferTypes::contains).orElse(false));
     }
 
     @Override
     public @NotNull StatusResult<DataFlowResponse> initiateFlow(TransferProcess transferProcess, Policy policy) {
         var contentAddress = transferProcess.getContentDataAddress();
         var dataRequest = transferProcess.getDataRequest();
-        return Optional.ofNullable(selectorService.select(contentAddress, dataRequest.getDataDestination()))
+
+        return Optional.ofNullable(selectorService.select(contentAddress, destinationAddress(dataRequest)))
                 .map(instance -> resolver.toDataAddress(dataRequest, contentAddress, instance)
                         .map(this::toResponse)
                         .map(StatusResult::success)
                         .orElse(failure -> failure(FATAL_ERROR, "Failed to generate proxy: " + failure.getFailureDetail())))
                 .orElse(failure(FATAL_ERROR, format("Failed to find DataPlaneInstance for source/destination: %s/%s", contentAddress.getType(), HTTP_PROXY)));
+    }
+
+    // Shim translation from "Http-PULL" to HttpProxy dataAddress
+    private DataAddress destinationAddress(DataRequest dataRequest) {
+        if (transferTypes.contains(dataRequest.getDestinationType())) {
+            var dadBuilder = DataAddress.Builder.newInstance();
+            dataRequest.getDataDestination().getProperties().forEach(dadBuilder::property);
+            return dadBuilder.type(HTTP_PROXY).build();
+        } else {
+            return dataRequest.getDataDestination();
+        }
     }
 
     @Override
@@ -68,7 +85,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
 
     @Override
     public Set<String> transferTypesFor(Asset asset) {
-        return Set.of("%s-%s".formatted("Http", PULL));
+        return transferTypes;
     }
 
     private DataFlowResponse toResponse(DataAddress address) {

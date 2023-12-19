@@ -47,12 +47,17 @@ class ProviderPushTransferDataFlowControllerTest {
     private final DataPlaneClient dataPlaneClient = mock();
     private final DataPlaneClientFactory dataPlaneClientFactory = mock();
     private final DataPlaneSelectorService selectorService = mock();
+
+    private static final String HTTP_PULL = "Http-PULL";
+
     private final ProviderPushTransferDataFlowController flowController =
             new ProviderPushTransferDataFlowController(() -> URI.create("http://localhost"), selectorService, dataPlaneClientFactory);
 
     @Test
     void canHandle() {
         assertThat(flowController.canHandle(transferProcess(HTTP_PROXY))).isFalse();
+        assertThat(flowController.canHandle(transferProcess(HTTP_PROXY))).isFalse();
+        assertThat(flowController.canHandle(transferProcess(HTTP_PULL, HTTP_PULL))).isFalse();
         assertThat(flowController.canHandle(transferProcess("not-http-proxy"))).isTrue();
     }
 
@@ -167,8 +172,12 @@ class ProviderPushTransferDataFlowControllerTest {
     }
 
     private TransferProcess transferProcess(String destinationType) {
+        return transferProcess(destinationType, null);
+    }
+
+    private TransferProcess transferProcess(String destinationType, String transferType) {
         return TransferProcess.Builder.newInstance()
-                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
+                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).transferType(transferType).build())
                 .build();
     }
 }

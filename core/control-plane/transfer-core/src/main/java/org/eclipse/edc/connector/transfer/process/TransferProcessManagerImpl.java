@@ -136,6 +136,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .contractId(transferRequest.getContractId())
                 .destinationType(transferRequest.getDataDestination().getType())
                 .protocol(transferRequest.getProtocol())
+                .transferType(transferRequest.getTransferType())
                 .dataDestination(transferRequest.getDataDestination())
                 .build();
 
@@ -286,6 +287,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .counterPartyAddress(process.getConnectorAddress())
                 .callbackAddress(protocolWebhook.url())
                 .dataDestination(dataDestination)
+                .transferType(process.getTransferType())
                 .contractId(process.getContractId())
                 .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .build();
@@ -457,17 +459,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name())};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
         return createProcessor(function, filter);
     }
 
     private Processor processProviderTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name())};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name()) };
         return createProcessor(function, filter);
     }
 
     private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending()};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending() };
         return createProcessor(function, filter);
     }
 
