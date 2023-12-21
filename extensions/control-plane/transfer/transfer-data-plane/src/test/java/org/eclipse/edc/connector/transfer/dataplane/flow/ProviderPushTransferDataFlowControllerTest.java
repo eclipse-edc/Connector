@@ -177,7 +177,8 @@ class ProviderPushTransferDataFlowControllerTest {
 
     private TransferProcess transferProcess(String destinationType, String transferType) {
         return TransferProcess.Builder.newInstance()
-                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).transferType(transferType).build())
+                .transferType(transferType)
+                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
                 .build();
     }
 }

@@ -144,7 +144,6 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
                 .protocol(message.getProtocol())
                 .connectorAddress(message.getCallbackAddress())
                 .dataDestination(destination)
-                .transferType(message.getTransferType())
                 .assetId(assetId)
                 .contractId(message.getContractId())
                 .build();
@@ -156,6 +155,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
         var process = TransferProcess.Builder.newInstance()
                 .id(randomUUID().toString())
                 .dataRequest(dataRequest)
+                .transferType(message.getTransferType())
                 .type(PROVIDER)
                 .clock(clock)
                 .traceContext(telemetry.getCurrentTraceContext())

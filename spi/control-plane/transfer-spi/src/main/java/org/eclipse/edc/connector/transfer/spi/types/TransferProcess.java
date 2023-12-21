@@ -128,6 +128,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
 
+    private String transferType;
+
     private TransferProcess() {
     }
 
@@ -349,9 +351,13 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return dataRequest.getConnectorAddress();
     }
 
+
+    /**
+     * The transfer type to use for the requested data
+     */
     @JsonIgnore
     public String getTransferType() {
-        return dataRequest.getTransferType();
+        return transferType;
     }
 
     @JsonIgnore
@@ -394,6 +400,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .deprovisionedResources(deprovisionedResources)
                 .privateProperties(privateProperties)
                 .callbackAddresses(callbackAddresses)
+                .transferType(transferType)
                 .type(type);
         return copy(builder);
     }
@@ -504,6 +511,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
             entity.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
+        public Builder transferType(String transferType) {
+            entity.transferType = transferType;
             return this;
         }
 

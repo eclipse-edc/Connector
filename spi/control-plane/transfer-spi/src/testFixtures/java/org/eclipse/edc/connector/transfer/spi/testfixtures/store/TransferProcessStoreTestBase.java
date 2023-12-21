@@ -92,7 +92,7 @@ public abstract class TransferProcessStoreTestBase {
 
         @Test
         void verifyTransferType() {
-            var t = createTransferProcessBuilder("test-id").dataRequest(createDataRequestBuilder().transferType("transferType").build()).build();
+            var t = createTransferProcessBuilder("test-id").transferType("transferType").dataRequest(createDataRequestBuilder().build()).build();
             getTransferProcessStore().save(t);
 
             var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());

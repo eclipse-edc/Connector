@@ -219,7 +219,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
                 .processId(resultSet.getString(statements.getProcessIdColumn()))
-                .transferType(resultSet.getString(statements.getTransferTypeColumn()))
                 .build();
     }
 
@@ -255,6 +254,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getDeprovisionedResources()),
                 toJson(process.getCallbackAddresses()),
                 process.isPending(),
+                process.getTransferType(),
                 process.getId());
 
         var newDr = process.getDataRequest();
@@ -309,7 +309,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getDeprovisionedResources()),
                 toJson(process.getPrivateProperties()),
                 toJson(process.getCallbackAddresses()),
-                process.isPending());
+                process.isPending(),
+                process.getTransferType());
 
         //insert DataRequest
         var dr = process.getDataRequest();
@@ -328,8 +329,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 dr.getContractId(),
                 toJson(dr.getDataDestination()),
                 processId,
-                dr.getProtocol(),
-                dr.getTransferType());
+                dr.getProtocol());
     }
 
     private TransferProcess mapTransferProcess(ResultSet resultSet) throws SQLException {
@@ -353,6 +353,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 }))
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), getTypeRef()))
                 .pending(resultSet.getBoolean(statements.getPendingColumn()))
+                .transferType(resultSet.getString(statements.getTransferTypeColumn()))
                 .build();
     }
 

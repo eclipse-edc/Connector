@@ -136,7 +136,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .contractId(transferRequest.getContractId())
                 .destinationType(transferRequest.getDataDestination().getType())
                 .protocol(transferRequest.getProtocol())
-                .transferType(transferRequest.getTransferType())
                 .dataDestination(transferRequest.getDataDestination())
                 .build();
 
@@ -145,6 +144,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .dataRequest(dataRequest)
                 .type(CONSUMER)
                 .clock(clock)
+                .transferType(transferRequest.getTransferType())
                 .privateProperties(transferRequest.getPrivateProperties())
                 .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())

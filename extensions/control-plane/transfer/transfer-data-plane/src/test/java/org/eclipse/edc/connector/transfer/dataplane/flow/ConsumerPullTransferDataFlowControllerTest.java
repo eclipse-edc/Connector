@@ -77,7 +77,8 @@ class ConsumerPullTransferDataFlowControllerTest {
         var proxyAddress = dataAddress();
         var instance = mock(DataPlaneInstance.class);
         var transferProcess = TransferProcess.Builder.newInstance()
-                .dataRequest(dataRequest(HTTP_PULL))
+                .transferType(HTTP_PULL)
+                .dataRequest(dataRequest())
                 .contentDataAddress(dataAddress())
                 .build();
 
@@ -149,7 +150,8 @@ class ConsumerPullTransferDataFlowControllerTest {
 
     private TransferProcess transferProcess(String destinationType, String transferType) {
         return TransferProcess.Builder.newInstance()
-                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).transferType(transferType).build())
+                .transferType(transferType)
+                .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
                 .build();
     }
 
@@ -158,10 +160,6 @@ class ConsumerPullTransferDataFlowControllerTest {
     }
 
     private DataRequest dataRequest() {
-        return dataRequest(null);
-    }
-
-    private DataRequest dataRequest(String transferType) {
         return DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("protocol")
@@ -170,7 +168,6 @@ class ConsumerPullTransferDataFlowControllerTest {
                 .connectorAddress("test.connector.address")
                 .processId(UUID.randomUUID().toString())
                 .destinationType(HTTP_PROXY)
-                .transferType(transferType)
                 .build();
     }
 }
