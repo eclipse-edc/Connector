@@ -26,11 +26,9 @@ import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponsePayloadToken;
 import org.eclipse.edc.vault.hashicorp.model.TokenRenewalResponsePayloadToken;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
 
@@ -52,7 +50,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HashicorpVaultExtensionTest {
 
     private static final String DEFAULT_POLICY = "default";
@@ -61,16 +58,12 @@ class HashicorpVaultExtensionTest {
     private final ExecutorInstrumentation executorInstrumentation = mock();
     private final EdcHttpClient httpClient = mock();
 
-    @BeforeAll
-    void beforeAll(ObjectFactory factory, ServiceExtensionContext context) {
+    @BeforeEach
+    void beforeEach(ObjectFactory factory, ServiceExtensionContext context) {
         context.registerService(EdcHttpClient.class, httpClient);
         context.registerService(TypeManager.class, mock(TypeManager.class));
         context.registerService(ExecutorInstrumentation.class, executorInstrumentation);
         extension = factory.constructInstance(HashicorpVaultExtension.class);
-    }
-
-    @BeforeEach
-    void beforeEach(ObjectFactory ignored, ServiceExtensionContext context) {
         when(context.getSetting(VAULT_URL, null)).thenReturn("foo");
         when(context.getSetting(VAULT_TOKEN, null)).thenReturn("foo");
     }

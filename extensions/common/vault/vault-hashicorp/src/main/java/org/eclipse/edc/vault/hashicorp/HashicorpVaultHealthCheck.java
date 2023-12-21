@@ -47,7 +47,7 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
                     .forComponent(HashicorpVaultHealthExtension.NAME);
         }
 
-        var errors = new ArrayList<String>(0);
+        var errors = new ArrayList<String>();
         var response = healthCheckResponseResult.getContent();
 
         switch (response.getCodeAsEnum()) {

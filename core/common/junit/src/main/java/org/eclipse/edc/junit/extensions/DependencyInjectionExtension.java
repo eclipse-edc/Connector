@@ -17,12 +17,11 @@ package org.eclipse.edc.junit.extensions;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
 import org.eclipse.edc.boot.system.injection.ReflectiveObjectFactory;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
-import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.InjectionPointScanner;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
@@ -41,13 +40,13 @@ import static org.mockito.Mockito.spy;
  * instead.
  * The {@link ServiceExtensionContext} instance is wrapped by a Mockito Spy.
  */
-public class DependencyInjectionExtension extends BaseRuntime implements BeforeAllCallback, ParameterResolver {
+public class DependencyInjectionExtension extends BaseRuntime implements BeforeEachCallback, ParameterResolver {
 
     private ServiceExtensionContext context;
     private ObjectFactory factory;
 
     @Override
-    public void beforeAll(ExtensionContext extensionContext) {
+    public void beforeEach(ExtensionContext extensionContext) {
         context = spy(super.createServiceExtensionContext());
         context.initialize();
         factory = new ReflectiveObjectFactory(
@@ -64,10 +63,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeA
             return true;
         } else if (type.equals(ServiceExtensionContext.class)) {
             return true;
-        } else if (type instanceof Class<?> clazz) {
-            if (ServiceExtension.class.isAssignableFrom(clazz)) {
-                return true;
-            }
+        } else if (type instanceof Class) {
             return context.hasService(cast(type));
         }
         return false;
@@ -80,10 +76,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeA
             return context;
         } else if (type.equals(ObjectFactory.class)) {
             return factory;
-        } else if (type instanceof Class<?> clazz) {
-            if (ServiceExtension.class.isAssignableFrom(clazz)) {
-                return factory.constructInstance(clazz);
-            }
+        } else if (type instanceof Class) {
             return context.getService(cast(type));
         }
         return null;

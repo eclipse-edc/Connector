@@ -124,12 +124,12 @@ class HashicorpVaultClientTest {
                     .build();
             when(httpClient.execute(any(Request.class))).thenReturn(response);
 
-            var healthCheckResponseResult = vaultClient.doHealthCheck();
             // invoke
-            var healthCheckResponse = healthCheckResponseResult.getContent();
+            var healthCheckResponseResult = vaultClient.doHealthCheck();
 
             // verify
             assertThat(healthCheckResponseResult.succeeded()).isTrue();
+            var healthCheckResponse = healthCheckResponseResult.getContent();
             assertNotNull(healthCheckResponse);
             verify(httpClient).execute(
                     argThat(request -> request.method().equalsIgnoreCase("GET") &&
