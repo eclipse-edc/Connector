@@ -32,11 +32,11 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 public class Oauth2ExpirationIssuedAtValidationRule implements TokenValidationRule {
 
     private final Clock clock;
-    private final int issuedAtValidationLeeway;
+    private final int issuedAtLeeway;
 
-    public Oauth2ExpirationIssuedAtValidationRule(Clock clock, int issuedAtValidationLeeway) {
+    public Oauth2ExpirationIssuedAtValidationRule(Clock clock, int issuedAtLeeway) {
         this.clock = clock;
-        this.issuedAtValidationLeeway = issuedAtValidationLeeway;
+        this.issuedAtLeeway = issuedAtLeeway;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class Oauth2ExpirationIssuedAtValidationRule implements TokenValidationRu
         if (issuedAt != null) {
             if (issuedAt.isAfter(expires)) {
                 return Result.failure("Issued at (iat) claim is after expiration time (exp) claim in token");
-            } else if (now.plusSeconds(issuedAtValidationLeeway).isBefore(issuedAt)) {
+            } else if (now.plusSeconds(issuedAtLeeway).isBefore(issuedAt)) {
                 return Result.failure("Current date/time before issued at (iat) claim in token");
             }
         }

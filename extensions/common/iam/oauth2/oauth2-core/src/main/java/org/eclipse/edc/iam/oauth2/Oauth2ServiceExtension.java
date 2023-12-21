@@ -171,12 +171,12 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver)
                 .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
-                .issuedAtValidationLeeway(getIssuedAtValidationLeeway(context))
+                .issuedAtLeeway(getIssuedAtLeeway(context))
                 .tokenExpiration(TimeUnit.MINUTES.toSeconds(tokenExpiration))
                 .build();
     }
 
-    private int getIssuedAtValidationLeeway(ServiceExtensionContext context) {
+    private int getIssuedAtLeeway(ServiceExtensionContext context) {
         if (!context.getConfig().hasKey(ISSUED_AT_LEEWAY)) {
             var message = format(
                     "No value was configured for '%s'. Consider setting a leeway of 2-5s in production to avoid problems with clock skew.",
