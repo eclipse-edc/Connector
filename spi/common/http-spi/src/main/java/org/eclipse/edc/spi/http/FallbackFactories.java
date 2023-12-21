@@ -41,7 +41,7 @@ public interface FallbackFactories {
                 if (response == null) {
                     return new EdcHttpClientException(event.getLastException().getMessage());
                 } else {
-                    return new EdcHttpClientException(format("Server response to %s was not successful but was %s: %s", request, response.code(), response.body().string()));
+                    return new EdcHttpClientException(format("Server response to [%s, %s] was not successful but was %s: %s", request.method(), request.url(), response.code(), response.body().string()));
                 }
             };
             return Fallback.builderOfException(exceptionSupplier)
@@ -72,7 +72,7 @@ public interface FallbackFactories {
                 if (response == null) {
                     return new EdcHttpClientException(event.getLastException().getMessage());
                 } else {
-                    return new EdcHttpClientException(format("Server response to %s was not one of %s but was %s: %s", request, Arrays.toString(status), response.code(), response.body().string()));
+                    return new EdcHttpClientException(format("Server response to [%s, %s] was not one of %s but was %s: %s", request.method(), request.url(), Arrays.toString(status), response.code(), response.body().string()));
                 }
             };
             return Fallback.builderOfException(exceptionSupplier)
