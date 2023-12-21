@@ -178,8 +178,10 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     private int getIssuedAtValidationLeeway(ServiceExtensionContext context) {
         if (!context.getConfig().hasKey(ISSUED_AT_LEEWAY)) {
-            var message = format("No value was configured for '%s'. Consider setting a leeway " +
-                    "of 2-5s in production to avoid problems with clock skew.", ISSUED_AT_LEEWAY);
+            var message = format(
+                    "No value was configured for '%s'. Consider setting a leeway of 2-5s in production to avoid problems with clock skew.",
+                    ISSUED_AT_LEEWAY
+            );
             context.getMonitor().info(message);
         }
 
