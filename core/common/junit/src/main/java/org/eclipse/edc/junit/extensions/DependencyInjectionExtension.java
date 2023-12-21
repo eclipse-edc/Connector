@@ -17,6 +17,7 @@ package org.eclipse.edc.junit.extensions;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
 import org.eclipse.edc.boot.system.injection.ReflectiveObjectFactory;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
+import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.InjectionPointScanner;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
@@ -63,7 +64,10 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
             return true;
         } else if (type.equals(ServiceExtensionContext.class)) {
             return true;
-        } else if (type instanceof Class) {
+        } else if (type instanceof Class<?> clazz) {
+            if (ServiceExtension.class.isAssignableFrom(clazz)) {
+                return true;
+            }
             return context.hasService(cast(type));
         }
         return false;
@@ -76,7 +80,10 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
             return context;
         } else if (type.equals(ObjectFactory.class)) {
             return factory;
-        } else if (type instanceof Class) {
+        } else if (type instanceof Class<?> clazz) {
+            if (ServiceExtension.class.isAssignableFrom(clazz)) {
+                return factory.constructInstance(clazz);
+            }
             return context.getService(cast(type));
         }
         return null;
