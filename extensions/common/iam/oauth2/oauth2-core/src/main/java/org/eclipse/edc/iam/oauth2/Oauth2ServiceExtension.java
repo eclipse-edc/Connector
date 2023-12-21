@@ -169,7 +169,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver)
                 .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
-                .issuedAtValidationLeeway(context.getSetting(ISSUED_AT_LEEWAY, 10))
+                .issuedAtValidationLeeway(context.getSetting(ISSUED_AT_LEEWAY, 0))
                 .tokenExpiration(TimeUnit.MINUTES.toSeconds(tokenExpiration))
                 .build();
     }
