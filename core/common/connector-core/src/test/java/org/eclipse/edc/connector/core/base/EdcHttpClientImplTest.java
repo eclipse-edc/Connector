@@ -120,6 +120,7 @@ class EdcHttpClientImplTest {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
+                .header("Authentication", "AuthTest")
                 .url("http://localhost:" + port)
                 .build();
 
@@ -127,8 +128,10 @@ class EdcHttpClientImplTest {
 
         var result = client.execute(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
 
-        assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
-                .first().asString().matches(it -> it.startsWith("Server response to"));
+        assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages)
+                .asList().first().asString()
+                .matches(it -> it.startsWith("Server response to"))
+                .matches(it -> !it.contains("AuthTest"));
         server.verify(request(), exactly(2));
     }
 
@@ -137,14 +140,17 @@ class EdcHttpClientImplTest {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
+                .header("Authentication", "AuthTest")
                 .url("http://localhost:" + port)
                 .build();
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
 
         var result = client.execute(request, List.of(retryWhenStatusIsNot(204)), handleResponse());
 
-        assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
-                .first().asString().matches(it -> it.startsWith("Server response to"));
+        assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages)
+                .asList().first().asString()
+                .matches(it -> it.startsWith("Server response to"))
+                .matches(it -> !it.contains("AuthTest"));
         server.verify(request(), exactly(2));
     }
 
@@ -153,14 +159,18 @@ class EdcHttpClientImplTest {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
+                .header("Authentication", "AuthTest")
                 .url("http://localhost:" + port)
                 .build();
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(400));
 
         var result = client.execute(request, List.of(retryWhenStatusIsNotIn(200, 204)), handleResponse());
 
-        assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
-                .first().asString().matches(it -> it.startsWith("Server response to"));
+        assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages)
+                .asList().first().asString()
+                .matches(it -> it.startsWith("Server response to"))
+                .matches(it -> !it.contains("AuthTest"));
+
         server.verify(request(), exactly(2));
     }
 
@@ -170,13 +180,16 @@ class EdcHttpClientImplTest {
         server.stop();
 
         var request = new Request.Builder()
+                .header("Authentication", "AuthTest")
                 .url("http://localhost:" + port)
                 .build();
 
         var result = client.execute(request, handleResponse());
 
         assertThat(result).matches(Result::failed).extracting(Result::getFailureMessages).asList()
-                .first().asString().matches(it -> it.startsWith("Failed to connect to"));
+                .first().asString()
+                .matches(it -> it.startsWith("Failed to connect to"))
+                .matches(it -> !it.contains("AuthTest"));
     }
 
     @Test
