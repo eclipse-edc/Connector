@@ -33,6 +33,7 @@ public class Oauth2ServiceConfiguration {
     private String publicCertificateAlias;
     private String providerAudience;
     private int notBeforeValidationLeeway;
+    private int issuedAtValidationLeeway;
     private String endpointAudience;
 
     private Long tokenExpiration;
@@ -75,6 +76,10 @@ public class Oauth2ServiceConfiguration {
 
     public int getNotBeforeValidationLeeway() {
         return notBeforeValidationLeeway;
+    }
+
+    public int getIssuedAtValidationLeeway() {
+        return issuedAtValidationLeeway;
     }
 
     public String getEndpointAudience() {
@@ -143,6 +148,11 @@ public class Oauth2ServiceConfiguration {
 
         public Builder notBeforeValidationLeeway(int notBeforeValidationLeeway) {
             configuration.notBeforeValidationLeeway = notBeforeValidationLeeway;
+            return this;
+        }
+
+        public Builder issuedAtValidationLeeway(int issuedAtValidationLeeway) {
+            configuration.issuedAtValidationLeeway = issuedAtValidationLeeway;
             return this;
         }
 

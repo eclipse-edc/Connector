@@ -33,12 +33,52 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
 
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, UTC);
-    private final TokenValidationRule rule = new Oauth2ExpirationIssuedAtValidationRule(clock);
+    private final int issuedAtValidationLeeway = 5;
+    private final TokenValidationRule rule = new Oauth2ExpirationIssuedAtValidationRule(clock, issuedAtValidationLeeway);
 
     @Test
     void validationOk() {
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
+                .build();
+
+        var result = rule.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void validationOkBecauseIssuedAtInFutureButWithinLeeway() {
+        var token = ClaimToken.Builder.newInstance()
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
+                .claim(ISSUED_AT, Date.from(now.plusSeconds(2)))
+                .build();
+
+        var result = rule.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    /**
+     * Regression test against clock skew and platform-dependant rounding of dates, solved with a 2s leeway.
+     * <br>
+     * Rounding of dates in JWT is within spec and the direction of rounding is platform-dependant.
+     */
+    @Test
+    void validationOkWithRoundedIssuedAtAndMinimalLeeway() {
+        // time skew: tokens have dates rounded up to the second
+        var issuedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        var expiresAt = issuedAt.plusSeconds(60);
+
+        // time skew: the connector is still in the previous second, with unrounded dates
+        var now = issuedAt.minus(250, ChronoUnit.MILLIS);
+
+        var clock = Clock.fixed(now, UTC);
+        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 2);
+
+        var token = ClaimToken.Builder.newInstance()
+                .claim(EXPIRATION_TIME, Date.from(expiresAt))
+                .claim(ISSUED_AT, Date.from(issuedAt))
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -95,6 +135,4 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1).contains("Current date/time before issued at (iat) claim in token");
     }
-
-
 }

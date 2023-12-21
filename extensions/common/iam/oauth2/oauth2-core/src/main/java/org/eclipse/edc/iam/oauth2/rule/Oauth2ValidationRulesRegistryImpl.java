@@ -28,6 +28,6 @@ public class Oauth2ValidationRulesRegistryImpl extends TokenValidationRulesRegis
     public Oauth2ValidationRulesRegistryImpl(Oauth2ServiceConfiguration configuration, Clock clock) {
         this.addRule(new Oauth2AudienceValidationRule(configuration.getEndpointAudience()));
         this.addRule(new Oauth2NotBeforeValidationRule(clock, configuration.getNotBeforeValidationLeeway()));
-        this.addRule(new Oauth2ExpirationIssuedAtValidationRule(clock));
+        this.addRule(new Oauth2ExpirationIssuedAtValidationRule(clock, configuration.getIssuedAtValidationLeeway()));
     }
 }
