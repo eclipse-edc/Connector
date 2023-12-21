@@ -46,6 +46,8 @@ import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 /**
  * Provides OAuth2 client credentials flow support.
  */
@@ -176,11 +178,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     private int getIssuedAtValidationLeeway(ServiceExtensionContext context) {
         if (!context.getConfig().hasKey(ISSUED_AT_LEEWAY)) {
-            String message = "No value was configured for '%s'.".formatted(ISSUED_AT_LEEWAY) +
-                    " Please consider configuring a leeway of 2-5s. The check 'iat <= now' can" +
-                    " cause errors in production due to the comparison of second-rounded and" +
-                    " nanosecond-precise dates, because the rounding and rounding direction are" +
-                    " implementation specific, platform specific, but also within spec for JWT.";
+            var message = format("No value was configured for '%s'. Consider setting a leeway " +
+                    "of 2-5s in production to avoid problems with clock skew.", ISSUED_AT_LEEWAY);
             context.getMonitor().info(message);
         }
 
