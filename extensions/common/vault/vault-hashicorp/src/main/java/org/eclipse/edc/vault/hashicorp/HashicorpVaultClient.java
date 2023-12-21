@@ -22,6 +22,7 @@ import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -52,14 +53,13 @@ class HashicorpVaultClient {
     private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
     private static final String VAULT_SECRET_DATA_PATH = "data";
     private static final String VAULT_SECRET_METADATA_PATH = "metadata";
-    private static final String CALL_UNSUCCESSFUL_ERROR_TEMPLATE = "Call unsuccessful: %s";
-    private static final String TOKEN_LOOK_UP_SELF_PATH = "/v1/auth/token/lookup-self";
-    private static final String TOKEN_RENEW_SELF_PATH = "/v1/auth/token/renew-self";
+    private static final String TOKEN_LOOK_UP_SELF_PATH = "v1/auth/token/lookup-self";
+    private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
     private static final int HTTP_CODE_404 = 404;
-    private static final String TIME_FORMAT = "%02dh:%02dm:%02ds";
+    private static final String DELIMITER = ", ";
 
-    @NotNull
-    private final HashicorpVaultConfig hashicorpVaultConfig;
+    private final Headers headers;
+
     @NotNull
     private final EdcHttpClient httpClient;
     @NotNull
@@ -68,125 +68,124 @@ class HashicorpVaultClient {
     private final ObjectMapper objectMapper;
     @NotNull
     private final Monitor monitor;
+    @NotNull
+    private final HashicorpVaultConfigValues configValues;
 
-    HashicorpVaultClient(@NotNull HashicorpVaultConfig hashicorpVaultConfig,
-                         @NotNull EdcHttpClient httpClient,
+    HashicorpVaultClient(@NotNull EdcHttpClient httpClient,
                          @NotNull ObjectMapper objectMapper,
                          @NotNull ScheduledExecutorService scheduledExecutorService,
-                         @NotNull Monitor monitor) {
-        this.hashicorpVaultConfig = hashicorpVaultConfig;
+                         @NotNull Monitor monitor,
+                         @NotNull HashicorpVaultConfigValues configValues) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.scheduledExecutorService = scheduledExecutorService;
         this.monitor = monitor;
+        this.configValues = configValues;
+        this.headers = getHeaders();
     }
 
     Result<HealthCheckResponse> doHealthCheck() {
         var requestUri = getHealthCheckUrl();
         var request = httpGet(requestUri);
 
+        int code;
+        String payload;
+
         try (var response = httpClient.execute(request)) {
-            var code = response.code();
-            var responseBody = Objects.requireNonNull(response.body()).string();
-            var responsePayload = objectMapper.readValue(responseBody, HealthCheckResponsePayload.class);
-            var healthCheckResponse = HealthCheckResponse.Builder
-                    .newInstance()
-                    .code(code)
-                    .payload(responsePayload)
-                    .build();
-            return Result.success(healthCheckResponse);
+            code = response.code();
+            var responseBody = response.body();
+            if (responseBody == null) {
+                return Result.failure("Healthcheck returned empty response body");
+            }
+            payload = responseBody.string();
         } catch (IOException e) {
-            return Result.failure(e.getMessage());
+            monitor.warning("Failed to perform healthcheck with reason: %s".formatted(e.getMessage()));
+            return Result.failure("Failed to perform healthcheck");
         }
-    }
 
-    void inspectToken(TokenLookUpResponsePayloadToken token) {
-        if (token.isRootToken()) {
-            monitor.warning("Root token detected. Don't use root tokens in production environment!");
-        } else {
-            if (token.isRenewable()) {
-                monitor.info("Token is renewable");
-            } else {
-                monitor.warning("Token is not renewable");
-            }
+        var healthCheckResponseBuilder = HealthCheckResponse.Builder.newInstance();
 
-            if (token.isPeriodicToken()) {
-                monitor.info("Token has a renewal period of %s".formatted(token.getPeriod()));
-                monitor.warning("Configured time-to-live (ttl) will not be honored for periodic tokens");
-            } else {
-                monitor.warning("Non-periodic Token will expire at some point. Check 'max_ttl' property inside Vault server configuration file for more information");
-            }
-
-            if (token.hasExplicitMaxTimeToLive()) {
-                var explicitMaxTtl = token.getExplicitMaxTimeToLive();
-                var formattedTime = TIME_FORMAT.formatted(explicitMaxTtl / 3600, (explicitMaxTtl % 3600) / 60, explicitMaxTtl % 60);
-                monitor.warning("Token will ultimately expire in %s".formatted(formattedTime));
-            }
+        try {
+            var responsePayload = objectMapper.readValue(payload, HealthCheckResponsePayload.class);
+            healthCheckResponseBuilder
+                    .code(code)
+                    .payload(responsePayload);
+        } catch (IOException e) {
+            healthCheckResponseBuilder.code(code);
         }
+
+        return Result.success(healthCheckResponseBuilder.build());
     }
 
     Result<TokenLookUpResponsePayloadToken> lookUpToken() {
-        var uri = Objects.requireNonNull(HttpUrl.parse(hashicorpVaultConfig.vaultUrl()))
+        var uri = Objects.requireNonNull(HttpUrl.parse(configValues.url()))
                 .newBuilder()
-                .addPathSegment(PathUtil.trimLeadingOrEndingSlash(TOKEN_LOOK_UP_SELF_PATH))
+                .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
         var request = httpGet(uri);
 
         try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
-                var responseBody = Objects.requireNonNull(response.body()).string();
-                var payload = objectMapper.readValue(responseBody, TokenLookUpResponsePayload.class);
+                var responseBody = response.body();
+                if (responseBody == null) {
+                    return Result.failure("Token look up returned empty body");
+                }
+                var payload = objectMapper.readValue(responseBody.string(), TokenLookUpResponsePayload.class);
                 return Result.success(payload.getToken());
             } else {
-                return Result.failure("%d".formatted(response.code()));
+                return Result.failure("Token look up failed with status %d".formatted(response.code()));
             }
         } catch (IOException e) {
-            return Result.failure(e.getMessage());
+            monitor.warning("Failed to look up token with reason: %s".formatted(e.getMessage()));
+            return Result.failure("Token look up failed");
         }
     }
 
     Result<TokenRenewalResponsePayloadToken> renewToken() {
-        var uri = Objects.requireNonNull(HttpUrl.parse(hashicorpVaultConfig.vaultUrl()))
+        var uri = Objects.requireNonNull(HttpUrl.parse(configValues.url()))
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(TOKEN_RENEW_SELF_PATH))
                 .build();
         var requestPayload = TokenRenewalRequestPayload.Builder
                 .newInstance()
-                .increment(hashicorpVaultConfig.timeToLive())
+                .increment(configValues.timeToLive())
                 .build();
         var request = httpPost(uri, requestPayload);
 
         try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
-                var responseBody = Objects.requireNonNull(response.body()).string();
-                var payload = objectMapper.readValue(responseBody, TokenRenewalResponsePayload.class);
-                payload.getWarnings().forEach(monitor::warning);
+                var responseBody = response.body();
+                if (responseBody == null) {
+                    return Result.failure("Token renew returned empty body");
+                }
+                var payload = objectMapper.readValue(responseBody.string(), TokenRenewalResponsePayload.class);
+                if (!payload.getWarnings().isEmpty()) {
+                    var warnings = String.join(DELIMITER, payload.getWarnings());
+                    monitor.warning("Token renew returned: " + warnings);
+                }
                 return Result.success(payload.getToken());
             } else {
-                return Result.failure("%d".formatted(response.code()));
+                return Result.failure("Token renew failed with status %d".formatted(response.code()));
             }
         } catch (IOException e) {
-            return Result.failure(e.getMessage());
+            monitor.warning("Failed to renew token: %s".formatted(e.getMessage()));
+            return Result.failure("Failed to renew token");
         }
     }
 
     void scheduleNextTokenRenewal(long timeToLive) {
-        var delay = timeToLive - hashicorpVaultConfig.renewBuffer();
+        var delay = timeToLive - configValues.renewBuffer();
 
         scheduledExecutorService.schedule(() -> {
             var tokenRenewResult = renewToken();
 
             if (tokenRenewResult.succeeded()) {
-                monitor.info("Token was renewed successfully");
                 var token = tokenRenewResult.getContent();
                 scheduleNextTokenRenewal(token.getTimeToLive());
             } else {
-                monitor.warning("Failed to renew token: %s".formatted(tokenRenewResult.getFailureDetail()));
+                monitor.warning("Scheduled token renewal failed: %s".formatted(tokenRenewResult.getFailureDetail()));
             }
         }, delay, TimeUnit.SECONDS);
-
-        var formattedTime = TIME_FORMAT.formatted(delay / 3600, (delay % 3600) / 60, delay % 60);
-        monitor.info("Next token renewal scheduled in %s".formatted(formattedTime));
     }
 
     Result<String> getSecretValue(@NotNull String key) {
@@ -197,29 +196,29 @@ class HashicorpVaultClient {
 
             if (response.isSuccessful()) {
                 if (response.code() == HTTP_CODE_404) {
-                    return Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, "Secret not found"));
+                    return Result.failure("Secret %s not found".formatted(key));
                 }
 
                 var responseBody = response.body();
                 if (responseBody == null) {
-                    return Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, "Response body empty"));
+                    return Result.failure("Secret %s response body is empty".formatted(key));
                 }
                 var payload = objectMapper.readValue(responseBody.string(), GetEntryResponsePayload.class);
                 var value = payload.getData().getData().get(VAULT_DATA_ENTRY_NAME);
 
                 return Result.success(value);
             } else {
-                return Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, response.code()));
+                return Result.failure("Failed to get secret %s with status %d".formatted(key, response.code()));
             }
 
         } catch (IOException e) {
-            return Result.failure(e.getMessage());
+            monitor.warning("Failed to get secret %s with reason: %s".formatted(key, e.getMessage()));
+            return Result.failure("Failed to get secret");
         }
     }
 
     Result<CreateEntryResponsePayload> setSecret(@NotNull String key, @NotNull String value) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
-        var headers = getHeaders();
         var requestPayload = CreateEntryRequestPayload.Builder.newInstance()
                 .data(Collections.singletonMap(VAULT_DATA_ENTRY_NAME, value))
                 .build();
@@ -236,36 +235,37 @@ class HashicorpVaultClient {
                         objectMapper.readValue(responseBody, CreateEntryResponsePayload.class);
                 return Result.success(responsePayload);
             } else {
-                return Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, response.code()));
+                return Result.failure("Failed to set secret %s with status %d".formatted(key, response.code()));
             }
         } catch (IOException e) {
-            return Result.failure(e.getMessage());
+            monitor.warning("Failed to set secret %s with reason: %s".formatted(key, e.getMessage()));
+            return Result.failure("Failed to set secret");
         }
     }
 
     Result<Void> destroySecret(@NotNull String key) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
-        var headers = getHeaders();
         var request = new Request.Builder().url(requestUri).headers(headers).delete().build();
 
         try (var response = httpClient.execute(request)) {
             return response.isSuccessful() || response.code() == HTTP_CODE_404
                     ? Result.success()
-                    : Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, response.code()));
+                    : Result.failure("Failed to destroy secret %s with status %d".formatted(key, response.code()));
         } catch (IOException e) {
-            return Result.failure(e.getMessage());
+            monitor.warning("Failed to destroy secret %s with reason: %s".formatted(key, e.getMessage()));
+            return Result.failure("Failed to destroy secret");
         }
     }
 
     private HttpUrl getHealthCheckUrl() {
-        final var vaultHealthPath = hashicorpVaultConfig.vaultApiHealthPath();
-        final var isVaultHealthStandbyOk = hashicorpVaultConfig.isHealthStandbyOk();
+        final var vaultHealthPath = configValues.healthCheckPath();
+        final var isVaultHealthStandbyOk = configValues.healthStandbyOk();
 
         // by setting 'standbyok' and/or 'perfstandbyok' the vault will return an active
         // status
         // code instead of the standby status codes
 
-        return Objects.requireNonNull(HttpUrl.parse(hashicorpVaultConfig.vaultUrl()))
+        return Objects.requireNonNull(HttpUrl.parse(configValues.url()))
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultHealthPath))
                 .addQueryParameter("standbyok", isVaultHealthStandbyOk ? "true" : "false")
@@ -279,9 +279,9 @@ class HashicorpVaultClient {
         // restore '/' characters to allow subdirectories
         key = key.replace("%2F", "/");
 
-        var vaultApiPath = hashicorpVaultConfig.getSecretPath();
+        var vaultApiPath = configValues.secretPath();
 
-        return Objects.requireNonNull(HttpUrl.parse(hashicorpVaultConfig.vaultUrl()))
+        return Objects.requireNonNull(HttpUrl.parse(configValues.url()))
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType)
@@ -293,7 +293,7 @@ class HashicorpVaultClient {
     private Request httpGet(HttpUrl requestUri) {
         return new Request.Builder()
                 .url(requestUri)
-                .headers(getHeaders())
+                .headers(headers)
                 .get()
                 .build();
     }
@@ -302,7 +302,7 @@ class HashicorpVaultClient {
     private Request httpPost(HttpUrl requestUri, Object requestBody) {
         return new Request.Builder()
                 .url(requestUri)
-                .headers(getHeaders())
+                .headers(headers)
                 .post(createRequestBody(requestBody))
                 .build();
     }
@@ -310,9 +310,7 @@ class HashicorpVaultClient {
     @NotNull
     private Headers getHeaders() {
         var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
-        if (hashicorpVaultConfig.vaultToken() != null) {
-            headersBuilder.add(VAULT_TOKEN_HEADER, hashicorpVaultConfig.vaultToken());
-        }
+        headersBuilder.add(VAULT_TOKEN_HEADER, configValues.token());
         return headersBuilder.build();
     }
 
@@ -321,7 +319,7 @@ class HashicorpVaultClient {
         try {
             jsonRepresentation = objectMapper.writeValueAsString(requestPayload);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new EdcException(e);
         }
         return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
     }

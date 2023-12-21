@@ -27,6 +27,7 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
 
     private static final String HEALTH_CHECK_ERROR = "Failed to perform Healthcheck";
     private static final String HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE = "Healthcheck unsuccessful: %s %s";
+    private static final String DELIMITER = ", ";
     private final HashicorpVaultClient client;
     private final Monitor monitor;
 
@@ -43,7 +44,7 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
             monitor.severe(HEALTH_CHECK_ERROR);
             return HealthCheckResult
                     .failed(healthCheckResponseResult.getFailureMessages())
-                    .forComponent(HashicorpVaultExtension.NAME);
+                    .forComponent(HashicorpVaultHealthExtension.NAME);
         }
 
         var errors = new ArrayList<String>(0);
@@ -55,32 +56,26 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
             }
             case UNSEALED_AND_STANDBY -> {
                 var standbyMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is in standby", response.getPayload());
-                monitor.warning(standbyMsg);
                 errors.add(standbyMsg);
             }
             case DISASTER_RECOVERY_MODE_REPLICATION_SECONDARY_AND_ACTIVE -> {
                 var recoveryModeMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is in recovery mode", response.getPayload());
-                monitor.warning(recoveryModeMsg);
                 errors.add(recoveryModeMsg);
             }
             case PERFORMANCE_STANDBY -> {
                 var performanceStandbyMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is in performance standby", response.getPayload());
-                monitor.warning(performanceStandbyMsg);
                 errors.add(performanceStandbyMsg);
             }
             case NOT_INITIALIZED -> {
                 var notInitializedMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is not initialized", response.getPayload());
-                monitor.warning(notInitializedMsg);
                 errors.add(notInitializedMsg);
             }
             case SEALED -> {
                 var sealedMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is sealed", response.getPayload());
-                monitor.warning(sealedMsg);
                 errors.add(sealedMsg);
             }
             default -> {
                 var unspecifiedMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Unspecified response from vault. Code: " + response.getCode(), response.getPayload());
-                monitor.warning(unspecifiedMsg);
                 errors.add(unspecifiedMsg);
             }
         }
@@ -89,11 +84,18 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
 
         if (tokenLookUpResult.failed()) {
             var tokenNotValidMsg = "Token look up failed: %s".formatted(tokenLookUpResult.getFailureDetail());
-            monitor.warning(tokenNotValidMsg);
             errors.add(tokenNotValidMsg);
         }
 
-        var result = errors.isEmpty() ? HealthCheckResult.success() : HealthCheckResult.failed(errors);
-        return result.forComponent(HashicorpVaultExtension.NAME);
+        HealthCheckResult result;
+
+        if (errors.isEmpty()) {
+            result = HealthCheckResult.success();
+        } else {
+            monitor.warning("Healthcheck failed with reason(s): " + String.join(DELIMITER, errors));
+            result = HealthCheckResult.failed(errors);
+        }
+
+        return result.forComponent(HashicorpVaultHealthExtension.NAME);
     }
 }

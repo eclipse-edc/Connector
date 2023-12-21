@@ -39,8 +39,8 @@ import java.util.UUID;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultClient.VAULT_DATA_ENTRY_NAME;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_URL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
 import static org.eclipse.edc.vault.hashicorp.util.X509CertificateTestUtil.convertToPem;
 import static org.eclipse.edc.vault.hashicorp.util.X509CertificateTestUtil.generateCertificate;
 

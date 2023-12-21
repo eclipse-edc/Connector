@@ -15,213 +15,45 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
-import java.time.Duration;
-import java.util.Objects;
+/**
+ * Configuration for Hashicorp Vault.
+ */
+interface HashicorpVaultConfig {
 
-import static java.lang.String.format;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_HEALTH_PATH;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_HEALTH_PATH_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_SECRET_PATH;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_API_SECRET_PATH_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_STANDBY_OK;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TIMEOUT_SECONDS;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TIMEOUT_SECONDS_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN_RENEW_BUFFER;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN_RENEW_BUFFER_SECONDS_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN_TTL;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN_TTL_SECONDS_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_URL;
+    boolean VAULT_HEALTH_CHECK_ENABLED_DEFAULT = true;
+    boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
+    String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
+    int VAULT_TIMEOUT_SECONDS_DEFAULT = 30;
+    int VAULT_TOKEN_TTL_SECONDS_DEFAULT = 300;
+    int VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 10;
+    String VAULT_API_SECRET_PATH_DEFAULT = "/v1/secret";
 
-class HashicorpVaultConfig {
+    @Setting(value = "The URL of the Hashicorp Vault", required = true)
+    String VAULT_URL = "edc.vault.hashicorp.url";
 
-    private String url;
-    private boolean healthCheckEnabled;
-    private String healthCheckPath;
-    private boolean healthStandbyOk;
-    private Duration timeout;
-    private String token;
-    private int timeToLive;
-    private int renewBuffer;
-    private String secretPath;
+    @Setting(value = "Whether or not the vault health check is enabled", defaultValue = "true", type = "boolean")
+    String VAULT_HEALTH_CHECK_ENABLED = "edc.vault.hashicorp.health.check.enabled";
 
-    private HashicorpVaultConfig() {}
+    @Setting(value = "The URL path of the vault's /health endpoint", defaultValue = VAULT_API_HEALTH_PATH_DEFAULT)
+    String VAULT_API_HEALTH_PATH = "edc.vault.hashicorp.api.health.check.path";
 
-    public static HashicorpVaultConfig create(ServiceExtensionContext context) {
-        var url = context.getSetting(VAULT_URL, null);
-        if (url == null) {
-            throw new EdcException(format("Vault URL [%s] must be defined", VAULT_URL));
-        }
-        var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
-        var healthCheckPath = context.getSetting(VAULT_API_HEALTH_PATH, VAULT_API_HEALTH_PATH_DEFAULT);
-        var healthStandbyOk = context.getSetting(VAULT_HEALTH_CHECK_STANDBY_OK, VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT);
-        var timeoutSeconds = Math.max(0, context.getSetting(VAULT_TIMEOUT_SECONDS, VAULT_TIMEOUT_SECONDS_DEFAULT));
-        var timeoutDuration = Duration.ofSeconds(timeoutSeconds);
-        var token = context.getSetting(VAULT_TOKEN, null);
-        if (token == null) {
-            throw new EdcException(format("For Vault authentication [%s] is required", VAULT_TOKEN));
-        }
-        var timeToLive = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_SECONDS_DEFAULT);
-        var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_SECONDS_DEFAULT);
-        var secretPath = context.getSetting(VAULT_API_SECRET_PATH, VAULT_API_SECRET_PATH_DEFAULT);
+    @Setting(value = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = "false", type = "boolean")
+    String VAULT_HEALTH_CHECK_STANDBY_OK = "edc.vault.hashicorp.health.check.standby.ok";
 
-        return HashicorpVaultConfig.Builder.newInstance()
-                .url(url)
-                .healthCheckEnabled(healthCheckEnabled)
-                .healthCheckPath(healthCheckPath)
-                .healthStandbyOk(healthStandbyOk)
-                .timeout(timeoutDuration)
-                .token(token)
-                .timeToLive(timeToLive)
-                .renewBuffer(renewBuffer)
-                .secretPath(secretPath)
-                .build();
-    }
+    @Setting(value = "Sets the timeout for HTTP requests to the vault, in seconds", defaultValue = "30", type = "integer")
+    String VAULT_TIMEOUT_SECONDS = "edc.vault.hashicorp.timeout.seconds";
 
-    public String vaultUrl() {
-        return url;
-    }
+    @Setting(value = "The token used to access the Hashicorp Vault", required = true)
+    String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
-    public boolean healthCheckEnabled() {
-        return healthCheckEnabled;
-    }
+    @Setting(value = "The time-to-live (ttl) value of the Hashicorp Vault token in seconds", defaultValue = "300", type = "long")
+    String VAULT_TOKEN_TTL = "edc.vault.hashicorp.token.ttl";
 
-    public String vaultToken() {
-        return token;
-    }
+    @Setting(value = "The renew buffer of the Hashicorp Vault token in seconds", defaultValue = "10", type = "long")
+    String VAULT_TOKEN_RENEW_BUFFER = "edc.vault.hashicorp.token.renew-buffer";
 
-    public int timeToLive() {
-        return timeToLive;
-    }
-
-    public int renewBuffer() {
-        return renewBuffer;
-    }
-
-    public String getSecretPath() {
-        return secretPath;
-    }
-
-    public String vaultApiHealthPath() {
-        return healthCheckPath;
-    }
-
-    public Duration timeout() {
-        return timeout;
-    }
-
-    public boolean isHealthStandbyOk() {
-        return healthStandbyOk;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(url,
-                healthCheckEnabled,
-                healthCheckPath,
-                healthStandbyOk,
-                timeout,
-                token,
-                timeToLive,
-                renewBuffer,
-                secretPath);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (HashicorpVaultConfig) obj;
-        return Objects.equals(this.url, that.url) &&
-                this.healthCheckEnabled == that.healthCheckEnabled &&
-                Objects.equals(this.healthCheckPath, that.healthCheckPath) &&
-                this.healthStandbyOk == that.healthStandbyOk &&
-                Objects.equals(this.timeout, that.timeout) &&
-                Objects.equals(this.token, that.token) &&
-                Objects.equals(this.timeToLive, that.timeToLive) &&
-                Objects.equals(this.renewBuffer, that.renewBuffer) &&
-                Objects.equals(this.secretPath, that.secretPath);
-    }
-
-    @Override
-    public String toString() {
-        return "HashicorpVaultConfig[" +
-                "url=" + url + ", " +
-                "healthCheckEnabled=" + healthCheckEnabled + ", " +
-                "healthCheckPath=" + healthCheckPath + ", " +
-                "healthStandbyOk=" + healthStandbyOk + ", " +
-                "timeout=" + timeout + ", " +
-                "vaultToken=" + token + ", " +
-                "timeToLive=" + timeToLive + ", " +
-                "renewBuffer=" + renewBuffer + ", " +
-                "secretPath=" + secretPath + ']';
-    }
-
-    public static class Builder {
-
-        private final HashicorpVaultConfig config;
-
-        private Builder() {
-            config = new HashicorpVaultConfig();
-        }
-
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public Builder url(String vaultUrl) {
-            this.config.url = vaultUrl;
-            return this;
-        }
-
-        public Builder healthCheckEnabled(boolean healthCheckEnabled) {
-            this.config.healthCheckEnabled = healthCheckEnabled;
-            return this;
-        }
-
-        public Builder healthCheckPath(String healthCheckPath) {
-            this.config.healthCheckPath = healthCheckPath;
-            return this;
-        }
-
-        public Builder timeout(Duration timeout) {
-            this.config.timeout = timeout;
-            return this;
-        }
-
-        public Builder healthStandbyOk(boolean healthStandbyOk) {
-            this.config.healthStandbyOk = healthStandbyOk;
-            return this;
-        }
-
-        public Builder token(String vaultToken) {
-            this.config.token = vaultToken;
-            return this;
-        }
-
-        public Builder timeToLive(int timeToLive) {
-            this.config.timeToLive = timeToLive;
-            return this;
-        }
-
-        public Builder renewBuffer(int renewBuffer) {
-            this.config.renewBuffer = renewBuffer;
-            return this;
-        }
-
-        public Builder secretPath(String vaultApiSecretPath) {
-            this.config.secretPath = vaultApiSecretPath;
-            return this;
-        }
-
-        public HashicorpVaultConfig build() {
-            return config;
-        }
-    }
+    @Setting(value = "The URL path of the vault's /secret endpoint", defaultValue = VAULT_API_SECRET_PATH_DEFAULT)
+    String VAULT_API_SECRET_PATH = "edc.vault.hashicorp.api.secret.path";
 }

@@ -23,7 +23,6 @@ import org.eclipse.edc.spi.system.injection.InjectionPointScanner;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
@@ -42,19 +41,20 @@ import static org.mockito.Mockito.spy;
  * instead.
  * The {@link ServiceExtensionContext} instance is wrapped by a Mockito Spy.
  */
-public class DependencyInjectionExtension extends BaseRuntime implements BeforeEachCallback, BeforeAllCallback, ParameterResolver {
+public class DependencyInjectionExtension extends BaseRuntime implements BeforeAllCallback, ParameterResolver {
 
     private ServiceExtensionContext context;
     private ObjectFactory factory;
 
     @Override
-    public void beforeEach(ExtensionContext extensionContext) {
-        createContext();
-    }
-
-    @Override
     public void beforeAll(ExtensionContext extensionContext) {
-        createContext();
+        context = spy(super.createServiceExtensionContext());
+        context.initialize();
+        factory = new ReflectiveObjectFactory(
+                new InjectorImpl(Mockito::mock),
+                new InjectionPointScanner(),
+                context
+        );
     }
 
     @Override
@@ -92,15 +92,5 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
     @Override
     protected @NotNull ServiceExtensionContext createServiceExtensionContext() {
         return context;
-    }
-
-    private void createContext() {
-        context = spy(super.createServiceExtensionContext());
-        context.initialize();
-        factory = new ReflectiveObjectFactory(
-                new InjectorImpl(Mockito::mock),
-                new InjectionPointScanner(),
-                context
-        );
     }
 }

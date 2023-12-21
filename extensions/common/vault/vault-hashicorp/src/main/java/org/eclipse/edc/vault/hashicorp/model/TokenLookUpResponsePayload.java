@@ -18,6 +18,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+/**
+ * Token look up response returned by Vault. Contains the actual token data.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenLookUpResponsePayload {
     @JsonProperty("data")

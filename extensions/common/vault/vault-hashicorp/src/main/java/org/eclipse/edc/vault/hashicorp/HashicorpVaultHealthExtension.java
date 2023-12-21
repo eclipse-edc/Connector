@@ -24,14 +24,14 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
 
 @Requires(HealthCheckService.class)
 @Extension(value = HashicorpVaultHealthExtension.NAME)
 public class HashicorpVaultHealthExtension implements ServiceExtension {
 
-    public static final String NAME = "Hashicorp Vault Health";
+    public static final String NAME = "Hashicorp Vault Health Extension";
 
     @Inject
     private HealthCheckService healthCheckService;

@@ -46,9 +46,7 @@ class HashicorpVaultHealthCheckTest {
             .build());
 
     private static final Result<TokenLookUpResponsePayloadToken> TOKEN_LOOK_UP_RESULT_200 = Result.success(TokenLookUpResponsePayloadToken.Builder.newInstance()
-            .explicitMaxTimeToLive(0)
             .isRenewable(true)
-            .period(null)
             .policies(Collections.emptyList())
             .build());
 
@@ -71,7 +69,7 @@ class HashicorpVaultHealthCheckTest {
         }
 
         @Test
-        void shouldSucceed_whenHealthCheck200() {
+        void get_whenHealthCheck200_shouldSucceed() {
             when(client.doHealthCheck()).thenReturn(HEALTH_CHECK_RESULT_200);
 
             var result = healthCheck.get();
@@ -81,7 +79,7 @@ class HashicorpVaultHealthCheckTest {
 
         @ParameterizedTest
         @ValueSource(ints = {409, 472, 473, 501, 503, 999})
-        void shouldFail_whenHealthCheckNot200(int code) {
+        void get_whenHealthCheckIsNot200_shouldFail(int code) {
             var healthCheckResponseResult = Result.success(HealthCheckResponse.Builder
                     .newInstance()
                     .payload(new HealthCheckResponsePayload())
@@ -97,7 +95,7 @@ class HashicorpVaultHealthCheckTest {
         }
 
         @Test
-        void shouldFail_whenHealthCheckFailed() {
+        void get_whenHealthCheckFailed_shouldFail() {
             when(client.doHealthCheck()).thenReturn(Result.failure("exception message"));
 
             var result = healthCheck.get();
@@ -117,7 +115,7 @@ class HashicorpVaultHealthCheckTest {
         }
 
         @Test
-        void shouldSucceed_whenTokenLookUpSuccessful() {
+        void get_whenTokenValid_shouldSucceed() {
             when(client.lookUpToken()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
 
             var result = healthCheck.get();
@@ -126,19 +124,19 @@ class HashicorpVaultHealthCheckTest {
         }
 
         @Test
-        void shouldFail_whenTokenLookUpFailed() {
+        void get_whenTokenNotValid_shouldFail() {
             when(client.lookUpToken()).thenReturn(Result.failure("403"));
 
             var result = healthCheck.get();
 
             assertThat(result).isFailed();
             assertFailureMessagesSize(result, 1);
-            verify(monitor).warning("Token look up failed: 403");
+            verify(monitor).warning("Healthcheck failed with reason(s): Token look up failed: 403");
         }
     }
 
     @Test
-    void shouldFail_whenHealthCheck429AndTokenLookUpFailed() {
+    void get_whenHealthCheckNot200AndTokenNotValid_shouldFail() {
         var healthCheckResponseResult = Result.success(HealthCheckResponse.Builder
                 .newInstance()
                 .payload(new HealthCheckResponsePayload())
@@ -151,8 +149,10 @@ class HashicorpVaultHealthCheckTest {
 
         assertThat(result).isFailed();
         assertFailureMessagesSize(result, 2);
-        verify(monitor).warning("Healthcheck unsuccessful: Vault is in standby %s".formatted(healthCheckResponseResult.getContent().getPayload()));
-        verify(monitor).warning("Token look up failed: 403");
+        verify(monitor).warning("Healthcheck failed with reason(s): Healthcheck unsuccessful: Vault is in standby " +
+                "HealthResponsePayload{isInitialized=false, isSealed=false, isStandby=false, isPerformanceStandby=false, " +
+                "replicationPerformanceMode='null', replicationDrMode='null', serverTimeUtc=0, version='null', clusterName='null', clusterId='null'}, " +
+                "Token look up failed: 403");
     }
 
     private void assertFailureMessagesSize(HealthCheckResult result, int i) {

@@ -22,6 +22,9 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.List;
 
+/**
+ * Token renewal response returned by Vault. Contains information about the renewal operation and token data.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenRenewalResponsePayload {
     @JsonProperty("warnings")

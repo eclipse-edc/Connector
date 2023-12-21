@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.vault.hashicorp.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
@@ -22,42 +21,22 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Token data returned by Vault look up operation.
+ */
 public class TokenLookUpResponsePayloadToken {
 
     private static final String ROOT_POLICY = "root";
 
-    @JsonProperty("explicit_max_ttl")
-    private long explicitMaxTimeToLive;
-
     @JsonProperty("renewable")
     private boolean isRenewable;
-
-    @JsonProperty("period")
-    private Long period;
 
     @JsonProperty("policies")
     @JsonSetter(nulls = Nulls.AS_EMPTY)
     private List<String> policies;
 
-    public long getExplicitMaxTimeToLive() {
-        return explicitMaxTimeToLive;
-    }
-
-    public boolean hasExplicitMaxTimeToLive() {
-        return explicitMaxTimeToLive > 0;
-    }
-
     public boolean isRenewable() {
         return isRenewable;
-    }
-
-    public Long getPeriod() {
-        return period;
-    }
-
-    public boolean isPeriodicToken() {
-        return period != null;
     }
 
     public List<String> getPolicies() {
@@ -67,7 +46,6 @@ public class TokenLookUpResponsePayloadToken {
     public boolean isRootToken() {
         return policies.contains(ROOT_POLICY);
     }
-
 
     private TokenLookUpResponsePayloadToken() {
     }
@@ -84,18 +62,8 @@ public class TokenLookUpResponsePayloadToken {
             return new TokenLookUpResponsePayloadToken.Builder();
         }
 
-        public TokenLookUpResponsePayloadToken.Builder explicitMaxTimeToLive(long explicitMaxTtl) {
-            tokenLookUpResponsePayloadToken.explicitMaxTimeToLive = explicitMaxTtl;
-            return this;
-        }
-
         public TokenLookUpResponsePayloadToken.Builder isRenewable(boolean isRenewable) {
             tokenLookUpResponsePayloadToken.isRenewable = isRenewable;
-            return this;
-        }
-
-        public TokenLookUpResponsePayloadToken.Builder period(Long period) {
-            tokenLookUpResponsePayloadToken.period = period;
             return this;
         }
 

@@ -39,8 +39,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.model.Constants.VAULT_URL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -79,36 +79,37 @@ class HashicorpVaultExtensionTest {
     class Initialize {
 
         @Test
-        void throwsEdcException_whenVaultUrlUndefined(ServiceExtensionContext context) {
+        void initialize_whenVaultUrlUndefined_shouldThrowEdcException(ServiceExtensionContext context) {
             when(context.getSetting(VAULT_URL, null)).thenReturn(null);
 
             assertThrows(EdcException.class, () -> extension.initialize(context));
         }
 
         @Test
-        void throwsEdcException_whenVaultTokenUndefined(ServiceExtensionContext context) {
+        void initialize_whenVaulTokenUndefined_shouldThrowEdcException(ServiceExtensionContext context) {
             when(context.getSetting(VAULT_TOKEN, null)).thenReturn(null);
 
             assertThrows(EdcException.class, () -> extension.initialize(context));
         }
 
         @Test
-        void throwsEdcException_whenTokenLookUpFailed(ServiceExtensionContext context) {
+        void initialize_whenTokenLookUpFailed_shouldThrowEdcException(ServiceExtensionContext context) {
             mockClient(
                     (client, mockContext) -> when(client.lookUpToken()).thenReturn(Result.failure("403"))
             ).accept(
                     clientConstruction -> {
+                        extension.initialize(context);
                         var thrown = assertThrows(EdcException.class,
-                                () -> extension.initialize(context),
+                                () -> extension.start(),
                                 "Expected token look up to throw");
-                        assertThat(thrown.getMessage()).isEqualTo("[Hashicorp Vault] Initial token look up failed: 403");
+                        assertThat(thrown.getMessage()).isEqualTo("[Hashicorp Vault Extension] Initial token look up failed: 403");
                         var client = clientConstruction.constructed().get(0);
-                        verify(client, never()).inspectToken(any());
+                        verify(client, never()).scheduleNextTokenRenewal(anyLong());
                     });
         }
 
         @Test
-        void throwsEdcException_whenTokenRenewalFailed(ServiceExtensionContext context) {
+        void initialize_whenTokenRenewalFailed_shouldThrowEdcException(ServiceExtensionContext context) {
             var tokenLookUpResponse = getTokenLookUpResponse(true);
 
             mockClient(
@@ -123,7 +124,7 @@ class HashicorpVaultExtensionTest {
                         var thrown = assertThrows(EdcException.class,
                                 () -> extension.start(),
                                 "Expected token renewal to throw");
-                        assertThat(thrown.getMessage()).isEqualTo("[Hashicorp Vault] Initial token renewal failed: 403");
+                        assertThat(thrown.getMessage()).isEqualTo("[Hashicorp Vault Extension] Initial token renewal failed: 403");
                         var client = clientConstruction.constructed().get(0);
                         verify(client, never()).scheduleNextTokenRenewal(anyLong());
                     });
@@ -133,7 +134,7 @@ class HashicorpVaultExtensionTest {
     @Nested
     class Start {
         @Test
-        void schedulesNextTokenRenewal_whenTokenIsValidAndRenewable(ServiceExtensionContext context) {
+        void start_whenTokenIsValidAndRenewable_shouldScheduleNextTokenRenewal(ServiceExtensionContext context) {
             var tokenLookUpResponse = getTokenLookUpResponse(true);
             var renewTokenResponse = getRenewTokenResponse();
 
@@ -154,7 +155,7 @@ class HashicorpVaultExtensionTest {
         }
 
         @Test
-        void doesNotScheduleNextTokenRenewal_whenTokenIsNotRenewable(ServiceExtensionContext context) {
+        void start_whenTokenIsValidAndNotRenewable_shouldNotScheduleNextTokenRenewal(ServiceExtensionContext context) {
             var tokenLookUpResponse = getTokenLookUpResponse(false);
 
             mockClient(
@@ -177,7 +178,7 @@ class HashicorpVaultExtensionTest {
     class Shutdown {
 
         @Test
-        void shutsDownScheduledExecutorService_whenExtensionIsShutDown(ServiceExtensionContext context) {
+        void shutdown_shouldShutdownScheduledExecutorService(ServiceExtensionContext context) {
             var scheduledExecutorService = mock(ScheduledExecutorService.class);
             when(executorInstrumentation.instrument(any(ScheduledExecutorService.class), eq(extension.name()))).thenReturn(scheduledExecutorService);
             var tokenLookUpResponse = getTokenLookUpResponse(false);
@@ -197,9 +198,7 @@ class HashicorpVaultExtensionTest {
 
     private static TokenLookUpResponsePayloadToken getTokenLookUpResponse(boolean isRenewable) {
         return TokenLookUpResponsePayloadToken.Builder.newInstance()
-                .explicitMaxTimeToLive(0)
                 .isRenewable(isRenewable)
-                .period(null)
                 .policies(List.of(DEFAULT_POLICY))
                 .build();
     }

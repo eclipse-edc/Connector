@@ -33,8 +33,7 @@ public class EntryMetadata {
     @JsonProperty()
     private Integer version;
 
-    EntryMetadata() {
-    }
+    private EntryMetadata() {}
 
     public Map<String, String> getCustomMetadata() {
         return this.customMetadata;

@@ -17,22 +17,28 @@ package org.eclipse.edc.vault.hashicorp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
+import org.eclipse.edc.vault.hashicorp.model.EntryMetadata;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
+import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayloadGetVaultEntryData;
 import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponse;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -62,27 +69,27 @@ class HashicorpVaultClientTest {
     private static final String KEY = "key";
     private static final String CUSTOM_SECRET_PATH = "v1/test/secret";
     private static final String HEALTH_PATH = "sys/health";
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration TIMEOUT_DURATION = Duration.ofSeconds(30);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String VAULT_URL = "https://mock.url";
-    private static final HashicorpVaultConfig HASHICORP_VAULT_CLIENT_CONFIG = HashicorpVaultConfig.Builder.newInstance()
+    private static final HashicorpVaultConfigValues HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultConfigValues.Builder.newInstance()
             .url(VAULT_URL)
             .secretPath(CUSTOM_SECRET_PATH)
             .healthCheckPath(HEALTH_PATH)
             .healthStandbyOk(false)
             .token(VAULT_TOKEN)
-            .timeout(TIMEOUT)
+            .timeoutDuration(TIMEOUT_DURATION)
             .build();
 
     private final EdcHttpClient httpClient = mock();
     private final Monitor monitor = mock();
     private final ScheduledExecutorService scheduledExecutorService = mock();
     private final HashicorpVaultClient vaultClient = new HashicorpVaultClient(
-            HASHICORP_VAULT_CLIENT_CONFIG,
             httpClient,
             OBJECT_MAPPER,
             scheduledExecutorService,
-            monitor);
+            monitor,
+            HASHICORP_VAULT_CLIENT_CONFIG_VALUES);
 
     @BeforeEach
     void beforeEach() {
@@ -92,28 +99,30 @@ class HashicorpVaultClientTest {
     @Nested
     class HealthCheck {
         @Test
-        void returnsSuccessfulResult_whenHealthCheckCouldBePerformed() throws IOException {
+        void doHealthCheck_whenHealthCheckReturns200_shouldSucceed() throws IOException {
             // prepare
-            var response = mock(Response.class);
-            var body = mock(ResponseBody.class);
+            var body = """
+                    {
+                    "initialized": true,
+                    "sealed": false,
+                    "standby": false,
+                    "performance_standby": false,
+                    "replication_performance_mode": "mode",
+                    "replication_dr_mode": "mode",
+                    "server_time_utc": 100,
+                    "version": "1.0.0",
+                    "cluster_name": "name",
+                    "cluster_id": "id"
+                    }
+                    """;
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create(body, MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
             when(httpClient.execute(any(Request.class))).thenReturn(response);
-            when(response.code()).thenReturn(200);
-            when(response.isSuccessful()).thenReturn(true);
-            when(response.body()).thenReturn(body);
-            when(body.string())
-                    .thenReturn(
-                            "{ " +
-                                    "\"initialized\": true, " +
-                                    "\"sealed\": false," +
-                                    "\"standby\": false," +
-                                    "\"performance_standby\": false," +
-                                    "\"replication_performance_mode\": \"mode\"," +
-                                    "\"replication_dr_mode\": \"mode\"," +
-                                    "\"server_time_utc\": 100," +
-                                    "\"version\": \"1.0.0\"," +
-                                    "\"cluster_name\": \"name\"," +
-                                    "\"cluster_id\": \"id\" " +
-                                    " }");
 
             var healthCheckResponseResult = vaultClient.doHealthCheck();
             // invoke
@@ -135,21 +144,55 @@ class HashicorpVaultClientTest {
 
             var healthCheckResponsePayload = healthCheckResponse.getPayload();
 
-            assertNotNull(healthCheckResponsePayload);
-            Assertions.assertTrue(healthCheckResponsePayload.isInitialized());
-            Assertions.assertFalse(healthCheckResponsePayload.isSealed());
-            Assertions.assertFalse(healthCheckResponsePayload.isStandby());
-            Assertions.assertFalse(healthCheckResponsePayload.isPerformanceStandby());
-            assertEquals("mode", healthCheckResponsePayload.getReplicationPerformanceMode());
-            assertEquals("mode", healthCheckResponsePayload.getReplicationDrMode());
-            assertEquals(100, healthCheckResponsePayload.getServerTimeUtc());
-            assertEquals("1.0.0", healthCheckResponsePayload.getVersion());
-            assertEquals("id", healthCheckResponsePayload.getClusterId());
-            assertEquals("name", healthCheckResponsePayload.getClusterName());
+            assertThat(healthCheckResponsePayload).isNotNull();
+            assertThat(healthCheckResponsePayload.isInitialized()).isTrue();
+            assertThat(healthCheckResponsePayload.isSealed()).isFalse();
+            assertThat(healthCheckResponsePayload.isStandby()).isFalse();
+            assertThat(healthCheckResponsePayload.isPerformanceStandby()).isFalse();
+            assertThat("mode").isEqualTo(healthCheckResponsePayload.getReplicationPerformanceMode());
+            assertThat("mode").isEqualTo(healthCheckResponsePayload.getReplicationDrMode());
+            assertThat(100).isEqualTo(healthCheckResponsePayload.getServerTimeUtc());
+            assertThat("1.0.0").isEqualTo(healthCheckResponsePayload.getVersion());
+            assertThat("id").isEqualTo(healthCheckResponsePayload.getClusterId());
+            assertThat("name").isEqualTo(healthCheckResponsePayload.getClusterName());
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {429, 272, 473, 501, 503})
+        void doHealthCheck_whenHealthCheckReturnsNot200_shouldSucceedWithEmptyPayload(int code) throws IOException {
+            // prepare
+            var body = "something non-parseable";
+            var response = new Response.Builder()
+                    .code(code)
+                    .message("any")
+                    .body(ResponseBody.create(body, MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
+            when(httpClient.execute(any(Request.class))).thenReturn(response);
+
+            var healthCheckResponseResult = vaultClient.doHealthCheck();
+            // invoke
+            var healthCheckResponse = healthCheckResponseResult.getContent();
+
+            // verify
+            assertThat(healthCheckResponseResult.succeeded()).isTrue();
+            assertThat(healthCheckResponse).isNotNull();
+            verify(httpClient).execute(
+                    argThat(request -> request.method().equalsIgnoreCase("GET") &&
+                            request.url().encodedPath().contains(HEALTH_PATH) &&
+                            request.url().queryParameter("standbyok").equals("false") &&
+                            request.url().queryParameter("perfstandbyok").equals("false")));
+            assertThat(code).isEqualTo(healthCheckResponse.getCode());
+            assertNotEquals(
+                    HealthCheckResponse.HashicorpVaultHealthResponseCode.INITIALIZED_UNSEALED_AND_ACTIVE,
+                    healthCheckResponse.getCodeAsEnum());
+            var healthCheckResponsePayload = healthCheckResponse.getPayload();
+            assertThat(healthCheckResponsePayload).isNull();
         }
 
         @Test
-        void returnsFailedResult_whenIoExceptionIsThrown() throws IOException {
+        void doHealthCheck_whenHealthCheckThrowsIoException_shouldFail() throws IOException {
             // prepare
             when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
 
@@ -158,7 +201,8 @@ class HashicorpVaultClientTest {
 
             // verify
             assertThat(healthCheckResponseResult.failed()).isTrue();
-            assertThat(healthCheckResponseResult.getFailureMessages()).isEqualTo(List.of("foo-bar"));
+            verify(monitor).warning("Failed to perform healthcheck with reason: foo-bar");
+            assertThat(healthCheckResponseResult.getFailureMessages()).isEqualTo(List.of("Failed to perform healthcheck"));
         }
     }
 
@@ -169,110 +213,116 @@ class HashicorpVaultClientTest {
         class LookUp {
 
             @Test
-            void returnsSuccessfulResult_whenResponseIs200() throws IOException {
-                var response = mock(Response.class);
-                var body = mock(ResponseBody.class);
+            void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException {
+                var body = """
+                        {
+                        "data": {
+                            "renewable": true,
+                            "policies": ["root"]
+                            }
+                        }
+                        """;
+                var response = new Response.Builder()
+                        .code(200)
+                        .message("any")
+                        .body(ResponseBody.create(body, MediaType.get("application/json")))
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("http://any").build())
+                        .build();
                 when(httpClient.execute(any(Request.class))).thenReturn(response);
-                when(response.code()).thenReturn(200);
-                when(response.isSuccessful()).thenReturn(true);
-                when(response.body()).thenReturn(body);
-                when(body.string())
-                        .thenReturn(
-                                "{\"data\":" +
-                                        "{" +
-                                        "\"explicit_max_ttl\": 300," +
-                                        "\"renewable\": true," +
-                                        "\"period\": 100," +
-                                        "\"policies\": [\"root\"]" +
-                                        "}" +
-                                        "}");
 
                 var tokenLookUpResult = vaultClient.lookUpToken();
 
                 assertThat(tokenLookUpResult.succeeded()).isTrue();
                 var token = tokenLookUpResult.getContent();
-                assertThat(token.getExplicitMaxTimeToLive()).isEqualTo(300L);
-                assertThat(token.hasExplicitMaxTimeToLive()).isTrue();
-                assertThat(token.getPeriod()).isEqualTo(100L);
-                assertThat(token.isPeriodicToken()).isTrue();
                 assertThat(token.getPolicies()).isEqualTo(List.of("root"));
                 assertThat(token.isRootToken()).isTrue();
             }
 
             @Test
-            void returnsFailedResult_whenResponseIsNot200() throws IOException {
-                var response = mock(Response.class);
+            void lookUpToken_whenApiReturns403_shouldFail() throws IOException {
+                var response = new Response.Builder()
+                        .code(403)
+                        .message("any")
+                        .body(ResponseBody.create("", MediaType.get("application/json")))
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("http://any").build())
+                        .build();
                 when(httpClient.execute(any(Request.class))).thenReturn(response);
-                when(response.code()).thenReturn(403);
-                when(response.isSuccessful()).thenReturn(false);
 
                 var tokenLookUpResult = vaultClient.lookUpToken();
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
-                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("403"));
+                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Token look up failed with status 403"));
             }
 
             @Test
-            void returnsFailedResult_whenIoExceptionIsThrown() throws IOException {
+            void lookUpToken_whenHttpClientThrowsIoException_shouldFail() throws IOException {
                 when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
 
                 var tokenLookUpResult = vaultClient.lookUpToken();
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
-                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("foo-bar"));
+                verify(monitor).warning("Failed to look up token with reason: foo-bar");
+                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Token look up failed"));
             }
         }
 
         @Nested
         class Renew {
             @Test
-            void returnsSuccessfulResult_whenResponseIs200() throws IOException {
-                var response = mock(Response.class);
-                var body = mock(ResponseBody.class);
+            void renewToken_whenApiReturns200_shouldSucceed() throws IOException {
+                var body = """
+                        {
+                            "warnings": ["foo-bar", "hello-world"],
+                            "auth": {
+                                "lease_duration": 100
+                            }
+                        }
+                        """;
+                var response = new Response.Builder()
+                        .code(200)
+                        .message("any")
+                        .body(ResponseBody.create(body, MediaType.get("application/json")))
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("http://any").build())
+                        .build();
                 when(httpClient.execute(any(Request.class))).thenReturn(response);
-                when(response.code()).thenReturn(200);
-                when(response.isSuccessful()).thenReturn(true);
-                when(response.body()).thenReturn(body);
-                when(body.string())
-                        .thenReturn(
-                                "{" +
-                                        "\"warnings\": [\"foo-bar\", \"hello-world\"]," +
-                                        "\"auth\":" +
-                                        "{" +
-                                        "\"lease_duration\": 100" +
-                                        "}" +
-                                        "}");
 
                 var tokenLookUpResult = vaultClient.renewToken();
 
                 assertThat(tokenLookUpResult.succeeded()).isTrue();
                 var token = tokenLookUpResult.getContent();
                 assertThat(token.getTimeToLive()).isEqualTo(100);
-                verify(monitor).warning("foo-bar");
-                verify(monitor).warning("hello-world");
+                verify(monitor).warning("Token renew returned: foo-bar, hello-world");
             }
 
             @Test
-            void returnsFailedResult_whenResponseIsNot200() throws IOException {
-                var response = mock(Response.class);
+            void renewToken_whenApiReturns403_shouldFail() throws IOException {
+                var response = new Response.Builder()
+                        .code(403)
+                        .message("any")
+                        .body(ResponseBody.create("", MediaType.get("application/json")))
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("http://any").build())
+                        .build();
                 when(httpClient.execute(any(Request.class))).thenReturn(response);
-                when(response.code()).thenReturn(403);
-                when(response.isSuccessful()).thenReturn(false);
 
                 var tokenLookUpResult = vaultClient.renewToken();
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
-                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("403"));
+                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Token renew failed with status 403"));
             }
 
             @Test
-            void returnsFailedResult_whenIoExceptionIsThrown() throws IOException {
+            void renewToken_whenHttpClientThrowsIoException_shouldFail() throws IOException {
                 when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
 
                 var tokenLookUpResult = vaultClient.renewToken();
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
-                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("foo-bar"));
+                verify(monitor).warning("Failed to renew token: foo-bar");
+                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Failed to renew token"));
             }
 
             @Nested
@@ -284,23 +334,24 @@ class HashicorpVaultClientTest {
                 }
 
                 @Test
-                void schedulesNextTokenRenewal_whenPreviousTokenRenewalWasSuccessful() throws IOException {
-                    var vaultClientSpy = spy(vaultClient);
-                    var response = mock(Response.class);
-                    var body = mock(ResponseBody.class);
+                void scheduleNextTokenRenewal_whenPreviousTokenRenewalSucceeded_shouldSucceed() throws IOException {
+                    var body = """
+                            {
+                                "warnings": ["foo-bar", "hello-world"],
+                                "auth": {
+                                    "lease_duration": 100
+                                }
+                            }
+                            """;
+                    var response = new Response.Builder()
+                            .code(403)
+                            .message("any")
+                            .body(ResponseBody.create(body, MediaType.get("application/json")))
+                            .protocol(Protocol.HTTP_1_1)
+                            .request(new Request.Builder().url("http://any").build())
+                            .build();
                     when(httpClient.execute(any(Request.class))).thenReturn(response);
-                    when(response.code()).thenReturn(200);
-                    when(response.isSuccessful()).thenReturn(true);
-                    when(response.body()).thenReturn(body);
-                    when(body.string())
-                            .thenReturn(
-                                    "{" +
-                                            "\"warnings\": [\"foo-bar\", \"hello-world\"]," +
-                                            "\"auth\":" +
-                                            "{" +
-                                            "\"lease_duration\": 100" +
-                                            "}" +
-                                            "}");
+                    var vaultClientSpy = spy(vaultClient);
                     var captor = ArgumentCaptor.forClass(Runnable.class);
                     // break second token renewal call
                     doNothing().when(vaultClientSpy).scheduleNextTokenRenewal(100L);
@@ -313,16 +364,19 @@ class HashicorpVaultClientTest {
 
                     verifyNoMoreInteractions(scheduledExecutorService);
                     verify(vaultClientSpy, atMost(2)).scheduleNextTokenRenewal(anyLong());
-                    verify(monitor).info(matches("Token was renewed successfully"));
-                    verify(monitor).info(matches("Next token renewal scheduled in 00h:08m:20s"));
                 }
 
                 @Test
-                void doesNotScheduleNextTokenRenewal_whenPreviousTokenRenewalFailed() throws IOException {
+                void scheduleNextTokenRenewal_whenPreviousTokenRenewalFailed_shouldFail() throws IOException {
                     var vaultClientSpy = spy(vaultClient);
-                    var response = mock(Response.class);
+                    var response = new Response.Builder()
+                            .code(403)
+                            .message("any")
+                            .body(ResponseBody.create("", MediaType.get("application/json")))
+                            .protocol(Protocol.HTTP_1_1)
+                            .request(new Request.Builder().url("http://any").build())
+                            .build();
                     when(httpClient.execute(any(Request.class))).thenReturn(response);
-                    when(response.code()).thenReturn(403);
                     var captor = ArgumentCaptor.forClass(Runnable.class);
 
                     vaultClientSpy.scheduleNextTokenRenewal(500L);
@@ -332,8 +386,7 @@ class HashicorpVaultClientTest {
                     runnable.run();
 
                     verify(vaultClientSpy, atMostOnce()).scheduleNextTokenRenewal(anyLong());
-                    verify(monitor).warning(matches("Failed to renew token: 403"));
-                    verify(monitor).info(matches("Next token renewal scheduled in 00h:08m:20s"));
+                    verify(monitor).warning(matches("Scheduled token renewal failed: Token renew failed with status 403"));
                 }
             }
         }
@@ -342,17 +395,21 @@ class HashicorpVaultClientTest {
     @Nested
     class Secret {
         @Test
-        void getSecretValue() throws IOException {
+        void getSecret_whenApiReturns200_shouldSucceed() throws IOException {
             // prepare
-            var response = mock(Response.class);
-            var body = mock(ResponseBody.class);
-
-            var payload = new GetEntryResponsePayload();
+            var ow = new ObjectMapper().writer();
+            var data = GetEntryResponsePayloadGetVaultEntryData.Builder.newInstance().data(new HashMap<>(0)).build();
+            var body = GetEntryResponsePayload.Builder.newInstance().data(data).build();
+            var bodyString = ow.writeValueAsString(body);
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create(bodyString, MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
 
             when(httpClient.execute(any(Request.class))).thenReturn(response);
-            when(response.code()).thenReturn(200);
-            when(response.body()).thenReturn(body);
-            when(body.string()).thenReturn(payload.toString());
 
             // invoke
             var result = vaultClient.getSecretValue(KEY);
@@ -365,19 +422,24 @@ class HashicorpVaultClientTest {
         }
 
         @Test
-        void setSecretValue() throws IOException {
+        void setSecret_whenApiReturns200_shouldSucceed() throws IOException {
             // prepare
-            var secretValue = UUID.randomUUID().toString();
-            var payload = new CreateEntryResponsePayload();
+            var ow = new ObjectMapper().writer();
+            var data = EntryMetadata.Builder.newInstance().build();
+            var body = CreateEntryResponsePayload.Builder.newInstance().data(data).build();
+            var bodyString = ow.writeValueAsString(body);
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create(bodyString, MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
             var call = mock(Call.class);
-            var response = mock(Response.class);
-            var body = mock(ResponseBody.class);
+            var secretValue = UUID.randomUUID().toString();
 
             when(httpClient.execute(any(Request.class))).thenReturn(response);
             when(call.execute()).thenReturn(response);
-            when(response.code()).thenReturn(200);
-            when(response.body()).thenReturn(body);
-            when(body.string()).thenReturn(payload.toString());
 
             // invoke
             var result = vaultClient.setSecret(KEY, secretValue);
@@ -390,13 +452,16 @@ class HashicorpVaultClientTest {
         }
 
         @Test
-        void destroySecretValue() throws IOException {
+        void destroySecret_whenApiReturns200_shouldSucceed() throws IOException {
             // prepare
-            var response = mock(Response.class);
-            var body = mock(ResponseBody.class);
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create("", MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
             when(httpClient.execute(any(Request.class))).thenReturn(response);
-            when(response.isSuccessful()).thenReturn(true);
-            when(response.body()).thenReturn(body);
 
             // invoke
             var result = vaultClient.destroySecret(KEY);

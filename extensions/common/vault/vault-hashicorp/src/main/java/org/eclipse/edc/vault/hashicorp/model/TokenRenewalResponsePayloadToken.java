@@ -17,7 +17,9 @@ package org.eclipse.edc.vault.hashicorp.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-
+/**
+ * Token data returned by vault renewal operation.
+ */
 public class TokenRenewalResponsePayloadToken {
 
     @JsonProperty("lease_duration")

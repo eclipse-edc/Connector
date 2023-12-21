@@ -17,6 +17,9 @@ package org.eclipse.edc.vault.hashicorp.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+/**
+ * Represents a Vault token renewal request.
+ */
 public class TokenRenewalRequestPayload {
     private static final String INCREMENT_SECONDS_FORMAT = "%ds";
 
