@@ -82,9 +82,19 @@ class QueryValidatorTest {
     }
 
     @Test
-    void validate_isMapType() {
+    void validate_isMapTypeTrue() {
         queryValidator = new QueryValidator(TestObject.class);
         var query = with(criterion("someMap.foo", "=", "bar"));
+
+        var result = queryValidator.validate(query);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void validate_isMapTypeFalse() {
+        queryValidator = new QueryValidator(TestObject.class);
+        var query = with(criterion("someMap.foo[*].test", "=", "bar"));
 
         var result = queryValidator.validate(query);
 

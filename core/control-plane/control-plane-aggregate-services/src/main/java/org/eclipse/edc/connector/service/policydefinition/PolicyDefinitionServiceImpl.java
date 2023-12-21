@@ -53,7 +53,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
         this.observable = observable;
-        queryValidator = new PolicyDefinitionQueryValidator(getSubtypeMap());
+        queryValidator = new QueryValidator(PolicyDefinition.class, getSubtypeMap());
     }
 
     @Override

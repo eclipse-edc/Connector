@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.service.query;
 
+import com.jayway.jsonpath.JsonPath;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -40,9 +41,9 @@ public class QueryValidator {
     /**
      * Constructs a new QueryValidator instance.
      *
-     * @param canonicalType The Java class of the object to validate against.
+     * @param canonicalType    The Java class of the object to validate against.
      * @param typeHierarchyMap Contains mapping from superclass to list of subclasses. Every superclass must be
-     *         represented as separate entry in the map, even if it is also a subclass of another.
+     *                         represented as separate entry in the map, even if it is also a subclass of another.
      */
     public QueryValidator(Class<?> canonicalType, Map<Class<?>, List<Class<?>>> typeHierarchyMap) {
         this.canonicalType = canonicalType;
@@ -83,7 +84,8 @@ public class QueryValidator {
 
             // cannot query on extensible (=Map) types
             if (type == Map.class) {
-                return Result.failure("Querying Map types is not yet supported");
+                return JsonPath.isPathDefinite(path) ? Result.success() :
+                        Result.failure("Querying Map types is not yet supported");
             }
             var field = getFieldIncludingSubtypes(type, token);
             if (field != null) {
