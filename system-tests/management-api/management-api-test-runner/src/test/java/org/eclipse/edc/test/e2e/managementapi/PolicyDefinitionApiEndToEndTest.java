@@ -169,21 +169,6 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .body("size()", is(0));
     }
 
-    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
-        var criteria =
-                (createObjectBuilder()
-                        .add("operandLeft", leftOperand)
-                        .add("operator", operator)
-                        .add("operandRight", rightOperand)
-                );
-
-        return createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "QuerySpec")
-                .add("filterExpression", criteria)
-                .build();
-    }
-
     @Test
     void shouldUpdate() {
         var requestBody = createObjectBuilder()
@@ -368,6 +353,21 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
     private PolicyDefinitionStore store() {
         return controlPlane.getContext().getService(PolicyDefinitionStore.class);
+    }
+
+    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
+        var criteria =
+                (createObjectBuilder()
+                        .add("operandLeft", leftOperand)
+                        .add("operator", operator)
+                        .add("operandRight", rightOperand)
+                );
+
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "QuerySpec")
+                .add("filterExpression", criteria)
+                .build();
     }
 
 }

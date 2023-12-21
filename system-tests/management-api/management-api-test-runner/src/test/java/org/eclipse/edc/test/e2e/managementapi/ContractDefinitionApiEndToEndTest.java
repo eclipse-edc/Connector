@@ -61,21 +61,6 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
         assertThat(criteria).hasSize(2);
     }
 
-    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
-        var criteria =
-                (createObjectBuilder()
-                        .add("operandLeft", leftOperand)
-                        .add("operator", operator)
-                        .add("operandRight", rightOperand)
-                );
-
-        return createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, "QuerySpec")
-                .add("filterExpression", criteria)
-                .build();
-    }
-
     @Test
     void queryPolicyDefinitionWithSimplePrivateProperties() {
         var requestJson = createDefinitionBuilderWithPrivateProperties()
@@ -237,4 +222,20 @@ public class ContractDefinitionApiEndToEndTest extends BaseManagementApiEndToEnd
                 .assetsSelectorCriterion(criterion("foo", "=", "bar"))
                 .assetsSelectorCriterion(criterion("bar", "=", "baz"));
     }
+
+    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
+        var criteria =
+                (createObjectBuilder()
+                        .add("operandLeft", leftOperand)
+                        .add("operator", operator)
+                        .add("operandRight", rightOperand)
+                );
+
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "QuerySpec")
+                .add("filterExpression", criteria)
+                .build();
+    }
+
 }
