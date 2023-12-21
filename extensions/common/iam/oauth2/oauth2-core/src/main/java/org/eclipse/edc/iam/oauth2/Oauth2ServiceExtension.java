@@ -169,9 +169,22 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver)
                 .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
-                .issuedAtValidationLeeway(context.getSetting(ISSUED_AT_LEEWAY, 0))
+                .issuedAtValidationLeeway(getIssuedAtValidationLeeway(context))
                 .tokenExpiration(TimeUnit.MINUTES.toSeconds(tokenExpiration))
                 .build();
+    }
+
+    private int getIssuedAtValidationLeeway(ServiceExtensionContext context) {
+        if (!context.getConfig().hasKey(ISSUED_AT_LEEWAY)) {
+            String message = "No value was configured for '%s'.".formatted(ISSUED_AT_LEEWAY) +
+                    " Please consider configuring a leeway of 2-5s. The check 'iat <= now' can" +
+                    " cause errors in production due to the comparison of second-rounded and" +
+                    " nanosecond-precise dates, because the rounding and rounding direction are" +
+                    " implementation specific, platform specific, but also within spec for JWT.";
+            context.getMonitor().info(message);
+        }
+
+        return context.getSetting(ISSUED_AT_LEEWAY, 0);
     }
 
 }
