@@ -56,7 +56,7 @@ The design of the current EDC token handling is limited by its inability to acco
 
 ### TokenGenerationService
 
-`TokenGenerationService` will be changed to remove the private key parameter from its constructor and instead have a `Supplier<PrivateKey>` passed to it (which may wrap a `KeyParserRegistry`):
+`TokenGenerationService` will be changed to remove the private key parameter from its constructor and instead have a `Supplier<PrivateKey>` passed to it (which may wrap a `PrivateKeyResolver`):
 
 ```java
 public interface TokenGenerationService {
