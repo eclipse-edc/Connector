@@ -70,7 +70,7 @@ public interface TokenGenerationService {
 
 Many rules that apply to token validation depend on the token type. For example, OAuth token validation requires different rules than self-issued token validation. Validation rules will be associated with a token type and resolved per validation operation (there will also be default rules that apply to all types).  The `TokenValidationService` and `TokenValidationRulesRegistry` will be refactored to accommodate these changes.
 
-`TokenValidationService` will have a `PublicKeyResolver` and `TokenValidationRules` passed when performing validation, rather than `TokenValidationServiceImpl` taking a reference to a `PublicKeyResolver` and the `TokenValidationRulesRegistry` in its constructor:
+`TokenValidationService` will have a `PublicKeyResolver` and `TokenValidationRules` passed when performing validation, rather than `TokenValidationServiceImpl` taking a reference to a `PublicKeyResolver` and the `TokenValidationRulesRegistry` in its constructor. The calling code needs to pass the appropriate `PublicKeyResolver` for a particular key ID - some keys might be resolvable through a DID, some through a well-known URL, some through a vault:
 
 ```java
 public interface TokenValidationService {
