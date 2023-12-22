@@ -128,7 +128,7 @@ Currently, multiple extension points are used to determine the contents of a tok
 
 `CredentialsRequestAdditionalParametersProvider` will be removed.
 
-The `TokenDecorator` extension point is a singleton service invoked at the remote dispatch layer (`DspHttpRemoteMessageDispatcherImpl` ). There is currently one implementation in the DAPs extension. This should be refactored to use a `JwtDecorator`.
+The `TokenDecorator` extension point is a singleton service invoked at the remote dispatch layer (`DspHttpRemoteMessageDispatcherImpl` ). There is currently one implementation in the DAPs extension. This should be refactored to use a `TokenDecorator`.
 
 To migrate the `TokenDecorator` functionality to `JwtDecorators`, the following changes will be made. 
 
