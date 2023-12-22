@@ -43,7 +43,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
     private final DataPlaneSelectorService selectorClient;
     private final DataPlaneClientFactory clientFactory;
 
-    private final Set<String> transferTypes = Set.of("%s-%s".formatted("Http", PULL));
+    private final Set<String> transferTypes = Set.of("%s-%s".formatted("HttpData", PULL));
 
     public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataPlaneClientFactory clientFactory) {
         this.callbackUrl = callbackUrl;

@@ -43,13 +43,13 @@ class ConsumerPullTransferDataFlowControllerTest {
 
     private final ConsumerPullTransferDataFlowController flowController = new ConsumerPullTransferDataFlowController(selectorService, resolver);
 
-    private static final String HTTP_PULL = "Http-PULL";
+    private static final String HTTP_DATA_PULL = "HttpData-PULL";
 
     @Test
     void verifyCanHandle() {
         assertThat(flowController.canHandle(transferProcess(HTTP_PROXY))).isTrue();
-        assertThat(flowController.canHandle(transferProcess(HTTP_PULL, HTTP_PULL))).isTrue();
-        assertThat(flowController.canHandle(transferProcess(HTTP_PULL, null))).isFalse();
+        assertThat(flowController.canHandle(transferProcess(HTTP_DATA_PULL, HTTP_DATA_PULL))).isTrue();
+        assertThat(flowController.canHandle(transferProcess(HTTP_DATA_PULL, null))).isFalse();
         assertThat(flowController.canHandle(transferProcess("not-http-proxy"))).isFalse();
     }
 
@@ -77,7 +77,7 @@ class ConsumerPullTransferDataFlowControllerTest {
         var proxyAddress = dataAddress();
         var instance = mock(DataPlaneInstance.class);
         var transferProcess = TransferProcess.Builder.newInstance()
-                .transferType(HTTP_PULL)
+                .transferType(HTTP_DATA_PULL)
                 .dataRequest(dataRequest())
                 .contentDataAddress(dataAddress())
                 .build();
@@ -141,7 +141,7 @@ class ConsumerPullTransferDataFlowControllerTest {
 
         var transferTypes = flowController.transferTypesFor(asset);
 
-        assertThat(transferTypes).hasSize(1).contains("Http-PULL");
+        assertThat(transferTypes).hasSize(1).contains(HTTP_DATA_PULL);
     }
 
     private TransferProcess transferProcess(String destinationType) {

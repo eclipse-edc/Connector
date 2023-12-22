@@ -89,7 +89,7 @@ public abstract class AbstractEndToEndTransfer {
         createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
         var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
 
-        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "Http-PULL");
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "HttpData-PULL");
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
             assertThat(state).isEqualTo(STARTED.name());

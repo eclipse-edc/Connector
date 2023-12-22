@@ -40,7 +40,7 @@ public class ConsumerPullTransferDataFlowController implements DataFlowControlle
     private final DataPlaneSelectorService selectorService;
     private final ConsumerPullDataPlaneProxyResolver resolver;
 
-    private final Set<String> transferTypes = Set.of("%s-%s".formatted("Http", PULL));
+    private final Set<String> transferTypes = Set.of("%s-%s".formatted("HttpData", PULL));
 
     public ConsumerPullTransferDataFlowController(DataPlaneSelectorService selectorService, ConsumerPullDataPlaneProxyResolver resolver) {
         this.selectorService = selectorService;
