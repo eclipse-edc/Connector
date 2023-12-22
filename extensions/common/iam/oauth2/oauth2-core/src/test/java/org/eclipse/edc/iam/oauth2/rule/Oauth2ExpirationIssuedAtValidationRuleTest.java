@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       sovity GmbH - added issuedAt leeway
  *
  */
 
@@ -33,7 +34,7 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
 
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, UTC);
-    private final TokenValidationRule rule = new Oauth2ExpirationIssuedAtValidationRule(clock);
+    private final TokenValidationRule rule = new Oauth2ExpirationIssuedAtValidationRule(clock,  0);
 
     @Test
     void validationOk() {
@@ -96,5 +97,87 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
         assertThat(result.getFailureMessages()).hasSize(1).contains("Current date/time before issued at (iat) claim in token");
     }
 
+    @Test
+    void validationKoBecauseIssuedAtInFutureOutsideLeeway() {
+        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 5);
 
+        var token = ClaimToken.Builder.newInstance()
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
+                .claim(ISSUED_AT, Date.from(now.plusSeconds(10)))
+                .build();
+
+        var result = rule.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1).contains("Current date/time before issued at (iat) claim in token");
+    }
+
+    @Test
+    void validationOkBecauseIssuedAtInFutureButWithinLeeway() {
+        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 20);
+
+        var token = ClaimToken.Builder.newInstance()
+                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
+                .claim(ISSUED_AT, Date.from(now.plusSeconds(10)))
+                .build();
+
+        var result = rule.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    /**
+     * Demonstrates situation where rounded dates in the JWT token cause validation failures
+     * <br>
+     * Rounding of dates in JWT is within spec and the direction of rounding is platform-dependant.
+     */
+    @Test
+    void validationKoWithRoundedIssuedAtAndNoLeeway() {
+        // time skew: tokens have dates rounded up to the second
+        var issuedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        var expiresAt = issuedAt.plusSeconds(60);
+
+        // time skew: the connector is still in the previous second, with unrounded dates
+        var now = issuedAt.minus(250, ChronoUnit.MILLIS);
+
+        var clock = Clock.fixed(now, UTC);
+        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 0);
+
+        var token = ClaimToken.Builder.newInstance()
+                .claim(EXPIRATION_TIME, Date.from(expiresAt))
+                .claim(ISSUED_AT, Date.from(issuedAt))
+                .build();
+
+        var result = rule.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1).contains("Current date/time before issued at (iat) claim in token");
+    }
+
+    /**
+     * Regression test against clock skew and platform-dependant rounding of dates, solved with a 2s leeway.
+     * <br>
+     * Rounding of dates in JWT is within spec and the direction of rounding is platform-dependant.
+     */
+    @Test
+    void validationOkWithRoundedIssuedAtAndMinimalLeeway() {
+        // time skew: tokens have dates rounded up to the second
+        var issuedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        var expiresAt = issuedAt.plusSeconds(60);
+
+        // time skew: the connector is still in the previous second, with unrounded dates
+        var now = issuedAt.minus(250, ChronoUnit.MILLIS);
+
+        var clock = Clock.fixed(now, UTC);
+        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 2);
+
+        var token = ClaimToken.Builder.newInstance()
+                .claim(EXPIRATION_TIME, Date.from(expiresAt))
+                .claim(ISSUED_AT, Date.from(issuedAt))
+                .build();
+
+        var result = rule.checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
+    }
 }

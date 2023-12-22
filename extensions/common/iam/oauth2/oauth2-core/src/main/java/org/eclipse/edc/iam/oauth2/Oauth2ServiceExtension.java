@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       sovity GmbH - added issuedAt leeway
  *
  */
 
@@ -46,6 +47,8 @@ import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 /**
  * Provides OAuth2 client credentials flow support.
  */
@@ -74,8 +77,10 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     private static final String TOKEN_EXPIRATION = "edc.oauth.token.expiration"; // in minutes
     @Setting
     private static final String CLIENT_ID = "edc.oauth.client.id";
-    @Setting
+    @Setting(value = "Leeway in seconds for validating the not before (nbf) claim in the token.", defaultValue = "10", type = "int")
     private static final String NOT_BEFORE_LEEWAY = "edc.oauth.validation.nbf.leeway";
+    @Setting(value = "Leeway in seconds for validating the issuedAt claim in the token. By default it is 0 seconds.", defaultValue = "0", type = "int")
+    private static final String ISSUED_AT_LEEWAY = "edc.oauth.validation.issued.at.leeway";
     private IdentityProviderKeyResolver providerKeyResolver;
 
     @Inject
@@ -167,8 +172,21 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver)
                 .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
+                .issuedAtLeeway(getIssuedAtLeeway(context))
                 .tokenExpiration(TimeUnit.MINUTES.toSeconds(tokenExpiration))
                 .build();
+    }
+
+    private int getIssuedAtLeeway(ServiceExtensionContext context) {
+        if (!context.getConfig().hasKey(ISSUED_AT_LEEWAY)) {
+            var message = format(
+                    "No value was configured for '%s'. Consider setting a leeway of 2-5s in production to avoid problems with clock skew.",
+                    ISSUED_AT_LEEWAY
+            );
+            context.getMonitor().info(message);
+        }
+
+        return context.getSetting(ISSUED_AT_LEEWAY, 0);
     }
 
 }
