@@ -98,7 +98,7 @@ public interface TokenDecoratorRegistry {
 
   void register(String type, TokenDecorator decorator);
   
-  void unregister(String type, JwtDecorator decorator);
+  void unregister(String type, TokenDecorator decorator);
 
   List<TokenDecorator> decoratorsFor(String type);
   
