@@ -110,7 +110,7 @@ public interface TokenValidationRulesRegistry {
 
   void addRule(String type, TokenValidationRule rule);
 
-  List<TokenValidationRule> rulesFor(String... types);
+  List<TokenValidationRule> rulesFor(String types);
   
 }
 ```
