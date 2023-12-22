@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - Initial implementation
+ *       sovity GmbH - added issuedAt leeway
  *
  */
 

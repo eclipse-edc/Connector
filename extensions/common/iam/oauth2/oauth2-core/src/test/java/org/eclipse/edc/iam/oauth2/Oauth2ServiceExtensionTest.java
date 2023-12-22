@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       sovity GmbH - added issuedAt leeway
  *
  */
 
