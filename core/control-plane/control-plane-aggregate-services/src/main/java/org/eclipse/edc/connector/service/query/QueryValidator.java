@@ -85,7 +85,7 @@ public class QueryValidator {
 
             // cannot query on extensible (=Map) types
             if (type == Map.class) {
-                Pattern pattern = Pattern.compile("^[A-Za-z_]+.*$");
+                Pattern pattern = Pattern.compile("^[0-9A-Za-z.':/]*$");
                 Matcher matcher = pattern.matcher(path);
                 return matcher.find() ? Result.success() :
                         Result.failure("Querying Map types is not yet supported");
