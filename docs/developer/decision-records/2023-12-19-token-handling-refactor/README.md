@@ -100,7 +100,7 @@ public interface JwtDecoratorRegistry {
   
   void unregister(String type, JwtDecorator decorator);
 
-  List<JwtDecorator> decoratorsFor(String... types);
+  List<TokenDecorator> decoratorsFor(String type);
   
 }
 ```
