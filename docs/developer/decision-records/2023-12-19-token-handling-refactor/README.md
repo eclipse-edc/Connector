@@ -124,7 +124,7 @@ The client calling the `TokenGenerationService` or `TokenValidationService` will
 
 ### Step 3: Remove `TokenDecorator` and `CredentialsRequestAdditionalParametersProvider`
 
-Currently, multiple extension points are used to determine the contents of a token, including `TokenDecorator`, `CredentialsRequestAdditionalParametersProvider`, and `JwtDecorator`. The refactoring will converge on `JwtDecorator` as a single extension point.
+Currently, multiple extension points are used to determine the contents of a token, including `TokenDecorator`, `CredentialsRequestAdditionalParametersProvider`, and `TokenDecorator`. The refactoring will converge on `TokenDecorator` as a single extension point.
 
 `CredentialsRequestAdditionalParametersProvider` will be removed.
 
