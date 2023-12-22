@@ -94,7 +94,7 @@ The client that invokes the `TokenValidationService` will be responsible for pro
 The `JwtDecoratorRegistry` and `TokenValidationRulesRegistry` specializations (subclasses) will be removed and replaced with the concept of a token type, e.g. OAuth2:
 
 ```java
-public interface JwtDecoratorRegistry {
+public interface TokenDecoratorRegistry {
 
   void register(String type, JwtDecorator decorator);
   
