@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.service.query;
 
-import com.jayway.jsonpath.JsonPath;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -26,6 +25,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -84,7 +85,9 @@ public class QueryValidator {
 
             // cannot query on extensible (=Map) types
             if (type == Map.class) {
-                return JsonPath.isPathDefinite(path) ? Result.success() :
+                Pattern pattern = Pattern.compile("^[A-Za-z_]+.*$");
+                Matcher matcher = pattern.matcher(path);
+                return matcher.find() ? Result.success() :
                         Result.failure("Querying Map types is not yet supported");
             }
             var field = getFieldIncludingSubtypes(type, token);
