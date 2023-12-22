@@ -37,6 +37,7 @@ import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANS
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ERROR_DETAIL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE_TIMESTAMP;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE_TYPE;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcess.Type.CONSUMER;
@@ -70,6 +71,7 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .state(STARTED.code())
                 .stateTimestamp(1234L)
                 .privateProperties(Map.of("foo", "bar"))
+                .transferType("transferType")
                 .type(CONSUMER)
                 .dataRequest(DataRequest.Builder.newInstance()
                         .id("correlationId")
@@ -92,6 +94,7 @@ class JsonObjectFromTransferProcessTransformerTest {
         assertThat(result.getString(TRANSFER_PROCESS_ASSET_ID)).isEqualTo("assetId");
         assertThat(result.getString(TRANSFER_PROCESS_CONTRACT_ID)).isEqualTo("contractId");
         assertThat(result.getString(TRANSFER_PROCESS_TYPE_TYPE)).isEqualTo(CONSUMER.toString());
+        assertThat(result.getString(TRANSFER_PROCESS_TRANSFER_TYPE)).isEqualTo("transferType");
         assertThat(result.getJsonObject(TRANSFER_PROCESS_DATA_DESTINATION)).isSameAs(dataDestinationJson);
         assertThat(result.getJsonArray(TRANSFER_PROCESS_CALLBACK_ADDRESSES).get(0)).isSameAs(callbackAddressJson);
         assertThat(result.getString(TRANSFER_PROCESS_ERROR_DETAIL)).isEqualTo("an error");

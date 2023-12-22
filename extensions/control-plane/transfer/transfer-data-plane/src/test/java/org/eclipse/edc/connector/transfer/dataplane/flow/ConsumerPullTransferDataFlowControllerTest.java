@@ -43,9 +43,13 @@ class ConsumerPullTransferDataFlowControllerTest {
 
     private final ConsumerPullTransferDataFlowController flowController = new ConsumerPullTransferDataFlowController(selectorService, resolver);
 
+    private static final String HTTP_DATA_PULL = "HttpData-PULL";
+
     @Test
     void verifyCanHandle() {
         assertThat(flowController.canHandle(transferProcess(HTTP_PROXY))).isTrue();
+        assertThat(flowController.canHandle(transferProcess(HTTP_DATA_PULL, HTTP_DATA_PULL))).isTrue();
+        assertThat(flowController.canHandle(transferProcess(HTTP_DATA_PULL, null))).isFalse();
         assertThat(flowController.canHandle(transferProcess("not-http-proxy"))).isFalse();
     }
 
@@ -54,6 +58,26 @@ class ConsumerPullTransferDataFlowControllerTest {
         var proxyAddress = dataAddress();
         var instance = mock(DataPlaneInstance.class);
         var transferProcess = TransferProcess.Builder.newInstance()
+                .dataRequest(dataRequest())
+                .contentDataAddress(dataAddress())
+                .build();
+
+        when(selectorService.select(any(), argThat(destination -> destination.getType().equals(HTTP_PROXY)))).thenReturn(instance);
+        when(resolver.toDataAddress(any(), any(), any())).thenReturn(Result.success(proxyAddress));
+
+        var result = flowController.initiateFlow(transferProcess, null);
+
+        assertThat(result).isSucceeded().satisfies(response -> {
+            assertThat(response.getDataAddress()).isEqualTo(proxyAddress);
+        });
+    }
+
+    @Test
+    void initiateFlow_success_withTransferType() {
+        var proxyAddress = dataAddress();
+        var instance = mock(DataPlaneInstance.class);
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .transferType(HTTP_DATA_PULL)
                 .dataRequest(dataRequest())
                 .contentDataAddress(dataAddress())
                 .build();
@@ -117,11 +141,16 @@ class ConsumerPullTransferDataFlowControllerTest {
 
         var transferTypes = flowController.transferTypesFor(asset);
 
-        assertThat(transferTypes).hasSize(1).contains("Http-PULL");
+        assertThat(transferTypes).hasSize(1).contains(HTTP_DATA_PULL);
     }
 
     private TransferProcess transferProcess(String destinationType) {
+        return transferProcess(destinationType, null);
+    }
+
+    private TransferProcess transferProcess(String destinationType, String transferType) {
         return TransferProcess.Builder.newInstance()
+                .transferType(transferType)
                 .dataRequest(DataRequest.Builder.newInstance().destinationType(destinationType).build())
                 .build();
     }

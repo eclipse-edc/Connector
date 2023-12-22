@@ -155,6 +155,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
         var process = TransferProcess.Builder.newInstance()
                 .id(randomUUID().toString())
                 .dataRequest(dataRequest)
+                .transferType(message.getTransferType())
                 .type(PROVIDER)
                 .clock(clock)
                 .traceContext(telemetry.getCurrentTraceContext())

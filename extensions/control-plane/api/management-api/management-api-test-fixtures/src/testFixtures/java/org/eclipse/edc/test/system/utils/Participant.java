@@ -279,7 +279,22 @@ public class Participant {
      * @return id of the transfer process.
      */
     public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination) {
-        var requestBody = createObjectBuilder()
+        return initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, null);
+    }
+
+    /**
+     * Initiate data transfer.
+     *
+     * @param provider            data provider
+     * @param contractAgreementId contract agreement id
+     * @param assetId             asset id
+     * @param privateProperties   private properties
+     * @param destination         data destination address
+     * @param transferType        type of transfer
+     * @return id of the transfer process.
+     */
+    public String initiateTransfer(Participant provider, String contractAgreementId, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
+        var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "TransferRequest")
                 .add("dataDestination", destination)
@@ -288,9 +303,13 @@ public class Participant {
                 .add("contractId", contractAgreementId)
                 .add("connectorId", provider.id)
                 .add("counterPartyAddress", provider.protocolEndpoint.url.toString())
-                .add("privateProperties", privateProperties)
-                .build();
+                .add("privateProperties", privateProperties);
 
+        if (transferType != null) {
+            requestBodyBuilder.add("transferType", transferType);
+        }
+
+        var requestBody = requestBodyBuilder.build();
         return managementEndpoint.baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
@@ -315,10 +334,27 @@ public class Participant {
      * @return transfer process id.
      */
     public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination) {
+        return requestAsset(provider, assetId, privateProperties, destination, null);
+    }
+
+    /**
+     * Request a provider asset:
+     * - retrieves the contract definition associated with the asset,
+     * - handles the contract negotiation,
+     * - initiate the data transfer.
+     *
+     * @param provider          data provider
+     * @param assetId           asset id
+     * @param privateProperties private properties of the data request
+     * @param destination       data destination
+     * @param transferType      transfer type
+     * @return transfer process id.
+     */
+    public String requestAsset(Participant provider, String assetId, JsonObject privateProperties, JsonObject destination, String transferType) {
         var dataset = getDatasetForAsset(provider, assetId);
         var policy = dataset.getJsonArray(ODRL_POLICY_ATTRIBUTE).get(0).asJsonObject();
         var contractAgreementId = negotiateContract(provider, policy);
-        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination);
+        var transferProcessId = initiateTransfer(provider, contractAgreementId, assetId, privateProperties, destination, transferType);
         assertThat(transferProcessId).isNotNull();
         return transferProcessId;
     }

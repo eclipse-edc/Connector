@@ -254,6 +254,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getDeprovisionedResources()),
                 toJson(process.getCallbackAddresses()),
                 process.isPending(),
+                process.getTransferType(),
                 process.getId());
 
         var newDr = process.getDataRequest();
@@ -308,7 +309,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getDeprovisionedResources()),
                 toJson(process.getPrivateProperties()),
                 toJson(process.getCallbackAddresses()),
-                process.isPending());
+                process.isPending(),
+                process.getTransferType());
 
         //insert DataRequest
         var dr = process.getDataRequest();
@@ -351,6 +353,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 }))
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), getTypeRef()))
                 .pending(resultSet.getBoolean(statements.getPendingColumn()))
+                .transferType(resultSet.getString(statements.getTransferTypeColumn()))
                 .build();
     }
 

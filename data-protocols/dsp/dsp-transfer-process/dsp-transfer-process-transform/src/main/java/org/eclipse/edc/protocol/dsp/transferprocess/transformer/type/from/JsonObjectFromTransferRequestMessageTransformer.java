@@ -23,6 +23,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
@@ -48,12 +50,14 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractJso
         builder.add(JsonLdKeywords.ID, transferRequestMessage.getId());
         builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
 
+        var transferType = Optional.ofNullable(transferRequestMessage.getTransferType()).orElseGet(() -> transferRequestMessage.getDataDestination().getType());
+
         builder.add(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID, transferRequestMessage.getContractId());
-        builder.add(DCT_FORMAT_ATTRIBUTE, transferRequestMessage.getDataDestination().getType());
+        builder.add(DCT_FORMAT_ATTRIBUTE, transferType);
         builder.add(DSPACE_PROPERTY_CALLBACK_ADDRESS, transferRequestMessage.getCallbackAddress());
         builder.add(DSPACE_PROPERTY_PROCESS_ID, transferRequestMessage.getProcessId());
 
-        if (transferRequestMessage.getDataDestination().getProperties().size() > 1) {
+        if (transferRequestMessage.getDataDestination() != null && transferRequestMessage.getDataDestination().getProperties().size() > 1) {
             builder.add(DSPACE_PROPERTY_DATA_ADDRESS, context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
         }
         return builder.build();

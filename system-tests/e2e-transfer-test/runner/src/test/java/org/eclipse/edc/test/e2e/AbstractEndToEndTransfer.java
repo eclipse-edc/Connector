@@ -83,6 +83,33 @@ public abstract class AbstractEndToEndTransfer {
     }
 
     @Test
+    void httpPull_dataTransfer_withTransferType() {
+        registerDataPlanes();
+        var assetId = UUID.randomUUID().toString();
+        createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
+        var dynamicReceiverProps = CONSUMER.dynamicReceiverPrivateProperties();
+
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, dynamicReceiverProps, syncDataAddress(), "HttpData-PULL");
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(STARTED.name());
+        });
+
+        // retrieve the data reference
+        var edr = CONSUMER.getDataReference(transferProcessId);
+
+        // pull the data without query parameter
+        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of(), equalTo("some information")));
+
+        // pull the data with additional query parameter
+        var msg = UUID.randomUUID().toString();
+        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
+
+        assertThat(CONSUMER.getAllDataReferences(transferProcessId))
+                .hasSize(2);
+    }
+
+    @Test
     void httpPull_withExpiredContract_fixedInForcePeriod() {
         registerDataPlanes();
         var assetId = UUID.randomUUID().toString();
@@ -144,6 +171,28 @@ public abstract class AbstractEndToEndTransfer {
         var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
 
         var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination);
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(COMPLETED.name());
+
+            given()
+                    .baseUri(CONSUMER.backendService().toString())
+                    .when()
+                    .get("/api/consumer/data")
+                    .then()
+                    .statusCode(anyOf(is(200), is(204)))
+                    .body(is(notNullValue()));
+        });
+    }
+
+    @Test
+    void httpPushDataTransfer_withTransferType() {
+        registerDataPlanes();
+        var assetId = UUID.randomUUID().toString();
+        createResourcesOnProvider(assetId, noConstraintPolicy(), httpDataAddressProperties());
+        var destination = httpDataAddress(CONSUMER.backendService() + "/api/consumer/store");
+
+        var transferProcessId = CONSUMER.requestAsset(PROVIDER, assetId, noPrivateProperty(), destination, "HttpData-PUSH");
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
             assertThat(state).isEqualTo(COMPLETED.name());

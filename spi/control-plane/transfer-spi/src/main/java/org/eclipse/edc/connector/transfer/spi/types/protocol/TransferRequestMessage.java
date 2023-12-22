@@ -35,6 +35,7 @@ public class TransferRequestMessage implements TransferRemoteMessage {
     private String processId;
     private String contractId;
     private DataAddress dataDestination;
+    private String transferType;
     private String callbackAddress;
     private Policy policy;
 
@@ -77,6 +78,10 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
     public DataAddress getDataDestination() {
         return dataDestination;
+    }
+
+    public String getTransferType() {
+        return transferType;
     }
 
     public String getCallbackAddress() {
@@ -133,6 +138,11 @@ public class TransferRequestMessage implements TransferRemoteMessage {
 
         public Builder dataDestination(DataAddress dataDestination) {
             message.dataDestination = dataDestination;
+            return this;
+        }
+
+        public Builder transferType(String transferType) {
+            message.transferType = transferType;
             return this;
         }
 

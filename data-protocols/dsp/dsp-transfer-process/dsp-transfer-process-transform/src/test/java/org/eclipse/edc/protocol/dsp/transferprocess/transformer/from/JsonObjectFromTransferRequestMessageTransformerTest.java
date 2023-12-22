@@ -76,7 +76,6 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
     }
 
 
-
     @Test
     void transformTransferRequestMessageWithDataAddress() {
         var message = TransferRequestMessage.Builder.newInstance()
@@ -116,6 +115,30 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(id);
+        assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS)).isEqualTo(null);
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transformTransferRequestMessageWithTransferType() {
+        var transferType = "Http-Pull";
+        var message = TransferRequestMessage.Builder.newInstance()
+                .processId(id)
+                .callbackAddress(callbackAddress)
+                .contractId(contractId)
+                .protocol(protocol)
+                .transferType(transferType)
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(transferType);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(callbackAddress);
         assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(id);
         assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS)).isEqualTo(null);
