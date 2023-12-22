@@ -96,7 +96,7 @@ The `JwtDecoratorRegistry` and `TokenValidationRulesRegistry` specializations (s
 ```java
 public interface TokenDecoratorRegistry {
 
-  void register(String type, JwtDecorator decorator);
+  void register(String type, TokenDecorator decorator);
   
   void unregister(String type, JwtDecorator decorator);
 
