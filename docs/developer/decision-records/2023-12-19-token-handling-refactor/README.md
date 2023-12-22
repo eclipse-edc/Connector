@@ -119,7 +119,7 @@ The client calling the `TokenGenerationService` or `TokenValidationService` will
 
 > The DAPs extension will reference an OAuth token type from the OAuth SPI to add its customizations to the registries.
 
->  `JwtDecorator` will be converted to a functional interface with default methods. All implementations will create either headers or claims.
+>  `JwtDecorator` will be renamed to `TokenDecorator` and converted to a functional interface with default methods. All implementations will create either headers or claims.
 > 
 
 ### Step 3: Remove `TokenDecorator` and `CredentialsRequestAdditionalParametersProvider`
