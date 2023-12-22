@@ -77,9 +77,9 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     private static final String TOKEN_EXPIRATION = "edc.oauth.token.expiration"; // in minutes
     @Setting
     private static final String CLIENT_ID = "edc.oauth.client.id";
-    @Setting(value = "Leeway in seconds for validating the not before (nbf) claim in the token")
+    @Setting(value = "Leeway in seconds for validating the not before (nbf) claim in the token.", defaultValue = "10", type = "int")
     private static final String NOT_BEFORE_LEEWAY = "edc.oauth.validation.nbf.leeway";
-    @Setting(value = "Leeway in seconds for validating the issuedAt claim in the token")
+    @Setting(value = "Leeway in seconds for validating the issuedAt claim in the token. By default it is 0 seconds.", defaultValue = "0", type = "int")
     private static final String ISSUED_AT_LEEWAY = "edc.oauth.validation.issued.at.leeway";
     private IdentityProviderKeyResolver providerKeyResolver;
 
