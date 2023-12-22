@@ -170,7 +170,7 @@ The `scope` and `grant_type` specializations will then be removed from `Oauth2Cr
 > Note that the call to `Oauth2CredentialsRequest.scope()` and the use of `CredentialsRequestAdditionalParametersProvider` is removed in the above example.
 
 
-The DAPS `DapsTokenDecorator` implementation can then be converted to a `JwtDecorator` and registered for OAuth token types with the `JwtDecoratorRegistry`. 
+The DAPS `DapsTokenDecorator` implementation can then be converted to a `JwtDecorator` and registered for OAuth token types with the `TokenDecoratorRegistry`. 
 
 ### Step 4: Remove `JwtUtils`
 
