@@ -494,6 +494,18 @@ public abstract class TransferProcessStoreTestBase {
         }
 
         @Test
+        void queryByTransferType() {
+            range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcessBuilder("test-tp-" + i)
+                    .transferType("type" + i)
+                    .build()));
+            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("transferType", "=", "type4")).build();
+
+            var result = getTransferProcessStore().findAll(querySpec);
+
+            assertThat(result).extracting(TransferProcess::getTransferType).containsOnly("type4");
+        }
+
+        @Test
         void verifySorting() {
             range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcess("test-neg-" + i)));
 
