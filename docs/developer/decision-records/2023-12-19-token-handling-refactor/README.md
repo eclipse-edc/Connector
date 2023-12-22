@@ -4,7 +4,7 @@ Token generation and verification will be refactored to remove complexity, reduc
 
 ## Rationale
 
-Token generation and verification have evolved organically over time and contain a number of inconsistencies and unnecessary complexity. This Architecture Decision Record details how these code paths will be refactored to provide more streamlined, concise, and consistent token handling services.
+Token generation and verification have evolved organically over time and contain a number of inconsistencies and unnecessary complexity. This Decision Record details how these code paths will be refactored to provide more streamlined, concise, and consistent token handling services.
 
 ## Impact
 
