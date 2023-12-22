@@ -42,7 +42,7 @@ interface KeyParserRegistry {
 @ExtensionPoint
 public interface PrivateKeyResolver {
 
-    @Nullable <T> T resolvePrivateKey(String id, Class<T> keyType);
+    @Nullable PrivateKey resolvePrivateKey(String id);
 
 }
 ```
