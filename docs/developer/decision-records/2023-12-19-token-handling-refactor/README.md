@@ -82,7 +82,7 @@ public interface TokenValidationService {
 }
 ```
 
-The client that invokes the `TokenValidationService` will be responsible for providing the public key resolver and assembling the rules for the current security context. Public key resolvers will implement different strategiess for returning the key:
+The client that invokes the `TokenValidationService` will be responsible for providing the public key resolver and assembling the rules for the current security context. Public key resolvers will implement different strategies for returning the key:
 - IATP - The implementation will resolve key material from a DID
 - OAuth - The implementation will use the `IdentityProviderKeyResolver`
 - Consumer pull data planes - May resolve from config, a vault, or some other form of secure storage
