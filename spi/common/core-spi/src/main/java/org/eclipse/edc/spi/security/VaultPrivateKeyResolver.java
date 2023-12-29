@@ -26,9 +26,9 @@ import java.util.List;
 public class VaultPrivateKeyResolver extends AbstractPrivateKeyResolver {
 
     private final Vault vault;
-    private final List<KeyParser<?>> parsers;
+    private final List<KeyParser> parsers;
 
-    public VaultPrivateKeyResolver(Vault vault, KeyParser<?>... parsers) {
+    public VaultPrivateKeyResolver(Vault vault, KeyParser... parsers) {
         super(parsers);
         this.vault = vault;
         this.parsers = Arrays.asList(parsers);

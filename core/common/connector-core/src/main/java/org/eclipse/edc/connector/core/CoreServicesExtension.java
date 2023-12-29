@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
 import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.edc.connector.core.security.KeyPairFactoryImpl;
+import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
+import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
@@ -42,6 +44,7 @@ import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.security.KeyPairFactory;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -198,6 +201,14 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public DataAddressValidatorRegistry dataAddressValidatorRegistry(ServiceExtensionContext context) {
         return new DataAddressValidatorRegistryImpl(context.getMonitor());
+    }
+
+    @Provider
+    public KeyParserRegistry keyParserRegistry(ServiceExtensionContext context) {
+        var registry = new KeyParserRegistryImpl();
+        //todo: register PemParser, Pkcs12Parser
+        registry.register(new JwkParser(typeManager.getMapper(), context.getMonitor()));
+        return registry;
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {

@@ -14,54 +14,57 @@
 
 package org.eclipse.edc.spi.security;
 
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 
+import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+/**
+ * Not to be used anymore!
+ *
+ * @deprecated Please do not use or extend this class anymore, it is deprecated.
+ */
+@Deprecated(since = "0.4.1", forRemoval = true)
 public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
 
-    private final List<KeyParser<?>> parsers;
+    private final List<KeyParser> parsers;
 
     public AbstractPrivateKeyResolver() {
         this.parsers = new ArrayList<>();
     }
 
-    public AbstractPrivateKeyResolver(KeyParser<?>... parsers) {
+    public AbstractPrivateKeyResolver(KeyParser... parsers) {
         this.parsers = Arrays.asList(parsers);
     }
 
     @Override
-    public <T> void addParser(KeyParser<T> parser) {
+    public <T> void addParser(KeyParser parser) {
         parsers.add(parser);
     }
 
     @Override
     public <T> void addParser(Class<T> forType, Function<String, T> parseFunction) {
-        var parser = new KeyParser<T>() {
+        var parser = new KeyParser() {
 
             @Override
-            public boolean canParse(Class<?> keyType) {
-                return Objects.equals(keyType, forType);
+            public boolean canHandle(String encoded) {
+                return Objects.equals(encoded, forType);
             }
 
             @Override
-            public T parse(String encoded) {
-                return parseFunction.apply(encoded);
+            public Result<PrivateKey> parse(String encoded) {
+                throw new UnsupportedOperationException("This class is not supported anymore and will be removed soon!");
             }
         };
         addParser(parser);
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> KeyParser<T> getParser(Class<T> keyType) {
-        return (KeyParser<T>) parsers.stream().filter(p -> p.canParse(keyType))
-                .findFirst().orElseThrow(() -> {
-                            throw new EdcException("Cannot find KeyParser for type " + keyType);
-                        }
-                );
+    protected <T> KeyParser getParser(Class<T> keyType) {
+        throw new UnsupportedOperationException("This class is not supported anymore and will be removed soon!");
     }
 }

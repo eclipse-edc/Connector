@@ -1,0 +1,135 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.core.security.keyparsers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.KeyConverter;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.KeyParser;
+
+import java.io.IOException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.text.ParseException;
+import java.util.List;
+
+/**
+ * KeyParser that can parse a private key represented in JWK format. Specifically, it can handle the following keys:
+ * <ul>
+ *     <li>RSA Keys</li>
+ *     <li>EC Keys, tested with P256, P384, P521, secp256k1</li>
+ *     <li>EdDSA Keys, only Ed25519 and X25519 (no Ed448)</li>
+ * </ul>
+ */
+public class JwkParser implements KeyParser {
+
+    public static final String ERROR_NO_PRIVATE_KEY = "The provided key material was in JWK format, but did not contain any (readable) private key";
+    protected final Monitor monitor;
+    private final ObjectMapper objectMapper;
+
+    public JwkParser(ObjectMapper objectMapper, Monitor monitor) {
+        this.objectMapper = objectMapper;
+        this.monitor = monitor;
+    }
+
+    /**
+     * Checks if the given raw string represents a JSON structure.
+     *
+     * @param encoded The raw string to be checked.
+     * @return true if the raw string is a valid JSON object, false otherwise.
+     */
+    @Override
+    public boolean canHandle(String encoded) {
+        try (var parser = objectMapper.createParser(encoded)) {
+            parser.nextToken();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to parse a given raw String as JWT and convert it to a {@link PrivateKey}. This is straight forward for
+     * EC and RSA keys, but for EdDSA keys (represented by Nimbus' {@link OctetKeyPair}) no direct conversion exists, so
+     * they must be converted to their ASN.1 binary representation first, and then read back into a Java {@link PrivateKey}
+     *
+     * @param encoded The raw JSON structure
+     * @return the converted {@link PrivateKey}, or a failure indicating what went wrong.
+     */
+    @Override
+    public Result<PrivateKey> parse(String encoded) {
+        try {
+            var jwk = JWK.parse(encoded);
+
+            // OctetKeyPairs (OKP) need special handling, as they can't be easily converted to a Java PrivateKey
+            if (jwk instanceof OctetKeyPair okp) {
+                return parseOctetKeyPair(okp);
+            }
+
+            var list = KeyConverter.toJavaKeys(List.of(jwk));
+
+            return list.stream()
+                    .filter(k -> k instanceof PrivateKey)
+                    .findFirst()
+                    .map(k -> Result.success((PrivateKey) k))
+                    .orElse(Result.failure(ERROR_NO_PRIVATE_KEY));
+        } catch (ParseException | NoSuchAlgorithmException | IOException | InvalidKeySpecException e) {
+            monitor.warning("Parser error", e);
+            return Result.failure("Parser error: " + e.getMessage());
+        }
+    }
+
+    private Result<PrivateKey> parseOctetKeyPair(OctetKeyPair okp) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+        PrivateKeyInfo privKeyInfo;
+        KeyFactory keyFactory;
+
+        // inspired by https://stackoverflow.com/a/54073962
+
+        if (okp.getCurve() == Curve.Ed25519) {
+            var privateKeyBytes = okp.getDecodedD();
+            if (privateKeyBytes == null) {
+                return Result.failure(ERROR_NO_PRIVATE_KEY);
+            }
+            keyFactory = KeyFactory.getInstance(Curve.Ed25519.getName());
+            privKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), new DEROctetString(privateKeyBytes));
+
+        } else if (okp.getCurve() == Curve.X25519) {
+            var privateKeyBytes = okp.getDecodedD();
+            if (privateKeyBytes == null) {
+                return Result.failure(ERROR_NO_PRIVATE_KEY);
+            }
+            keyFactory = KeyFactory.getInstance(Curve.X25519.getName());
+            // inspired by https://stackoverflow.com/a/54073962
+            privKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519), new DEROctetString(privateKeyBytes));
+        } else {
+            return Result.failure("Cannot parse an OctetKeyPair with Curve %s".formatted(okp.getCurve()));
+        }
+
+        var pkcs8KeySpec = new PKCS8EncodedKeySpec(privKeyInfo.getEncoded());
+        var jcaPrivateKey = keyFactory.generatePrivate(pkcs8KeySpec);
+        return Result.success(jcaPrivateKey);
+    }
+}

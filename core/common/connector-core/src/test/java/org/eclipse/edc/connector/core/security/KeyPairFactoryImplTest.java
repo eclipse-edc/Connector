@@ -42,7 +42,7 @@ class KeyPairFactoryImplTest {
     }
 
     @ParameterizedTest(name = "{index} {1}")
-    @CsvSource({ "rsa-pubkey.pem, RSA", "ec-pubkey.pem, EC" })
+    @CsvSource({ "rsa_2048.pem, RSA", "ec_p384.pem, EC" })
     void fromConfig_success(String keyFileName, String expectedAlgo) throws IOException {
         var privateKeyAlias = UUID.randomUUID().toString();
         var publicKeyAlias = UUID.randomUUID().toString();

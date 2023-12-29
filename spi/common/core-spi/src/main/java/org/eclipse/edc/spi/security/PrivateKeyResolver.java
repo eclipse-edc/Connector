@@ -34,7 +34,7 @@ public interface PrivateKeyResolver {
     /**
      * Registers a parser for the key type.
      */
-    default <T> void addParser(KeyParser<T> parser) {
+    default <T> void addParser(KeyParser parser) {
     }
 
     /**

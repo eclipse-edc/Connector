@@ -117,6 +117,7 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
         return RetryPolicyFactory.create(context);
     }
 
+
     /**
      * lazily instantiates the default vault impl, which is an im-memory one.
      */
