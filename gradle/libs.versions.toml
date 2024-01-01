@@ -4,7 +4,7 @@ format.version = "1.1"
 [versions]
 apacheCommonsPool2 = "2.12.0"
 apicatalog = "0.8.1"
-assertj = "3.24.2"
+assertj = "3.25.0"
 atomikos = "6.0.0"
 awaitility = "4.2.0"
 bouncyCastle-jdk18on = "1.77"
