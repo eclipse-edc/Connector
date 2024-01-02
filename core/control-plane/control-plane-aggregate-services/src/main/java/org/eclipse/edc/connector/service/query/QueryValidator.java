@@ -42,9 +42,9 @@ public class QueryValidator {
     /**
      * Constructs a new QueryValidator instance.
      *
-     * @param canonicalType    The Java class of the object to validate against.
+     * @param canonicalType The Java class of the object to validate against.
      * @param typeHierarchyMap Contains mapping from superclass to list of subclasses. Every superclass must be
-     *                         represented as separate entry in the map, even if it is also a subclass of another.
+     *         represented as separate entry in the map, even if it is also a subclass of another.
      */
     public QueryValidator(Class<?> canonicalType, Map<Class<?>, List<Class<?>>> typeHierarchyMap) {
         this.canonicalType = canonicalType;

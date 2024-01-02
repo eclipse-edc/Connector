@@ -37,6 +37,7 @@ kafkaClients = "3.6.1"
 testcontainers = "1.19.3"
 tink = "1.12.0"
 
+
 [libraries]
 iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
 iron-ed25519 = { module = "com.apicatalog:iron-ed25519-cryptosuite-2020", version.ref = "apicatalog" }
@@ -89,6 +90,7 @@ testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "tes
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 tink = { module = "com.google.crypto.tink:tink", version.ref = "tink" }
+
 
 # other technology extensions
 apache-commons-pool = { module = "org.apache.commons:commons-pool2", version.ref = "apacheCommonsPool2" }

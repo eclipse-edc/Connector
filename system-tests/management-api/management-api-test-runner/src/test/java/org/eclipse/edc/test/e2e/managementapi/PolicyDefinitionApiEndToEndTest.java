@@ -42,6 +42,7 @@ import static org.hamcrest.Matchers.is;
 
 @EndToEndTest
 public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
+
     @Test
     void shouldStorePolicyDefinition() {
         var requestBody = createObjectBuilder()

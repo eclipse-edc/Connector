@@ -23,7 +23,9 @@ dependencies {
     implementation(project(":spi:common:transaction-spi"))
     implementation(project(":spi:control-plane:asset-spi"))
     implementation(project(":spi:control-plane:transfer-data-plane-spi"))
+
     implementation(libs.opentelemetry.instrumentation.annotations)
+
     testImplementation(project(":core:control-plane:catalog-core"))
     testImplementation(project(":core:control-plane:contract-core"))
     testImplementation(project(":core:control-plane:control-plane-core"))
