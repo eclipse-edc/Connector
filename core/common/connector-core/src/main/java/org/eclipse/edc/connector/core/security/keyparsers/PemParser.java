@@ -40,6 +40,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * This parser can resolve private keys that are encoded in PEM format.
+ */
 public class PemParser implements KeyParser {
     // matches based on the "-----BEGIN XYZ-----" and "-----END XYZ-----" tokens
     // captures 3 groups: the BEGIN token, the base64 text and the END token
