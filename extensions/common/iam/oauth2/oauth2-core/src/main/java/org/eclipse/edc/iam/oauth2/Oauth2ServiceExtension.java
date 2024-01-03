@@ -130,15 +130,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
 
-        var oauth2Service = new Oauth2ServiceImpl(
-                configuration,
-                new JwtGenerationService(),
-                getPrivateKeySupplier(configuration.getPrivateKeyAlias()),
-                oauth2Client,
-                jwtDecoratorRegistry,
-                new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
-                credentialsRequestAdditionalParametersProvider
-        );
+        var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry, validationRulesRegistry);
 
         context.registerService(IdentityService.class, oauth2Service);
     }
@@ -154,9 +146,19 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     }
 
     @NotNull
-    private Supplier<PrivateKey> getPrivateKeySupplier(String privateKeyAlias) {
-        return () -> privateKeyResolver.resolvePrivateKey(privateKeyAlias)
+    private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry, Oauth2ValidationRulesRegistryImpl validationRulesRegistry) {
+        Supplier<PrivateKey> privateKeySupplier = () -> privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
+        return new Oauth2ServiceImpl(
+                configuration,
+                new JwtGenerationService(),
+                privateKeySupplier,
+                oauth2Client,
+                jwtDecoratorRegistry,
+                new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
+                credentialsRequestAdditionalParametersProvider
+        );
     }
 
     private Oauth2ServiceConfiguration createConfig(ServiceExtensionContext context) {

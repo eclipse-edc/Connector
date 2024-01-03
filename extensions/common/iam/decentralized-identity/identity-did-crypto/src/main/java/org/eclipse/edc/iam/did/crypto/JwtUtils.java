@@ -40,7 +40,10 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 /**
  * Convenience/helper class to generate and verify Signed JSON Web Tokens (JWTs) for communicating between connector instances.
+ *
+ * @deprecated Will get removed soon
  */
+@Deprecated(forRemoval = true)
 public class JwtUtils {
 
     /**

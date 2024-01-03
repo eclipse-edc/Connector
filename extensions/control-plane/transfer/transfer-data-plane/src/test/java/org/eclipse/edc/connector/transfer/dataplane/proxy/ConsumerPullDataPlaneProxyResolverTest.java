@@ -49,7 +49,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction = mock(ConsumerPullTokenExpirationDateFunction.class);
 
-    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, tokenExpirationDateFunction, () -> mock(PrivateKey.class));
+    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, () -> mock(PrivateKey.class), tokenExpirationDateFunction);
 
     private static DataAddress dataAddress() {
         return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();

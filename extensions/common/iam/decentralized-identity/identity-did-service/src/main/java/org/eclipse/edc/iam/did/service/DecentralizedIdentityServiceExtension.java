@@ -27,8 +27,9 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import java.security.PrivateKey;
 import java.time.Clock;
-import java.util.Objects;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.iam.did.spi.document.DidConstants.DID_URL_SETTING;
@@ -64,10 +65,9 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
         // we'll use the connector name to restore the Private Key
         var connectorName = context.getConnectorId();
-        var privateKey = privateKeyResolver.resolvePrivateKey(connectorName)
+        Supplier<PrivateKey> supplier = () -> privateKeyResolver.resolvePrivateKey(connectorName)
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
-        Objects.requireNonNull(privateKey, "Couldn't resolve private key for " + connectorName);
 
-        return new DecentralizedIdentityService(resolverRegistry, credentialsVerifier, context.getMonitor(), privateKey, didUrl, clock);
+        return new DecentralizedIdentityService(resolverRegistry, credentialsVerifier, context.getMonitor(), supplier, didUrl, clock);
     }
 }

@@ -43,8 +43,8 @@ public class ConsumerPullDataPlaneProxyResolver {
     private final Supplier<PrivateKey> keySupplier;
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction;
 
-    public ConsumerPullDataPlaneProxyResolver(DataEncrypter dataEncrypter, TypeManager typeManager, TokenGenerationService tokenGenerationService, ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction,
-                                              Supplier<PrivateKey> keySupplier) {
+    public ConsumerPullDataPlaneProxyResolver(DataEncrypter dataEncrypter, TypeManager typeManager, TokenGenerationService tokenGenerationService,
+                                              Supplier<PrivateKey> keySupplier, ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction) {
         this.dataEncrypter = dataEncrypter;
         this.typeManager = typeManager;
         this.tokenExpirationDateFunction = tokenExpirationDateFunction;

@@ -54,6 +54,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
 
@@ -68,15 +69,15 @@ public class DecentralizedIdentityService implements IdentityService {
     private final DidResolverRegistry resolverRegistry;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
-    private final PrivateKey privateKey;
+    private final Supplier<PrivateKey> privateKeySupplier;
     private final String issuer;
     private final Clock clock;
 
-    public DecentralizedIdentityService(DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor, PrivateKey privateKey, String issuer, Clock clock) {
+    public DecentralizedIdentityService(DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor, Supplier<PrivateKey> privateKeySupplier, String issuer, Clock clock) {
         this.resolverRegistry = resolverRegistry;
         this.credentialsVerifier = credentialsVerifier;
         this.monitor = monitor;
-        this.privateKey = privateKey;
+        this.privateKeySupplier = privateKeySupplier;
         this.issuer = issuer;
         this.clock = clock;
     }
@@ -91,7 +92,7 @@ public class DecentralizedIdentityService implements IdentityService {
                 .jwtID(UUID.randomUUID().toString())
                 .build();
         try {
-            var signer = getSigner(privateKey);
+            var signer = getSigner(privateKeySupplier.get());
             //prefer ES256 if available, otherwise use the "next best"
             var algorithm = signer.supportedJWSAlgorithms().contains(JWSAlgorithm.ES256) ?
                     JWSAlgorithm.ES256 :

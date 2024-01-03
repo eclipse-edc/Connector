@@ -110,7 +110,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(keyPair.getPublic()), dataEncrypter, typeManager);
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
-        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), tokenExpirationDateFunction, () -> keyPairFromConfig(context).getPrivate());
+        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), () -> keyPairFromConfig(context).getPrivate(), tokenExpirationDateFunction);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorService, clientFactory));
 

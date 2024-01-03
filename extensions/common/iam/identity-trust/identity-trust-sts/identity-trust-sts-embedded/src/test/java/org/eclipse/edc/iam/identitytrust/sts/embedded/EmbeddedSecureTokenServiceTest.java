@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,7 +46,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(token));
+        when(tokenGenerationService.generate(eq(keySupplier), any())).thenReturn(Result.success(token));
         var result = sts.createToken(Map.of(), null);
 
         assertThat(result.succeeded()).isTrue();
@@ -64,7 +65,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any(), any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(JwtDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.success(token));
 
@@ -97,7 +98,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any(), any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(JwtDecorator[].class)))
                 .thenReturn(Result.failure("Failed to create access token"))
                 .thenReturn(Result.success(token));
 
@@ -120,7 +121,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any(), any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(JwtDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.failure("Failed to create access token"));
 
@@ -129,7 +130,7 @@ public class EmbeddedSecureTokenServiceTest {
 
         assertThat(result.failed()).isTrue();
 
-        verify(tokenGenerationService, times(2)).generate(any(), any(JwtDecorator[].class));
+        verify(tokenGenerationService, times(2)).generate(eq(keySupplier), any(JwtDecorator[].class));
 
     }
 
