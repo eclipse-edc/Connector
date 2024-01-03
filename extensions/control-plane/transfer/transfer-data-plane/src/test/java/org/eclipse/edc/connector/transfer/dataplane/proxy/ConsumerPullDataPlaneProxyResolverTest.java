@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.security.PrivateKey;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.UUID;
@@ -48,7 +49,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction = mock(ConsumerPullTokenExpirationDateFunction.class);
 
-    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, tokenExpirationDateFunction);
+    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, tokenExpirationDateFunction, () -> mock(PrivateKey.class));
 
     private static DataAddress dataAddress() {
         return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
@@ -71,7 +72,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
         var captor = ArgumentCaptor.forClass(ConsumerPullDataPlaneProxyTokenDecorator.class);
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn(encryptedAddress);
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(captor.capture())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(token).build()));
+        when(tokenGenerationService.generate(any(), captor.capture())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(token).build()));
 
         var result = resolver.toDataAddress(request, address, instance);
 
@@ -138,7 +139,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn("encryptedAddress");
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(any())).thenReturn(Result.failure(errorMsg));
+        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.failure(errorMsg));
 
         var result = resolver.toDataAddress(request, address, instance);
 

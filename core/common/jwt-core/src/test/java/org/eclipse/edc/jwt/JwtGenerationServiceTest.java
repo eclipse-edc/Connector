@@ -39,22 +39,35 @@ import static com.nimbusds.jose.JWSAlgorithm.RS256;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
-class TokenGenerationServiceImplTest {
+class JwtGenerationServiceTest {
 
     private RSAKey keys;
     private TokenGenerationService tokenGenerationService;
 
+    private static RSAKey testKey() throws JOSEException {
+        return new RSAKeyGenerator(2048)
+                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                .generate();
+    }
+
     @BeforeEach
     void setUp() throws JOSEException {
         keys = testKey();
-        tokenGenerationService = new TokenGenerationServiceImpl(keys.toPrivateKey());
+        tokenGenerationService = new JwtGenerationService(new JwsSignerConverterImpl());
     }
 
     @Test
     void verifyTokenGeneration() throws ParseException, JOSEException {
         var decorator = testDecorator();
 
-        var result = tokenGenerationService.generate(decorator);
+        var result = tokenGenerationService.generate(() -> {
+            try {
+                return keys.toPrivateKey();
+            } catch (JOSEException e) {
+                throw new RuntimeException(e);
+            }
+        }, decorator);
 
         assertThat(result.succeeded()).isTrue();
         var token = result.getContent().getToken();
@@ -93,12 +106,5 @@ class TokenGenerationServiceImplTest {
                 return Map.of("x5t", "some x509CertThumbprint thing");
             }
         };
-    }
-
-    private static RSAKey testKey() throws JOSEException {
-        return new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                .generate();
     }
 }

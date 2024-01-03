@@ -22,9 +22,12 @@ import java.util.Map;
 
 /**
  * Permits to add custom form parameters for oauth2 client credentials request
+ *
+ * @deprecated will get removed
  */
 @FunctionalInterface
 @ExtensionPoint
+@Deprecated
 public interface CredentialsRequestAdditionalParametersProvider {
 
     /**

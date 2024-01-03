@@ -27,7 +27,8 @@ import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
-import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
+import org.eclipse.edc.jwt.JwsSignerConverterImpl;
+import org.eclipse.edc.jwt.JwtGenerationService;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -136,7 +137,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
         var oauth2Service = new Oauth2ServiceImpl(
                 configuration,
-                new TokenGenerationServiceImpl(privateKey),
+                new JwtGenerationService(new JwsSignerConverterImpl()),
+                () -> privateKey,
                 oauth2Client,
                 jwtDecoratorRegistry,
                 new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
