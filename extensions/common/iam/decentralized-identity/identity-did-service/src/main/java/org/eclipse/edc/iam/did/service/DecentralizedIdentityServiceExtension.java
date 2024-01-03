@@ -16,7 +16,6 @@
 package org.eclipse.edc.iam.did.service;
 
 import org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -65,7 +64,8 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
         // we'll use the connector name to restore the Private Key
         var connectorName = context.getConnectorId();
-        var privateKey = privateKeyResolver.resolvePrivateKey(connectorName, PrivateKeyWrapper.class);
+        var privateKey = privateKeyResolver.resolvePrivateKey(connectorName)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
         Objects.requireNonNull(privateKey, "Couldn't resolve private key for " + connectorName);
 
         return new DecentralizedIdentityService(resolverRegistry, credentialsVerifier, context.getMonitor(), privateKey, didUrl, clock);

@@ -15,9 +15,9 @@
 package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.edc.spi.result.Result;
 
-import java.util.function.Function;
+import java.security.PrivateKey;
 
 /**
  * Resolves security keys by type.
@@ -27,19 +27,10 @@ import java.util.function.Function;
 public interface PrivateKeyResolver {
 
     /**
-     * Returns the private key associated with the id or null if not found.
+     * Resolves a {@link PrivateKey} identified by its ID.
+     *
+     * @param id The ID under which the PrivateKey is held in secure storage.
+     * @return The {@link PrivateKey}, or {@code null} if no PrivateKey with that ID was found.
      */
-    @Nullable <T> T resolvePrivateKey(String id, Class<T> keyType);
-
-    /**
-     * Registers a parser for the key type.
-     */
-    default <T> void addParser(KeyParser<T> parser) {
-    }
-
-    /**
-     * Registers a functional parser for the key type.
-     */
-    default <T> void addParser(Class<T> forType, Function<String, T> parseFunction) {
-    }
+    Result<PrivateKey> resolvePrivateKey(String id);
 }

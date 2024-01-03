@@ -26,11 +26,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
-import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.security.VaultCertificateResolver;
-import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -54,6 +50,7 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
      */
     @Inject(required = false)
     private EventListener okHttpEventListener;
+
     private InMemoryVault inMemoryVault;
 
     @Override
@@ -85,18 +82,9 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public Vault vault(ServiceExtensionContext context) {
-        return getVault(context);
+        return createInmemVault(context);
     }
 
-    @Provider(isDefault = true)
-    public PrivateKeyResolver privateKeyResolver(ServiceExtensionContext context) {
-        return new VaultPrivateKeyResolver(getVault(context));
-    }
-
-    @Provider(isDefault = true)
-    public CertificateResolver certificateResolver(ServiceExtensionContext context) {
-        return new VaultCertificateResolver(getVault(context));
-    }
 
     @Provider
     public EdcHttpClient edcHttpClient(ServiceExtensionContext context) {
@@ -117,10 +105,10 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
         return RetryPolicyFactory.create(context);
     }
 
-    /**
-     * lazily instantiates the default vault impl, which is an im-memory one.
-     */
-    private Vault getVault(ServiceExtensionContext context) {
+
+    @Provider(isDefault = true)
+    public Vault createInmemVault(ServiceExtensionContext context) {
+        context.getMonitor().warning("Using the InMemoryVault is not suitable for production scenarios and should be replaced with an actual Vault!");
         if (inMemoryVault == null) {
             inMemoryVault = new InMemoryVault(context.getMonitor());
         }

@@ -21,7 +21,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.util.Objects;
 
 /**
@@ -40,7 +39,8 @@ public class LazyTokenGenerationService implements TokenGenerationService {
 
     @Override
     public Result<TokenRepresentation> generate(@NotNull JwtDecorator... decorators) {
-        var key = privateKeyResolver.resolvePrivateKey(keyAlias, PrivateKey.class);
-        return new TokenGenerationServiceImpl(key).generate(decorators);
+        var key = privateKeyResolver.resolvePrivateKey(keyAlias);
+        return key.compose(pk -> new TokenGenerationServiceImpl(pk).generate(decorators));
     }
+
 }

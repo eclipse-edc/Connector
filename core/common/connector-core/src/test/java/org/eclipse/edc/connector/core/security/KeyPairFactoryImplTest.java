@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.core.security;
 
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.Test;
@@ -42,14 +43,14 @@ class KeyPairFactoryImplTest {
     }
 
     @ParameterizedTest(name = "{index} {1}")
-    @CsvSource({ "rsa-pubkey.pem, RSA", "ec-pubkey.pem, EC" })
+    @CsvSource({ "rsa_2048.pem, RSA", "ec_p384.pem, EC" })
     void fromConfig_success(String keyFileName, String expectedAlgo) throws IOException {
         var privateKeyAlias = UUID.randomUUID().toString();
         var publicKeyAlias = UUID.randomUUID().toString();
         var privateKey = mock(PrivateKey.class);
         var publicKeyPem = loadPemFile(keyFileName);
 
-        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class)).thenReturn(privateKey);
+        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias)).thenReturn(Result.success(privateKey));
         when(vault.resolveSecret(publicKeyAlias)).thenReturn(publicKeyPem);
 
         var result = factory.fromConfig(publicKeyAlias, privateKeyAlias);
@@ -65,7 +66,7 @@ class KeyPairFactoryImplTest {
         var privateKeyAlias = UUID.randomUUID().toString();
         var publicKeyAlias = UUID.randomUUID().toString();
 
-        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class)).thenReturn(null);
+        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias)).thenReturn(Result.failure("test-failure"));
         when(vault.resolveSecret(publicKeyAlias)).thenReturn("pem");
 
         var result = factory.fromConfig(publicKeyAlias, privateKeyAlias);
@@ -78,7 +79,7 @@ class KeyPairFactoryImplTest {
         var privateKeyAlias = UUID.randomUUID().toString();
         var publicKeyAlias = UUID.randomUUID().toString();
 
-        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class)).thenReturn(mock(PrivateKey.class));
+        when(privateKeyResolver.resolvePrivateKey(privateKeyAlias)).thenReturn(Result.success(mock(PrivateKey.class)));
         when(vault.resolveSecret(publicKeyAlias)).thenReturn(null);
 
         var result = factory.fromConfig(publicKeyAlias, privateKeyAlias);
