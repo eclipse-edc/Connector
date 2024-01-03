@@ -42,9 +42,8 @@ public interface JwsSignerConverter {
      * Note that currently only the following key types are supported:
      * <ul>
      *     <li>RSA</li>
-     *     <li>EC</li>: {@code key} argument is expected to be instanceof {@link ECPrivateKey}
-     *     <li>EdDSA/Ed25519</li>: {@code key} argument ist expected to be {@link EdECPrivateKey}. Both the Sun provider and the {@link org.bouncycastle.jce.provider.BouncyCastleProvider}
-     *     are supported.
+     *     <li>EC: {@code key} argument is expected to be instanceof {@link ECPrivateKey}</li>
+     *     <li>EdDSA/Ed25519: {@code key} argument ist expected to be {@link EdECPrivateKey}. Both the Sun provider and the {@link org.bouncycastle.jce.provider.BouncyCastleProvider}  are supported.</li>
      * </ul>
      *
      * @param key the private key.
