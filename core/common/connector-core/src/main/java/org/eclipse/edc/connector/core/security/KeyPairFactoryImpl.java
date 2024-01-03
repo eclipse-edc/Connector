@@ -87,8 +87,6 @@ public class KeyPairFactoryImpl implements KeyPairFactory {
 
     @NotNull
     private Result<PrivateKey> privateKey(String alias) {
-        return Optional.ofNullable(privateKeyResolver.resolvePrivateKey(alias, PrivateKey.class))
-                .map(Result::success)
-                .orElse(Result.failure("Failed to resolve private key with alias: " + alias));
+        return privateKeyResolver.resolvePrivateKey(alias);
     }
 }

@@ -47,7 +47,7 @@ class DefaultPrivateKeyParseFunctionTest {
     }
 
     @ParameterizedTest(name = "{index} {1}")
-    @CsvSource({ "rsa-privatekey.pem, RSA", "ec-privatekey.pem, EC" })
+    @CsvSource({ "rsa_2048.pem, RSA", "ec_p256.pem, EC" })
     void verifyParseSuccess(String keyFileName, String expectedAlgo) throws IOException {
         var pem = loadResourceFile(keyFileName);
 

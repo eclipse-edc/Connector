@@ -24,6 +24,7 @@ dependencies {
     testImplementation(project(":extensions:common:iam:decentralized-identity:identity-did-crypto"))
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.bouncyCastle.bcprovJdk18on)
+    testImplementation(project(":core:common:connector-core"))
 }
 
 

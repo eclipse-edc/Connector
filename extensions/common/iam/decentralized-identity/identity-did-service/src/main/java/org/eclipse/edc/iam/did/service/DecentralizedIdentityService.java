@@ -16,15 +16,25 @@
 
 package org.eclipse.edc.iam.did.service;
 
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.iam.did.crypto.CryptoException;
 import org.eclipse.edc.iam.did.crypto.JwtUtils;
 import org.eclipse.edc.iam.did.crypto.key.KeyConverter;
 import org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.edc.iam.did.spi.document.DidConstants;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -34,22 +44,35 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
+import java.security.PrivateKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.text.ParseException;
 import java.time.Clock;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.eclipse.edc.spi.agent.ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY;
 
+/**
+ * This Service is perfoming identity verification based on DIDs and the (discontinued) DWN spec. It is going to be replaced by the {@code IdentityAndTrustService}.
+ *
+ * @deprecated this implementation is deprecated and scheduled for removal. please use {@code IdentAndTrustService} instead!
+ */
+@Deprecated(forRemoval = true, since = "0.4.1")
 public class DecentralizedIdentityService implements IdentityService {
 
     private final DidResolverRegistry resolverRegistry;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
-    private final PrivateKeyWrapper privateKey;
+    private final PrivateKey privateKey;
     private final String issuer;
     private final Clock clock;
 
-    public DecentralizedIdentityService(DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor, PrivateKeyWrapper privateKey, String issuer, Clock clock) {
+    public DecentralizedIdentityService(DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor, PrivateKey privateKey, String issuer, Clock clock) {
         this.resolverRegistry = resolverRegistry;
         this.credentialsVerifier = credentialsVerifier;
         this.monitor = monitor;
@@ -60,9 +83,31 @@ public class DecentralizedIdentityService implements IdentityService {
 
     @Override
     public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
-        var jwt = JwtUtils.create(privateKey, issuer, issuer, parameters.getAudience(), clock);
-        var token = jwt.serialize();
-        return Result.success(TokenRepresentation.Builder.newInstance().token(token).build());
+        var claimsSet = new JWTClaimsSet.Builder()
+                .issuer(issuer)
+                .subject(issuer)
+                .audience(parameters.getAudience())
+                .expirationTime(Date.from(clock.instant().plus(10, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)))
+                .jwtID(UUID.randomUUID().toString())
+                .build();
+        try {
+            var signer = getSigner(privateKey);
+            //prefer ES256 if available, otherwise use the "next best"
+            var algorithm = signer.supportedJWSAlgorithms().contains(JWSAlgorithm.ES256) ?
+                    JWSAlgorithm.ES256 :
+                    signer.supportedJWSAlgorithms().stream().min(Comparator.comparing(Algorithm::getRequirement))
+                            .orElseThrow(() -> new CryptoException("No recommended JWS Algorithms for Private Key Signer " + signer.getClass()));
+            var header = new JWSHeader(algorithm);
+
+            var jwt = new SignedJWT(header, claimsSet);
+
+            jwt.sign(signer);
+            var token = jwt.serialize();
+            return Result.success(TokenRepresentation.Builder.newInstance().token(token).build());
+        } catch (JOSEException e) {
+            throw new CryptoException(e);
+        }
+
     }
 
     @Override
@@ -117,6 +162,15 @@ public class DecentralizedIdentityService implements IdentityService {
             monitor.severe("Error parsing JWT", e);
             return Result.failure("Error parsing JWT");
         }
+    }
+
+    private JWSSigner getSigner(PrivateKey privateKey) throws JOSEException {
+        if (privateKey instanceof RSAPrivateKey) {
+            return new RSASSASigner(privateKey);
+        } else if (privateKey instanceof ECPrivateKey) {
+            return new ECDSASigner(privateKey, Curve.P_256);
+        }
+        throw new EdcException("Only supports RSAPrivateKeys and ECPrivateKeys for now, but got " + privateKey.getClass());
     }
 
     @NotNull

@@ -14,16 +14,20 @@
 
 package org.eclipse.edc.iam.did.service;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import org.eclipse.edc.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.edc.iam.did.crypto.key.KeyPairFactory;
-import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
 import org.jetbrains.annotations.NotNull;
+
+import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 
 public class EcP256DecentralizedIdentityServiceTest extends BaseDecentralizedIdentityServiceTest {
 
-    public EcP256DecentralizedIdentityServiceTest() {
-        super(KeyPairFactory.generateKeyPairP256());
+    public EcP256DecentralizedIdentityServiceTest() throws JOSEException {
+        super(KeyPairFactory.generateKeyPairP256().toKeyPair());
     }
 
     @Override
@@ -32,7 +36,9 @@ public class EcP256DecentralizedIdentityServiceTest extends BaseDecentralizedIde
     }
 
     @Override
-    protected @NotNull PrivateKeyWrapper privateKeyWrapper(JWK keyPair) {
-        return new EcPrivateKeyWrapper(keyPair.toECKey());
+    protected JWK toJwk(PublicKey publicKey) {
+        var ec = (ECPublicKey) publicKey;
+        return new ECKey.Builder(Curve.P_256, ec).build();
     }
+
 }

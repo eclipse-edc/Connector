@@ -42,7 +42,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -129,7 +128,11 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
 
         var privateKeyAlias = configuration.getPrivateKeyAlias();
-        var privateKey = configuration.getPrivateKeyResolver().resolvePrivateKey(privateKeyAlias, PrivateKey.class);
+
+        // todo: refactor to a Supplier<PrivateKey>
+        var privateKey = configuration.getPrivateKeyResolver().resolvePrivateKey(privateKeyAlias)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
 
         var oauth2Service = new Oauth2ServiceImpl(
                 configuration,
