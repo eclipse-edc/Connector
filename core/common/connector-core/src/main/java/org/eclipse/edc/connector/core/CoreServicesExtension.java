@@ -21,9 +21,6 @@ import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.core.event.EventRouterImpl;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
-import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
-import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
-import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
@@ -42,7 +39,6 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.Hostname;
@@ -83,7 +79,7 @@ public class CoreServicesExtension implements ServiceExtension {
     private static final long DEFAULT_DURATION = 60;
     private static final int DEFAULT_TP_SIZE = 3;
     private static final String DEFAULT_HOSTNAME = "localhost";
-    
+
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
@@ -98,6 +94,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     private HealthCheckServiceImpl healthCheckService;
     private RuleBindingRegistry ruleBindingRegistry;
+
 
     @Override
     public String name() {
@@ -168,6 +165,7 @@ public class CoreServicesExtension implements ServiceExtension {
         return new EventRouterImpl(context.getMonitor(), eventExecutorServiceContainer.getExecutorService());
     }
 
+
     @Provider
     public HealthCheckService healthCheckService() {
         return healthCheckService;
@@ -188,15 +186,6 @@ public class CoreServicesExtension implements ServiceExtension {
         return new DataAddressValidatorRegistryImpl(context.getMonitor());
     }
 
-    @Provider
-    public KeyParserRegistry keyParserRegistry(ServiceExtensionContext context) {
-        var registry = new KeyParserRegistryImpl();
-        //todo: register  Pkcs12Parser
-        var monitor = context.getMonitor().withPrefix("PrivateKeyResolution");
-        registry.register(new JwkParser(typeManager.getMapper(), monitor));
-        registry.register(new PemParser(monitor));
-        return registry;
-    }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
         return HealthCheckServiceConfiguration.Builder.newInstance()

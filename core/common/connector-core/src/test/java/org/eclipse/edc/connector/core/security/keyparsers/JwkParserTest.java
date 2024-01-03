@@ -15,8 +15,11 @@
 package org.eclipse.edc.connector.core.security.keyparsers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -26,6 +29,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.security.PrivateKey;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.connector.core.security.keyparsers.KeyFunctions.createEc;
@@ -39,8 +43,11 @@ class JwkParserTest {
     private final JwkParser parser = new JwkParser(new ObjectMapper(), mock());
 
     @Test
-    void canHandle() {
-
+    void canHandle() throws JOSEException {
+        var jwk = new ECKeyGenerator(Curve.P_256)
+                .keyID(UUID.randomUUID().toString())
+                .generate();
+        Assertions.assertThat(parser.canHandle(jwk.toJSONString())).isTrue();
     }
 
     @ParameterizedTest
