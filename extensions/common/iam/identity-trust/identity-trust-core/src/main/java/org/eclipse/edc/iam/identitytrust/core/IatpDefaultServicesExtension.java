@@ -23,7 +23,6 @@ import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
-import org.eclipse.edc.jwt.JwsSignerConverterImpl;
 import org.eclipse.edc.jwt.JwtGenerationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -69,7 +68,7 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
                     "This could be an indicator of a configuration problem.");
         }
 
-        return new EmbeddedSecureTokenService(new JwtGenerationService(new JwsSignerConverterImpl()), () -> keyPairFromConfig(context).getPrivate(), clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
+        return new EmbeddedSecureTokenService(new JwtGenerationService(), () -> keyPairFromConfig(context).getPrivate(), clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }
 
     @Provider(isDefault = true)

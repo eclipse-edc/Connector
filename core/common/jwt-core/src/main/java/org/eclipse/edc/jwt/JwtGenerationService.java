@@ -43,8 +43,8 @@ public class JwtGenerationService implements TokenGenerationService {
     private final JwsSignerConverter factory;
 
 
-    public JwtGenerationService(JwsSignerConverter factory) {
-        this.factory = factory;
+    public JwtGenerationService() {
+        this.factory = new JwsSignerConverterImpl();
     }
 
     @Override

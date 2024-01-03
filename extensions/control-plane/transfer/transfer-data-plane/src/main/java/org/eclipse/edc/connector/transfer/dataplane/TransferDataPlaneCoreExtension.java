@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenE
 import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateValidationRule;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.jwt.JwsSignerConverterImpl;
 import org.eclipse.edc.jwt.JwtGenerationService;
 import org.eclipse.edc.jwt.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
@@ -111,7 +110,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(keyPair.getPublic()), dataEncrypter, typeManager);
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
-        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(new JwsSignerConverterImpl()), tokenExpirationDateFunction, () -> keyPair.getPrivate());
+        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), tokenExpirationDateFunction, () -> keyPairFromConfig(context).getPrivate());
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorService, clientFactory));
 

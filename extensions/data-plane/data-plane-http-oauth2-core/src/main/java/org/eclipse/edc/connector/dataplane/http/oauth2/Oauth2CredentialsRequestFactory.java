@@ -18,7 +18,6 @@ import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
-import org.eclipse.edc.jwt.JwsSignerConverterImpl;
 import org.eclipse.edc.jwt.JwtGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -114,7 +113,7 @@ public class Oauth2CredentialsRequestFactory {
                 .map(this::parseLong)
                 .orElse(DEFAULT_TOKEN_VALIDITY);
         var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
-        var service = new JwtGenerationService(new JwsSignerConverterImpl());
+        var service = new JwtGenerationService();
         return service.generate(privateKey::getContent, decorator);
     }
 

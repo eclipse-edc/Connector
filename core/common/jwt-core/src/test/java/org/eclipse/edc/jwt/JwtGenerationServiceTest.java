@@ -54,7 +54,7 @@ class JwtGenerationServiceTest {
     @BeforeEach
     void setUp() throws JOSEException {
         keys = testKey();
-        tokenGenerationService = new JwtGenerationService(new JwsSignerConverterImpl());
+        tokenGenerationService = new JwtGenerationService();
     }
 
     @Test
