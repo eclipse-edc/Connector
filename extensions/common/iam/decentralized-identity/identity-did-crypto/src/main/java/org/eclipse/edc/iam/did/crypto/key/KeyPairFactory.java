@@ -32,7 +32,10 @@ import java.util.UUID;
 
 /**
  * Convenience class that generates an Elliptic Curve Keypair according to the SECP256K1 spec.
+ *
+ * @deprecated do not use anymore
  */
+@Deprecated(forRemoval = true)
 public class KeyPairFactory {
 
     private KeyPairFactory() {

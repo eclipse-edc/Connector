@@ -28,8 +28,8 @@ public interface TokenGenerationService {
     /**
      * Generate a signed token based on the request.
      *
-     * @param privateKeySupplier A {@link Supplier} that provides the private key on-demand. Be advised to not hold the private key
-     *                           in memory, as that poses a considerable security risk.
+     * @param privateKeySupplier A {@link Supplier} that provides the private key on-demand. Be advised that holding the private key
+     *                           in memory poses a considerable security risk and should be avoided.
      * @param decorators         an optional list of {@link JwtDecorator} objects to determine the shape of the token
      */
     Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, JwtDecorator... decorators);
