@@ -13,3 +13,4 @@
 #
 
 org.eclipse.edc.vault.filesystem.FsVaultExtension
+org.eclipse.edc.vault.filesystem.JskPrivateKeyResolverExtension

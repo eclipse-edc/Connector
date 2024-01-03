@@ -106,7 +106,7 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     }
 
 
-    @Provider
+    @Provider(isDefault = true)
     public Vault createInmemVault(ServiceExtensionContext context) {
         context.getMonitor().warning("Using the InMemoryVault is not suitable for production scenarios and should be replaced with an actual Vault!");
         if (inMemoryVault == null) {
