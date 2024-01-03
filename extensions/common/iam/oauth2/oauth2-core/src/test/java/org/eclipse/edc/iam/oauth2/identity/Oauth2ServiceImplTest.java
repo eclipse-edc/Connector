@@ -43,8 +43,6 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -96,8 +94,6 @@ class Oauth2ServiceImplTest {
 
         jwsSigner = new RSASSASigner(testKey.toPrivateKey());
         var publicKeyResolverMock = mock(PublicKeyResolver.class);
-        var privateKeyResolverMock = mock(PrivateKeyResolver.class);
-        var certificateResolverMock = mock(CertificateResolver.class);
         when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(testKey.toPublicKey());
         var configuration = Oauth2ServiceConfiguration.Builder.newInstance()
                 .tokenUrl(OAUTH2_SERVER_URL)
@@ -106,8 +102,6 @@ class Oauth2ServiceImplTest {
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
                 .endpointAudience(ENDPOINT_AUDIENCE)
-                .privateKeyResolver(privateKeyResolverMock)
-                .certificateResolver(certificateResolverMock)
                 .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 

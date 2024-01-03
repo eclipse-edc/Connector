@@ -42,10 +42,13 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.jetbrains.annotations.NotNull;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 
@@ -118,7 +121,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
         var configuration = createConfig(context);
 
-        var certificate = Optional.ofNullable(configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias()))
+        var certificate = Optional.ofNullable(certificateResolver.resolveCertificate(configuration.getPublicCertificateAlias()))
                 .orElseThrow(() -> new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias()));
         var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
         jwtDecoratorRegistry.register(new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), clock, configuration.getTokenExpiration()));
@@ -128,17 +131,10 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
 
-        var privateKeyAlias = configuration.getPrivateKeyAlias();
-
-        // todo: refactor to a Supplier<PrivateKey>
-        var privateKey = configuration.getPrivateKeyResolver().resolvePrivateKey(privateKeyAlias)
-                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
-
-
         var oauth2Service = new Oauth2ServiceImpl(
                 configuration,
                 new JwtGenerationService(new JwsSignerConverterImpl()),
-                () -> privateKey,
+                getPrivateKeySupplier(configuration.getPrivateKeyAlias()),
                 oauth2Client,
                 jwtDecoratorRegistry,
                 new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
@@ -158,6 +154,12 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         providerKeyResolver.stop();
     }
 
+    @NotNull
+    private Supplier<PrivateKey> getPrivateKeySupplier(String privateKeyAlias) {
+        return () -> privateKeyResolver.resolvePrivateKey(privateKeyAlias)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+    }
+
     private Oauth2ServiceConfiguration createConfig(ServiceExtensionContext context) {
         var providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getConnectorId());
         var endpointAudience = context.getSetting(ENDPOINT_AUDIENCE, providerAudience);
@@ -174,8 +176,6 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 .publicCertificateAlias(publicCertificateAlias)
                 .privateKeyAlias(privateKeyAlias)
                 .clientId(clientId)
-                .privateKeyResolver(privateKeyResolver)
-                .certificateResolver(certificateResolver)
                 .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
                 .issuedAtLeeway(getIssuedAtLeeway(context))
                 .tokenExpiration(TimeUnit.MINUTES.toSeconds(tokenExpiration))
