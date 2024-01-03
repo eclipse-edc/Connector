@@ -14,16 +14,19 @@
 
 package org.eclipse.edc.iam.did.service;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.RSAKey;
 import org.eclipse.edc.iam.did.crypto.key.KeyPairFactory;
-import org.eclipse.edc.iam.did.crypto.key.RsaPrivateKeyWrapper;
-import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
 import org.jetbrains.annotations.NotNull;
+
+import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
 
 public class RsaDecentralizedIdentityServiceTest extends BaseDecentralizedIdentityServiceTest {
 
-    public RsaDecentralizedIdentityServiceTest() {
-        super(KeyPairFactory.generateKeyPairRsa());
+    public RsaDecentralizedIdentityServiceTest() throws JOSEException {
+        super(KeyPairFactory.generateKeyPairRsa().toKeyPair());
     }
 
     @Override
@@ -32,7 +35,8 @@ public class RsaDecentralizedIdentityServiceTest extends BaseDecentralizedIdenti
     }
 
     @Override
-    protected @NotNull PrivateKeyWrapper privateKeyWrapper(JWK keyPair) {
-        return new RsaPrivateKeyWrapper(keyPair.toRSAKey());
+    protected JWK toJwk(PublicKey publicKey) {
+        return new RSAKey.Builder((RSAPublicKey) publicKey).build();
     }
+
 }

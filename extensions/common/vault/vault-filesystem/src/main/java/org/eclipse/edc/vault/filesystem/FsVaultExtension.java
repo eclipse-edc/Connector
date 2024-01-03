@@ -16,10 +16,12 @@ package org.eclipse.edc.vault.filesystem;
 
 import org.eclipse.edc.runtime.metamodel.annotation.BaseExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.CertificateResolver;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -46,6 +48,9 @@ public class FsVaultExtension implements ServiceExtension {
 
     public static final String NAME = "FS Vault";
 
+    @Inject
+    private KeyParserRegistry registry;
+
     @Override
     public String name() {
         return NAME;
@@ -53,11 +58,14 @@ public class FsVaultExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+
+        var monitor = context.getMonitor();
+        monitor.warning("Using the JSK-based Vault and PrivateKeyResolver is intended only for testing and demo purposes. Do NOT use this in a production scenario!");
+
         var keyStore = loadKeyStore(context);
         var keystorePassword = context.getSetting(KEYSTORE_PASSWORD, null);
-        var privateKeyResolver = new FsPrivateKeyResolver(keystorePassword, keyStore);
+        var privateKeyResolver = new JksPrivateKeyResolver(registry, keystorePassword, keyStore, monitor);
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
-
         var certificateResolver = new FsCertificateResolver(keyStore);
         context.registerService(CertificateResolver.class, certificateResolver);
     }

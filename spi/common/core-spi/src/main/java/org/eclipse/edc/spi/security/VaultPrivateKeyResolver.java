@@ -14,41 +14,40 @@
 
 package org.eclipse.edc.spi.security;
 
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * Implementation that returns private keys stored in a vault.
+ * Implementation that returns private keys stored in a vault. If the key is not found in the vault, this implementation
+ * falls back to the {@link Config} attempting to get the private key from there.
+ * <p>
+ * Note that storing private key material in the config is <strong>NOT SECURE</strong> and should be avoided in production scenarios!
  */
 public class VaultPrivateKeyResolver extends AbstractPrivateKeyResolver {
 
     private final Vault vault;
-    private final List<KeyParser> parsers;
+    private final Monitor monitor;
+    private final Config config;
 
-    public VaultPrivateKeyResolver(Vault vault, KeyParser... parsers) {
-        super(parsers);
+    public VaultPrivateKeyResolver(KeyParserRegistry registry, Vault vault, Monitor monitor, Config config) {
+        super(registry);
         this.vault = vault;
-        this.parsers = Arrays.asList(parsers);
-    }
-
-    public VaultPrivateKeyResolver(Vault vault) {
-        // can't use this(vault) here because properties are final
-        this.vault = vault;
-        parsers = new ArrayList<>();
+        this.monitor = monitor;
+        this.config = config;
     }
 
     @Override
-    public @Nullable <T> T resolvePrivateKey(String id, Class<T> keyType) {
-        var encodedKey = vault.resolveSecret(id);
-
-        if (encodedKey == null) {
-            return null;
+    protected @Nullable String resolveInternal(String keyId) {
+        var privateKey = vault.resolveSecret(keyId);
+        if (privateKey == null) { //fallback
+            monitor.debug("Private Key not found in vault, fallback to config.");
+            privateKey = resolveFromConfig(keyId);
         }
-
-        return keyType.cast(getParser(keyType).parse(encodedKey));
+        return privateKey;
     }
 
+    private String resolveFromConfig(String keyId) {
+        return config.getString(keyId, null);
+    }
 }

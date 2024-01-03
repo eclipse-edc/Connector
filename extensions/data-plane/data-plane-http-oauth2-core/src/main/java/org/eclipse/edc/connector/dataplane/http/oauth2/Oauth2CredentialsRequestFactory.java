@@ -28,7 +28,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -105,8 +104,8 @@ public class Oauth2CredentialsRequestFactory {
 
     @NotNull
     private Result<TokenRepresentation> createAssertion(String pkSecret, DataAddress dataAddress) {
-        var privateKey = privateKeyResolver.resolvePrivateKey(pkSecret, PrivateKey.class);
-        if (privateKey == null) {
+        var privateKey = privateKeyResolver.resolvePrivateKey(pkSecret);
+        if (privateKey.failed()) {
             return Result.failure("Failed to resolve private key with alias: " + pkSecret);
         }
 
@@ -114,7 +113,7 @@ public class Oauth2CredentialsRequestFactory {
                 .map(this::parseLong)
                 .orElse(DEFAULT_TOKEN_VALIDITY);
         var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
-        var service = new TokenGenerationServiceImpl(privateKey);
+        var service = new TokenGenerationServiceImpl(privateKey.getContent());
         return service.generate(decorator);
     }
 

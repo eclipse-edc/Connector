@@ -20,7 +20,6 @@ import com.nimbusds.jose.jwk.JWK;
 import org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -31,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.time.Clock;
 import java.util.Map;
 import java.util.UUID;
@@ -53,11 +54,11 @@ abstract class BaseDecentralizedIdentityServiceTest {
 
     private final CredentialsVerifier credentialsVerifierMock = mock(CredentialsVerifier.class);
     private final DidResolverRegistry didResolverRegistryMock = mock(DidResolverRegistry.class);
-    private final JWK keyPair;
+    private final KeyPair keyPair;
 
     private DecentralizedIdentityService identityService;
 
-    protected BaseDecentralizedIdentityServiceTest(JWK keyPair) {
+    protected BaseDecentralizedIdentityServiceTest(KeyPair keyPair) {
         this.keyPair = keyPair;
     }
 
@@ -70,13 +71,13 @@ abstract class BaseDecentralizedIdentityServiceTest {
 
     @BeforeEach
     void setUp() {
-        identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), privateKeyWrapper(keyPair), DID_URL, Clock.systemUTC());
+        identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), keyPair.getPrivate(), DID_URL, Clock.systemUTC());
     }
 
     @Test
     void generateAndVerifyJwtToken_valid() {
         when(credentialsVerifierMock.getVerifiedCredentials(any())).thenReturn(Result.success(Map.of("region", "eu")));
-        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument(keyPair)));
+        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument(toJwk(keyPair.getPublic()))));
 
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
         assertThat(result.succeeded()).isTrue();
@@ -105,7 +106,7 @@ abstract class BaseDecentralizedIdentityServiceTest {
 
     @Test
     void generateAndVerifyJwtToken_wrongAudience() {
-        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument(keyPair)));
+        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument(toJwk(keyPair.getPublic()))));
 
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
 
@@ -117,7 +118,7 @@ abstract class BaseDecentralizedIdentityServiceTest {
     void generateAndVerifyJwtToken_getVerifiedCredentialsFailed() {
         var errorMsg = UUID.randomUUID().toString();
         when(credentialsVerifierMock.getVerifiedCredentials(any())).thenReturn(Result.failure(errorMsg));
-        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument(keyPair)));
+        when(didResolverRegistryMock.resolve(anyString())).thenReturn(Result.success(createDidDocument(toJwk(keyPair.getPublic()))));
 
         var result = identityService.obtainClientCredentials(defaultTokenParameters());
         assertThat(result.succeeded()).isTrue();
@@ -130,16 +131,16 @@ abstract class BaseDecentralizedIdentityServiceTest {
     @NotNull
     protected abstract JWK generateKeyPair();
 
-    @NotNull
-    protected abstract PrivateKeyWrapper privateKeyWrapper(JWK keyPair);
+    protected abstract JWK toJwk(PublicKey publicKey);
 
-    private DidDocument createDidDocument(JWK keyPair) {
+    private DidDocument createDidDocument(JWK publicKey) {
+
         try {
             var did = new ObjectMapper().readValue(DID_DOCUMENT, DidDocument.class);
             var verificationMethod = VerificationMethod.Builder.newInstance()
                     .type("JsonWebKey2020")
                     .id("test-key")
-                    .publicKeyJwk(keyPair.toPublicJWK().toJSONObject())
+                    .publicKeyJwk(publicKey.toJSONObject())
                     .build();
             did.getVerificationMethod().add(verificationMethod);
             return did;

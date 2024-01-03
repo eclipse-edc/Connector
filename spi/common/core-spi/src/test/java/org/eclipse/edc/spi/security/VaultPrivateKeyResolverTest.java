@@ -14,46 +14,46 @@
 
 package org.eclipse.edc.spi.security;
 
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.security.KeyFactory;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
-import javax.crypto.interfaces.DHPrivateKey;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Disabled("PrivateKeyResolvers will be refactored shortly")
 class VaultPrivateKeyResolverTest {
 
     private static final String TEST_SECRET_ALIAS = "test-secret";
     private final Vault vault = mock(Vault.class);
     private VaultPrivateKeyResolver resolver;
+    private Config config;
+    private KeyParserRegistry registry;
 
     @BeforeEach
     void setUp() {
-        resolver = new VaultPrivateKeyResolver(vault);
-        resolver.addParser(new DummyParser());
+        config = mock();
+        registry = mock();
+        when(registry.parse(any())).thenReturn(Result.failure("foo"));
+        resolver = new VaultPrivateKeyResolver(registry, vault, mock(), config);
+
     }
 
     @Test
     void resolvePrivateKey() {
         when(vault.resolveSecret(TEST_SECRET_ALIAS)).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER);
-
-        var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class);
+        when(registry.parse(any())).thenReturn(Result.success(createKey()));
+        var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS);
 
         assertThat(result).isNotNull();
         verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
@@ -61,16 +61,32 @@ class VaultPrivateKeyResolverTest {
 
     @Test
     void resolvePrivateKey_secretNotFound() {
-        var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class);
-
-        assertThat(result).isNull();
+        var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS);
+        assertThat(result)
+                .isFailed()
+                .detail().startsWith("No private key found for key-ID");
     }
 
     @Test
-    void resolvePrivateKey_secretNotInCorrectFormat() {
+    void resolvePrivateKey_notFoundInVault_fallbackToConfig() {
+        when(vault.resolveSecret(TEST_SECRET_ALIAS)).thenReturn(null);
+        when(config.getString(eq(TEST_SECRET_ALIAS), any())).thenReturn("{}");
+        when(registry.parse(eq("{}"))).thenReturn(Result.success(createKey()));
+
+        var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS);
+        assertThat(result).isNotNull();
+        assertThat(result).isSucceeded().isNotNull().isInstanceOf(RSAPrivateKey.class);
+    }
+
+
+    @Test
+    void resolvePrivateKey_noParserCanHandle() {
         when(vault.resolveSecret(TEST_SECRET_ALIAS)).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
 
-        assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isInstanceOf(IllegalArgumentException.class);
+        var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS);
+        assertThat(result).isFailed()
+                .detail()
+                .isEqualTo("foo");
         verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
     }
 
@@ -78,62 +94,22 @@ class VaultPrivateKeyResolverTest {
     void resolvePrivateKey_noParserFound() {
         when(vault.resolveSecret(TEST_SECRET_ALIAS)).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
 
-        assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, DHPrivateKey.class)).isInstanceOf(EdcException.class)
-                .hasMessageStartingWith("Cannot find KeyParser for type");
+        var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS);
+        assertThat(result).isFailed()
+                .detail()
+                .isEqualTo("foo");
         verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
     }
 
-    @Test
-    void addParser() {
-        when(vault.resolveSecret(TEST_SECRET_ALIAS)).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER);
-
-        resolver = new VaultPrivateKeyResolver(vault);
-        // no parsers present
-        assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isInstanceOf(EdcException.class);
-        resolver.addParser(new DummyParser());
-
-        //same resolve call should work now
-        assertThat(resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isNotNull();
-        verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
-    }
-
-    @Test
-    void testAddParser() {
-        when(vault.resolveSecret(TEST_SECRET_ALIAS)).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER);
-
-        resolver = new VaultPrivateKeyResolver(vault);
-        // no parsers present
-        assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isInstanceOf(EdcException.class);
-        resolver.addParser(new DummyParser());
-
-        //same resolve call should work now
-        assertThat(resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isNotNull();
-        verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
-    }
-
-    private static class DummyParser implements KeyParser {
-
-        private static final String PEM_HEADER = "-----BEGIN PRIVATE KEY-----";
-        private static final String PEM_FOOTER = "-----END PRIVATE KEY-----";
-
-        @Override
-        public boolean canHandle(String encoded) {
-            return encoded.contains(PEM_HEADER) && encoded.contains(PEM_FOOTER);
-        }
-
-        @Override
-        public Result<PrivateKey> parse(String entirePemFileContent) {
-            entirePemFileContent = entirePemFileContent.replace(PEM_HEADER, "").replaceAll(System.lineSeparator(), "").replace(PEM_FOOTER, "");
-            entirePemFileContent = entirePemFileContent.replace("\n", ""); //base64 might complain if newlines are present
-
-            try {
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                return Result.success(keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(entirePemFileContent.getBytes()))));
-
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                throw new RuntimeException(e);
-            }
+    private PrivateKey createKey() {
+        try {
+            var pk = KeyPairGenerator.getInstance("RSA");
+            pk.initialize(1024);
+            return pk.generateKeyPair().getPrivate();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
+
 }
 

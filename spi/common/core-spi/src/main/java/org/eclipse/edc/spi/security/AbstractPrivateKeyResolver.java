@@ -15,56 +15,30 @@
 package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.spi.result.Result;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
- * Not to be used anymore!
- *
- * @deprecated Please do not use or extend this class anymore, it is deprecated.
+ * Base class for private key resolvers, that handles the parsing of the key, but still leaves the actual resolution (e.g.
+ * from a {@link Vault}) up to the inheritor.
  */
-@Deprecated(since = "0.4.1", forRemoval = true)
 public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
+    private final KeyParserRegistry registry;
 
-    private final List<KeyParser> parsers;
-
-    public AbstractPrivateKeyResolver() {
-        this.parsers = new ArrayList<>();
-    }
-
-    public AbstractPrivateKeyResolver(KeyParser... parsers) {
-        this.parsers = Arrays.asList(parsers);
+    public AbstractPrivateKeyResolver(KeyParserRegistry registry) {
+        this.registry = registry;
     }
 
     @Override
-    public <T> void addParser(KeyParser parser) {
-        parsers.add(parser);
+    public Result<PrivateKey> resolvePrivateKey(String id) {
+        var encodedKey = resolveInternal(id);
+        if (encodedKey != null) {
+            return registry.parse(encodedKey);
+        }
+        return Result.failure("No private key found for key-ID '%s'".formatted(id));
     }
 
-    @Override
-    public <T> void addParser(Class<T> forType, Function<String, T> parseFunction) {
-        var parser = new KeyParser() {
-
-            @Override
-            public boolean canHandle(String encoded) {
-                return Objects.equals(encoded, forType);
-            }
-
-            @Override
-            public Result<PrivateKey> parse(String encoded) {
-                throw new UnsupportedOperationException("This class is not supported anymore and will be removed soon!");
-            }
-        };
-        addParser(parser);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <T> KeyParser getParser(Class<T> keyType) {
-        throw new UnsupportedOperationException("This class is not supported anymore and will be removed soon!");
-    }
+    @Nullable
+    protected abstract String resolveInternal(String keyId);
 }

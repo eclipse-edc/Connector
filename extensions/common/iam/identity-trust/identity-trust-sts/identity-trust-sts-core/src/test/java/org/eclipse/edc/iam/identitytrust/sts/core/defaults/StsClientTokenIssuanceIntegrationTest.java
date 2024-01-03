@@ -14,8 +14,11 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.core.defaults;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.connector.core.security.DefaultPrivateKeyParseFunction;
+import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
+import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
+import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
 import org.eclipse.edc.connector.core.vault.InMemoryVault;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientServiceImpl;
 import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientTokenGeneratorServiceImpl;
@@ -23,6 +26,7 @@ import org.eclipse.edc.iam.identitytrust.sts.core.defaults.store.InMemoryStsClie
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.jwt.LazyTokenGenerationService;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
@@ -31,7 +35,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
@@ -53,16 +56,19 @@ public class StsClientTokenIssuanceIntegrationTest {
 
     private final InMemoryStsClientStore clientStore = new InMemoryStsClientStore();
     private final Vault vault = new InMemoryVault(mock());
+    private final KeyParserRegistry keyParserRegistry = new KeyParserRegistryImpl();
     private StsClientServiceImpl clientService;
     private StsClientTokenGeneratorServiceImpl tokenGeneratorService;
-
     private PrivateKeyResolver privateKeyResolver;
 
     @BeforeEach
     void setup() {
         clientService = new StsClientServiceImpl(clientStore, vault, new NoopTransactionContext());
-        privateKeyResolver = new VaultPrivateKeyResolver(vault);
-        privateKeyResolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
+
+        keyParserRegistry.register(new PemParser(mock()));
+        keyParserRegistry.register(new JwkParser(new ObjectMapper(), mock()));
+        privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry, vault, mock(), mock());
+
         tokenGeneratorService = new StsClientTokenGeneratorServiceImpl(
                 (client) -> new LazyTokenGenerationService(privateKeyResolver, client.getPrivateKeyAlias()),
                 Clock.systemUTC(), 60 * 5);
