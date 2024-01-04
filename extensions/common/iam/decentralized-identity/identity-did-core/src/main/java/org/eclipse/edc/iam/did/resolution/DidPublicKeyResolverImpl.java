@@ -18,9 +18,11 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKParameterNames;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.AbstractPublicKeyResolver;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
@@ -39,8 +41,8 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver {
     private static final String GROUP_FRAGMENT = "fragment";
     private final DidResolverRegistry resolverRegistry;
 
-    public DidPublicKeyResolverImpl(KeyParserRegistry registry, DidResolverRegistry resolverRegistry) {
-        super(registry);
+    public DidPublicKeyResolverImpl(KeyParserRegistry registry, DidResolverRegistry resolverRegistry, Config config, Monitor monitor) {
+        super(registry, config, monitor);
         this.resolverRegistry = resolverRegistry;
     }
 

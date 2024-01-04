@@ -64,7 +64,7 @@ class VaultPrivateKeyResolverTest {
         var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS);
         assertThat(result)
                 .isFailed()
-                .detail().startsWith("No private key found for key-ID");
+                .detail().startsWith("Private key with ID 'test-secret' not found in Config");
     }
 
     @Test

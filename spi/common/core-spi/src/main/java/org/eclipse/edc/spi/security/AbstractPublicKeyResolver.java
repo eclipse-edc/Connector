@@ -15,7 +15,9 @@
 package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.security.PublicKey;
 
@@ -25,23 +27,38 @@ import java.security.PublicKey;
  */
 public abstract class AbstractPublicKeyResolver implements PublicKeyResolver {
     private final KeyParserRegistry registry;
+    private final Config config;
+    private final Monitor monitor;
 
-    public AbstractPublicKeyResolver(KeyParserRegistry registry) {
+    public AbstractPublicKeyResolver(KeyParserRegistry registry, Config config, Monitor monitor) {
         this.registry = registry;
+        this.config = config;
+        this.monitor = monitor;
     }
 
     @Override
     public Result<PublicKey> resolveKey(String id) {
         var encodedKeyResult = resolveInternal(id);
-
-
-        return encodedKeyResult.compose(encodedKey -> registry.parse(encodedKey).compose(pk -> {
-            if (pk instanceof PublicKey publicKey) {
-                return Result.success(publicKey);
-            } else return Result.failure("The specified resource did not contain public key material.");
-        })).merge(Result.failure("No public key could be resolved for key-ID '%s'".formatted(id)));
+        return encodedKeyResult
+                .recover(failure -> {
+                    monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
+                    return resolveFromConfig(id);
+                })
+                .compose(encodedKey ->
+                        registry.parse(encodedKey).compose(pk -> {
+                            if (pk instanceof PublicKey publicKey) {
+                                return Result.success(publicKey);
+                            } else return Result.failure("The specified resource did not contain public key material.");
+                        })).merge(Result.failure("No public key could be resolved for key-ID '%s'".formatted(id)));
 
     }
 
     protected abstract Result<String> resolveInternal(String id);
+
+    private Result<String> resolveFromConfig(String keyId) {
+        var value = config.getString(keyId, null);
+        return value == null ?
+                Result.failure("Public key not found in Config") :
+                Result.success(value);
+    }
 }

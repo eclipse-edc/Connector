@@ -16,11 +16,12 @@
 package org.eclipse.edc.vault.filesystem;
 
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.AbstractPrivateKeyResolver;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -43,17 +44,19 @@ public class JksPrivateKeyResolver extends AbstractPrivateKeyResolver {
      *
      * @param password the keystore password. Individual key passwords are not supported.
      * @param keyStore the keystore
+     * @param config   The config, for resolving the private key in case of fallback
      * @param monitor  the monitor
      */
-    public JksPrivateKeyResolver(KeyParserRegistry registry, String password, KeyStore keyStore, Monitor monitor) {
-        super(registry);
+    public JksPrivateKeyResolver(KeyParserRegistry registry, String password, KeyStore keyStore, Config config, Monitor monitor) {
+        super(registry, config, monitor);
         this.password = password;
         this.keyStore = keyStore;
         this.monitor = monitor;
     }
 
+    @NotNull
     @Override
-    protected @Nullable String resolveInternal(String keyId) {
+    protected Result<String> resolveInternal(String keyId) {
         var encodedPwd = password.toCharArray();
 
         try {
@@ -69,13 +72,13 @@ public class JksPrivateKeyResolver extends AbstractPrivateKeyResolver {
                 var pw = new JcaPEMWriter(out);
                 pw.writeObject(key);
                 pw.close();
-                return out.toString();
+                return Result.success(out.toString());
             }
-            monitor.warning("Private Key with ID '%s' not found.".formatted(keyId));
-            return null;
+            return Result.failure("Private Key with ID '%s' not found in KeyStore.".formatted(keyId));
 
         } catch (GeneralSecurityException | IOException e) {
-            throw new EdcException(e);
+            monitor.warning("Error resolving key from KeyStore", e);
+            return Result.failure("Error resolving key from KeyStore: " + e.getMessage());
         }
     }
 }

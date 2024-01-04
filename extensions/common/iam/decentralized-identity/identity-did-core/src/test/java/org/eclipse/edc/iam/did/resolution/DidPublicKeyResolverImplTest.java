@@ -44,7 +44,7 @@ class DidPublicKeyResolverImplTest {
     private static final String DID_URL = "did:web:example.com";
     private final DidResolverRegistry resolverRegistry = mock(DidResolverRegistry.class);
     private final KeyParserRegistry keyParserRegistry = mock();
-    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry);
+    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry, mock(), mock());
     private DidDocument didDocument;
 
     public static String readFile(String filename) throws IOException {

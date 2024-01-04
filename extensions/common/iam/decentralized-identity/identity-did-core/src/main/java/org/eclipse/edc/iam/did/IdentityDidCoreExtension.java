@@ -45,7 +45,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var didResolverRegistry = new DidResolverRegistryImpl();
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
-        var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry);
+        var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry, context.getConfig(), context.getMonitor().withPrefix("PublicKeyResolution"));
         context.registerService(PublicKeyResolver.class, publicKeyResolver);
     }
 
