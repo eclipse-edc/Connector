@@ -47,7 +47,7 @@ public class PemParser implements KeyParser {
     // matches based on the "-----BEGIN XYZ-----" and "-----END XYZ-----" tokens
     // captures 3 groups: the BEGIN token, the base64 text and the END token
     // to parse the PEM, use the second group
-    private static final Pattern PEM_FORMAT_REGEX = Pattern.compile("(-----BEGIN\\s.*-----)\\n((?s:.*))(-----END\\s.*-----)");
+    private static final Pattern PEM_FORMAT_REGEX = Pattern.compile("(-----BEGIN\\s.*-----)[\\r]?\\n((?s:.*))(-----END\\s.*-----)", Pattern.MULTILINE);
     private final JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
     private final Monitor monitor;
 

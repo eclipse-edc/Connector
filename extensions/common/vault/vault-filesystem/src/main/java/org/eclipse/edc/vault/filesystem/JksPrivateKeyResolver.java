@@ -63,7 +63,7 @@ public class JksPrivateKeyResolver extends AbstractPrivateKeyResolver {
             var iter = keyStore.aliases();
             while (iter.hasMoreElements()) {
                 var alias = iter.nextElement();
-                if (!keyStore.isKeyEntry(alias)) {
+                if (!keyStore.isKeyEntry(alias) || !alias.equals(keyId)) {
                     continue;
                 }
                 // convert to PEM string so that the base class can interpret it.
