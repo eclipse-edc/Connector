@@ -22,8 +22,11 @@ import java.security.KeyPair;
 
 /**
  * Handles generation of a {@link KeyPair} from the public, private key alias
+ *
+ * @deprecated Do not use anymore
  */
 @ExtensionPoint
+@Deprecated
 public interface KeyPairFactory {
 
     /**

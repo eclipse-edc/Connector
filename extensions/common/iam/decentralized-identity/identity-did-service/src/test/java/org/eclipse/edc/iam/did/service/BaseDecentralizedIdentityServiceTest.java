@@ -71,7 +71,7 @@ abstract class BaseDecentralizedIdentityServiceTest {
 
     @BeforeEach
     void setUp() {
-        identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), keyPair.getPrivate(), DID_URL, Clock.systemUTC());
+        identityService = new DecentralizedIdentityService(didResolverRegistryMock, credentialsVerifierMock, new ConsoleMonitor(), keyPair::getPrivate, DID_URL, Clock.systemUTC());
     }
 
     @Test

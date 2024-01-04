@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,10 +40,10 @@ public class StsClientTokenGeneratorServiceImplTest {
     private final StsTokenGenerationProvider tokenGenerationProvider = mock();
     private final TokenGenerationService tokenGenerator = mock();
     private StsClientTokenGeneratorServiceImpl clientTokenService;
-    
+
     @BeforeEach
     void setup() {
-        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, Clock.systemUTC(), TOKEN_EXPIRATION);
+        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> mock(PrivateKey.class), Clock.systemUTC(), TOKEN_EXPIRATION);
     }
 
     @Test
@@ -50,7 +51,7 @@ public class StsClientTokenGeneratorServiceImplTest {
         var client = createClient("clientId");
         var token = TokenRepresentation.Builder.newInstance().token("token").expiresIn(TOKEN_EXPIRATION).build();
         when(tokenGenerationProvider.tokenGeneratorFor(client)).thenReturn(tokenGenerator);
-        when(tokenGenerator.generate(any())).thenReturn(Result.success(token));
+        when(tokenGenerator.generate(any(), any())).thenReturn(Result.success(token));
 
         var inserted = clientTokenService.tokenFor(client, StsClientTokenAdditionalParams.Builder.newInstance().audience("aud").build());
 
@@ -61,7 +62,7 @@ public class StsClientTokenGeneratorServiceImplTest {
     void tokenFor_error_whenGeneratorFails() {
         var client = createClient("clientId");
         when(tokenGenerationProvider.tokenGeneratorFor(client)).thenReturn(tokenGenerator);
-        when(tokenGenerator.generate(any())).thenReturn(Result.failure("failure"));
+        when(tokenGenerator.generate(any(), any())).thenReturn(Result.failure("failure"));
 
         var inserted = clientTokenService.tokenFor(client, StsClientTokenAdditionalParams.Builder.newInstance().audience("aud").build());
 

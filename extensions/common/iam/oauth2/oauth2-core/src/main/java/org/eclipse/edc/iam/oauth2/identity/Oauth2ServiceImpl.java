@@ -34,6 +34,9 @@ import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
+import java.security.PrivateKey;
+import java.util.function.Supplier;
+
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
  */
@@ -42,6 +45,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     private static final String GRANT_TYPE = "client_credentials";
 
     private final Oauth2ServiceConfiguration configuration;
+    private final Supplier<PrivateKey> privateKeySupplier;
     private final Oauth2Client client;
     private final JwtDecoratorRegistry jwtDecoratorRegistry;
     private final TokenGenerationService tokenGenerationService;
@@ -58,10 +62,11 @@ public class Oauth2ServiceImpl implements IdentityService {
      * @param tokenValidationService                         Service used for token validation
      * @param credentialsRequestAdditionalParametersProvider Provides additional form parameters
      */
-    public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService,
+    public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService, Supplier<PrivateKey> privateKeySupplier,
                              Oauth2Client client, JwtDecoratorRegistry jwtDecoratorRegistry, TokenValidationService tokenValidationService,
                              CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider) {
         this.configuration = configuration;
+        this.privateKeySupplier = privateKeySupplier;
         this.client = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
         this.tokenGenerationService = tokenGenerationService;
@@ -84,7 +89,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     @NotNull
     private Result<String> generateClientAssertion() {
         var decorators = jwtDecoratorRegistry.getAll().toArray(JwtDecorator[]::new);
-        return tokenGenerationService.generate(decorators)
+        return tokenGenerationService.generate(privateKeySupplier, decorators)
                 .map(TokenRepresentation::getToken);
     }
 
