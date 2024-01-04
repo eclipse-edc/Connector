@@ -86,11 +86,11 @@ public class TokenValidationServiceImpl implements TokenValidationService {
 
     private Result<JWSVerifier> createVerifier(JWSHeader header, String publicKeyId) {
         var publicKey = publicKeyResolver.resolveKey(publicKeyId);
-        if (publicKey == null) {
+        if (publicKey.failed()) {
             return Result.failure("Failed to resolve public key with id: " + publicKeyId);
         }
         try {
-            return Result.success(new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey));
+            return Result.success(new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey.getContent()));
         } catch (JOSEException e) {
             return Result.failure("Failed to create verifier");
         }

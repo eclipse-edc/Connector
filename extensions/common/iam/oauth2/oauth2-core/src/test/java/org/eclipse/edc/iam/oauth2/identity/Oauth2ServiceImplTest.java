@@ -94,7 +94,7 @@ class Oauth2ServiceImplTest {
 
         jwsSigner = new RSASSASigner(testKey.toPrivateKey());
         var publicKeyResolverMock = mock(PublicKeyResolver.class);
-        when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(testKey.toPublicKey());
+        when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(Result.success(testKey.toPublicKey()));
         var configuration = Oauth2ServiceConfiguration.Builder.newInstance()
                 .tokenUrl(OAUTH2_SERVER_URL)
                 .clientId(CLIENT_ID)

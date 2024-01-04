@@ -34,6 +34,7 @@ import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -133,7 +134,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private TokenValidationService tokenValidationService(PublicKey publicKey) {
         var registry = new TokenValidationRulesRegistryImpl();
         registry.addRule(new ExpirationDateValidationRule(clock));
-        return new TokenValidationServiceImpl(id -> publicKey, registry);
+        return new TokenValidationServiceImpl(id -> Result.success(publicKey), registry);
     }
 
 }

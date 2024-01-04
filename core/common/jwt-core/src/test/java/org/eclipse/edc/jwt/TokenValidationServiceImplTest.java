@@ -27,11 +27,11 @@ import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
@@ -45,11 +45,29 @@ import static org.mockito.Mockito.when;
 
 class TokenValidationServiceImplTest {
 
+    private final Instant now = Instant.now();
     private TokenValidationService tokenValidationService;
     private RSAKey key;
     private TokenValidationRule ruleMock;
-    private final Instant now = Instant.now();
     private String publicKeyId;
+
+    private static String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
+        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(publicKeyId).build();
+        try {
+            SignedJWT jwt = new SignedJWT(header, claimsSet);
+            jwt.sign(new RSASSASigner(pk));
+            return jwt.serialize();
+        } catch (JOSEException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static RSAKey testKey() throws JOSEException {
+        return new RSAKeyGenerator(2048)
+                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                .generate();
+    }
 
     @BeforeEach
     public void setUp() throws JOSEException {
@@ -59,9 +77,8 @@ class TokenValidationServiceImplTest {
         publicKeyId = UUID.randomUUID().toString();
         var resolver = new PublicKeyResolver() {
             @Override
-            public @Nullable
-            RSAPublicKey resolveKey(String id) {
-                return id.equals(publicKeyId) ? publicKey : null;
+            public Result<PublicKey> resolveKey(String id) {
+                return id.equals(publicKeyId) ? Result.success(publicKey) : null;
             }
         };
         var rulesRegistry = new TokenValidationRulesRegistryImpl();
@@ -109,23 +126,5 @@ class TokenValidationServiceImplTest {
                 .claim("foo", "bar")
                 .expirationTime(Date.from(exp))
                 .build();
-    }
-
-    private static String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
-        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(publicKeyId).build();
-        try {
-            SignedJWT jwt = new SignedJWT(header, claimsSet);
-            jwt.sign(new RSASSASigner(pk));
-            return jwt.serialize();
-        } catch (JOSEException e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    private static RSAKey testKey() throws JOSEException {
-        return new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                .generate();
     }
 }
