@@ -19,7 +19,10 @@ import org.eclipse.edc.iam.did.resolution.DidResolverRegistryImpl;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -29,6 +32,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Identity Did Core";
+    @Inject
+    private KeyParserRegistry keyParserRegistry;
 
     @Override
     public String name() {
@@ -40,8 +45,8 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var didResolverRegistry = new DidResolverRegistryImpl();
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
-        var publicKeyResolver = new DidPublicKeyResolverImpl(didResolverRegistry);
-        context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
+        var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry);
+        context.registerService(PublicKeyResolver.class, publicKeyResolver);
     }
 
 }

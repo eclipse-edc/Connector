@@ -62,7 +62,7 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public CertificateResolver certificateResolver(ServiceExtensionContext context) {
+    public CertificateResolver certificateResolver() {
         return new VaultCertificateResolver(vault);
     }
 

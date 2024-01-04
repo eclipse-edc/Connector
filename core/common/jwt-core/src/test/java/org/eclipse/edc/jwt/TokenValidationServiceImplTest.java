@@ -51,24 +51,6 @@ class TokenValidationServiceImplTest {
     private TokenValidationRule ruleMock;
     private String publicKeyId;
 
-    private static String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
-        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(publicKeyId).build();
-        try {
-            SignedJWT jwt = new SignedJWT(header, claimsSet);
-            jwt.sign(new RSASSASigner(pk));
-            return jwt.serialize();
-        } catch (JOSEException e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    private static RSAKey testKey() throws JOSEException {
-        return new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                .generate();
-    }
-
     @BeforeEach
     public void setUp() throws JOSEException {
         key = testKey();
@@ -78,7 +60,7 @@ class TokenValidationServiceImplTest {
         var resolver = new PublicKeyResolver() {
             @Override
             public Result<PublicKey> resolveKey(String id) {
-                return id.equals(publicKeyId) ? Result.success(publicKey) : null;
+                return id.equals(publicKeyId) ? Result.success(publicKey) : Result.failure("not found");
             }
         };
         var rulesRegistry = new TokenValidationRulesRegistryImpl();
@@ -119,6 +101,24 @@ class TokenValidationServiceImplTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("Rule validation failed!");
+    }
+
+    private String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
+        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(publicKeyId).build();
+        try {
+            SignedJWT jwt = new SignedJWT(header, claimsSet);
+            jwt.sign(new RSASSASigner(pk));
+            return jwt.serialize();
+        } catch (JOSEException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private RSAKey testKey() throws JOSEException {
+        return new RSAKeyGenerator(2048)
+                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                .generate();
     }
 
     private JWTClaimsSet createClaims(Instant exp) {

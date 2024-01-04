@@ -22,6 +22,7 @@ import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,8 @@ class DidPublicKeyResolverImplTest {
     public static final String KEYID = "#my-key1";
     private static final String DID_URL = "did:web:example.com";
     private final DidResolverRegistry resolverRegistry = mock(DidResolverRegistry.class);
-    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(resolverRegistry);
+    private final KeyParserRegistry keyParserRegistry = mock();
+    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry);
     private DidDocument didDocument;
 
     public static String readFile(String filename) throws IOException {
