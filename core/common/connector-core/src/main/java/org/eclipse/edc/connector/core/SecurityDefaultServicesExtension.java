@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.core;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import org.eclipse.edc.connector.core.security.KeyPairFactoryImpl;
 import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
 import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
@@ -21,6 +23,8 @@ import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
@@ -59,6 +63,21 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
             privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry(context), vault, context.getMonitor().withPrefix("PrivateKeyResolution"), context.getConfig());
         }
         return privateKeyResolver;
+    }
+
+    @Provider(isDefault = true)
+    public PublicKeyResolver createDefaultPublicKeyResolver(ServiceExtensionContext context) {
+        return id -> {
+            context.getMonitor().warning("No actual public key resolver was configured - this one is a test/demo implementation that will re-generate a public key randomly!");
+            try {
+                return Result.success(new RSAKeyGenerator(2048)
+                        .keyID(id)
+                        .generate()
+                        .toPublicKey());
+            } catch (JOSEException e) {
+                return Result.failure(e.getMessage());
+            }
+        };
     }
 
     @Provider(isDefault = true)

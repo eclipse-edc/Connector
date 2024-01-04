@@ -36,7 +36,7 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver {
      * Group 1 ("did")      = the did:method:identifier portion
      * Group 2 ("fragment") = the #fragment portion
      */
-    private static final Pattern PATTERN_DID_WITH_OPTIONAL_FRAGMENT = Pattern.compile("(?<did>did:.*:[^#]*)#(?<fragment>.*)?");
+    private static final Pattern PATTERN_DID_WITH_OPTIONAL_FRAGMENT = Pattern.compile("(?<did>did:.*:[^#]*)(?<fragment>#.*)?");
     private static final String GROUP_DID = "did";
     private static final String GROUP_FRAGMENT = "fragment";
     private final DidResolverRegistry resolverRegistry;
@@ -46,7 +46,22 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver {
         this.resolverRegistry = resolverRegistry;
     }
 
-    public Result<String> resolvePublicKey(String didUrl, @Nullable String keyId) {
+    @Override
+    protected Result<String> resolveInternal(String id) {
+        var matcher = PATTERN_DID_WITH_OPTIONAL_FRAGMENT.matcher(id);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("The given ID must conform to 'did:method:identifier[:fragment]' but did not"); //todo: use Result?
+        }
+
+        var did = matcher.group(GROUP_DID);
+        String key = null;
+        if (matcher.groupCount() > 1) {
+            key = matcher.group(GROUP_FRAGMENT);
+        }
+        return resolvePublicKey(did, key);
+    }
+
+    private Result<String> resolvePublicKey(String didUrl, @Nullable String keyId) {
         var didResult = resolverRegistry.resolve(didUrl);
         if (didResult.failed()) {
             return didResult.mapTo();
@@ -87,20 +102,5 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver {
             }
 
         });
-    }
-
-    @Override
-    protected Result<String> resolveInternal(String id) {
-        var matcher = PATTERN_DID_WITH_OPTIONAL_FRAGMENT.matcher(id);
-        if (matcher.matches()) {
-            throw new IllegalArgumentException("The given ID must conform to 'did:method:identifier[:fragment]' but did not"); //todo: use Result?
-        }
-
-        var did = matcher.group(GROUP_DID);
-        String key = null;
-        if (matcher.groupCount() > 1) {
-            key = matcher.group(GROUP_FRAGMENT);
-        }
-        return resolvePublicKey(did, key);
     }
 }

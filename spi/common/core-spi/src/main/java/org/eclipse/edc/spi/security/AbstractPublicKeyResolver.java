@@ -42,23 +42,24 @@ public abstract class AbstractPublicKeyResolver implements PublicKeyResolver {
         return encodedKeyResult
                 .recover(failure -> {
                     monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
-                    return resolveFromConfig(id);
+                    var r = resolveFromConfig(id);
+                    return r != null ?
+                            Result.success(r) :
+                            Result.failure(failure.getMessages());
                 })
                 .compose(encodedKey ->
                         registry.parse(encodedKey).compose(pk -> {
                             if (pk instanceof PublicKey publicKey) {
                                 return Result.success(publicKey);
                             } else return Result.failure("The specified resource did not contain public key material.");
-                        })).merge(Result.failure("No public key could be resolved for key-ID '%s'".formatted(id)));
+                        }))
+                .recover(f -> Result.failure("No public key could be resolved for key-ID '%s': %s".formatted(id, f.getFailureDetail())));
 
     }
 
     protected abstract Result<String> resolveInternal(String id);
 
-    private Result<String> resolveFromConfig(String keyId) {
-        var value = config.getString(keyId, null);
-        return value == null ?
-                Result.failure("Public key not found in Config") :
-                Result.success(value);
+    private String resolveFromConfig(String keyId) {
+        return config.getString(keyId, null);
     }
 }
