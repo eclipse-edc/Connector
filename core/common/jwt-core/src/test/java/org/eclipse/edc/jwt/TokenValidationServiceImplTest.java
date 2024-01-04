@@ -89,7 +89,7 @@ class TokenValidationServiceImplTest {
         var result = tokenValidationService.validate(createJwt("unknown-key", claims, key.toPrivateKey()));
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("Failed to resolve public key with id: unknown-key");
+        assertThat(result.getFailureMessages()).containsExactly("Failed to resolve public key with id: unknown-key, Error: not found");
     }
 
     @Test

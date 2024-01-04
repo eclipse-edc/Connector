@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.identitytrust.sts.core.defaults.service;
 
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -43,7 +44,7 @@ public class StsClientTokenGeneratorServiceImplTest {
 
     @BeforeEach
     void setup() {
-        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> mock(PrivateKey.class), Clock.systemUTC(), TOKEN_EXPIRATION);
+        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> mock(SignatureInfo.class), Clock.systemUTC(), TOKEN_EXPIRATION);
     }
 
     @Test

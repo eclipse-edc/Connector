@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -26,7 +27,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
-import java.security.PrivateKey;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -40,11 +40,11 @@ public class ConsumerPullDataPlaneProxyResolver {
     private final DataEncrypter dataEncrypter;
     private final TypeManager typeManager;
     private final TokenGenerationService tokenGenerationService;
-    private final Supplier<PrivateKey> keySupplier;
+    private final Supplier<SignatureInfo> keySupplier;
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction;
 
     public ConsumerPullDataPlaneProxyResolver(DataEncrypter dataEncrypter, TypeManager typeManager, TokenGenerationService tokenGenerationService,
-                                              Supplier<PrivateKey> keySupplier, ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction) {
+                                              Supplier<SignatureInfo> keySupplier, ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction) {
         this.dataEncrypter = dataEncrypter;
         this.typeManager = typeManager;
         this.tokenExpirationDateFunction = tokenExpirationDateFunction;

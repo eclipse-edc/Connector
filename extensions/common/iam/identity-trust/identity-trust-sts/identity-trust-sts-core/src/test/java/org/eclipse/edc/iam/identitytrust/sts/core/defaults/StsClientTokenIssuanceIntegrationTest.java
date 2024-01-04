@@ -26,6 +26,7 @@ import org.eclipse.edc.iam.identitytrust.sts.core.defaults.store.InMemoryStsClie
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.jwt.JwtGenerationService;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -71,7 +72,7 @@ public class StsClientTokenIssuanceIntegrationTest {
 
         tokenGeneratorService = new StsClientTokenGeneratorServiceImpl(
                 (client) -> new JwtGenerationService(),
-                stsClient -> privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null),
+                stsClient -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null)),
                 Clock.systemUTC(), 60 * 5);
 
     }

@@ -36,6 +36,7 @@ import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
 import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
@@ -112,7 +113,7 @@ class Oauth2ServiceImplTest {
         var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
         jwtDecoratorRegistry.register(jwtDecorator);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> privateKey, client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
     }
 
     @Test
