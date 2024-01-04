@@ -23,7 +23,7 @@ import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
-import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
+import org.eclipse.edc.jwt.JwtGenerationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -60,7 +60,6 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
         context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
-        var keyPair = keyPairFromConfig(context);
         var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
 
 
@@ -69,7 +68,7 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
                     "This could be an indicator of a configuration problem.");
         }
 
-        return new EmbeddedSecureTokenService(new TokenGenerationServiceImpl(keyPair.getPrivate()), clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
+        return new EmbeddedSecureTokenService(new JwtGenerationService(), () -> keyPairFromConfig(context).getPrivate(), clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }
 
     @Provider(isDefault = true)

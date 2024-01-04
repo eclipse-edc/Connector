@@ -43,8 +43,6 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -92,11 +90,10 @@ class Oauth2ServiceImplTest {
     @BeforeEach
     void setUp() throws JOSEException {
         var testKey = testKey();
+        var privateKey = testKey.toPrivateKey();
 
         jwsSigner = new RSASSASigner(testKey.toPrivateKey());
         var publicKeyResolverMock = mock(PublicKeyResolver.class);
-        var privateKeyResolverMock = mock(PrivateKeyResolver.class);
-        var certificateResolverMock = mock(CertificateResolver.class);
         when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(testKey.toPublicKey());
         var configuration = Oauth2ServiceConfiguration.Builder.newInstance()
                 .tokenUrl(OAUTH2_SERVER_URL)
@@ -105,8 +102,6 @@ class Oauth2ServiceImplTest {
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
                 .endpointAudience(ENDPOINT_AUDIENCE)
-                .privateKeyResolver(privateKeyResolverMock)
-                .certificateResolver(certificateResolverMock)
                 .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
@@ -117,13 +112,13 @@ class Oauth2ServiceImplTest {
         var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
         jwtDecoratorRegistry.register(jwtDecorator);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> privateKey, client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
     }
 
     @Test
     void obtainClientCredentials() {
         when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
+        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
                 .audience("audience")
@@ -151,7 +146,7 @@ class Oauth2ServiceImplTest {
     @Test
     void obtainClientCredentials_addsAdditionalFormParameters() {
         when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
+        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
                 .audience("audience")
@@ -179,7 +174,7 @@ class Oauth2ServiceImplTest {
     @Test
     void obtainClientCredentials_verifyReturnsFailureIfOauth2ClientFails() {
         when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
+        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
                 .audience("audience")

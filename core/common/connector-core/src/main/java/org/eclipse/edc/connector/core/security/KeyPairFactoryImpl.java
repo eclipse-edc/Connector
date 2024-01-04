@@ -34,6 +34,7 @@ import java.security.PublicKey;
 import java.util.Optional;
 import java.util.UUID;
 
+@Deprecated
 public class KeyPairFactoryImpl implements KeyPairFactory {
 
     private final PrivateKeyResolver privateKeyResolver;

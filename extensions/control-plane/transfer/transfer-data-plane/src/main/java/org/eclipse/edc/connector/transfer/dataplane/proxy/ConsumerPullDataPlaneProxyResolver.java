@@ -26,7 +26,9 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
+import java.security.PrivateKey;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
@@ -38,13 +40,16 @@ public class ConsumerPullDataPlaneProxyResolver {
     private final DataEncrypter dataEncrypter;
     private final TypeManager typeManager;
     private final TokenGenerationService tokenGenerationService;
+    private final Supplier<PrivateKey> keySupplier;
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction;
 
-    public ConsumerPullDataPlaneProxyResolver(DataEncrypter dataEncrypter, TypeManager typeManager, TokenGenerationService tokenGenerationService, ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction) {
+    public ConsumerPullDataPlaneProxyResolver(DataEncrypter dataEncrypter, TypeManager typeManager, TokenGenerationService tokenGenerationService,
+                                              Supplier<PrivateKey> keySupplier, ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction) {
         this.dataEncrypter = dataEncrypter;
         this.typeManager = typeManager;
         this.tokenExpirationDateFunction = tokenExpirationDateFunction;
         this.tokenGenerationService = tokenGenerationService;
+        this.keySupplier = keySupplier;
     }
 
     private static Object getPublicApiUrl(DataPlaneInstance instance) {
@@ -74,7 +79,7 @@ public class ConsumerPullDataPlaneProxyResolver {
     private Result<String> generateAccessToken(DataAddress source, String contractId) {
         var encryptedDataAddress = dataEncrypter.encrypt(typeManager.writeValueAsString(source));
         return tokenExpirationDateFunction.expiresAt(source, contractId)
-                .compose(expiration -> tokenGenerationService.generate(new ConsumerPullDataPlaneProxyTokenDecorator(expiration, encryptedDataAddress)))
+                .compose(expiration -> tokenGenerationService.generate(keySupplier, new ConsumerPullDataPlaneProxyTokenDecorator(expiration, encryptedDataAddress)))
                 .map(TokenRepresentation::getToken);
     }
 }

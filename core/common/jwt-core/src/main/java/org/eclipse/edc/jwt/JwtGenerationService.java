@@ -18,9 +18,6 @@ package org.eclipse.edc.jwt;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.jwt.spi.JwtDecorator;
@@ -31,59 +28,38 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.PrivateKey;
-import java.security.interfaces.ECPrivateKey;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
-public class TokenGenerationServiceImpl implements TokenGenerationService {
+public class JwtGenerationService implements TokenGenerationService {
+    private final JwsSignerConverter factory;
 
-    private static final String KEY_ALGO_RSA = "RSA";
-    private static final String KEY_ALGO_EC = "EC";
 
-    private final JWSSigner tokenSigner;
-    private final JwtDecorator baseDecorator;
-
-    public TokenGenerationServiceImpl(PrivateKey privateKey) {
-        Objects.requireNonNull(privateKey, "Private key must not be null");
-        this.tokenSigner = createSigner(privateKey);
-        JWSAlgorithm jwsAlgorithm;
-        if (tokenSigner instanceof ECDSASigner) {
-            jwsAlgorithm = JWSAlgorithm.ES256;
-        } else {
-            jwsAlgorithm = JWSAlgorithm.RS256;
-        }
-        this.baseDecorator = new BaseDecorator(jwsAlgorithm);
-    }
-
-    /**
-     * Generate a token signer based on a private key.
-     */
-    private static JWSSigner createSigner(PrivateKey privateKey) {
-        switch (privateKey.getAlgorithm()) {
-            case KEY_ALGO_EC:
-                try {
-                    return new ECDSASigner((ECPrivateKey) privateKey);
-                } catch (JOSEException e) {
-                    throw new EdcException("Failed to generate token signed for EC key: " + e.getMessage());
-                }
-            case KEY_ALGO_RSA:
-                return new RSASSASigner(privateKey);
-            default:
-                throw new EdcException("Key algorithm not handled: " + privateKey.getAlgorithm());
-        }
+    public JwtGenerationService() {
+        this.factory = new JwsSignerConverterImpl();
     }
 
     @Override
-    public Result<TokenRepresentation> generate(@NotNull JwtDecorator... decorators) {
-        var header = createHeader(decorators);
-        var claims = createClaimsSet(decorators);
+    public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull JwtDecorator... decorators) {
+
+        var privateKey = privateKeySupplier.get();
+
+        var tokenSigner = factory.createSignerFor(privateKey);
+        var jwsAlgorithm = factory.getRecommendedAlgorithm(tokenSigner);
+
+        var allDecorators = new ArrayList<>(Arrays.asList(decorators));
+        allDecorators.add(new BaseDecorator(jwsAlgorithm));
+
+        var header = createHeader(allDecorators);
+        var claims = createClaimsSet(allDecorators);
 
         var token = new SignedJWT(header, claims);
         try {
@@ -94,8 +70,8 @@ public class TokenGenerationServiceImpl implements TokenGenerationService {
         return Result.success(TokenRepresentation.Builder.newInstance().token(token.serialize()).build());
     }
 
-    private JWSHeader createHeader(@NotNull JwtDecorator[] decorators) {
-        var map = allDecorators(decorators)
+    private JWSHeader createHeader(@NotNull List<JwtDecorator> decorators) {
+        var map = decorators.stream()
                 .map(JwtDecorator::headers)
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
@@ -108,10 +84,10 @@ public class TokenGenerationServiceImpl implements TokenGenerationService {
         }
     }
 
-    private JWTClaimsSet createClaimsSet(@NotNull JwtDecorator[] decorators) {
+    private JWTClaimsSet createClaimsSet(@NotNull List<JwtDecorator> decorators) {
         var builder = new JWTClaimsSet.Builder();
 
-        allDecorators(decorators)
+        decorators.stream()
                 .map(JwtDecorator::claims)
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
@@ -120,21 +96,11 @@ public class TokenGenerationServiceImpl implements TokenGenerationService {
         return builder.build();
     }
 
-    @NotNull
-    private Stream<JwtDecorator> allDecorators(@NotNull JwtDecorator[] decorators) {
-        return Stream.concat(Stream.of(this.baseDecorator), Arrays.stream(decorators));
-    }
 
     /**
      * Base JwtDecorator that provides the algorithm header value
      */
-    private static class BaseDecorator implements JwtDecorator {
-
-        private final JWSAlgorithm jwsAlgorithm;
-
-        BaseDecorator(JWSAlgorithm jwsAlgorithm) {
-            this.jwsAlgorithm = jwsAlgorithm;
-        }
+    private record BaseDecorator(JWSAlgorithm jwsAlgorithm) implements JwtDecorator {
 
         @Override
         public Map<String, Object> claims() {

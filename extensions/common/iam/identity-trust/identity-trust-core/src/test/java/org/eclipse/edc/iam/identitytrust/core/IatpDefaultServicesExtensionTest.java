@@ -42,8 +42,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -88,13 +88,12 @@ class IatpDefaultServicesExtensionTest {
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
         when(context.getSetting(eq("edc.oauth.token.url"), any())).thenReturn("https://some.url");
-        when(keyPairFactory.defaultKeyPair()).thenReturn(keypair);
 
         ext.createDefaultTokenService(context);
 
         verify(mockedMonitor).info(anyString());
         verify(mockedMonitor).warning(anyString());
-        verify(keyPairFactory, times(1)).defaultKeyPair();
+        verifyNoMoreInteractions(keyPairFactory);
     }
 
     @Test

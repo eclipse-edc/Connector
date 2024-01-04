@@ -20,6 +20,8 @@ plugins {
 dependencies {
     api(project(":spi:common:jwt-spi"))
 
+    runtimeOnly(libs.tink) // for EdDSA/Ed25519
+    runtimeOnly(libs.bouncyCastle.bcprovJdk18on) // for EdDSA/Ed25519
     implementation(libs.nimbus.jwt)
     api(libs.bouncyCastle.bcpkixJdk18on)
 }
