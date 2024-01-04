@@ -34,7 +34,11 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
     public Result<PrivateKey> resolvePrivateKey(String id) {
         var encodedKey = resolveInternal(id);
         if (encodedKey != null) {
-            return registry.parse(encodedKey);
+            return registry.parse(encodedKey).compose(pk -> {
+                if (pk instanceof PrivateKey privateKey) {
+                    return Result.success(privateKey);
+                } else return Result.failure("The specified resource did not contain private key material.");
+            });
         }
         return Result.failure("No private key found for key-ID '%s'".formatted(id));
     }

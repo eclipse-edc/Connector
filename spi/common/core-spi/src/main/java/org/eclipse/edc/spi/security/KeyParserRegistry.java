@@ -16,6 +16,7 @@ package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.spi.result.Result;
 
+import java.security.Key;
 import java.security.PrivateKey;
 
 /**
@@ -35,5 +36,5 @@ public interface KeyParserRegistry {
      * @param encoded The private key in encoded format (PEM, OpenSSH, JWK, PKCS8,...)
      * @return a success result containing the private key, a failure if the encoded private key could not be deserialized.
      */
-    Result<PrivateKey> parse(String encoded);
+    Result<Key> parse(String encoded);
 }

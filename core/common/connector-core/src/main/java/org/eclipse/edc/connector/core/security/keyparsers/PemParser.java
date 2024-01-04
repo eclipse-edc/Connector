@@ -28,10 +28,10 @@ import org.eclipse.edc.spi.security.KeyParser;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
@@ -61,7 +61,7 @@ public class PemParser implements KeyParser {
     }
 
     @Override
-    public Result<PrivateKey> parse(String encoded) {
+    public Result<Key> parse(String encoded) {
 
         var matcher = PEM_FORMAT_REGEX.matcher(encoded);
         if (!matcher.find()) {
@@ -70,10 +70,17 @@ public class PemParser implements KeyParser {
         var keypair = parseKeys(encoded);
 
         if (keypair.succeeded()) {
-            return keypair.getContent()
+
+            var keyPairList = keypair.getContent();
+            if (keyPairList.size() > 1) {
+                monitor.warning("PEM expected to contain exactly 1 key(-pair), but contained %s. Will take the first one. Please consider re-structuring your PEM document.".formatted(keyPairList.size()));
+            }
+
+
+            return keyPairList
                     .stream()
-                    .map(KeyPair::getPrivate)
                     .filter(Objects::nonNull) // PEM strings that only contain public keys would get eliminated here
+                    .map(keyPair -> keyPair.getPrivate() != null ? keyPair.getPrivate() : keyPair.getPublic())
                     .findFirst()
                     .map(Result::success)
                     .orElseGet(() -> Result.failure("PEM-encoded structure did not contain a private key."));

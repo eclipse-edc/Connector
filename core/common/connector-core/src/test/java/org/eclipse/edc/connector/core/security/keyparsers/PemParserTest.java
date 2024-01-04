@@ -23,6 +23,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -52,21 +54,24 @@ class PemParserTest {
 
     @ParameterizedTest
     @ArgumentsSource(PemPrivateKeyProvider.class)
-    void parse(String pem) {
+    void parse_privateKey(String pem) {
         var result = parser.parse(pem);
-        assertThat(result).isSucceeded()
-                .isNotNull();
+        assertThat(result)
+                .isSucceeded()
+                .isNotNull()
+                .isInstanceOf(PrivateKey.class);
+
     }
 
 
     @ParameterizedTest
     @ArgumentsSource(PemPublicKeyProvider.class)
-    void parse_noPrivateKey(String pem) {
+    void parse_publicKey(String pem) {
 
         assertThat(parser.parse(pem))
-                .isFailed()
-                .detail()
-                .isEqualTo("PEM-encoded structure did not contain a private key.");
+                .isSucceeded()
+                .isNotNull()
+                .isInstanceOf(PublicKey.class);
     }
 
     private static class PemPrivateKeyProvider implements ArgumentsProvider {
