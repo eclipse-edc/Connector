@@ -15,8 +15,11 @@
 package org.eclipse.edc.jwt;
 
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.Ed25519Signer;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Named;
@@ -27,71 +30,95 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.Provider;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class JwsSignerConverterTest {
+class JwsSignerVerifierFactoryTest {
 
-    private final JwsSignerConverter factory = new JwsSignerConverterImpl();
+    private final JwsSignerVerifierFactory factory = new JwsSignerVerifierFactoryImpl();
 
-    private static PrivateKey createEd25519(@Nullable Provider provider) throws NoSuchAlgorithmException {
+    private static KeyPair createEd25519(@Nullable Provider provider) throws NoSuchAlgorithmException {
 
         KeyPairGenerator kpg = provider == null ?
                 KeyPairGenerator.getInstance("Ed25519") :
                 KeyPairGenerator.getInstance("Ed25519", provider);
-        return kpg.generateKeyPair().getPrivate();
+        return kpg.generateKeyPair();
     }
 
-    private static PrivateKey createEc() throws NoSuchAlgorithmException {
+    private static KeyPair createEc() throws NoSuchAlgorithmException {
         var gen = KeyPairGenerator.getInstance("EC");
-        return gen.generateKeyPair().getPrivate();
+        return gen.generateKeyPair();
     }
 
-    private static PrivateKey createRsa() throws NoSuchAlgorithmException {
+    private static KeyPair createRsa() throws NoSuchAlgorithmException {
         var gen = KeyPairGenerator.getInstance("RSA");
         gen.initialize(2048);
-        return gen.generateKeyPair().getPrivate();
+        return gen.generateKeyPair();
     }
 
     @Test
     void createSignerFor_rsaKey() throws NoSuchAlgorithmException {
         var pk = createRsa();
 
-        assertThat(factory.createSignerFor(pk)).isInstanceOf(RSASSASigner.class);
+        assertThat(factory.createSignerFor(pk.getPrivate())).isInstanceOf(RSASSASigner.class);
     }
 
     @Test
     void createSignerFor_ecKey() throws NoSuchAlgorithmException {
         var pk = createEc();
 
-        assertThat(factory.createSignerFor(pk)).isInstanceOf(ECDSASigner.class);
+        assertThat(factory.createSignerFor(pk.getPrivate())).isInstanceOf(ECDSASigner.class);
     }
 
     @Test
     void createSignerFor_edDsaKey_sunProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(null);
-        assertThat(factory.createSignerFor(kp)).isInstanceOf(Ed25519Signer.class);
+        assertThat(factory.createSignerFor(kp.getPrivate())).isInstanceOf(Ed25519Signer.class);
     }
 
     @Test
     void createSignerFor_edDsaKey_bouncyCastleProvider() throws NoSuchAlgorithmException {
         var kp = createEd25519(new BouncyCastleProvider());
-        assertThat(factory.createSignerFor(kp)).isInstanceOf(Ed25519Signer.class);
+        assertThat(factory.createSignerFor(kp.getPrivate())).isInstanceOf(Ed25519Signer.class);
+    }
+
+    @Test
+    void createVerifierFor_rsaKey() throws NoSuchAlgorithmException {
+        var pk = createRsa().getPublic();
+        assertThat(factory.createVerifierFor(pk)).isInstanceOf(RSASSAVerifier.class);
+    }
+
+    @Test
+    void createVerifierFor_ecKey() throws NoSuchAlgorithmException {
+        var pk = createEc().getPublic();
+        assertThat(factory.createVerifierFor(pk)).isInstanceOf(ECDSAVerifier.class);
+    }
+
+    @Test
+    void createVerifierFor_edDsaKey_sunProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(null);
+        assertThat(factory.createVerifierFor(kp.getPublic())).isInstanceOf(Ed25519Verifier.class);
+    }
+
+    @Test
+    void createVerifierFor_edDsaKey_bouncyCastleProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(new BouncyCastleProvider());
+        assertThat(factory.createVerifierFor(kp.getPublic())).isInstanceOf(Ed25519Verifier.class);
     }
 
     @ParameterizedTest
-    @ArgumentsSource(PrivateKeyProvider.class)
-    void getAlgorithm(PrivateKey key) {
-        var signer = factory.createSignerFor(key);
+    @ArgumentsSource(KeyProvider.class)
+    void getJwsAlgorithm(KeyPair keypair) {
+        var signer = factory.createSignerFor(keypair.getPrivate());
         assertThat(factory.getRecommendedAlgorithm(signer)).isNotNull();
     }
 
-    private static class PrivateKeyProvider implements ArgumentsProvider {
+    private static class KeyProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
             return Stream.of(
@@ -102,4 +129,5 @@ class JwsSignerConverterTest {
             );
         }
     }
+
 }

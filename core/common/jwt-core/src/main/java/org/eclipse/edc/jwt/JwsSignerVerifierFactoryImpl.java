@@ -17,19 +17,28 @@ package org.eclipse.edc.jwt;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.Requirement;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.Ed25519Signer;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.util.Base64URL;
+import org.bouncycastle.util.Arrays;
 import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.EdECPrivateKey;
+import java.security.interfaces.EdECPublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Optional;
 
 /**
@@ -38,7 +47,7 @@ import java.util.Optional;
  *
  * @see <a href="https://docs.oracle.com/en/java/javase/11/docs/specs/security/standard-names.html">Defined Algorithm Standard Names</a>
  */
-public class JwsSignerConverterImpl implements JwsSignerConverter {
+public class JwsSignerVerifierFactoryImpl implements JwsSignerVerifierFactory {
 
 
     @Override
@@ -48,10 +57,24 @@ public class JwsSignerConverterImpl implements JwsSignerConverter {
                 case ALGORITHM_EC -> new ECDSASigner((ECPrivateKey) key);
                 case ALGORITHM_RSA -> new RSASSASigner(key);
                 case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createOctetKeyPair(key);
-                default -> throw new IllegalStateException(notSupportedError(key.getAlgorithm()));
+                default -> throw new IllegalArgumentException(notSupportedError(key.getAlgorithm()));
             };
         } catch (JOSEException ex) {
             throw new EdcException(notSupportedError(key.getAlgorithm()), ex);
+        }
+    }
+
+    @Override
+    public JWSVerifier createVerifierFor(PublicKey publicKey) {
+        try {
+            return switch (publicKey.getAlgorithm()) {
+                case ALGORITHM_EC -> new ECDSAVerifier((ECPublicKey) publicKey);
+                case ALGORITHM_RSA -> new RSASSAVerifier((RSAPublicKey) publicKey);
+                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createOctetKeyPair(publicKey);
+                default -> throw new IllegalArgumentException(notSupportedError(publicKey.getAlgorithm()));
+            };
+        } catch (JOSEException e) {
+            throw new EdcException(notSupportedError(publicKey.getAlgorithm()), e);
         }
     }
 
@@ -61,6 +84,31 @@ public class JwsSignerConverterImpl implements JwsSignerConverter {
                 .orElseGet(() -> getWithRequirement(signer, Requirement.RECOMMENDED)
                         .orElseGet(() -> getWithRequirement(signer, Requirement.OPTIONAL)
                                 .orElse(null)));
+
+    }
+
+    private Ed25519Verifier createOctetKeyPair(PublicKey publicKey) throws JOSEException {
+        var edKey = (EdECPublicKey) publicKey;
+        var curveName = edKey.getParams().getName();
+
+        if (!ALGORITHM_ED25519.equals(curveName)) {
+            throw new IllegalArgumentException("Only the Ed25519 curve is supported for Ed25519Verifiers.");
+        }
+
+        var curve = Curve.parse(curveName);
+
+        var bytes = Arrays.reverse(edKey.getPoint().getY().toByteArray());
+
+        // when the X-coordinate of the curve is odd, we flip the highest-order bit of the first (or last, since we reversed) byte
+        if (edKey.getPoint().isXOdd()) {
+            byte mask = (byte) 128; // is 1000 0000 binary
+            bytes[bytes.length - 1] ^= mask; // XOR means toggle the left-most bit
+        }
+
+        var urlX = Base64URL.encode(bytes);
+        var okp = new OctetKeyPair.Builder(curve, urlX)
+                .build();
+        return new Ed25519Verifier(okp);
 
     }
 
@@ -76,7 +124,7 @@ public class JwsSignerConverterImpl implements JwsSignerConverter {
         var curveName = edKey.getParams().getName();
 
         if (!ALGORITHM_ED25519.equals(curveName)) {
-            throw new IllegalArgumentException("Only the Ed25519 curve is supported in JWSSigners.");
+            throw new IllegalArgumentException("Only the Ed25519 curve is supported for Ed25519Signers.");
         }
         var curve = Curve.parse(curveName);
 

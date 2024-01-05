@@ -18,6 +18,7 @@ import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.BadJWTException;
@@ -93,9 +94,21 @@ public class JwtUtils {
      * @return true if verified, false otherwise
      */
     public static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
+        return verify(jwt, publicKey.verifier(), audience);
+    }
+
+    /**
+     * Verifies a VerifiableCredential using the issuer's public key
+     *
+     * @param jwt      a {@link SignedJWT} that was sent by the claiming party.
+     * @param verifier The claiming party's public key, passed as a {@link JWSVerifier}
+     * @param audience The intended audience
+     * @return true if verified, false otherwise
+     */
+    public static Result<Void> verify(SignedJWT jwt, JWSVerifier verifier, String audience) {
         // verify JWT signature
         try {
-            var verified = jwt.verify(publicKey.verifier());
+            var verified = jwt.verify(verifier);
             if (!verified) {
                 return Result.failure("Invalid signature");
             }

@@ -41,11 +41,11 @@ import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
 public class JwtGenerationService implements TokenGenerationService {
-    private final JwsSignerConverter factory;
+    private final JwsSignerVerifierFactory factory;
 
 
     public JwtGenerationService() {
-        this.factory = new JwsSignerConverterImpl();
+        this.factory = new JwsSignerVerifierFactoryImpl();
     }
 
     @Override
