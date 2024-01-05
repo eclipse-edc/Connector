@@ -71,8 +71,8 @@ public class StsClientTokenIssuanceIntegrationTest {
         privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry, vault, mock(), mock());
 
         tokenGeneratorService = new StsClientTokenGeneratorServiceImpl(
-                (client) -> new JwtGenerationService(),
-                stsClient -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null)),
+                client -> new JwtGenerationService(),
+                stsClient -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null), stsClient.getPublicKeyReference()),
                 Clock.systemUTC(), 60 * 5);
 
     }

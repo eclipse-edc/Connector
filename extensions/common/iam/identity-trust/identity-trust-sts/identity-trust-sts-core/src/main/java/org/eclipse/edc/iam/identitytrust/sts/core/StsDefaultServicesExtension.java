@@ -69,7 +69,7 @@ public class StsDefaultServicesExtension implements ServiceExtension {
         var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
         return new StsClientTokenGeneratorServiceImpl(
                 (client) -> new JwtGenerationService(),
-                (client) -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(client.getPrivateKeyAlias()).orElse(null)/*todo: pass DID#key here?*/),
+                (client) -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(client.getPrivateKeyAlias()).orElse(null), client.getPublicKeyReference()),
                 clock,
                 TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }

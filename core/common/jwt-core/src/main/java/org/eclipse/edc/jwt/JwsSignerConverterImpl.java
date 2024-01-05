@@ -59,7 +59,8 @@ public class JwsSignerConverterImpl implements JwsSignerConverter {
     public JWSAlgorithm getRecommendedAlgorithm(JWSSigner signer) {
         return getWithRequirement(signer, Requirement.REQUIRED)
                 .orElseGet(() -> getWithRequirement(signer, Requirement.RECOMMENDED)
-                        .orElseGet(() -> getWithRequirement(signer, Requirement.OPTIONAL).orElse(null)));
+                        .orElseGet(() -> getWithRequirement(signer, Requirement.OPTIONAL)
+                                .orElse(null)));
 
     }
 
