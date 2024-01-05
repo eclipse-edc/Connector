@@ -37,6 +37,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -105,6 +106,9 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
+    
+    @Inject
+    private PublicKeyResolver publicKeyResolver;
 
     @Override
     public String name() {
@@ -130,7 +134,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
 
-        var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry, validationRulesRegistry);
+        var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry);
 
         context.registerService(IdentityService.class, oauth2Service);
     }
@@ -146,7 +150,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     }
 
     @NotNull
-    private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry, Oauth2ValidationRulesRegistryImpl validationRulesRegistry) {
+    private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry) {
         Supplier<SignatureInfo> privateKeySupplier = () -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
                 .orElseThrow(f -> new EdcException(f.getFailureDetail())), configuration.getPublicCertificateAlias());
 
@@ -156,8 +160,9 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 privateKeySupplier,
                 oauth2Client,
                 jwtDecoratorRegistry,
-                new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
-                credentialsRequestAdditionalParametersProvider
+                new TokenValidationServiceImpl(),
+                credentialsRequestAdditionalParametersProvider,
+                publicKeyResolver
         );
     }
 

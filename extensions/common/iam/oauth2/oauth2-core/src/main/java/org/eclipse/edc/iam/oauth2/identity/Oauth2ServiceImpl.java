@@ -29,6 +29,7 @@ import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
@@ -51,6 +52,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final TokenGenerationService tokenGenerationService;
     private final TokenValidationService tokenValidationService;
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
+    private final PublicKeyResolver publicKeyResolver;
 
     /**
      * Creates a new instance of the OAuth2 Service
@@ -64,7 +66,7 @@ public class Oauth2ServiceImpl implements IdentityService {
      */
     public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService, Supplier<SignatureInfo> signatureInfoSupplier,
                              Oauth2Client client, JwtDecoratorRegistry jwtDecoratorRegistry, TokenValidationService tokenValidationService,
-                             CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider) {
+                             CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider, PublicKeyResolver publicKeyResolver) {
         this.configuration = configuration;
         this.signatureInfoSupplier = signatureInfoSupplier;
         this.client = client;
@@ -72,6 +74,7 @@ public class Oauth2ServiceImpl implements IdentityService {
         this.tokenGenerationService = tokenGenerationService;
         this.tokenValidationService = tokenValidationService;
         this.credentialsRequestAdditionalParametersProvider = credentialsRequestAdditionalParametersProvider;
+        this.publicKeyResolver = publicKeyResolver;
     }
 
     @Override
@@ -83,7 +86,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
-        return tokenValidationService.validate(tokenRepresentation);
+        return tokenValidationService.validate(tokenRepresentation, publicKeyResolver);
     }
 
     @NotNull

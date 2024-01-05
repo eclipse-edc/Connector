@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.transfer.dataplane.api;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -32,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,12 +45,12 @@ class ConsumerPullTransferTokenValidationApiControllerTest {
 
     private final DataEncrypter encrypterMock = mock(DataEncrypter.class);
     private final TokenValidationService tokenValidationServiceMock = mock(TokenValidationService.class);
-
+    private final PublicKeyResolver publicKeyResolver = mock();
     private ConsumerPullTransferTokenValidationApiController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationServiceMock, encrypterMock, TYPE_MANAGER);
+        controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationServiceMock, encrypterMock, TYPE_MANAGER, publicKeyResolver);
     }
 
     @Test
@@ -64,13 +66,13 @@ class ConsumerPullTransferTokenValidationApiControllerTest {
                 )
                 .build();
 
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
+        when(tokenValidationServiceMock.validate(token, publicKeyResolver)).thenReturn(Result.success(claims));
         when(encrypterMock.decrypt(encryptedDataAddress)).thenReturn(TYPE_MANAGER.writeValueAsString(decryptedDataAddress));
 
         var responseAddress = controller.validate(token);
         assertThat(responseAddress.getType()).isEqualTo(decryptedDataAddress.getType());
 
-        verify(tokenValidationServiceMock).validate(anyString());
+        verify(tokenValidationServiceMock).validate(anyString(), eq(publicKeyResolver));
         verify(encrypterMock).decrypt(anyString());
     }
 
@@ -79,7 +81,7 @@ class ConsumerPullTransferTokenValidationApiControllerTest {
         var token = UUID.randomUUID().toString();
         var errorMsg = UUID.randomUUID().toString();
 
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.failure(errorMsg));
+        when(tokenValidationServiceMock.validate(token, publicKeyResolver)).thenReturn(Result.failure(errorMsg));
 
         assertThatExceptionOfType(NotAuthorizedException.class).isThrownBy(() -> controller.validate(token));
 
@@ -93,7 +95,7 @@ class ConsumerPullTransferTokenValidationApiControllerTest {
                 .claims(Map.of("key1", "value1"))
                 .build();
 
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
+        when(tokenValidationServiceMock.validate(token, publicKeyResolver)).thenReturn(Result.success(claims));
 
         assertThatExceptionOfType(InvalidRequestException.class).isThrownBy(() -> controller.validate(token));
 

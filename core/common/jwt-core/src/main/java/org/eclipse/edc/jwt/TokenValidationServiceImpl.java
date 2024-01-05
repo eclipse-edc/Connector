@@ -15,45 +15,44 @@
 package org.eclipse.edc.jwt;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
+import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TokenValidationServiceImpl implements TokenValidationService {
 
-    private final PublicKeyResolver publicKeyResolver;
-    private final TokenValidationRulesRegistry rulesRegistry;
+    private final JwsSignerVerifierFactory jwsSignerVerifierFactory;
 
-    public TokenValidationServiceImpl(PublicKeyResolver publicKeyResolver, TokenValidationRulesRegistry rulesRegistry) {
-        this.publicKeyResolver = publicKeyResolver;
-        this.rulesRegistry = rulesRegistry;
+    public TokenValidationServiceImpl() {
+        jwsSignerVerifierFactory = new JwsSignerVerifierFactory();
     }
 
     @Override
-    public Result<ClaimToken> validate(TokenRepresentation tokenRepresentation) {
+    public Result<ClaimToken> validate(TokenRepresentation tokenRepresentation, PublicKeyResolver publicKeyResolver, TokenValidationRule... rules) {
         var token = tokenRepresentation.getToken();
         var additional = tokenRepresentation.getAdditional();
         try {
             var signedJwt = SignedJWT.parse(token);
             var publicKeyId = signedJwt.getHeader().getKeyID();
-            var verifierCreationResult = createVerifier(signedJwt.getHeader(), publicKeyId);
 
-            if (verifierCreationResult.failed()) {
-                return Result.failure(verifierCreationResult.getFailureMessages());
+            var publicKeyResolutionResult = publicKeyResolver.resolveKey(publicKeyId);
+
+            if (publicKeyResolutionResult.failed()) {
+                return publicKeyResolutionResult.mapTo();
             }
 
-            if (!signedJwt.verify(verifierCreationResult.getContent())) {
+            var verifierCreationResult = jwsSignerVerifierFactory.createVerifierFor(publicKeyResolutionResult.getContent());
+
+            if (!signedJwt.verify(verifierCreationResult)) {
                 return Result.failure("Token verification failed");
             }
 
@@ -64,12 +63,15 @@ public class TokenValidationServiceImpl implements TokenValidationService {
 
             var claimToken = tokenBuilder.build();
 
-            var errors = rulesRegistry.getRules().stream()
+
+            var errors = Stream.of(rules)
                     .map(r -> r.checkRule(claimToken, additional))
-                    .filter(Result::failed)
-                    .map(Result::getFailureMessages)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList());
+                    .reduce(Result::merge)
+                    .stream()
+                    .filter(AbstractResult::failed)
+                    .flatMap(r -> r.getFailureMessages().stream())
+                    .toList();
+
 
             if (!errors.isEmpty()) {
                 return Result.failure(errors);
@@ -84,15 +86,4 @@ public class TokenValidationServiceImpl implements TokenValidationService {
         }
     }
 
-    private Result<JWSVerifier> createVerifier(JWSHeader header, String publicKeyId) {
-        var publicKey = publicKeyResolver.resolveKey(publicKeyId);
-        if (publicKey.failed()) {
-            return Result.failure("Failed to resolve public key with id: %s, Error: %s".formatted(publicKeyId, publicKey.getFailureDetail()));
-        }
-        try {
-            return Result.success(new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey.getContent()));
-        } catch (JOSEException e) {
-            return Result.failure("Failed to create verifier: " + e.getMessage());
-        }
-    }
 }

@@ -109,7 +109,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var pubKeyAlias = context.getSetting(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null);
         var privKeyAlias = context.getSetting(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null);
 
-        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(), dataEncrypter, typeManager);
+        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(), dataEncrypter, typeManager, publicKeyResolver);
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privKeyAlias, pubKeyAlias), tokenExpirationDateFunction);
@@ -132,7 +132,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private TokenValidationService tokenValidationService() {
         var registry = new TokenValidationRulesRegistryImpl();
         registry.addRule(new ExpirationDateValidationRule(clock));
-        return new TokenValidationServiceImpl(publicKeyResolver, registry);
+        return new TokenValidationServiceImpl();
     }
 
 }

@@ -28,7 +28,6 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
-import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
@@ -48,13 +47,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
@@ -106,14 +103,12 @@ class Oauth2ServiceImplTest {
                 .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
-        var clock = Clock.fixed(now, UTC);
-        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
-        var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
+        var tokenValidationService = new TokenValidationServiceImpl();
 
         var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
         jwtDecoratorRegistry.register(jwtDecorator);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
     }
 
     @Test

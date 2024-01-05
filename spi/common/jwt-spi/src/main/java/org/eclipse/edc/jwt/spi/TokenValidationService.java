@@ -15,6 +15,7 @@
 package org.eclipse.edc.jwt.spi;
 
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -28,21 +29,25 @@ public interface TokenValidationService {
      * Validates the token and offers possibility for additional information for validations.
      *
      * @param tokenRepresentation A token representation including the token to verify.
+     * @param publicKeyResolver   A {@link PublicKeyResolver} to obtain the public key with which to verify the token
+     * @param rules               token validation rules that apply to the token
      * @return Result of the validation.
      */
-    Result<ClaimToken> validate(TokenRepresentation tokenRepresentation);
+    Result<ClaimToken> validate(TokenRepresentation tokenRepresentation, PublicKeyResolver publicKeyResolver, TokenValidationRule... rules);
 
     /**
      * Validates the token.
      *
-     * @param token The token to be validated.
+     * @param token             The token to be validated.
+     * @param publicKeyResolver A {@link PublicKeyResolver} to obtain the public key with which to verify the token
+     * @param rules             token validation rules that apply to the token
      * @return Result of the validation.
      */
-    default Result<ClaimToken> validate(@NotNull String token) {
+    default Result<ClaimToken> validate(@NotNull String token, PublicKeyResolver publicKeyResolver, TokenValidationRule... rules) {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
 
-        return validate(tokenRepresentation);
+        return validate(tokenRepresentation, publicKeyResolver, rules);
     }
 }

@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
@@ -40,40 +39,38 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TokenValidationServiceImplTest {
 
     private final Instant now = Instant.now();
+    private final PublicKeyResolver publicKeyResolver = mock();
     private TokenValidationService tokenValidationService;
     private RSAKey key;
-    private TokenValidationRule ruleMock;
     private String publicKeyId;
 
     @BeforeEach
     public void setUp() throws JOSEException {
         key = testKey();
-        ruleMock = mock(TokenValidationRule.class);
         var publicKey = (RSAPublicKey) key.toPublicKey();
         publicKeyId = UUID.randomUUID().toString();
-        var resolver = new PublicKeyResolver() {
-            @Override
-            public Result<PublicKey> resolveKey(String id) {
-                return id.equals(publicKeyId) ? Result.success(publicKey) : Result.failure("not found");
-            }
-        };
+
+        when(publicKeyResolver.resolveKey(any())).thenReturn(Result.failure("not found"));
+        when(publicKeyResolver.resolveKey(eq(publicKeyId))).thenReturn(Result.success(publicKey));
         var rulesRegistry = new TokenValidationRulesRegistryImpl();
-        rulesRegistry.addRule(ruleMock);
-        tokenValidationService = new TokenValidationServiceImpl(resolver, rulesRegistry);
+        tokenValidationService = new TokenValidationServiceImpl();
     }
 
     @Test
     void validationSuccess() throws JOSEException {
         var claims = createClaims(now);
+        var ruleMock = mock(TokenValidationRule.class);
         when(ruleMock.checkRule(any(), any())).thenReturn(Result.success());
 
-        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()));
+        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims())
@@ -84,23 +81,42 @@ class TokenValidationServiceImplTest {
     @Test
     void validationFailure_cannotResolvePublicKey() throws JOSEException {
         var claims = createClaims(now);
-        when(ruleMock.checkRule(any(), any())).thenReturn(Result.failure("Rule validation failed!"));
+        var ruleMock = mock(TokenValidationRule.class);
 
-        var result = tokenValidationService.validate(createJwt("unknown-key", claims, key.toPrivateKey()));
+        var result = tokenValidationService.validate(createJwt("unknown-key", claims, key.toPrivateKey()), publicKeyResolver, ruleMock);
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("Failed to resolve public key with id: unknown-key, Error: not found");
+        assertThat(result.getFailureMessages()).containsExactly("not found");
+        verifyNoInteractions(ruleMock);
     }
 
     @Test
-    void validationFailure_validationRuleKo() throws JOSEException {
+    void validationFailure_singleRuleFails() throws JOSEException {
         var claims = createClaims(now);
+        var ruleMock = mock(TokenValidationRule.class);
         when(ruleMock.checkRule(any(), any())).thenReturn(Result.failure("Rule validation failed!"));
 
-        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()));
+        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver, ruleMock);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("Rule validation failed!");
+    }
+
+    @Test
+    void validationFailure_multipleRulesFail() throws JOSEException {
+        var claims = createClaims(now);
+        var r1 = mock(TokenValidationRule.class);
+        var r2 = mock(TokenValidationRule.class);
+        var r3 = mock(TokenValidationRule.class);
+
+        when(r1.checkRule(any(), any())).thenReturn(Result.failure("test-failure1"));
+        when(r2.checkRule(any(), any())).thenReturn(Result.success());
+        when(r3.checkRule(any(), any())).thenReturn(Result.failure("test-failure2"));
+
+        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver, r1, r2, r3);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).containsExactlyInAnyOrder("test-failure1", "test-failure2");
     }
 
     private String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
