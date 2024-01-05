@@ -19,6 +19,7 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
 import org.eclipse.edc.jwt.JwtGenerationService;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -114,7 +115,8 @@ public class Oauth2CredentialsRequestFactory {
                 .orElse(DEFAULT_TOKEN_VALIDITY);
         var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
         var service = new JwtGenerationService();
-        return service.generate(privateKey::getContent, decorator);
+
+        return service.generate(() -> new SignatureInfo(privateKey.getContent()), decorator);
     }
 
     @Nullable

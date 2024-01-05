@@ -18,10 +18,10 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.KeyParser;
 import org.junit.jupiter.api.Test;
 
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.failure;
@@ -41,7 +41,7 @@ class KeyParserRegistryImplTest {
             }
 
             @Override
-            public Result<PrivateKey> parse(String encoded) {
+            public Result<Key> parse(String encoded) {
                 return success(rsaKey().getPrivate());
             }
         });
@@ -64,7 +64,7 @@ class KeyParserRegistryImplTest {
             }
 
             @Override
-            public Result<PrivateKey> parse(String encoded) {
+            public Result<Key> parse(String encoded) {
                 return failure("test-failure");
             }
         });

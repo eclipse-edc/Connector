@@ -27,11 +27,11 @@ import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
@@ -45,10 +45,10 @@ import static org.mockito.Mockito.when;
 
 class TokenValidationServiceImplTest {
 
+    private final Instant now = Instant.now();
     private TokenValidationService tokenValidationService;
     private RSAKey key;
     private TokenValidationRule ruleMock;
-    private final Instant now = Instant.now();
     private String publicKeyId;
 
     @BeforeEach
@@ -59,9 +59,8 @@ class TokenValidationServiceImplTest {
         publicKeyId = UUID.randomUUID().toString();
         var resolver = new PublicKeyResolver() {
             @Override
-            public @Nullable
-            RSAPublicKey resolveKey(String id) {
-                return id.equals(publicKeyId) ? publicKey : null;
+            public Result<PublicKey> resolveKey(String id) {
+                return id.equals(publicKeyId) ? Result.success(publicKey) : Result.failure("not found");
             }
         };
         var rulesRegistry = new TokenValidationRulesRegistryImpl();
@@ -90,7 +89,7 @@ class TokenValidationServiceImplTest {
         var result = tokenValidationService.validate(createJwt("unknown-key", claims, key.toPrivateKey()));
 
         assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("Failed to resolve public key with id: unknown-key");
+        assertThat(result.getFailureMessages()).containsExactly("Failed to resolve public key with id: unknown-key, Error: not found");
     }
 
     @Test
@@ -104,14 +103,7 @@ class TokenValidationServiceImplTest {
         assertThat(result.getFailureMessages()).containsExactly("Rule validation failed!");
     }
 
-    private JWTClaimsSet createClaims(Instant exp) {
-        return new JWTClaimsSet.Builder()
-                .claim("foo", "bar")
-                .expirationTime(Date.from(exp))
-                .build();
-    }
-
-    private static String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
+    private String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
         var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(publicKeyId).build();
         try {
             SignedJWT jwt = new SignedJWT(header, claimsSet);
@@ -122,10 +114,17 @@ class TokenValidationServiceImplTest {
         }
     }
 
-    private static RSAKey testKey() throws JOSEException {
+    private RSAKey testKey() throws JOSEException {
         return new RSAKeyGenerator(2048)
                 .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
                 .keyID(UUID.randomUUID().toString()) // give the key a unique ID
                 .generate();
+    }
+
+    private JWTClaimsSet createClaims(Instant exp) {
+        return new JWTClaimsSet.Builder()
+                .claim("foo", "bar")
+                .expirationTime(Date.from(exp))
+                .build();
     }
 }

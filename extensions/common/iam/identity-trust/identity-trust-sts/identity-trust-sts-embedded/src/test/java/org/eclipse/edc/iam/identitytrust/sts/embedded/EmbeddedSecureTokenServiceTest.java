@@ -15,13 +15,13 @@
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
 import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 public class EmbeddedSecureTokenServiceTest {
 
     private final TokenGenerationService tokenGenerationService = mock();
-    private final Supplier<PrivateKey> keySupplier = () -> mock(PrivateKey.class);
+    private final Supplier<SignatureInfo> keySupplier = () -> mock(SignatureInfo.class);
 
     @Test
     void createToken_withoutBearerAccessScope() {

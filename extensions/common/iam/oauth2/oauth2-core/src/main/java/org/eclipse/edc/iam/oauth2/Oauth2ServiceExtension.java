@@ -29,6 +29,7 @@ import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.jwt.JwtGenerationService;
 import org.eclipse.edc.jwt.TokenValidationServiceImpl;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -43,7 +44,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -147,8 +147,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     @NotNull
     private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry, Oauth2ValidationRulesRegistryImpl validationRulesRegistry) {
-        Supplier<PrivateKey> privateKeySupplier = () -> privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
-                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+        Supplier<SignatureInfo> privateKeySupplier = () -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
+                .orElseThrow(f -> new EdcException(f.getFailureDetail())), configuration.getPublicCertificateAlias());
 
         return new Oauth2ServiceImpl(
                 configuration,

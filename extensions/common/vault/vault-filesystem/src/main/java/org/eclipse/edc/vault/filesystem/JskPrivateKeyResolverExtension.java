@@ -56,7 +56,7 @@ public class JskPrivateKeyResolverExtension implements ServiceExtension {
     @Provider
     public PrivateKeyResolver createResolver(ServiceExtensionContext context) {
         var keystorePassword = context.getSetting(KEYSTORE_PASSWORD, null);
-        return new JksPrivateKeyResolver(registry, keystorePassword, keyStore, context.getMonitor().withPrefix("PrivateKeyResolution"));
+        return new JksPrivateKeyResolver(registry, keystorePassword, keyStore, context.getConfig(), context.getMonitor().withPrefix("PrivateKeyResolution"));
     }
 
     @Provider

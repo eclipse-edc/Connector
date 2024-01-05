@@ -24,6 +24,7 @@ import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.jwt.JwtGenerationService;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -37,6 +38,7 @@ import java.security.KeyPair;
 import java.time.Clock;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @Extension("Identity And Trust Extension to register default services")
 public class IatpDefaultServicesExtension implements ServiceExtension {
@@ -68,7 +70,9 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
                     "This could be an indicator of a configuration problem.");
         }
 
-        return new EmbeddedSecureTokenService(new JwtGenerationService(), () -> keyPairFromConfig(context).getPrivate(), clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
+        Supplier<SignatureInfo> supplier = () -> new SignatureInfo(keyPairFromConfig(context).getPrivate(), context.getSetting(STS_PUBLIC_KEY_ALIAS, null));
+
+        return new EmbeddedSecureTokenService(new JwtGenerationService(), supplier, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }
 
     @Provider(isDefault = true)

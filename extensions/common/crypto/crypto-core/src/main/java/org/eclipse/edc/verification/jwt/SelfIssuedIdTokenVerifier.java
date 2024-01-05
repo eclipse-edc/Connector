@@ -16,13 +16,9 @@ package org.eclipse.edc.verification.jwt;
 
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.did.crypto.JwtUtils;
-import org.eclipse.edc.iam.did.spi.document.DidConstants;
-import org.eclipse.edc.iam.did.spi.document.DidDocument;
-import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.util.Optional;
@@ -41,9 +37,9 @@ import java.util.Optional;
  * This is done by the {@link SelfIssuedIdTokenVerifier}.
  */
 public class SelfIssuedIdTokenVerifier implements JwtVerifier {
-    private final DidPublicKeyResolver publicKeyResolver;
+    private final PublicKeyResolver publicKeyResolver;
 
-    public SelfIssuedIdTokenVerifier(DidPublicKeyResolver publicKeyResolver) {
+    public SelfIssuedIdTokenVerifier(PublicKeyResolver publicKeyResolver) {
         this.publicKeyResolver = publicKeyResolver;
     }
 
@@ -53,12 +49,16 @@ public class SelfIssuedIdTokenVerifier implements JwtVerifier {
         SignedJWT jwt;
         try {
             jwt = SignedJWT.parse(serializedJwt);
-            var publicKeyWrapperResult = publicKeyResolver.resolvePublicKey(jwt.getJWTClaimsSet().getIssuer(), jwt.getHeader().getKeyID());
-            if (publicKeyWrapperResult.failed()) {
-                return publicKeyWrapperResult.mapTo();
+
+            var issuer = jwt.getJWTClaimsSet().getIssuer();
+            var keyId = Optional.of(jwt.getHeader().getKeyID()).map(kid -> issuer + "#" + kid).orElseGet(() -> issuer);
+
+            var publicKeyResult = publicKeyResolver.resolveKey(keyId);
+            if (publicKeyResult.failed()) {
+                return publicKeyResult.mapTo();
             }
 
-            var verified = JwtUtils.verify(jwt, publicKeyWrapperResult.getContent(), audience);
+            var verified = JwtUtils.verify(jwt, publicKeyResult.getContent(), audience);
             if (verified.failed()) {
                 return Result.failure("Token could not be verified: %s".formatted(verified.getFailureDetail()));
             }
@@ -68,15 +68,4 @@ public class SelfIssuedIdTokenVerifier implements JwtVerifier {
         }
     }
 
-    private Optional<VerificationMethod> getVerificationMethod(DidDocument content, String kid) {
-        return content.getVerificationMethod().stream().filter(vm -> vm.getId().equals(kid))
-                .findFirst();
-    }
-
-    @NotNull
-    private Optional<VerificationMethod> firstVerificationMethod(DidDocument did) {
-        return did.getVerificationMethod().stream()
-                .filter(vm -> DidConstants.ALLOWED_VERIFICATION_TYPES.contains(vm.getType()))
-                .findFirst();
-    }
 }

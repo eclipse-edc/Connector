@@ -15,8 +15,11 @@
 package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 /**
  * Implementation that returns private keys stored in a vault. If the key is not found in the vault, this implementation
@@ -27,27 +30,17 @@ import org.jetbrains.annotations.Nullable;
 public class VaultPrivateKeyResolver extends AbstractPrivateKeyResolver {
 
     private final Vault vault;
-    private final Monitor monitor;
-    private final Config config;
 
     public VaultPrivateKeyResolver(KeyParserRegistry registry, Vault vault, Monitor monitor, Config config) {
-        super(registry);
+        super(registry, config, monitor);
         this.vault = vault;
-        this.monitor = monitor;
-        this.config = config;
     }
 
+    @NotNull
     @Override
-    protected @Nullable String resolveInternal(String keyId) {
-        var privateKey = vault.resolveSecret(keyId);
-        if (privateKey == null) { //fallback
-            monitor.debug("Private Key not found in vault, fallback to config.");
-            privateKey = resolveFromConfig(keyId);
-        }
-        return privateKey;
-    }
-
-    private String resolveFromConfig(String keyId) {
-        return config.getString(keyId, null);
+    protected Result<String> resolveInternal(String keyId) {
+        return Optional.ofNullable(vault.resolveSecret(keyId))
+                .map(Result::success)
+                .orElseGet(() -> Result.failure("Private key with ID '%s' not found in Vault".formatted(keyId)));
     }
 }

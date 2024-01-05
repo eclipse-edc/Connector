@@ -22,11 +22,14 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.edc.iam.did.crypto.key.KeyConverter;
 import org.eclipse.edc.iam.did.spi.document.DidConstants;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.security.PublicKey;
 import java.util.Date;
+import java.util.List;
 
 import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -36,7 +39,7 @@ import static org.mockito.Mockito.when;
 
 class SelfIssuedIdTokenVerifierTest {
 
-    private final DidPublicKeyResolver pkResolver = mock();
+    private final PublicKeyResolver pkResolver = mock();
     private final SelfIssuedIdTokenVerifier verifier = new SelfIssuedIdTokenVerifier(pkResolver);
     private ECKey didVerificationMethod;
 
@@ -53,7 +56,12 @@ class SelfIssuedIdTokenVerifierTest {
                 .build();
 
         var publicKeyWrapper = KeyConverter.toPublicKeyWrapper(didVerificationMethod.toPublicJWK().toJSONObject(), "#my-key1");
-        when(pkResolver.resolvePublicKey(any(), any())).thenReturn(publicKeyWrapper);
+        var publicKey = com.nimbusds.jose.jwk.KeyConverter.toJavaKeys(List.of(didVerificationMethod.toPublicJWK()))
+                .stream().filter(k -> k instanceof PublicKey)
+                .map(k -> (PublicKey) k)
+                .findFirst()
+                .orElseThrow();
+        when(pkResolver.resolveKey(any())).thenReturn(Result.success(publicKey));
     }
 
     @Test

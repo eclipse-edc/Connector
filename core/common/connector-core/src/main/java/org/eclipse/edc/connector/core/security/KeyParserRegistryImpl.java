@@ -18,7 +18,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.KeyParser;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
 
-import java.security.PrivateKey;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class KeyParserRegistryImpl implements KeyParserRegistry {
     }
 
     @Override
-    public Result<PrivateKey> parse(String encoded) {
+    public Result<Key> parse(String encoded) {
         return parsers.stream().filter(kp -> kp.canHandle(encoded))
                 .findFirst()
                 .map(kp -> kp.parse(encoded))

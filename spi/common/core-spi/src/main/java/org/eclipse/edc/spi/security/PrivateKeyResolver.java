@@ -30,7 +30,7 @@ public interface PrivateKeyResolver {
      * Resolves a {@link PrivateKey} identified by its ID.
      *
      * @param id The ID under which the PrivateKey is held in secure storage.
-     * @return The {@link PrivateKey}, or {@code null} if no PrivateKey with that ID was found.
+     * @return The {@link PrivateKey}, or a failure, if no key material was found for this ID, or the referenced material did not contain a private key.
      */
     Result<PrivateKey> resolvePrivateKey(String id);
 }

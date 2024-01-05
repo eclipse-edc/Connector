@@ -62,7 +62,7 @@ class JksPrivateKeyResolverTest {
         registry = mock();
         var parser = new PemParser(mock());
         when(registry.parse(anyString())).thenAnswer(a -> Result.success(parser.parse(a.getArgument(0))));
-        keyResolver = new JksPrivateKeyResolver(registry, JksPrivateKeyResolverTest.PASSWORD, keyStore, mock());
+        keyResolver = new JksPrivateKeyResolver(registry, JksPrivateKeyResolverTest.PASSWORD, keyStore, mock(), mock());
         Security.addProvider(new BouncyCastleProvider());
     }
 
