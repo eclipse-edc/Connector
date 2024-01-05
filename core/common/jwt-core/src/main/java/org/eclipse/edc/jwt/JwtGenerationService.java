@@ -20,18 +20,20 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
 import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.PrivateKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -40,23 +42,23 @@ import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
 public class JwtGenerationService implements TokenGenerationService {
-    private final JwsSignerConverter factory;
+    private final JwsSignerVerifierFactory factory;
 
 
     public JwtGenerationService() {
-        this.factory = new JwsSignerConverterImpl();
+        this.factory = new JwsSignerVerifierFactory();
     }
 
     @Override
-    public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull JwtDecorator... decorators) {
+    public Result<TokenRepresentation> generate(Supplier<SignatureInfo> signatureInfoSupplier, @NotNull JwtDecorator... decorators) {
 
-        var privateKey = privateKeySupplier.get();
+        var signatureInfo = signatureInfoSupplier.get();
 
-        var tokenSigner = factory.createSignerFor(privateKey);
+        var tokenSigner = factory.createSignerFor(signatureInfo.signingKey());
         var jwsAlgorithm = factory.getRecommendedAlgorithm(tokenSigner);
 
         var allDecorators = new ArrayList<>(Arrays.asList(decorators));
-        allDecorators.add(new BaseDecorator(jwsAlgorithm));
+        allDecorators.add(new BaseDecorator(jwsAlgorithm, signatureInfo.keyId()));
 
         var header = createHeader(allDecorators);
         var claims = createClaimsSet(allDecorators);
@@ -100,7 +102,7 @@ public class JwtGenerationService implements TokenGenerationService {
     /**
      * Base JwtDecorator that provides the algorithm header value
      */
-    private record BaseDecorator(JWSAlgorithm jwsAlgorithm) implements JwtDecorator {
+    private record BaseDecorator(JWSAlgorithm jwsAlgorithm, String keyId) implements JwtDecorator {
 
         @Override
         public Map<String, Object> claims() {
@@ -109,7 +111,12 @@ public class JwtGenerationService implements TokenGenerationService {
 
         @Override
         public Map<String, Object> headers() {
-            return Map.of("alg", jwsAlgorithm.getName());
+            var map = new HashMap<String, Object>();
+            map.put("alg", jwsAlgorithm.getName());
+            if (keyId != null) {
+                map.put("kid", keyId);
+            }
+            return map;
         }
     }
 }

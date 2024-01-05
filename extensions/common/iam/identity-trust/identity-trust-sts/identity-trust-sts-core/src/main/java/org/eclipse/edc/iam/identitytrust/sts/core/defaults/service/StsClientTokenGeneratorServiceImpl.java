@@ -19,10 +19,10 @@ import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,10 +45,10 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
 
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
-    private final Function<StsClient, PrivateKey> keyFunction;
+    private final Function<StsClient, SignatureInfo> keyFunction;
     private final Clock clock;
 
-    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsClient, PrivateKey> keyFunction, Clock clock, long tokenExpiration) {
+    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsClient, SignatureInfo> keyFunction, Clock clock, long tokenExpiration) {
         this.tokenGenerationProvider = tokenGenerationProvider;
         this.keyFunction = keyFunction;
         this.clock = clock;

@@ -21,7 +21,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
@@ -30,6 +29,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
 import org.eclipse.edc.security.signature.jws2020.TestDocumentLoader;
 import org.eclipse.edc.security.signature.jws2020.TestFunctions;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtCreationUtils;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
@@ -51,7 +51,7 @@ import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
-import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKeyWrapper;
+import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKey;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_DID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_KEY_ID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.MY_OWN_DID;
@@ -62,8 +62,7 @@ import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestDat
 import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestData.VP_CONTENT_TEMPLATE;
 import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestData.createMembershipCredential;
 import static org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestData.createNameCredential;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -76,7 +75,7 @@ class MultiFormatPresentationVerifierTest {
     private static ECKey vpSigningKey;
     private static ECKey vcSigningKey;
     private static TitaniumJsonLd jsonLd;
-    private final DidPublicKeyResolver publicKeyResolverMock = mock();
+    private final PublicKeyResolver publicKeyResolverMock = mock();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
     private MultiFormatPresentationVerifier multiFormatVerifier;
 
@@ -96,8 +95,8 @@ class MultiFormatPresentationVerifierTest {
 
     @BeforeEach
     void setup() {
-        when(publicKeyResolverMock.resolvePublicKey(any(), eq(PRESENTER_KEY_ID))).thenReturn(success(createPublicKeyWrapper(vpSigningKey.toPublicJWK())));
-        when(publicKeyResolverMock.resolvePublicKey(any(), eq(CENTRAL_ISSUER_KEY_ID))).thenReturn(success(createPublicKeyWrapper(vcSigningKey.toPublicJWK())));
+        when(publicKeyResolverMock.resolveKey(endsWith(PRESENTER_KEY_ID))).thenReturn(success(createPublicKey(vpSigningKey.toPublicJWK())));
+        when(publicKeyResolverMock.resolveKey(endsWith(CENTRAL_ISSUER_KEY_ID))).thenReturn(success(createPublicKey(vcSigningKey.toPublicJWK())));
 
         var ldpVerifier = LdpVerifier.Builder.newInstance()
                 .signatureSuites(SIGNATURE_SUITE_REGISTRY)

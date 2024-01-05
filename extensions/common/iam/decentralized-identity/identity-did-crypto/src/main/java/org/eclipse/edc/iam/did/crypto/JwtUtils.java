@@ -18,14 +18,17 @@ import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.BadJWTException;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.edc.iam.did.spi.key.PublicKeyWrapper;
+import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
 import org.eclipse.edc.spi.result.Result;
 
+import java.security.PublicKey;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
@@ -45,6 +48,8 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
  */
 @Deprecated(forRemoval = true)
 public class JwtUtils {
+
+    private static final JwsSignerVerifierFactory JWS_SIGNER_VERIFIER_FACTORY = new JwsSignerVerifierFactory();
 
     /**
      * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity
@@ -93,9 +98,26 @@ public class JwtUtils {
      * @return true if verified, false otherwise
      */
     public static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
+        return verifyInternal(jwt, publicKey.verifier(), audience);
+    }
+
+    /**
+     * Verifies a VerifiableCredential using the issuer's public key
+     *
+     * @param jwt       a {@link SignedJWT} that was sent by the claiming party.
+     * @param publicKey The claiming party's public key, passed as a {@link JWSVerifier}
+     * @param audience  The intended audience
+     * @return true if verified, false otherwise
+     */
+    public static Result<Void> verify(SignedJWT jwt, PublicKey publicKey, String audience) {
+        var verifier = JWS_SIGNER_VERIFIER_FACTORY.createVerifierFor(publicKey);
+        return verifyInternal(jwt, verifier, audience);
+    }
+
+    private static Result<Void> verifyInternal(SignedJWT jwt, JWSVerifier verifier, String audience) {
         // verify JWT signature
         try {
-            var verified = jwt.verify(publicKey.verifier());
+            var verified = jwt.verify(verifier);
             if (!verified) {
                 return Result.failure("Invalid signature");
             }

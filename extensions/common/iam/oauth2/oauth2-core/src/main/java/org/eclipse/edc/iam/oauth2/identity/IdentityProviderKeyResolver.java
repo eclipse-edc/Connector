@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.AbstractMap;
@@ -49,9 +50,8 @@ import static java.util.concurrent.TimeUnit.MINUTES;
  * The keys are cached and the resolver must be started calling the `start` method
  */
 public class IdentityProviderKeyResolver implements PublicKeyResolver {
-    private final Monitor monitor;
     private static final String RSA = "RSA";
-
+    private final Monitor monitor;
     private final TypeManager typeManager;
     private final IdentityProviderKeyResolverConfiguration configuration;
     private final ScheduledExecutorService executorService;
@@ -68,14 +68,13 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver {
     }
 
     @Override
-    public RSAPublicKey resolveKey(String id) {
-        return cache.get().get(id);
+    public Result<PublicKey> resolveKey(String id) {
+        return Result.success(cache.get().get(id));
     }
 
     /**
      * Start the keys cache refreshing job.
      * Throws exception if it's not able to load the cache at startup.
-     *
      */
     public void start() {
         var result = refreshKeys();

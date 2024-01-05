@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.identitytrust.core;
 
 import jakarta.json.Json;
-import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.DidCredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.IdentityAndTrustService;
@@ -37,6 +36,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -83,7 +83,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private TypeTransformerRegistry typeTransformerRegistry;
 
     @Inject
-    private DidPublicKeyResolver didPublicKeyResolver;
+    private PublicKeyResolver didPublicKeyResolver;
 
     @Inject
     private DidResolverRegistry didResolverRegistry;

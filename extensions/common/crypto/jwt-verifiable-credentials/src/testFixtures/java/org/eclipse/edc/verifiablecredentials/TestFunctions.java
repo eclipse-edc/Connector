@@ -20,8 +20,13 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDHEncrypter;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.KeyConverter;
 import org.eclipse.edc.iam.did.spi.key.PublicKeyWrapper;
+import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
+
+import java.security.PublicKey;
+import java.util.List;
 
 public class TestFunctions {
 
@@ -46,5 +51,15 @@ public class TestFunctions {
                 }
             }
         };
+    }
+
+    public static PublicKey createPublicKey(ECKey signingKey) {
+        return KeyConverter.toJavaKeys(List.of(signingKey))
+                .stream()
+                .filter(k -> k instanceof PublicKey)
+                .map(k -> (PublicKey) k)
+                .findFirst()
+                .orElseThrow(() -> new EdcException("EC Key cannot be converted to a Java PublicKey"));
+
     }
 }

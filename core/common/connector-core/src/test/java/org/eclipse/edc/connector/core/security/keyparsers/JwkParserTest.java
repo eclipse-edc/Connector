@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -52,17 +53,17 @@ class JwkParserTest {
 
     @ParameterizedTest
     @ArgumentsSource(KeyProvider.class)
-    void parse(JWK jwk) {
+    void parse_privateKey(JWK jwk) {
         var result = parser.parse(jwk.toJSONString());
         assertThat(result).isSucceeded().isInstanceOf(PrivateKey.class);
     }
 
     @ParameterizedTest
     @ArgumentsSource(KeyProvider.class)
-    void parse_noPrivateKey(JWK jwk) {
+    void parse_publicKey(JWK jwk) {
         var publickey = jwk.toPublicJWK();
         var result = parser.parse(publickey.toJSONString());
-        assertThat(result).isFailed().detail().isEqualTo("The provided key material was in JWK format, but did not contain any (readable) private key");
+        assertThat(result).isSucceeded().isInstanceOf(PublicKey.class);
     }
 
     private static class KeyProvider implements ArgumentsProvider {

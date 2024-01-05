@@ -15,13 +15,16 @@
 package org.eclipse.edc.iam.did.resolution;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.iam.did.spi.document.DidConstants;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +36,7 @@ import java.util.Objects;
 import java.util.Scanner;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,8 +45,9 @@ class DidPublicKeyResolverImplTest {
 
     public static final String KEYID = "#my-key1";
     private static final String DID_URL = "did:web:example.com";
-    private final DidResolverRegistry resolverRegistry = mock(DidResolverRegistry.class);
-    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(resolverRegistry);
+    private final DidResolverRegistry resolverRegistry = mock();
+    private final KeyParserRegistry keyParserRegistry = mock();
+    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry, mock(), mock());
     private DidDocument didDocument;
 
     public static String readFile(String filename) throws IOException {
@@ -66,13 +71,15 @@ class DidPublicKeyResolverImplTest {
                 .verificationMethod(List.of(vm))
                 .service(Collections.singletonList(new Service("#my-service1", "MyService", "http://doesnotexi.st")))
                 .build();
+
+        when(keyParserRegistry.parse(anyString())).thenReturn(Result.success(new ECKeyGenerator(Curve.P_256).generate().toPublicKey()));
     }
 
     @Test
     void resolve() {
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + KEYID);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(resolverRegistry).resolve(DID_URL);
@@ -82,7 +89,7 @@ class DidPublicKeyResolverImplTest {
     void resolve_didNotFound() {
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.failure("Not found"));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + KEYID);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
@@ -93,7 +100,7 @@ class DidPublicKeyResolverImplTest {
         didDocument.getVerificationMethod().clear();
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + KEYID);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
@@ -108,10 +115,10 @@ class DidPublicKeyResolverImplTest {
         didDocument.getVerificationMethod().add(vm);
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + KEYID);
 
         assertThat(result).isFailed()
-                .detail().isEqualTo("Every verification method must have a unique ID");
+                .detail().contains("Every verification method must have a unique ID");
         verify(resolverRegistry).resolve(DID_URL);
     }
 
@@ -125,7 +132,7 @@ class DidPublicKeyResolverImplTest {
 
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, KEYID);
+        var result = resolver.resolveKey(DID_URL + KEYID);
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
@@ -140,16 +147,16 @@ class DidPublicKeyResolverImplTest {
         didDocument.getVerificationMethod().add(vm);
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, null);
+        var result = resolver.resolveKey(DID_URL);
         assertThat(result).isFailed()
-                .detail().isEqualTo("The key ID ('kid') is mandatory if DID contains >1 verification methods.");
+                .detail().contains("The key ID ('kid') is mandatory if DID contains >1 verification methods.");
     }
 
     @Test
     void resolve_keyIdIsNull_onlyOneVerificationMethod() {
         when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
-        var result = resolver.resolvePublicKey(DID_URL, null);
+        var result = resolver.resolveKey(DID_URL);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(resolverRegistry).resolve(DID_URL);

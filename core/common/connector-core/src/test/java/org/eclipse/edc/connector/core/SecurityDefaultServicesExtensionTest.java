@@ -37,7 +37,7 @@ class SecurityDefaultServicesExtensionTest {
     }
 
     @Test
-    void certificateResolver(SecurityDefaultServicesExtension extension, ServiceExtensionContext context) {
-        assertThat(extension.certificateResolver(context)).isInstanceOf(CertificateResolver.class);
+    void certificateResolver(SecurityDefaultServicesExtension extension) {
+        assertThat(extension.certificateResolver()).isInstanceOf(CertificateResolver.class);
     }
 }

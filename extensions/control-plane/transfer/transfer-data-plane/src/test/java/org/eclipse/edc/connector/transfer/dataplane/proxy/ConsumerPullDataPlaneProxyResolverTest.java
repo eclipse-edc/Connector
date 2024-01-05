@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -28,7 +29,6 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.security.PrivateKey;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.UUID;
@@ -49,7 +49,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
     private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction = mock(ConsumerPullTokenExpirationDateFunction.class);
 
-    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, () -> mock(PrivateKey.class), tokenExpirationDateFunction);
+    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, () -> mock(SignatureInfo.class), tokenExpirationDateFunction);
 
     private static DataAddress dataAddress() {
         return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();

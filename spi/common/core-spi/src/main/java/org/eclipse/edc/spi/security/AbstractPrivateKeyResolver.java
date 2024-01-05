@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.spi.security;
 
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.PrivateKey;
 
@@ -25,20 +27,48 @@ import java.security.PrivateKey;
  */
 public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
     private final KeyParserRegistry registry;
+    private final Config config;
+    private final Monitor monitor;
 
-    public AbstractPrivateKeyResolver(KeyParserRegistry registry) {
+    public AbstractPrivateKeyResolver(KeyParserRegistry registry, Config config, Monitor monitor) {
         this.registry = registry;
+        this.config = config;
+        this.monitor = monitor;
     }
 
     @Override
     public Result<PrivateKey> resolvePrivateKey(String id) {
-        var encodedKey = resolveInternal(id);
-        if (encodedKey != null) {
-            return registry.parse(encodedKey);
-        }
-        return Result.failure("No private key found for key-ID '%s'".formatted(id));
+        var encodedKeyResult = resolveInternal(id);
+
+        return encodedKeyResult
+                .recover(failure -> {
+                    monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
+                    return resolveFromConfig(id);
+                })
+                .compose(encodedKey -> registry.parse(encodedKey).compose(pk -> {
+                    if (pk instanceof PrivateKey privateKey) {
+                        return Result.success(privateKey);
+                    } else {
+                        var msg = "The specified resource did not contain private key material.";
+                        monitor.warning(msg);
+                        return Result.failure(msg);
+                    }
+                }));
     }
 
-    @Nullable
-    protected abstract String resolveInternal(String keyId);
+    /**
+     * Returns the resolved key material
+     *
+     * @param keyId the Key-ID
+     * @return {@link Result#success()} if the key was found, {@link Result#failure(String)} if not found or other error.
+     */
+    @NotNull
+    protected abstract Result<String> resolveInternal(String keyId);
+
+    private Result<String> resolveFromConfig(String keyId) {
+        var value = config.getString(keyId, null);
+        return value == null ?
+                Result.failure("Private key with ID '%s' not found in Config".formatted(keyId)) :
+                Result.success(value);
+    }
 }

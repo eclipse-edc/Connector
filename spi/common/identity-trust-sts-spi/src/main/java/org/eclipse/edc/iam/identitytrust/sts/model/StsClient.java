@@ -27,6 +27,7 @@ public class StsClient {
     private String name;
     private String secretAlias;
     private String privateKeyAlias;
+    private String publicKeyReference;
 
     private StsClient() {
     }
@@ -77,6 +78,18 @@ public class StsClient {
         return clientId;
     }
 
+    /**
+     * A reference, e.g. a URL, where the public key that corresponds to the {@link StsClient#getPrivateKeyAlias()} can be obtained.
+     * In most situations this will be a DID with a key identifier, e.g. "did:web:foo:bar#key-1".
+     * <p>
+     * This can be null, in which case there has to be an out-of-band public key exchange (PKI), for example a well-known location.
+     *
+     * @return A reference to where the public key is available.
+     */
+    public String getPublicKeyReference() {
+        return publicKeyReference;
+    }
+
 
     public static class Builder {
 
@@ -113,6 +126,11 @@ public class StsClient {
 
         public Builder privateKeyAlias(String privateKeyAlias) {
             client.privateKeyAlias = privateKeyAlias;
+            return this;
+        }
+
+        public Builder publicKeyReference(String publicKeyReference) {
+            client.publicKeyReference = publicKeyReference;
             return this;
         }
 

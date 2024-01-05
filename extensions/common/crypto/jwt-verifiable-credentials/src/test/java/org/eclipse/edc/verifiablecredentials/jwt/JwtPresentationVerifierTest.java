@@ -19,10 +19,10 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,14 +31,14 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.eclipse.edc.spi.result.Result.success;
-import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKeyWrapper;
+import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKey;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class JwtPresentationVerifierTest {
 
-    private final DidPublicKeyResolver publicKeyResolverMock = mock();
+    private final PublicKeyResolver publicKeyResolverMock = mock();
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
     private final JwtPresentationVerifier verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(publicKeyResolverMock), mapper);
     private ECKey vpSigningKey;
@@ -54,12 +54,12 @@ class JwtPresentationVerifierTest {
                 .keyID(TestConstants.CENTRAL_ISSUER_KEY_ID)
                 .generate();
 
-        var vpKeyWrapper = createPublicKeyWrapper(vpSigningKey);
-        when(publicKeyResolverMock.resolvePublicKey(eq(TestConstants.VP_HOLDER_ID), eq(TestConstants.PRESENTER_KEY_ID)))
+        var vpKeyWrapper = createPublicKey(vpSigningKey);
+        when(publicKeyResolverMock.resolveKey(eq(TestConstants.VP_HOLDER_ID + "#" + TestConstants.PRESENTER_KEY_ID)))
                 .thenReturn(success(vpKeyWrapper));
 
-        var vcKeyWrapper = createPublicKeyWrapper(vcSigningKey);
-        when(publicKeyResolverMock.resolvePublicKey(eq(TestConstants.CENTRAL_ISSUER_DID), eq(TestConstants.CENTRAL_ISSUER_KEY_ID)))
+        var vcKeyWrapper = createPublicKey(vcSigningKey);
+        when(publicKeyResolverMock.resolveKey(eq(TestConstants.CENTRAL_ISSUER_DID + "#" + TestConstants.CENTRAL_ISSUER_KEY_ID)))
                 .thenReturn(success(vcKeyWrapper));
     }
 
