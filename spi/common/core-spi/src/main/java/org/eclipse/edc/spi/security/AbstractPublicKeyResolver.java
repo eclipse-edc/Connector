@@ -40,13 +40,6 @@ public abstract class AbstractPublicKeyResolver implements PublicKeyResolver {
     public Result<PublicKey> resolveKey(String id) {
         var encodedKeyResult = resolveInternal(id);
         return encodedKeyResult
-                .recover(failure -> {
-                    monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
-                    var r = resolveFromConfig(id);
-                    return r != null ?
-                            Result.success(r) :
-                            Result.failure(failure.getMessages());
-                })
                 .compose(encodedKey ->
                         registry.parse(encodedKey).compose(pk -> {
                             if (pk instanceof PublicKey publicKey) {
