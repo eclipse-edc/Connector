@@ -58,10 +58,10 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver {
         if (matcher.groupCount() > 1) {
             key = matcher.group(GROUP_FRAGMENT);
         }
-        return resolvePublicKey(did, key);
+        return resolveDidPublicKey(did, key);
     }
 
-    private Result<String> resolvePublicKey(String didUrl, @Nullable String keyId) {
+    private Result<String> resolveDidPublicKey(String didUrl, @Nullable String keyId) {
         var didResult = resolverRegistry.resolve(didUrl);
         if (didResult.failed()) {
             return didResult.mapTo();

@@ -21,6 +21,7 @@ import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwsSignerVerifierFactoryTest {
 
-    private final JwsSignerVerifierFactory factory = new JwsSignerVerifierFactoryImpl();
+    private final JwsSignerVerifierFactory factory = new JwsSignerVerifierFactory();
 
     private static KeyPair createEd25519(@Nullable Provider provider) throws NoSuchAlgorithmException {
 

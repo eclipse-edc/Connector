@@ -20,6 +20,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
 import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
@@ -45,7 +46,7 @@ public class JwtGenerationService implements TokenGenerationService {
 
 
     public JwtGenerationService() {
-        this.factory = new JwsSignerVerifierFactoryImpl();
+        this.factory = new JwsSignerVerifierFactory();
     }
 
     @Override

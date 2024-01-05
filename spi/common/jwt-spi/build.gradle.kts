@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(libs.nimbus.jwt)
 }
 
 
