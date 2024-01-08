@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.query.Criterion;
  * Converts a {@link Criterion} into a {@link WhereClause} that sql requires in order to perform queries against
  * its backend.
  */
+@FunctionalInterface
 public interface CriterionToWhereClauseConverter {
 
     /**
