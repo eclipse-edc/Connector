@@ -138,12 +138,6 @@ public class IdentityAndTrustService implements IdentityService {
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
 
-
-        // verify and validate incoming SI Token
-//        var claimTokenResult = jwtVerifier.verify(tokenRepresentation.getToken(), participantId)
-//                .compose(v -> jwtValidator.validateToken(tokenRepresentation, participantId)) // audience must be set to my own participant ID
-//                .compose(Result::success);
-
         var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
 
         if (claimTokenResult.failed()) {

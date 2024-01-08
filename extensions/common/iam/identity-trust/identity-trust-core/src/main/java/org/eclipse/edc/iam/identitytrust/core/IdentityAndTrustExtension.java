@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.core;
 
+import com.nimbusds.jwt.JWTClaimNames;
 import jakarta.json.Json;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.identitytrust.DidCredentialServiceUrlResolver;
@@ -35,6 +36,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -55,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.eclipse.edc.spi.CoreConstants.JSON_LD;
 
@@ -63,7 +66,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Setting(value = "DID of this connector", required = true)
     public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
-    public static final String IATP_TOKEN_CONTEXT = "iatp-si";
+    public static final String IATP_SELF_ISSUED_TOKEN_CONTEXT = "iatp-si";
 
 
     @Inject
@@ -108,16 +111,30 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
 
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+
+        // add all rules for self-issued ID tokens
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(context.getParticipantId()));
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule(context.getMonitor()));
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 5));
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new AccessTokenNotNullRule());
+
+        // add all rules for validating VerifiableCredential JWTs
+        rulesRegistry.addRule("iatp-vc", (toVerify, additional) -> Optional.ofNullable(toVerify.getStringClaim(JWTClaimNames.SUBJECT)).map(s ->
+                Result.success()).orElseGet(() -> Result.failure("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]")).mapTo());
+
+        rulesRegistry.addRule("iatp-vp", (toVerify, additional) -> Optional.ofNullable(toVerify.getStringClaim(JWTClaimNames.SUBJECT)).map(s ->
+                Result.success()).orElseGet(() -> Result.failure("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]")).mapTo());
+
+    }
+
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-
-        rulesRegistry.addRule(IATP_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
-        rulesRegistry.addRule(IATP_TOKEN_CONTEXT, new SubJwkIsNullRule());
-        rulesRegistry.addRule(IATP_TOKEN_CONTEXT, new AudienceValidationRule(context.getParticipantId()));
-        rulesRegistry.addRule(IATP_TOKEN_CONTEXT, new JtiValidationRule(context.getMonitor()));
-        rulesRegistry.addRule(IATP_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
-        rulesRegistry.addRule(IATP_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 5));
-        rulesRegistry.addRule(IATP_TOKEN_CONTEXT, new AccessTokenNotNullRule());
 
         var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
 
@@ -141,7 +158,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         if (presentationVerifier == null) {
             var mapper = typeManager.getMapper(JSON_LD);
 
-            var jwtVerifier = new JwtPresentationVerifier(tokenValidationAction(), mapper);
+            var jwtVerifier = new JwtPresentationVerifier(mapper, tokenValidationService, rulesRegistry, didPublicKeyResolver);
             var ldpVerifier = LdpVerifier.Builder.newInstance()
                     .signatureSuites(signatureSuiteRegistry)
                     .jsonLd(jsonLd)
@@ -157,7 +174,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @NotNull
     private TokenValidationAction tokenValidationAction() {
         return (tokenRepresentation) -> {
-            var rules = rulesRegistry.getRules(IATP_TOKEN_CONTEXT);
+            var rules = rulesRegistry.getRules(IATP_SELF_ISSUED_TOKEN_CONTEXT);
             return tokenValidationService.validate(tokenRepresentation, didPublicKeyResolver, rules);
         };
     }

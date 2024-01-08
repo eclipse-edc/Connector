@@ -51,6 +51,21 @@ public interface TokenValidationService {
     Result<ClaimToken> validate(TokenRepresentation tokenRepresentation, PublicKeyResolver publicKeyResolver, List<TokenValidationRule> rules);
 
     /**
+     * Validates the token and offers possibility for additional information for validations.
+     *
+     * @param token             A token to verify.
+     * @param publicKeyResolver A {@link PublicKeyResolver} to obtain the public key with which to verify the token
+     * @param rules             token validation rules that apply to the token. Assume to be unmodifiable.
+     * @return Result of the validation.
+     */
+    default Result<ClaimToken> validate(String token, PublicKeyResolver publicKeyResolver, List<TokenValidationRule> rules) {
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                .token(token)
+                .build();
+        return validate(tokenRepresentation, publicKeyResolver, rules);
+    }
+
+    /**
      * Validates the token.
      *
      * @param token             The token to be validated.

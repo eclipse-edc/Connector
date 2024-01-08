@@ -106,7 +106,6 @@ class Oauth2ServiceImplTest {
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
                 .endpointAudience(ENDPOINT_AUDIENCE)
-                .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
         var tokenValidationService = new TokenValidationServiceImpl();

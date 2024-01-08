@@ -86,11 +86,6 @@ class IdentityAndTrustServiceTest {
     void setup() {
         when(credentialServiceUrlResolverMock.resolve(any())).thenReturn(success("foobar"));
         var jwt = createJwt(new JWTClaimsSet.Builder().claim("scope", "foo-scope").build());
-//        when(jwtValidatorMock.validateToken(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance()
-//                .claim("iss", CONSUMER_DID)
-//                .claim("client_id", "sender-id")
-//                .claim(PRESENTATION_ACCESS_TOKEN_CLAIM, jwt.getToken()).build()));
-//        when(jwtVerfierMock.verify(any(), any())).thenReturn(success());
 
         when(actionMock.apply(any())).thenReturn(success(ClaimToken.Builder.newInstance()
                 .claim("iss", CONSUMER_DID)

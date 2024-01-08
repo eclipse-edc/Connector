@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
 import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
 import static java.util.Collections.emptyMap;
 
@@ -44,7 +45,7 @@ class SelfIssuedTokenDecorator implements JwtDecorator {
     @Override
     public Map<String, Object> claims() {
         var claims = new HashMap<String, Object>(this.claims);
-        claims.put("iat", Date.from(clock.instant()));
+        claims.put(ISSUED_AT, Date.from(clock.instant()));
         claims.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
         claims.put(JWT_ID, UUID.randomUUID().toString());
         return claims;

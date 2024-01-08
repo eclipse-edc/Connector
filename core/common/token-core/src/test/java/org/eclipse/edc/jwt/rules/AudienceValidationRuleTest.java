@@ -51,7 +51,7 @@ class AudienceValidationRuleTest {
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages())
-                .containsExactly("Token audience (aud) claim did not contain expected audience: test-audience");
+                .containsExactly("Token audience claim (aud -> [fake-audience]) did not contain expected audience: test-audience");
     }
 
     @Test
