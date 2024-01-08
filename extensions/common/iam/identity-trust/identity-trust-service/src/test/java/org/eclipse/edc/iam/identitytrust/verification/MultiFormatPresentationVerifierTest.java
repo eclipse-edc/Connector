@@ -23,6 +23,7 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
+import org.eclipse.edc.identitytrust.validation.TokenValidationAction;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -35,7 +36,6 @@ import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.eclipse.edc.verifiablecredentials.verfiablecredentials.LdpCreationUtils;
 import org.eclipse.edc.verifiablecredentials.verfiablecredentials.TestData;
-import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -77,6 +77,7 @@ class MultiFormatPresentationVerifierTest {
     private static TitaniumJsonLd jsonLd;
     private final PublicKeyResolver publicKeyResolverMock = mock();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
+    private final TokenValidationAction tokenValidationActionMock = mock();
     private MultiFormatPresentationVerifier multiFormatVerifier;
 
     @BeforeAll
@@ -103,7 +104,7 @@ class MultiFormatPresentationVerifierTest {
                 .jsonLd(jsonLd)
                 .objectMapper(MAPPER)
                 .build();
-        multiFormatVerifier = new MultiFormatPresentationVerifier(MY_OWN_DID, new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(publicKeyResolverMock), MAPPER), ldpVerifier);
+        multiFormatVerifier = new MultiFormatPresentationVerifier(MY_OWN_DID, new JwtPresentationVerifier(tokenValidationActionMock, MAPPER), ldpVerifier);
     }
 
     private DataIntegrityProofOptions generateEmbeddedProofOptions(ECKey vcKey, String proofPurpose) {

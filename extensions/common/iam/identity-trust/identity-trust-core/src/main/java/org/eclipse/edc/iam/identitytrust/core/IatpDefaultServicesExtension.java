@@ -23,8 +23,6 @@ import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
-import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -33,6 +31,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.token.spi.SignatureInfo;
 
 import java.security.KeyPair;
 import java.time.Clock;

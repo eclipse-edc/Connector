@@ -17,9 +17,10 @@ package org.eclipse.edc.verifiablecredentials.jwt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.identitytrust.validation.TokenValidationAction;
 import org.eclipse.edc.identitytrust.verification.CredentialVerifier;
-import org.eclipse.edc.identitytrust.verification.JwtVerifier;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 
 import java.text.ParseException;
@@ -56,16 +57,16 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
     public static final String VP_CLAIM = "vp";
     public static final String VC_CLAIM = "vc";
-    private final JwtVerifier jwtVerifier;
+    private final TokenValidationAction jwtValidationAction;
     private final ObjectMapper objectMapper;
 
     /**
      * Verifies the JWT presentation by checking the cryptographic integrity.
      *
-     * @param jwtVerifier The JwtVerifier instance used to verify the JWT token.
+     * @param validationAction a {@link TokenValidationAction} that is executed to verify and validate the token.
      */
-    public JwtPresentationVerifier(JwtVerifier jwtVerifier, ObjectMapper objectMapper) {
-        this.jwtVerifier = jwtVerifier;
+    public JwtPresentationVerifier(TokenValidationAction validationAction, ObjectMapper objectMapper) {
+        this.jwtValidationAction = validationAction;
         this.objectMapper = objectMapper;
     }
 
@@ -91,9 +92,9 @@ public class JwtPresentationVerifier implements CredentialVerifier {
 
         // verify the "outer" JWT, i.e. the VP JWT
         var audience = context.getAudience();
-        var verificationResult = jwtVerifier.verify(serializedJwt, audience);
+        var verificationResult = jwtValidationAction.apply(TokenRepresentation.Builder.newInstance().token(serializedJwt).build());
         if (verificationResult.failed()) {
-            return verificationResult;
+            return verificationResult.mapTo();
         }
 
         // verify all "inner" VC JWTs
@@ -101,7 +102,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             // obtain the actual JSON structure
             var signedJwt = SignedJWT.parse(serializedJwt);
             if (isCredential(signedJwt)) {
-                return verificationResult;
+                return verificationResult.mapTo();
             }
 
             if (!isPresentation(signedJwt)) {
@@ -131,7 +132,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         } catch (ParseException | JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return verificationResult;
+        return verificationResult.mapTo();
     }
 
     private boolean isCredential(SignedJWT jwt) throws ParseException {

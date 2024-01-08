@@ -19,8 +19,6 @@ import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientToke
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientService;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore;
-import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -29,6 +27,8 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;

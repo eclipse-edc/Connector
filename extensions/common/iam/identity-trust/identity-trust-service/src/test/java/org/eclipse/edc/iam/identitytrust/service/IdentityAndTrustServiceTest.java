@@ -26,8 +26,7 @@ import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
-import org.eclipse.edc.identitytrust.validation.JwtValidator;
-import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.identitytrust.validation.TokenValidationAction;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -77,22 +76,27 @@ class IdentityAndTrustServiceTest {
     private final SecureTokenService mockedSts = mock();
     private final PresentationVerifier mockedVerifier = mock();
     private final CredentialServiceClient mockedClient = mock();
-    private final JwtValidator jwtValidatorMock = mock();
-    private final JwtVerifier jwtVerfierMock = mock();
     private final TrustedIssuerRegistry trustedIssuerRegistryMock = mock();
     private final CredentialServiceUrlResolver credentialServiceUrlResolverMock = mock();
+    private final TokenValidationAction actionMock = mock();
     private final IdentityAndTrustService service = new IdentityAndTrustService(mockedSts, EXPECTED_OWN_DID, EXPECTED_PARTICIPANT_ID, mockedVerifier, mockedClient,
-            jwtValidatorMock, jwtVerfierMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock, i -> i);
+            actionMock, trustedIssuerRegistryMock, Clock.systemUTC(), credentialServiceUrlResolverMock, i -> i);
 
     @BeforeEach
     void setup() {
         when(credentialServiceUrlResolverMock.resolve(any())).thenReturn(success("foobar"));
         var jwt = createJwt(new JWTClaimsSet.Builder().claim("scope", "foo-scope").build());
-        when(jwtValidatorMock.validateToken(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance()
+//        when(jwtValidatorMock.validateToken(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance()
+//                .claim("iss", CONSUMER_DID)
+//                .claim("client_id", "sender-id")
+//                .claim(PRESENTATION_ACCESS_TOKEN_CLAIM, jwt.getToken()).build()));
+//        when(jwtVerfierMock.verify(any(), any())).thenReturn(success());
+
+        when(actionMock.apply(any())).thenReturn(success(ClaimToken.Builder.newInstance()
                 .claim("iss", CONSUMER_DID)
                 .claim("client_id", "sender-id")
                 .claim(PRESENTATION_ACCESS_TOKEN_CLAIM, jwt.getToken()).build()));
-        when(jwtVerfierMock.verify(any(), any())).thenReturn(success());
+
         when(mockedSts.createToken(any(), any())).thenReturn(success(TokenRepresentation.Builder.newInstance().build()));
     }
 
@@ -242,7 +246,8 @@ class IdentityAndTrustServiceTest {
 
         @Test
         void jwtTokenNotValid() {
-            when(jwtValidatorMock.validateToken(any(), any())).thenReturn(failure("test failure"));
+            when(actionMock.apply(any())).thenReturn(failure("test failure"));
+
             var token = createJwt();
             assertThat(service.verifyJwtToken(token, verificationContext()))
                     .isFailed()
@@ -252,7 +257,7 @@ class IdentityAndTrustServiceTest {
 
         @Test
         void jwtTokenNotVerified() {
-            when(jwtVerfierMock.verify(any(), any())).thenReturn(failure("test-failure"));
+            when(actionMock.apply(any())).thenReturn(failure("test-failure"));
             var token = createJwt();
             assertThat(service.verifyJwtToken(token, verificationContext()))
                     .isFailed()

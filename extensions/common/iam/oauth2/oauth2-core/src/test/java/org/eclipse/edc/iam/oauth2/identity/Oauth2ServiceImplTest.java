@@ -119,7 +119,8 @@ class Oauth2ServiceImplTest {
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(Clock.systemUTC(), configuration.getNotBeforeValidationLeeway()));
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, registry, tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, registry,
+                tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
 
     }
 

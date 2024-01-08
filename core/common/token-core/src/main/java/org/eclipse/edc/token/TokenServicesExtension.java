@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.token;
 
-import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
-import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 
 import static org.eclipse.edc.token.TokenServicesExtension.NAME;
 

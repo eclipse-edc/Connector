@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.jwt;
 
-import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

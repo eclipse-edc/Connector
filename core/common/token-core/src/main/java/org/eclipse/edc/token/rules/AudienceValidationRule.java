@@ -38,7 +38,7 @@ public class AudienceValidationRule implements TokenValidationRule {
         if (audiences.isEmpty()) {
             return Result.failure("Required audience (aud) claim is missing in token");
         } else if (!audiences.contains(expectedAudience)) {
-            return Result.failure("Token audience (aud) claim did not contain expected audience: " + expectedAudience);
+            return Result.failure("Token audience claim (aud -> %s) did not contain expected audience: %s".formatted(audiences.stream().map(Object::toString).toList(), expectedAudience));
         }
 
         return Result.success();
