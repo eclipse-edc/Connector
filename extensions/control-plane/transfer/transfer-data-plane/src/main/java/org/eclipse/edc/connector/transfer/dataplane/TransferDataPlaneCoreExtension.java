@@ -27,10 +27,9 @@ import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenE
 import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateValidationRule;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.jwt.JwtGenerationService;
-import org.eclipse.edc.jwt.TokenValidationRulesRegistryImpl;
-import org.eclipse.edc.jwt.TokenValidationServiceImpl;
+import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.jwt.spi.SignatureInfo;
+import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -55,6 +54,7 @@ import static org.eclipse.edc.connector.transfer.dataplane.TransferDataPlaneConf
 public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Data Plane Core";
+    public static final String TRANSFER_DATAPLANE_TOKEN_CONTEXT = "dataplane-transfer";
 
     @Inject
     private Vault vault;
@@ -98,6 +98,12 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     @Inject
     private DataAddressValidatorRegistry dataAddressValidatorRegistry;
 
+    @Inject
+    private TokenValidationRulesRegistry tokenValidationRulesRegistry;
+
+    @Inject
+    private TokenValidationService tokenValidationService;
+
     @Override
     public String name() {
         return NAME;
@@ -109,7 +115,9 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var pubKeyAlias = context.getSetting(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null);
         var privKeyAlias = context.getSetting(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null);
 
-        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService(), dataEncrypter, typeManager, publicKeyResolver);
+        tokenValidationRulesRegistry.addRule(TRANSFER_DATAPLANE_TOKEN_CONTEXT, new ExpirationDateValidationRule(clock));
+
+        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager, publicKeyResolver);
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privKeyAlias, pubKeyAlias), tokenExpirationDateFunction);
@@ -127,12 +135,6 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
                     context.getMonitor().warning(f.getFailureDetail());
                     return null;
                 });
-    }
-
-    private TokenValidationService tokenValidationService() {
-        var registry = new TokenValidationRulesRegistryImpl();
-        registry.addRule(new ExpirationDateValidationRule(clock));
-        return new TokenValidationServiceImpl();
     }
 
 }

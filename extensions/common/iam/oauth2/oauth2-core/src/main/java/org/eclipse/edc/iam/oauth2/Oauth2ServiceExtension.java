@@ -21,15 +21,17 @@ import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfigurat
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
 import org.eclipse.edc.iam.oauth2.jwt.Oauth2JwtDecoratorRegistryRegistryImpl;
 import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
-import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
-import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
-import org.eclipse.edc.jwt.JwtGenerationService;
-import org.eclipse.edc.jwt.TokenValidationServiceImpl;
+import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
+import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.jwt.spi.SignatureInfo;
+import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -55,11 +57,12 @@ import static java.lang.String.format;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class, Oauth2ValidationRulesRegistry.class })
+@Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class })
 @Extension(value = Oauth2ServiceExtension.NAME)
 public class Oauth2ServiceExtension implements ServiceExtension {
 
     public static final String NAME = "OAuth2 Identity Service";
+    public static final String OAUTH2_TOKEN_CONTEXT = "oauth2";
     private static final int DEFAULT_TOKEN_EXPIRATION = 5;
     @Setting
     private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
@@ -110,6 +113,9 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     @Inject
     private PublicKeyResolver publicKeyResolver;
 
+    @Inject
+    private TokenValidationRulesRegistry tokenValidationRulesRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -131,12 +137,13 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         jwtDecoratorRegistry.register(new X509CertificateDecorator(certificate));
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 
-        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
-        context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
-
         var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry);
-
         context.registerService(IdentityService.class, oauth2Service);
+
+        // add oauth2-specific validation rules
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(configuration.getEndpointAudience()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, configuration.getNotBeforeValidationLeeway()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, configuration.getIssuedAtLeeway()));
     }
 
     @Override
@@ -160,7 +167,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 privateKeySupplier,
                 oauth2Client,
                 jwtDecoratorRegistry,
-                new Oauth2ValidationRulesRegistryImpl(configuration, clock),
+                tokenValidationRulesRegistry,
                 new TokenValidationServiceImpl(),
                 credentialsRequestAdditionalParametersProvider,
                 publicKeyResolver

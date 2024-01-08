@@ -20,8 +20,9 @@ import java.util.List;
  * Registry for {@link TokenValidationRule}.
  */
 public interface TokenValidationRulesRegistry {
+    String DEFAULT_CONTEXT = "default";
 
-    void addRule(TokenValidationRule rule);
+    void addRule(String context, TokenValidationRule rule);
 
-    List<TokenValidationRule> getRules();
+    List<TokenValidationRule> getRules(String context);
 }

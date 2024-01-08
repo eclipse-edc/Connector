@@ -19,7 +19,6 @@ package org.eclipse.edc.iam.oauth2.identity;
 
 import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
-import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
@@ -27,7 +26,7 @@ import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.JwtDecoratorRegistry;
 import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.jwt.spi.TokenGenerationService;
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
+import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -39,6 +38,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
+
+import static org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension.OAUTH2_TOKEN_CONTEXT;
 
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
@@ -55,7 +56,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final TokenValidationService tokenValidationService;
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
     private final PublicKeyResolver publicKeyResolver;
-    private final Oauth2ValidationRulesRegistry tokenValidationRuleRegistry;
+    private final TokenValidationRulesRegistry tokenValidationRuleRegistry;
 
     /**
      * Creates a new instance of the OAuth2 Service
@@ -68,7 +69,7 @@ public class Oauth2ServiceImpl implements IdentityService {
      * @param credentialsRequestAdditionalParametersProvider Provides additional form parameters
      */
     public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService, Supplier<SignatureInfo> signatureInfoSupplier,
-                             Oauth2Client client, JwtDecoratorRegistry jwtDecoratorRegistry, Oauth2ValidationRulesRegistry tokenValidationRuleRegistry, TokenValidationService tokenValidationService,
+                             Oauth2Client client, JwtDecoratorRegistry jwtDecoratorRegistry, TokenValidationRulesRegistry tokenValidationRuleRegistry, TokenValidationService tokenValidationService,
                              CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider, PublicKeyResolver publicKeyResolver) {
         this.configuration = configuration;
         this.signatureInfoSupplier = signatureInfoSupplier;
@@ -90,8 +91,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
-        // todo replace this with a security context
-        return tokenValidationService.validate(tokenRepresentation, publicKeyResolver, tokenValidationRuleRegistry.getRules().toArray(new TokenValidationRule[0]));
+        return tokenValidationService.validate(tokenRepresentation, publicKeyResolver, tokenValidationRuleRegistry.getRules(OAUTH2_TOKEN_CONTEXT));
     }
 
     @NotNull

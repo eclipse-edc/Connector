@@ -20,6 +20,9 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(libs.nimbus.jwt)
+
+    testImplementation(libs.bouncyCastle.bcprovJdk18on) // for EdDSA/Ed25519
+
 }
 
 
