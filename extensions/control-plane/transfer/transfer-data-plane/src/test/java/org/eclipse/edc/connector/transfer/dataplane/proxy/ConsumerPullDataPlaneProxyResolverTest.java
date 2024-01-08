@@ -19,13 +19,13 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -33,10 +33,10 @@ import java.sql.Date;
 import java.time.Instant;
 import java.util.UUID;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

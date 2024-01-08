@@ -19,10 +19,10 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.util.Map;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
+import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 
 public class SelfIssuedTokenDecoratorTest {
 
@@ -34,7 +34,7 @@ public class SelfIssuedTokenDecoratorTest {
         assertThat(decorator.claims())
                 .containsEntry("iss", "test")
                 .containsKeys(ISSUED_AT, EXPIRATION_TIME, JWT_ID);
-        
+
         assertThat(decorator.headers()).isEmpty();
     }
 }

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.JwtDecorator;
 
 import java.time.Clock;
 import java.util.Collections;
@@ -23,12 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
+import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
+import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
+
 
 public class Oauth2AssertionDecorator implements JwtDecorator {
 
@@ -45,11 +46,6 @@ public class Oauth2AssertionDecorator implements JwtDecorator {
     }
 
     @Override
-    public Map<String, Object> headers() {
-        return Collections.emptyMap();
-    }
-
-    @Override
     public Map<String, Object> claims() {
         return Map.of(
                 AUDIENCE, List.of(audience),
@@ -59,5 +55,10 @@ public class Oauth2AssertionDecorator implements JwtDecorator {
                 ISSUED_AT, Date.from(clock.instant()),
                 EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity))
         );
+    }
+
+    @Override
+    public Map<String, Object> headers() {
+        return Collections.emptyMap();
     }
 }

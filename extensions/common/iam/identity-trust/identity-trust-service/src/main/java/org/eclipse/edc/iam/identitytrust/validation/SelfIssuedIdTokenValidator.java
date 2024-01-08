@@ -45,6 +45,7 @@ import static org.eclipse.edc.spi.result.Result.success;
 public class SelfIssuedIdTokenValidator implements JwtValidator {
 
     private static final long EPSILON = 60;
+//    private final TokenValidationRulesRegistry ruleRegistry;
 
     @SuppressWarnings("checkstyle:WhitespaceAfter")
     @Override

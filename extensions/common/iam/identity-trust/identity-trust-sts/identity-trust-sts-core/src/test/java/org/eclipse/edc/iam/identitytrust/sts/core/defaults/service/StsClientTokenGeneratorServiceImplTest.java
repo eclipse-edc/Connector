@@ -17,8 +17,8 @@ package org.eclipse.edc.iam.identitytrust.sts.core.defaults.service;
 
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;

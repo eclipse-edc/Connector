@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2022 - 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,16 +14,17 @@
 
 package org.eclipse.edc.token.rules;
 
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
 import java.util.Map;
 
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
+import static com.nimbusds.jwt.JWTClaimNames.NOT_BEFORE;
+
 
 /**
  * Token validation rule that checks if the "not before" claim is valid

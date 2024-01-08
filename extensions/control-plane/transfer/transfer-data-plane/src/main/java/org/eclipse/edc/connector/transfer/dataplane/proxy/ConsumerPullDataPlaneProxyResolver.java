@@ -19,8 +19,8 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;

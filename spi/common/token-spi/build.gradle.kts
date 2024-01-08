@@ -19,7 +19,6 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:token-spi"))
     api(libs.nimbus.jwt)
     runtimeOnly(libs.tink) // for EdDSA/Ed25519
 

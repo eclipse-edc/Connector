@@ -22,12 +22,7 @@ import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProv
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
-import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.JwtDecoratorRegistry;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
-import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
@@ -35,6 +30,11 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenGenerationService;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.jwt.spi;
+package org.eclipse.edc.token.spi;
 
 import org.jetbrains.annotations.Nullable;
 

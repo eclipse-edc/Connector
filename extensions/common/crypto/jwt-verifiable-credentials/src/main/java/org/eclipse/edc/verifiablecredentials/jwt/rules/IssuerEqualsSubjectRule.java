@@ -15,7 +15,7 @@
 package org.eclipse.edc.verifiablecredentials.jwt.rules;
 
 import com.nimbusds.jwt.JWTClaimNames;
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;

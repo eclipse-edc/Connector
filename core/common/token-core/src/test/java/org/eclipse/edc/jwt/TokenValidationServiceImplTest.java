@@ -23,12 +23,12 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,8 +38,8 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;

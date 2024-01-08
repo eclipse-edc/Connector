@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.token;
 
-import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;

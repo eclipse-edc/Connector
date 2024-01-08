@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,16 +12,7 @@
  *
  */
 
-plugins {
-    `java-library`
-    `maven-publish`
-}
+@Spi(value = "Token services")
+package org.eclipse.edc.token.spi;
 
-dependencies {
-    api(project(":spi:common:jwt-spi"))
-
-    implementation(libs.nimbus.jwt)
-    api(libs.bouncyCastle.bcpkixJdk18on)
-}
-
-
+import org.eclipse.edc.runtime.metamodel.annotation.Spi;

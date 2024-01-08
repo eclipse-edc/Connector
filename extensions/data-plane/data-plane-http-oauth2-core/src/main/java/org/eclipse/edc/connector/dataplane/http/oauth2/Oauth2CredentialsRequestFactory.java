@@ -19,7 +19,7 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;

@@ -25,13 +25,6 @@ import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProv
 import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
-import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.TokenValidationServiceImpl;
-import org.eclipse.edc.token.rules.AudienceValidationRule;
-import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
-import org.eclipse.edc.token.rules.NotBeforeValidationRule;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -45,6 +38,13 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
+import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.NotBeforeValidationRule;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;

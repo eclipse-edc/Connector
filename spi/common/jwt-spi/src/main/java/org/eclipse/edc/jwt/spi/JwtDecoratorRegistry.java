@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.jwt.spi;
 
+import org.eclipse.edc.token.spi.JwtDecorator;
+
 import java.util.Collection;
 
 public interface JwtDecoratorRegistry {

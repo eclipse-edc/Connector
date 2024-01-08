@@ -23,10 +23,9 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.jwt.spi.JwtDecorator;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.SignatureInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,13 +37,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.nimbusds.jose.JWSAlgorithm.RS256;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 class JwtGenerationServiceTest {
 
     private RSAKey keys;
-    private TokenGenerationService tokenGenerationService;
+    private JwtGenerationService tokenGenerationService;
 
     private static RSAKey testKey() throws JOSEException {
         return new RSAKeyGenerator(2048)

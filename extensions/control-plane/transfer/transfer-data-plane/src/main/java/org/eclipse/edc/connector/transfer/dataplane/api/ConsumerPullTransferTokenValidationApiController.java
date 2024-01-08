@@ -21,7 +21,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.types.TypeManager;

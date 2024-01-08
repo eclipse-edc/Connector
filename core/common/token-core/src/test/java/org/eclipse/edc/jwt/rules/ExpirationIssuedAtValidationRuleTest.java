@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.jwt.rules;
 
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.junit.jupiter.api.Test;

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.token;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.jwt.spi.JwtDecoratorRegistry;
+import org.eclipse.edc.token.spi.JwtDecorator;
 
 import java.util.ArrayList;
 import java.util.Collection;

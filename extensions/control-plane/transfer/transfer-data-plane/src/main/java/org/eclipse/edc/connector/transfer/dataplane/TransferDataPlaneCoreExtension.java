@@ -28,9 +28,9 @@ import org.eclipse.edc.connector.transfer.dataplane.validation.ExpirationDateVal
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;

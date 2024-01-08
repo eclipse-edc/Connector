@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.identitytrust.sts.service;
 
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,8 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Amadeus - initial API and implementation
+ *       Microsoft Corporation - Simplified token representation
  *
  */
 
@@ -20,12 +21,12 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
-import org.eclipse.edc.jwt.spi.JwtDecorator;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;

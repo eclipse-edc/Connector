@@ -19,9 +19,9 @@ import org.eclipse.edc.iam.identitytrust.sts.model.StsClient;
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.token.spi.SignatureInfo;
 
 import java.time.Clock;
 import java.util.Collections;
@@ -30,12 +30,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
+import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGeneratorService {
 

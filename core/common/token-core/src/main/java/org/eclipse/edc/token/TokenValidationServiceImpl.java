@@ -17,13 +17,13 @@ package org.eclipse.edc.token;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.text.ParseException;
 import java.util.List;

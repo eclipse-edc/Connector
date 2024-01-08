@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.daps;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.JwtDecorator;
 
 import java.util.Map;
 

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.token;
 
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
-import org.eclipse.edc.jwt.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
