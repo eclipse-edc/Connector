@@ -28,6 +28,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
+import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
@@ -47,6 +48,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -108,7 +110,7 @@ class Oauth2ServiceImplTest {
         var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
         jwtDecoratorRegistry.register(jwtDecorator);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, new Oauth2ValidationRulesRegistryImpl(configuration, Clock.systemUTC()), tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
     }
 
     @Test

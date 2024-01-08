@@ -106,7 +106,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
-    
+
     @Inject
     private PublicKeyResolver publicKeyResolver;
 
@@ -160,6 +160,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 privateKeySupplier,
                 oauth2Client,
                 jwtDecoratorRegistry,
+                new Oauth2ValidationRulesRegistryImpl(configuration, clock),
                 new TokenValidationServiceImpl(),
                 credentialsRequestAdditionalParametersProvider,
                 publicKeyResolver

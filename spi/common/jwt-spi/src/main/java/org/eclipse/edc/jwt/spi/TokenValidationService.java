@@ -47,7 +47,6 @@ public interface TokenValidationService {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
-
         return validate(tokenRepresentation, publicKeyResolver, rules);
     }
 }

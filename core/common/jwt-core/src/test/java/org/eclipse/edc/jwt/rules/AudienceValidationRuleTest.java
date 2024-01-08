@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.oauth2.rule;
+package org.eclipse.edc.jwt.rules;
 
 import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -20,14 +20,14 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 
-class Oauth2AudienceValidationRuleTest {
+class AudienceValidationRuleTest {
 
     private final String endpointAudience = "test-audience";
-    private final TokenValidationRule rule = new Oauth2AudienceValidationRule(endpointAudience);
+    private final TokenValidationRule rule = new AudienceValidationRule(endpointAudience);
 
     @Test
     void validAudience() {
@@ -49,8 +49,8 @@ class Oauth2AudienceValidationRuleTest {
         var result = rule.checkRule(token, emptyMap());
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureMessages()).hasSize(1)
-                .contains("Token audience (aud) claim did not contain connector audience: test-audience");
+        assertThat(result.getFailureMessages())
+                .containsExactly("Token audience (aud) claim did not contain expected audience: test-audience");
     }
 
     @Test
@@ -64,5 +64,4 @@ class Oauth2AudienceValidationRuleTest {
         assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Required audience (aud) claim is missing in token");
     }
-
 }

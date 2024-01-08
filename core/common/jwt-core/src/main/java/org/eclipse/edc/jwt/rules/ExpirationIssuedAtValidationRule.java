@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,11 +9,10 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       sovity GmbH - added issuedAt leeway
  *
  */
 
-package org.eclipse.edc.iam.oauth2.rule;
+package org.eclipse.edc.jwt.rules;
 
 import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -30,12 +29,12 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 /**
  * Token validation rule that checks if the token is not expired and if the "issued at" claim is valued correctly
  */
-public class Oauth2ExpirationIssuedAtValidationRule implements TokenValidationRule {
+public class ExpirationIssuedAtValidationRule implements TokenValidationRule {
 
     private final Clock clock;
     private final int issuedAtLeeway;
 
-    public Oauth2ExpirationIssuedAtValidationRule(Clock clock, int issuedAtLeeway) {
+    public ExpirationIssuedAtValidationRule(Clock clock, int issuedAtLeeway) {
         this.clock = clock;
         this.issuedAtLeeway = issuedAtLeeway;
     }

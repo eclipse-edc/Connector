@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.oauth2.rule;
+package org.eclipse.edc.jwt.rules;
 
 import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -23,17 +23,17 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import static com.nimbusds.jwt.JWTClaimNames.NOT_BEFORE;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
 
-class Oauth2NotBeforeValidationRuleTest {
+class NotBeforeValidationRuleTest {
 
     private final int notBeforeLeeway = 20;
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, UTC);
-    private final TokenValidationRule rule = new Oauth2NotBeforeValidationRule(clock, notBeforeLeeway);
+    private final TokenValidationRule rule = new NotBeforeValidationRule(clock, notBeforeLeeway);
 
     @Test
     void validNotBefore() {

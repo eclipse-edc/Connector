@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.oauth2.rule;
+package org.eclipse.edc.jwt.rules;
 
 import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -24,15 +24,11 @@ import java.util.Map;
 
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 
-/**
- * Token validation rule that checks if the "audience" of token contains the expected audience
- */
-public class Oauth2AudienceValidationRule implements TokenValidationRule {
+public class AudienceValidationRule implements TokenValidationRule {
+    private final String expectedAudience;
 
-    private final String endpointAudience;
-
-    public Oauth2AudienceValidationRule(String endpointAudience) {
-        this.endpointAudience = endpointAudience;
+    public AudienceValidationRule(String expectedAudience) {
+        this.expectedAudience = expectedAudience;
     }
 
     @Override
@@ -40,8 +36,8 @@ public class Oauth2AudienceValidationRule implements TokenValidationRule {
         var audiences = toVerify.getListClaim(AUDIENCE);
         if (audiences.isEmpty()) {
             return Result.failure("Required audience (aud) claim is missing in token");
-        } else if (!audiences.contains(endpointAudience)) {
-            return Result.failure("Token audience (aud) claim did not contain connector audience: " + endpointAudience);
+        } else if (!audiences.contains(expectedAudience)) {
+            return Result.failure("Token audience (aud) claim did not contain expected audience: " + expectedAudience);
         }
 
         return Result.success();

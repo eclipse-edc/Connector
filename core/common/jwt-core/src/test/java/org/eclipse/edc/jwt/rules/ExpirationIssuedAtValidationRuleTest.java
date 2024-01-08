@@ -9,11 +9,10 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       sovity GmbH - added issuedAt leeway
  *
  */
 
-package org.eclipse.edc.iam.oauth2.rule;
+package org.eclipse.edc.jwt.rules;
 
 import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -24,17 +23,17 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 
-class Oauth2ExpirationIssuedAtValidationRuleTest {
+class ExpirationIssuedAtValidationRuleTest {
 
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, UTC);
-    private final TokenValidationRule rule = new Oauth2ExpirationIssuedAtValidationRule(clock,  0);
+    private final TokenValidationRule rule = new ExpirationIssuedAtValidationRule(clock, 0);
 
     @Test
     void validationOk() {
@@ -99,7 +98,7 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
 
     @Test
     void validationKoBecauseIssuedAtInFutureOutsideLeeway() {
-        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 5);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 5);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
@@ -114,7 +113,7 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
 
     @Test
     void validationOkBecauseIssuedAtInFutureButWithinLeeway() {
-        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 20);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 20);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
@@ -141,7 +140,7 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
         var now = issuedAt.minus(250, ChronoUnit.MILLIS);
 
         var clock = Clock.fixed(now, UTC);
-        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 0);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 0);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(expiresAt))
@@ -169,7 +168,7 @@ class Oauth2ExpirationIssuedAtValidationRuleTest {
         var now = issuedAt.minus(250, ChronoUnit.MILLIS);
 
         var clock = Clock.fixed(now, UTC);
-        var rule = new Oauth2ExpirationIssuedAtValidationRule(clock, 2);
+        var rule = new ExpirationIssuedAtValidationRule(clock, 2);
 
         var token = ClaimToken.Builder.newInstance()
                 .claim(EXPIRATION_TIME, Date.from(expiresAt))

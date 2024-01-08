@@ -19,7 +19,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
 /**
  * Registry for Oauth2 validation rules.
+ *
+ * @deprecated This specialization will be removed issue https://github.com/eclipse-edc/Connector/issues/3744 and get replaced by a security context
  */
+@Deprecated
 @ExtensionPoint
 public interface Oauth2ValidationRulesRegistry extends TokenValidationRulesRegistry {
 }

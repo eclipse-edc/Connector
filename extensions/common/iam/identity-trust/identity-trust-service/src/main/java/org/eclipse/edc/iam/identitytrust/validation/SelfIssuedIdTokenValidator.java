@@ -80,7 +80,7 @@ public class SelfIssuedIdTokenValidator implements JwtValidator {
                 return failure("The token must not be expired.");
             }
             if (claims.getClaim(PRESENTATION_ACCESS_TOKEN_CLAIM) == null) {
-                return failure("The 'access_token' claim is mandatory.");
+                return failure("The '%s' claim is mandatory.".formatted(PRESENTATION_ACCESS_TOKEN_CLAIM));
             }
             var bldr = ClaimToken.Builder.newInstance();
             jwt.getJWTClaimsSet().getClaims().forEach(bldr::claim);

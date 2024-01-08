@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.iam.oauth2.rule;
+package org.eclipse.edc.jwt.rules;
 
 import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -28,11 +28,11 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
 /**
  * Token validation rule that checks if the "not before" claim is valid
  */
-public class Oauth2NotBeforeValidationRule implements TokenValidationRule {
+public class NotBeforeValidationRule implements TokenValidationRule {
     private final Clock clock;
     private final int notBeforeLeeway;
 
-    public Oauth2NotBeforeValidationRule(Clock clock, int notBeforeLeeway) {
+    public NotBeforeValidationRule(Clock clock, int notBeforeLeeway) {
         this.clock = clock;
         this.notBeforeLeeway = notBeforeLeeway;
     }
