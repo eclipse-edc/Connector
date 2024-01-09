@@ -23,8 +23,6 @@ import java.util.Map;
  *     <li>{@linkplain #claims()} JWT Claims - <a href="https://auth0.com/docs/secure/tokens/json-web-tokens/json-web-token-claims">reference</a></li>
  *     <li>{@linkplain #headers()} JWS Header - <a href="https://www.rfc-editor.org/rfc/rfc7515#section-4.1">reference</a></li>
  * </ul>
- * -
- * -
  */
 public interface JwtDecorator {
     /**

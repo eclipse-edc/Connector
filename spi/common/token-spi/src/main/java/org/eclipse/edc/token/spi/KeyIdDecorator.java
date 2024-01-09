@@ -18,11 +18,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+/**
+ * This decorator adds the {@code kid} header to a JWT. Does not return any claims.
+ *
+ * @param keyId The key-id. Can be null, in which case this decorator is a NOOP
+ */
 public record KeyIdDecorator(@Nullable String keyId) implements JwtDecorator {
     @Override
     public Map<String, Object> headers() {
         if (keyId != null) {
-            return Map.of("kid", keyId); //will throw an exception if keyId is null
+            return Map.of("kid", keyId); //would throw an exception if keyId is null
         }
         return Map.of();
     }

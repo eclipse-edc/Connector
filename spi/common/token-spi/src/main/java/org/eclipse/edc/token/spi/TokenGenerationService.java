@@ -28,9 +28,9 @@ public interface TokenGenerationService {
     /**
      * Generate a signed token based on the request.
      *
-     * @param privateKeySupplier A {@link Supplier} that provides the private and an ID key on-demand. The ID can be used by verifiers to obtain the corresponding public key material.
+     * @param privateKeySupplier A {@link Supplier} that provides the private on-demand.
      *                           Be advised that holding the private key in memory poses a considerable security risk and should be avoided.
-     * @param decorators         an optional list of {@code JwtDecorator} objects to determine the shape of the token
+     * @param decorators         an optional list of {@code JwtDecorator} objects to determine the shape of the token, i.e. headers and claims
      */
     Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, JwtDecorator... decorators);
 }
