@@ -24,10 +24,11 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.JwtDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -45,11 +46,11 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
     private static final TypeManager TYPE_MANAGER = new TypeManager();
 
-    private final DataEncrypter dataEncrypter = mock(DataEncrypter.class);
-    private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
-    private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction = mock(ConsumerPullTokenExpirationDateFunction.class);
+    private final DataEncrypter dataEncrypter = mock();
+    private final TokenGenerationService tokenGenerationService = mock();
+    private final ConsumerPullTokenExpirationDateFunction tokenExpirationDateFunction = mock();
 
-    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, () -> mock(SignatureInfo.class), tokenExpirationDateFunction);
+    private final ConsumerPullDataPlaneProxyResolver resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, TYPE_MANAGER, tokenGenerationService, Mockito::mock, () -> "test-public-key", tokenExpirationDateFunction);
 
     private static DataAddress dataAddress() {
         return DataAddress.Builder.newInstance().type(UUID.randomUUID().toString()).build();
@@ -69,10 +70,11 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .property("publicApiUrl", proxyUrl)
                 .build();
 
-        var captor = ArgumentCaptor.forClass(ConsumerPullDataPlaneProxyTokenDecorator.class);
+        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn(encryptedAddress);
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(any(), captor.capture())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(token).build()));
+        when(tokenGenerationService.generate(any(), captor.capture()))
+                .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(token).build()));
 
         var result = resolver.toDataAddress(request, address, instance);
 
@@ -86,11 +88,14 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .containsEntry(EndpointDataReference.AUTH_KEY, HttpHeaders.AUTHORIZATION)
                 .containsEntry(EndpointDataReference.AUTH_CODE, token);
 
-        var decorator = captor.getValue();
+        var decorators = captor.getValue();
 
-        assertThat(decorator.claims())
+        assertThat(decorators).anySatisfy(decorator -> assertThat(decorator.claims())
                 .containsEntry(DATA_ADDRESS, encryptedAddress)
-                .containsEntry(EXPIRATION_TIME, expiration);
+                .containsEntry(EXPIRATION_TIME, expiration));
+
+        assertThat(decorators).anySatisfy(decorator -> assertThat(decorator.headers())
+                .containsEntry("kid", "test-public-key"));
     }
 
     @Test
@@ -139,7 +144,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn("encryptedAddress");
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.failure(errorMsg));
+        when(tokenGenerationService.generate(any(), any(JwtDecorator[].class))).thenReturn(Result.failure(errorMsg));
 
         var result = resolver.toDataAddress(request, address, instance);
 

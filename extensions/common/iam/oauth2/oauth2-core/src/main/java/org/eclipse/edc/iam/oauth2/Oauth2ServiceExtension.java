@@ -43,11 +43,11 @@ import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -166,8 +166,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     @NotNull
     private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry, ServiceExtensionContext context) {
-        Supplier<SignatureInfo> privateKeySupplier = () -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
-                .orElseThrow(f -> new EdcException(f.getFailureDetail())), configuration.getPublicCertificateAlias());
+        Supplier<PrivateKey> privateKeySupplier = () -> privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
 
         return new Oauth2ServiceImpl(
                 configuration,

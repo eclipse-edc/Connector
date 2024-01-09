@@ -45,7 +45,6 @@ import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.JwtDecorator;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,7 +117,7 @@ class Oauth2ServiceImplTest {
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(Clock.systemUTC(), configuration.getNotBeforeValidationLeeway()));
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, registry,
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> privateKey, client, jwtDecoratorRegistry, registry,
                 tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
 
     }

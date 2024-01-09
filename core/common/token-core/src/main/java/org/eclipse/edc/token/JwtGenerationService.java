@@ -25,10 +25,10 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.JwtDecorator;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.jetbrains.annotations.NotNull;
 
+import java.security.PrivateKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,15 +50,15 @@ public class JwtGenerationService implements TokenGenerationService {
     }
 
     @Override
-    public Result<TokenRepresentation> generate(Supplier<SignatureInfo> signatureInfoSupplier, @NotNull JwtDecorator... decorators) {
+    public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull JwtDecorator... decorators) {
 
-        var signatureInfo = signatureInfoSupplier.get();
+        var privateKey = privateKeySupplier.get();
 
-        var tokenSigner = factory.createSignerFor(signatureInfo.signingKey());
+        var tokenSigner = factory.createSignerFor(privateKey);
         var jwsAlgorithm = factory.getRecommendedAlgorithm(tokenSigner);
 
         var allDecorators = new ArrayList<>(Arrays.asList(decorators));
-        allDecorators.add(new BaseDecorator(jwsAlgorithm, signatureInfo.keyId()));
+        allDecorators.add(new BaseDecorator(jwsAlgorithm));
 
         var header = createHeader(allDecorators);
         var claims = createClaimsSet(allDecorators);
@@ -102,7 +102,7 @@ public class JwtGenerationService implements TokenGenerationService {
     /**
      * Base JwtDecorator that provides the algorithm header value
      */
-    private record BaseDecorator(JWSAlgorithm jwsAlgorithm, String keyId) implements JwtDecorator {
+    private record BaseDecorator(JWSAlgorithm jwsAlgorithm) implements JwtDecorator {
 
         @Override
         public Map<String, Object> claims() {
@@ -113,9 +113,6 @@ public class JwtGenerationService implements TokenGenerationService {
         public Map<String, Object> headers() {
             var map = new HashMap<String, Object>();
             map.put("alg", jwsAlgorithm.getName());
-            if (keyId != null) {
-                map.put("kid", keyId);
-            }
             return map;
         }
     }

@@ -32,12 +32,17 @@ public interface JwtDecorator {
      *
      * @return a Map of jwt claims, it should never be null
      */
-    Map<String, Object> claims();
+    default Map<String, Object> claims() {
+        return Map.of();
+    }
 
     /**
      * Map of headers to be added to a token
      *
      * @return a Map of jws header parameters, it should never be null
      */
-    Map<String, Object> headers();
+    default Map<String, Object> headers() {
+        return Map.of();
+    }
+
 }

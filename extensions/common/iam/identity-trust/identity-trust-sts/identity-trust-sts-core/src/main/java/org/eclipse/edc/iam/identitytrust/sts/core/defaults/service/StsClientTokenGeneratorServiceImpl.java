@@ -21,8 +21,8 @@ import org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorServ
 import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.token.spi.SignatureInfo;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,10 +45,10 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
 
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
-    private final Function<StsClient, SignatureInfo> keyFunction;
+    private final Function<StsClient, PrivateKey> keyFunction;
     private final Clock clock;
 
-    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsClient, SignatureInfo> keyFunction, Clock clock, long tokenExpiration) {
+    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsClient, PrivateKey> keyFunction, Clock clock, long tokenExpiration) {
         this.tokenGenerationProvider = tokenGenerationProvider;
         this.keyFunction = keyFunction;
         this.clock = clock;
@@ -57,7 +57,9 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
 
     @Override
     public ServiceResult<TokenRepresentation> tokenFor(StsClient client, StsClientTokenAdditionalParams additionalParams) {
-        var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), () -> keyFunction.apply(client), clock, tokenExpiration);
+
+        var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), () -> keyFunction.apply(client), client::getPublicKeyReference,
+                clock, tokenExpiration);
 
         var initialClaims = Map.of(
                 ISSUER, client.getId(),
