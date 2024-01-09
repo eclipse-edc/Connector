@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -72,7 +73,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var id = UUID.randomUUID().toString();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id)
-                .correlationId(id)
                 .protocol(request.getProtocol())
                 .counterPartyId(request.getProviderId())
                 .counterPartyAddress(request.getCounterPartyAddress())
@@ -118,7 +118,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .callbackAddress(protocolWebhook.url())
                 .protocol(negotiation.getProtocol())
-                .processId(negotiation.getCorrelationId())
+                .consumerPid(negotiation.getId())
+                .providerPid(negotiation.getCorrelationId())
+                .processId(Optional.ofNullable(negotiation.getCorrelationId()).orElse(negotiation.getId()))
                 .type(ContractRequestMessage.Type.INITIAL)
                 .build();
 
@@ -156,6 +158,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
+                .consumerPid(negotiation.getId())
+                .providerPid(negotiation.getCorrelationId())
                 .processId(negotiation.getCorrelationId())
                 .build();
 
@@ -191,8 +195,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .processId(negotiation.getCorrelationId())
+                .consumerPid(negotiation.getId())
+                .providerPid(negotiation.getCorrelationId())
                 .policy(negotiation.getContractAgreement().getPolicy())
+                .processId(negotiation.getCorrelationId())
                 .build();
 
         return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, message))

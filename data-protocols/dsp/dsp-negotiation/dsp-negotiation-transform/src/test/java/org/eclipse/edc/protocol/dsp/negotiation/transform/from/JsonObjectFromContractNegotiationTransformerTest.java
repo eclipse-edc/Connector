@@ -55,7 +55,9 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -75,23 +77,49 @@ class JsonObjectFromContractNegotiationTransformerTest {
     }
 
     @Test
-    void transform() {
-        var value = "example";
+    void transform_consumer() {
         var negotiation = ContractNegotiation.Builder.newInstance()
-                .id(value)
-                .correlationId(value)
+                .id("consumerPid")
+                .correlationId("providerPid")
                 .counterPartyId("counterPartyId")
                 .counterPartyAddress("counterPartyAddress")
                 .protocol("protocol")
                 .state(REQUESTED.code())
+                .type(ContractNegotiation.Type.CONSUMER)
                 .build();
 
         var result = transformer.transform(negotiation, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(ID)).isEqualTo(value);
+        assertThat(result.getString(ID)).isEqualTo("consumerPid");
         assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION);
-        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo(value);
+        assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
+        assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
+        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("consumerPid");
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transform_provider() {
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("providerPid")
+                .correlationId("consumerPid")
+                .counterPartyId("counterPartyId")
+                .counterPartyAddress("counterPartyAddress")
+                .protocol("protocol")
+                .state(REQUESTED.code())
+                .type(ContractNegotiation.Type.PROVIDER)
+                .build();
+
+        var result = transformer.transform(negotiation, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getString(ID)).isEqualTo("providerPid");
+        assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_NEGOTIATION);
+        assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
+        assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
+        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("consumerPid");
 
         verify(context, never()).reportProblem(anyString());
     }

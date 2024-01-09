@@ -25,7 +25,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 class ContractRequestMessageTest {
     public static final String CALLBACK_ADDRESS = "http://test.com";
     public static final String OFFER_ID = "offerId";
-    public static final String PROCESS_ID = "123";
     public static final String DATASET = "dataset1";
     public static final String ID = "id1";
     public static final String ASSET_ID = "asset1";
@@ -35,37 +34,20 @@ class ContractRequestMessageTest {
     void verify_noCallbackNeededForCounterOffer() {
         ContractRequestMessage.Builder.newInstance()
                 .type(COUNTER_OFFER)
-                .processId(PROCESS_ID)
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol(PROTOCOL)
                 .contractOfferId(OFFER_ID)
                 .dataset(DATASET)
                 .build();
-    }
-
-    @Test
-    void verify_noProcessIdSet() {
-        assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
-                .type(INITIAL)
-                .protocol(PROTOCOL)
-                .dataset(DATASET)
-                .counterPartyAddress(CALLBACK_ADDRESS)
-                .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
-
-        // verify process id must be included if type is counter offer
-        assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
-                .type(COUNTER_OFFER)
-                .protocol(PROTOCOL)
-                .contractOfferId(OFFER_ID)
-                .dataset(DATASET)
-                .counterPartyAddress(CALLBACK_ADDRESS)
-                .build()).isInstanceOf(NullPointerException.class).hasMessageContaining("processId");
     }
 
     @Test
     void verify_contractOfferIdOrContractOffer() {
         ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
-                .processId(PROCESS_ID)
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol(PROTOCOL)
                 .contractOfferId(OFFER_ID)
                 .dataset(DATASET)
@@ -74,7 +56,8 @@ class ContractRequestMessageTest {
 
         ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
-                .processId(PROCESS_ID)
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol(PROTOCOL)
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(ID)
@@ -88,7 +71,8 @@ class ContractRequestMessageTest {
         // verify no contract offer or contract offer id set
         assertThatThrownBy(() -> ContractRequestMessage.Builder.newInstance()
                 .type(INITIAL)
-                .processId(PROCESS_ID)
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol(PROTOCOL)
                 .dataset(DATASET)
                 .counterPartyAddress(CALLBACK_ADDRESS)

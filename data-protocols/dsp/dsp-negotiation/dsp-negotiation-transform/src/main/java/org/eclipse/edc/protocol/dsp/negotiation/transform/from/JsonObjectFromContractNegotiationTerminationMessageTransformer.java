@@ -26,7 +26,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 
 /**
@@ -43,21 +45,15 @@ public class JsonObjectFromContractNegotiationTerminationMessageTransformer exte
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractNegotiationTerminationMessage terminationMessage, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
-        builder.add(ID, terminationMessage.getId());
-        builder.add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE);
+        var builder = jsonFactory.createObjectBuilder()
+                .add(ID, terminationMessage.getId())
+                .add(TYPE, DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, terminationMessage.getConsumerPid())
+                .add(DSPACE_PROPERTY_PROVIDER_PID, terminationMessage.getProviderPid())
+                .add(DSPACE_PROPERTY_PROCESS_ID, terminationMessage.getProcessId());
 
-        builder.add(DSPACE_PROPERTY_PROCESS_ID, terminationMessage.getProcessId());
-
-        var rejectionReason = terminationMessage.getRejectionReason();
-        if (rejectionReason != null) {
-            builder.add(DSPACE_PROPERTY_REASON, rejectionReason);
-        }
-
-        var code = terminationMessage.getCode();
-        if (code != null) {
-            builder.add(DSPACE_PROPERTY_CODE, code);
-        }
+        addIfNotNull(terminationMessage.getRejectionReason(), DSPACE_PROPERTY_REASON, builder);
+        addIfNotNull(terminationMessage.getCode(), DSPACE_PROPERTY_CODE, builder);
 
         return builder.build();
     }

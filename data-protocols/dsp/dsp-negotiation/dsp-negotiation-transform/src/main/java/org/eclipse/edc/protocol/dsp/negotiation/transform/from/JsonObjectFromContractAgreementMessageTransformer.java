@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -26,12 +25,15 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.time.Instant.ofEpochSecond;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 
 /**
@@ -48,11 +50,12 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractJ
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractAgreementMessage agreementMessage, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, agreementMessage.getId());
-        builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE);
-
-        builder.add(DSPACE_PROPERTY_PROCESS_ID, agreementMessage.getProcessId());
+        var builder = jsonFactory.createObjectBuilder()
+                .add(ID, agreementMessage.getId())
+                .add(TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_PROVIDER_PID, agreementMessage.getProviderPid())
+                .add(DSPACE_PROPERTY_CONSUMER_PID, agreementMessage.getConsumerPid())
+                .add(DSPACE_PROPERTY_PROCESS_ID, agreementMessage.getProcessId());
 
         var agreement = agreementMessage.getContractAgreement();
 

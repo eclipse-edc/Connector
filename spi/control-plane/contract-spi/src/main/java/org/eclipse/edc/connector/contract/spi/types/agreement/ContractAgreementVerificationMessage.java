@@ -16,25 +16,14 @@ package org.eclipse.edc.connector.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static java.util.UUID.randomUUID;
+public class ContractAgreementVerificationMessage extends ContractRemoteMessage {
 
-public class ContractAgreementVerificationMessage implements ContractRemoteMessage {
-
-    private String id;
     private String protocol = "unknown";
     private String counterPartyAddress;
-    private String processId;
     private Policy policy;
-
-    @NotNull
-    @Override
-    public String getId() {
-        return id;
-    }
 
     @Override
     public String getProtocol() {
@@ -53,30 +42,18 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
     }
 
     @Override
-    @NotNull
-    public String getProcessId() {
-        return processId;
-    }
-
-    @Override
     public Policy getPolicy() {
         return policy;
     }
 
-    public static class Builder {
-        private final ContractAgreementVerificationMessage message;
+    public static class Builder extends ContractRemoteMessage.Builder<ContractAgreementVerificationMessage, Builder> {
 
         private Builder() {
-            message = new ContractAgreementVerificationMessage();
+            super(new ContractAgreementVerificationMessage());
         }
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder id(String id) {
-            message.id = id;
-            return this;
         }
 
         public Builder protocol(String protocol) {
@@ -89,23 +66,13 @@ public class ContractAgreementVerificationMessage implements ContractRemoteMessa
             return this;
         }
 
-        public Builder processId(String processId) {
-            message.processId = processId;
-            return this;
-        }
-
         public Builder policy(Policy policy) {
             message.policy = policy;
             return this;
         }
 
         public ContractAgreementVerificationMessage build() {
-            if (message.id == null) {
-                message.id = randomUUID().toString();
-            }
-
-            Objects.requireNonNull(message.processId, "processId");
-            return message;
+            return super.build();
         }
     }
 }
