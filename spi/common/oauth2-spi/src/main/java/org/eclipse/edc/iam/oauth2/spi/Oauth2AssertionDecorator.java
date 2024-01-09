@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
 import java.util.Collections;
@@ -31,7 +31,7 @@ import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
 import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 
 
-public class Oauth2AssertionDecorator implements JwtDecorator {
+public class Oauth2AssertionDecorator implements TokenDecorator {
 
     private final String audience;
     private final String clientId;

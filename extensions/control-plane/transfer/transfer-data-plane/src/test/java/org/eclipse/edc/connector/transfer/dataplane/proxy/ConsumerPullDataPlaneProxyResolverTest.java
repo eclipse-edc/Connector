@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -70,7 +70,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .property("publicApiUrl", proxyUrl)
                 .build();
 
-        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn(encryptedAddress);
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
         when(tokenGenerationService.generate(any(), captor.capture()))
@@ -144,7 +144,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn("encryptedAddress");
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(any(), any(JwtDecorator[].class))).thenReturn(Result.failure(errorMsg));
+        when(tokenGenerationService.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.failure(errorMsg));
 
         var result = resolver.toDataAddress(request, address, instance);
 

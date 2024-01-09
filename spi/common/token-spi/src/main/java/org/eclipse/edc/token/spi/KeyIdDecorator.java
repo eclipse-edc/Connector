@@ -23,7 +23,7 @@ import java.util.Map;
  *
  * @param keyId The key-id. Can be null, in which case this decorator is a NOOP
  */
-public record KeyIdDecorator(@Nullable String keyId) implements JwtDecorator {
+public record KeyIdDecorator(@Nullable String keyId) implements TokenDecorator {
     @Override
     public Map<String, Object> headers() {
         if (keyId != null) {

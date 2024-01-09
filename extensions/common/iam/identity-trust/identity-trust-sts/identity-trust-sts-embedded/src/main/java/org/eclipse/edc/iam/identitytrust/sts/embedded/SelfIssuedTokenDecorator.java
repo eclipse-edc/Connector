@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
 import java.util.Date;
@@ -31,7 +31,7 @@ import static java.util.Collections.emptyMap;
  * Decorator for Self-Issued ID token and Access Token. It appends input claims and
  * generic claims like iat, exp, and jti
  */
-class SelfIssuedTokenDecorator implements JwtDecorator {
+class SelfIssuedTokenDecorator implements TokenDecorator {
     private final Map<String, String> claims;
     private final Clock clock;
     private final long validity;

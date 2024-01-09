@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.oauth2.jwt;
 
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -28,7 +28,7 @@ import static org.eclipse.edc.iam.oauth2.jwt.Fingerprint.sha1Base64Fingerprint;
  * Creates the 'x5t' header containing the base64url-encoded SHA-1 thumbprint of the DER encoding of the thumbprint of the
  * X.509 certificate corresponding to the key used to sign the JWT. This header is requested by some Oauth2 servers.
  */
-public class X509CertificateDecorator implements JwtDecorator {
+public class X509CertificateDecorator implements TokenDecorator {
     private final byte[] certificate;
 
     public X509CertificateDecorator(X509Certificate certificate) {

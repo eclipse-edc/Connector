@@ -24,7 +24,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -93,8 +93,8 @@ class JwtGenerationServiceTest {
         return new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey);
     }
 
-    private JwtDecorator testDecorator() {
-        return new JwtDecorator() {
+    private TokenDecorator testDecorator() {
+        return new TokenDecorator() {
 
             @Override
             public Map<String, Object> claims() {

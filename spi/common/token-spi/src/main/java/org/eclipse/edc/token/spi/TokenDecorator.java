@@ -24,7 +24,7 @@ import java.util.Map;
  *     <li>{@linkplain #headers()} JWS Header - <a href="https://www.rfc-editor.org/rfc/rfc7515#section-4.1">reference</a></li>
  * </ul>
  */
-public interface JwtDecorator {
+public interface TokenDecorator {
     /**
      * Map of claims to be added to a token
      *

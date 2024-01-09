@@ -38,13 +38,13 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.token.JwtDecoratorRegistryImpl;
+import org.eclipse.edc.token.TokenDecoratorRegistryImpl;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ class Oauth2ServiceImplTest {
     private final Oauth2Client client = mock(Oauth2Client.class);
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider = mock(CredentialsRequestAdditionalParametersProvider.class);
-    private final JwtDecorator jwtDecorator = mock(JwtDecorator.class);
+    private final TokenDecorator jwtDecorator = mock(TokenDecorator.class);
     private Oauth2ServiceImpl authService;
     private JWSSigner jwsSigner;
 
@@ -109,8 +109,8 @@ class Oauth2ServiceImplTest {
 
         var tokenValidationService = new TokenValidationServiceImpl();
 
-        var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
-        jwtDecoratorRegistry.register(jwtDecorator);
+        var jwtDecoratorRegistry = new TokenDecoratorRegistryImpl();
+        jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, jwtDecorator);
 
         var registry = new TokenValidationRulesRegistryImpl();
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(configuration.getEndpointAudience()));

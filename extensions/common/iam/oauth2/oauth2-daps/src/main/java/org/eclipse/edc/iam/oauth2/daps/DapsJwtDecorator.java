@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.iam.oauth2.daps;
 
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 
-public class DapsJwtDecorator implements JwtDecorator {
+public class DapsJwtDecorator implements TokenDecorator {
 
     @Override
     public Map<String, Object> claims() {

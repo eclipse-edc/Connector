@@ -24,7 +24,7 @@ import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +50,7 @@ public class JwtGenerationService implements TokenGenerationService {
     }
 
     @Override
-    public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull JwtDecorator... decorators) {
+    public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull TokenDecorator... decorators) {
 
         var privateKey = privateKeySupplier.get();
 
@@ -72,9 +72,9 @@ public class JwtGenerationService implements TokenGenerationService {
         return Result.success(TokenRepresentation.Builder.newInstance().token(token.serialize()).build());
     }
 
-    private JWSHeader createHeader(@NotNull List<JwtDecorator> decorators) {
+    private JWSHeader createHeader(@NotNull List<TokenDecorator> decorators) {
         var map = decorators.stream()
-                .map(JwtDecorator::headers)
+                .map(TokenDecorator::headers)
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -86,11 +86,11 @@ public class JwtGenerationService implements TokenGenerationService {
         }
     }
 
-    private JWTClaimsSet createClaimsSet(@NotNull List<JwtDecorator> decorators) {
+    private JWTClaimsSet createClaimsSet(@NotNull List<TokenDecorator> decorators) {
         var builder = new JWTClaimsSet.Builder();
 
         decorators.stream()
-                .map(JwtDecorator::claims)
+                .map(TokenDecorator::claims)
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
                 .forEach(claim -> builder.claim(claim.getKey(), claim.getValue()));
@@ -102,7 +102,7 @@ public class JwtGenerationService implements TokenGenerationService {
     /**
      * Base JwtDecorator that provides the algorithm header value
      */
-    private record BaseDecorator(JWSAlgorithm jwsAlgorithm) implements JwtDecorator {
+    private record BaseDecorator(JWSAlgorithm jwsAlgorithm) implements TokenDecorator {
 
         @Override
         public Map<String, Object> claims() {

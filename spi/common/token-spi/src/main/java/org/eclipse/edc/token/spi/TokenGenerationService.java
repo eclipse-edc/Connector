@@ -32,5 +32,5 @@ public interface TokenGenerationService {
      *                           Be advised that holding the private key in memory poses a considerable security risk and should be avoided.
      * @param decorators         an optional list of {@code JwtDecorator} objects to determine the shape of the token, i.e. headers and claims
      */
-    Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, JwtDecorator... decorators);
+    Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, TokenDecorator... decorators);
 }

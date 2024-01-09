@@ -17,6 +17,7 @@ package org.eclipse.edc.token;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.token.spi.TokenDecoratorRegistry;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 
@@ -31,12 +32,17 @@ public class TokenServicesExtension implements ServiceExtension {
     public static final String NAME = "Token Services Extension";
 
     @Provider
-    public TokenValidationRulesRegistry createRegistry() {
+    public TokenValidationRulesRegistry tokenValidationRulesRegistry() {
         return new TokenValidationRulesRegistryImpl();
     }
 
     @Provider
     public TokenValidationService validationService() {
         return new TokenValidationServiceImpl();
+    }
+
+    @Provider
+    public TokenDecoratorRegistry tokenDecoratorRegistry() {
+        return new TokenDecoratorRegistryImpl();
     }
 }
