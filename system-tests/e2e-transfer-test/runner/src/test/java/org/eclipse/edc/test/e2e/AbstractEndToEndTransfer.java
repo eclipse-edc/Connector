@@ -78,8 +78,7 @@ public abstract class AbstractEndToEndTransfer {
         var msg = UUID.randomUUID().toString();
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
 
-        assertThat(CONSUMER.getAllDataReferences(transferProcessId))
-                .hasSize(2);
+        assertThat(CONSUMER.getAllDataReferences(transferProcessId)).hasSize(1);
     }
 
     @Test
@@ -105,8 +104,7 @@ public abstract class AbstractEndToEndTransfer {
         var msg = UUID.randomUUID().toString();
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
 
-        assertThat(CONSUMER.getAllDataReferences(transferProcessId))
-                .hasSize(2);
+        assertThat(CONSUMER.getAllDataReferences(transferProcessId)).hasSize(1);
     }
 
     @Test

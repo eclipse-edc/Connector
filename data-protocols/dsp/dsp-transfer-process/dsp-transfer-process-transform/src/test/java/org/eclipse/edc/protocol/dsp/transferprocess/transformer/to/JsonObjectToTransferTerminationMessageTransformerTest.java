@@ -16,8 +16,8 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transformer.to;
 
 import jakarta.json.Json;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.to.JsonObjectToTransferTerminationMessageTransformer;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -28,31 +28,69 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transformer.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class JsonObjectToTransferTerminationMessageTransformerTest {
 
-    private final String processId = "TestProcessId";
+    private final TransformerContext context = mock();
+    private final JsonObjectToTransferTerminationMessageTransformer transformer =
+            new JsonObjectToTransferTerminationMessageTransformer();
 
-    private final String code = "testCode";
+    @Test
+    void shouldTransform() {
+        var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add(DSPACE_SCHEMA + "foo", "bar");
+        var reasonArray = Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build();
 
-    private TransformerContext context = mock(TransformerContext.class);
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
+                .add(DSPACE_PROPERTY_CODE, "testCode")
+                .add(DSPACE_PROPERTY_REASON, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
+                .build();
 
-    private JsonObjectToTransferTerminationMessageTransformer transformer;
+        var result = transformer.transform(getExpanded(json), context);
 
-    @BeforeEach
-    void setUp() {
-        transformer = new JsonObjectToTransferTerminationMessageTransformer();
+        assertThat(result).isNotNull();
+
+        assertThat(result.getProviderPid()).isEqualTo("providerPid");
+        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
+        assertThat(result.getReason()).isEqualTo(format("[{\"%sfoo\":[{\"@value\":\"bar\"}]}]", DSPACE_SCHEMA));
+        assertThat(result.getCode()).isEqualTo("testCode");
+
+        verify(context, never()).reportProblem(anyString());
     }
 
     @Test
-    void jsonObjectToTransferTerminationMessage() {
+    void shouldReportError_whenMissingPids() {
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
+        var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add(DSPACE_SCHEMA + "foo", "bar");
+        var reasonArray = Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build();
+
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE)
+                .add(DSPACE_PROPERTY_CODE, "testCode")
+                .add(DSPACE_PROPERTY_REASON, Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
+                .build();
+
+        var result = transformer.transform(getExpanded(json), context);
+
+        assertThat(result).isNull();
+        verify(context).reportProblem(anyString());
+    }
+
+    @Deprecated(since = "0.4.1")
+    @Test
+    void shouldTransformProcessId_whenPidsAreMissing() {
         var reason = Json.createBuilderFactory(Map.of()).createObjectBuilder().add(DSPACE_SCHEMA + "foo", "bar");
         var reasonArray = Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reason).build();
 
@@ -67,7 +105,8 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
 
         assertThat(result).isNotNull();
 
-        assertThat(result.getProcessId()).isEqualTo("TestProcessId");
+        assertThat(result.getConsumerPid()).isEqualTo("TestProcessId");
+        assertThat(result.getProviderPid()).isEqualTo("TestProcessId");
         assertThat(result.getReason()).isEqualTo(format("[{\"%sfoo\":[{\"@value\":\"bar\"}]}]", DSPACE_SCHEMA));
         assertThat(result.getCode()).isEqualTo("testCode");
 

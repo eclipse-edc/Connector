@@ -20,13 +20,14 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionM
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -37,27 +38,27 @@ import static org.mockito.Mockito.verify;
 class JsonObjectFromTransferCompletionMessageTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
-    private JsonObjectFromTransferCompletionMessageTransformer transformer;
-
-    @BeforeEach
-    void setUp() {
-        transformer = new JsonObjectFromTransferCompletionMessageTransformer(jsonFactory);
-    }
+    private final JsonObjectFromTransferCompletionMessageTransformer transformer =
+            new JsonObjectFromTransferCompletionMessageTransformer(jsonFactory);
 
     @Test
     void transformTransferCompletionMessage() {
         var message = TransferCompletionMessage.Builder.newInstance()
-                .processId("TestID")
+                .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol("dsp")
                 .build();
 
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo("TestID");
+        assertThat(result.getString(JsonLdKeywords.TYPE)).isEqualTo(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE);
+        assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID)).isEqualTo("consumerPid");
+        assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID)).isEqualTo("providerPid");
+        assertThat(result.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
 
         verify(context, never()).reportProblem(anyString());
     }
