@@ -19,12 +19,6 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(libs.nimbus.jwt)
-    runtimeOnly(libs.tink) // for EdDSA/Ed25519
-
-
-    testImplementation(libs.bouncyCastle.bcprovJdk18on) // for EdDSA/Ed25519
-
 }
 
 

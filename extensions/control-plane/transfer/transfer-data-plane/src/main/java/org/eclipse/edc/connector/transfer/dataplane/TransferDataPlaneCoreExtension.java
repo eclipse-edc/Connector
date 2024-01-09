@@ -36,7 +36,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
@@ -44,6 +43,7 @@ import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.spi.WebService;
 import org.jetbrains.annotations.NotNull;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.function.Supplier;
 
@@ -120,7 +120,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
         var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager, publicKeyResolver);
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
-        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privKeyAlias, pubKeyAlias), tokenExpirationDateFunction);
+        var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privKeyAlias), () -> pubKeyAlias, tokenExpirationDateFunction);
         dataFlowManager.register(new ConsumerPullTransferDataFlowController(selectorService, resolver));
         dataFlowManager.register(new ProviderPushTransferDataFlowController(callbackUrl, selectorService, clientFactory));
 
@@ -128,9 +128,8 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     }
 
     @NotNull
-    private Supplier<SignatureInfo> getPrivateKeySupplier(ServiceExtensionContext context, String privKeyAlias, String pubKeyAlias) {
+    private Supplier<PrivateKey> getPrivateKeySupplier(ServiceExtensionContext context, String privKeyAlias) {
         return () -> privateKeyResolver.resolvePrivateKey(privKeyAlias)
-                .map(pk -> new SignatureInfo(pk, pubKeyAlias))
                 .orElse(f -> {
                     context.getMonitor().warning(f.getFailureDetail());
                     return null;

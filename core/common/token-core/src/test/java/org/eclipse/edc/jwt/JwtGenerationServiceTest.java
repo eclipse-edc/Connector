@@ -25,7 +25,6 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.token.spi.JwtDecorator;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -64,7 +63,7 @@ class JwtGenerationServiceTest {
 
         var result = tokenGenerationService.generate(() -> {
             try {
-                return new SignatureInfo(keys.toPrivateKey());
+                return keys.toPrivateKey();
             } catch (JOSEException e) {
                 throw new RuntimeException(e);
             }

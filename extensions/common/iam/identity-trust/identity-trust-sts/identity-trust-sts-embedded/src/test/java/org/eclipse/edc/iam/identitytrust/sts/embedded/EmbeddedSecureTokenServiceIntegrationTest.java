@@ -20,7 +20,6 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -66,7 +65,7 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
     void setup() throws NoSuchAlgorithmException {
         keyPair = generateKeyPair();
         var tokenGenerationService = new JwtGenerationService();
-        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, () -> new SignatureInfo(keyPair.getPrivate()), Clock.systemUTC(), 10 * 60);
+        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, () -> keyPair.getPrivate(), () -> "test-keyid", Clock.systemUTC(), 10 * 60);
     }
 
     @Test

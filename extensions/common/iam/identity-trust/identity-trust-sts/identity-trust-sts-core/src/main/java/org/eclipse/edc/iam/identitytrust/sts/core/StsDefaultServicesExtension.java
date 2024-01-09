@@ -28,7 +28,6 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
@@ -69,7 +68,7 @@ public class StsDefaultServicesExtension implements ServiceExtension {
         var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
         return new StsClientTokenGeneratorServiceImpl(
                 (client) -> new JwtGenerationService(),
-                (client) -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(client.getPrivateKeyAlias()).orElse(null), client.getPublicKeyReference()),
+                (client) -> privateKeyResolver.resolvePrivateKey(client.getPrivateKeyAlias()).orElse(null),
                 clock,
                 TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }

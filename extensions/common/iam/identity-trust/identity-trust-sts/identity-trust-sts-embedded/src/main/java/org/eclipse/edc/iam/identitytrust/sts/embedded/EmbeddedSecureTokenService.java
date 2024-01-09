@@ -17,10 +17,11 @@ package org.eclipse.edc.iam.identitytrust.sts.embedded;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.KeyIdDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.jetbrains.annotations.Nullable;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
@@ -50,13 +51,15 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
 
     private static final List<String> ACCESS_TOKEN_INHERITED_CLAIMS = List.of(ISSUER);
     private final TokenGenerationService tokenGenerationService;
-    private final Supplier<SignatureInfo> signatureInfoSupplier;
+    private final Supplier<PrivateKey> privateKeySupplier;
+    private final Supplier<String> publicKeyId;
     private final Clock clock;
     private final long validity;
 
-    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<SignatureInfo> signatureInfoSupplier, Clock clock, long validity) {
+    public EmbeddedSecureTokenService(TokenGenerationService tokenGenerationService, Supplier<PrivateKey> privateKeySupplier, Supplier<String> publicKeyId, Clock clock, long validity) {
         this.tokenGenerationService = tokenGenerationService;
-        this.signatureInfoSupplier = signatureInfoSupplier;
+        this.privateKeySupplier = privateKeySupplier;
+        this.publicKeyId = publicKeyId;
         this.clock = clock;
         this.validity = validity;
     }
@@ -67,7 +70,10 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         return ofNullable(bearerAccessScope)
                 .map(scope -> createAndAcceptAccessToken(claims, scope, selfIssuedClaims::put))
                 .orElse(success())
-                .compose(v -> tokenGenerationService.generate(signatureInfoSupplier, new SelfIssuedTokenDecorator(selfIssuedClaims, clock, validity)));
+                .compose(v -> {
+                    var keyIdDecorator = new KeyIdDecorator(publicKeyId.get());
+                    return tokenGenerationService.generate(privateKeySupplier, keyIdDecorator, new SelfIssuedTokenDecorator(selfIssuedClaims, clock, validity));
+                });
     }
 
     private Result<Void> createAndAcceptAccessToken(Map<String, String> claims, String scope, BiConsumer<String, String> consumer) {
@@ -83,7 +89,10 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         return addClaim(claims, ISSUER, withClaim(AUDIENCE, accessTokenClaims::put))
                 .compose(v -> addClaim(claims, AUDIENCE, withClaim(SUBJECT, accessTokenClaims::put)))
                 .compose(v -> addOptionalClaim(claims, BEARER_ACCESS_ALIAS, withClaim(SUBJECT, accessTokenClaims::put)))
-                .compose(v -> tokenGenerationService.generate(signatureInfoSupplier, new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity)));
+                .compose(v -> {
+                    var keyIdDecorator = new KeyIdDecorator(publicKeyId.get());
+                    return tokenGenerationService.generate(privateKeySupplier, keyIdDecorator, new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity));
+                });
 
     }
 
