@@ -620,21 +620,27 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy1);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.key2", "=", "value2"))
                     .build();
 
             definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy1);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.key3", "=", "value3"))
                     .build();
 
             definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy2);
 
 
             spec = QuerySpec.Builder.newInstance()
@@ -658,14 +664,18 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy1);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 2"))
                     .build();
 
             definitionsRetrieved = getPolicyDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(policy2);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 3"))

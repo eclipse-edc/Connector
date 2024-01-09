@@ -502,14 +502,18 @@ public abstract class ContractDefinitionStoreTestBase {
                     .build();
 
             var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(definition1);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.key2", "=", "value2"))
                     .build();
 
             definitionsRetrieved = getContractDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(definition2);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.key1", "=", "value2"))
@@ -533,14 +537,18 @@ public abstract class ContractDefinitionStoreTestBase {
                     .build();
 
             var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(definition1);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 2"))
                     .build();
 
             definitionsRetrieved = getContractDefinitionStore().findAll(spec);
-            assertThat(definitionsRetrieved).isNotNull().hasSize(1);
+            assertThat(definitionsRetrieved).isNotNull().hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(definition2);
 
             spec = QuerySpec.Builder.newInstance()
                     .filter(new Criterion("privateProperties.'myProp'.'description'", "=", "test desc 3"))
