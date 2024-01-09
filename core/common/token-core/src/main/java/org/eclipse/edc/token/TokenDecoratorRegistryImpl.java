@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class TokenDecoratorRegistryImpl implements TokenDecoratorRegistry {
 
@@ -43,6 +44,9 @@ public class TokenDecoratorRegistryImpl implements TokenDecoratorRegistry {
 
     @Override
     public Collection<TokenDecorator> getDecoratorsFor(String context) {
-        return Collections.unmodifiableList(decorators.get(context));
+        return Optional.ofNullable(decorators.get(context))
+                .map(Collections::unmodifiableList)
+                .orElseGet(Collections::emptyList);
     }
+
 }

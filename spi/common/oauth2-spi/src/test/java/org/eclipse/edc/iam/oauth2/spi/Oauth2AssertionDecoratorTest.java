@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
@@ -48,9 +49,12 @@ class Oauth2AssertionDecoratorTest {
     }
 
     @Test
-    void claims() {
-        var claims = decorator.claims();
+    void verifyDecorate() {
+        var claims = new HashMap<String, Object>();
+        var headers = new HashMap<String, Object>();
+        decorator.decorate(claims, headers);
 
+        assertThat(headers).isEmpty();
         assertThat(claims)
                 .hasEntrySatisfying(AUDIENCE, o -> assertThat(o).asInstanceOf(list(String.class)).contains(audience))
                 .hasFieldOrPropertyWithValue(ISSUER, clientId)
@@ -58,10 +62,5 @@ class Oauth2AssertionDecoratorTest {
                 .containsKey(JWT_ID)
                 .hasEntrySatisfying(ISSUED_AT, issueDate -> assertThat((Date) issueDate).isEqualTo(now))
                 .hasEntrySatisfying(EXPIRATION_TIME, expiration -> assertThat((Date) expiration).isEqualTo(now.plusSeconds(TOKEN_EXPIRATION)));
-    }
-
-    @Test
-    void headers() {
-        assertThat(decorator.headers()).isEmpty();
     }
 }

@@ -32,14 +32,9 @@ import java.security.PrivateKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toMap;
 
 public class JwtGenerationService implements TokenGenerationService {
     private final JwsSignerVerifierFactory factory;
@@ -57,13 +52,20 @@ public class JwtGenerationService implements TokenGenerationService {
         var tokenSigner = factory.createSignerFor(privateKey);
         var jwsAlgorithm = factory.getRecommendedAlgorithm(tokenSigner);
 
+
+        var claims = new HashMap<String, Object>();
+        var headers = new HashMap<String, Object>();
+
+
         var allDecorators = new ArrayList<>(Arrays.asList(decorators));
         allDecorators.add(new BaseDecorator(jwsAlgorithm));
 
-        var header = createHeader(allDecorators);
-        var claims = createClaimsSet(allDecorators);
+        allDecorators.forEach(td -> td.decorate(claims, headers));
 
-        var token = new SignedJWT(header, claims);
+        var jwsHeader = createHeader(headers);
+        var claimsSet = createClaimsSet(claims);
+
+        var token = new SignedJWT(jwsHeader, claimsSet);
         try {
             token.sign(tokenSigner);
         } catch (JOSEException e) {
@@ -72,29 +74,17 @@ public class JwtGenerationService implements TokenGenerationService {
         return Result.success(TokenRepresentation.Builder.newInstance().token(token.serialize()).build());
     }
 
-    private JWSHeader createHeader(@NotNull List<TokenDecorator> decorators) {
-        var map = decorators.stream()
-                .map(TokenDecorator::headers)
-                .map(Map::entrySet)
-                .flatMap(Collection::stream)
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-
+    private JWSHeader createHeader(Map<String, Object> decorators) {
         try {
-            return JWSHeader.parse(map);
+            return JWSHeader.parse(decorators);
         } catch (ParseException e) {
             throw new EdcException("Error parsing JWSHeader, this should never happens since the algorithm is always valid", e);
         }
     }
 
-    private JWTClaimsSet createClaimsSet(@NotNull List<TokenDecorator> decorators) {
+    private JWTClaimsSet createClaimsSet(HashMap<String, Object> decorators) {
         var builder = new JWTClaimsSet.Builder();
-
-        decorators.stream()
-                .map(TokenDecorator::claims)
-                .map(Map::entrySet)
-                .flatMap(Collection::stream)
-                .forEach(claim -> builder.claim(claim.getKey(), claim.getValue()));
-
+        decorators.forEach(builder::claim);
         return builder.build();
     }
 
@@ -105,15 +95,8 @@ public class JwtGenerationService implements TokenGenerationService {
     private record BaseDecorator(JWSAlgorithm jwsAlgorithm) implements TokenDecorator {
 
         @Override
-        public Map<String, Object> claims() {
-            return emptyMap();
-        }
-
-        @Override
-        public Map<String, Object> headers() {
-            var map = new HashMap<String, Object>();
-            map.put("alg", jwsAlgorithm.getName());
-            return map;
+        public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+            headers.put("alg", jwsAlgorithm.getName());
         }
     }
 }

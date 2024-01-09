@@ -24,11 +24,11 @@ import java.util.Map;
  * @param keyId The key-id. Can be null, in which case this decorator is a NOOP
  */
 public record KeyIdDecorator(@Nullable String keyId) implements TokenDecorator {
+
     @Override
-    public Map<String, Object> headers() {
+    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
         if (keyId != null) {
-            return Map.of("kid", keyId); //would throw an exception if keyId is null
+            headers.put("kid", keyId);
         }
-        return Map.of();
     }
 }

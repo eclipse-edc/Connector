@@ -25,7 +25,6 @@ import java.util.UUID;
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
 import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
-import static java.util.Collections.emptyMap;
 
 /**
  * Decorator for Self-Issued ID token and Access Token. It appends input claims and
@@ -43,16 +42,12 @@ class SelfIssuedTokenDecorator implements TokenDecorator {
     }
 
     @Override
-    public Map<String, Object> claims() {
-        var claims = new HashMap<String, Object>(this.claims);
-        claims.put(ISSUED_AT, Date.from(clock.instant()));
-        claims.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
-        claims.put(JWT_ID, UUID.randomUUID().toString());
-        return claims;
-    }
+    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+        var c = new HashMap<String, Object>(this.claims);
+        c.put(ISSUED_AT, Date.from(clock.instant()));
+        c.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
+        c.put(JWT_ID, UUID.randomUUID().toString());
 
-    @Override
-    public Map<String, Object> headers() {
-        return emptyMap();
+        claims.putAll(c);
     }
 }

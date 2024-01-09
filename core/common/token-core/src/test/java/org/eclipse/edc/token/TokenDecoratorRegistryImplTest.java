@@ -26,7 +26,7 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void register_whenContextNotExists() {
-        tokenDecoratorRegistry.register("test-context", new TokenDecorator() {
+        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
         });
 
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(1);
@@ -34,9 +34,9 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void register_whenContextExists() {
-        tokenDecoratorRegistry.register("test-context", new TokenDecorator() {
+        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
         });
-        tokenDecoratorRegistry.register("test-context", new TokenDecorator() {
+        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
         });
 
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(2);
@@ -44,7 +44,7 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void register_whenContextAndDecoratorExists() {
-        var decorator = new TokenDecorator() {
+        TokenDecorator decorator = (claims, headers) -> {
         };
         tokenDecoratorRegistry.register("test-context", decorator);
         tokenDecoratorRegistry.register("test-context", decorator);
@@ -54,15 +54,15 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void unregister_whenContextNotExist() {
-        assertThatNoException().isThrownBy(() -> tokenDecoratorRegistry.unregister("not-exist", new TokenDecorator() {
+        assertThatNoException().isThrownBy(() -> tokenDecoratorRegistry.unregister("not-exist", (claims, headers) -> {
         }));
     }
 
     @Test
     void unregister_whenContextExist() {
-        var d1 = new TokenDecorator() {
+        TokenDecorator d1 = (claims, headers) -> {
         };
-        var d2 = new TokenDecorator() {
+        TokenDecorator d2 = (claims, headers) -> {
         };
 
         tokenDecoratorRegistry.register("test-context", d1);
@@ -72,9 +72,9 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void unregister_whenContextAndDecoratorExists() {
-        var d1 = new TokenDecorator() {
+        TokenDecorator d1 = (claims, headers) -> {
         };
-        var d2 = new TokenDecorator() {
+        TokenDecorator d2 = (claims, headers) -> {
         };
 
         tokenDecoratorRegistry.register("test-context", d1);
@@ -85,9 +85,9 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void getDecoratorsFor() {
-        var d1 = new TokenDecorator() {
+        TokenDecorator d1 = (claims, headers) -> {
         };
-        var d2 = new TokenDecorator() {
+        TokenDecorator d2 = (claims, headers) -> {
         };
 
         tokenDecoratorRegistry.register("test-context", d1);

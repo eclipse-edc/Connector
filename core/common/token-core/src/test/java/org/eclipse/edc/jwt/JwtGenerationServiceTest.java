@@ -94,17 +94,9 @@ class JwtGenerationServiceTest {
     }
 
     private TokenDecorator testDecorator() {
-        return new TokenDecorator() {
-
-            @Override
-            public Map<String, Object> claims() {
-                return Map.of("foo", "bar", EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)));
-            }
-
-            @Override
-            public Map<String, Object> headers() {
-                return Map.of("x5t", "some x509CertThumbprint thing");
-            }
+        return (claims, headers) -> {
+            claims.putAll(Map.of("foo", "bar", EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60))));
+            headers.put("x5t", "some x509CertThumbprint thing");
         };
     }
 }

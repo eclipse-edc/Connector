@@ -18,20 +18,11 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
-
 public class DapsJwtDecorator implements TokenDecorator {
 
     @Override
-    public Map<String, Object> claims() {
-        return Map.of(
-                "@context", "https://w3id.org/idsa/contexts/context.jsonld",
-                "@type", "ids:DatRequestToken"
-        );
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return emptyMap();
+    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+        claims.put("@context", "https://w3id.org/idsa/contexts/context.jsonld");
+        claims.put("@type", "ids:DatRequestToken");
     }
 }

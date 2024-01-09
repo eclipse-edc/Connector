@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 
 import java.sql.Date;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
@@ -90,12 +91,23 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         var decorators = captor.getValue();
 
-        assertThat(decorators).anySatisfy(decorator -> assertThat(decorator.claims())
-                .containsEntry(DATA_ADDRESS, encryptedAddress)
-                .containsEntry(EXPIRATION_TIME, expiration));
+        assertThat(decorators)
+                .anySatisfy(decorator -> {
+                    var headers = new HashMap<String, Object>();
+                    var claims = new HashMap<String, Object>();
+                    decorator.decorate(claims, headers);
+                    assertThat(claims)
+                            .containsEntry(DATA_ADDRESS, encryptedAddress)
+                            .containsEntry(EXPIRATION_TIME, expiration);
+                });
 
-        assertThat(decorators).anySatisfy(decorator -> assertThat(decorator.headers())
-                .containsEntry("kid", "test-public-key"));
+        assertThat(decorators).anySatisfy(decorator -> {
+            var headers = new HashMap<String, Object>();
+            var claims = new HashMap<String, Object>();
+            decorator.decorate(claims, headers);
+            assertThat(headers)
+                    .containsEntry("kid", "test-public-key");
+        });
     }
 
     @Test

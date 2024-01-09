@@ -19,7 +19,6 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.eclipse.edc.iam.oauth2.jwt.Fingerprint.sha1Base64Fingerprint;
@@ -40,12 +39,7 @@ public class X509CertificateDecorator implements TokenDecorator {
     }
 
     @Override
-    public Map<String, Object> claims() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return Map.of("x5t", sha1Base64Fingerprint(certificate));
+    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+        headers.put("x5t", sha1Base64Fingerprint(certificate));
     }
 }
