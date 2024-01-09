@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.JwtDecorator;
 
 import java.time.Clock;
 import java.util.Date;
@@ -22,10 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
+import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
 import static java.util.Collections.emptyMap;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 
 /**
  * Decorator for Self-Issued ID token and Access Token. It appends input claims and

@@ -20,8 +20,10 @@ dependencies {
     implementation(libs.nimbus.jwt)
 
     implementation(project(":spi:common:json-ld-spi"))
+    implementation(project(":spi:common:jwt-spi"))
     implementation(project(":spi:common:identity-trust-spi"))
     implementation(project(":core:common:util"))
+    implementation(project(":core:common:token-core")) // for the token rules
 
 
     testImplementation(project(":extensions:common:json-ld"))

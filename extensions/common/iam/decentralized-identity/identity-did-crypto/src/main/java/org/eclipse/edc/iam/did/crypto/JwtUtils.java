@@ -37,9 +37,10 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
+import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
+
 
 /**
  * Convenience/helper class to generate and verify Signed JSON Web Tokens (JWTs) for communicating between connector instances.

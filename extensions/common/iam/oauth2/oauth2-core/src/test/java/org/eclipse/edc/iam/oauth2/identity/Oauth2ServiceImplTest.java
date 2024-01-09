@@ -28,22 +28,25 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
-import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
-import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
-import org.eclipse.edc.jwt.TokenValidationServiceImpl;
-import org.eclipse.edc.jwt.spi.JwtDecorator;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.JwtDecoratorRegistryImpl;
+import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
+import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.NotBeforeValidationRule;
+import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -54,12 +57,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.time.ZoneOffset.UTC;
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.NOT_BEFORE;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
+import static org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension.OAUTH2_TOKEN_CONTEXT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -103,17 +106,21 @@ class Oauth2ServiceImplTest {
                 .publicCertificateAlias(PUBLIC_CERTIFICATE_ALIAS)
                 .providerAudience(PROVIDER_AUDIENCE)
                 .endpointAudience(ENDPOINT_AUDIENCE)
-                .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
-        var clock = Clock.fixed(now, UTC);
-        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
-        var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
+        var tokenValidationService = new TokenValidationServiceImpl();
 
         var jwtDecoratorRegistry = new JwtDecoratorRegistryImpl();
         jwtDecoratorRegistry.register(jwtDecorator);
 
-        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, tokenValidationService, credentialsRequestAdditionalParametersProvider);
+        var registry = new TokenValidationRulesRegistryImpl();
+        registry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(configuration.getEndpointAudience()));
+        registry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(Clock.systemUTC(), configuration.getNotBeforeValidationLeeway()));
+        registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
+
+        authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> new SignatureInfo(privateKey), client, jwtDecoratorRegistry, registry,
+                tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
+
     }
 
     @Test

@@ -21,27 +21,31 @@ import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfigurat
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
 import org.eclipse.edc.iam.oauth2.jwt.Oauth2JwtDecoratorRegistryRegistryImpl;
 import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
-import org.eclipse.edc.iam.oauth2.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
-import org.eclipse.edc.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
-import org.eclipse.edc.jwt.JwtGenerationService;
-import org.eclipse.edc.jwt.TokenValidationServiceImpl;
-import org.eclipse.edc.jwt.spi.SignatureInfo;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.token.JwtGenerationService;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
+import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.NotBeforeValidationRule;
+import org.eclipse.edc.token.spi.SignatureInfo;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
@@ -54,11 +58,12 @@ import static java.lang.String.format;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class, Oauth2ValidationRulesRegistry.class })
+@Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class })
 @Extension(value = Oauth2ServiceExtension.NAME)
 public class Oauth2ServiceExtension implements ServiceExtension {
 
     public static final String NAME = "OAuth2 Identity Service";
+    public static final String OAUTH2_TOKEN_CONTEXT = "oauth2";
     private static final int DEFAULT_TOKEN_EXPIRATION = 5;
     @Setting
     private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
@@ -106,6 +111,12 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private TokenValidationRulesRegistry tokenValidationRulesRegistry;
+
+    @Inject
+    private TokenValidationService tokenValidationService;
+
     @Override
     public String name() {
         return NAME;
@@ -113,10 +124,6 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
-        var keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
-        var identityProviderKeyResolverConfiguration = new IdentityProviderKeyResolverConfiguration(jwksUrl, keyRefreshInterval);
-        providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), httpClient, typeManager, identityProviderKeyResolverConfiguration);
 
         var configuration = createConfig(context);
 
@@ -127,12 +134,13 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         jwtDecoratorRegistry.register(new X509CertificateDecorator(certificate));
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 
-        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
-        context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
-
-        var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry, validationRulesRegistry);
-
+        var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry, context);
         context.registerService(IdentityService.class, oauth2Service);
+
+        // add oauth2-specific validation rules
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new AudienceValidationRule(configuration.getEndpointAudience()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, configuration.getNotBeforeValidationLeeway()));
+        tokenValidationRulesRegistry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, configuration.getIssuedAtLeeway()));
     }
 
     @Override
@@ -145,8 +153,19 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         providerKeyResolver.stop();
     }
 
+    @Provider
+    public PublicKeyResolver identityProviderKeyResolver(ServiceExtensionContext context) {
+        if (providerKeyResolver == null) {
+            var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
+            var keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
+            var identityProviderKeyResolverConfiguration = new IdentityProviderKeyResolverConfiguration(jwksUrl, keyRefreshInterval);
+            providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), httpClient, typeManager, identityProviderKeyResolverConfiguration);
+        }
+        return providerKeyResolver;
+    }
+
     @NotNull
-    private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry, Oauth2ValidationRulesRegistryImpl validationRulesRegistry) {
+    private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry, ServiceExtensionContext context) {
         Supplier<SignatureInfo> privateKeySupplier = () -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
                 .orElseThrow(f -> new EdcException(f.getFailureDetail())), configuration.getPublicCertificateAlias());
 
@@ -156,8 +175,10 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 privateKeySupplier,
                 oauth2Client,
                 jwtDecoratorRegistry,
-                new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry),
-                credentialsRequestAdditionalParametersProvider
+                tokenValidationRulesRegistry,
+                tokenValidationService,
+                credentialsRequestAdditionalParametersProvider,
+                identityProviderKeyResolver(context)
         );
     }
 
@@ -170,7 +191,6 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         var clientId = context.getConfig().getString(CLIENT_ID);
         var tokenExpiration = context.getSetting(TOKEN_EXPIRATION, DEFAULT_TOKEN_EXPIRATION);
         return Oauth2ServiceConfiguration.Builder.newInstance()
-                .identityProviderKeyResolver(providerKeyResolver)
                 .tokenUrl(tokenUrl)
                 .providerAudience(providerAudience)
                 .endpointAudience(endpointAudience)

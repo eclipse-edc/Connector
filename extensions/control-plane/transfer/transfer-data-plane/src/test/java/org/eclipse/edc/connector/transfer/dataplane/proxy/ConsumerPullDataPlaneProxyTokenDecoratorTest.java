@@ -22,9 +22,9 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 class ConsumerPullDataPlaneProxyTokenDecoratorTest {
 

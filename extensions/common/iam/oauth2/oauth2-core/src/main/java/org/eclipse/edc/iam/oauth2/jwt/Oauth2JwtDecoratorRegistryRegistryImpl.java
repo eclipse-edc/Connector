@@ -15,7 +15,7 @@
 package org.eclipse.edc.iam.oauth2.jwt;
 
 import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
-import org.eclipse.edc.jwt.JwtDecoratorRegistryImpl;
+import org.eclipse.edc.token.JwtDecoratorRegistryImpl;
 
 /**
  * Registry for Oauth2 JWT decorators.
