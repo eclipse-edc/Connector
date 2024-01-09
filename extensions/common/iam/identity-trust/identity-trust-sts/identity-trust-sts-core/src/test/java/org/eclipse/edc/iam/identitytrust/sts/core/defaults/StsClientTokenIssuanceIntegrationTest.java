@@ -30,7 +30,6 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +71,7 @@ public class StsClientTokenIssuanceIntegrationTest {
 
         tokenGeneratorService = new StsClientTokenGeneratorServiceImpl(
                 client -> new JwtGenerationService(),
-                stsClient -> new SignatureInfo(privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null), stsClient.getPublicKeyReference()),
+                stsClient -> privateKeyResolver.resolvePrivateKey(stsClient.getPrivateKeyAlias()).orElse(null),
                 Clock.systemUTC(), 60 * 5);
 
     }
@@ -88,6 +87,7 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
+                .publicKeyReference("public-key")
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).build();
@@ -121,6 +121,7 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
+                .publicKeyReference("public-key")
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).bearerAccessScope(scope).build();
@@ -154,6 +155,7 @@ public class StsClientTokenIssuanceIntegrationTest {
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
+                .publicKeyReference("public-key")
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).accessToken(accessToken).build();

@@ -25,7 +25,6 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.SignatureInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,7 +115,7 @@ public class Oauth2CredentialsRequestFactory {
         var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
         var service = new JwtGenerationService();
 
-        return service.generate(() -> new SignatureInfo(privateKey.getContent()), decorator);
+        return service.generate(privateKey::getContent, decorator);
     }
 
     @Nullable
