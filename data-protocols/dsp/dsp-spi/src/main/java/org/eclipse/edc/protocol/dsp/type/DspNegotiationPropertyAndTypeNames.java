@@ -39,8 +39,6 @@ public interface DspNegotiationPropertyAndTypeNames {
     String DSPACE_PROPERTY_OFFER = DSPACE_SCHEMA + "offer";
     String DSPACE_PROPERTY_OFFER_ID = DSPACE_SCHEMA + "offerId";
     String DSPACE_PROPERTY_DATASET = DSPACE_SCHEMA + "dataset";
-    @Deprecated(since = "0.2.0")
-    String DSPACE_PROPERTY_DATA_SET = DSPACE_SCHEMA + "dataSet";
     String DSPACE_PROPERTY_TIMESTAMP = DSPACE_SCHEMA + "timestamp";
     String DSPACE_PROPERTY_CONSUMER_ID = DSPACE_SCHEMA + "consumerId";
     String DSPACE_PROPERTY_PROVIDER_ID = DSPACE_SCHEMA + "providerId";

@@ -475,4 +475,17 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return null;
         }
     }
+
+    /**
+     * Add a key-value pair to the builder only if the value is not null, to avoid NPE.
+     *
+     * @param value the value.
+     * @param key the key.
+     * @param builder the builder.
+     */
+    protected void addIfNotNull(String value, String key, JsonObjectBuilder builder) {
+        if (value != null) {
+            builder.add(key, value);
+        }
+    }
 }

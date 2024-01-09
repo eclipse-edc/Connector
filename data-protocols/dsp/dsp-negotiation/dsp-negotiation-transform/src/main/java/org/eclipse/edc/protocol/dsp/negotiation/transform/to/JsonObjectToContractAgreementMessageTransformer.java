@@ -34,7 +34,9 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 /**
  * Creates a {@link ContractAgreementMessage} from a {@link JsonObject}.
@@ -50,13 +52,30 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractJso
     @Override
     public @Nullable ContractAgreementMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var messageBuilder = ContractAgreementMessage.Builder.newInstance();
-        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROCESS_ID), messageBuilder::processId, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                    .property(DSPACE_PROPERTY_PROCESS_ID)
-                    .report();
-            return null;
+        var processId = object.get(DSPACE_PROPERTY_PROCESS_ID);
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_CONSUMER_PID), messageBuilder::consumerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                        .property(DSPACE_PROPERTY_CONSUMER_PID)
+                        .report();
+                return null;
+            } else {
+                messageBuilder.consumerPid(transformString(processId, context));
+            }
+        }
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROVIDER_PID), messageBuilder::providerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                        .property(DSPACE_PROPERTY_PROVIDER_PID)
+                        .report();
+                return null;
+            } else {
+                messageBuilder.providerPid(transformString(processId, context));
+            }
         }
 
         var jsonAgreement = returnMandatoryJsonObject(object.get(DSPACE_PROPERTY_AGREEMENT), context, DSPACE_PROPERTY_AGREEMENT);

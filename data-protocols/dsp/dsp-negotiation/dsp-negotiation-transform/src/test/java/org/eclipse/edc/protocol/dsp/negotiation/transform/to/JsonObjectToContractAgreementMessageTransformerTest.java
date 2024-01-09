@@ -41,7 +41,9 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -56,7 +58,6 @@ class JsonObjectToContractAgreementMessageTransformerTest {
     private static final String CONSUMER_ID = "consumerId";
     private static final String PROVIDER_ID = "providerId";
     private static final String AGREEMENT_ID = "agreementId";
-    private static final String PROCESS_ID = "processId";
     private static final String MESSAGE_ID = "messageId";
     private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
     private static final String TARGET = "target";
@@ -77,7 +78,8 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, MESSAGE_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
                 .build();
 
@@ -88,7 +90,40 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
         assertThat(result.getProtocol()).isNotEmpty();
-        assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
+        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
+        assertThat(result.getProviderPid()).isEqualTo("providerPid");
+
+        var agreement = result.getContractAgreement();
+        assertThat(agreement).isNotNull();
+        assertThat(agreement.getClass()).isEqualTo(ContractAgreement.class);
+        assertThat(agreement.getId()).isEqualTo(AGREEMENT_ID);
+        assertThat(agreement.getConsumerId()).isEqualTo(CONSUMER_ID);
+        assertThat(agreement.getProviderId()).isEqualTo(PROVIDER_ID);
+        assertThat(agreement.getAssetId()).isEqualTo(TARGET);
+        assertThat(agreement.getContractSigningDate()).isEqualTo(Instant.parse(TIMESTAMP).getEpochSecond());
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Deprecated(since = "0.4.1")
+    @Test
+    void transform_processId() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.ID, MESSAGE_ID)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
+                .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
+                .build();
+
+        when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
+
+        var result = transformer.transform(getExpanded(message), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
+        assertThat(result.getProtocol()).isNotEmpty();
+        assertThat(result.getConsumerPid()).isEqualTo("processId");
+        assertThat(result.getProviderPid()).isEqualTo("processId");
 
         var agreement = result.getContractAgreement();
         assertThat(agreement).isNotNull();
@@ -108,7 +143,8 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, value)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, value)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, contractAgreement())
                 .add(DSPACE_PROPERTY_TIMESTAMP, "123")
                 .build();
@@ -133,7 +169,8 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, agreement)
                 .build();
 
@@ -156,7 +193,8 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "messageId")
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_AGREEMENT, agreement)
                 .build();
 

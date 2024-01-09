@@ -27,7 +27,9 @@ import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNam
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_FINALIZED;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 /**
  * Creates a {@link ContractNegotiationEventMessage} from a {@link JsonObject}.
@@ -40,16 +42,32 @@ public class JsonObjectToContractNegotiationEventMessageTransformer extends Abst
 
     @Override
     public @Nullable ContractNegotiationEventMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-
         var builder = ContractNegotiationEventMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROCESS_ID), builder::processId, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
-                    .property(DSPACE_PROPERTY_PROCESS_ID)
-                    .report();
-            return null;
+        var processId = object.get(DSPACE_PROPERTY_PROCESS_ID);
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                        .property(DSPACE_PROPERTY_CONSUMER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.consumerPid(transformString(processId, context));
+            }
+        }
+        if (!transformMandatoryString(object.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE)
+                        .property(DSPACE_PROPERTY_PROVIDER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.providerPid(transformString(processId, context));
+            }
         }
 
         var eventType = transformString(object.get(DSPACE_PROPERTY_EVENT_TYPE), context);
