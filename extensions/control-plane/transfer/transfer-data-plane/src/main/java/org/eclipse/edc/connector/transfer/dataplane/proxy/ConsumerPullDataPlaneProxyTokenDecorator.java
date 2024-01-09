@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.proxy;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.JwtDecorator;
 
 import java.util.Date;
 import java.util.Map;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 /**
  * Decorator for access token used in input of Data Plane public API. The token is composed of:

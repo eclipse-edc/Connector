@@ -7,7 +7,7 @@ dependencies {
     api(project(":spi:common:jwt-spi"))
 
     implementation(libs.bouncyCastle.bcpkixJdk18on)
-    implementation(project(":core:common:jwt-core")) // this will go away once JwtUtils is deleted
+    implementation(project(":core:common:token-core")) // this will go away once JwtUtils is deleted
     testImplementation(project(":core:common:junit"))
 }
 

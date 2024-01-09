@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.oauth2.jwt;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.token.spi.JwtDecorator;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -40,12 +40,12 @@ public class X509CertificateDecorator implements JwtDecorator {
     }
 
     @Override
-    public Map<String, Object> headers() {
-        return Map.of("x5t", sha1Base64Fingerprint(certificate));
+    public Map<String, Object> claims() {
+        return Collections.emptyMap();
     }
 
     @Override
-    public Map<String, Object> claims() {
-        return Collections.emptyMap();
+    public Map<String, Object> headers() {
+        return Map.of("x5t", sha1Base64Fingerprint(certificate));
     }
 }

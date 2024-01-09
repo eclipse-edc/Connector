@@ -19,60 +19,85 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jwt.JWTClaimNames;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
-import org.eclipse.edc.verification.jwt.SelfIssuedIdTokenVerifier;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.eclipse.edc.verifiablecredentials.TestFunctions.createPublicKey;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_DID;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_KEY_ID;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.MY_OWN_DID;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.PRESENTER_KEY_ID;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VC_CONTENT_CERTIFICATE_EXAMPLE;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VC_CONTENT_DEGREE_EXAMPLE;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_CONTENT_TEMPLATE;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_HOLDER_ID;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ComponentTest
 class JwtPresentationVerifierTest {
 
     private final PublicKeyResolver publicKeyResolverMock = mock();
+    private final TokenValidationService tokenValidationService = new TokenValidationServiceImpl();
+    private final TokenValidationRulesRegistry ruleRegistry = new TokenValidationRulesRegistryImpl();
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
-    private final JwtPresentationVerifier verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(publicKeyResolverMock), mapper);
+    private final JwtPresentationVerifier verifier = new JwtPresentationVerifier(mapper, tokenValidationService, ruleRegistry, publicKeyResolverMock);
     private ECKey vpSigningKey;
     private ECKey vcSigningKey;
 
     @BeforeEach
     void setup() throws JOSEException {
         vpSigningKey = new ECKeyGenerator(Curve.P_256)
-                .keyID(TestConstants.PRESENTER_KEY_ID)
+                .keyID(VP_HOLDER_ID + "#" + PRESENTER_KEY_ID)
                 .generate();
 
         vcSigningKey = new ECKeyGenerator(Curve.P_256)
-                .keyID(TestConstants.CENTRAL_ISSUER_KEY_ID)
+                .keyID(CENTRAL_ISSUER_DID + "#" + CENTRAL_ISSUER_KEY_ID)
                 .generate();
 
         var vpKeyWrapper = createPublicKey(vpSigningKey);
-        when(publicKeyResolverMock.resolveKey(eq(TestConstants.VP_HOLDER_ID + "#" + TestConstants.PRESENTER_KEY_ID)))
+        when(publicKeyResolverMock.resolveKey(eq(VP_HOLDER_ID + "#" + PRESENTER_KEY_ID)))
                 .thenReturn(success(vpKeyWrapper));
 
         var vcKeyWrapper = createPublicKey(vcSigningKey);
-        when(publicKeyResolverMock.resolveKey(eq(TestConstants.CENTRAL_ISSUER_DID + "#" + TestConstants.CENTRAL_ISSUER_KEY_ID)))
+        when(publicKeyResolverMock.resolveKey(eq(CENTRAL_ISSUER_DID + "#" + CENTRAL_ISSUER_KEY_ID)))
                 .thenReturn(success(vcKeyWrapper));
+
+
+        // those rules would normally get registered in an extension
+        ruleRegistry.addRule("iatp-vc", (toVerify, additional) -> Optional.ofNullable(toVerify.getStringClaim(JWTClaimNames.SUBJECT)).map(s ->
+                Result.success()).orElseGet(() -> Result.failure("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]")).mapTo());
+
+        ruleRegistry.addRule("iatp-vp", (toVerify, additional) -> Optional.ofNullable(toVerify.getStringClaim(JWTClaimNames.SUBJECT)).map(s ->
+                Result.success()).orElseGet(() -> Result.failure("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]")).mapTo());
     }
 
     @Test
     @DisplayName("VP-JWT does not contain mandatory \"vp\" claim")
     void verifyPresentation_noVpClaim() {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of());
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of());
 
-        var verifier = new JwtPresentationVerifier(new SelfIssuedIdTokenVerifier(publicKeyResolverMock), new ObjectMapper());
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
         AbstractResultAssert.assertThat(result).isFailed().detail().contains("Either 'vp' or 'vc' claim must be present in JWT.");
@@ -82,11 +107,11 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_noCredential() {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
         AbstractResultAssert.assertThat(result).isSucceeded();
@@ -96,7 +121,7 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_invalidVpJson() {
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", """
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", """
                 {
                     "key": "this is very invalid!"
                 }
@@ -104,7 +129,7 @@ class JwtPresentationVerifierTest {
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
         AbstractResultAssert.assertThat(result).isFailed().detail().contains("Presentation object did not contain mandatory object: verifiableCredential");
@@ -114,14 +139,14 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_singleVc_valid() {
         // create VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "degreeSub", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
         AbstractResultAssert.assertThat(result).isSucceeded();
@@ -131,18 +156,18 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_multipleVc_valid() {
         // create first VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "degreeSub", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create first VC-JWT (signed by the central issuer)
-        var vcJwt2 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "isoCred", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_CERTIFICATE_EXAMPLE));
+        var vcJwt2 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "isoCred", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_CERTIFICATE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "testSub", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vpContent)));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted(vpContent)));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
         AbstractResultAssert.assertThat(result).isSucceeded();
@@ -153,54 +178,54 @@ class JwtPresentationVerifierTest {
     void verifyPresentation_oneVcIsInvalid() throws JOSEException {
 
         var spoofedKey = new ECKeyGenerator(Curve.P_256)
-                .keyID(TestConstants.CENTRAL_ISSUER_KEY_ID) //this bit is important for the DID resolution
+                .keyID(CENTRAL_ISSUER_DID + "#" + CENTRAL_ISSUER_KEY_ID) //this bit is important for the DID resolution
                 .generate();
         // create VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(spoofedKey, TestConstants.CENTRAL_ISSUER_DID, "degreeSub", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(spoofedKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
-        AbstractResultAssert.assertThat(result).isFailed().detail().contains("Token could not be verified: Invalid signature");
+        AbstractResultAssert.assertThat(result).isFailed().detail().contains("Token verification failed");
     }
 
     @DisplayName("VP-JWT with a spoofed signature - expect a failure")
     @Test
     void verifyPresentation_vpJwtInvalid() throws JOSEException {
         var spoofedKey = new ECKeyGenerator(Curve.P_256)
-                .keyID(TestConstants.PRESENTER_KEY_ID) //this bit is important for the DID resolution
+                .keyID(VP_HOLDER_ID + "#" + PRESENTER_KEY_ID) //this bit is important for the DID resolution
                 .generate();
         // create VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "degreeSub", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(spoofedKey, TestConstants.VP_HOLDER_ID, "degreePres", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vcJwt1)));
+        var vpJwt = JwtCreationUtils.createJwt(spoofedKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
-        AbstractResultAssert.assertThat(result).isFailed().detail().contains("Token could not be verified: Invalid signature");
+        AbstractResultAssert.assertThat(result).isFailed().detail().contains("Token verification failed");
     }
 
     @DisplayName("VP-JWT with a missing claim - expect a failure")
     @Test
     void verifyPresentation_vpJwt_invalidClaims() {
         // create VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "degreeSub", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, null, TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vcJwt1)));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, null, MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
         AbstractResultAssert.assertThat(result).isFailed().detail().contains("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]");
@@ -210,14 +235,14 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_vcJwt_invalidClaims() {
         // create VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, null, TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, null, VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "test-subject", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "test-subject", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
         AbstractResultAssert.assertThat(result).isFailed().detail().contains("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]");
@@ -227,38 +252,40 @@ class JwtPresentationVerifierTest {
     @Test
     void verifyPresentation_wrongAudience() {
         // create VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "test-cred-sub", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "test-cred-sub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "test-pres-sub", "invalid-vp-audience", Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vcJwt1)));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "test-pres-sub", "invalid-vp-audience", Map.of("vp", VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"")));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
-        AbstractResultAssert.assertThat(result).isFailed().detail().contains("JWT aud claim has value [invalid-vp-audience], must be [did:web:myself]");
+        AbstractResultAssert.assertThat(result).isFailed().detail().contains("Token audience claim (aud -> [invalid-vp-audience]) did not contain expected audience: did:web:myself");
     }
 
     @DisplayName("VP-JWT containing a VC-JWT, where the VC-audience does not match the VP-issuer")
     @Test
     void verifyPresentation_vcJwt_wrongAudience() {
         // create first VC-JWT (signed by the central issuer)
-        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "degreeSub", TestConstants.VP_HOLDER_ID, Map.of("vc", TestConstants.VC_CONTENT_DEGREE_EXAMPLE));
+        var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
 
         // create first VC-JWT (signed by the central issuer)
-        var vcJwt2 = JwtCreationUtils.createJwt(vcSigningKey, TestConstants.CENTRAL_ISSUER_DID, "isoCred", "invalid-vc-audience", Map.of("vc", TestConstants.VC_CONTENT_CERTIFICATE_EXAMPLE));
+        var vcJwt2 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "isoCred", "invalid-vc-audience", Map.of("vc", VC_CONTENT_CERTIFICATE_EXAMPLE));
 
         // create VP-JWT (signed by the presenter) that contains the VP as a claim
         var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
-        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, TestConstants.VP_HOLDER_ID, "testSub", TestConstants.MY_OWN_DID, Map.of("vp", TestConstants.VP_CONTENT_TEMPLATE.formatted(vpContent)));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted(vpContent)));
 
         var context = VerifierContext.Builder.newInstance()
                 .verifier(verifier)
-                .audience(TestConstants.MY_OWN_DID)
+                .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
-        AbstractResultAssert.assertThat(result).isFailed().detail().contains("JWT aud claim has value [invalid-vc-audience], must be [did:web:test-issuer]");
+        AbstractResultAssert.assertThat(result)
+                .isFailed()
+                .detail()
+                .isEqualTo("Token audience claim (aud -> [invalid-vc-audience]) did not contain expected audience: did:web:test-issuer");
     }
-
 }

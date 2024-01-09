@@ -16,7 +16,6 @@
 package org.eclipse.edc.iam.oauth2;
 
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
 
 /**
  * Configuration values and dependencies for {@link Oauth2ServiceImpl}.
@@ -25,7 +24,6 @@ public class Oauth2ServiceConfiguration {
 
     private String tokenUrl;
     private String clientId;
-    private PublicKeyResolver identityProviderKeyResolver;
     private String privateKeyAlias;
     private String publicCertificateAlias;
     private String providerAudience;
@@ -57,10 +55,6 @@ public class Oauth2ServiceConfiguration {
 
     public String getProviderAudience() {
         return providerAudience;
-    }
-
-    public PublicKeyResolver getIdentityProviderKeyResolver() {
-        return identityProviderKeyResolver;
     }
 
     public int getNotBeforeValidationLeeway() {
@@ -99,13 +93,6 @@ public class Oauth2ServiceConfiguration {
             return this;
         }
 
-        /**
-         * Resolves the certificate containing the identity provider's public key.
-         */
-        public Builder identityProviderKeyResolver(PublicKeyResolver identityProviderKeyResolver) {
-            configuration.identityProviderKeyResolver = identityProviderKeyResolver;
-            return this;
-        }
 
         public Builder privateKeyAlias(String privateKeyAlias) {
             configuration.privateKeyAlias = privateKeyAlias;
