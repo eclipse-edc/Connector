@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -43,18 +44,15 @@ class ConsumerPullDataPlaneProxyTokenDecoratorTest {
     }
 
     @Test
-    void claims() {
-        var result = decorator.claims();
+    void verifyDecorate() {
 
-        assertThat(result)
+        var headers = new HashMap<String, Object>();
+        var claims = new HashMap<String, Object>();
+        decorator.decorate(claims, headers);
+
+        assertThat(headers).isEmpty();
+        assertThat(claims)
                 .containsEntry(DATA_ADDRESS, encryptedDataAddress)
                 .containsEntry(EXPIRATION_TIME, expiration);
-    }
-
-    @Test
-    void headers() {
-        var result = decorator.headers();
-
-        assertThat(result).isNotNull().isEmpty();
     }
 }

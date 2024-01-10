@@ -16,6 +16,8 @@ package org.eclipse.edc.iam.oauth2.daps;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DapsJwtDecoratorTest {
@@ -23,18 +25,15 @@ class DapsJwtDecoratorTest {
     private final DapsJwtDecorator decorator = new DapsJwtDecorator();
 
     @Test
-    void claims() {
-        var result = decorator.claims();
+    void verifyDecorate() {
+        var claims = new HashMap<String, Object>();
+        var headers = new HashMap<String, Object>();
 
-        assertThat(result)
+        decorator.decorate(claims, headers);
+        assertThat(headers).isEmpty();
+        assertThat(claims)
                 .hasFieldOrPropertyWithValue("@context", "https://w3id.org/idsa/contexts/context.jsonld")
                 .hasFieldOrPropertyWithValue("@type", "ids:DatRequestToken");
     }
 
-    @Test
-    void headers() {
-        var result = decorator.headers();
-
-        assertThat(result).isNotNull().isEmpty();
-    }
 }

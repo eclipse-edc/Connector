@@ -17,7 +17,10 @@ package org.eclipse.edc.spi.iam;
 /**
  * Implementors of this interface receive the {@link org.eclipse.edc.spi.iam.TokenParameters} instance that is composed
  * when the request travels through the egress.
+ *
+ * @deprecated Will get merged/married with {@code org.eclipse.edc.token.spi.TokenDecorator}.
  */
+@Deprecated(since = "0.4.1")
 @FunctionalInterface
 public interface TokenDecorator {
     /**

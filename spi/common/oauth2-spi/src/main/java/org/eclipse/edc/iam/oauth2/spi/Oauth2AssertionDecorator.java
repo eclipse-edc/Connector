@@ -14,10 +14,9 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,7 @@ import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
 import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 
 
-public class Oauth2AssertionDecorator implements JwtDecorator {
+public class Oauth2AssertionDecorator implements TokenDecorator {
 
     private final String audience;
     private final String clientId;
@@ -46,19 +45,13 @@ public class Oauth2AssertionDecorator implements JwtDecorator {
     }
 
     @Override
-    public Map<String, Object> claims() {
-        return Map.of(
+    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+        claims.putAll(Map.of(
                 AUDIENCE, List.of(audience),
                 ISSUER, clientId,
                 SUBJECT, clientId,
                 JWT_ID, UUID.randomUUID().toString(),
                 ISSUED_AT, Date.from(clock.instant()),
-                EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity))
-        );
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return Collections.emptyMap();
+                EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity))));
     }
 }

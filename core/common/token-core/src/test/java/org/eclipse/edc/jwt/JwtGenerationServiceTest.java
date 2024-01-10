@@ -24,7 +24,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.token.JwtGenerationService;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -93,18 +93,10 @@ class JwtGenerationServiceTest {
         return new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey);
     }
 
-    private JwtDecorator testDecorator() {
-        return new JwtDecorator() {
-
-            @Override
-            public Map<String, Object> claims() {
-                return Map.of("foo", "bar", EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)));
-            }
-
-            @Override
-            public Map<String, Object> headers() {
-                return Map.of("x5t", "some x509CertThumbprint thing");
-            }
+    private TokenDecorator testDecorator() {
+        return (claims, headers) -> {
+            claims.putAll(Map.of("foo", "bar", EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60))));
+            headers.put("x5t", "some x509CertThumbprint thing");
         };
     }
 }

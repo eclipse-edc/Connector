@@ -16,8 +16,8 @@ package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.token.spi.JwtDecorator;
 import org.eclipse.edc.token.spi.KeyIdDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -48,11 +48,11 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(JwtDecorator[].class))).thenReturn(Result.success(token));
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class))).thenReturn(Result.success(token));
         var result = sts.createToken(Map.of(), null);
 
         assertThat(result.succeeded()).isTrue();
-        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
 
         verify(tokenGenerationService).generate(any(), captor.capture());
 
@@ -71,7 +71,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.success(token));
 
@@ -79,7 +79,7 @@ public class EmbeddedSecureTokenServiceTest {
         var result = sts.createToken(claims, "scope:test");
 
         assertThat(result.succeeded()).isTrue();
-        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
 
         verify(tokenGenerationService, times(2)).generate(any(), captor.capture());
 
@@ -104,14 +104,14 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
                 .thenReturn(Result.failure("Failed to create access token"))
                 .thenReturn(Result.success(token));
 
         var result = sts.createToken(claims, "scope:test");
 
         assertThat(result.failed()).isTrue();
-        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
 
         verify(tokenGenerationService, times(1)).generate(any(), captor.capture());
 
@@ -128,7 +128,7 @@ public class EmbeddedSecureTokenServiceTest {
         var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(eq(keySupplier), any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.failure("Failed to create access token"));
 
@@ -137,7 +137,7 @@ public class EmbeddedSecureTokenServiceTest {
 
         assertThat(result.failed()).isTrue();
 
-        verify(tokenGenerationService, times(2)).generate(eq(keySupplier), any(JwtDecorator[].class));
+        verify(tokenGenerationService, times(2)).generate(eq(keySupplier), any(TokenDecorator[].class));
 
     }
 

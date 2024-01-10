@@ -19,11 +19,9 @@ package org.eclipse.edc.iam.oauth2;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
-import org.eclipse.edc.iam.oauth2.jwt.Oauth2JwtDecoratorRegistryRegistryImpl;
 import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
-import org.eclipse.edc.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -43,6 +41,7 @@ import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
+import org.eclipse.edc.token.spi.TokenDecoratorRegistry;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +57,7 @@ import static java.lang.String.format;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class })
+@Provides({ IdentityService.class })
 @Extension(value = Oauth2ServiceExtension.NAME)
 public class Oauth2ServiceExtension implements ServiceExtension {
 
@@ -116,6 +115,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
     @Inject
     private TokenValidationService tokenValidationService;
+    @Inject
+    private TokenDecoratorRegistry jwtDecoratorRegistry;
 
     @Override
     public String name() {
@@ -129,10 +130,8 @@ public class Oauth2ServiceExtension implements ServiceExtension {
 
         var certificate = Optional.ofNullable(certificateResolver.resolveCertificate(configuration.getPublicCertificateAlias()))
                 .orElseThrow(() -> new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias()));
-        var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
-        jwtDecoratorRegistry.register(new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), clock, configuration.getTokenExpiration()));
-        jwtDecoratorRegistry.register(new X509CertificateDecorator(certificate));
-        context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
+        jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, new Oauth2AssertionDecorator(configuration.getProviderAudience(), configuration.getClientId(), clock, configuration.getTokenExpiration()));
+        jwtDecoratorRegistry.register(OAUTH2_TOKEN_CONTEXT, new X509CertificateDecorator(certificate));
 
         var oauth2Service = createOauth2Service(configuration, jwtDecoratorRegistry, context);
         context.registerService(IdentityService.class, oauth2Service);
@@ -165,7 +164,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     }
 
     @NotNull
-    private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, Oauth2JwtDecoratorRegistryRegistryImpl jwtDecoratorRegistry, ServiceExtensionContext context) {
+    private Oauth2ServiceImpl createOauth2Service(Oauth2ServiceConfiguration configuration, TokenDecoratorRegistry jwtDecoratorRegistry, ServiceExtensionContext context) {
         Supplier<PrivateKey> privateKeySupplier = () -> privateKeyResolver.resolvePrivateKey(configuration.getPrivateKeyAlias())
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
 
