@@ -34,15 +34,13 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class QueryValidatorTest {
 
-    private QueryValidator queryValidator;
-
     @BeforeEach
     void setUp() {
     }
 
     @Test
     void validate_isValid() {
-        queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = new QueryValidator(TestObject.class);
         var query = with(criterion("someString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
@@ -53,7 +51,7 @@ class QueryValidatorTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidFilters.class)
     void validate_keyHasLeadingOrTrailingDot(Criterion filter) {
-        queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = new QueryValidator(TestObject.class);
         var query = with(filter);
 
         var result = queryValidator.validate(query);
@@ -64,7 +62,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_interface_withSubtypeMap() {
-        queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
+        var queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
         var query = with(criterion("nestedObject.nestedString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
@@ -73,7 +71,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_interface_withoutSubtypeMap() {
-        queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = new QueryValidator(TestObject.class);
         var query = with(criterion("nestedObject.nestedString", "=", "foobar"));
 
         var result = queryValidator.validate(query);
@@ -83,7 +81,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_isMapTypeTrue() {
-        queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = new QueryValidator(TestObject.class);
         var query = with(criterion("someMap.foo", "=", "bar"));
 
         var result = queryValidator.validate(query);
@@ -93,7 +91,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_isMapTypeFalse() {
-        queryValidator = new QueryValidator(TestObject.class);
+        var queryValidator = new QueryValidator(TestObject.class);
         var query = with(criterion("someMap.foo[*].test", "=", "bar"));
 
         var result = queryValidator.validate(query);
@@ -104,7 +102,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_fieldNotExist() {
-        queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
+        var queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
         var query = with(criterion("nestedObject.notexist", "like", "(foobar, barbaz)"));
 
         var result = queryValidator.validate(query);
@@ -114,7 +112,7 @@ class QueryValidatorTest {
 
     @Test
     void validate_withListType() {
-        queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
+        var queryValidator = new QueryValidator(TestObject.class, Map.of(TestInterface.class, List.of(NestedTestObject.class)));
         var query = with(criterion("nestedObject.someList", "=", "foobar"));
 
         var result = queryValidator.validate(query);
