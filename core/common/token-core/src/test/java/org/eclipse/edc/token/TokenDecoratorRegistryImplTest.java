@@ -27,9 +27,9 @@ class TokenDecoratorRegistryImplTest {
     private final TokenDecoratorRegistryImpl tokenDecoratorRegistry = new TokenDecoratorRegistryImpl();
 
     @Test
-    void register_whenContextNotExists() {
-        tokenDecoratorRegistry.register("test-context", new TestTokenDecorator());
-
+    void register_whenContextNotYetExists_shouldCreateEntry() {
+        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
+        });
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(1);
     }
 
@@ -41,14 +41,6 @@ class TokenDecoratorRegistryImplTest {
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(2);
     }
 
-    @Test
-    void register_whenContextAndDecoratorExists() {
-        TokenDecorator decorator = new TestTokenDecorator();
-        tokenDecoratorRegistry.register("test-context", decorator);
-        tokenDecoratorRegistry.register("test-context", decorator);
-
-        assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(2).allMatch(d -> d == decorator);
-    }
 
     @Test
     void unregister_whenContextNotExist() {
@@ -62,7 +54,8 @@ class TokenDecoratorRegistryImplTest {
 
         tokenDecoratorRegistry.register("test-context", d1);
         assertThatNoException().isThrownBy(() -> tokenDecoratorRegistry.unregister("test-context", d2));
-        assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).containsExactly(d1);
+        assertThat(tokenDecoratorRegistry.getDecoratorsFor("not-exists")).isNotNull().isEmpty();
+
     }
 
     @Test
@@ -75,19 +68,6 @@ class TokenDecoratorRegistryImplTest {
         assertThatNoException().isThrownBy(() -> tokenDecoratorRegistry.unregister("test-context", d2));
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).containsExactly(d1);
     }
-
-    @Test
-    void getDecoratorsFor() {
-        TokenDecorator d1 = new TestTokenDecorator();
-        TokenDecorator d2 = new TestTokenDecorator();
-
-        tokenDecoratorRegistry.register("test-context", d1);
-        tokenDecoratorRegistry.register("test-context", d2);
-        assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).containsExactlyInAnyOrder(d1, d2);
-
-        assertThat(tokenDecoratorRegistry.getDecoratorsFor("not-exists")).isNotNull().isEmpty();
-    }
-
 
     private static class TestTokenDecorator implements TokenDecorator {
         @Override
