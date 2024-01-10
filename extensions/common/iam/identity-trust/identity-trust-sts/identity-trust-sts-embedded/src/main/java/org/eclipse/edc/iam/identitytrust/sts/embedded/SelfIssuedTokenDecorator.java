@@ -18,7 +18,6 @@ import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -43,11 +42,9 @@ class SelfIssuedTokenDecorator implements TokenDecorator {
 
     @Override
     public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-        var c = new HashMap<String, Object>(this.claims);
-        c.put(ISSUED_AT, Date.from(clock.instant()));
-        c.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
-        c.put(JWT_ID, UUID.randomUUID().toString());
-
-        claims.putAll(c);
+        claims.putAll(this.claims);
+        claims.put(ISSUED_AT, Date.from(clock.instant()));
+        claims.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
+        claims.put(JWT_ID, UUID.randomUUID().toString());
     }
 }

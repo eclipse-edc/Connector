@@ -33,8 +33,7 @@ public class SelfIssuedTokenDecoratorTest {
         var decorator = new SelfIssuedTokenDecorator(Map.of("iss", "test"), Clock.systemUTC(), 5 * 60);
         var headers = new HashMap<String, Object>();
         var claims = new HashMap<String, Object>();
-        decorator.decorate(claims, headers
-        );
+        decorator.decorate(claims, headers);
         assertThat(claims)
                 .containsEntry("iss", "test")
                 .containsKeys(ISSUED_AT, EXPIRATION_TIME, JWT_ID);

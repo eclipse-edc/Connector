@@ -74,17 +74,17 @@ public class JwtGenerationService implements TokenGenerationService {
         return Result.success(TokenRepresentation.Builder.newInstance().token(token.serialize()).build());
     }
 
-    private JWSHeader createHeader(Map<String, Object> decorators) {
+    private JWSHeader createHeader(Map<String, Object> headers) {
         try {
-            return JWSHeader.parse(decorators);
+            return JWSHeader.parse(headers);
         } catch (ParseException e) {
             throw new EdcException("Error parsing JWSHeader, this should never happens since the algorithm is always valid", e);
         }
     }
 
-    private JWTClaimsSet createClaimsSet(HashMap<String, Object> decorators) {
+    private JWTClaimsSet createClaimsSet(HashMap<String, Object> claims) {
         var builder = new JWTClaimsSet.Builder();
-        decorators.forEach(builder::claim);
+        claims.forEach(builder::claim);
         return builder.build();
     }
 

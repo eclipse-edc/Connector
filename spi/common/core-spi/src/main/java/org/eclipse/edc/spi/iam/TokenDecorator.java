@@ -20,7 +20,7 @@ package org.eclipse.edc.spi.iam;
  *
  * @deprecated Will get merged/married with {@code org.eclipse.edc.token.spi.TokenDecorator}.
  */
-@Deprecated
+@Deprecated(since = "0.4.1")
 @FunctionalInterface
 public interface TokenDecorator {
     /**

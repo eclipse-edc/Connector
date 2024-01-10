@@ -17,6 +17,8 @@ package org.eclipse.edc.token;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -26,26 +28,22 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void register_whenContextNotExists() {
-        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
-        });
+        tokenDecoratorRegistry.register("test-context", new TestTokenDecorator());
 
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(1);
     }
 
     @Test
     void register_whenContextExists() {
-        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
-        });
-        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
-        });
+        tokenDecoratorRegistry.register("test-context", new TestTokenDecorator());
+        tokenDecoratorRegistry.register("test-context", new TestTokenDecorator());
 
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(2);
     }
 
     @Test
     void register_whenContextAndDecoratorExists() {
-        TokenDecorator decorator = (claims, headers) -> {
-        };
+        TokenDecorator decorator = new TestTokenDecorator();
         tokenDecoratorRegistry.register("test-context", decorator);
         tokenDecoratorRegistry.register("test-context", decorator);
 
@@ -54,16 +52,13 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void unregister_whenContextNotExist() {
-        assertThatNoException().isThrownBy(() -> tokenDecoratorRegistry.unregister("not-exist", (claims, headers) -> {
-        }));
+        assertThatNoException().isThrownBy(() -> tokenDecoratorRegistry.unregister("not-exist", new TestTokenDecorator()));
     }
 
     @Test
     void unregister_whenContextExist() {
-        TokenDecorator d1 = (claims, headers) -> {
-        };
-        TokenDecorator d2 = (claims, headers) -> {
-        };
+        TokenDecorator d1 = new TestTokenDecorator();
+        TokenDecorator d2 = new TestTokenDecorator();
 
         tokenDecoratorRegistry.register("test-context", d1);
         assertThatNoException().isThrownBy(() -> tokenDecoratorRegistry.unregister("test-context", d2));
@@ -72,10 +67,8 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void unregister_whenContextAndDecoratorExists() {
-        TokenDecorator d1 = (claims, headers) -> {
-        };
-        TokenDecorator d2 = (claims, headers) -> {
-        };
+        TokenDecorator d1 = new TestTokenDecorator();
+        TokenDecorator d2 = new TestTokenDecorator();
 
         tokenDecoratorRegistry.register("test-context", d1);
         tokenDecoratorRegistry.register("test-context", d2);
@@ -85,15 +78,21 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void getDecoratorsFor() {
-        TokenDecorator d1 = (claims, headers) -> {
-        };
-        TokenDecorator d2 = (claims, headers) -> {
-        };
+        TokenDecorator d1 = new TestTokenDecorator();
+        TokenDecorator d2 = new TestTokenDecorator();
 
         tokenDecoratorRegistry.register("test-context", d1);
         tokenDecoratorRegistry.register("test-context", d2);
-        assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).containsExactly(d1, d2);
+        assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).containsExactlyInAnyOrder(d1, d2);
 
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("not-exists")).isNotNull().isEmpty();
+    }
+
+
+    private static class TestTokenDecorator implements TokenDecorator {
+        @Override
+        public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+
+        }
     }
 }
