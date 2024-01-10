@@ -209,7 +209,7 @@ class TransferProcessServiceImplTest {
             return Stream.of(
                     arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
                     arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
-                    arguments(criterion("contentDataAddress.properties.someKey", "=", "someval")) // map types not supported
+                    arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
             );
         }
     }

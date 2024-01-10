@@ -43,7 +43,6 @@ import static org.hamcrest.Matchers.is;
 @EndToEndTest
 public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTest {
 
-
     @Test
     void shouldStorePolicyDefinition() {
         var requestBody = createObjectBuilder()
@@ -118,6 +117,57 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
                 .body(CONTEXT, hasEntry(ODRL_PREFIX, ODRL_SCHEMA))
                 .log().all()
                 .body("policy.'odrl:permission'.'odrl:constraint'.'odrl:operator'.@id", is("odrl:eq"));
+    }
+
+    @Test
+    void queryPolicyDefinitionWithSimplePrivateProperties() {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add("edc", EDC_NAMESPACE)
+                        .build())
+                .add(TYPE, "PolicyDefinition")
+                .add("policy", sampleOdrlPolicy())
+                .add("edc:privateProperties", createObjectBuilder()
+                        .add("newKey", "newValue")
+                        .build())
+                .build();
+
+        baseRequest()
+                .body(requestBody)
+                .contentType(JSON)
+                .post("/v2/policydefinitions")
+                .then()
+                .contentType(JSON)
+                .extract().jsonPath().getString(ID);
+
+        var query = createSingleFilterQuery(
+                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
+                "=",
+                "newValue");
+
+        baseRequest()
+                .body(query)
+                .contentType(JSON)
+                .post("/v2/policydefinitions/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(1));
+
+
+        query = createSingleFilterQuery(
+                "privateProperties.'https://w3id.org/edc/v0.0.1/ns/newKey'",
+                "=",
+                "somethingElse");
+
+        baseRequest()
+                .body(query)
+                .contentType(JSON)
+                .post("/v2/policydefinitions/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(0));
     }
 
     @Test
@@ -304,6 +354,21 @@ public class PolicyDefinitionApiEndToEndTest extends BaseManagementApiEndToEndTe
 
     private PolicyDefinitionStore store() {
         return controlPlane.getContext().getService(PolicyDefinitionStore.class);
+    }
+
+    private JsonObject createSingleFilterQuery(String leftOperand, String operator, String rightOperand) {
+        var criteria =
+                (createObjectBuilder()
+                        .add("operandLeft", leftOperand)
+                        .add("operator", operator)
+                        .add("operandRight", rightOperand)
+                );
+
+        return createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add(TYPE, "QuerySpec")
+                .add("filterExpression", criteria)
+                .build();
     }
 
 }

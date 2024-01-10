@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.sql.dialect.PostgresDialect.getSelectFromJsonArrayTemplate;
 
 /**
@@ -30,6 +31,8 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     public static final String PERMISSIONS_ALIAS = "perm";
     public static final String OBLIGATIONS_ALIAS = "oblig";
     public static final String EXT_PROPERTIES_ALIAS = "extprop";
+    private static final String PRIVATE_PROPERTIES = "privateProperties.";
+    private static final String SELECT_QUERY = "SELECT * FROM %s";
 
     @Override
     public String getFormatAsJsonOperator() {
@@ -49,6 +52,9 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
         } else if (querySpec.containsAnyLeftOperand("policy.extensibleProperties")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getExtensiblePropertiesColumn(), EXT_PROPERTIES_ALIAS);
+            return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
+        } else if (querySpec.containsAnyLeftOperand(PRIVATE_PROPERTIES)) {
+            var select = format(SELECT_QUERY, getPolicyTable());
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
         } else {
             return super.createQuery(querySpec);
