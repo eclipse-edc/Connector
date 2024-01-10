@@ -14,13 +14,12 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.proxy;
 
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.util.Date;
 import java.util.Map;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
-import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
 
 /**
@@ -28,7 +27,7 @@ import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlane
  * - a contract id (used to check if contract between consumer and provider is still valid).
  * - the address of the data source formatted as an encrypted string.
  */
-class ConsumerPullDataPlaneProxyTokenDecorator implements JwtDecorator {
+class ConsumerPullDataPlaneProxyTokenDecorator implements TokenDecorator {
 
     private final Date expirationDate;
     private final String encryptedDataAddress;
@@ -39,15 +38,8 @@ class ConsumerPullDataPlaneProxyTokenDecorator implements JwtDecorator {
     }
 
     @Override
-    public Map<String, Object> claims() {
-        return Map.of(
-                EXPIRATION_TIME, expirationDate,
-                DATA_ADDRESS, encryptedDataAddress
-        );
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return emptyMap();
+    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+        claims.put(EXPIRATION_TIME, expirationDate);
+        claims.put(DATA_ADDRESS, encryptedDataAddress);
     }
 }

@@ -22,6 +22,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,20 +33,24 @@ class X509CertificateDecoratorTest {
     private static final String HEADER = "-----BEGIN CERTIFICATE-----";
     private static final String FOOTER = "-----END CERTIFICATE-----";
 
-    @Test
-    void verifyDecorator() throws CertificateException, IOException {
-        var certificate = createCertificate();
-        var decorator = new X509CertificateDecorator(certificate);
-
-        assertThat(decorator.claims()).isEmpty();
-        assertThat(decorator.headers()).containsOnlyKeys("x5t");
-    }
-
     private static X509Certificate createCertificate() throws CertificateException, IOException {
         var classloader = Thread.currentThread().getContextClassLoader();
         var pem = new String(Objects.requireNonNull(classloader.getResourceAsStream(TEST_CERT_FILE)).readAllBytes());
         var encoded = pem.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
         return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
+    }
+
+    @Test
+    void verifyDecorator() throws CertificateException, IOException {
+        var certificate = createCertificate();
+        var decorator = new X509CertificateDecorator(certificate);
+
+        var headers = new HashMap<String, Object>();
+        var claims = new HashMap<String, Object>();
+        decorator.decorate(claims, headers);
+
+        assertThat(claims).isEmpty();
+        assertThat(headers).containsOnlyKeys("x5t");
     }
 }

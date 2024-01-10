@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.identitytrust.sts.embedded;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
@@ -30,11 +31,13 @@ public class SelfIssuedTokenDecoratorTest {
     void verifyDecorator() {
 
         var decorator = new SelfIssuedTokenDecorator(Map.of("iss", "test"), Clock.systemUTC(), 5 * 60);
-
-        assertThat(decorator.claims())
+        var headers = new HashMap<String, Object>();
+        var claims = new HashMap<String, Object>();
+        decorator.decorate(claims, headers);
+        assertThat(claims)
                 .containsEntry("iss", "test")
                 .containsKeys(ISSUED_AT, EXPIRATION_TIME, JWT_ID);
 
-        assertThat(decorator.headers()).isEmpty();
+        assertThat(headers).isEmpty();
     }
 }

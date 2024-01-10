@@ -22,7 +22,6 @@ import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProv
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
-import org.eclipse.edc.jwt.spi.JwtDecoratorRegistry;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
@@ -30,7 +29,8 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
+import org.eclipse.edc.token.spi.TokenDecoratorRegistry;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
@@ -51,7 +51,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final Oauth2ServiceConfiguration configuration;
     private final Supplier<PrivateKey> privateKeySupplier;
     private final Oauth2Client client;
-    private final JwtDecoratorRegistry jwtDecoratorRegistry;
+    private final TokenDecoratorRegistry jwtDecoratorRegistry;
     private final TokenGenerationService tokenGenerationService;
     private final TokenValidationService tokenValidationService;
     private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
@@ -69,7 +69,7 @@ public class Oauth2ServiceImpl implements IdentityService {
      * @param credentialsRequestAdditionalParametersProvider Provides additional form parameters
      */
     public Oauth2ServiceImpl(Oauth2ServiceConfiguration configuration, TokenGenerationService tokenGenerationService, Supplier<PrivateKey> privateKeySupplier,
-                             Oauth2Client client, JwtDecoratorRegistry jwtDecoratorRegistry, TokenValidationRulesRegistry tokenValidationRuleRegistry, TokenValidationService tokenValidationService,
+                             Oauth2Client client, TokenDecoratorRegistry jwtDecoratorRegistry, TokenValidationRulesRegistry tokenValidationRuleRegistry, TokenValidationService tokenValidationService,
                              CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider, PublicKeyResolver publicKeyResolver) {
         this.configuration = configuration;
         this.privateKeySupplier = privateKeySupplier;
@@ -96,7 +96,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     @NotNull
     private Result<String> generateClientAssertion() {
-        var decorators = jwtDecoratorRegistry.getAll().toArray(JwtDecorator[]::new);
+        var decorators = jwtDecoratorRegistry.getDecoratorsFor(OAUTH2_TOKEN_CONTEXT).toArray(TokenDecorator[]::new);
         return tokenGenerationService.generate(privateKeySupplier, decorators)
                 .map(TokenRepresentation::getToken);
     }

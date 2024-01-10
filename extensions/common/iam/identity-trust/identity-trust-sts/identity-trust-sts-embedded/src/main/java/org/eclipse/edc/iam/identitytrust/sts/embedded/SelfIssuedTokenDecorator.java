@@ -14,24 +14,22 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
 import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
-import static java.util.Collections.emptyMap;
 
 /**
  * Decorator for Self-Issued ID token and Access Token. It appends input claims and
  * generic claims like iat, exp, and jti
  */
-class SelfIssuedTokenDecorator implements JwtDecorator {
+class SelfIssuedTokenDecorator implements TokenDecorator {
     private final Map<String, String> claims;
     private final Clock clock;
     private final long validity;
@@ -43,16 +41,10 @@ class SelfIssuedTokenDecorator implements JwtDecorator {
     }
 
     @Override
-    public Map<String, Object> claims() {
-        var claims = new HashMap<String, Object>(this.claims);
+    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+        claims.putAll(this.claims);
         claims.put(ISSUED_AT, Date.from(clock.instant()));
         claims.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
         claims.put(JWT_ID, UUID.randomUUID().toString());
-        return claims;
-    }
-
-    @Override
-    public Map<String, Object> headers() {
-        return emptyMap();
     }
 }

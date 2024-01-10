@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.token.spi.JwtDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 
 import java.sql.Date;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
@@ -70,7 +71,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .property("publicApiUrl", proxyUrl)
                 .build();
 
-        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn(encryptedAddress);
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
         when(tokenGenerationService.generate(any(), captor.capture()))
@@ -90,12 +91,23 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         var decorators = captor.getValue();
 
-        assertThat(decorators).anySatisfy(decorator -> assertThat(decorator.claims())
-                .containsEntry(DATA_ADDRESS, encryptedAddress)
-                .containsEntry(EXPIRATION_TIME, expiration));
+        assertThat(decorators)
+                .anySatisfy(decorator -> {
+                    var headers = new HashMap<String, Object>();
+                    var claims = new HashMap<String, Object>();
+                    decorator.decorate(claims, headers);
+                    assertThat(claims)
+                            .containsEntry(DATA_ADDRESS, encryptedAddress)
+                            .containsEntry(EXPIRATION_TIME, expiration);
+                });
 
-        assertThat(decorators).anySatisfy(decorator -> assertThat(decorator.headers())
-                .containsEntry("kid", "test-public-key"));
+        assertThat(decorators).anySatisfy(decorator -> {
+            var headers = new HashMap<String, Object>();
+            var claims = new HashMap<String, Object>();
+            decorator.decorate(claims, headers);
+            assertThat(headers)
+                    .containsEntry("kid", "test-public-key");
+        });
     }
 
     @Test
@@ -144,7 +156,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         when(dataEncrypter.encrypt(TYPE_MANAGER.writeValueAsString(address))).thenReturn("encryptedAddress");
         when(tokenExpirationDateFunction.expiresAt(address, request.getContractId())).thenReturn(Result.success(expiration));
-        when(tokenGenerationService.generate(any(), any(JwtDecorator[].class))).thenReturn(Result.failure(errorMsg));
+        when(tokenGenerationService.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.failure(errorMsg));
 
         var result = resolver.toDataAddress(request, address, instance);
 
