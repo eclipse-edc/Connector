@@ -26,10 +26,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_SCOPE;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 
 public class RemoteSecureTokenService implements SecureTokenService {
 

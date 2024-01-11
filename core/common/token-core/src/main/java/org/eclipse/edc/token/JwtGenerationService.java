@@ -20,7 +20,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class JwtGenerationService implements TokenGenerationService {
-    private final JwsSignerVerifierFactory factory;
+    private final CryptoConverter converter;
 
 
     public JwtGenerationService() {
-        this.factory = new JwsSignerVerifierFactory();
+        this.converter = new CryptoConverter();
     }
 
     @Override
@@ -49,8 +49,8 @@ public class JwtGenerationService implements TokenGenerationService {
 
         var privateKey = privateKeySupplier.get();
 
-        var tokenSigner = factory.createSignerFor(privateKey);
-        var jwsAlgorithm = factory.getRecommendedAlgorithm(tokenSigner);
+        var tokenSigner = converter.createSignerFor(privateKey);
+        var jwsAlgorithm = converter.getRecommendedAlgorithm(tokenSigner);
 
 
         var claims = new HashMap<String, Object>();

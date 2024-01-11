@@ -7,9 +7,6 @@ dependencies {
     api(project(":spi:common:identity-trust-spi"))
     api(project(":spi:common:identity-did-spi"))
     api(project(":spi:common:jwt-spi"))
-    implementation(project(":extensions:common:crypto:jws2020"))
-    implementation(project(":extensions:common:crypto:ldp-verifiable-credentials"))
-    implementation(project(":extensions:common:crypto:jwt-verifiable-credentials"))
 
     implementation(project(":core:common:util"))
     implementation(libs.nimbus.jwt)
@@ -17,10 +14,10 @@ dependencies {
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))
-    testImplementation(project(":extensions:common:crypto:crypto-core"))
+    testImplementation(project(":extensions:common:crypto:crypto-common"))
 
-    implementation(testFixtures(project(":extensions:common:crypto:ldp-verifiable-credentials")))
-    implementation(testFixtures(project(":extensions:common:crypto:jwt-verifiable-credentials")))
+    testImplementation(testFixtures(project(":extensions:common:crypto:ldp-verifiable-credentials")))
+    testImplementation(testFixtures(project(":extensions:common:crypto:jwt-verifiable-credentials")))
 
 }
 

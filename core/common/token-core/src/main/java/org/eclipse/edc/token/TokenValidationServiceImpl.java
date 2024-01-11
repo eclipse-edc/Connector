@@ -16,7 +16,7 @@ package org.eclipse.edc.token;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -30,10 +30,10 @@ import java.util.List;
 
 public class TokenValidationServiceImpl implements TokenValidationService {
 
-    private final JwsSignerVerifierFactory jwsSignerVerifierFactory;
+    private final CryptoConverter cryptoConverter;
 
     public TokenValidationServiceImpl() {
-        jwsSignerVerifierFactory = new JwsSignerVerifierFactory();
+        cryptoConverter = new CryptoConverter();
     }
 
     @Override
@@ -50,7 +50,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return publicKeyResolutionResult.mapTo();
             }
 
-            var verifierCreationResult = jwsSignerVerifierFactory.createVerifierFor(publicKeyResolutionResult.getContent());
+            var verifierCreationResult = cryptoConverter.createVerifierFor(publicKeyResolutionResult.getContent());
 
             if (!signedJwt.verify(verifierCreationResult)) {
                 return Result.failure("Token verification failed");

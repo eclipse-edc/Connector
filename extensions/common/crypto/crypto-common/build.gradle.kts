@@ -24,7 +24,8 @@ dependencies {
     implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
-
+    // Java does not natively implement elliptic curve multiplication, so we need to get bouncy
+    implementation(libs.bouncyCastle.bcprovJdk18on)
     testImplementation(testFixtures(project(":core:common:junit")))
     testImplementation(testFixtures(project(":spi:common:identity-trust-spi")))
 }
