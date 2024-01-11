@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class JwtGenerationService implements TokenGenerationService {
-    private final CryptoConverter factory;
+    private final CryptoConverter converter;
 
 
     public JwtGenerationService() {
-        this.factory = new CryptoConverter();
+        this.converter = new CryptoConverter();
     }
 
     @Override
@@ -49,8 +49,8 @@ public class JwtGenerationService implements TokenGenerationService {
 
         var privateKey = privateKeySupplier.get();
 
-        var tokenSigner = factory.createSignerFor(privateKey);
-        var jwsAlgorithm = factory.getRecommendedAlgorithm(tokenSigner);
+        var tokenSigner = converter.createSignerFor(privateKey);
+        var jwsAlgorithm = converter.getRecommendedAlgorithm(tokenSigner);
 
 
         var claims = new HashMap<String, Object>();

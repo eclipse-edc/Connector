@@ -55,6 +55,7 @@ import java.security.spec.ECPublicKeySpec;
 import java.security.spec.EdECPoint;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,7 +100,7 @@ public class CryptoConverter {
             return switch (key.getAlgorithm()) {
                 case ALGORITHM_EC -> new ECDSASigner((ECPrivateKey) key);
                 case ALGORITHM_RSA -> new RSASSASigner(key);
-                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaSigner(key);
+                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(key);
                 default -> throw new IllegalArgumentException(notSupportedError(key.getAlgorithm()));
             };
         } catch (JOSEException ex) {
@@ -127,7 +128,7 @@ public class CryptoConverter {
             return switch (publicKey.getAlgorithm()) {
                 case ALGORITHM_EC -> new ECDSAVerifier((ECPublicKey) publicKey);
                 case ALGORITHM_RSA -> new RSASSAVerifier((RSAPublicKey) publicKey);
-                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaSigner(publicKey);
+                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(publicKey);
                 default -> throw new IllegalArgumentException(notSupportedError(publicKey.getAlgorithm()));
             };
         } catch (JOSEException e) {
@@ -178,6 +179,23 @@ public class CryptoConverter {
 
     }
 
+    /**
+     * Obtains the {@link Curve} from an EdDSA key, throwing an {@link IllegalArgumentException} if the curve was not in the
+     * list of allowed algorithms/curves
+     *
+     * @param edKey         either the private or public key
+     * @param allowedCurves All curve names that are acceptable
+     * @throws IllegalArgumentException if the key was not created on one of the accepted curves.
+     */
+    private Curve getCurveAllowing(EdECKey edKey, String... allowedCurves) {
+        var curveName = edKey.getParams().getName();
+
+        if (!Arrays.asList(allowedCurves).contains(curveName)) {
+            throw new IllegalArgumentException("Only the following curves is supported: %s.".formatted(String.join(",", allowedCurves)));
+        }
+        return Curve.parse(curveName);
+    }
+
     private RSAKey convertRsaKey(KeyPair keypair) {
         return new RSAKey.Builder((RSAPublicKey) keypair.getPublic()).privateKey(keypair.getPrivate()).keyUse(KeyUse.SIGNATURE).build();
     }
@@ -187,7 +205,7 @@ public class CryptoConverter {
         var priv = (ECPrivateKey) keypair.getPrivate();
 
         var key = ofNullable((java.security.interfaces.ECKey) pub).orElse(priv);
-        // inspired by https://stackoverflow.com/a/70474128, plain java
+        // inspired by https://stackoverflow.com/a/70474128
         try {
             var algorithmParameters = AlgorithmParameters.getInstance("EC");
             algorithmParameters.init(key.getParams());
@@ -213,7 +231,15 @@ public class CryptoConverter {
 
     }
 
-
+    /**
+     * Convert a KeyPair, that is expected to contain an EdDSA KeyPair, into the Nimbus type {@link OctetKeyPair}. Further, it is assumed that
+     * either the private key, or the public key, or both are supplied. This method won't check that again.
+     * <ul>
+     *  <li>If the private key <em>and</em> the public key are provided, the resulting JWK will contain a private component.</li>
+     *  <li>If only the public key is provided, the resulting JWK only contains the public parameters.</li>
+     *  <li>If only the private key is provided, the public key is restored from it. </li>
+     * </ul>
+     */
     private OctetKeyPair convertEdDsaKey(KeyPair keypair) {
         var pub = (EdECPublicKey) keypair.getPublic();
         var priv = (EdECPrivateKey) keypair.getPrivate();
@@ -238,7 +264,6 @@ public class CryptoConverter {
         var bytes = edKey.getBytes().orElseThrow(() -> new EdcException("Private key is not willing to disclose its bytes"));
         return Base64URL.encode(bytes);
     }
-
 
     /**
      * Encodes the public key part of an EdDSA key as {@link Base64URL}
@@ -268,15 +293,10 @@ public class CryptoConverter {
         return array;
     }
 
-    private Ed25519Verifier createEdDsaSigner(PublicKey publicKey) throws JOSEException {
+    private Ed25519Verifier createEdDsaVerifier(PublicKey publicKey) throws JOSEException {
         var edKey = (EdECPublicKey) publicKey;
-        var curveName = edKey.getParams().getName();
+        var curve = getCurveAllowing(edKey, ALGORITHM_ED25519);
 
-        if (!ALGORITHM_ED25519.equals(curveName)) {
-            throw new IllegalArgumentException("Only the Ed25519 curve is supported for Ed25519Verifiers.");
-        }
-
-        var curve = Curve.parse(curveName);
 
         var urlX = encodeX(edKey.getPoint());
         var okp = new OctetKeyPair.Builder(curve, urlX)
@@ -285,21 +305,10 @@ public class CryptoConverter {
 
     }
 
-    @NotNull
-    private Optional<JWSAlgorithm> getWithRequirement(JWSSigner signer, Requirement requirement) {
-        return signer.supportedJWSAlgorithms().stream()
-                .filter(alg -> alg.getRequirement() == requirement)
-                .findFirst();
-    }
-
-    private Ed25519Signer createEdDsaSigner(PrivateKey key) throws JOSEException {
+    private Ed25519Signer createEdDsaVerifier(PrivateKey key) throws JOSEException {
         var edKey = (EdECPrivateKey) key;
         var curveName = edKey.getParams().getName();
-
-        if (!ALGORITHM_ED25519.equals(curveName)) {
-            throw new IllegalArgumentException("Only the Ed25519 curve is supported for Ed25519Signers.");
-        }
-        var curve = Curve.parse(curveName);
+        var curve = getCurveAllowing(edKey, ALGORITHM_ED25519);
 
 
         var urlX = Base64URL.encode(new byte[0]);
@@ -311,5 +320,12 @@ public class CryptoConverter {
                 .d(urlD)
                 .build();
         return new Ed25519Signer(octetKeyPair);
+    }
+
+    @NotNull
+    private Optional<JWSAlgorithm> getWithRequirement(JWSSigner signer, Requirement requirement) {
+        return signer.supportedJWSAlgorithms().stream()
+                .filter(alg -> alg.getRequirement() == requirement)
+                .findFirst();
     }
 }

@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
-import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
-import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
-import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
-import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
-import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 
 public class Oauth2AssertionDecorator implements TokenDecorator {
