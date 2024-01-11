@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.core.base;
 import dev.failsafe.RetryPolicy;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.testOkHttpClient;
@@ -56,8 +57,8 @@ class EdcHttpClientImplTest {
     private ClientAndServer server;
 
     @NotNull
-    private static EdcHttpClientImpl clientWith(RetryPolicy<Response> retryPolicy) {
-        return new EdcHttpClientImpl(testOkHttpClient(), retryPolicy, mock(Monitor.class));
+    private static EdcHttpClient clientWith(RetryPolicy<Response> retryPolicy) {
+        return new EdcHttpClientImpl(testOkHttpClient(), retryPolicy, mock());
     }
 
     @BeforeEach
@@ -202,7 +203,7 @@ class EdcHttpClientImplTest {
 
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
 
-        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
         server.verify(request(), exactly(2));
@@ -218,7 +219,7 @@ class EdcHttpClientImplTest {
 
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
 
-        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
         server.verify(request(), exactly(2));
@@ -234,7 +235,7 @@ class EdcHttpClientImplTest {
 
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(404));
 
-        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
 
         assertThat(result).succeedsWithin(5, TimeUnit.SECONDS);
         server.verify(request(), exactly(1));
@@ -249,7 +250,7 @@ class EdcHttpClientImplTest {
                 .build();
         server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
 
-        var result = client.executeAsync(request, List.of(retryWhenStatusIsNot(204)), handleResponse());
+        var result = client.executeAsync(request, List.of(retryWhenStatusIsNot(204))).thenApply(handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
         server.verify(request(), exactly(2));
@@ -264,7 +265,7 @@ class EdcHttpClientImplTest {
                 .url("http://localhost:" + port)
                 .build();
 
-        var result = client.executeAsync(request, handleResponse());
+        var result = client.executeAsync(request, emptyList()).thenApply(handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
     }
