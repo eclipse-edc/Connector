@@ -55,11 +55,14 @@ import java.security.spec.ECPublicKeySpec;
 import java.security.spec.EdECPoint;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
+import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -95,7 +98,7 @@ public class CryptoConverter {
      * @throws IllegalArgumentException if the key is not in the list of supported algorithms ({@link CryptoConverter#SUPPORTED_ALGORITHMS})
      * @throws EdcException             if the {@link PrivateKey} is a EdDSA key and does not disclose its private bytes
      */
-    public JWSSigner createSignerFor(PrivateKey key) {
+    public static JWSSigner createSignerFor(PrivateKey key) {
         try {
             return switch (key.getAlgorithm()) {
                 case ALGORITHM_EC -> new ECDSASigner((ECPrivateKey) key);
@@ -123,7 +126,7 @@ public class CryptoConverter {
      * @throws IllegalArgumentException if the key is not in the list of supported algorithms ({@link CryptoConverter#SUPPORTED_ALGORITHMS})
      * @throws EdcException             if the {@link PublicKey} is a EdDSA key and does not disclose its private bytes
      */
-    public JWSVerifier createVerifierFor(PublicKey publicKey) {
+    public static JWSVerifier createVerifierFor(PublicKey publicKey) {
         try {
             return switch (publicKey.getAlgorithm()) {
                 case ALGORITHM_EC -> new ECDSAVerifier((ECPublicKey) publicKey);
@@ -151,7 +154,7 @@ public class CryptoConverter {
      * @param keypair Must either contain the {@link PrivateKey}, the {@link PublicKey} or both. If neither is set, an {@link IllegalArgumentException} is thrown.
      * @return A Nimbus JWK that.
      */
-    public JWK createJwk(KeyPair keypair) {
+    public static JWK createJwk(KeyPair keypair) {
         if (keypair.getPrivate() == null && keypair.getPublic() == null) {
             throw new IllegalArgumentException("Invalid KeyPair: public and private key were both null!");
         }
@@ -171,12 +174,89 @@ public class CryptoConverter {
      * @param signer the {@link JWSSigner}
      * @return the only {@link JWSAlgorithm}, or the one marked RECOMMENDED, or simply the first one. Returns null if no {@link JWSAlgorithm} can be determined.
      */
-    public JWSAlgorithm getRecommendedAlgorithm(JWSSigner signer) {
+    public static JWSAlgorithm getRecommendedAlgorithm(JWSSigner signer) {
         return getWithRequirement(signer, Requirement.REQUIRED)
                 .orElseGet(() -> getWithRequirement(signer, Requirement.RECOMMENDED)
                         .orElseGet(() -> getWithRequirement(signer, Requirement.OPTIONAL)
                                 .orElse(null)));
 
+    }
+
+    /**
+     * Creates a {@link JWK} out of a map that represents a JSON structure.
+     *
+     * @param jsonObject The map containing the JSON
+     * @return the corresponding key.
+     * @throws RuntimeException if the JSON was malformed, or the JWK type was unknown. Typically, this wraps a {@link ParseException}
+     */
+    public static JWK create(Map<String, Object> jsonObject) {
+        if (jsonObject == null) return null;
+        try {
+            return JWK.parse(jsonObject);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Creates a {@link JWK} out of a JSON string containing the key properties
+     *
+     * @param json The string containing plain JSON
+     * @return the corresponding key.
+     * @throws RuntimeException if the JSON was malformed, or the JWK type was unknown. Typically, this wraps a {@link ParseException}
+     */
+    public static JWK create(String json) {
+        if (json == null) return null;
+        try {
+            return JWK.parse(json);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Creates a {@link JWSVerifier} from the base class {@link JWK}. Currently only supports EC, OKP and RSA keys.
+     *
+     * @param jwk The {@link JWK} for which the {@link JWSVerifier} is to be created.
+     * @return the {@link JWSVerifier}
+     * @throws UnsupportedOperationException if the verifier could not be created, in which case the root cause would be {@link JOSEException}
+     */
+    public static JWSVerifier createVerifier(JWK jwk) {
+        Objects.requireNonNull(jwk, "jwk cannot be null");
+        var value = jwk.getKeyType().getValue();
+        try {
+            return switch (value) {
+                case "EC" -> new ECDSAVerifier((ECKey) jwk);
+                case "OKP" -> new Ed25519Verifier((OctetKeyPair) jwk);
+                case "RSA" -> new RSASSAVerifier((RSAKey) jwk);
+                default ->
+                        throw new UnsupportedOperationException(format("Cannot create JWSVerifier for JWK-type [%s], currently only supporting EC, OKP and RSA", value));
+            };
+        } catch (JOSEException ex) {
+            throw new UnsupportedOperationException(ex);
+        }
+    }
+
+    /**
+     * Creates a {@link JWSSigner} from the base class {@link JWK}. Currently only supports EC, OKP and RSA keys.
+     *
+     * @param jwk The {@link JWK} for which the {@link JWSSigner} is to be created.
+     * @return the {@link JWSSigner}
+     * @throws UnsupportedOperationException if the signer could not be created, in which case the root cause would be {@link JOSEException}
+     */
+    public static JWSSigner createSigner(JWK jwk) {
+        var value = jwk.getKeyType().getValue();
+        try {
+            return switch (value) {
+                case "EC" -> new ECDSASigner((ECKey) jwk);
+                case "OKP" -> new Ed25519Signer((OctetKeyPair) jwk);
+                case "RSA" -> new RSASSASigner((RSAKey) jwk);
+                default ->
+                        throw new UnsupportedOperationException(format("Cannot create JWSVerifier for JWK-type [%s], currently only supporting EC, OKP and RSA", value));
+            };
+        } catch (JOSEException ex) {
+            throw new UnsupportedOperationException(ex);
+        }
     }
 
     /**
@@ -187,7 +267,7 @@ public class CryptoConverter {
      * @param allowedCurves All curve names that are acceptable
      * @throws IllegalArgumentException if the key was not created on one of the accepted curves.
      */
-    private Curve getCurveAllowing(EdECKey edKey, String... allowedCurves) {
+    private static Curve getCurveAllowing(EdECKey edKey, String... allowedCurves) {
         var curveName = edKey.getParams().getName();
 
         if (!Arrays.asList(allowedCurves).contains(curveName)) {
@@ -196,11 +276,11 @@ public class CryptoConverter {
         return Curve.parse(curveName);
     }
 
-    private RSAKey convertRsaKey(KeyPair keypair) {
+    private static RSAKey convertRsaKey(KeyPair keypair) {
         return new RSAKey.Builder((RSAPublicKey) keypair.getPublic()).privateKey(keypair.getPrivate()).keyUse(KeyUse.SIGNATURE).build();
     }
 
-    private ECKey convertEcKey(KeyPair keypair) {
+    private static ECKey convertEcKey(KeyPair keypair) {
         var pub = (ECPublicKey) keypair.getPublic();
         var priv = (ECPrivateKey) keypair.getPrivate();
 
@@ -232,59 +312,9 @@ public class CryptoConverter {
     }
 
     /**
-     * Convert a KeyPair, that is expected to contain an EdDSA KeyPair, into the Nimbus type {@link OctetKeyPair}. Further, it is assumed that
-     * either the private key, or the public key, or both are supplied. This method won't check that again.
-     * <ul>
-     *  <li>If the private key <em>and</em> the public key are provided, the resulting JWK will contain a private component.</li>
-     *  <li>If only the public key is provided, the resulting JWK only contains the public parameters.</li>
-     *  <li>If only the private key is provided, the public key is restored from it. </li>
-     * </ul>
-     */
-    private OctetKeyPair convertEdDsaKey(KeyPair keypair) {
-        var pub = (EdECPublicKey) keypair.getPublic();
-        var priv = (EdECPrivateKey) keypair.getPrivate();
-
-        // if the public key is not present, an empty byte array is set, because as with all elliptic curves the public
-        // key can be recovered from the private key. OctetKeyPairs do this for us behind the scenes.
-        var urlX = ofNullable(pub).map(pubkey -> encodeX(pubkey.getPoint())).orElseGet(() -> Base64URL.encode(new byte[0]));
-        var urlD = ofNullable(priv).map(this::encodeD).orElse(null);
-
-        var curveName = ofNullable((EdECKey) priv).orElse(pub).getParams().getName();
-
-        return new OctetKeyPair.Builder(Curve.parse(curveName), urlX)
-                .d(urlD)
-                .build();
-    }
-
-    /**
-     * Encodes the private key part of an EdDSA key as {@link Base64URL}, throws an exception if the binary representation can't be obtained
-     */
-    @NotNull
-    private Base64URL encodeD(EdECPrivateKey edKey) {
-        var bytes = edKey.getBytes().orElseThrow(() -> new EdcException("Private key is not willing to disclose its bytes"));
-        return Base64URL.encode(bytes);
-    }
-
-    /**
-     * Encodes the public key part of an EdDSA key as {@link Base64URL}
-     */
-    @NotNull
-    private Base64URL encodeX(EdECPoint point) {
-        var bytes = reverseArray(point.getY().toByteArray());
-
-        // when the X-coordinate of the curve is odd, we flip the highest-order bit of the first (or last, since we reversed) byte
-        if (point.isXOdd()) {
-            var mask = (byte) 128; // is 1000 0000 binary
-            bytes[bytes.length - 1] ^= mask; // XOR means toggle the left-most bit
-        }
-
-        return Base64URL.encode(bytes);
-    }
-
-    /**
      * reverses an array in-place
      */
-    private byte[] reverseArray(byte[] array) {
+    private static byte[] reverseArray(byte[] array) {
         for (var i = 0; i < array.length / 2; i++) {
             var temp = array[i];
             array[i] = array[array.length - 1 - i];
@@ -293,7 +323,7 @@ public class CryptoConverter {
         return array;
     }
 
-    private Ed25519Verifier createEdDsaVerifier(PublicKey publicKey) throws JOSEException {
+    private static Ed25519Verifier createEdDsaVerifier(PublicKey publicKey) throws JOSEException {
         var edKey = (EdECPublicKey) publicKey;
         var curve = getCurveAllowing(edKey, ALGORITHM_ED25519);
 
@@ -305,7 +335,14 @@ public class CryptoConverter {
 
     }
 
-    private Ed25519Signer createEdDsaVerifier(PrivateKey key) throws JOSEException {
+    @NotNull
+    private static Optional<JWSAlgorithm> getWithRequirement(JWSSigner signer, Requirement requirement) {
+        return signer.supportedJWSAlgorithms().stream()
+                .filter(alg -> alg.getRequirement() == requirement)
+                .findFirst();
+    }
+
+    private static Ed25519Signer createEdDsaVerifier(PrivateKey key) throws JOSEException {
         var edKey = (EdECPrivateKey) key;
         var curveName = edKey.getParams().getName();
         var curve = getCurveAllowing(edKey, ALGORITHM_ED25519);
@@ -322,10 +359,53 @@ public class CryptoConverter {
         return new Ed25519Signer(octetKeyPair);
     }
 
+    /**
+     * Convert a KeyPair, that is expected to contain an EdDSA KeyPair, into the Nimbus type {@link OctetKeyPair}. Further, it is assumed that
+     * either the private key, or the public key, or both are supplied. This method won't check that again.
+     * <ul>
+     *  <li>If the private key <em>and</em> the public key are provided, the resulting JWK will contain a private component.</li>
+     *  <li>If only the public key is provided, the resulting JWK only contains the public parameters.</li>
+     *  <li>If only the private key is provided, the public key is restored from it. </li>
+     * </ul>
+     */
+    private static OctetKeyPair convertEdDsaKey(KeyPair keypair) {
+        var pub = (EdECPublicKey) keypair.getPublic();
+        var priv = (EdECPrivateKey) keypair.getPrivate();
+
+        // if the public key is not present, an empty byte array is set, because as with all elliptic curves the public
+        // key can be recovered from the private key. OctetKeyPairs do this for us behind the scenes.
+        var urlX = ofNullable(pub).map(pubkey -> encodeX(pubkey.getPoint())).orElseGet(() -> Base64URL.encode(new byte[0]));
+        var urlD = ofNullable(priv).map(CryptoConverter::encodeD).orElse(null);
+
+        var curveName = ofNullable((EdECKey) priv).orElse(pub).getParams().getName();
+
+        return new OctetKeyPair.Builder(Curve.parse(curveName), urlX)
+                .d(urlD)
+                .build();
+    }
+
+    /**
+     * Encodes the private key part of an EdDSA key as {@link Base64URL}, throws an exception if the binary representation can't be obtained
+     */
     @NotNull
-    private Optional<JWSAlgorithm> getWithRequirement(JWSSigner signer, Requirement requirement) {
-        return signer.supportedJWSAlgorithms().stream()
-                .filter(alg -> alg.getRequirement() == requirement)
-                .findFirst();
+    private static Base64URL encodeD(EdECPrivateKey edKey) {
+        var bytes = edKey.getBytes().orElseThrow(() -> new EdcException("Private key is not willing to disclose its bytes"));
+        return Base64URL.encode(bytes);
+    }
+
+    /**
+     * Encodes the public key part of an EdDSA key as {@link Base64URL}
+     */
+    @NotNull
+    private static Base64URL encodeX(EdECPoint point) {
+        var bytes = reverseArray(point.getY().toByteArray());
+
+        // when the X-coordinate of the curve is odd, we flip the highest-order bit of the first (or last, since we reversed) byte
+        if (point.isXOdd()) {
+            var mask = (byte) 128; // is 1000 0000 binary
+            bytes[bytes.length - 1] ^= mask; // XOR means toggle the left-most bit
+        }
+
+        return Base64URL.encode(bytes);
     }
 }
