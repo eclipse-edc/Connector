@@ -20,6 +20,10 @@ import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.KeyConverter;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.RSAKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Named;
@@ -30,10 +34,13 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
+import java.security.spec.ECGenParameterSpec;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,8 +57,9 @@ class JwsSignerVerifierFactoryTest {
         return kpg.generateKeyPair();
     }
 
-    private static KeyPair createEc() throws NoSuchAlgorithmException {
+    private static KeyPair createEc() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var gen = KeyPairGenerator.getInstance("EC");
+        gen.initialize(new ECGenParameterSpec("secp256r1"));
         return gen.generateKeyPair();
     }
 
@@ -69,7 +77,7 @@ class JwsSignerVerifierFactoryTest {
     }
 
     @Test
-    void createSignerFor_ecKey() throws NoSuchAlgorithmException {
+    void createSignerFor_ecKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var pk = createEc();
 
         assertThat(factory.createSignerFor(pk.getPrivate())).isInstanceOf(ECDSASigner.class);
@@ -94,7 +102,7 @@ class JwsSignerVerifierFactoryTest {
     }
 
     @Test
-    void createVerifierFor_ecKey() throws NoSuchAlgorithmException {
+    void createVerifierFor_ecKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var pk = createEc().getPublic();
         assertThat(factory.createVerifierFor(pk)).isInstanceOf(ECDSAVerifier.class);
     }
@@ -110,6 +118,116 @@ class JwsSignerVerifierFactoryTest {
         var kp = createEd25519(new BouncyCastleProvider());
         assertThat(factory.createVerifierFor(kp.getPublic())).isInstanceOf(Ed25519Verifier.class);
     }
+
+    @Test
+    void convertToJwk_rsaKey() throws NoSuchAlgorithmException {
+        var pk = createRsa();
+        var jwk = factory.createJwk(pk);
+        assertThat(jwk).isInstanceOf(RSAKey.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.getKeyID()).isNull();
+    }
+
+    @Test
+    void convertToJwk_ecKey_fromPublic() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+        var pk = createEc();
+        var jwk = factory.createJwk(new KeyPair(pk.getPublic(), null));
+        assertThat(jwk).isInstanceOf(ECKey.class);
+        assertThat(jwk.isPrivate()).isFalse();
+        assertThat(jwk.getKeyID()).isNull();
+        assertThat(KeyConverter.toJavaKeys(List.of(jwk))).containsExactlyInAnyOrder(pk.getPublic());
+    }
+
+    @Test
+    void convertToJwk_ecKey_fromPrivate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+        var pk = createEc();
+
+        var jwk2 = factory.createJwk(new KeyPair(null, pk.getPrivate()));
+        assertThat(jwk2).isInstanceOf(ECKey.class);
+        assertThat(jwk2.isPrivate()).isTrue();
+        assertThat(jwk2.getKeyID()).isNull();
+        assertThat(KeyConverter.toJavaKeys(List.of(jwk2))).containsExactlyInAnyOrder(pk.getPublic(), pk.getPrivate());
+    }
+
+    @Test
+    void convertToJwk_ecKey_fromKeyPair() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+        var pk = createEc();
+        var jwk3 = factory.createJwk(new KeyPair(pk.getPublic(), pk.getPrivate()));
+        assertThat(jwk3).isInstanceOf(ECKey.class);
+        assertThat(jwk3.isPrivate()).isTrue();
+        assertThat(jwk3.getKeyID()).isNull();
+        assertThat(KeyConverter.toJavaKeys(List.of(jwk3))).containsExactlyInAnyOrder(pk.getPublic(), pk.getPrivate());
+
+    }
+
+    @Test
+    void convertToJwk_edDsaKey_fromPrivate_sunProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(null);
+        var jwk = factory.createJwk(new KeyPair(null, kp.getPrivate()));
+        assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.toPublicJWK()).isNotNull();
+        assertThat(jwk.getKeyID()).isNull();
+    }
+
+    @Test
+    void convertToJwk_edDsaKey_fromPublic_sunProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(null);
+        var jwk = factory.createJwk(new KeyPair(kp.getPublic(), null));
+
+        assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+        assertThat(jwk.isPrivate()).isFalse();
+        assertThat(jwk.toPublicJWK()).isNotNull();
+        assertThat(jwk.toPublicJWK()).isEqualTo(jwk);
+        assertThat(jwk.getKeyID()).isNull();
+
+    }
+
+    @Test
+    void convertToJwk_edDsaKey_sunProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(null);
+        var jwk = factory.createJwk(new KeyPair(kp.getPublic(), kp.getPrivate()));
+
+        assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.toPublicJWK()).isNotNull();
+        assertThat(jwk.getKeyID()).isNull();
+    }
+
+    @Test
+    void convertToJwk_edDsaKey_fromPrivate_bouncyCastleProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(new BouncyCastleProvider());
+        var jwk = factory.createJwk(new KeyPair(null, kp.getPrivate()));
+        assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.toPublicJWK()).isNotNull();
+        assertThat(jwk.getKeyID()).isNull();
+    }
+
+    @Test
+    void convertToJwk_edDsaKey_fromPublic_bouncyCastleProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(new BouncyCastleProvider());
+        var jwk = factory.createJwk(new KeyPair(kp.getPublic(), null));
+
+        assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+        assertThat(jwk.isPrivate()).isFalse();
+        assertThat(jwk.toPublicJWK()).isNotNull();
+        assertThat(jwk.toPublicJWK()).isEqualTo(jwk);
+        assertThat(jwk.getKeyID()).isNull();
+
+    }
+
+    @Test
+    void convertToJwk_edDsaKey_bouncyCastleProvider() throws NoSuchAlgorithmException {
+        var kp = createEd25519(new BouncyCastleProvider());
+        var jwk = factory.createJwk(new KeyPair(kp.getPublic(), kp.getPrivate()));
+
+        assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+        assertThat(jwk.isPrivate()).isTrue();
+        assertThat(jwk.toPublicJWK()).isNotNull();
+        assertThat(jwk.getKeyID()).isNull();
+    }
+
 
     @ParameterizedTest
     @ArgumentsSource(KeyProvider.class)

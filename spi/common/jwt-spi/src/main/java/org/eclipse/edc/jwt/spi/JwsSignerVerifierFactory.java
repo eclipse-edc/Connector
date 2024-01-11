@@ -26,24 +26,44 @@ import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64URL;
+import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 
+import java.security.AlgorithmParameters;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.EdECKey;
 import java.security.interfaces.EdECPrivateKey;
 import java.security.interfaces.EdECPublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
+import java.security.spec.EdECPoint;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Factory class that converts {@link PrivateKey} objects into their Nimbus-counterparts needed to sign and
- * verify JWTs.
+ * verify JWTs, or to JWKs.
  *
  * @see <a href="https://docs.oracle.com/en/java/javase/11/docs/specs/security/standard-names.html">Defined Algorithm Standard Names</a>
  */
@@ -80,7 +100,7 @@ public class JwsSignerVerifierFactory {
             return switch (key.getAlgorithm()) {
                 case ALGORITHM_EC -> new ECDSASigner((ECPrivateKey) key);
                 case ALGORITHM_RSA -> new RSASSASigner(key);
-                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createOctetKeyPair(key);
+                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaSigner(key);
                 default -> throw new IllegalArgumentException(notSupportedError(key.getAlgorithm()));
             };
         } catch (JOSEException ex) {
@@ -108,12 +128,40 @@ public class JwsSignerVerifierFactory {
             return switch (publicKey.getAlgorithm()) {
                 case ALGORITHM_EC -> new ECDSAVerifier((ECPublicKey) publicKey);
                 case ALGORITHM_RSA -> new RSASSAVerifier((RSAPublicKey) publicKey);
-                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createOctetKeyPair(publicKey);
+                case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaSigner(publicKey);
                 default -> throw new IllegalArgumentException(notSupportedError(publicKey.getAlgorithm()));
             };
         } catch (JOSEException e) {
             throw new EdcException(notSupportedError(publicKey.getAlgorithm()), e);
         }
+    }
+
+    /**
+     * Converts a Java {@link KeyPair} into its JWK counterpart from Nimbus. Currently, only RSA, EC and EdDSA keys are supported, specifically:
+     * <ul>
+     *     <li>EC: supports all named curves. If both private and public keys are specified, the conversion is straight forward. If only the public key is specified, then the
+     *     resulting JWK will not contain a private component (usually "d"). If only the private key is specified, then the public key is restored using elliptic curve multiplication. This is a fairly
+     *     costly operation, so it is avoided if possible.</li>
+     *     <li>EdDSA: </li>
+     * </ul>
+     * <p>
+     * Note that the "kid" parameter will be null, and the "key-use" will be set to {@link KeyUse#SIGNATURE}. If needed, the "kid" parameter can be set by
+     * re-generating the resulting JWK using {@link JWK#toJSONObject()} and {@link JWK#parse(Map)}.
+     *
+     * @param keypair Must either contain the {@link PrivateKey}, the {@link PublicKey} or both. If neither is set, an {@link IllegalArgumentException} is thrown.
+     * @return A Nimbus JWK that.
+     */
+    public JWK createJwk(KeyPair keypair) {
+        if (keypair.getPrivate() == null && keypair.getPublic() == null) {
+            throw new IllegalArgumentException("Invalid KeyPair: public and private key were both null!");
+        }
+        var alg = ofNullable((Key) keypair.getPrivate()).orElse(keypair.getPublic()).getAlgorithm();
+        return switch (alg) {
+            case ALGORITHM_EC -> convertEcKey(keypair);
+            case ALGORITHM_RSA -> convertRsaKey(keypair);
+            case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> convertEdDsaKey(keypair);
+            default -> throw new IllegalArgumentException(notSupportedError(keypair.getPublic().getAlgorithm()));
+        };
     }
 
     /**
@@ -131,8 +179,89 @@ public class JwsSignerVerifierFactory {
 
     }
 
+    private RSAKey convertRsaKey(KeyPair keypair) {
+        return new RSAKey.Builder((RSAPublicKey) keypair.getPublic()).privateKey(keypair.getPrivate()).keyUse(KeyUse.SIGNATURE).build();
+    }
+
+    private ECKey convertEcKey(KeyPair keypair) {
+        var pub = (ECPublicKey) keypair.getPublic();
+        var priv = (ECPrivateKey) keypair.getPrivate();
+
+        var key = ofNullable((java.security.interfaces.ECKey) pub).orElse(priv);
+        // inspired by https://stackoverflow.com/a/70474128, plain java
+        try {
+            var algorithmParameters = AlgorithmParameters.getInstance("EC");
+            algorithmParameters.init(key.getParams());
+            var curveName = algorithmParameters.getParameterSpec(ECGenParameterSpec.class).getName();
+
+            if (pub == null) {
+
+                // we need to do elliptic curve multiplication, which Java does not natively support, at least there are no public interfaces.
+                // thus we get bouncy with it.
+                var bcSpec = EC5Util.convertSpec(priv.getParams());
+                var q = bcSpec.getG().multiply(priv.getS()).normalize(); // must be normalized
+                var pointQjce = new ECPoint(q.getAffineXCoord().toBigInteger(), q.getAffineYCoord().toBigInteger());
+                var spec = new ECPublicKeySpec(pointQjce, priv.getParams());
+                pub = (ECPublicKey) KeyFactory.getInstance("EC").generatePublic(spec);
+
+            }
+
+            return new ECKey.Builder(Curve.forOID(curveName), pub).privateKey(priv).keyUse(KeyUse.SIGNATURE).build();
+
+        } catch (NoSuchAlgorithmException | InvalidParameterSpecException | InvalidKeySpecException e) {
+            throw new IllegalArgumentException(e);
+        }
+
+    }
+
+
+    private OctetKeyPair convertEdDsaKey(KeyPair keypair) {
+        var pub = (EdECPublicKey) keypair.getPublic();
+        var priv = (EdECPrivateKey) keypair.getPrivate();
+
+        // if the public key is not present, an empty byte array is set, because as with all elliptic curves the public
+        // key can be recovered from the private key. OctetKeyPairs do this for us behind the scenes.
+        var urlX = ofNullable(pub).map(pubkey -> encodeX(pubkey.getPoint())).orElseGet(() -> Base64URL.encode(new byte[0]));
+        var urlD = ofNullable(priv).map(this::encodeD).orElse(null);
+
+        var curveName = ofNullable((EdECKey) priv).orElse(pub).getParams().getName();
+
+        return new OctetKeyPair.Builder(Curve.parse(curveName), urlX)
+                .d(urlD)
+                .build();
+    }
+
+    /**
+     * Encodes the private key part of an EdDSA key as {@link Base64URL}, throws an exception if the binary representation can't be obtained
+     */
+    @NotNull
+    private Base64URL encodeD(EdECPrivateKey edKey) {
+        var bytes = edKey.getBytes().orElseThrow(() -> new EdcException("Private key is not willing to disclose its bytes"));
+        return Base64URL.encode(bytes);
+    }
+
+
+    /**
+     * Encodes the public key part of an EdDSA key as {@link Base64URL}
+     */
+    @NotNull
+    private Base64URL encodeX(EdECPoint point) {
+        var bytes = reverseArray(point.getY().toByteArray());
+
+        // when the X-coordinate of the curve is odd, we flip the highest-order bit of the first (or last, since we reversed) byte
+        if (point.isXOdd()) {
+            var mask = (byte) 128; // is 1000 0000 binary
+            bytes[bytes.length - 1] ^= mask; // XOR means toggle the left-most bit
+        }
+
+        return Base64URL.encode(bytes);
+    }
+
+    /**
+     * reverses an array in-place
+     */
     private byte[] reverseArray(byte[] array) {
-        for (int i = 0; i < array.length / 2; i++) {
+        for (var i = 0; i < array.length / 2; i++) {
             var temp = array[i];
             array[i] = array[array.length - 1 - i];
             array[array.length - 1 - i] = temp;
@@ -140,7 +269,7 @@ public class JwsSignerVerifierFactory {
         return array;
     }
 
-    private Ed25519Verifier createOctetKeyPair(PublicKey publicKey) throws JOSEException {
+    private Ed25519Verifier createEdDsaSigner(PublicKey publicKey) throws JOSEException {
         var edKey = (EdECPublicKey) publicKey;
         var curveName = edKey.getParams().getName();
 
@@ -150,15 +279,7 @@ public class JwsSignerVerifierFactory {
 
         var curve = Curve.parse(curveName);
 
-        var bytes = reverseArray(edKey.getPoint().getY().toByteArray());
-
-        // when the X-coordinate of the curve is odd, we flip the highest-order bit of the first (or last, since we reversed) byte
-        if (edKey.getPoint().isXOdd()) {
-            byte mask = (byte) 128; // is 1000 0000 binary
-            bytes[bytes.length - 1] ^= mask; // XOR means toggle the left-most bit
-        }
-
-        var urlX = Base64URL.encode(bytes);
+        var urlX = encodeX(edKey.getPoint());
         var okp = new OctetKeyPair.Builder(curve, urlX)
                 .build();
         return new Ed25519Verifier(okp);
@@ -172,7 +293,7 @@ public class JwsSignerVerifierFactory {
                 .findFirst();
     }
 
-    private Ed25519Signer createOctetKeyPair(PrivateKey key) throws JOSEException {
+    private Ed25519Signer createEdDsaSigner(PrivateKey key) throws JOSEException {
         var edKey = (EdECPrivateKey) key;
         var curveName = edKey.getParams().getName();
 
@@ -181,10 +302,9 @@ public class JwsSignerVerifierFactory {
         }
         var curve = Curve.parse(curveName);
 
-        var bytes = edKey.getBytes().orElseThrow(() -> new EdcException("Private key is not willing to disclose its bytes"));
 
         var urlX = Base64URL.encode(new byte[0]);
-        var urlD = Base64URL.encode(bytes);
+        var urlD = encodeD(edKey);
 
         // technically, urlX should be the public bytes (i.e. public key), but we don't have that here, and we don't need it.
         // that is because internally, the Ed25519Signer only wraps the Ed25519Sign class from the Tink library, using only the private bytes ("d")
