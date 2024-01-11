@@ -43,9 +43,9 @@ class SelfIssuedTokenDecorator implements TokenDecorator {
 
     @Override
     public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
-        this.claims.forEach(tokenParameters::additional);
-        return tokenParameters.additional(ISSUED_AT, Date.from(clock.instant()))
-                .additional(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)))
-                .additional(JWT_ID, UUID.randomUUID().toString());
+        this.claims.forEach(tokenParameters::claims);
+        return tokenParameters.claims(ISSUED_AT, Date.from(clock.instant()))
+                .claims(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)))
+                .claims(JWT_ID, UUID.randomUUID().toString());
     }
 }

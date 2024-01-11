@@ -55,7 +55,7 @@ class Oauth2AssertionDecoratorTest {
 
         var t = b.build();
         assertThat(t.getHeaders()).isEmpty();
-        assertThat(t.getAdditional())
+        assertThat(t.getClaims())
                 .hasEntrySatisfying(AUDIENCE, o -> assertThat(o).asInstanceOf(list(String.class)).contains(audience))
                 .hasFieldOrPropertyWithValue(ISSUER, clientId)
                 .hasFieldOrPropertyWithValue(SUBJECT, clientId)

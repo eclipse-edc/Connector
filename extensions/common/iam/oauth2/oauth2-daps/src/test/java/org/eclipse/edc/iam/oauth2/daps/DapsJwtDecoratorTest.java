@@ -31,7 +31,7 @@ class DapsJwtDecoratorTest {
 
         var tokenParams = builder.build();
         assertThat(tokenParams.getHeaders()).isEmpty();
-        assertThat(tokenParams.getAdditional())
+        assertThat(tokenParams.getClaims())
                 .hasFieldOrPropertyWithValue("@context", "https://w3id.org/idsa/contexts/context.jsonld")
                 .hasFieldOrPropertyWithValue("@type", "ids:DatRequestToken");
     }

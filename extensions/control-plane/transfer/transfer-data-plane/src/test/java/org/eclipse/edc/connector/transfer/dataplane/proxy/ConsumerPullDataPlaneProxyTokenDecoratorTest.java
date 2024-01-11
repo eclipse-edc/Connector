@@ -52,7 +52,7 @@ class ConsumerPullDataPlaneProxyTokenDecoratorTest {
 
 
         assertThat(b.build().getHeaders()).isEmpty();
-        assertThat(b.build().getAdditional())
+        assertThat(b.build().getClaims())
                 .containsEntry(DATA_ADDRESS, encryptedDataAddress)
                 .containsEntry(EXPIRATION_TIME, expiration);
     }

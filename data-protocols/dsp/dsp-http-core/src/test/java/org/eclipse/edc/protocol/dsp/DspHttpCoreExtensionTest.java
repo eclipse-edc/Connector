@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class DspHttpCoreExtensionTest {
 
+    public static final String SCOPE_CLAIM = "scope";
     private final IdentityService identityService = mock();
     private DspHttpCoreExtension extension;
 
@@ -55,21 +56,21 @@ class DspHttpCoreExtensionTest {
         dispatcher.registerMessage(TestMessage.class, mock(), mock());
         dispatcher.dispatch(String.class, new TestMessage("protocol", "address"));
 
-        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope() == null));
+        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getStringClaim(SCOPE_CLAIM) == null));
     }
 
     @Test
     @DisplayName("Assert usage of an injected TokenDecorator")
     void createDispatcher_withTokenDecorator_shouldUse(ServiceExtensionContext context, ObjectFactory factory) {
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
-        context.registerService(TokenDecorator.class, (td) -> td.scope("test-scope"));
+        context.registerService(TokenDecorator.class, (td) -> td.claims(SCOPE_CLAIM, "test-scope"));
 
         extension = factory.constructInstance(DspHttpCoreExtension.class);
         var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
         dispatcher.registerMessage(TestMessage.class, mock(), mock());
         dispatcher.dispatch(String.class, new TestMessage("protocol", "address"));
 
-        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getScope().equals("test-scope")));
+        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getStringClaim(SCOPE_CLAIM).equals("test-scope")));
     }
 
     @Test

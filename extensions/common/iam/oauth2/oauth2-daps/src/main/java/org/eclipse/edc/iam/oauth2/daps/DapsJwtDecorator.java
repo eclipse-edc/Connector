@@ -21,7 +21,7 @@ public class DapsJwtDecorator implements TokenDecorator {
 
     @Override
     public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
-        return tokenParameters.additional("@context", "https://w3id.org/idsa/contexts/context.jsonld")
-                .additional("@type", "ids:DatRequestToken");
+        return tokenParameters.claims("@context", "https://w3id.org/idsa/contexts/context.jsonld")
+                .claims("@type", "ids:DatRequestToken");
     }
 }

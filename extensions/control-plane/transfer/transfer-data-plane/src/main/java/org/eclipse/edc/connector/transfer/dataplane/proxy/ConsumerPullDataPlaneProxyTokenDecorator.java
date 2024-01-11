@@ -39,7 +39,7 @@ class ConsumerPullDataPlaneProxyTokenDecorator implements TokenDecorator {
 
     @Override
     public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
-        return tokenParameters.additional(EXPIRATION_TIME, expirationDate)
-                .additional(DATA_ADDRESS, encryptedDataAddress);
+        return tokenParameters.claims(EXPIRATION_TIME, expirationDate)
+                .claims(DATA_ADDRESS, encryptedDataAddress);
     }
 }

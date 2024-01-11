@@ -51,12 +51,13 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
-import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
-import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
-import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
-import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -108,14 +109,14 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
-        var newAud = audienceMapper.resolve(parameters.getAudience());
+        var newAud = audienceMapper.resolve(parameters.getStringClaim(AUDIENCE));
+        var scope = parameters.getStringClaim(SCOPE);
         parameters = TokenParameters.Builder.newInstance()
-                .audience(newAud)
-                .scope(parameters.getScope())
-                .additional(parameters.getAdditional())
+                .claims(AUDIENCE, newAud)
+                .claims(SCOPE, scope)
+                .claims(parameters.getClaims())
                 .build();
 
-        var scope = parameters.getScope();
         var scopeValidationResult = validateScope(scope);
 
         if (scopeValidationResult.failed()) {
@@ -124,12 +125,12 @@ public class IdentityAndTrustService implements IdentityService {
 
         // create claims for the STS
         var claims = new HashMap<String, String>();
-        parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
+        parameters.getClaims().forEach((k, v) -> claims.replace(k, v.toString()));
 
         claims.putAll(Map.of(
                 "iss", myOwnDid,
                 "sub", myOwnDid,
-                "aud", parameters.getAudience(),
+                "aud", parameters.getStringClaim(AUDIENCE),
                 "client_id", participantId));
 
         return secureTokenService.createToken(claims, scope);

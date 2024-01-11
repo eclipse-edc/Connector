@@ -46,11 +46,11 @@ public class Oauth2AssertionDecorator implements TokenDecorator {
 
     @Override
     public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
-        return tokenParameters.additional(AUDIENCE, List.of(audience))
-                .additional(ISSUER, clientId)
-                .additional(SUBJECT, clientId)
-                .additional(JWT_ID, UUID.randomUUID().toString())
-                .additional(ISSUED_AT, Date.from(clock.instant()))
-                .additional(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
+        return tokenParameters.claims(AUDIENCE, List.of(audience))
+                .claims(ISSUER, clientId)
+                .claims(SUBJECT, clientId)
+                .claims(JWT_ID, UUID.randomUUID().toString())
+                .claims(ISSUED_AT, Date.from(clock.instant()))
+                .claims(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
     }
 }

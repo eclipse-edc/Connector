@@ -21,10 +21,8 @@ import java.util.Map;
  * Parameter Object for {@link IdentityService#obtainClientCredentials(TokenParameters)}.
  */
 public class TokenParameters {
-    private final Map<String, Object> additional = new HashMap<>();
+    private final Map<String, Object> claims = new HashMap<>();
     private Map<String, Object> headers = new HashMap<>();
-    private String scope;
-    private String audience;
 
     private TokenParameters() {
     }
@@ -33,16 +31,16 @@ public class TokenParameters {
         return headers;
     }
 
-    public String getScope() {
-        return scope;
+    public Map<String, Object> getClaims() {
+        return claims;
     }
 
-    public String getAudience() {
-        return audience;
+    public String getStringClaim(String key) {
+        return (String) claims.get(key);
     }
 
-    public Map<String, Object> getAdditional() {
-        return additional;
+    public String getStringHeader(String key) {
+        return (String) headers.get(key);
     }
 
     public static class Builder {
@@ -56,23 +54,13 @@ public class TokenParameters {
             return new Builder();
         }
 
-        public Builder scope(String scope) {
-            result.scope = scope;
+        public Builder claims(Map<String, Object> additional) {
+            result.claims.putAll(additional);
             return this;
         }
 
-        public Builder audience(String audience) {
-            result.audience = audience;
-            return this;
-        }
-
-        public Builder additional(Map<String, Object> additional) {
-            result.additional.putAll(additional);
-            return this;
-        }
-
-        public Builder additional(String key, Object value) {
-            result.additional.put(key, value);
+        public Builder claims(String key, Object value) {
+            result.claims.put(key, value);
             return this;
         }
 

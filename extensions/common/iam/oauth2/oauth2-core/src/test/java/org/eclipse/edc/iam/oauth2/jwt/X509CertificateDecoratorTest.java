@@ -50,7 +50,7 @@ class X509CertificateDecoratorTest {
         decorator.decorate(builder);
 
         var tokenParams = builder.build();
-        assertThat(tokenParams.getAdditional()).isEmpty();
+        assertThat(tokenParams.getClaims()).isEmpty();
         assertThat(tokenParams.getHeaders()).containsOnlyKeys("x5t");
     }
 }

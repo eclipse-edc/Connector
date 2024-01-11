@@ -93,8 +93,8 @@ class JwtGenerationServiceTest {
     }
 
     private TokenDecorator testDecorator() {
-        return (tokenParameters) -> tokenParameters.additional("foo", "bar")
-                .additional(EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)))
+        return (tokenParameters) -> tokenParameters.claims("foo", "bar")
+                .claims(EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)))
                 .header("x5t", "some x509CertThumbprint thing");
     }
 }

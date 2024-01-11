@@ -55,6 +55,8 @@ import static org.mockito.Mockito.when;
 
 class DspHttpRemoteMessageDispatcherImplTest {
 
+    public static final String AUDIENCE_CLAIM = "aud";
+    public static final String SCOPE_CLAIM = "scope";
     private final EdcHttpClient httpClient = mock();
     private final IdentityService identityService = mock();
     private final PolicyEngine policyEngine = mock();
@@ -96,7 +98,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         assertThat(result).succeedsWithin(timeout).isEqualTo(responseBody);
 
         verify(requestFactory).createRequest(message);
-        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getAudience().equals(message.getCounterPartyAddress())));
+        verify(identityService).obtainClientCredentials(argThat(tr -> tr.getStringClaim(AUDIENCE_CLAIM).equals(message.getCounterPartyAddress())));
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
     }
 
@@ -108,7 +110,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
         Map<String, Object> additional = Map.of("foo", "bar");
 
-        when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).scope("test-scope").additional(additional));
+        when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(SCOPE_CLAIM, "test-scope").claims(additional));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(delegate.handleResponse()).thenReturn(responseFunction);
         when(httpClient.executeAsync(any(), any(), any())).thenReturn(completedFuture(responseBody));
@@ -127,9 +129,9 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), any(), eq(responseFunction));
 
         assertThat(captor.getValue()).satisfies(tr -> {
-            assertThat(tr.getScope()).isEqualTo("test-scope");
-            assertThat(tr.getAudience()).isEqualTo(message.getCounterPartyAddress());
-            assertThat(tr.getAdditional()).containsAllEntriesOf(additional);
+            assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("test-scope");
+            assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(message.getCounterPartyAddress());
+            assertThat(tr.getClaims()).containsAllEntriesOf(additional);
         });
 
     }

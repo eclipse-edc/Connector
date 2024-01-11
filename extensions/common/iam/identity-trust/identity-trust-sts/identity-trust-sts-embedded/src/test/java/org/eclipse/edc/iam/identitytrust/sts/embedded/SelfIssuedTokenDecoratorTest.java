@@ -34,7 +34,7 @@ public class SelfIssuedTokenDecoratorTest {
         var builder = TokenParameters.Builder.newInstance();
         decorator.decorate(builder);
         var tokenParams = builder.build();
-        assertThat(tokenParams.getAdditional())
+        assertThat(tokenParams.getClaims())
                 .containsEntry("iss", "test")
                 .containsKeys(ISSUED_AT, EXPIRATION_TIME, JWT_ID);
 

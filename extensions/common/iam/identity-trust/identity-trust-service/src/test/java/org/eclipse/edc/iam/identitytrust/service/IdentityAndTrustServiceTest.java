@@ -57,6 +57,8 @@ import static org.eclipse.edc.identitytrust.TestFunctions.createJwt;
 import static org.eclipse.edc.identitytrust.TestFunctions.createPresentationBuilder;
 import static org.eclipse.edc.identitytrust.TestFunctions.createPresentationContainer;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
@@ -109,8 +111,8 @@ class IdentityAndTrustServiceTest {
                 "org.eclipse.edc:fooCredential:+" })
         void obtainClientCredentials_invalidScopeString(String scope) {
             var tp = TokenParameters.Builder.newInstance()
-                    .scope(scope)
-                    .audience("test-audience")
+                    .claims(SCOPE, scope)
+                    .claims(AUDIENCE, "test-audience")
                     .build();
             assertThat(service.obtainClientCredentials(tp))
                     .isNotNull()
@@ -125,8 +127,8 @@ class IdentityAndTrustServiceTest {
         @EmptySource
         void obtainClientCredentials_validScopeString(String scope) {
             var tp = TokenParameters.Builder.newInstance()
-                    .scope(scope)
-                    .audience("test-audience")
+                    .claims(SCOPE, scope)
+                    .claims(AUDIENCE, "test-audience")
                     .build();
             assertThat(service.obtainClientCredentials(tp))
                     .isNotNull()
@@ -139,14 +141,14 @@ class IdentityAndTrustServiceTest {
         void obtainClientCredentials_stsFails() {
             var scope = "org.eclipse.edc.vp.type:TestCredential:read";
             var tp = TokenParameters.Builder.newInstance()
-                    .scope(scope)
-                    .audience("test-audience")
+                    .claims(SCOPE, scope)
+                    .claims(AUDIENCE, "test-audience")
                     .build();
             when(mockedSts.createToken(any(), any())).thenReturn(success(createJwt()));
             assertThat(service.obtainClientCredentials(tp)).isSucceeded();
             verify(mockedSts).createToken(argThat(m -> m.get("iss").equals(EXPECTED_OWN_DID) &&
                     m.get("sub").equals(EXPECTED_OWN_DID) &&
-                    m.get("aud").equals(tp.getAudience()) &&
+                    m.get("aud").equals(tp.getStringClaim(AUDIENCE)) &&
                     m.get("client_id").equals(EXPECTED_PARTICIPANT_ID)), eq(scope));
         }
     }

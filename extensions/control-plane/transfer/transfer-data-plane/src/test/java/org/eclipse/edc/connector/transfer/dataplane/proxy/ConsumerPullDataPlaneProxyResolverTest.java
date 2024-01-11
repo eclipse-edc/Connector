@@ -95,7 +95,7 @@ class ConsumerPullDataPlaneProxyResolverTest {
                 .anySatisfy(decorator -> {
                     var builder = TokenParameters.Builder.newInstance();
                     decorator.decorate(builder);
-                    assertThat(builder.build().getAdditional())
+                    assertThat(builder.build().getClaims())
                             .containsEntry(DATA_ADDRESS, encryptedAddress)
                             .containsEntry(EXPIRATION_TIME, expiration);
                 });

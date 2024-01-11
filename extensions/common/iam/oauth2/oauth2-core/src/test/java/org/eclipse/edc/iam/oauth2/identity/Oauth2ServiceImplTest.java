@@ -62,6 +62,7 @@ import static com.nimbusds.jwt.JWTClaimNames.NOT_BEFORE;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension.OAUTH2_TOKEN_CONTEXT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -128,8 +129,8 @@ class Oauth2ServiceImplTest {
         when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience("audience")
-                .scope("scope")
+                .claims(AUDIENCE, "audience")
+                .claims(SCOPE, "scope")
                 .build();
 
         when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("accessToken").build()));
@@ -156,8 +157,8 @@ class Oauth2ServiceImplTest {
         when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience("audience")
-                .scope("scope")
+                .claims(AUDIENCE, "audience")
+                .claims(SCOPE, "scope")
                 .build();
 
         when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("accessToken").build()));
@@ -184,8 +185,8 @@ class Oauth2ServiceImplTest {
         when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
-                .audience("audience")
-                .scope("scope")
+                .claims(AUDIENCE, "audience")
+                .claims(SCOPE, "scope")
                 .build();
 
         when(client.requestToken(any())).thenReturn(Result.failure("test error"));

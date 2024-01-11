@@ -58,7 +58,7 @@ public class JwtGenerationService implements TokenGenerationService {
         allDecorators.forEach(td -> td.decorate(bldr));
         var tokenParams = bldr.build();
         var jwsHeader = createHeader(tokenParams.getHeaders());
-        var claimsSet = createClaimsSet(tokenParams.getAdditional());
+        var claimsSet = createClaimsSet(tokenParams.getClaims());
 
         var token = new SignedJWT(jwsHeader, claimsSet);
         try {
