@@ -26,12 +26,12 @@ class DapsJwtDecoratorTest {
     @Test
     void verifyDecorate() {
 
-        var b = TokenParameters.Builder.newInstance();
-        decorator.decorate(b);
+        var builder = TokenParameters.Builder.newInstance();
+        decorator.decorate(builder);
 
-        var tp = b.build();
-        assertThat(tp.getHeaders()).isEmpty();
-        assertThat(tp.getAdditional())
+        var tokenParams = builder.build();
+        assertThat(tokenParams.getHeaders()).isEmpty();
+        assertThat(tokenParams.getAdditional())
                 .hasFieldOrPropertyWithValue("@context", "https://w3id.org/idsa/contexts/context.jsonld")
                 .hasFieldOrPropertyWithValue("@type", "ids:DatRequestToken");
     }

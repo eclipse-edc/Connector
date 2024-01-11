@@ -93,17 +93,17 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         assertThat(decorators)
                 .anySatisfy(decorator -> {
-                    var b = TokenParameters.Builder.newInstance();
-                    decorator.decorate(b);
-                    assertThat(b.build().getAdditional())
+                    var builder = TokenParameters.Builder.newInstance();
+                    decorator.decorate(builder);
+                    assertThat(builder.build().getAdditional())
                             .containsEntry(DATA_ADDRESS, encryptedAddress)
                             .containsEntry(EXPIRATION_TIME, expiration);
                 });
 
         assertThat(decorators).anySatisfy(decorator -> {
-            TokenParameters.Builder b = TokenParameters.Builder.newInstance();
-            decorator.decorate(b);
-            assertThat(b.build().getHeaders())
+            var builder = TokenParameters.Builder.newInstance();
+            decorator.decorate(builder);
+            assertThat(builder.build().getHeaders())
                     .containsEntry("kid", "test-public-key");
         });
     }

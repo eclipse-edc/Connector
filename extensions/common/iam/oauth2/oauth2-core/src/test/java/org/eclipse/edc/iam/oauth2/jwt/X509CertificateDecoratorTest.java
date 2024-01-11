@@ -46,11 +46,11 @@ class X509CertificateDecoratorTest {
         var certificate = createCertificate();
         var decorator = new X509CertificateDecorator(certificate);
 
-        var b = TokenParameters.Builder.newInstance();
-        decorator.decorate(b);
+        var builder = TokenParameters.Builder.newInstance();
+        decorator.decorate(builder);
 
-        var tp = b.build();
-        assertThat(tp.getAdditional()).isEmpty();
-        assertThat(tp.getHeaders()).containsOnlyKeys("x5t");
+        var tokenParams = builder.build();
+        assertThat(tokenParams.getAdditional()).isEmpty();
+        assertThat(tokenParams.getHeaders()).containsOnlyKeys("x5t");
     }
 }
