@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.proxy;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +31,6 @@ import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlane
 class ConsumerPullDataPlaneProxyTokenDecoratorTest {
 
     private Date expiration;
-    private String contractId;
     private String encryptedDataAddress;
 
     private ConsumerPullDataPlaneProxyTokenDecorator decorator;
@@ -38,7 +38,6 @@ class ConsumerPullDataPlaneProxyTokenDecoratorTest {
     @BeforeEach
     public void setUp() {
         expiration = Date.from(Instant.now().plusSeconds(ThreadLocalRandom.current().nextInt(1, 10)));
-        contractId = UUID.randomUUID().toString();
         encryptedDataAddress = UUID.randomUUID().toString();
         decorator = new ConsumerPullDataPlaneProxyTokenDecorator(expiration, encryptedDataAddress);
     }
@@ -48,10 +47,12 @@ class ConsumerPullDataPlaneProxyTokenDecoratorTest {
 
         var headers = new HashMap<String, Object>();
         var claims = new HashMap<String, Object>();
-        decorator.decorate(claims, headers);
+        var b = TokenParameters.Builder.newInstance();
+        decorator.decorate(b);
 
-        assertThat(headers).isEmpty();
-        assertThat(claims)
+
+        assertThat(b.build().getHeaders()).isEmpty();
+        assertThat(b.build().getAdditional())
                 .containsEntry(DATA_ADDRESS, encryptedDataAddress)
                 .containsEntry(EXPIRATION_TIME, expiration);
     }

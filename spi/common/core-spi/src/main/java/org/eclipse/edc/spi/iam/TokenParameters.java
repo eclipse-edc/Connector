@@ -22,10 +22,15 @@ import java.util.Map;
  */
 public class TokenParameters {
     private final Map<String, Object> additional = new HashMap<>();
+    private Map<String, Object> headers = new HashMap<>();
     private String scope;
     private String audience;
 
     private TokenParameters() {
+    }
+
+    public Map<String, Object> getHeaders() {
+        return headers;
     }
 
     public String getScope() {
@@ -68,6 +73,16 @@ public class TokenParameters {
 
         public Builder additional(String key, Object value) {
             result.additional.put(key, value);
+            return this;
+        }
+
+        public Builder header(String key, Object value) {
+            this.result.headers.put(key, value);
+            return this;
+        }
+
+        public Builder headers(Map<String, Object> headers) {
+            this.result.headers = headers;
             return this;
         }
 

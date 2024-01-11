@@ -24,10 +24,10 @@ import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -103,17 +103,21 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @Override
-    public <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, String scope, Function<M, Policy> policyProvider) {
-        policyScopes.put(messageClass, new PolicyScope<>(messageClass, scope, policyProvider));
-    }
-
-    @Override
     public <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<R> delegate) {
         handlers.put(clazz, new Handlers<>(requestFactory, delegate));
     }
 
-    private record Handlers<M extends RemoteMessage, R>(DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<R> delegate) { }
+    @Override
+    public <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, String scope, Function<M, Policy> policyProvider) {
+        policyScopes.put(messageClass, new PolicyScope<>(messageClass, scope, policyProvider));
+    }
 
-    private record PolicyScope<M extends RemoteMessage>(Class<M> messageClass, String scope, Function<M, Policy> policyProvider) {}
+    private record Handlers<M extends RemoteMessage, R>(DspHttpRequestFactory<M> requestFactory,
+                                                        DspHttpDispatcherDelegate<R> delegate) {
+    }
+
+    private record PolicyScope<M extends RemoteMessage>(Class<M> messageClass, String scope,
+                                                        Function<M, Policy> policyProvider) {
+    }
 
 }

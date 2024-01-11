@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.proxy;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.util.Date;
-import java.util.Map;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
@@ -38,8 +38,8 @@ class ConsumerPullDataPlaneProxyTokenDecorator implements TokenDecorator {
     }
 
     @Override
-    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-        claims.put(EXPIRATION_TIME, expirationDate);
-        claims.put(DATA_ADDRESS, encryptedDataAddress);
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        return tokenParameters.additional(EXPIRATION_TIME, expirationDate)
+                .additional(DATA_ADDRESS, encryptedDataAddress);
     }
 }

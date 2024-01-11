@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.edc.connector.transfer.dataplane.spi.token.ConsumerPullTokenExpirationDateFunction;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -32,7 +33,6 @@ import org.mockito.Mockito;
 
 import java.sql.Date;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
@@ -93,19 +93,17 @@ class ConsumerPullDataPlaneProxyResolverTest {
 
         assertThat(decorators)
                 .anySatisfy(decorator -> {
-                    var headers = new HashMap<String, Object>();
-                    var claims = new HashMap<String, Object>();
-                    decorator.decorate(claims, headers);
-                    assertThat(claims)
+                    var b = TokenParameters.Builder.newInstance();
+                    decorator.decorate(b);
+                    assertThat(b.build().getAdditional())
                             .containsEntry(DATA_ADDRESS, encryptedAddress)
                             .containsEntry(EXPIRATION_TIME, expiration);
                 });
 
         assertThat(decorators).anySatisfy(decorator -> {
-            var headers = new HashMap<String, Object>();
-            var claims = new HashMap<String, Object>();
-            decorator.decorate(claims, headers);
-            assertThat(headers)
+            TokenParameters.Builder b = TokenParameters.Builder.newInstance();
+            decorator.decorate(b);
+            assertThat(b.build().getHeaders())
                     .containsEntry("kid", "test-public-key");
         });
     }

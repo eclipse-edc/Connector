@@ -32,7 +32,6 @@ import java.security.Key;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.nimbusds.jose.JWSAlgorithm.RS256;
@@ -94,9 +93,8 @@ class JwtGenerationServiceTest {
     }
 
     private TokenDecorator testDecorator() {
-        return (claims, headers) -> {
-            claims.putAll(Map.of("foo", "bar", EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60))));
-            headers.put("x5t", "some x509CertThumbprint thing");
-        };
+        return (tokenParameters) -> tokenParameters.additional("foo", "bar")
+                .additional(EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)))
+                .header("x5t", "some x509CertThumbprint thing");
     }
 }

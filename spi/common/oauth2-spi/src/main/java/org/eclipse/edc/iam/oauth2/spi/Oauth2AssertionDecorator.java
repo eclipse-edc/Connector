@@ -14,12 +14,12 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
@@ -45,13 +45,12 @@ public class Oauth2AssertionDecorator implements TokenDecorator {
     }
 
     @Override
-    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-        claims.putAll(Map.of(
-                AUDIENCE, List.of(audience),
-                ISSUER, clientId,
-                SUBJECT, clientId,
-                JWT_ID, UUID.randomUUID().toString(),
-                ISSUED_AT, Date.from(clock.instant()),
-                EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity))));
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        return tokenParameters.additional(AUDIENCE, List.of(audience))
+                .additional(ISSUER, clientId)
+                .additional(SUBJECT, clientId)
+                .additional(JWT_ID, UUID.randomUUID().toString())
+                .additional(ISSUED_AT, Date.from(clock.instant()))
+                .additional(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
     }
 }

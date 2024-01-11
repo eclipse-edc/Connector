@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.oauth2.daps;
 
-import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 /**
  * Token decorator that sets the {@code scope} claim on the token that is used on DSP request egress
