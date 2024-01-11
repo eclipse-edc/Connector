@@ -46,6 +46,8 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractJsonL
                     return v -> transferRequestMessageBuilder.contractId(transformString(v, context));
                 case DSPACE_PROPERTY_CALLBACK_ADDRESS:
                     return v -> transferRequestMessageBuilder.callbackAddress(transformString(v, context));
+                case DCT_FORMAT_ATTRIBUTE:
+                    return v -> transferRequestMessageBuilder.transferType(transformString(v, context));
                 default:
                     return doNothing();
             }

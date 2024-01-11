@@ -110,23 +110,24 @@ class ContractNegotiationProtocolServiceImplTest {
                 .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
-                .processId("processId")
+                .consumerPid("consumerPid")
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
         when(validationService.validateInitialOffer(claimToken, contractOffer)).thenReturn(Result.success(validatedOffer));
 
         var result = service.notifyRequested(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
         var calls = ArgumentCaptor.forClass(ContractNegotiation.class);
+        verify(store, never()).findByIdAndLease(any());
         verify(store).save(calls.capture());
         assertThat(calls.getAllValues()).anySatisfy(n -> {
             assertThat(n.getState()).isEqualTo(REQUESTED.code());
             assertThat(n.getCounterPartyAddress()).isEqualTo(message.getCallbackAddress());
             assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
-            assertThat(n.getCorrelationId()).isEqualTo(message.getProcessId());
+            assertThat(n.getCorrelationId()).isEqualTo(message.getConsumerPid());
             assertThat(n.getContractOffers()).hasSize(1);
             assertThat(n.getLastContractOffer()).isEqualTo(contractOffer);
         });
@@ -145,30 +146,32 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractRequestMessage.Builder.newInstance()
                 .callbackAddress("callbackAddress")
                 .protocol("protocol")
-                .contractOffer(contractOffer)
                 .processId("processId")
+                .contractOffer(contractOffer)
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateInitialOffer(claimToken, contractOffer)).thenReturn(Result.success(validatedOffer));
 
 
         var result = service.notifyRequested(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findByIdAndLease("providerPid");
         var calls = ArgumentCaptor.forClass(ContractNegotiation.class);
         verify(store).save(calls.capture());
         assertThat(calls.getAllValues()).anySatisfy(n -> {
             assertThat(n.getState()).isEqualTo(REQUESTED.code());
             assertThat(n.getCounterPartyAddress()).isEqualTo(message.getCallbackAddress());
             assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
-            assertThat(n.getCorrelationId()).isEqualTo(message.getProcessId());
             assertThat(n.getContractOffers()).hasSize(2);
             assertThat(n.getLastContractOffer()).isEqualTo(contractOffer);
         });
         verify(listener).requested(any());
-        verify(store).findByCorrelationIdAndLease("processId");
+        verify(store).findByIdAndLease("providerPid");
         verify(validationService).validateInitialOffer(claimToken, contractOffer);
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -183,12 +186,14 @@ class ContractNegotiationProtocolServiceImplTest {
                 .callbackAddress("callbackAddress")
                 .protocol("protocol")
                 .contractOffer(contractOffer)
-                .processId(processId)
+                .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .build();
         var negotiation = createContractNegotiationRequested();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease(processId)).thenReturn(StoreResult.success(negotiation));
+        when(store.findByIdAndLease(processId)).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(claimToken, negotiation)).thenReturn(Result.success());
 
         var result = service.notifyOffered(message, tokenRepresentation);
@@ -197,7 +202,8 @@ class ContractNegotiationProtocolServiceImplTest {
         var updatedNegotiation = result.getContent();
         assertThat(updatedNegotiation.getContractOffers()).hasSize(2);
         assertThat(updatedNegotiation.getLastContractOffer()).isEqualTo(contractOffer);
-
+        assertThat(updatedNegotiation.getCorrelationId()).isEqualTo("providerPid");
+        verify(store).findByIdAndLease("processId");
         verify(listener).offered(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
@@ -211,17 +217,19 @@ class ContractNegotiationProtocolServiceImplTest {
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
                 .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .type(ContractNegotiationEventMessage.Type.ACCEPTED)
                 .policy(Policy.Builder.newInstance().build())
                 .build();
-
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(contractNegotiation));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(contractNegotiation));
         when(validationService.validateRequest(eq(claimToken), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyAccepted(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation -> negotiation.getState() == ACCEPTED.code()));
         verify(validationService).validateRequest(claimToken, contractNegotiation);
         verify(listener).accepted(any());
@@ -235,25 +243,29 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         var contractAgreement = mock(ContractAgreement.class);
-
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
                 .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .contractAgreement(contractAgreement)
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiationConsumerRequested));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiationConsumerRequested));
         when(validationService.validateConfirmed(eq(claimToken), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
 
         var result = service.notifyAgreed(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == AGREED.code() &&
-                        negotiation.getContractAgreement() == contractAgreement
+                negotiation.getCorrelationId().equals("providerPid") &&
+                negotiation.getContractAgreement() == contractAgreement
         ));
+        verify(store).findByIdAndLease("processId");
         verify(validationService).validateConfirmed(eq(claimToken), eq(contractAgreement), any(ContractOffer.class));
         verify(listener).agreed(any());
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
@@ -264,19 +276,24 @@ class ContractNegotiationProtocolServiceImplTest {
         var claimToken = claimToken();
         var tokenRepresentation = tokenRepresentation();
         var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).build();
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+        when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
         var message = ContractAgreementVerificationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
                 .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .build();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyVerified(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(n -> n.getState() == VERIFIED.code()));
         verify(listener).verified(negotiation);
         verify(validationService).validateRequest(any(), any(ContractNegotiation.class));
@@ -291,17 +308,20 @@ class ContractNegotiationProtocolServiceImplTest {
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
                 .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .build();
         var claimToken = ClaimToken.Builder.newInstance().build();
         var tokenRepresentation = tokenRepresentation();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyFinalized(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(n -> n.getState() == FINALIZED.code()));
         verify(listener).finalized(negotiation);
         verify(validationService).validateRequest(any(), any(ContractNegotiation.class));
@@ -314,6 +334,8 @@ class ContractNegotiationProtocolServiceImplTest {
         var message = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol("protocol")
                 .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .counterPartyAddress("http://any")
                 .rejectionReason("any")
                 .build();
@@ -321,12 +343,13 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease("processId")).thenReturn(StoreResult.success(negotiation));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
 
         var result = service.notifyTerminated(message, tokenRepresentation);
 
         assertThat(result).isSucceeded();
+        verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
         verify(listener).terminated(negotiation);
         verify(validationService).validateRequest(any(), any(ContractNegotiation.class));
@@ -393,6 +416,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var claimToken = claimToken();
         var tokenRepresentation = tokenRepresentation();
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
         when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
 
         // currently ContractRequestMessage cannot happen on an already existing negotiation
@@ -412,7 +436,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(claimToken));
-        when(store.findByCorrelationIdAndLease(any())).thenReturn(StoreResult.success(createContractNegotiationOffered()));
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(createContractNegotiationOffered()));
         when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
         when(validationService.validateInitialOffer(any(), any(ContractOffer.class))).thenReturn(Result.failure("error"));
         when(validationService.validateConfirmed(any(), any(), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
@@ -500,40 +524,47 @@ class ContractNegotiationProtocolServiceImplTest {
                             .counterPartyAddress("callbackAddress")
                             .protocol("protocol")
                             .contractOffer(contractOffer())
-                            .processId("processId")
+                            .consumerPid("consumerPid")
+                            .providerPid("providerPid")
                             .build()),
                     Arguments.of(offered, ContractOfferMessage.Builder.newInstance()
                             .callbackAddress("callbackAddress")
                             .protocol("protocol")
                             .contractOffer(contractOffer())
-                            .processId("processId")
+                            .consumerPid("consumerPid")
+                            .providerPid("providerPid")
                             .build()),
                     Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
-                            .processId("processId")
+                            .consumerPid("consumerPid")
+                            .providerPid("providerPid")
                             .contractAgreement(mock(ContractAgreement.class))
                             .build()),
                     Arguments.of(accepted, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.ACCEPTED)
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
-                            .processId("processId")
+                            .consumerPid("consumerPid")
+                            .providerPid("providerPid")
                             .build()),
                     Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
-                            .processId("processId")
+                            .consumerPid("consumerPid")
+                            .providerPid("providerPid")
                             .build()),
                     Arguments.of(finalized, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.FINALIZED)
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
-                            .processId("processId")
+                            .consumerPid("consumerPid")
+                            .providerPid("providerPid")
                             .build()),
                     Arguments.of(terminated, ContractNegotiationTerminationMessage.Builder.newInstance()
                             .protocol("protocol")
-                            .processId("processId")
+                            .consumerPid("consumerPid")
+                            .providerPid("providerPid")
                             .counterPartyAddress("http://any")
                             .rejectionReason("any")
                             .build())

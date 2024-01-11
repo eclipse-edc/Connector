@@ -20,43 +20,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static java.util.UUID.randomUUID;
-
-public class ContractNegotiationEventMessage implements ContractRemoteMessage {
-    private String id;
-    private String protocol = "unknown";
-    private String counterPartyAddress;
-    private String processId;
+public class ContractNegotiationEventMessage extends ContractRemoteMessage {
     private Type type;
     private Policy policy;
-
-    @Override
-    @NotNull
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-
-    @Override
-    public void setProtocol(String protocol) {
-        Objects.requireNonNull(protocol);
-        this.protocol = protocol;
-    }
-
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-
-    @Override
-    @NotNull
-    public String getProcessId() {
-        return processId;
-    }
 
     @NotNull
     public Type getType() {
@@ -68,35 +34,14 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
         return policy;
     }
 
-    public static class Builder {
-        private final ContractNegotiationEventMessage message;
+    public static class Builder extends ContractRemoteMessage.Builder<ContractNegotiationEventMessage, Builder> {
 
         private Builder() {
-            message = new ContractNegotiationEventMessage();
+            super(new ContractNegotiationEventMessage());
         }
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder id(String id) {
-            message.id = id;
-            return this;
-        }
-
-        public Builder protocol(String protocol) {
-            message.protocol = protocol;
-            return this;
-        }
-
-        public Builder counterPartyAddress(String counterPartyAddress) {
-            message.counterPartyAddress = counterPartyAddress;
-            return this;
-        }
-
-        public Builder processId(String processId) {
-            message.processId = processId;
-            return this;
         }
 
         public Builder type(Type type) {
@@ -110,12 +55,8 @@ public class ContractNegotiationEventMessage implements ContractRemoteMessage {
         }
 
         public ContractNegotiationEventMessage build() {
-            if (message.id == null) {
-                message.id = randomUUID().toString();
-            }
-            Objects.requireNonNull(message.processId, "processId");
             Objects.requireNonNull(message.type, "type");
-            return message;
+            return super.build();
         }
     }
 

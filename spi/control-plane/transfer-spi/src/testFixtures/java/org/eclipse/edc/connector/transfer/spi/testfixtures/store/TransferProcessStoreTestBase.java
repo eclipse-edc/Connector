@@ -91,6 +91,17 @@ public abstract class TransferProcessStoreTestBase {
         }
 
         @Test
+        void verifyTransferType() {
+            var t = createTransferProcessBuilder("test-id").transferType("transferType").dataRequest(createDataRequestBuilder().build()).build();
+            getTransferProcessStore().save(t);
+
+            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
+            assertThat(all).containsExactly(t);
+            assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
+            assertThat(all.get(0).getTransferType()).isEqualTo("transferType");
+        }
+
+        @Test
         void withSameIdExists_shouldReplace() {
             var t = createTransferProcess("id1", INITIAL);
             getTransferProcessStore().save(t);
@@ -480,6 +491,18 @@ public abstract class TransferProcessStoreTestBase {
 
             var result = getTransferProcessStore().findAll(query).toList();
             assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
+        }
+
+        @Test
+        void queryByTransferType() {
+            range(0, 10).forEach(i -> getTransferProcessStore().save(createTransferProcessBuilder("test-tp-" + i)
+                    .transferType("type" + i)
+                    .build()));
+            var querySpec = QuerySpec.Builder.newInstance().filter(Criterion.criterion("transferType", "=", "type4")).build();
+
+            var result = getTransferProcessStore().findAll(querySpec);
+
+            assertThat(result).extracting(TransferProcess::getTransferType).containsOnly("type4");
         }
 
         @Test

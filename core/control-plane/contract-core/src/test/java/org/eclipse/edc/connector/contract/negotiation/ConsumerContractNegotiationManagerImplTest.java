@@ -71,7 +71,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractN
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
-import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -139,7 +138,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         negotiation.getCounterPartyId().equals("providerId") &&
                         negotiation.getCounterPartyAddress().equals(request.getCounterPartyAddress()) &&
                         negotiation.getProtocol().equals(request.getProtocol()) &&
-                        negotiation.getCorrelationId().equals(negotiation.getId()) &&
+                        negotiation.getCorrelationId() == null &&
                         negotiation.getContractOffers().size() == 1 &&
                         negotiation.getLastContractOffer().equals(contractOffer) &&
                         negotiation.getCallbackAddresses().size() == 1));
@@ -161,7 +160,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void requesting_shouldSendOfferAndTransitionRequested() {
-        var negotiation = contractNegotiationBuilder().state(REQUESTING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder().correlationId("correlationId").state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
@@ -171,7 +170,32 @@ class ConsumerContractNegotiationManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
-            verify(dispatcherRegistry, only()).dispatch(any(), and(isA(ContractRequestMessage.class), argThat(it -> protocolWebhookUrl.equals(it.getCallbackAddress()))));
+            var captor = ArgumentCaptor.<ContractRequestMessage>captor();
+            verify(dispatcherRegistry, only()).dispatch(any(), captor.capture());
+            var message = captor.getValue();
+            assertThat(message.getProcessId()).isEqualTo("correlationId");
+            assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
+            verify(listener).requested(any());
+        });
+    }
+
+    @Test
+    void requesting_shouldSendMessageWithId_whenCorrelationIdIsNull_toSupportOldProtocolVersion() {
+        var negotiation = contractNegotiationBuilder().correlationId(null).state(REQUESTING.code()).contractOffer(contractOffer()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhook.url()).thenReturn(protocolWebhookUrl);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
+            var captor = ArgumentCaptor.<ContractRequestMessage>captor();
+            verify(dispatcherRegistry, only()).dispatch(any(), captor.capture());
+            var message = captor.getValue();
+            assertThat(message.getProcessId()).isEqualTo(negotiation.getId());
+            assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
             verify(listener).requested(any());
         });
     }

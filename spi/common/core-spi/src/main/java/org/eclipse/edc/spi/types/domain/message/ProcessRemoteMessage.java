@@ -30,11 +30,10 @@ public interface ProcessRemoteMessage extends RemoteMessage {
     String getId();
 
     /**
-     * Returns the process id.
+     * Returns the process id for this instance, that could be consumerPid or providerPid.
      *
      * @return the processId.
      */
-    @NotNull
     String getProcessId();
 
     void setProtocol(String protocol);

@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       sovity GmbH - added issuedAt leeway
  *
  */
 
 package org.eclipse.edc.iam.oauth2;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -29,6 +31,7 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -49,24 +52,75 @@ class Oauth2ServiceExtensionTest {
     }
 
     @Test
-    void verifyExtensionWithCertificateAlias(Oauth2ServiceExtension extension, ServiceExtensionContext context) throws CertificateEncodingException {
+    void verifyExtensionWithCertificateAlias(Oauth2ServiceExtension extension, ServiceExtensionContext context) {
         var config = spy(ConfigFactory.fromMap(Map.of(
                 "edc.oauth.client.id", "id",
                 "edc.oauth.token.url", "url",
                 "edc.oauth.certificate.alias", "alias",
                 "edc.oauth.private.key.alias", "p_alias")));
-        when(context.getConfig(any())).thenReturn(config);
-        var certificate = mock(X509Certificate.class);
-        var privateKey = mock(PrivateKey.class);
-        when(privateKey.getAlgorithm()).thenReturn("RSA");
-        when(certificate.getEncoded()).thenReturn(new byte[] {});
-        when(certificateResolver.resolveCertificate("alias")).thenReturn(certificate);
-        when(privateKeyResolver.resolvePrivateKey("p_alias", PrivateKey.class)).thenReturn(privateKey);
+        mockCertificate("alias");
+        mockRsaPrivateKey("p_alias");
 
+        when(context.getConfig(any())).thenReturn(config);
         extension.initialize(context);
 
         verify(config, times(1)).getString("edc.oauth.certificate.alias");
         verify(config, never()).getString("edc.oauth.public.key.alias");
     }
 
+    @Test
+    void leewayWarningLoggedWhenLeewayUnconfigured(Oauth2ServiceExtension extension, ServiceExtensionContext context) {
+        var config = spy(ConfigFactory.fromMap(Map.of(
+                "edc.oauth.client.id", "id",
+                "edc.oauth.token.url", "url",
+                "edc.oauth.certificate.alias", "alias",
+                "edc.oauth.private.key.alias", "p_alias")));
+        mockCertificate("alias");
+        mockRsaPrivateKey("p_alias");
+
+        var monitor = mock(Monitor.class);
+        when(context.getMonitor()).thenReturn(monitor);
+        when(context.getConfig(any())).thenReturn(config);
+        extension.initialize(context);
+
+        var message = "No value was configured for 'edc.oauth.validation.issued.at.leeway'.";
+        verify(monitor, times(1)).info(contains(message));
+    }
+
+    @Test
+    void leewayNoWarningWhenLeewayConfigured(Oauth2ServiceExtension extension, ServiceExtensionContext context) {
+        var config = spy(ConfigFactory.fromMap(Map.of(
+                "edc.oauth.client.id", "id",
+                "edc.oauth.token.url", "url",
+                "edc.oauth.certificate.alias", "alias",
+                "edc.oauth.private.key.alias", "p_alias",
+                "edc.oauth.validation.issued.at.leeway", "5")));
+        mockCertificate("alias");
+        mockRsaPrivateKey("p_alias");
+
+        var monitor = mock(Monitor.class);
+        when(context.getMonitor()).thenReturn(monitor);
+        when(context.getConfig(any())).thenReturn(config);
+        extension.initialize(context);
+
+        var message = "No value was configured for 'edc.oauth.validation.issued.at.leeway'.";
+        verify(monitor, never()).info(contains(message));
+    }
+
+    private void mockRsaPrivateKey(String alias) {
+        var privateKey = mock(PrivateKey.class);
+        when(privateKey.getAlgorithm()).thenReturn("RSA");
+        when(privateKeyResolver.resolvePrivateKey(alias, PrivateKey.class)).thenReturn(privateKey);
+    }
+
+    private void mockCertificate(String alias) {
+        try {
+            var certificate = mock(X509Certificate.class);
+            when(certificate.getEncoded()).thenReturn(new byte[] {});
+            when(certificateResolver.resolveCertificate(alias)).thenReturn(certificate);
+        } catch (CertificateEncodingException e) {
+            // Should never happen, it's a checked exception in the way of mocking
+            throw new RuntimeException(e);
+        }
+    }
 }

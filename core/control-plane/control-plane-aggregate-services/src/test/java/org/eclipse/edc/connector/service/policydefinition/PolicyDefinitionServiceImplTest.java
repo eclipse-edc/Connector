@@ -90,6 +90,18 @@ class PolicyDefinitionServiceImplTest {
         assertThat(result).isFailed();
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(ValidFilters.class)
+    void search_validExpression_privateProperties(Criterion validFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(validFilter)
+                .build();
+
+        var result = policyServiceImpl.search(query);
+
+        assertThat(result).isSucceeded();
+    }
+
     @Test
     void createPolicy_shouldCreatePolicyIfItDoesNotAlreadyExist() {
         var policy = createPolicy("policyId");
@@ -237,6 +249,24 @@ class PolicyDefinitionServiceImplTest {
                     arguments(criterion("policy.permissions.action.constraint.noexist", "=", "123455")), // wrong property
                     arguments(criterion("permissions.action.constraint.leftExpression", "=", "123455")), // missing root
                     arguments(criterion("policy.permissions.action.leftExpression", "=", "123455")) // skips path element
+            );
+        }
+    }
+
+    private static class ValidFilters implements ArgumentsProvider {
+        private static final String PRIVATE_PROPERTIES = "privateProperties";
+        private static final String EDC_NAMESPACE = "'https://w3id.org/edc/v0.0.1/ns/'";
+        private static final String KEY = "key";
+
+        private static final String VALUE = "123455";
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion(PRIVATE_PROPERTIES, "=", VALUE)), // path element with privateProperties
+                    arguments(criterion(PRIVATE_PROPERTIES + "." + KEY, "=", VALUE)), // path element with privateProperties and key
+                    arguments(criterion(PRIVATE_PROPERTIES + ".'" + KEY + "'", "=", VALUE)), // path element with privateProperties and 'key'
+                    arguments(criterion(PRIVATE_PROPERTIES + "." + EDC_NAMESPACE + KEY, "=", VALUE)) // path element with privateProperties and edc_namespace key
             );
         }
     }

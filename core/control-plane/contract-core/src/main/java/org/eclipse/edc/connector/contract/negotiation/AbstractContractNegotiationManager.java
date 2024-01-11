@@ -72,15 +72,26 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
      */
     @WithSpan
     protected boolean processTerminating(ContractNegotiation negotiation) {
-        var termination = ContractNegotiationTerminationMessage.Builder.newInstance()
+        var terminationBuilder = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .processId(negotiation.getCorrelationId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .policy(negotiation.getLastContractOffer().getPolicy())
-                .build();
+                .processId(negotiation.getCorrelationId());
 
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, termination))
+        if (type() == ContractNegotiation.Type.CONSUMER) {
+            terminationBuilder
+                    .consumerPid(negotiation.getId())
+                    .providerPid(negotiation.getCorrelationId());
+        } else {
+            terminationBuilder
+                    .providerPid(negotiation.getId())
+                    .consumerPid(negotiation.getCorrelationId());
+        }
+
+        var termination = terminationBuilder.build();
+
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, terminationBuilder.build()))
                 .entityRetrieve(store::findById)
                 .onSuccess((n, result) -> transitionToTerminated(n))
                 .onFailure((n, throwable) -> transitionToTerminating(n))

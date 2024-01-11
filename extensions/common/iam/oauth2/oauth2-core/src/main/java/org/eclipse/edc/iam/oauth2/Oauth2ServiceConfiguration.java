@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       sovity GmbH - added issuedAt leeway
  *
  */
 
@@ -33,6 +34,7 @@ public class Oauth2ServiceConfiguration {
     private String publicCertificateAlias;
     private String providerAudience;
     private int notBeforeValidationLeeway;
+    private int issuedAtLeeway;
     private String endpointAudience;
 
     private Long tokenExpiration;
@@ -75,6 +77,10 @@ public class Oauth2ServiceConfiguration {
 
     public int getNotBeforeValidationLeeway() {
         return notBeforeValidationLeeway;
+    }
+
+    public int getIssuedAtLeeway() {
+        return issuedAtLeeway;
     }
 
     public String getEndpointAudience() {
@@ -143,6 +149,11 @@ public class Oauth2ServiceConfiguration {
 
         public Builder notBeforeValidationLeeway(int notBeforeValidationLeeway) {
             configuration.notBeforeValidationLeeway = notBeforeValidationLeeway;
+            return this;
+        }
+
+        public Builder issuedAtLeeway(int issuedAtLeeway) {
+            configuration.issuedAtLeeway = issuedAtLeeway;
             return this;
         }
 

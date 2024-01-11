@@ -23,10 +23,16 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class SqlQueryStatementTest {
 
     private static final String SELECT_STATEMENT = "SELECT * FROM test-table";
+    private final CriterionToWhereClauseConverter criterionToWhereClauseConverter = mock();
 
     @Test
     void withoutQuerySpec_shouldSetOffsetAndLimit() {
@@ -34,51 +40,36 @@ class SqlQueryStatementTest {
 
         assertThat(statement.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " LIMIT ? OFFSET ?;");
         assertThat(statement.getParameters()).containsOnly(80, 20);
+        verifyNoInteractions(criterionToWhereClauseConverter);
     }
 
     @Test
-    void singleExpression_equalsOperator() {
+    void withQuerySpec_shouldTranslateCriterionIntoWhereCondition() {
         var criterion = new Criterion("field1", "=", "testid1");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping(), criterionToWhereClauseConverter);
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? LIMIT ? OFFSET ?;");
         assertThat(t.getParameters()).containsOnly("testid1", 50, 0);
-    }
-
-    @Test
-    void singleExpression_notExistentColumn() {
-        var criterion = new Criterion("not-existent", "=", "testid1");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
-
-        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE 0 = ? LIMIT ? OFFSET ?;");
-        assertThat(t.getParameters()).containsOnly(1, 50, 0);
-    }
-
-    @Test
-    void singleExpression_inOperator() {
-        var criterion = new Criterion("field1", "in", List.of("id1", "id2", "id3"));
-        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping());
-
-
-        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 IN (?,?,?) LIMIT ? OFFSET ?;");
-        assertThat(t.getParameters()).containsExactlyInAnyOrder("id1", "id2", "id3", 50, 0);
+        verify(criterionToWhereClauseConverter).convert(criterion);
     }
 
     @Test
     void multipleExpressions() {
-        var criterion1 = new Criterion("field1", "in", List.of("id1", "id2", "id3"));
-        var criterion2 = new Criterion("description", "=", "something");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion1, criterion2), new TestMapping());
+        var criterion1 = new Criterion("any", "=", "testid1");
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion1, criterion1), new TestMapping(), criterionToWhereClauseConverter);
 
-        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 IN (?,?,?) AND edc_description = ? LIMIT ? OFFSET ?;");
-        assertThat(t.getParameters()).containsExactlyInAnyOrder("id1", "id2", "id3", "something", 50, 0);
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? AND edc_field_1 = ? LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsExactlyInAnyOrder("testid1", "testid1", 50, 0);
     }
 
     @Test
     void singleExpression_orderByDesc() {
         var criterion = new Criterion("field1", "=", "testid1");
         var builder = queryBuilder(criterion).sortField("description");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.DESC).build(), new TestMapping());
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.DESC).build(), new TestMapping(), criterionToWhereClauseConverter);
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description DESC LIMIT ? OFFSET ?;");
     }
@@ -87,7 +78,8 @@ class SqlQueryStatementTest {
     void singleExpression_orderByAsc() {
         var criterion = new Criterion("field1", "=", "testid1");
         var builder = queryBuilder(criterion).sortField("description");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping(), criterionToWhereClauseConverter);
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
     }
@@ -95,7 +87,7 @@ class SqlQueryStatementTest {
     @Test
     void singleExpression_orderBy_WithNoCondition() {
         var builder = queryBuilder().sortField("description");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping());
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping(), criterionToWhereClauseConverter);
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " ORDER BY edc_description ASC LIMIT ? OFFSET ?;");
     }
@@ -104,7 +96,7 @@ class SqlQueryStatementTest {
     void singleExpression_orderBy_WithNonExistentProperty() {
         var builder = queryBuilder().sortField("notexist");
 
-        assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping()))
+        assertThatThrownBy(() -> new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping(), criterionToWhereClauseConverter))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Cannot sort by");
     }
@@ -114,20 +106,12 @@ class SqlQueryStatementTest {
         var criterion = new Criterion("field1", "=", "testid1");
         var customParameter = 3;
         var customSql = "(another_field IS null OR (another_field IN (select * from another_table where that_field > ?))";
-        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping())
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping(), criterionToWhereClauseConverter)
                 .addWhereClause(customSql, customParameter);
 
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? AND " + customSql + " LIMIT ? OFFSET ?;");
         assertThat(t.getParameters()).containsExactly("testid1", customParameter, 50, 0);
-    }
-
-    @Test
-    void expression_withUnsupportedOperator_noValidate() {
-        var criterion = new Criterion("field1", "??", "testid1");
-        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new TestMapping(), false);
-
-        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 ?? ? LIMIT ? OFFSET ?;");
-        assertThat(t.getParameters()).containsOnly("testid1", 50, 0);
     }
 
     private QuerySpec.Builder queryBuilder(Criterion... criterion) {

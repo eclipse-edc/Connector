@@ -269,6 +269,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 ofNullable(updatedValues.getContractAgreement()).map(ContractAgreement::getId).orElse(null),
                 updatedValues.getUpdatedAt(),
                 updatedValues.isPending(),
+                updatedValues.getCorrelationId(),
                 negotiationId);
     }
 

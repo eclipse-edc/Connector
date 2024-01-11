@@ -16,50 +16,13 @@ package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+public class ContractNegotiationTerminationMessage extends ContractRemoteMessage {
 
-import static java.util.UUID.randomUUID;
-
-public class ContractNegotiationTerminationMessage implements ContractRemoteMessage {
-
-    private String id;
-    private String protocol = "unknown";
-    private String counterPartyAddress;
-    private String processId;
-    private String rejectionReason; // TODO change to list https://github.com/eclipse-edc/Connector/issues/2729
+    private String rejectionReason;
     private String code;
     private Policy policy;
-
-    @NotNull
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-
-    @Override
-    public void setProtocol(String protocol) {
-        Objects.requireNonNull(protocol);
-        this.protocol = protocol;
-    }
-
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-
-    @Override
-    @NotNull
-    public String getProcessId() {
-        return processId;
-    }
 
     @Nullable
     public String getRejectionReason() {
@@ -76,35 +39,14 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         return policy;
     }
 
-    public static class Builder {
-        private final ContractNegotiationTerminationMessage message;
+    public static class Builder extends ContractRemoteMessage.Builder<ContractNegotiationTerminationMessage, Builder> {
 
         private Builder() {
-            message = new ContractNegotiationTerminationMessage();
+            super(new ContractNegotiationTerminationMessage());
         }
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder id(String id) {
-            message.id = id;
-            return this;
-        }
-
-        public Builder protocol(String protocol) {
-            message.protocol = protocol;
-            return this;
-        }
-
-        public Builder counterPartyAddress(String counterPartyAddress) {
-            message.counterPartyAddress = counterPartyAddress;
-            return this;
-        }
-
-        public Builder processId(String processId) {
-            message.processId = processId;
-            return this;
         }
 
         public Builder rejectionReason(String rejectionReason) {
@@ -123,12 +65,7 @@ public class ContractNegotiationTerminationMessage implements ContractRemoteMess
         }
 
         public ContractNegotiationTerminationMessage build() {
-            if (message.id == null) {
-                message.id = randomUUID().toString();
-            }
-
-            Objects.requireNonNull(message.processId, "processId");
-            return message;
+            return super.build();
         }
     }
 }
