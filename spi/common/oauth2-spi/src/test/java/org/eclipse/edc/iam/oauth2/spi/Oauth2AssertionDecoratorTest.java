@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
@@ -50,12 +50,12 @@ class Oauth2AssertionDecoratorTest {
 
     @Test
     void verifyDecorate() {
-        var claims = new HashMap<String, Object>();
-        var headers = new HashMap<String, Object>();
-        decorator.decorate(claims, headers);
+        var b = TokenParameters.Builder.newInstance();
+        decorator.decorate(b);
 
-        assertThat(headers).isEmpty();
-        assertThat(claims)
+        var t = b.build();
+        assertThat(t.getHeaders()).isEmpty();
+        assertThat(t.getClaims())
                 .hasEntrySatisfying(AUDIENCE, o -> assertThat(o).asInstanceOf(list(String.class)).contains(audience))
                 .hasFieldOrPropertyWithValue(ISSUER, clientId)
                 .hasFieldOrPropertyWithValue(SUBJECT, clientId)

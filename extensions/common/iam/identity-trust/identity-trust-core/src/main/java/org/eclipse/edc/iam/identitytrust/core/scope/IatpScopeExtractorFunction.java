@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.identitytrust.core.scope;
 
 import org.eclipse.edc.identitytrust.scope.ScopeExtractor;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
@@ -49,7 +50,7 @@ public class IatpScopeExtractorFunction implements BiFunction<Policy, PolicyCont
         var results = registry.extractScopes(policy, context).map(scopes -> String.join(" ", scopes));
 
         if (results.succeeded()) {
-            params.scope(results.getContent());
+            params.claims(JwtRegisteredClaimNames.SCOPE, results.getContent());
             return true;
         } else {
             monitor.warning("Failed to extract scopes from a policy");

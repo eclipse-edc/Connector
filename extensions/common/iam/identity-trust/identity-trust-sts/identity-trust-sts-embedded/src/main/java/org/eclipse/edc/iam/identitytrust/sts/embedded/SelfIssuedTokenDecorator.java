@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
@@ -41,10 +42,10 @@ class SelfIssuedTokenDecorator implements TokenDecorator {
     }
 
     @Override
-    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-        claims.putAll(this.claims);
-        claims.put(ISSUED_AT, Date.from(clock.instant()));
-        claims.put(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
-        claims.put(JWT_ID, UUID.randomUUID().toString());
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        this.claims.forEach(tokenParameters::claims);
+        return tokenParameters.claims(ISSUED_AT, Date.from(clock.instant()))
+                .claims(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)))
+                .claims(JWT_ID, UUID.randomUUID().toString());
     }
 }

@@ -27,11 +27,11 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyE
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -62,6 +62,8 @@ import static org.mockito.Mockito.when;
 
 class DspHttpRemoteMessageDispatcherImplTest {
 
+    private static final String SCOPE_CLAIM = "scope";
+    private static final String AUDIENCE_CLAIM = "aud";
     private final EdcHttpClient httpClient = mock();
     private final IdentityService identityService = mock();
     private final PolicyEngine policyEngine = mock();
@@ -71,6 +73,21 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     private final DspHttpRemoteMessageDispatcher dispatcher =
             new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine);
+
+    private static okhttp3.Response dummyResponse(int code) {
+        return dummyResponseBuilder(code)
+                .build();
+    }
+
+    @NotNull
+    private static okhttp3.Response.Builder dummyResponseBuilder(int code) {
+        return new okhttp3.Response.Builder()
+                .code(code)
+                .message("any")
+                .body(ResponseBody.create("", MediaType.get("application/json")))
+                .protocol(Protocol.HTTP_1_1)
+                .request(new Request.Builder().url("http://any").build());
+    }
 
     @BeforeEach
     void setUp() {
@@ -86,7 +103,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     void dispatch_ensureTokenDecoratorScope() {
         var authToken = "token";
         Map<String, Object> additional = Map.of("foo", "bar");
-        when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).scope("test-scope").additional(additional));
+        when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional).claims(SCOPE_CLAIM, "test-scope"));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
         when(identityService.obtainClientCredentials(any()))
@@ -104,9 +121,9 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(requestFactory).createRequest(message);
         assertThat(captor.getValue()).satisfies(tr -> {
-            assertThat(tr.getScope()).isEqualTo("test-scope");
-            assertThat(tr.getAudience()).isEqualTo(message.getCounterPartyAddress());
-            assertThat(tr.getAdditional()).containsAllEntriesOf(additional);
+            assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("test-scope");
+            assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(message.getCounterPartyAddress());
+            assertThat(tr.getClaims()).containsAllEntriesOf(additional);
         });
 
     }
@@ -159,6 +176,18 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
         assertThat(result).succeedsWithin(timeout);
         verify(policyEngine).evaluate(eq("test.message"), eq(policy), and(isA(PolicyContext.class), argThat(c -> c.getContextData(TokenParameters.Builder.class) != null)));
+    }
+
+    static class TestMessage implements RemoteMessage {
+        @Override
+        public String getProtocol() {
+            return null;
+        }
+
+        @Override
+        public String getCounterPartyAddress() {
+            return "http://connector";
+        }
     }
 
     @Nested
@@ -229,33 +258,6 @@ class DspHttpRemoteMessageDispatcherImplTest {
             when(identityService.obtainClientCredentials(any()))
                     .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
             dispatcher.registerMessage(TestMessage.class, requestFactory, bodyExtractor);
-        }
-    }
-
-    private static okhttp3.Response dummyResponse(int code) {
-        return dummyResponseBuilder(code)
-                .build();
-    }
-
-    @NotNull
-    private static okhttp3.Response.Builder dummyResponseBuilder(int code) {
-        return new okhttp3.Response.Builder()
-                .code(code)
-                .message("any")
-                .body(ResponseBody.create("", MediaType.get("application/json")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://any").build());
-    }
-
-    static class TestMessage implements RemoteMessage {
-        @Override
-        public String getProtocol() {
-            return null;
-        }
-
-        @Override
-        public String getCounterPartyAddress() {
-            return "http://connector";
         }
     }
 }

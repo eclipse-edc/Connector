@@ -22,6 +22,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenDecorator;
@@ -32,16 +33,13 @@ import java.security.PrivateKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public class JwtGenerationService implements TokenGenerationService {
-    private final CryptoConverter converter;
 
 
     public JwtGenerationService() {
-        this.converter = new CryptoConverter();
     }
 
     @Override
@@ -49,21 +47,18 @@ public class JwtGenerationService implements TokenGenerationService {
 
         var privateKey = privateKeySupplier.get();
 
-        var tokenSigner = converter.createSignerFor(privateKey);
-        var jwsAlgorithm = converter.getRecommendedAlgorithm(tokenSigner);
+        var tokenSigner = CryptoConverter.createSignerFor(privateKey);
+        var jwsAlgorithm = CryptoConverter.getRecommendedAlgorithm(tokenSigner);
 
 
-        var claims = new HashMap<String, Object>();
-        var headers = new HashMap<String, Object>();
-
-
+        var bldr = TokenParameters.Builder.newInstance();
         var allDecorators = new ArrayList<>(Arrays.asList(decorators));
         allDecorators.add(new BaseDecorator(jwsAlgorithm));
 
-        allDecorators.forEach(td -> td.decorate(claims, headers));
-
-        var jwsHeader = createHeader(headers);
-        var claimsSet = createClaimsSet(claims);
+        allDecorators.forEach(td -> td.decorate(bldr));
+        var tokenParams = bldr.build();
+        var jwsHeader = createHeader(tokenParams.getHeaders());
+        var claimsSet = createClaimsSet(tokenParams.getClaims());
 
         var token = new SignedJWT(jwsHeader, claimsSet);
         try {
@@ -82,7 +77,7 @@ public class JwtGenerationService implements TokenGenerationService {
         }
     }
 
-    private JWTClaimsSet createClaimsSet(HashMap<String, Object> claims) {
+    private JWTClaimsSet createClaimsSet(Map<String, Object> claims) {
         var builder = new JWTClaimsSet.Builder();
         claims.forEach(builder::claim);
         return builder.build();
@@ -95,8 +90,8 @@ public class JwtGenerationService implements TokenGenerationService {
     private record BaseDecorator(JWSAlgorithm jwsAlgorithm) implements TokenDecorator {
 
         @Override
-        public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-            headers.put("alg", jwsAlgorithm.getName());
+        public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+            return tokenParameters.header("alg", jwsAlgorithm.getName());
         }
     }
 }

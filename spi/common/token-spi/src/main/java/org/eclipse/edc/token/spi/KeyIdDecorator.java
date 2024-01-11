@@ -14,9 +14,8 @@
 
 package org.eclipse.edc.token.spi;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
 
 /**
  * This decorator adds the {@code kid} header to a JWT. Does not return any claims.
@@ -26,9 +25,10 @@ import java.util.Map;
 public record KeyIdDecorator(@Nullable String keyId) implements TokenDecorator {
 
     @Override
-    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
         if (keyId != null) {
-            headers.put("kid", keyId);
+            tokenParameters.header("kid", keyId);
         }
+        return tokenParameters;
     }
 }

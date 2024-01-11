@@ -15,11 +15,11 @@
 package org.eclipse.edc.iam.oauth2.jwt;
 
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Map;
 
 import static org.eclipse.edc.iam.oauth2.jwt.Fingerprint.sha1Base64Fingerprint;
 
@@ -39,7 +39,7 @@ public class X509CertificateDecorator implements TokenDecorator {
     }
 
     @Override
-    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-        headers.put("x5t", sha1Base64Fingerprint(certificate));
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        return tokenParameters.header("x5t", sha1Base64Fingerprint(certificate));
     }
 }
