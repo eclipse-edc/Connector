@@ -14,10 +14,9 @@
 
 package org.eclipse.edc.token;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -28,8 +27,7 @@ class TokenDecoratorRegistryImplTest {
 
     @Test
     void register_whenContextNotYetExists_shouldCreateEntry() {
-        tokenDecoratorRegistry.register("test-context", (claims, headers) -> {
-        });
+        tokenDecoratorRegistry.register("test-context", new TestTokenDecorator());
         assertThat(tokenDecoratorRegistry.getDecoratorsFor("test-context")).hasSize(1);
     }
 
@@ -71,8 +69,8 @@ class TokenDecoratorRegistryImplTest {
 
     private static class TestTokenDecorator implements TokenDecorator {
         @Override
-        public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-
+        public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+            return tokenParameters;
         }
     }
 }

@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.oauth2.daps;
 
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -51,6 +52,26 @@ class DapsIntegrationTest {
             .withFileSystemBind(resourceFolder.resolve("config").toString(), "/opt/config")
             .withFileSystemBind(resourceFolder.resolve("keys").toString(), "/opt/keys");
 
+    @Test
+    void retrieveTokenAndValidate(IdentityService identityService) {
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .claims(JwtRegisteredClaimNames.SCOPE, "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL")
+                .claims(JwtRegisteredClaimNames.AUDIENCE, "audience")
+                .build();
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
+
+        assertThat(tokenResult.succeeded()).withFailMessage(tokenResult::getFailureDetail).isTrue();
+
+        var verificationContext = VerificationContext.Builder.newInstance()
+                .audience("audience")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+
+        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent(), verificationContext);
+
+        assertThat(verificationResult.succeeded()).withFailMessage(verificationResult::getFailureDetail).isTrue();
+    }
+
     @BeforeEach
     protected void before(EdcExtension extension) {
         System.setProperty("edc.vault", "src/test/resources/empty-vault.properties");
@@ -72,26 +93,6 @@ class DapsIntegrationTest {
                 "edc.oauth.private.key.alias", CLIENT_KEYSTORE_KEY_ALIAS,
                 "edc.iam.token.scope", "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL"
         ));
-    }
-
-    @Test
-    void retrieveTokenAndValidate(IdentityService identityService) {
-        var tokenParameters = TokenParameters.Builder.newInstance()
-                .scope("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL")
-                .audience("audience")
-                .build();
-        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
-
-        assertThat(tokenResult.succeeded()).withFailMessage(tokenResult::getFailureDetail).isTrue();
-
-        var verificationContext = VerificationContext.Builder.newInstance()
-                .audience("audience")
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-
-        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent(), verificationContext);
-
-        assertThat(verificationResult.succeeded()).withFailMessage(verificationResult::getFailureDetail).isTrue();
     }
 
 }

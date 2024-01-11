@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.jwt;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -22,7 +23,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,11 +46,11 @@ class X509CertificateDecoratorTest {
         var certificate = createCertificate();
         var decorator = new X509CertificateDecorator(certificate);
 
-        var headers = new HashMap<String, Object>();
-        var claims = new HashMap<String, Object>();
-        decorator.decorate(claims, headers);
+        var builder = TokenParameters.Builder.newInstance();
+        decorator.decorate(builder);
 
-        assertThat(claims).isEmpty();
-        assertThat(headers).containsOnlyKeys("x5t");
+        var tokenParams = builder.build();
+        assertThat(tokenParams.getClaims()).isEmpty();
+        assertThat(tokenParams.getHeaders()).containsOnlyKeys("x5t");
     }
 }

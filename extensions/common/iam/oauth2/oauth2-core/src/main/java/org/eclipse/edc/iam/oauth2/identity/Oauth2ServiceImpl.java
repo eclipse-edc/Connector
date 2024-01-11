@@ -22,6 +22,7 @@ import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProv
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
@@ -106,7 +107,7 @@ public class Oauth2ServiceImpl implements IdentityService {
         return PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
                 .url(configuration.getTokenUrl())
                 .clientAssertion(assertion)
-                .scope(parameters.getScope())
+                .scope(parameters.getStringClaim(JwtRegisteredClaimNames.SCOPE))
                 .grantType(GRANT_TYPE)
                 .params(credentialsRequestAdditionalParametersProvider.provide(parameters))
                 .build();

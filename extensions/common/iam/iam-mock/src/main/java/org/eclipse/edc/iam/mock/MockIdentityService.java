@@ -38,7 +38,7 @@ public class MockIdentityService implements IdentityService {
     @Override
     public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
         var token = new MockToken();
-        token.setAudience(parameters.getAudience());
+        token.setAudience(parameters.getStringClaim("aud"));
         token.setRegion(region);
         token.setClientId(clientId);
         TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance()

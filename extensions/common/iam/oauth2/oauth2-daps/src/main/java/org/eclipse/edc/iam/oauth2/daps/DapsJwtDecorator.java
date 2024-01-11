@@ -14,15 +14,14 @@
 
 package org.eclipse.edc.iam.oauth2.daps;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.token.spi.TokenDecorator;
-
-import java.util.Map;
 
 public class DapsJwtDecorator implements TokenDecorator {
 
     @Override
-    public void decorate(Map<String, Object> claims, Map<String, Object> headers) {
-        claims.put("@context", "https://w3id.org/idsa/contexts/context.jsonld");
-        claims.put("@type", "ids:DatRequestToken");
+    public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
+        return tokenParameters.claims("@context", "https://w3id.org/idsa/contexts/context.jsonld")
+                .claims("@type", "ids:DatRequestToken");
     }
 }

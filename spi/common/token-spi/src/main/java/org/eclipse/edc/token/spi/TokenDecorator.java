@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.token.spi;
 
-import java.util.Map;
+import org.eclipse.edc.spi.iam.TokenParameters;
 
 /**
  * Defines a component that can be used to decorate a JWT token.
@@ -26,8 +26,7 @@ public interface TokenDecorator {
     /**
      * Decorates the incoming claims and headers. Implementors are free to mutate arbitrarily, although removing is not a common operation.
      *
-     * @param claims  the claims of the token (e.g. JWT). Never null.
-     * @param headers the header of the token (e.g. JWT). Never null.
+     * @param tokenParameters Parameters (claims, headers) of the token.
      */
-    void decorate(Map<String, Object> claims, Map<String, Object> headers);
+    TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters);
 }
