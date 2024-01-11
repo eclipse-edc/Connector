@@ -19,6 +19,7 @@ import com.apicatalog.ld.schema.LdTerm;
 import com.apicatalog.ld.schema.adapter.LdValueAdapter;
 import com.apicatalog.ld.signature.method.VerificationMethod;
 import com.apicatalog.vc.integrity.DataIntegrity;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ class JwkAdapter implements LdValueAdapter<LdObject, VerificationMethod> {
         URI type = value.value(LdTerm.TYPE);
         URI controller = value.value(DataIntegrity.CONTROLLER);
         var keyProperty = getKeyProperty(value);
-        var jwk = KeyFactory.create(keyProperty);
+        var jwk = CryptoConverter.create(keyProperty);
         return new JwkMethod(id, type, controller, jwk);
     }
 
