@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.jwt.spi;
+package org.eclipse.edc.security.token.jwt;
 
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -45,9 +45,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class JwsSignerVerifierFactoryTest {
+class CryptoConverterTest {
 
-    private final JwsSignerVerifierFactory factory = new JwsSignerVerifierFactory();
+    private final CryptoConverter factory = new CryptoConverter();
 
     private static KeyPair createEd25519(@Nullable Provider provider) throws NoSuchAlgorithmException {
 

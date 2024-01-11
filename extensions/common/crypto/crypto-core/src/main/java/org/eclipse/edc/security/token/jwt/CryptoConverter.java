@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.jwt.spi;
+package org.eclipse.edc.security.token.jwt;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -62,12 +62,11 @@ import java.util.Optional;
 import static java.util.Optional.ofNullable;
 
 /**
- * Factory class that converts {@link PrivateKey} objects into their Nimbus-counterparts needed to sign and
- * verify JWTs, or to JWKs.
+ * Converter class that converts Java cryuptographic primitives (e.g. {@link PrivateKey}) into their Nimbus-counterparts needed to handle Json Web Tokens.
  *
  * @see <a href="https://docs.oracle.com/en/java/javase/11/docs/specs/security/standard-names.html">Defined Algorithm Standard Names</a>
  */
-public class JwsSignerVerifierFactory {
+public class CryptoConverter {
 
     public static final String ALGORITHM_RSA = "RSA";
     public static final String ALGORITHM_EC = "EC";
@@ -92,7 +91,7 @@ public class JwsSignerVerifierFactory {
      * @param key the private key.
      * @return a {@link JWSSigner}
      * @throws IllegalArgumentException if the Curve of an EdDSA key is not "Ed25519" (x25519 and Ed448 are not supported!)
-     * @throws IllegalArgumentException if the key is not in the list of supported algorithms ({@link JwsSignerVerifierFactory#SUPPORTED_ALGORITHMS})
+     * @throws IllegalArgumentException if the key is not in the list of supported algorithms ({@link CryptoConverter#SUPPORTED_ALGORITHMS})
      * @throws EdcException             if the {@link PrivateKey} is a EdDSA key and does not disclose its private bytes
      */
     public JWSSigner createSignerFor(PrivateKey key) {
@@ -120,7 +119,7 @@ public class JwsSignerVerifierFactory {
      * @param publicKey the public key.
      * @return a {@link JWSSigner}
      * @throws IllegalArgumentException if the Curve of an EdDSA key is not "Ed25519" (x25519 and Ed448 are not supported!)
-     * @throws IllegalArgumentException if the key is not in the list of supported algorithms ({@link JwsSignerVerifierFactory#SUPPORTED_ALGORITHMS})
+     * @throws IllegalArgumentException if the key is not in the list of supported algorithms ({@link CryptoConverter#SUPPORTED_ALGORITHMS})
      * @throws EdcException             if the {@link PublicKey} is a EdDSA key and does not disclose its private bytes
      */
     public JWSVerifier createVerifierFor(PublicKey publicKey) {

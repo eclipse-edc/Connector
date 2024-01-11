@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:jwt-spi"))
+    implementation(libs.nimbus.jwt)
 }
 
 

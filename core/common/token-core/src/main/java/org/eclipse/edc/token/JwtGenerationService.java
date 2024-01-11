@@ -20,7 +20,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.jwt.spi.JwsSignerVerifierFactory;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class JwtGenerationService implements TokenGenerationService {
-    private final JwsSignerVerifierFactory factory;
+    private final CryptoConverter factory;
 
 
     public JwtGenerationService() {
-        this.factory = new JwsSignerVerifierFactory();
+        this.factory = new CryptoConverter();
     }
 
     @Override

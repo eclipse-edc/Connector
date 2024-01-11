@@ -20,14 +20,6 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:token-spi"))
-    api(libs.nimbus.jwt)
-    runtimeOnly(libs.tink) // for EdDSA/Ed25519
-    implementation(libs.bouncyCastle.bcprovJdk18on)
-    // Java does not natively implement elliptic curve multiplication, so we need to get bouncy
-    implementation(libs.bouncyCastle.bcpkixJdk18on)
-
-    testImplementation(libs.bouncyCastle.bcprovJdk18on) // for EdDSA/Ed25519
-
 }
 
 
