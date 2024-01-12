@@ -344,7 +344,6 @@ public class CryptoConverter {
 
     private static Ed25519Signer createEdDsaVerifier(PrivateKey key) throws JOSEException {
         var edKey = (EdECPrivateKey) key;
-        var curveName = edKey.getParams().getName();
         var curve = getCurveAllowing(edKey, ALGORITHM_ED25519);
 
 
