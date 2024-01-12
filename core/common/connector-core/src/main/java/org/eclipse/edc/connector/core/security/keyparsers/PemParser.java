@@ -75,8 +75,6 @@ public class PemParser implements KeyParser {
             if (keyPairList.size() > 1) {
                 monitor.warning("PEM expected to contain exactly 1 key(-pair), but contained %s. Will take the first one. Please consider re-structuring your PEM document.".formatted(keyPairList.size()));
             }
-
-
             return keyPairList
                     .stream()
                     .filter(Objects::nonNull) // PEM strings that only contain public keys would get eliminated here
@@ -115,9 +113,9 @@ public class PemParser implements KeyParser {
                     keys.add(toKeyPair((SubjectPublicKeyInfo) pemObj));
                 } else if (pemObj instanceof X509CertificateHolder) { // if it's a certificate, use the public key which is signed
                     keys.add(toKeyPair((X509CertificateHolder) pemObj));
-                } else if (pemObj instanceof PEMKeyPair) { // if EC private key given, it arrives here as a keypair
+                } else if (pemObj instanceof PEMKeyPair) { // if private key is given in DER format
                     keys.add(toKeyPair((PEMKeyPair) pemObj));
-                } else if (pemObj instanceof PrivateKeyInfo) { // if (RSA) private key given, return it
+                } else if (pemObj instanceof PrivateKeyInfo) { // if (RSA) private key is given in PKCS8 format
                     keys.add(toKeyPair((PrivateKeyInfo) pemObj));
                 }
             } while (pemObj != null);

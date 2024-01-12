@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.core;
 
-import org.eclipse.edc.connector.core.security.KeyPairFactoryImpl;
 import org.eclipse.edc.connector.core.security.KeyParserRegistryImpl;
 import org.eclipse.edc.connector.core.security.keyparsers.JwkParser;
 import org.eclipse.edc.connector.core.security.keyparsers.PemParser;
@@ -23,7 +22,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
@@ -83,11 +81,6 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
             keyParserRegistry.register(new PemParser(monitor));
         }
         return keyParserRegistry;
-    }
-
-    @Provider
-    public KeyPairFactory keyPairFactory(ServiceExtensionContext context) {
-        return new KeyPairFactoryImpl(privateKeyResolver(context), vault);
     }
 
 }
