@@ -28,7 +28,6 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.oauth2.Oauth2ServiceConfiguration;
-import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
@@ -59,7 +58,6 @@ import java.util.UUID;
 import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static com.nimbusds.jwt.JWTClaimNames.NOT_BEFORE;
-import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.oauth2.Oauth2ServiceExtension.OAUTH2_TOKEN_CONTEXT;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
@@ -86,7 +84,6 @@ class Oauth2ServiceImplTest {
     private final Instant now = Instant.now();
     private final Oauth2Client client = mock(Oauth2Client.class);
     private final TokenGenerationService tokenGenerationService = mock(TokenGenerationService.class);
-    private final CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider = mock(CredentialsRequestAdditionalParametersProvider.class);
     private final TokenDecorator jwtDecorator = mock(TokenDecorator.class);
     private Oauth2ServiceImpl authService;
     private JWSSigner jwsSigner;
@@ -119,13 +116,12 @@ class Oauth2ServiceImplTest {
         registry.addRule(OAUTH2_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), configuration.getIssuedAtLeeway()));
 
         authService = new Oauth2ServiceImpl(configuration, tokenGenerationService, () -> privateKey, client, jwtDecoratorRegistry, registry,
-                tokenValidationService, credentialsRequestAdditionalParametersProvider, publicKeyResolverMock);
+                tokenValidationService, publicKeyResolverMock);
 
     }
 
     @Test
     void obtainClientCredentials() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
         when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()
@@ -151,37 +147,9 @@ class Oauth2ServiceImplTest {
         assertThat(capturedRequest.getClientAssertionType()).isEqualTo("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
     }
 
-    @Test
-    void obtainClientCredentials_addsAdditionalFormParameters() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(Map.of("parameterKey", "parameterValue"));
-        when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
-
-        var tokenParameters = TokenParameters.Builder.newInstance()
-                .claims(AUDIENCE, "audience")
-                .claims(SCOPE, "scope")
-                .build();
-
-        when(client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("accessToken").build()));
-
-        var result = authService.obtainClientCredentials(tokenParameters);
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent().getToken()).isEqualTo("accessToken");
-        var captor = ArgumentCaptor.forClass(Oauth2CredentialsRequest.class);
-        verify(client).requestToken(captor.capture());
-        var captured = captor.getValue();
-        assertThat(captured).isNotNull()
-                .isInstanceOf(PrivateKeyOauth2CredentialsRequest.class);
-        var capturedRequest = (PrivateKeyOauth2CredentialsRequest) captured;
-        assertThat(capturedRequest.getGrantType()).isEqualTo("client_credentials");
-        assertThat(capturedRequest.getScope()).isEqualTo("scope");
-        assertThat(capturedRequest.getClientAssertion()).isEqualTo("assertionToken");
-        assertThat(capturedRequest.getParams()).containsEntry("parameterKey", "parameterValue");
-    }
 
     @Test
     void obtainClientCredentials_verifyReturnsFailureIfOauth2ClientFails() {
-        when(credentialsRequestAdditionalParametersProvider.provide(any())).thenReturn(emptyMap());
         when(tokenGenerationService.generate(any(), any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("assertionToken").build()));
 
         var tokenParameters = TokenParameters.Builder.newInstance()

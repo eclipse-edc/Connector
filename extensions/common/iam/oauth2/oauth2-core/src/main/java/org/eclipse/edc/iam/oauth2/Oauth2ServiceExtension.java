@@ -19,7 +19,6 @@ package org.eclipse.edc.iam.oauth2;
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
 import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
-import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
 import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -104,9 +103,6 @@ public class Oauth2ServiceExtension implements ServiceExtension {
     private Oauth2Client oauth2Client;
 
     @Inject
-    private CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider;
-
-    @Inject
     private TypeManager typeManager;
 
     @Inject
@@ -174,7 +170,6 @@ public class Oauth2ServiceExtension implements ServiceExtension {
                 jwtDecoratorRegistry,
                 tokenValidationRulesRegistry,
                 tokenValidationService,
-                credentialsRequestAdditionalParametersProvider,
                 identityProviderKeyResolver(context)
         );
     }
