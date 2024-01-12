@@ -31,10 +31,11 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     provisioned_resource_set   JSON,
     content_data_address       JSON,
     deprovisioned_resources    JSON,
-    private_properties JSON,
+    private_properties         JSON,
     callback_addresses         JSON,
     pending                    BOOLEAN  DEFAULT FALSE,
     transfer_type              VARCHAR,
+    protocol_messages          JSON,
     lease_id                   VARCHAR
         CONSTRAINT transfer_process_lease_lease_id_fk
             REFERENCES edc_lease

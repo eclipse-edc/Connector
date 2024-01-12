@@ -24,6 +24,7 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
@@ -73,7 +74,8 @@ public class TestFunctions {
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
                 .callbackAddresses(List.of(createCallbackAddress()))
-                .protocol("protocol");
+                .protocol("protocol")
+                .protocolMessages(new ProtocolMessages());
     }
 
     public static CallbackAddress createCallbackAddress() {

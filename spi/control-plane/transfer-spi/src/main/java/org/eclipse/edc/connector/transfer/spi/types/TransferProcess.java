@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -127,6 +128,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
+    private ProtocolMessages protocolMessages = new ProtocolMessages();
 
     private String transferType;
 
@@ -231,6 +233,26 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public boolean deprovisionComplete() {
         return getResourcesToDeprovision().isEmpty();
+    }
+
+    public boolean shouldIgnoreIncomingMessage(@NotNull String messageId) {
+        return protocolMessages.isAlreadyReceived(messageId) || TransferProcessStates.isFinal(state);
+    }
+
+    public ProtocolMessages getProtocolMessages() {
+        return protocolMessages;
+    }
+
+    public String lastSentProtocolMessage() {
+        return protocolMessages.getLastSent();
+    }
+
+    public void lastSentProtocolMessage(String id) {
+        protocolMessages.setLastSent(id);
+    }
+
+    public void protocolMessageReceived(String id) {
+        protocolMessages.addReceived(id);
     }
 
     public void transitionProvisioningRequested() {
@@ -401,7 +423,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .privateProperties(privateProperties)
                 .callbackAddresses(callbackAddresses)
                 .transferType(transferType)
-                .type(type);
+                .type(type)
+                .protocolMessages(protocolMessages);
         return copy(builder);
     }
 
@@ -452,10 +475,16 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
      * @param canTransitTo Tells if the negotiation can transit to that state.
      */
     private void transition(TransferProcessStates end, Predicate<TransferProcessStates> canTransitTo) {
+        var targetState = end.code();
         if (!canTransitTo.test(TransferProcessStates.from(state))) {
-            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(targetState)));
         }
-        transitionTo(end.code());
+
+        if (state != targetState) {
+            protocolMessages.setLastSent(null);
+        }
+
+        transitionTo(targetState);
     }
 
     /**
@@ -529,6 +558,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             return this;
         }
 
+        public Builder protocolMessages(ProtocolMessages protocolMessages) {
+            entity.protocolMessages = protocolMessages;
+            return this;
+        }
+
         @Override
         public Builder self() {
             return this;
@@ -558,6 +592,5 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
             return entity;
         }
-
     }
 }

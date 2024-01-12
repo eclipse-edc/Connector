@@ -30,6 +30,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
@@ -47,6 +48,7 @@ import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunc
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.createTransferProcessBuilder;
 import static org.eclipse.edc.connector.transfer.spi.testfixtures.store.TestFunctions.initialTransferProcess;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates.STARTED;
@@ -60,6 +62,7 @@ import static org.hamcrest.Matchers.hasSize;
 public abstract class TransferProcessStoreTestBase {
 
     protected static final String CONNECTOR_NAME = "test-connector";
+    protected final Clock clock = Clock.systemUTC();
 
     @Nested
     class Create {
@@ -324,32 +327,23 @@ public abstract class TransferProcessStoreTestBase {
 
     @Nested
     class Update {
-        @Test
-        void exists_shouldUpdate() {
-            var t1 = createTransferProcess("id1", STARTED);
-            getTransferProcessStore().save(t1);
 
-            t1.transitionCompleted(); //modify
-            getTransferProcessStore().save(t1);
+        @Test
+        void shouldUpdate() {
+            var transferProcess = createTransferProcess("id1", STARTED);
+            getTransferProcessStore().save(transferProcess);
+            //modify
+            transferProcess.transitionCompleted();
+            transferProcess.protocolMessageReceived("messageId");
+
+            getTransferProcessStore().save(transferProcess);
 
             assertThat(getTransferProcessStore().findAll(QuerySpec.none()))
                     .hasSize(1)
-                    .usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(t1);
-        }
-
-        @Test
-        void notExist_shouldCreate() {
-            var t1 = createTransferProcess("id1", STARTED);
-
-            t1.transitionCompleted(); //modify
-            getTransferProcessStore().save(t1);
-
-            var result = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-            assertThat(result)
-                    .hasSize(1)
-                    .usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(t1);
+                    .first().satisfies(actual -> {
+                        assertThat(actual.getState()).isEqualTo(COMPLETED.code());
+                        assertThat(actual.getProtocolMessages().isAlreadyReceived("messageId")).isTrue();
+                    });
         }
 
         @Test

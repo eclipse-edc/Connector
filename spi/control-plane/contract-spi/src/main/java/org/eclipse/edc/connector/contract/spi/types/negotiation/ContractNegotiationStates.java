@@ -17,6 +17,7 @@
 package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Defines the states a contract negotiation can be in.
@@ -40,6 +41,7 @@ public enum ContractNegotiationStates {
     TERMINATED(1400);
 
     private final int code;
+    private static final List<Integer> FINAL_STATES = List.of(FINALIZED.code(), TERMINATED.code());
 
     ContractNegotiationStates(int code) {
         this.code = code;
@@ -47,6 +49,10 @@ public enum ContractNegotiationStates {
 
     public static ContractNegotiationStates from(int code) {
         return Arrays.stream(values()).filter(tps -> tps.code == code).findFirst().orElse(null);
+    }
+
+    public static boolean isFinal(int state) {
+        return FINAL_STATES.contains(state);
     }
 
     public int code() {

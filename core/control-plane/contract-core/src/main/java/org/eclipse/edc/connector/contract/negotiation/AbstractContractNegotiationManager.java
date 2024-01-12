@@ -27,10 +27,13 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
+import org.eclipse.edc.statemachine.retry.AsyncStatusResultRetryProcess;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -72,32 +75,39 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
      */
     @WithSpan
     protected boolean processTerminating(ContractNegotiation negotiation) {
-        var terminationBuilder = ContractNegotiationTerminationMessage.Builder.newInstance()
-                .protocol(negotiation.getProtocol())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
+        var messageBuilder = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .rejectionReason(negotiation.getErrorDetail())
-                .policy(negotiation.getLastContractOffer().getPolicy())
-                .processId(negotiation.getCorrelationId());
+                .policy(negotiation.getLastContractOffer().getPolicy());
 
-        if (type() == ContractNegotiation.Type.CONSUMER) {
-            terminationBuilder
-                    .consumerPid(negotiation.getId())
-                    .providerPid(negotiation.getCorrelationId());
-        } else {
-            terminationBuilder
-                    .providerPid(negotiation.getId())
-                    .consumerPid(negotiation.getCorrelationId());
-        }
-
-        var termination = terminationBuilder.build();
-
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, terminationBuilder.build()))
-                .entityRetrieve(store::findById)
+        return dispatch(messageBuilder, negotiation)
                 .onSuccess((n, result) -> transitionToTerminated(n))
                 .onFailure((n, throwable) -> transitionToTerminating(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send %s to counter party: %s", termination.getClass().getSimpleName(), throwable.getMessage())))
+                .onRetryExhausted((n, throwable) -> transitionToTerminated(n, format("Failed to send termination to counter party: %s", throwable.getMessage())))
                 .execute("[%s] send termination".formatted(type().name()));
+    }
+
+    protected AsyncStatusResultRetryProcess<ContractNegotiation, Object, ?> dispatch(ProcessRemoteMessage.Builder<?, ?> messageBuilder,
+                                                                                     ContractNegotiation negotiation) {
+        messageBuilder.counterPartyAddress(negotiation.getCounterPartyAddress())
+                .protocol(negotiation.getProtocol())
+                .processId(Optional.ofNullable(negotiation.getCorrelationId()).orElse(negotiation.getId()));
+
+        if (type() == ContractNegotiation.Type.CONSUMER) {
+            messageBuilder.consumerPid(negotiation.getId()).providerPid(negotiation.getCorrelationId());
+        } else {
+            messageBuilder.providerPid(negotiation.getId()).consumerPid(negotiation.getCorrelationId());
+        }
+
+        if (negotiation.lastSentProtocolMessage() != null) {
+            messageBuilder.id(negotiation.lastSentProtocolMessage());
+        }
+
+        var message = messageBuilder.build();
+
+        negotiation.lastSentProtocolMessage(message.getId());
+
+        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, message));
     }
 
     protected void transitionToInitial(ContractNegotiation negotiation) {
