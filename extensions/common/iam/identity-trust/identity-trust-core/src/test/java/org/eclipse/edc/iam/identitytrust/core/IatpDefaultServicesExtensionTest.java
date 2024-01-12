@@ -23,14 +23,13 @@ import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.KeyPairFactory;
+import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.UUID;
 
@@ -41,16 +40,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class IatpDefaultServicesExtensionTest {
 
-    private final KeyPairFactory keyPairFactory = mock();
-    private final KeyPair keypair = mock();
+    private final PrivateKeyResolver privateKeyResolver = mock();
 
     private static PrivateKey privateKey() throws JOSEException {
         return new RSAKeyGenerator(2048)
@@ -62,8 +58,8 @@ class IatpDefaultServicesExtensionTest {
 
     @BeforeEach
     void setup(ServiceExtensionContext context) throws JOSEException {
-        context.registerService(KeyPairFactory.class, keyPairFactory);
-        when(keypair.getPrivate()).thenReturn(privateKey());
+        when(privateKeyResolver.resolvePrivateKey(any())).thenReturn(Result.success(privateKey()));
+        context.registerService(PrivateKeyResolver.class, privateKeyResolver);
     }
 
     @Test
@@ -74,13 +70,11 @@ class IatpDefaultServicesExtensionTest {
         context.registerService(Monitor.class, mockedMonitor);
         when(context.getSetting(STS_PUBLIC_KEY_ALIAS, null)).thenReturn(publicAlias);
         when(context.getSetting(STS_PRIVATE_KEY_ALIAS, null)).thenReturn(privateAlias);
-        when(keyPairFactory.fromConfig(publicAlias, privateAlias)).thenReturn(Result.success(keypair));
         var sts = ext.createDefaultTokenService(context);
 
         assertThat(sts).isInstanceOf(EmbeddedSecureTokenService.class);
         verify(mockedMonitor).info(anyString());
 
-        verify(keyPairFactory, never()).defaultKeyPair();
     }
 
     @Test
@@ -93,7 +87,6 @@ class IatpDefaultServicesExtensionTest {
 
         verify(mockedMonitor).info(anyString());
         verify(mockedMonitor).warning(anyString());
-        verifyNoMoreInteractions(keyPairFactory);
     }
 
     @Test
@@ -109,7 +102,6 @@ class IatpDefaultServicesExtensionTest {
     void verify_defaultCredentialMapperRegistry(ServiceExtensionContext context, IatpDefaultServicesExtension ext) {
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
-
         assertThat(ext.scopeExtractorRegistry()).isInstanceOf(IatpScopeExtractorRegistry.class);
     }
 }
