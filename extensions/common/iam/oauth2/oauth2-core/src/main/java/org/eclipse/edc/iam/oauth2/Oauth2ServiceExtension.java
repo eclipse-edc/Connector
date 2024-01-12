@@ -17,7 +17,6 @@
 package org.eclipse.edc.iam.oauth2;
 
 import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolver;
-import org.eclipse.edc.iam.oauth2.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.edc.iam.oauth2.identity.Oauth2ServiceImpl;
 import org.eclipse.edc.iam.oauth2.jwt.X509CertificateDecorator;
 import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
@@ -157,8 +156,7 @@ public class Oauth2ServiceExtension implements ServiceExtension {
         if (providerKeyResolver == null) {
             var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
             var keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
-            var identityProviderKeyResolverConfiguration = new IdentityProviderKeyResolverConfiguration(jwksUrl, keyRefreshInterval);
-            providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), httpClient, typeManager, identityProviderKeyResolverConfiguration);
+            providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), httpClient, typeManager, jwksUrl, keyRefreshInterval);
         }
         return providerKeyResolver;
     }
