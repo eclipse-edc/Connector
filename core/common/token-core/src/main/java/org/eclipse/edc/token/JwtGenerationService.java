@@ -39,9 +39,6 @@ import java.util.function.Supplier;
 public class JwtGenerationService implements TokenGenerationService {
 
 
-    public JwtGenerationService() {
-    }
-
     @Override
     public Result<TokenRepresentation> generate(Supplier<PrivateKey> privateKeySupplier, @NotNull TokenDecorator... decorators) {
 

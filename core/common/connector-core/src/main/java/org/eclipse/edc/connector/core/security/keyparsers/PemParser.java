@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.KeyParser;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -101,7 +100,7 @@ public class PemParser implements KeyParser {
         // Strips the "---- {BEGIN,END} {CERTIFICATE,PUBLIC/PRIVATE KEY} -----"-like header and footer lines,
         // base64-decodes the body,
         // then uses the proper key specification format to turn it into a JCA Key instance
-        final Reader pemReader = new StringReader(pemEncodedKeys);
+        var pemReader = new StringReader(pemEncodedKeys);
         var parser = new PEMParser(pemReader);
         var keys = new ArrayList<KeyPair>();
 
@@ -109,14 +108,14 @@ public class PemParser implements KeyParser {
             Object pemObj;
             do {
                 pemObj = parser.readObject();
-                if (pemObj instanceof SubjectPublicKeyInfo) { // if public key, use as-is
-                    keys.add(toKeyPair((SubjectPublicKeyInfo) pemObj));
-                } else if (pemObj instanceof X509CertificateHolder) { // if it's a certificate, use the public key which is signed
-                    keys.add(toKeyPair((X509CertificateHolder) pemObj));
-                } else if (pemObj instanceof PEMKeyPair) { // if private key is given in DER format
-                    keys.add(toKeyPair((PEMKeyPair) pemObj));
-                } else if (pemObj instanceof PrivateKeyInfo) { // if (RSA) private key is given in PKCS8 format
-                    keys.add(toKeyPair((PrivateKeyInfo) pemObj));
+                if (pemObj instanceof SubjectPublicKeyInfo subjectPublicKeyInfo) { // if public key, use as-is
+                    keys.add(toKeyPair(subjectPublicKeyInfo));
+                } else if (pemObj instanceof X509CertificateHolder x509CertificateHolder) { // if it's a certificate, use the public key which is signed
+                    keys.add(toKeyPair(x509CertificateHolder));
+                } else if (pemObj instanceof PEMKeyPair pemKeyPair) { // if private key is given in DER format
+                    keys.add(toKeyPair(pemKeyPair));
+                } else if (pemObj instanceof PrivateKeyInfo privateKeyInfo) { // if (RSA) private key is given in PKCS8 format
+                    keys.add(toKeyPair(privateKeyInfo));
                 }
             } while (pemObj != null);
 
@@ -127,27 +126,25 @@ public class PemParser implements KeyParser {
         }
     }
 
-    private KeyPair toKeyPair(final SubjectPublicKeyInfo spki) throws PEMException {
+    private KeyPair toKeyPair(SubjectPublicKeyInfo spki) throws PEMException {
         return new KeyPair(pemConverter.getPublicKey(spki), null);
     }
 
-    private KeyPair toKeyPair(final X509CertificateHolder pemObj) throws PEMException {
+    private KeyPair toKeyPair(X509CertificateHolder pemObj) throws PEMException {
         var spki = pemObj.getSubjectPublicKeyInfo();
         return new KeyPair(pemConverter.getPublicKey(spki), null);
     }
 
-    private KeyPair toKeyPair(final PEMKeyPair pair) throws PEMException {
+    private KeyPair toKeyPair(PEMKeyPair pair) throws PEMException {
         return pemConverter.getKeyPair(pair);
     }
 
-    private KeyPair toKeyPair(final PrivateKeyInfo pki) throws PEMException, NoSuchAlgorithmException, InvalidKeySpecException {
+    private KeyPair toKeyPair(PrivateKeyInfo pki) throws PEMException, NoSuchAlgorithmException, InvalidKeySpecException {
         var privateKey = pemConverter.getPrivateKey(pki);
 
         // If it's RSA, we can use the modulus and public exponents as BigIntegers to create a public key
-        if (privateKey instanceof RSAPrivateCrtKey) {
-            var publicKeySpec =
-                    new RSAPublicKeySpec(((RSAPrivateCrtKey) privateKey).getModulus(),
-                            ((RSAPrivateCrtKey) privateKey).getPublicExponent());
+        if (privateKey instanceof RSAPrivateCrtKey rsaPrivateCrtKey) {
+            var publicKeySpec = new RSAPublicKeySpec((rsaPrivateCrtKey).getModulus(), (rsaPrivateCrtKey.getPublicExponent()));
 
             var keyFactory = KeyFactory.getInstance("RSA");
             var publicKey = keyFactory.generatePublic(publicKeySpec);
