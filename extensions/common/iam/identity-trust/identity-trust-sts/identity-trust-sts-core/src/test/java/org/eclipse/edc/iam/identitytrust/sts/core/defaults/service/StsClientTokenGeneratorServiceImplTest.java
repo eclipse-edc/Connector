@@ -17,10 +17,11 @@ package org.eclipse.edc.iam.identitytrust.sts.core.defaults.service;
 
 import org.eclipse.edc.iam.identitytrust.sts.model.StsClientTokenAdditionalParams;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.token.spi.TokenDecorator;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,10 +40,10 @@ public class StsClientTokenGeneratorServiceImplTest {
     private final StsTokenGenerationProvider tokenGenerationProvider = mock();
     private final TokenGenerationService tokenGenerator = mock();
     private StsClientTokenGeneratorServiceImpl clientTokenService;
-    
+
     @BeforeEach
     void setup() {
-        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, Clock.systemUTC(), TOKEN_EXPIRATION);
+        clientTokenService = new StsClientTokenGeneratorServiceImpl(tokenGenerationProvider, (client) -> mock(), Clock.systemUTC(), TOKEN_EXPIRATION);
     }
 
     @Test
@@ -50,7 +51,7 @@ public class StsClientTokenGeneratorServiceImplTest {
         var client = createClient("clientId");
         var token = TokenRepresentation.Builder.newInstance().token("token").expiresIn(TOKEN_EXPIRATION).build();
         when(tokenGenerationProvider.tokenGeneratorFor(client)).thenReturn(tokenGenerator);
-        when(tokenGenerator.generate(any())).thenReturn(Result.success(token));
+        when(tokenGenerator.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.success(token));
 
         var inserted = clientTokenService.tokenFor(client, StsClientTokenAdditionalParams.Builder.newInstance().audience("aud").build());
 
@@ -61,7 +62,7 @@ public class StsClientTokenGeneratorServiceImplTest {
     void tokenFor_error_whenGeneratorFails() {
         var client = createClient("clientId");
         when(tokenGenerationProvider.tokenGeneratorFor(client)).thenReturn(tokenGenerator);
-        when(tokenGenerator.generate(any())).thenReturn(Result.failure("failure"));
+        when(tokenGenerator.generate(any(), any(TokenDecorator[].class))).thenReturn(Result.failure("failure"));
 
         var inserted = clientTokenService.tokenFor(client, StsClientTokenAdditionalParams.Builder.newInstance().audience("aud").build());
 

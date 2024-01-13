@@ -14,16 +14,16 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.validation;
 
-import org.eclipse.edc.jwt.spi.TokenValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
 import java.util.Map;
 
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 
 /**
  * Assert that token containing these claims is not expired yet.

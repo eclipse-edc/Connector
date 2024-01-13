@@ -28,8 +28,6 @@ import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.KeyPairFactory;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -61,7 +59,6 @@ class TransferDataPlaneCoreExtensionTest {
     private final Vault vault = mock(Vault.class);
     private final WebService webService = mock(WebService.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
-    private final KeyPairFactory keyPairFactory = mock();
     private KeyPair keypair;
     private TransferDataPlaneCoreExtension extension;
 
@@ -95,7 +92,6 @@ class TransferDataPlaneCoreExtensionTest {
         context.registerService(ControlApiConfiguration.class, controlApiConfigurationMock);
         context.registerService(DataPlaneClient.class, mock(DataPlaneClient.class));
         context.registerService(Vault.class, vault);
-        context.registerService(KeyPairFactory.class, keyPairFactory);
 
         when(context.getMonitor()).thenReturn(monitor);
 
@@ -111,7 +107,6 @@ class TransferDataPlaneCoreExtensionTest {
         when(config.getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, null)).thenReturn(publicKeyAlias);
         when(config.getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS, null)).thenReturn(privateKeyAlias);
         when(vault.resolveSecret(publicKeyAlias)).thenReturn(publicKeyPem());
-        when(keyPairFactory.fromConfig(publicKeyAlias, privateKeyAlias)).thenReturn(Result.success(keypair));
 
         extension.initialize(context);
 

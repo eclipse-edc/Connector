@@ -55,7 +55,7 @@ class IdentityProviderKeyResolverTest {
 
     @BeforeEach
     void setUp() {
-        resolver = new IdentityProviderKeyResolver(mock(Monitor.class), httpClient, typeManager, new IdentityProviderKeyResolverConfiguration(JWKS_URL, 1));
+        resolver = new IdentityProviderKeyResolver(mock(Monitor.class), httpClient, typeManager, JWKS_URL, 1);
 
         try (var stream = getClass().getClassLoader().getResourceAsStream(JWKS_FILE)) {
             testKeys = new ObjectMapper().readValue(stream, JwkKeys.class);

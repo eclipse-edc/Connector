@@ -26,10 +26,10 @@ import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenDecorator;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.token.spi.TokenDecorator;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -94,7 +94,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
         }
 
         var tokenParameters = tokenParametersBuilder
-                .audience(message.getCounterPartyAddress()) // enforce the audience, ignore anything a decorator might have set
+                .claims("aud", message.getCounterPartyAddress()) // enforce the audience, ignore anything a decorator might have set
                 .build();
 
         return identityService.obtainClientCredentials(tokenParameters)

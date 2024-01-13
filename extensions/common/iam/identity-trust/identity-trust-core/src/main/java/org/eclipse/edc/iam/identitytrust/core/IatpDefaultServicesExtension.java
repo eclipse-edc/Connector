@@ -23,20 +23,20 @@ import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
-import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.security.KeyPairFactory;
+import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.JwtGenerationService;
 
-import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.time.Clock;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @Extension("Identity And Trust Extension to register default services")
 public class IatpDefaultServicesExtension implements ServiceExtension {
@@ -51,16 +51,16 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
     private static final String STS_TOKEN_EXPIRATION = "edc.iam.sts.token.expiration"; // in minutes
     private static final int DEFAULT_STS_TOKEN_EXPIRATION_MIN = 5;
 
-    @Inject
-    private KeyPairFactory keyPairFactory;
 
     @Inject
     private Clock clock;
 
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
     @Provider(isDefault = true)
     public SecureTokenService createDefaultTokenService(ServiceExtensionContext context) {
         context.getMonitor().info("Using the Embedded STS client, as no other implementation was provided.");
-        var keyPair = keyPairFromConfig(context);
         var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
 
 
@@ -69,7 +69,12 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
                     "This could be an indicator of a configuration problem.");
         }
 
-        return new EmbeddedSecureTokenService(new TokenGenerationServiceImpl(keyPair.getPrivate()), clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
+
+        var publicKeyId = context.getSetting(STS_PUBLIC_KEY_ALIAS, null);
+        var privKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
+
+        Supplier<PrivateKey> supplier = () -> privateKeyResolver.resolvePrivateKey(privKeyAlias).orElseThrow(f -> new EdcException("This EDC instance is not operational due to the following error: %s".formatted(f.getFailureDetail())));
+        return new EmbeddedSecureTokenService(new JwtGenerationService(), supplier, () -> publicKeyId, clock, TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }
 
     @Provider(isDefault = true)
@@ -92,16 +97,4 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
         return identity -> identity;
     }
 
-    private KeyPair keyPairFromConfig(ServiceExtensionContext context) {
-        var pubKeyAlias = context.getSetting(STS_PUBLIC_KEY_ALIAS, null);
-        var privKeyAlias = context.getSetting(STS_PRIVATE_KEY_ALIAS, null);
-        if (pubKeyAlias == null && privKeyAlias == null) {
-            context.getMonitor().info(() -> "No public or private key provided for 'STS.' A key pair will be generated (DO NOT USE IN PRODUCTION)");
-            return keyPairFactory.defaultKeyPair();
-        }
-        Objects.requireNonNull(pubKeyAlias, "public key alias");
-        Objects.requireNonNull(privKeyAlias, "private key alias");
-        return keyPairFactory.fromConfig(pubKeyAlias, privKeyAlias)
-                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
-    }
 }

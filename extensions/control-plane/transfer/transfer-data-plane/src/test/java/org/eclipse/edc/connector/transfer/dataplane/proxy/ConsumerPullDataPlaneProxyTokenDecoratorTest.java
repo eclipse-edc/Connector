@@ -14,22 +14,23 @@
 
 package org.eclipse.edc.connector.transfer.dataplane.proxy;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.DATA_ADDRESS;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 
 class ConsumerPullDataPlaneProxyTokenDecoratorTest {
 
     private Date expiration;
-    private String contractId;
     private String encryptedDataAddress;
 
     private ConsumerPullDataPlaneProxyTokenDecorator decorator;
@@ -37,24 +38,22 @@ class ConsumerPullDataPlaneProxyTokenDecoratorTest {
     @BeforeEach
     public void setUp() {
         expiration = Date.from(Instant.now().plusSeconds(ThreadLocalRandom.current().nextInt(1, 10)));
-        contractId = UUID.randomUUID().toString();
         encryptedDataAddress = UUID.randomUUID().toString();
         decorator = new ConsumerPullDataPlaneProxyTokenDecorator(expiration, encryptedDataAddress);
     }
 
     @Test
-    void claims() {
-        var result = decorator.claims();
+    void verifyDecorate() {
 
-        assertThat(result)
+        var headers = new HashMap<String, Object>();
+        var claims = new HashMap<String, Object>();
+        var b = TokenParameters.Builder.newInstance();
+        decorator.decorate(b);
+
+
+        assertThat(b.build().getHeaders()).isEmpty();
+        assertThat(b.build().getClaims())
                 .containsEntry(DATA_ADDRESS, encryptedDataAddress)
                 .containsEntry(EXPIRATION_TIME, expiration);
-    }
-
-    @Test
-    void headers() {
-        var result = decorator.headers();
-
-        assertThat(result).isNotNull().isEmpty();
     }
 }

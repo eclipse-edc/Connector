@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.oauth2;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.CertificateResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -110,13 +111,13 @@ class Oauth2ServiceExtensionTest {
     private void mockRsaPrivateKey(String alias) {
         var privateKey = mock(PrivateKey.class);
         when(privateKey.getAlgorithm()).thenReturn("RSA");
-        when(privateKeyResolver.resolvePrivateKey(alias, PrivateKey.class)).thenReturn(privateKey);
+        when(privateKeyResolver.resolvePrivateKey(alias)).thenReturn(Result.success(privateKey));
     }
 
     private void mockCertificate(String alias) {
         try {
             var certificate = mock(X509Certificate.class);
-            when(certificate.getEncoded()).thenReturn(new byte[] {});
+            when(certificate.getEncoded()).thenReturn(new byte[]{});
             when(certificateResolver.resolveCertificate(alias)).thenReturn(certificate);
         } catch (CertificateEncodingException e) {
             // Should never happen, it's a checked exception in the way of mocking

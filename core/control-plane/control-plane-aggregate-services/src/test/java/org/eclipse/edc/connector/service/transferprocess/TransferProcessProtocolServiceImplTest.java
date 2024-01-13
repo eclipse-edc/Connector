@@ -220,11 +220,11 @@ class TransferProcessProtocolServiceImplTest {
 
         var result = service.notifyRequested(message, tokenRepresentation);
 
-        assertThat(result).isSucceeded().satisfies(tp -> {
-            assertThat(tp.getCorrelationId()).isEqualTo("transferProcessId");
-            assertThat(tp.getConnectorAddress()).isEqualTo("http://any");
-            assertThat(tp.getAssetId()).isEqualTo("assetId");
-            assertThat(tp.getDataDestination().getType()).isEqualTo(HTTP_PROXY);
+        assertThat(result).isSucceeded().satisfies(tokenParams -> {
+            assertThat(tokenParams.getCorrelationId()).isEqualTo("transferProcessId");
+            assertThat(tokenParams.getConnectorAddress()).isEqualTo("http://any");
+            assertThat(tokenParams.getAssetId()).isEqualTo("assetId");
+            assertThat(tokenParams.getDataDestination().getType()).isEqualTo(HTTP_PROXY);
         });
         verify(listener).preCreated(any());
         verify(store).save(argThat(t -> t.getState() == INITIAL.code()));

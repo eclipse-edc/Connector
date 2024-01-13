@@ -27,6 +27,7 @@ import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -56,7 +57,7 @@ class IssuerTests {
     @Test
     void signSimpleCredential_ecKey() throws SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
-        var keypair = createKeyPair(KeyFactory.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
+        var keypair = createKeyPair(CryptoConverter.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 
@@ -148,7 +149,7 @@ class IssuerTests {
     @Test
     void signEmbeddedVerificationMethod() throws SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
-        var keypair = createKeyPair(KeyFactory.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
+        var keypair = createKeyPair(CryptoConverter.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
 
         var proofOptions = jws2020suite.createOptions()
                 .created(Instant.parse("2022-12-31T23:00:00Z"))
@@ -176,7 +177,7 @@ class IssuerTests {
     @Test
     void signVerificationDidKey() throws SigningError, DocumentError {
         var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
-        var eckey = (ECKey) KeyFactory.create("""
+        var eckey = (ECKey) CryptoConverter.create("""
                 {
                     "kty": "EC",
                     "d": "UEUJVbKZC3vR-y65gXx8NZVnE0QD5xe6qOk4eiObj-qVOg5zqt9zc0d6fdu4mUuu",
@@ -214,7 +215,7 @@ class IssuerTests {
     void signCompactedPresentation() throws SigningError, DocumentError {
         var vp = readResourceAsJson("jws2020/issuing/0005_vp_compacted_signed.json");
 
-        var keypair = createKeyPair(KeyFactory.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
+        var keypair = createKeyPair(CryptoConverter.create(getResourceFileContentAsString("jws2020/issuing/private-key.json")));
 
         var verificationMethodUrl = "https://org.eclipse.edc/verification-method";
 

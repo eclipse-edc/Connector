@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.jwt;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -32,20 +33,24 @@ class X509CertificateDecoratorTest {
     private static final String HEADER = "-----BEGIN CERTIFICATE-----";
     private static final String FOOTER = "-----END CERTIFICATE-----";
 
-    @Test
-    void verifyDecorator() throws CertificateException, IOException {
-        var certificate = createCertificate();
-        var decorator = new X509CertificateDecorator(certificate);
-
-        assertThat(decorator.claims()).isEmpty();
-        assertThat(decorator.headers()).containsOnlyKeys("x5t");
-    }
-
     private static X509Certificate createCertificate() throws CertificateException, IOException {
         var classloader = Thread.currentThread().getContextClassLoader();
         var pem = new String(Objects.requireNonNull(classloader.getResourceAsStream(TEST_CERT_FILE)).readAllBytes());
         var encoded = pem.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
         return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
+    }
+
+    @Test
+    void verifyDecorator() throws CertificateException, IOException {
+        var certificate = createCertificate();
+        var decorator = new X509CertificateDecorator(certificate);
+
+        var builder = TokenParameters.Builder.newInstance();
+        decorator.decorate(builder);
+
+        var tokenParams = builder.build();
+        assertThat(tokenParams.getClaims()).isEmpty();
+        assertThat(tokenParams.getHeaders()).containsOnlyKeys("x5t");
     }
 }

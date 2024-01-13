@@ -14,20 +14,25 @@
 
 package org.eclipse.edc.iam.identitytrust.sts.embedded;
 
-import org.eclipse.edc.jwt.spi.JwtDecorator;
-import org.eclipse.edc.jwt.spi.TokenGenerationService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.KeyIdDecorator;
+import org.eclipse.edc.token.spi.TokenDecorator;
+import org.eclipse.edc.token.spi.TokenGenerationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Map;
+import java.util.function.Supplier;
 
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,32 +41,37 @@ import static org.mockito.Mockito.when;
 public class EmbeddedSecureTokenServiceTest {
 
     private final TokenGenerationService tokenGenerationService = mock();
+    private final Supplier<PrivateKey> keySupplier = Mockito::mock;
 
     @Test
     void createToken_withoutBearerAccessScope() {
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any())).thenReturn(Result.success(token));
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class))).thenReturn(Result.success(token));
         var result = sts.createToken(Map.of(), null);
 
         assertThat(result.succeeded()).isTrue();
-        var captor = ArgumentCaptor.forClass(JwtDecorator.class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
 
-        verify(tokenGenerationService).generate(captor.capture());
+        verify(tokenGenerationService).generate(any(), captor.capture());
 
         assertThat(captor.getAllValues()).hasSize(1)
-                .hasOnlyElementsOfType(SelfIssuedTokenDecorator.class);
+                .allSatisfy(decorators -> {
+                    assertThat(decorators).hasSize(2)
+                            .hasOnlyElementsOfTypes(KeyIdDecorator.class, SelfIssuedTokenDecorator.class);
+                });
+
     }
 
     @Test
     void createToken_withBearerAccessScope() {
 
         var claims = Map.of(ISSUER, "testIssuer", AUDIENCE, "aud");
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.success(token));
 
@@ -69,19 +79,19 @@ public class EmbeddedSecureTokenServiceTest {
         var result = sts.createToken(claims, "scope:test");
 
         assertThat(result.succeeded()).isTrue();
-        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
 
-        verify(tokenGenerationService, times(2)).generate(captor.capture());
+        verify(tokenGenerationService, times(2)).generate(any(), captor.capture());
 
         assertThat(captor.getAllValues()).hasSize(2)
-                .satisfies(list -> {
-                    assertThat(list.get(0))
-                            .hasSize(1)
-                            .hasExactlyElementsOfTypes(SelfIssuedTokenDecorator.class);
+                .satisfies(decorators -> {
+                    assertThat(decorators.get(0))
+                            .hasSize(2)
+                            .hasOnlyElementsOfTypes(KeyIdDecorator.class, SelfIssuedTokenDecorator.class);
 
-                    assertThat(list.get(1))
-                            .hasSize(1)
-                            .hasExactlyElementsOfTypes(SelfIssuedTokenDecorator.class);
+                    assertThat(decorators.get(1))
+                            .hasSize(2)
+                            .hasOnlyElementsOfTypes(KeyIdDecorator.class, SelfIssuedTokenDecorator.class);
                 });
 
     }
@@ -91,22 +101,23 @@ public class EmbeddedSecureTokenServiceTest {
 
         var claims = Map.of(ISSUER, "testIssuer", AUDIENCE, "aud");
 
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
                 .thenReturn(Result.failure("Failed to create access token"))
                 .thenReturn(Result.success(token));
 
         var result = sts.createToken(claims, "scope:test");
 
         assertThat(result.failed()).isTrue();
-        var captor = ArgumentCaptor.forClass(JwtDecorator[].class);
+        var captor = ArgumentCaptor.forClass(TokenDecorator[].class);
 
-        verify(tokenGenerationService, times(1)).generate(captor.capture());
+        verify(tokenGenerationService, times(1)).generate(any(), captor.capture());
 
-        assertThat(captor.getValue()).hasSize(1)
-                .hasExactlyElementsOfTypes(SelfIssuedTokenDecorator.class);
+        assertThat(captor.getValue())
+                .hasSize(2)
+                .hasOnlyElementsOfTypes(SelfIssuedTokenDecorator.class, KeyIdDecorator.class);
 
     }
 
@@ -114,10 +125,10 @@ public class EmbeddedSecureTokenServiceTest {
     void createToken_error_whenSelfTokenFails() {
         var claims = Map.of(ISSUER, "testIssuer", AUDIENCE, "aud");
 
-        var sts = new EmbeddedSecureTokenService(tokenGenerationService, Clock.systemUTC(), 10 * 60);
+        var sts = new EmbeddedSecureTokenService(tokenGenerationService, keySupplier, () -> "test-key", Clock.systemUTC(), 10 * 60);
         var token = TokenRepresentation.Builder.newInstance().token("test").build();
 
-        when(tokenGenerationService.generate(any(JwtDecorator[].class)))
+        when(tokenGenerationService.generate(eq(keySupplier), any(TokenDecorator[].class)))
                 .thenReturn(Result.success(token))
                 .thenReturn(Result.failure("Failed to create access token"));
 
@@ -126,7 +137,7 @@ public class EmbeddedSecureTokenServiceTest {
 
         assertThat(result.failed()).isTrue();
 
-        verify(tokenGenerationService, times(2)).generate(any(JwtDecorator[].class));
+        verify(tokenGenerationService, times(2)).generate(eq(keySupplier), any(TokenDecorator[].class));
 
     }
 

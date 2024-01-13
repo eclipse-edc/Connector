@@ -36,7 +36,8 @@ dependencies {
     implementation(libs.dnsOverHttps)
     implementation(libs.bouncyCastle.bcpkixJdk18on)
     implementation(libs.nimbus.jwt)
-    
+    implementation(libs.tink)
+
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
     testImplementation(libs.junit.jupiter.api)
