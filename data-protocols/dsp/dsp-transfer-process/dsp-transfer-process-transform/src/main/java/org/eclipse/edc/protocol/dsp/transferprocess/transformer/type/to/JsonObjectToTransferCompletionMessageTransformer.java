@@ -21,7 +21,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE;
 
 public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJsonLdTransformer<JsonObject, TransferCompletionMessage> {
@@ -32,18 +34,37 @@ public class JsonObjectToTransferCompletionMessageTransformer extends AbstractJs
 
     @Override
     public @Nullable TransferCompletionMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
-        var transferCompletionMessageBuilder = TransferCompletionMessage.Builder.newInstance();
+        var builder = TransferCompletionMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), transferCompletionMessageBuilder::processId, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
-                    .property(DSPACE_PROPERTY_PROCESS_ID)
-                    .report();
-            return null;
+        var processId = transformString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), context);
+
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                        .property(DSPACE_PROPERTY_CONSUMER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.consumerPid(processId);
+            }
         }
 
-        return transferCompletionMessageBuilder.build();
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE)
+                        .property(DSPACE_PROPERTY_PROVIDER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.providerPid(processId);
+            }
+        }
+
+        return builder.build();
 
     }
 }

@@ -22,7 +22,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE;
 
@@ -34,22 +36,42 @@ public class JsonObjectToTransferStartMessageTransformer extends AbstractJsonLdT
 
     @Override
     public @Nullable TransferStartMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
-        var transferStartMessageBuilder = TransferStartMessage.Builder.newInstance();
+        var builder = TransferStartMessage.Builder.newInstance();
 
-        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), transferStartMessageBuilder::processId, context)) {
-            context.problem()
-                    .missingProperty()
-                    .type(DSPACE_TYPE_TRANSFER_START_MESSAGE)
-                    .property(DSPACE_PROPERTY_PROCESS_ID)
-                    .report();
-            return null;
+        var processId = transformString(messageObject.get(DSPACE_PROPERTY_PROCESS_ID), context);
+
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_CONSUMER_PID), builder::consumerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                        .property(DSPACE_PROPERTY_CONSUMER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.consumerPid(processId);
+            }
+        }
+
+        if (!transformMandatoryString(messageObject.get(DSPACE_PROPERTY_PROVIDER_PID), builder::providerPid, context)) {
+            if (processId == null) {
+                context.problem()
+                        .missingProperty()
+                        .type(DSPACE_TYPE_TRANSFER_START_MESSAGE)
+                        .property(DSPACE_PROPERTY_PROVIDER_PID)
+                        .report();
+                return null;
+            } else {
+                builder.providerPid(processId);
+            }
         }
 
         var dataAddressObject = returnJsonObject(messageObject.get(DSPACE_PROPERTY_DATA_ADDRESS), context, DSPACE_PROPERTY_DATA_ADDRESS, false);
         if (dataAddressObject != null) {
-            transferStartMessageBuilder.dataAddress(context.transform(dataAddressObject, DataAddress.class));
+            builder.dataAddress(context.transform(dataAddressObject, DataAddress.class));
         }
 
-        return transferStartMessageBuilder.build();
+        return builder.build();
     }
+
 }

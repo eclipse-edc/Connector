@@ -38,6 +38,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTerminationMessage;
@@ -281,16 +282,14 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
                 .orElse(originalDestination);
 
-        var message = TransferRequestMessage.Builder.newInstance()
-                .processId(process.getCorrelationId())
-                .protocol(process.getProtocol())
-                .counterPartyAddress(process.getConnectorAddress())
+        var builder = TransferRequestMessage.Builder.newInstance()
                 .callbackAddress(protocolWebhook.url())
                 .dataDestination(dataDestination)
                 .transferType(process.getTransferType())
                 .contractId(process.getContractId())
-                .policy(policyArchive.findPolicyForContract(process.getContractId()))
-                .build();
+                .policy(policyArchive.findPolicyForContract(process.getContractId()));
+
+        var message = buildMessage(builder, process);
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), message.getCounterPartyAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
@@ -328,12 +327,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processCompleting(TransferProcess process) {
-        var message = TransferCompletionMessage.Builder.newInstance()
-                .protocol(process.getProtocol())
-                .counterPartyAddress(process.getConnectorAddress())
-                .processId(process.getCorrelationId())
-                .policy(policyArchive.findPolicyForContract(process.getContractId()))
-                .build();
+        var builder = TransferCompletionMessage.Builder.newInstance().policy(policyArchive.findPolicyForContract(process.getContractId()));
+        var message = buildMessage(builder, process);
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
@@ -397,13 +392,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     @WithSpan
     private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse, Policy policy) {
-        var message = TransferStartMessage.Builder.newInstance()
-                .processId(process.getCorrelationId())
-                .protocol(process.getProtocol())
+        var builder = TransferStartMessage.Builder.newInstance()
                 .dataAddress(dataFlowResponse.getDataAddress())
-                .counterPartyAddress(process.getConnectorAddress())
-                .policy(policy)
-                .build();
+                .policy(policy);
+
+        var message = buildMessage(builder, process);
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
 
@@ -426,13 +419,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private boolean sendTransferTerminationMessage(TransferProcess process) {
-        var message = TransferTerminationMessage.Builder.newInstance()
-                .counterPartyAddress(process.getConnectorAddress())
-                .protocol(process.getProtocol())
-                .processId(process.getCorrelationId())
-                .reason(process.getErrorDetail())
+        var builder = TransferTerminationMessage.Builder.newInstance()
                 .policy(policyArchive.findPolicyForContract(process.getContractId()))
-                .build();
+                .reason(process.getErrorDetail());
+
+        var message = buildMessage(builder, process);
 
         var description = format("Send %s to %s", message.getClass().getSimpleName(), process.getConnectorAddress());
         return entityRetryProcessFactory.doAsyncStatusResultProcess(process, () -> dispatcherRegistry.dispatch(Object.class, message))
@@ -447,6 +438,20 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
                 .onRetryExhausted(this::transitionToTerminated)
                 .execute(description);
+    }
+
+    private <M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> M buildMessage(B builder, TransferProcess process) {
+        builder.protocol(process.getProtocol())
+                .counterPartyAddress(process.getConnectorAddress())
+                .processId(process.getCorrelationId());
+
+        if (process.getType() == PROVIDER) {
+            builder.consumerPid(process.getCorrelationId()).providerPid(process.getId());
+        } else {
+            builder.consumerPid(process.getId()).providerPid(process.getCorrelationId());
+        }
+
+        return builder.build();
     }
 
     private <T> void handleResult(TransferProcess transferProcess, List<StatusResult<T>> responses, ResponsesHandler<StatusResult<T>> handler) {

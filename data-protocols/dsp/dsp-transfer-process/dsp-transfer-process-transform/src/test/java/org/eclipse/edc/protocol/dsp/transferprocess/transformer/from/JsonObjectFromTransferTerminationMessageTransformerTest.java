@@ -20,14 +20,15 @@ import org.eclipse.edc.connector.transfer.spi.types.protocol.TransferTermination
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferTerminationMessageTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,19 +40,17 @@ import static org.mockito.Mockito.verify;
 class JsonObjectFromTransferTerminationMessageTransformerTest {
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
-    private JsonObjectFromTransferTerminationMessageTransformer transformer;
-
-    @BeforeEach
-    void setUp() {
-        transformer = new JsonObjectFromTransferTerminationMessageTransformer(jsonFactory);
-    }
+    private final JsonObjectFromTransferTerminationMessageTransformer transformer =
+            new JsonObjectFromTransferTerminationMessageTransformer(jsonFactory);
 
     @Test
     void transformTransferTerminationMessage() {
         var message = TransferTerminationMessage.Builder.newInstance()
-                .processId("TestID")
+                .processId("processId")
+                .consumerPid("consumerPid")
+                .providerPid("providerPid")
                 .protocol("dsp")
                 .code("testCode")
                 .reason("testReason")
@@ -61,7 +60,9 @@ class JsonObjectFromTransferTerminationMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo("TestID");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID).getString()).isEqualTo("consumerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID).getString()).isEqualTo("providerPid");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo("processId");
         assertThat(result.getJsonString(DSPACE_PROPERTY_CODE).getString()).isEqualTo("testCode");
         assertThat(result.getJsonString(DSPACE_PROPERTY_REASON).getString()).isEqualTo("testReason");
 
