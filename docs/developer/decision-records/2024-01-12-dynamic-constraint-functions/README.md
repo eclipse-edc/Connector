@@ -2,7 +2,7 @@
 
 ## Decision
 
-A dynamic variant of the `AtomicConstraintFunction` will be introduced.
+A new variant of the `AtomicConstraintFunction` will be introduced that allows dynamic evaluate of the `leftOperand` to determine its binding.
 
 ## Rationale
 
