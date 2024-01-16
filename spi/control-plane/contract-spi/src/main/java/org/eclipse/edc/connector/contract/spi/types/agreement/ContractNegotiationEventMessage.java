@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -34,7 +35,7 @@ public class ContractNegotiationEventMessage extends ContractRemoteMessage {
         return policy;
     }
 
-    public static class Builder extends ContractRemoteMessage.Builder<ContractNegotiationEventMessage, Builder> {
+    public static class Builder extends ProcessRemoteMessage.Builder<ContractNegotiationEventMessage, Builder> {
 
         private Builder() {
             super(new ContractNegotiationEventMessage());

@@ -22,6 +22,7 @@ import org.eclipse.edc.iam.identitytrust.sts.service.StsTokenGenerationProvider;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,17 +45,21 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
 
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
+    private final Function<StsClient, PrivateKey> keyFunction;
     private final Clock clock;
 
-    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Clock clock, long tokenExpiration) {
+    public StsClientTokenGeneratorServiceImpl(StsTokenGenerationProvider tokenGenerationProvider, Function<StsClient, PrivateKey> keyFunction, Clock clock, long tokenExpiration) {
         this.tokenGenerationProvider = tokenGenerationProvider;
+        this.keyFunction = keyFunction;
         this.clock = clock;
         this.tokenExpiration = tokenExpiration;
     }
 
     @Override
     public ServiceResult<TokenRepresentation> tokenFor(StsClient client, StsClientTokenAdditionalParams additionalParams) {
-        var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), clock, tokenExpiration);
+
+        var embeddedTokenGenerator = new EmbeddedSecureTokenService(tokenGenerationProvider.tokenGeneratorFor(client), () -> keyFunction.apply(client), client::getPublicKeyReference,
+                clock, tokenExpiration);
 
         var initialClaims = Map.of(
                 ISSUER, client.getId(),

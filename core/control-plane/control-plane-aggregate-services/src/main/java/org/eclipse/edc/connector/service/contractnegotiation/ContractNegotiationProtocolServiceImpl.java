@@ -238,7 +238,8 @@ public class ContractNegotiationProtocolServiceImpl extends BaseProtocolService 
 
     private ServiceResult<ContractNegotiation> getNegotiation(String negotiationId) {
         return store.findByIdAndLease(negotiationId)
-                .recover(it -> store.findByCorrelationIdAndLease(negotiationId)) // this is to maintain backward compatibility with the processId
+                // recover needed to maintain backward compatibility when there was no distinction between providerPid and consumerPid
+                .recover(it -> store.findByCorrelationIdAndLease(negotiationId))
                 .flatMap(ServiceResult::from);
     }
 

@@ -25,8 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE;
-import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CORRELATION_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS;
 
 public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTransformer<TransferProcess, JsonObject> {
@@ -40,13 +41,20 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
 
     @Override
     public @Nullable JsonObject transform(@NotNull TransferProcess transferProcess, @NotNull TransformerContext context) {
-        var builder = jsonBuilderFactory.createObjectBuilder();
+        var builder = jsonBuilderFactory.createObjectBuilder()
+                .add(ID, transferProcess.getId())
+                .add(TYPE, DSPACE_TYPE_TRANSFER_PROCESS)
+                .add(DSPACE_PROPERTY_STATE, TransferProcessStates.from(transferProcess.getState()).name());
 
-        builder.add(ID, transferProcess.getId());
-        builder.add(TYPE, DSPACE_TYPE_TRANSFER_PROCESS);
-        builder.add(DSPACE_PROPERTY_CORRELATION_ID, transferProcess.getCorrelationId());
-        builder.add(DSPACE_PROPERTY_STATE, TransferProcessStates.from(transferProcess.getState()).name());
-
+        if (transferProcess.getType() == TransferProcess.Type.PROVIDER) {
+            builder.add(DSPACE_PROPERTY_PROVIDER_PID, transferProcess.getId());
+            addIfNotNull(transferProcess.getCorrelationId(), DSPACE_PROPERTY_CONSUMER_PID, builder);
+        } else {
+            builder.add(DSPACE_PROPERTY_CONSUMER_PID, transferProcess.getId());
+            addIfNotNull(transferProcess.getCorrelationId(), DSPACE_PROPERTY_PROVIDER_PID, builder);
+        }
+        
         return builder.build();
     }
+
 }

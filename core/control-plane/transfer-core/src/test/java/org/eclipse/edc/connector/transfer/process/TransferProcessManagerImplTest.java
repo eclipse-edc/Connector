@@ -450,9 +450,12 @@ class TransferProcessManagerImplTest {
             verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
             verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
             verify(listener).requested(process);
-            var requestMessage = captor.getValue();
-            assertThat(requestMessage.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
-            assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isNull();
+            var message = captor.getValue();
+            assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
+            assertThat(message.getConsumerPid()).isEqualTo(process.getId());
+            assertThat(message.getProviderPid()).isEqualTo(process.getCorrelationId());
+            assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
+            assertThat(message.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isNull();
         });
     }
 
@@ -494,9 +497,13 @@ class TransferProcessManagerImplTest {
             var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verify(dispatcherRegistry).dispatch(any(), captor.capture());
-            assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
             verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
             verify(listener).started(eq(process), any());
+            var message = captor.getValue();
+            assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
+            assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
+            assertThat(message.getProviderPid()).isEqualTo(process.getId());
+            assertThat(message.getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
         });
     }
 
@@ -555,6 +562,8 @@ class TransferProcessManagerImplTest {
             var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
             verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
             var message = captor.getValue();
+            assertThat(message.getProviderPid()).isEqualTo(process.getId());
+            assertThat(message.getConsumerPid()).isEqualTo("correlationId");
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
             verify(listener).completed(process);
@@ -574,6 +583,8 @@ class TransferProcessManagerImplTest {
             var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
             verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
             var message = captor.getValue();
+            assertThat(message.getProviderPid()).isEqualTo("correlationId");
+            assertThat(message.getConsumerPid()).isEqualTo(process.getId());
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == COMPLETED.code()));
             verify(listener).completed(process);
@@ -596,6 +607,8 @@ class TransferProcessManagerImplTest {
             var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
             verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
             var message = captor.getValue();
+            assertThat(message.getProviderPid()).isEqualTo(process.getId());
+            assertThat(message.getConsumerPid()).isEqualTo("correlationId");
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
             verify(listener).terminated(process);
@@ -616,6 +629,8 @@ class TransferProcessManagerImplTest {
             var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
             verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
             var message = captor.getValue();
+            assertThat(message.getProviderPid()).isEqualTo("correlationId");
+            assertThat(message.getConsumerPid()).isEqualTo(process.getId());
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
             verify(listener).terminated(process);

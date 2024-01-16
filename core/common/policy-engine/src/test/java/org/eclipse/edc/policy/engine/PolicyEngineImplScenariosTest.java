@@ -141,5 +141,5 @@ public class PolicyEngineImplScenariosTest {
 
         assertThat(result.succeeded()).isTrue();
     }
-
+    
 }

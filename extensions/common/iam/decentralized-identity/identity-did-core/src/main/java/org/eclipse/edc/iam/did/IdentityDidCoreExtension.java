@@ -14,31 +14,25 @@
 
 package org.eclipse.edc.iam.did;
 
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.RSAKey;
-import org.eclipse.edc.iam.did.parser.EcPrivateKeyParserFunction;
-import org.eclipse.edc.iam.did.parser.PrivateKeyWrapperParserFunction;
-import org.eclipse.edc.iam.did.parser.RsaPrivateKeyParserFunction;
 import org.eclipse.edc.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.edc.iam.did.resolution.DidResolverRegistryImpl;
-import org.eclipse.edc.iam.did.spi.key.PrivateKeyWrapper;
-import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 
-@Provides({ DidResolverRegistry.class, DidPublicKeyResolver.class })
+@Provides({ DidResolverRegistry.class, PublicKeyResolver.class })
 @Extension(value = IdentityDidCoreExtension.NAME)
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Identity Did Core";
     @Inject
-    private PrivateKeyResolver privateKeyResolver;
+    private KeyParserRegistry keyParserRegistry;
 
     @Override
     public String name() {
@@ -50,15 +44,8 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var didResolverRegistry = new DidResolverRegistryImpl();
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
-        var publicKeyResolver = new DidPublicKeyResolverImpl(didResolverRegistry);
-        context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
-
-        registerParsers(privateKeyResolver);
+        var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry, context.getConfig(), context.getMonitor().withPrefix("PublicKeyResolution"));
+        context.registerService(PublicKeyResolver.class, publicKeyResolver);
     }
 
-    private void registerParsers(PrivateKeyResolver resolver) {
-        resolver.addParser(RSAKey.class, new RsaPrivateKeyParserFunction());
-        resolver.addParser(ECKey.class, new EcPrivateKeyParserFunction());
-        resolver.addParser(PrivateKeyWrapper.class, new PrivateKeyWrapperParserFunction());
-    }
 }

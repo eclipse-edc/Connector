@@ -28,8 +28,7 @@ import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.validation.CredentialValidationRule;
-import org.eclipse.edc.identitytrust.validation.JwtValidator;
-import org.eclipse.edc.identitytrust.verification.JwtVerifier;
+import org.eclipse.edc.identitytrust.validation.TokenValidationAction;
 import org.eclipse.edc.identitytrust.verification.PresentationVerifier;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -49,14 +48,16 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
-import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
-import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
-import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
-import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -78,8 +79,7 @@ public class IdentityAndTrustService implements IdentityService {
     private final String participantId;
     private final PresentationVerifier presentationVerifier;
     private final CredentialServiceClient credentialServiceClient;
-    private final JwtValidator jwtValidator;
-    private final JwtVerifier jwtVerifier;
+    private final Function<TokenRepresentation, Result<ClaimToken>> tokenValidationAction;
     private final TrustedIssuerRegistry trustedIssuerRegistry;
     private final Clock clock;
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
@@ -93,14 +93,14 @@ public class IdentityAndTrustService implements IdentityService {
      */
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
-                                   JwtValidator jwtValidator, JwtVerifier jwtVerifier, TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver, AudienceResolver audienceMapper) {
+                                   TokenValidationAction tokenValidationAction,
+                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver, AudienceResolver audienceMapper) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.participantId = participantId;
         this.presentationVerifier = presentationVerifier;
         this.credentialServiceClient = credentialServiceClient;
-        this.jwtValidator = jwtValidator;
-        this.jwtVerifier = jwtVerifier;
+        this.tokenValidationAction = tokenValidationAction;
         this.trustedIssuerRegistry = trustedIssuerRegistry;
         this.clock = clock;
         this.credentialServiceUrlResolver = csUrlResolver;
@@ -109,14 +109,14 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
-        var newAud = audienceMapper.resolve(parameters.getAudience());
+        var newAud = audienceMapper.resolve(parameters.getStringClaim(AUDIENCE));
+        var scope = parameters.getStringClaim(SCOPE);
         parameters = TokenParameters.Builder.newInstance()
-                .audience(newAud)
-                .scope(parameters.getScope())
-                .additional(parameters.getAdditional())
+                .claims(AUDIENCE, newAud)
+                .claims(SCOPE, scope)
+                .claims(parameters.getClaims())
                 .build();
 
-        var scope = parameters.getScope();
         var scopeValidationResult = validateScope(scope);
 
         if (scopeValidationResult.failed()) {
@@ -125,12 +125,12 @@ public class IdentityAndTrustService implements IdentityService {
 
         // create claims for the STS
         var claims = new HashMap<String, String>();
-        parameters.getAdditional().forEach((k, v) -> claims.replace(k, v.toString()));
+        parameters.getClaims().forEach((k, v) -> claims.replace(k, v.toString()));
 
         claims.putAll(Map.of(
                 "iss", myOwnDid,
                 "sub", myOwnDid,
-                "aud", parameters.getAudience(),
+                "aud", parameters.getStringClaim(AUDIENCE),
                 "client_id", participantId));
 
         return secureTokenService.createToken(claims, scope);
@@ -139,10 +139,7 @@ public class IdentityAndTrustService implements IdentityService {
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
 
-        // verify and validate incoming SI Token
-        var claimTokenResult = jwtVerifier.verify(tokenRepresentation.getToken(), participantId)
-                .compose(v -> jwtValidator.validateToken(tokenRepresentation, participantId)) // audience must be set to my own participant ID
-                .compose(Result::success);
+        var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
 
         if (claimTokenResult.failed()) {
             return claimTokenResult.mapTo();

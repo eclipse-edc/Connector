@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.contract.spi.types.agreement;
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 
 import java.util.Objects;
 
@@ -32,7 +33,7 @@ public class ContractAgreementMessage extends ContractRemoteMessage {
         return contractAgreement.getPolicy();
     }
 
-    public static class Builder extends ContractRemoteMessage.Builder<ContractAgreementMessage, Builder> {
+    public static class Builder extends ProcessRemoteMessage.Builder<ContractAgreementMessage, Builder> {
 
         private Builder() {
             super(new ContractAgreementMessage());

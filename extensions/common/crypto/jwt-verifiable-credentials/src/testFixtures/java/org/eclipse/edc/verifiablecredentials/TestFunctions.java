@@ -14,37 +14,22 @@
 
 package org.eclipse.edc.verifiablecredentials;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWEEncrypter;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.ECDHEncrypter;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.ECKey;
-import org.eclipse.edc.iam.did.spi.key.PublicKeyWrapper;
-import org.jetbrains.annotations.NotNull;
+import com.nimbusds.jose.jwk.KeyConverter;
+import org.eclipse.edc.spi.EdcException;
+
+import java.security.PublicKey;
+import java.util.List;
 
 public class TestFunctions {
 
-    @NotNull
-    public static PublicKeyWrapper createPublicKeyWrapper(ECKey vpSigningKey) {
-        return new PublicKeyWrapper() {
-            @Override
-            public JWEEncrypter encrypter() {
-                try {
-                    return new ECDHEncrypter(vpSigningKey);
-                } catch (JOSEException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+    public static PublicKey createPublicKey(ECKey signingKey) {
+        return KeyConverter.toJavaKeys(List.of(signingKey))
+                .stream()
+                .filter(k -> k instanceof PublicKey)
+                .map(k -> (PublicKey) k)
+                .findFirst()
+                .orElseThrow(() -> new EdcException("EC Key cannot be converted to a Java PublicKey"));
 
-            @Override
-            public JWSVerifier verifier() {
-                try {
-                    return new ECDSAVerifier(vpSigningKey);
-                } catch (JOSEException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
     }
 }

@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.AbstractMap;
@@ -49,41 +50,41 @@ import static java.util.concurrent.TimeUnit.MINUTES;
  * The keys are cached and the resolver must be started calling the `start` method
  */
 public class IdentityProviderKeyResolver implements PublicKeyResolver {
-    private final Monitor monitor;
     private static final String RSA = "RSA";
-
+    private final Monitor monitor;
     private final TypeManager typeManager;
-    private final IdentityProviderKeyResolverConfiguration configuration;
     private final ScheduledExecutorService executorService;
     private final AtomicReference<Map<String, RSAPublicKey>> cache = new AtomicReference<>(emptyMap()); // the current key cache, atomic for thread-safety
     private final EdcHttpClient httpClient;
+    private final String jwksUrl;
+    private final int keyRefreshInterval;
     private final Predicate<JwkKey> isRsa = key -> RSA.equals(key.getKty());
 
-    public IdentityProviderKeyResolver(Monitor monitor, EdcHttpClient httpClient, TypeManager typeManager, IdentityProviderKeyResolverConfiguration configuration) {
+    public IdentityProviderKeyResolver(Monitor monitor, EdcHttpClient httpClient, TypeManager typeManager, String jwksUrl, int keyRefreshInterval) {
         this.monitor = monitor;
         this.httpClient = httpClient;
         this.typeManager = typeManager;
-        this.configuration = configuration;
         this.executorService = Executors.newSingleThreadScheduledExecutor();
+        this.jwksUrl = jwksUrl;
+        this.keyRefreshInterval = keyRefreshInterval;
     }
 
     @Override
-    public RSAPublicKey resolveKey(String id) {
-        return cache.get().get(id);
+    public Result<PublicKey> resolveKey(String id) {
+        return Result.success(cache.get().get(id));
     }
 
     /**
      * Start the keys cache refreshing job.
      * Throws exception if it's not able to load the cache at startup.
-     *
      */
     public void start() {
         var result = refreshKeys();
         if (result.failed()) {
-            throw new EdcException(String.format("Failed to get keys from %s: %s", configuration.getJwksUrl(), String.join(", " + result.getFailureMessages())));
+            throw new EdcException(String.format("Failed to get keys from %s: %s", jwksUrl, String.join(", " + result.getFailureMessages())));
         }
 
-        executorService.scheduleWithFixedDelay(this::refreshKeys, configuration.getKeyRefreshInterval(), configuration.getKeyRefreshInterval(), MINUTES);
+        executorService.scheduleWithFixedDelay(this::refreshKeys, keyRefreshInterval, keyRefreshInterval, MINUTES);
     }
 
     /**
@@ -99,7 +100,7 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver {
      * @return succeed if keys are retrieved correctly, failure otherwise
      */
     protected Result<Map<String, RSAPublicKey>> getKeys() {
-        var request = new Request.Builder().url(configuration.getJwksUrl()).get().build();
+        var request = new Request.Builder().url(jwksUrl).get().build();
         try (var response = httpClient.execute(request)) {
             if (response.code() == 200) {
                 var body = response.body();
@@ -125,7 +126,7 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver {
                 return Result.failure(message);
             }
         } catch (Exception e) {
-            var message = "Error resolving identity provider keys: " + configuration.getJwksUrl();
+            var message = "Error resolving identity provider keys: " + jwksUrl;
             monitor.severe(message, e);
             return Result.failure(message);
         }

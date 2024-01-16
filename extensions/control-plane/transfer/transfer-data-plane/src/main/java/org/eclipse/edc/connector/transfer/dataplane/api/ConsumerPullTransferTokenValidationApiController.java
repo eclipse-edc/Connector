@@ -21,10 +21,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.transfer.dataplane.spi.security.DataEncrypter;
-import org.eclipse.edc.jwt.spi.TokenValidationService;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
@@ -36,11 +37,13 @@ public class ConsumerPullTransferTokenValidationApiController implements Consume
     private final TokenValidationService service;
     private final DataEncrypter dataEncrypter;
     private final TypeManager typeManager;
+    private final PublicKeyResolver publicKeyResolver;
 
-    public ConsumerPullTransferTokenValidationApiController(TokenValidationService service, DataEncrypter dataEncrypter, TypeManager typeManager) {
+    public ConsumerPullTransferTokenValidationApiController(TokenValidationService service, DataEncrypter dataEncrypter, TypeManager typeManager, PublicKeyResolver publicKeyResolver) {
         this.service = service;
         this.dataEncrypter = dataEncrypter;
         this.typeManager = typeManager;
+        this.publicKeyResolver = publicKeyResolver;
     }
 
     /**
@@ -54,7 +57,7 @@ public class ConsumerPullTransferTokenValidationApiController implements Consume
     @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public DataAddress validate(@HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
-        return service.validate(token)
+        return service.validate(token, publicKeyResolver)
                 .map(this::extractDataAddressClaim)
                 .map(this::toDataAddress)
                 .orElseThrow(failure -> new NotAuthorizedException("Token validation failed: " + failure.getFailureDetail()));

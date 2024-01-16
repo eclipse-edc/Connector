@@ -19,7 +19,6 @@ import org.eclipse.edc.iam.identitytrust.sts.core.defaults.service.StsClientToke
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientService;
 import org.eclipse.edc.iam.identitytrust.sts.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.iam.identitytrust.sts.store.StsClientStore;
-import org.eclipse.edc.jwt.LazyTokenGenerationService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -28,6 +27,7 @@ import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.JwtGenerationService;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
@@ -67,7 +67,8 @@ public class StsDefaultServicesExtension implements ServiceExtension {
     public StsClientTokenGeneratorService clientTokenService(ServiceExtensionContext context) {
         var tokenExpiration = context.getSetting(STS_TOKEN_EXPIRATION, DEFAULT_STS_TOKEN_EXPIRATION_MIN);
         return new StsClientTokenGeneratorServiceImpl(
-                (client) -> new LazyTokenGenerationService(privateKeyResolver, client.getPrivateKeyAlias()),
+                (client) -> new JwtGenerationService(),
+                (client) -> privateKeyResolver.resolvePrivateKey(client.getPrivateKeyAlias()).orElse(null),
                 clock,
                 TimeUnit.MINUTES.toSeconds(tokenExpiration));
     }

@@ -29,6 +29,7 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.RSAKey;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.EdcException;
 
 import java.text.ParseException;
@@ -44,7 +45,7 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
             if (jwk == null) {
                 throw new UnsupportedOperationException("Cannot deserialize public key, expected JWK format");
             }
-            var verifier = KeyFactory.createVerifier(jwk);
+            var verifier = CryptoConverter.createVerifier(jwk);
 
             var detachedPayload = new Payload(data);
             var jws = new String(signature);
@@ -77,7 +78,7 @@ class Jws2020SignatureProvider implements SignatureAlgorithm {
 
             var detachedPayload = new Payload(data);
             var jwsObject = new JWSObject(header, detachedPayload);
-            jwsObject.sign(KeyFactory.createSigner(keyPair));
+            jwsObject.sign(CryptoConverter.createSigner(keyPair));
 
             var isDetached = true;
             var jws = jwsObject.serialize(isDetached);

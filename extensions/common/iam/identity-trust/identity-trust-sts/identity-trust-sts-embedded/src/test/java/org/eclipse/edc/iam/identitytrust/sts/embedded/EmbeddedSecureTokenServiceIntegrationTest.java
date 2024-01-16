@@ -19,7 +19,7 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
+import org.eclipse.edc.token.JwtGenerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -37,20 +37,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.nimbusds.jwt.JWTClaimNames.AUDIENCE;
+import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUED_AT;
+import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
+import static com.nimbusds.jwt.JWTClaimNames.JWT_ID;
+import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
-
 
 public class EmbeddedSecureTokenServiceIntegrationTest {
 
@@ -65,8 +64,8 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
     @BeforeEach
     void setup() throws NoSuchAlgorithmException {
         keyPair = generateKeyPair();
-        var tokenGenerationService = new TokenGenerationServiceImpl(keyPair.getPrivate());
-        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, Clock.systemUTC(), 10 * 60);
+        var tokenGenerationService = new JwtGenerationService();
+        secureTokenService = new EmbeddedSecureTokenService(tokenGenerationService, () -> keyPair.getPrivate(), () -> "test-keyid", Clock.systemUTC(), 10 * 60);
     }
 
     @Test

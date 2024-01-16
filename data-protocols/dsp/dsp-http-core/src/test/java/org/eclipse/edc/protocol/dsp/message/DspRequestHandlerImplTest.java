@@ -16,7 +16,6 @@ package org.eclipse.edc.protocol.dsp.message;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
@@ -27,7 +26,6 @@ import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -233,12 +231,12 @@ class DspRequestHandlerImplTest {
         @Test
         void shouldSucceed() {
             var jsonMessage = Json.createObjectBuilder().build();
-            var message = TestContractRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
+            var message = TestProcessRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
             var content = new Object();
-            BiFunction<TestContractRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
+            BiFunction<TestProcessRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), eq(TestContractRemoteMessage.class))).thenReturn(Result.success(message));
-            var request = PostDspRequest.Builder.newInstance(TestContractRemoteMessage.class, Object.class)
+            when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
+            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class)
                     .token("token")
                     .processId("processId")
                     .expectedMessageType("expected-message-type")
@@ -254,7 +252,7 @@ class DspRequestHandlerImplTest {
             assertThat(message.getProtocol()).isEqualTo(DATASPACE_PROTOCOL_HTTP);
             assertThat(message.getProcessId()).isEqualTo("processId");
             verify(validatorRegistry).validate("expected-message-type", jsonMessage);
-            verify(transformerRegistry).transform(jsonMessage, TestContractRemoteMessage.class);
+            verify(transformerRegistry).transform(jsonMessage, TestProcessRemoteMessage.class);
         }
 
         @Test
@@ -266,10 +264,10 @@ class DspRequestHandlerImplTest {
                     .message(jsonMessage)
                     .serviceCall((m, t) -> ServiceResult.unauthorized("unauthorized"))
                     .build();
-            var message = TestContractRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
+            var message = TestProcessRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
             
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), eq(TestContractRemoteMessage.class))).thenReturn(Result.success(message));
+            when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
 
             var result = handler.updateResource(request);
 
@@ -317,7 +315,7 @@ class DspRequestHandlerImplTest {
 
         @Test
         void shouldFail_whenIdIsNotValid() {
-            var message = TestContractRemoteMessage.Builder.newInstance()
+            var message = TestProcessRemoteMessage.Builder.newInstance()
                     .consumerPid("consumerPid")
                     .providerPid("providerPid")
                     .build();
@@ -338,145 +336,10 @@ class DspRequestHandlerImplTest {
 
         @Test
         void shouldFail_whenServiceCallFails() {
-            var message = TestContractRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
-            BiFunction<TestContractRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.conflict("error");
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
-            var request = postDspRequestBuilder().processId("processId").serviceCall(serviceCall).build();
-
-            var result = handler.updateResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(409);
-            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
-                assertThat(error.getString(TYPE)).isEqualTo("errorType");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("409");
-                assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
-            });
-        }
-
-        private PostDspRequest.Builder<TestContractRemoteMessage, Object> postDspRequestBuilder() {
-            return PostDspRequest.Builder
-                    .newInstance(TestContractRemoteMessage.class, Object.class)
-                    .errorType("errorType")
-                    .token("token")
-                    .serviceCall((i, c) -> ServiceResult.success());
-        }
-
-    }
-
-    @Nested // this can be deleted on issue 3455 completion
-    class UpdateProcessRemoteResource {
-        @Test
-        void shouldSucceed() {
-            var jsonMessage = Json.createObjectBuilder().build();
-            var message = mock(TestProcessRemoteMessage.class);
-            var content = new Object();
-            BiFunction<TestProcessRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
-            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class)
-                    .token("token")
-                    .expectedMessageType("expected-message-type")
-                    .message(jsonMessage)
-                    .serviceCall(serviceCall)
-                    .errorType("errorType")
-                    .build();
-
-            var result = handler.updateResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(200);
-            assertThat(result.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
-            verify(validatorRegistry).validate("expected-message-type", jsonMessage);
-            verify(transformerRegistry).transform(jsonMessage, TestProcessRemoteMessage.class);
-            verify(message).setProtocol(DATASPACE_PROTOCOL_HTTP);
-        }
-
-        @Test
-        void shouldFail_whenTokenIsNotValid() {
-            var jsonMessage = Json.createObjectBuilder().build();
-            var request = postDspRequestBuilder()
-                    .processId("processId")
-                    .errorType("errorType")
-                    .message(jsonMessage)
-                    .serviceCall((m, t) -> ServiceResult.unauthorized("unauthorized"))
-                    .build();
-            var message = mock(TestProcessRemoteMessage.class);
-
-            when(message.getProcessId()).thenReturn("processId");
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
-
-            var result = handler.updateResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(401);
-            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
-                assertThat(error.getString(TYPE)).isEqualTo("errorType");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("401");
-                assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
-            });
-        }
-
-        @Test
-        void shouldFail_whenValidationFails() {
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
-            var request = postDspRequestBuilder().processId("processId").errorType("errorType").build();
-
-            var result = handler.updateResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(400);
-            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
-                assertThat(error.getString(TYPE)).isEqualTo("errorType");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
-                assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
-            });
-        }
-
-        @Test
-        void shouldFail_whenTransformationFails() {
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            var request = postDspRequestBuilder().processId("processId").errorType("errorType").build();
-
-            var result = handler.updateResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(400);
-            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
-                assertThat(error.getString(TYPE)).isEqualTo("errorType");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
-                assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
-            });
-        }
-
-        @Test
-        void shouldFail_whenIdIsNotValid() {
-            var message = mock(TestProcessRemoteMessage.class);
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
-            when(message.getProcessId()).thenReturn("processId");
-            var request = postDspRequestBuilder().processId("differentId").errorType("errorType").build();
-
-            var result = handler.updateResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(400);
-            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
-                assertThat(error.getString(TYPE)).isEqualTo("errorType");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE)).isEqualTo("400");
-                assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("differentId");
-                assertThat(error.get(DSPACE_PROPERTY_REASON)).isNotNull();
-            });
-        }
-
-        @Test
-        void shouldFail_whenServiceCallFails() {
-            var message = mock(TestProcessRemoteMessage.class);
+            var message = TestProcessRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
             BiFunction<TestProcessRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.conflict("error");
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
-            when(message.getProcessId()).thenReturn("processId");
             var request = postDspRequestBuilder().processId("processId").serviceCall(serviceCall).build();
 
             var result = handler.updateResource(request);
@@ -500,51 +363,22 @@ class DspRequestHandlerImplTest {
 
     }
 
-
-    private static class TestContractRemoteMessage extends ContractRemoteMessage {
+    private static class TestProcessRemoteMessage extends ProcessRemoteMessage {
 
         @Override
         public Policy getPolicy() {
             return null;
         }
 
-        public static class Builder extends ContractRemoteMessage.Builder<TestContractRemoteMessage, Builder> {
+        public static class Builder extends ProcessRemoteMessage.Builder<TestProcessRemoteMessage, Builder> {
 
             public static Builder newInstance() {
                 return new Builder();
             }
 
             protected Builder() {
-                super(new TestContractRemoteMessage());
+                super(new TestProcessRemoteMessage());
             }
-        }
-    }
-
-    private static class TestProcessRemoteMessage implements ProcessRemoteMessage {
-
-        @Override
-        public @NotNull String getId() {
-            return null;
-        }
-
-        @Override
-        public @NotNull String getProcessId() {
-            return null;
-        }
-
-        @Override
-        public void setProtocol(String protocol) {
-
-        }
-
-        @Override
-        public String getProtocol() {
-            return null;
-        }
-
-        @Override
-        public String getCounterPartyAddress() {
-            return null;
         }
     }
 

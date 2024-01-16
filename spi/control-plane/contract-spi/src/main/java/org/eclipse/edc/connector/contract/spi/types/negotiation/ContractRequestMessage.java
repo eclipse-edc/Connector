@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +67,7 @@ public class ContractRequestMessage extends ContractRemoteMessage {
         COUNTER_OFFER
     }
 
-    public static class Builder extends ContractRemoteMessage.Builder<ContractRequestMessage, Builder> {
+    public static class Builder extends ProcessRemoteMessage.Builder<ContractRequestMessage, Builder> {
 
         private Builder() {
             super(new ContractRequestMessage());

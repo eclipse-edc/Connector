@@ -20,7 +20,7 @@ dependencies {
     api(project(":spi:common:http-spi"))
     api(project(":spi:common:oauth2-spi"))
     implementation(project(":extensions:common:iam:oauth2:oauth2-client"))
-    implementation(project(":core:common:jwt-core"))
+    implementation(project(":core:common:token-core"))
 
     implementation(libs.nimbus.jwt)
 

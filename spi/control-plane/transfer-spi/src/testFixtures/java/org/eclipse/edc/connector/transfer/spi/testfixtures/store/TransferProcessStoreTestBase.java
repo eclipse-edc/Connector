@@ -383,32 +383,24 @@ public abstract class TransferProcessStoreTestBase {
         }
 
         @Test
-        void dataRequestWithNewId_replacesOld() {
-            var bldr = createTransferProcessBuilder("id1").state(STARTED.code());
-            var t1 = bldr.build();
-            getTransferProcessStore().save(t1);
-
-            var t2 = bldr
-                    .dataRequest(TestFunctions.createDataRequestBuilder()
-                            .id("new-dr-id")
-                            .assetId("new-asset")
-                            .contractId("new-contract")
-                            .protocol("test-protocol")
-                            .build())
+        void shouldReplaceDataRequest_whenItGetsTheIdUpdated() {
+            var builder = createTransferProcessBuilder("id1").state(STARTED.code());
+            var newDataRequest = createDataRequestBuilder()
+                    .id("new-dr-id")
+                    .assetId("new-asset")
+                    .contractId("new-contract")
+                    .protocol("test-protocol")
                     .build();
-            getTransferProcessStore().save(t2);
+            getTransferProcessStore().save(builder.build());
+            getTransferProcessStore().save(builder.dataRequest(newDataRequest).build());
 
-            var all = getTransferProcessStore().findAll(QuerySpec.none()).collect(Collectors.toList());
-            assertThat(all)
+            var result = getTransferProcessStore().findAll(QuerySpec.none());
+
+            assertThat(result)
                     .hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(t2);
-
-
-            var drs = all.stream().map(TransferProcess::getDataRequest).collect(Collectors.toList());
-            assertThat(drs).hasSize(1)
-                    .usingRecursiveFieldByFieldElementComparator()
-                    .containsOnly(t2.getDataRequest());
+                    .map(TransferProcess::getDataRequest)
+                    .containsExactly(newDataRequest);
         }
     }
 

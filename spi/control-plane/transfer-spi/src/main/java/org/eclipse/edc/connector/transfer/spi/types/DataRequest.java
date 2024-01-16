@@ -103,6 +103,10 @@ public class DataRequest implements Polymorphic {
         dataDestination = dataAddress;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;

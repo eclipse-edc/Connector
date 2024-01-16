@@ -20,13 +20,15 @@ dependencies {
     implementation(libs.nimbus.jwt)
 
     implementation(project(":spi:common:json-ld-spi"))
+    implementation(project(":spi:common:jwt-spi"))
     implementation(project(":spi:common:identity-trust-spi"))
     implementation(project(":core:common:util"))
+    implementation(project(":core:common:token-core")) // for the token rules
 
 
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":extensions:common:crypto:crypto-core"))
+    testImplementation(project(":extensions:common:crypto:crypto-common"))
     testFixturesImplementation(libs.nimbus.jwt)
     testFixturesImplementation(project(":spi:common:identity-did-spi"))
 }

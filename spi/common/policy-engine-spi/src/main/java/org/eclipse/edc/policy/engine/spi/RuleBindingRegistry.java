@@ -18,6 +18,9 @@ import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
+import java.util.Set;
+import java.util.function.Function;
+
 /**
  * Manages rule bindings to policy scopes.
  */
@@ -29,6 +32,11 @@ public interface RuleBindingRegistry {
      * {@link AtomicConstraint} contained in the rule.
      */
     void bind(String ruleType, String scope);
+
+    /**
+     * Register a dynamic binder that will be invoked as fallback if the rule type is not found in the registry
+     */
+    void dynamicBind(Function<String, Set<String>> binder);
 
     /**
      * Returns true of the rule type is bound to the scope; otherwise false.

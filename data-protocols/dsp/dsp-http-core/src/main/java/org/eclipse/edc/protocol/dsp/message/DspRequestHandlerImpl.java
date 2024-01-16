@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.message;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.protocol.dsp.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.message.PostDspRequest;
@@ -29,7 +28,6 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.edc.protocol.dsp.spi.error.DspErrorResponse.type;
@@ -134,22 +132,15 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var inputTransformation = transformerRegistry.transform(request.getMessage(), request.getInputClass())
                 .compose(message -> {
-                    if (message instanceof ContractRemoteMessage contractRemoteMessage) {
-                        var processIdValidation = contractRemoteMessage.isValidProcessId(request.getProcessId());
+                    if (message instanceof ProcessRemoteMessage processRemoteMessage) {
+                        var processIdValidation = processRemoteMessage.isValidProcessId(request.getProcessId());
                         if (processIdValidation.succeeded()) {
-                            contractRemoteMessage.setProcessId(request.getProcessId());
-                            contractRemoteMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
+                            processRemoteMessage.setProcessId(request.getProcessId());
+                            processRemoteMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
                             return Result.success(message);
                         } else {
                             return Result.failure("DSP: %s".formatted(processIdValidation.getFailureDetail()));
                         }
-                    } else if (message instanceof ProcessRemoteMessage processRemoteMessage) {
-                        processRemoteMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
-
-                        return Objects.equals(request.getProcessId(), processRemoteMessage.getProcessId())
-                                ? Result.success(message)
-                                : Result.failure("DSP: Invalid process ID. Expected: %s, actual: %s"
-                                .formatted(request.getProcessId(), processRemoteMessage.getProcessId()));
                     } else {
                         return Result.success(message);
                     }
