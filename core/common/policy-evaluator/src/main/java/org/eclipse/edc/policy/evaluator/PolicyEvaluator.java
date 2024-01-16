@@ -19,6 +19,7 @@ import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraintFunction;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Duty;
+import org.eclipse.edc.policy.model.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.OrConstraint;
@@ -34,20 +35,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Evaluates a policy.
- *
+ * <p>
  * A policy evaluator is used to build evaluation engines that perform tasks such as verifying if a {@link Policy} is satisfied by a client system presenting signed credentials.
  * Implementation-specific functionality is contributed by registering {@link AtomicConstraintFunction}s using {@link Builder#permissionFunction(String, AtomicConstraintFunction)},
  * {@link Builder#prohibitionFunction(String, AtomicConstraintFunction)}, and  {@link Builder#dutyFunction(String, AtomicConstraintFunction)}.
  */
 public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Boolean>, Constraint.Visitor<Boolean>, Expression.Visitor<Object> {
     private final List<RuleProblem> ruleProblems = new ArrayList<>();
-
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> permissionFunctions = new HashMap<>();
+    private final List<DynamicConstraintFunctionEntry<? extends Rule>> dynamicPermissionFunctions = new ArrayList<>();
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> dutyFunctions = new HashMap<>();
+    private final List<DynamicConstraintFunctionEntry<? extends Rule>> dynamicDutyFunctions = new ArrayList<>();
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> prohibitionFunctions = new HashMap<>();
+    private final List<DynamicConstraintFunctionEntry<? extends Rule>> dynamicProhibitionFunctions = new ArrayList<>();
 
     private final List<RuleFunction<Permission>> permissionRuleFunctions = new ArrayList<>();
     private final List<RuleFunction<Duty>> dutyRuleFunctions = new ArrayList<>();
@@ -157,11 +162,11 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         if (leftRawValue instanceof String) {
             AtomicConstraintFunction<Object, Rule, Boolean> function;
             if (ruleContext instanceof Permission) {
-                function = (AtomicConstraintFunction<Object, Rule, Boolean>) permissionFunctions.get(leftRawValue);
+                function = getEvaluationFunction((String) leftRawValue, permissionFunctions, dynamicPermissionFunctions);
             } else if (ruleContext instanceof Prohibition) {
-                function = (AtomicConstraintFunction<Object, Rule, Boolean>) prohibitionFunctions.get(leftRawValue);
+                function = getEvaluationFunction((String) leftRawValue, prohibitionFunctions, dynamicProhibitionFunctions);
             } else {
-                function = (AtomicConstraintFunction<Object, Rule, Boolean>) dutyFunctions.get(leftRawValue);
+                function = getEvaluationFunction((String) leftRawValue, dutyFunctions, dynamicDutyFunctions);
             }
             if (function != null) {
                 return function.evaluate(constraint.getOperator(), rightValue, ruleContext);
@@ -195,6 +200,30 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         return expression.getValue();
     }
 
+    @SuppressWarnings("unchecked")
+    private AtomicConstraintFunction<Object, Rule, Boolean> getEvaluationFunction(String leftRawValue,
+                                                                                  Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> functions,
+                                                                                  List<DynamicConstraintFunctionEntry<? extends Rule>> dynamicFunctions) {
+
+        return Optional.ofNullable((AtomicConstraintFunction<Object, Rule, Boolean>) functions.get(leftRawValue))
+                .orElseGet(() -> getDynamicFunction(leftRawValue, dynamicFunctions));
+    }
+
+    @SuppressWarnings("unchecked")
+    private AtomicConstraintFunction<Object, Rule, Boolean> getDynamicFunction(String leftRawValue, List<DynamicConstraintFunctionEntry<? extends Rule>> dynamicFunctions) {
+        return dynamicFunctions.stream()
+                .filter(entry -> entry.guard.apply(leftRawValue))
+                .map(entry -> (DynamicAtomicConstraintFunction<Object, Object, Rule, Boolean>) entry.function)
+                .map(dynamicFunction -> wrapDynamicFunction(leftRawValue, dynamicFunction))
+                .findFirst()
+                .orElse(null);
+
+    }
+
+    private AtomicConstraintFunction<Object, Rule, Boolean> wrapDynamicFunction(String leftRawValue, DynamicAtomicConstraintFunction<Object, Object, Rule, Boolean> dynamicFunction) {
+        return (operator, rightValue, rule) -> dynamicFunction.evaluate(leftRawValue, operator, rightValue, rule);
+    }
+
     private Boolean visitRule(Rule rule) {
         var valid = true;
         RuleProblem.Builder problemBuilder = null;
@@ -215,6 +244,11 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         return valid;
     }
 
+    record DynamicConstraintFunctionEntry<R extends Rule>(Function<Object, Boolean> guard,
+                                                          DynamicAtomicConstraintFunction<Object, Object, R, Boolean> function) {
+    }
+
+
     public static class Builder {
         private final PolicyEvaluator evaluator;
 
@@ -231,13 +265,28 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
             return this;
         }
 
+        public Builder dynamicPermissionFunction(Function<Object, Boolean> guard, DynamicAtomicConstraintFunction<Object, Object, Permission, Boolean> function) {
+            evaluator.dynamicPermissionFunctions.add(new DynamicConstraintFunctionEntry<>(guard, function));
+            return this;
+        }
+
         public Builder dutyFunction(String key, AtomicConstraintFunction<Object, Duty, Boolean> function) {
             evaluator.dutyFunctions.put(key, function);
             return this;
         }
 
+        public Builder dynamicDutyFunction(Function<Object, Boolean> guard, DynamicAtomicConstraintFunction<Object, Object, Duty, Boolean> function) {
+            evaluator.dynamicDutyFunctions.add(new DynamicConstraintFunctionEntry<>(guard, function));
+            return this;
+        }
+
         public Builder prohibitionFunction(String key, AtomicConstraintFunction<Object, Prohibition, Boolean> function) {
             evaluator.prohibitionFunctions.put(key, function);
+            return this;
+        }
+
+        public Builder dynamicProhibitionFunction(Function<Object, Boolean> guard, DynamicAtomicConstraintFunction<Object, Object, Prohibition, Boolean> function) {
+            evaluator.dynamicProhibitionFunctions.add(new DynamicConstraintFunctionEntry<>(guard, function));
             return this;
         }
 
