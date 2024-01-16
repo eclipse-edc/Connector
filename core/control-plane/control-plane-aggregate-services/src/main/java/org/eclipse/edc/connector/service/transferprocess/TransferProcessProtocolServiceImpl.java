@@ -140,7 +140,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
         var destination = message.getDataDestination() != null ? message.getDataDestination() :
                 DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(message.getProcessId())
+                .id(message.getConsumerPid())
                 .protocol(message.getProtocol())
                 .connectorAddress(message.getCallbackAddress())
                 .dataDestination(destination)
@@ -155,6 +155,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
         var process = TransferProcess.Builder.newInstance()
                 .id(randomUUID().toString())
                 .dataRequest(dataRequest)
+                .transferType(message.getTransferType())
                 .type(PROVIDER)
                 .clock(clock)
                 .traceContext(telemetry.getCurrentTraceContext())
@@ -172,6 +173,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
         if (transferProcess.getType() == CONSUMER && transferProcess.canBeStartedConsumer()) {
             observable.invokeForEach(l -> l.preStarted(transferProcess));
             transferProcess.transitionStarted();
+            transferProcess.setCorrelationId(message.getProviderPid());
             update(transferProcess);
             var transferStartedData = TransferProcessStartedData.Builder.newInstance()
                     .dataAddress(message.getDataAddress())
@@ -211,7 +213,9 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
 
     private ServiceResult<TransferProcess> onMessageDo(TransferRemoteMessage message, ClaimToken claimToken, Function<TransferProcess, ServiceResult<TransferProcess>> action) {
         return transactionContext.execute(() -> transferProcessStore
-                .findByCorrelationIdAndLease(message.getProcessId())
+                .findByIdAndLease(message.getProcessId())
+                // recover needed to maintain backward compatibility when there was no distinction between providerPid and consumerPid
+                .recover(it -> transferProcessStore.findByCorrelationIdAndLease(message.getProcessId()))
                 .flatMap(ServiceResult::from)
                 .compose(transferProcess -> validateCounterParty(claimToken, transferProcess)
                         .compose(action)

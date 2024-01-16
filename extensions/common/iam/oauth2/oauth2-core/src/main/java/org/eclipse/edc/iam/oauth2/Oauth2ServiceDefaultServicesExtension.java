@@ -14,11 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2;
 
-import org.eclipse.edc.iam.oauth2.spi.CredentialsRequestAdditionalParametersProvider;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
-
-import java.util.Collections;
 
 /**
  * Provides default service implementations for fallback
@@ -32,10 +28,4 @@ public class Oauth2ServiceDefaultServicesExtension implements ServiceExtension {
     public String name() {
         return NAME;
     }
-
-    @Provider(isDefault = true)
-    public CredentialsRequestAdditionalParametersProvider credentialsRequestAdditionalParametersProvider() {
-        return parameters -> Collections.emptyMap();
-    }
-
 }

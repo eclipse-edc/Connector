@@ -50,6 +50,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .column(getContractAgreementIdFkColumn())
                 .column(getUpdatedAtColumn())
                 .column(getPendingColumn())
+                .column(getCorrelationIdColumn())
                 .update(getContractNegotiationTable(), getIdColumn());
     }
 

@@ -14,54 +14,61 @@
 
 package org.eclipse.edc.spi.security;
 
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
+import java.security.PrivateKey;
 
+/**
+ * Base class for private key resolvers, that handles the parsing of the key, but still leaves the actual resolution (e.g.
+ * from a {@link Vault}) up to the inheritor.
+ */
 public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
+    private final KeyParserRegistry registry;
+    private final Config config;
+    private final Monitor monitor;
 
-    private final List<KeyParser<?>> parsers;
-
-    public AbstractPrivateKeyResolver() {
-        this.parsers = new ArrayList<>();
-    }
-
-    public AbstractPrivateKeyResolver(KeyParser<?>... parsers) {
-        this.parsers = Arrays.asList(parsers);
-    }
-
-    @Override
-    public <T> void addParser(KeyParser<T> parser) {
-        parsers.add(parser);
+    public AbstractPrivateKeyResolver(KeyParserRegistry registry, Config config, Monitor monitor) {
+        this.registry = registry;
+        this.config = config;
+        this.monitor = monitor;
     }
 
     @Override
-    public <T> void addParser(Class<T> forType, Function<String, T> parseFunction) {
-        var parser = new KeyParser<T>() {
+    public Result<PrivateKey> resolvePrivateKey(String id) {
+        var encodedKeyResult = resolveInternal(id);
 
-            @Override
-            public boolean canParse(Class<?> keyType) {
-                return Objects.equals(keyType, forType);
-            }
-
-            @Override
-            public T parse(String encoded) {
-                return parseFunction.apply(encoded);
-            }
-        };
-        addParser(parser);
+        return encodedKeyResult
+                .recover(failure -> {
+                    monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
+                    return resolveFromConfig(id);
+                })
+                .compose(encodedKey -> registry.parse(encodedKey).compose(pk -> {
+                    if (pk instanceof PrivateKey privateKey) {
+                        return Result.success(privateKey);
+                    } else {
+                        var msg = "The specified resource did not contain private key material.";
+                        monitor.warning(msg);
+                        return Result.failure(msg);
+                    }
+                }));
     }
 
-    @SuppressWarnings("unchecked")
-    protected <T> KeyParser<T> getParser(Class<T> keyType) {
-        return (KeyParser<T>) parsers.stream().filter(p -> p.canParse(keyType))
-                .findFirst().orElseThrow(() -> {
-                            throw new EdcException("Cannot find KeyParser for type " + keyType);
-                        }
-                );
+    /**
+     * Returns the resolved key material
+     *
+     * @param keyId the Key-ID
+     * @return {@link Result#success()} if the key was found, {@link Result#failure(String)} if not found or other error.
+     */
+    @NotNull
+    protected abstract Result<String> resolveInternal(String keyId);
+
+    private Result<String> resolveFromConfig(String keyId) {
+        var value = config.getString(keyId, null);
+        return value == null ?
+                Result.failure("Private key with ID '%s' not found in Config".formatted(keyId)) :
+                Result.success(value);
     }
 }

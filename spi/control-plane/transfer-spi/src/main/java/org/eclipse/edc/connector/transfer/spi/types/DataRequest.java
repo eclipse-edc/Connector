@@ -98,9 +98,13 @@ public class DataRequest implements Polymorphic {
     public DataAddress getDataDestination() {
         return dataDestination;
     }
-
+    
     public void updateDestination(DataAddress dataAddress) {
         dataDestination = dataAddress;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     @JsonPOJOBuilder(withPrefix = "")

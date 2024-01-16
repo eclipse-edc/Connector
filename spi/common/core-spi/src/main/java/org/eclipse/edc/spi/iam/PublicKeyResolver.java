@@ -15,7 +15,7 @@
 package org.eclipse.edc.spi.iam;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.edc.spi.result.Result;
 
 import java.security.PublicKey;
 
@@ -29,6 +29,5 @@ public interface PublicKeyResolver {
     /**
      * Resolves the key or return null if not found.
      */
-    @Nullable
-    PublicKey resolveKey(String id);
+    Result<PublicKey> resolveKey(String id);
 }

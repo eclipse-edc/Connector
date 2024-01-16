@@ -38,7 +38,7 @@ public class PolicyMonitorDefaultServicesExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    @Provider
+    @Provider(isDefault = true)
     public PolicyMonitorStore policyMonitorStore() {
         return new InMemoryPolicyMonitorStore(clock);
     }

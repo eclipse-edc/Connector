@@ -28,11 +28,13 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.transfer.dataplane.spi.TransferDataPlaneConstants.HTTP_PROXY;
+import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PULL;
 import static org.eclipse.edc.connector.transfer.spi.flow.FlowType.PUSH;
 
 public class ProviderPushTransferDataFlowController implements DataFlowController {
@@ -40,6 +42,8 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
     private final ControlApiUrl callbackUrl;
     private final DataPlaneSelectorService selectorClient;
     private final DataPlaneClientFactory clientFactory;
+
+    private final Set<String> transferTypes = Set.of("%s-%s".formatted("HttpData", PULL));
 
     public ProviderPushTransferDataFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, DataPlaneClientFactory clientFactory) {
         this.callbackUrl = callbackUrl;
@@ -49,7 +53,10 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
 
     @Override
     public boolean canHandle(TransferProcess transferProcess) {
-        return !HTTP_PROXY.equals(transferProcess.getDestinationType());
+        // Backward compatibility: adds check if a transfer type is provided, it should not be Http-PULL
+        return !HTTP_PROXY.equals(transferProcess.getDestinationType()) &&
+                (Optional.ofNullable(transferProcess.getTransferType()).map(type -> !transferTypes.contains(type)).orElse(true));
+
     }
 
     @Override
@@ -60,6 +67,7 @@ public class ProviderPushTransferDataFlowController implements DataFlowControlle
                 .trackable(true)
                 .sourceDataAddress(transferProcess.getContentDataAddress())
                 .destinationDataAddress(transferProcess.getDataDestination())
+                .transferType(transferProcess.getTransferType())
                 .callbackAddress(callbackUrl != null ? callbackUrl.get() : null)
                 .build();
 

@@ -75,6 +75,10 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "connector_address";
     }
 
+    default String getTransferTypeColumn() {
+        return "transfer_type";
+    }
+
     default String getContractIdColumn() {
         return "contract_id";
     }

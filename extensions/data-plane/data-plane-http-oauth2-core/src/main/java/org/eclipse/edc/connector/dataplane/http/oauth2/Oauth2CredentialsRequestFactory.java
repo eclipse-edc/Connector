@@ -18,17 +18,16 @@ import org.eclipse.edc.iam.oauth2.spi.Oauth2AssertionDecorator;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
-import org.eclipse.edc.jwt.TokenGenerationServiceImpl;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.token.JwtGenerationService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.security.PrivateKey;
 import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -105,8 +104,8 @@ public class Oauth2CredentialsRequestFactory {
 
     @NotNull
     private Result<TokenRepresentation> createAssertion(String pkSecret, DataAddress dataAddress) {
-        var privateKey = privateKeyResolver.resolvePrivateKey(pkSecret, PrivateKey.class);
-        if (privateKey == null) {
+        var privateKey = privateKeyResolver.resolvePrivateKey(pkSecret);
+        if (privateKey.failed()) {
             return Result.failure("Failed to resolve private key with alias: " + pkSecret);
         }
 
@@ -114,8 +113,9 @@ public class Oauth2CredentialsRequestFactory {
                 .map(this::parseLong)
                 .orElse(DEFAULT_TOKEN_VALIDITY);
         var decorator = new Oauth2AssertionDecorator(dataAddress.getStringProperty(TOKEN_URL), dataAddress.getStringProperty(CLIENT_ID), clock, validity);
-        var service = new TokenGenerationServiceImpl(privateKey);
-        return service.generate(decorator);
+        var service = new JwtGenerationService();
+
+        return service.generate(privateKey::getContent, decorator);
     }
 
     @Nullable

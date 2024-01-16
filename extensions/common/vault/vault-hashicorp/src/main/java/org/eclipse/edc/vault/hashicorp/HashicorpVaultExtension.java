@@ -20,14 +20,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-@Provides({ Vault.class, PrivateKeyResolver.class, CertificateResolver.class })
+@Provides({ CertificateResolver.class })
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
 
@@ -42,7 +40,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     private Vault vault;
-    private PrivateKeyResolver privateKeyResolver;
 
     @Override
     public String name() {
@@ -55,19 +52,19 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     @Provider
-    public PrivateKeyResolver privateKeyResolver() {
-        return privateKeyResolver;
+    public Vault hashicorpVault(ServiceExtensionContext context) {
+        if (vault == null) {
+            var config = HashicorpVaultClientConfig.create(context);
+            var client = new HashicorpVaultClient(config, httpClient, typeManager.getMapper());
+
+            vault = new HashicorpVault(client, context.getMonitor());
+        }
+        return vault;
     }
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        var config = HashicorpVaultClientConfig.create(context);
-        var client = new HashicorpVaultClient(config, httpClient, typeManager.getMapper());
-
-        vault = new HashicorpVault(client, context.getMonitor());
-        privateKeyResolver = new VaultPrivateKeyResolver(vault);
-
-        context.registerService(CertificateResolver.class, new HashicorpCertificateResolver(vault, context.getMonitor()));
+    @Provider
+    public CertificateResolver vaultResolver(ServiceExtensionContext context) {
+        return new HashicorpCertificateResolver(hashicorpVault(context), context.getMonitor().withPrefix("HashicorpVaultCertificateResolver"));
     }
 
 }

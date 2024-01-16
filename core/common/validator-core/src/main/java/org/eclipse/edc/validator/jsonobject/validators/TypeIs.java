@@ -28,7 +28,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
- * Verify that the @value node has a certain value
+ * Verify that the @type node has a certain value
  */
 public class TypeIs implements Validator<JsonObject> {
 

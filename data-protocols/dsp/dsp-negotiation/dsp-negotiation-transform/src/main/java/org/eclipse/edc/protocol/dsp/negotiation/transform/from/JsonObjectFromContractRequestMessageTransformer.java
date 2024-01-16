@@ -18,19 +18,21 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_DATASET;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 
 /**
@@ -47,15 +49,14 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractRequestMessage requestMessage, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
-        builder.add(JsonLdKeywords.ID, requestMessage.getId());
-        builder.add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE);
+        var builder = jsonFactory.createObjectBuilder()
+                .add(ID, requestMessage.getId())
+                .add(TYPE, DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, requestMessage.getConsumerPid())
+                .add(DSPACE_PROPERTY_PROCESS_ID, requestMessage.getProcessId());
 
-        builder.add(DSPACE_PROPERTY_PROCESS_ID, requestMessage.getProcessId());
-
-        if (requestMessage.getCallbackAddress() != null) {
-            builder.add(DSPACE_PROPERTY_CALLBACK_ADDRESS, requestMessage.getCallbackAddress());
-        }
+        addIfNotNull(requestMessage.getProviderPid(), DSPACE_PROPERTY_PROVIDER_PID, builder);
+        addIfNotNull(requestMessage.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS, builder);
 
         if (requestMessage.getContractOffer() != null) {
             builder.add(DSPACE_PROPERTY_DATASET, requestMessage.getContractOffer().getAssetId());
@@ -76,9 +77,7 @@ public class JsonObjectFromContractRequestMessageTransformer extends AbstractJso
 
         } else {
             builder.add(DSPACE_PROPERTY_OFFER_ID, requestMessage.getContractOfferId());
-            if (requestMessage.getDataset() != null) {
-                builder.add(DSPACE_PROPERTY_DATASET, requestMessage.getDataset());
-            }
+            addIfNotNull(requestMessage.getDataset(), DSPACE_PROPERTY_DATASET, builder);
         }
 
         return builder.build();

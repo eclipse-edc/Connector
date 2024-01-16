@@ -115,6 +115,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     public static final String TRANSFER_PROCESS_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_PROCESS_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String TRANSFER_PROCESS_TYPE_TYPE = EDC_NAMESPACE + "type";
+    public static final String TRANSFER_PROCESS_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
     public static final String TRANSFER_PROCESS_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_PROCESS_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
@@ -126,6 +127,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
+
+    private String transferType;
 
     private TransferProcess() {
     }
@@ -348,6 +351,15 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return dataRequest.getConnectorAddress();
     }
 
+
+    /**
+     * The transfer type to use for the requested data
+     */
+    @JsonIgnore
+    public String getTransferType() {
+        return transferType;
+    }
+
     @JsonIgnore
     public String getAssetId() {
         return dataRequest.getAssetId();
@@ -388,6 +400,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .deprovisionedResources(deprovisionedResources)
                 .privateProperties(privateProperties)
                 .callbackAddresses(callbackAddresses)
+                .transferType(transferType)
                 .type(type);
         return copy(builder);
     }
@@ -445,6 +458,16 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transitionTo(end.code());
     }
 
+    /**
+     * Set the correlationId, operation that's needed on the consumer side when it receives the first message with the
+     * provider process id.
+     *
+     * @param correlationId the correlation id.
+     */
+    public void setCorrelationId(String correlationId) {
+        dataRequest.setId(correlationId);
+    }
+
     public enum Type {
         CONSUMER, PROVIDER
     }
@@ -498,6 +521,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         public Builder callbackAddresses(List<CallbackAddress> callbackAddresses) {
             entity.callbackAddresses = callbackAddresses;
+            return this;
+        }
+
+        public Builder transferType(String transferType) {
+            entity.transferType = transferType;
             return this;
         }
 

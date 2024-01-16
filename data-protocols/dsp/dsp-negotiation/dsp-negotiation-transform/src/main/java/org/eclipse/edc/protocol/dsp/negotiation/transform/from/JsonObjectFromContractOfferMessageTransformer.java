@@ -28,7 +28,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 
 /**
  * Creates a {@link JsonObject} from a {@link ContractOfferMessage}.
@@ -44,15 +46,15 @@ public class JsonObjectFromContractOfferMessageTransformer extends AbstractJsonL
     
     @Override
     public @Nullable JsonObject transform(@NotNull ContractOfferMessage message, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
-        builder.add(ID, message.getId());
-        builder.add(TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE);
-        builder.add(DSPACE_PROPERTY_PROCESS_ID, message.getProcessId());
-    
-        if (message.getCallbackAddress() != null) {
-            builder.add(DSPACE_PROPERTY_CALLBACK_ADDRESS, message.getCallbackAddress());
-        }
-        
+        var builder = jsonFactory.createObjectBuilder()
+                .add(ID, message.getId())
+                .add(TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
+                .add(DSPACE_PROPERTY_PROVIDER_PID, message.getProviderPid())
+                .add(DSPACE_PROPERTY_PROCESS_ID, message.getProcessId());
+
+        addIfNotNull(message.getConsumerPid(), DSPACE_PROPERTY_CONSUMER_PID, builder);
+        addIfNotNull(message.getCallbackAddress(), DSPACE_PROPERTY_CALLBACK_ADDRESS, builder);
+
         var offer = message.getContractOffer();
         var policy = context.transform(offer.getPolicy(), JsonObject.class);
         if (policy == null) {

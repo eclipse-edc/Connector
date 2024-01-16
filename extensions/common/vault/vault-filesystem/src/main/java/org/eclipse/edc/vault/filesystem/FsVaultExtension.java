@@ -25,14 +25,9 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
 
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.KEYSTORE_LOCATION;
-import static org.eclipse.edc.vault.filesystem.FsConfiguration.KEYSTORE_PASSWORD;
 import static org.eclipse.edc.vault.filesystem.FsConfiguration.PERSISTENT_VAULT;
 import static org.eclipse.edc.vault.filesystem.FsConfiguration.VAULT_LOCATION;
 
@@ -46,21 +41,12 @@ public class FsVaultExtension implements ServiceExtension {
 
     public static final String NAME = "FS Vault";
 
+
     @Override
     public String name() {
         return NAME;
     }
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        var keyStore = loadKeyStore(context);
-        var keystorePassword = context.getSetting(KEYSTORE_PASSWORD, null);
-        var privateKeyResolver = new FsPrivateKeyResolver(keystorePassword, keyStore);
-        context.registerService(PrivateKeyResolver.class, privateKeyResolver);
-
-        var certificateResolver = new FsCertificateResolver(keyStore);
-        context.registerService(CertificateResolver.class, certificateResolver);
-    }
 
     @Provider
     public Vault vault(ServiceExtensionContext context) {
@@ -73,25 +59,5 @@ public class FsVaultExtension implements ServiceExtension {
         return new FsVault(vaultPath, persistentVault);
     }
 
-    private KeyStore loadKeyStore(ServiceExtensionContext context) {
-        var keyStoreLocation = context.getSetting(KEYSTORE_LOCATION, "dataspaceconnector-keystore.jks");
-        var keyStorePath = Paths.get(keyStoreLocation);
-        if (!Files.exists(keyStorePath)) {
-            throw new EdcException("Key store does not exist: " + keyStoreLocation);
-        }
-
-        var keystorePassword = context.getSetting(KEYSTORE_PASSWORD, null);
-        if (keystorePassword == null) {
-            throw new EdcException("Key store password was not specified");
-        }
-
-        try (var stream = Files.newInputStream(keyStorePath)) {
-            var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(stream, keystorePassword.toCharArray());
-            return keyStore;
-        } catch (IOException | GeneralSecurityException e) {
-            throw new EdcException(e);
-        }
-    }
 
 }

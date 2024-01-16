@@ -38,7 +38,7 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
 
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
-
+    private String transferType;
     private URI callbackAddress;
     private boolean trackable;
 
@@ -74,6 +74,13 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
      */
     public DataAddress getDestinationDataAddress() {
         return destinationDataAddress;
+    }
+
+    /**
+     * The transfer type to use for the request
+     */
+    public String getTransferType() {
+        return transferType;
     }
 
     /**
@@ -155,6 +162,11 @@ public class DataFlowRequest implements Polymorphic, TraceCarrier {
 
         public Builder destinationDataAddress(DataAddress destination) {
             request.destinationDataAddress = destination;
+            return this;
+        }
+
+        public Builder transferType(String transferType) {
+            request.transferType = transferType;
             return this;
         }
 

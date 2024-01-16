@@ -18,18 +18,25 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.identitytrust.verification.CredentialVerifier;
-import org.eclipse.edc.identitytrust.verification.JwtVerifier;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT. Internally, for the actual
- * cryptographic computation it uses the generic {@link JwtVerifier} object. The main task of <em>this</em> class is to read the JWT,
+ * cryptographic computation it uses the generic {@link TokenValidationService} together with {@link TokenValidationRule} objects
+ * taken from a {@link TokenValidationRulesRegistry}. The main task of <em>this</em> class is to read the JWT,
  * determine whether it's a VP or a VC and parse the contents.
  * <p>
  * In order to be successfully verified, a VP-JWT must contain a "vp" claim, that contains a JSON structure containing a
@@ -56,17 +63,19 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
     public static final String VP_CLAIM = "vp";
     public static final String VC_CLAIM = "vc";
-    private final JwtVerifier jwtVerifier;
     private final ObjectMapper objectMapper;
+    private final TokenValidationService tokenValidationService;
+    private final TokenValidationRulesRegistry tokenValidationRulesRegistry;
+    private final PublicKeyResolver publicKeyResolver;
 
     /**
      * Verifies the JWT presentation by checking the cryptographic integrity.
-     *
-     * @param jwtVerifier The JwtVerifier instance used to verify the JWT token.
      */
-    public JwtPresentationVerifier(JwtVerifier jwtVerifier, ObjectMapper objectMapper) {
-        this.jwtVerifier = jwtVerifier;
+    public JwtPresentationVerifier(ObjectMapper objectMapper, TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry, PublicKeyResolver publicKeyResolver) {
         this.objectMapper = objectMapper;
+        this.tokenValidationService = tokenValidationService;
+        this.tokenValidationRulesRegistry = tokenValidationRulesRegistry;
+        this.publicKeyResolver = publicKeyResolver;
     }
 
 
@@ -91,22 +100,27 @@ public class JwtPresentationVerifier implements CredentialVerifier {
 
         // verify the "outer" JWT, i.e. the VP JWT
         var audience = context.getAudience();
-        var verificationResult = jwtVerifier.verify(serializedJwt, audience);
-        if (verificationResult.failed()) {
-            return verificationResult;
-        }
+        Result<ClaimToken> verificationResult;
 
         // verify all "inner" VC JWTs
         try {
             // obtain the actual JSON structure
             var signedJwt = SignedJWT.parse(serializedJwt);
             if (isCredential(signedJwt)) {
-                return verificationResult;
+                verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, getCredentialRules(audience, "iatp-vc"));
+                if (verificationResult.failed()) {
+                    return verificationResult.mapTo();
+                }
+                return verificationResult.mapTo();
             }
 
             if (!isPresentation(signedJwt)) {
                 return Result.failure("Either '%s' or '%s' claim must be present in JWT.".formatted(VP_CLAIM, VC_CLAIM));
             }
+
+
+            //we can be sure to have a presentation token
+            verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, getCredentialRules(audience, "iatp-vp"));
 
             var vpClaim = signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
             var vpJson = vpClaim.toString();
@@ -131,7 +145,15 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         } catch (ParseException | JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return verificationResult;
+        return verificationResult.mapTo();
+    }
+
+
+    private List<TokenValidationRule> getCredentialRules(String audience, String ruleContext) {
+        var audRule = new AudienceValidationRule(audience);
+        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(ruleContext));
+        rules.add(audRule);
+        return rules;
     }
 
     private boolean isCredential(SignedJWT jwt) throws ParseException {

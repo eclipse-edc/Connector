@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.store.sql.policydefinition.store.schema.postgr
 
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.store.sql.policydefinition.store.schema.SqlPolicyStoreStatements;
+import org.eclipse.edc.sql.translation.JsonFieldMapping;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
@@ -28,5 +29,6 @@ public class PolicyDefinitionMapping extends TranslationMapping {
         add("id", statements.getPolicyIdColumn());
         add("createdAt", statements.getCreatedAtColumn());
         add("policy", new PolicyMapping(statements));
+        add("privateProperties", new JsonFieldMapping(statements.getPrivatePropertiesColumn()));
     }
 }

@@ -31,7 +31,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER;
 import static org.eclipse.edc.protocol.dsp.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,14 +45,13 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToContractOfferMessageTransformerTest {
     
-    private static final String PROCESS_ID = "processId";
     private static final String CALLBACK_ADDRESS = "https://test.com";
     private static final String MESSAGE_ID = "messageId";
     private static final String ASSET_ID = "assetId";
     private static final String CONTRACT_OFFER_ID = "assetId";
     
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
     
     private JsonObjectToContractOfferMessageTransformer transformer;
     
@@ -65,7 +66,8 @@ class JsonObjectToContractOfferMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK_ADDRESS)
                 .add(DSPACE_PROPERTY_OFFER, jsonFactory.createObjectBuilder()
                         .add(ID, CONTRACT_OFFER_ID)
@@ -79,7 +81,8 @@ class JsonObjectToContractOfferMessageTransformerTest {
         
         assertThat(result).isNotNull();
         assertThat(result.getProtocol()).isNotEmpty();
-        assertThat(result.getProcessId()).isEqualTo(PROCESS_ID);
+        assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
+        assertThat(result.getProviderPid()).isEqualTo("providerPid");
         assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK_ADDRESS);
     
         var contractOffer = result.getContractOffer();
@@ -88,6 +91,39 @@ class JsonObjectToContractOfferMessageTransformerTest {
         assertThat(contractOffer.getPolicy()).isEqualTo(policy);
         assertThat(contractOffer.getAssetId()).isEqualTo(ASSET_ID);
     
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Deprecated(since = "0.4.1")
+    @Test
+    void transform_shouldReturnMessage_whenValidJsonObject_processId() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(ID, MESSAGE_ID)
+                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
+                .add(DSPACE_PROPERTY_PROCESS_ID, "processId")
+                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK_ADDRESS)
+                .add(DSPACE_PROPERTY_OFFER, jsonFactory.createObjectBuilder()
+                        .add(ID, CONTRACT_OFFER_ID)
+                        .build())
+                .build();
+        var policy = policy();
+
+        when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy);
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getProtocol()).isNotEmpty();
+        assertThat(result.getConsumerPid()).isEqualTo("processId");
+        assertThat(result.getProviderPid()).isEqualTo("processId");
+        assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK_ADDRESS);
+
+        var contractOffer = result.getContractOffer();
+        assertThat(contractOffer).isNotNull();
+        assertThat(contractOffer.getId()).isEqualTo(CONTRACT_OFFER_ID);
+        assertThat(contractOffer.getPolicy()).isEqualTo(policy);
+        assertThat(contractOffer.getAssetId()).isEqualTo(ASSET_ID);
+
         verify(context, never()).reportProblem(anyString());
     }
     
@@ -113,7 +149,8 @@ class JsonObjectToContractOfferMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK_ADDRESS)
                 .build();
         
@@ -128,7 +165,8 @@ class JsonObjectToContractOfferMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK_ADDRESS)
                 .add(DSPACE_PROPERTY_OFFER, jsonFactory.createObjectBuilder().build())
                 .build();
@@ -147,7 +185,8 @@ class JsonObjectToContractOfferMessageTransformerTest {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
                 .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE)
-                .add(DSPACE_PROPERTY_PROCESS_ID, PROCESS_ID)
+                .add(DSPACE_PROPERTY_CONSUMER_PID, "consumerPid")
+                .add(DSPACE_PROPERTY_PROVIDER_PID, "providerPid")
                 .add(DSPACE_PROPERTY_CALLBACK_ADDRESS, CALLBACK_ADDRESS)
                 .add(DSPACE_PROPERTY_OFFER, jsonFactory.createObjectBuilder()
                         .add(ID, CONTRACT_OFFER_ID)

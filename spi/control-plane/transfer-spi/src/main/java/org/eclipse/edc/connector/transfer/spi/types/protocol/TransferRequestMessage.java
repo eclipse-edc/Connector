@@ -16,60 +16,19 @@ package org.eclipse.edc.connector.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-
-import static java.util.UUID.randomUUID;
 
 /**
  * The {@link TransferRequestMessage} is sent by a consumer to initiate a transfer process.
  */
-public class TransferRequestMessage implements TransferRemoteMessage {
+public class TransferRequestMessage extends TransferRemoteMessage {
 
-    private String id;
-    private String counterPartyAddress;
-    private String protocol = "unknown";
-    private String processId;
     private String contractId;
     private DataAddress dataDestination;
+    private String transferType;
     private String callbackAddress;
-    private Policy policy;
-
-    @NotNull
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-
-    @Override
-    public void setProtocol(String protocol) {
-        Objects.requireNonNull(protocol);
-        this.protocol = protocol;
-    }
-
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-
-    @Override
-    @NotNull
-    public String getProcessId() {
-        return processId;
-    }
-
-    @Override
-    public Policy getPolicy() {
-        return policy;
-    }
 
     public String getContractId() {
         return contractId;
@@ -79,16 +38,19 @@ public class TransferRequestMessage implements TransferRemoteMessage {
         return dataDestination;
     }
 
+    public String getTransferType() {
+        return transferType;
+    }
+
     public String getCallbackAddress() {
         return callbackAddress;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder {
-        private final TransferRequestMessage message;
+    public static class Builder extends TransferRemoteMessage.Builder<TransferRequestMessage, Builder> {
 
         private Builder() {
-            message = new TransferRequestMessage();
+            super(new TransferRequestMessage());
         }
 
         @JsonCreator
@@ -96,33 +58,8 @@ public class TransferRequestMessage implements TransferRemoteMessage {
             return new Builder();
         }
 
-        public Builder id(String id) {
-            message.id = id;
-            return this;
-        }
-
-        public Builder policy(Policy policy) {
-            message.policy = policy;
-            return this;
-        }
-
-        public Builder processId(String processId) {
-            message.processId = processId;
-            return this;
-        }
-
-        public Builder counterPartyAddress(String callbackAddress) {
-            message.counterPartyAddress = callbackAddress;
-            return this;
-        }
-
         public Builder callbackAddress(String callbackAddress) {
             message.callbackAddress = callbackAddress;
-            return this;
-        }
-
-        public Builder protocol(String protocol) {
-            message.protocol = protocol;
             return this;
         }
 
@@ -136,13 +73,15 @@ public class TransferRequestMessage implements TransferRemoteMessage {
             return this;
         }
 
-        public TransferRequestMessage build() {
-            if (message.id == null) {
-                message.id = randomUUID().toString();
-            }
+        public Builder transferType(String transferType) {
+            message.transferType = transferType;
+            return this;
+        }
 
+        @Override
+        public TransferRequestMessage build() {
             Objects.requireNonNull(message.callbackAddress, "The callbackAddress must be specified");
-            return message;
+            return super.build();
         }
     }
 }

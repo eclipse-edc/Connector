@@ -22,7 +22,6 @@ import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.protocol.dsp.transferprocess.transformer.type.from.JsonObjectFromTransferRequestMessageTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +30,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID;
 import static org.eclipse.edc.protocol.dsp.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROCESS_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.protocol.dsp.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS;
@@ -47,21 +47,16 @@ import static org.mockito.Mockito.when;
 class JsonObjectFromTransferRequestMessageTransformerTest {
 
     private final String dataAddressKey = "testDataAddressKey";
-
     private final String dataAddressType = "testDataAddressType";
-
     private final String protocol = "testProtocol";
-
     private final String contractId = "testContractId";
-
     private final String callbackAddress = "http://testcallback";
 
-    private final String id = "testId";
-
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
 
-    private JsonObjectFromTransferRequestMessageTransformer transformer;
+    private final JsonObjectFromTransferRequestMessageTransformer transformer =
+            new JsonObjectFromTransferRequestMessageTransformer(jsonFactory);
 
     @BeforeEach
     void setUp() {
@@ -70,17 +65,14 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
                 .add("type", dataAddressType)
                 .build();
 
-        transformer = new JsonObjectFromTransferRequestMessageTransformer(jsonFactory);
-
         when(context.transform(isA(DataAddress.class), eq(JsonObject.class))).thenReturn(dataAddressJson);
     }
-
-
 
     @Test
     void transformTransferRequestMessageWithDataAddress() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .processId(id)
+                .processId("processId")
+                .consumerPid("consumerPid")
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)
                 .protocol(protocol)
@@ -89,12 +81,13 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
 
         var result = transformer.transform(message, context);
 
-        Assertions.assertNotNull(result);
+        assertThat(result).isNotNull();
         assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(callbackAddress);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(id);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo("processId");
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID).getString()).isEqualTo("consumerPid");
         assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS).getString("keyName")).isEqualTo(dataAddressKey);
 
         verify(context, never()).reportProblem(anyString());
@@ -103,7 +96,8 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
     @Test
     void transformTransferRequestMessageWithoutDataAddress() {
         var message = TransferRequestMessage.Builder.newInstance()
-                .processId(id)
+                .processId("processId")
+                .consumerPid("consumerPid")
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)
                 .protocol(protocol)
@@ -117,7 +111,30 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
         assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(callbackAddress);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROCESS_ID).getString()).isEqualTo(id);
+        assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS)).isEqualTo(null);
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transformTransferRequestMessageWithTransferType() {
+        var transferType = "Http-Pull";
+        var message = TransferRequestMessage.Builder.newInstance()
+                .processId("processId")
+                .consumerPid("consumerPid")
+                .callbackAddress(callbackAddress)
+                .contractId(contractId)
+                .protocol(protocol)
+                .transferType(transferType)
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(transferType);
+        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS).getString()).isEqualTo(callbackAddress);
         assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS)).isEqualTo(null);
 
         verify(context, never()).reportProblem(anyString());

@@ -14,8 +14,9 @@
 
 package org.eclipse.edc.iam.oauth2.daps;
 
-import org.eclipse.edc.spi.iam.TokenDecorator;
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.spi.iam.TokenParameters;
+import org.eclipse.edc.token.spi.TokenDecorator;
 
 /**
  * Token decorator that sets the {@code scope} claim on the token that is used on DSP request egress
@@ -29,6 +30,6 @@ public class DapsTokenDecorator implements TokenDecorator {
 
     @Override
     public TokenParameters.Builder decorate(TokenParameters.Builder tokenParametersBuilder) {
-        return tokenParametersBuilder.scope(scope);
+        return tokenParametersBuilder.claims(JwtRegisteredClaimNames.SCOPE, scope);
     }
 }

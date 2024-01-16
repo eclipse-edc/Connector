@@ -77,6 +77,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractOffer(currentOffer)
+                .providerPid(negotiation.getId())
+                .consumerPid(negotiation.getCorrelationId())
                 .processId(negotiation.getCorrelationId())
                 .build();
 
@@ -141,6 +143,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
+                .providerPid(negotiation.getId())
+                .consumerPid(negotiation.getCorrelationId())
                 .processId(negotiation.getCorrelationId())
                 .build();
 
@@ -177,6 +181,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .protocol(negotiation.getProtocol())
                 .counterPartyAddress(negotiation.getCounterPartyAddress())
+                .providerPid(negotiation.getId())
+                .consumerPid(negotiation.getCorrelationId())
                 .processId(negotiation.getCorrelationId())
                 .policy(negotiation.getContractAgreement().getPolicy())
                 .build();

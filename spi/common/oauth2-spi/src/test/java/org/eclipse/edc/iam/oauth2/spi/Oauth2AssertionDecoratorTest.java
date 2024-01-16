@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.spi;
 
+import org.eclipse.edc.spi.iam.TokenParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,11 +35,9 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 class Oauth2AssertionDecoratorTest {
     private static final long TOKEN_EXPIRATION = 500;
-
+    private final Instant now = Instant.now();
     private String audience;
     private String clientId;
-    private final Instant now = Instant.now();
-
     private Oauth2AssertionDecorator decorator;
 
     @BeforeEach
@@ -50,20 +49,18 @@ class Oauth2AssertionDecoratorTest {
     }
 
     @Test
-    void claims() {
-        var claims = decorator.claims();
+    void verifyDecorate() {
+        var b = TokenParameters.Builder.newInstance();
+        decorator.decorate(b);
 
-        assertThat(claims)
+        var t = b.build();
+        assertThat(t.getHeaders()).isEmpty();
+        assertThat(t.getClaims())
                 .hasEntrySatisfying(AUDIENCE, o -> assertThat(o).asInstanceOf(list(String.class)).contains(audience))
                 .hasFieldOrPropertyWithValue(ISSUER, clientId)
                 .hasFieldOrPropertyWithValue(SUBJECT, clientId)
                 .containsKey(JWT_ID)
                 .hasEntrySatisfying(ISSUED_AT, issueDate -> assertThat((Date) issueDate).isEqualTo(now))
                 .hasEntrySatisfying(EXPIRATION_TIME, expiration -> assertThat((Date) expiration).isEqualTo(now.plusSeconds(TOKEN_EXPIRATION)));
-    }
-
-    @Test
-    void headers() {
-        assertThat(decorator.headers()).isEmpty();
     }
 }

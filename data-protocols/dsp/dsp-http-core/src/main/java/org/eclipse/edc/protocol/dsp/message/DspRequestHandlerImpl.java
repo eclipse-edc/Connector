@@ -28,7 +28,6 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.edc.protocol.dsp.spi.error.DspErrorResponse.type;
@@ -134,12 +133,14 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         var inputTransformation = transformerRegistry.transform(request.getMessage(), request.getInputClass())
                 .compose(message -> {
                     if (message instanceof ProcessRemoteMessage processRemoteMessage) {
-                        processRemoteMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
-
-                        return Objects.equals(request.getProcessId(), processRemoteMessage.getProcessId())
-                                ? Result.success(message)
-                                : Result.failure("DSP: Invalid process ID. Expected: %s, actual: %s"
-                                .formatted(request.getProcessId(), processRemoteMessage.getProcessId()));
+                        var processIdValidation = processRemoteMessage.isValidProcessId(request.getProcessId());
+                        if (processIdValidation.succeeded()) {
+                            processRemoteMessage.setProcessId(request.getProcessId());
+                            processRemoteMessage.setProtocol(DATASPACE_PROTOCOL_HTTP);
+                            return Result.success(message);
+                        } else {
+                            return Result.failure("DSP: %s".formatted(processIdValidation.getFailureDetail()));
+                        }
                     } else {
                         return Result.success(message);
                     }

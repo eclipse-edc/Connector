@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.dsp.spi.dispatcher;
 
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
@@ -28,13 +29,14 @@ public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher 
     /**
      * Registers a message request factory and response parser
      *
-     * @param clazz the message class.
+     * @param <M>            the type of message
+     * @param <R>            the response type
+     * @param clazz          the message class.
      * @param requestFactory the request factory.
-     * @param delegate the response parser delegate.
-     * @param <M> the type of message
-     * @param <R> the response type
+     * @param bodyExtractor  the body extractor function.
      */
-    <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory, DspHttpDispatcherDelegate<R> delegate);
+    <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory,
+                                                      DspHttpResponseBodyExtractor<R> bodyExtractor);
 
     /**
      * Registers a {@link Policy} scope to be evaluated for certain types of messages

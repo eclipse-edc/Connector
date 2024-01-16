@@ -69,6 +69,16 @@ public interface PolicyEngine {
     <R extends Rule> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintFunction<R> function);
 
     /**
+     * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key that's not bound
+     * to an {@link AtomicConstraintFunction}.
+     *
+     * @param scope    the scope the function applies to
+     * @param type     the function type
+     * @param function the function
+     */
+    <R extends Rule> void registerFunction(String scope, Class<R> type, DynamicAtomicConstraintFunction<R> function);
+
+    /**
      * Registers a function that is invoked when a policy contains a rule of the given type for the specified scope.
      *
      * @param scope    the scope the function applies to
