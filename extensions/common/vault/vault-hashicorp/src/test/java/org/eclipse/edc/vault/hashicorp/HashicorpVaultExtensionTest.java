@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
@@ -115,6 +116,29 @@ class HashicorpVaultExtensionTest {
 
         var throwable = assertThrows(EdcException.class, () -> extension.hashicorpVaultClient(context));
         assertThat(throwable.getMessage()).isEqualTo("[Hashicorp Vault Extension] Vault token ttl must be greater than renew buffer");
+    }
+
+    @Test
+    void hashicorpVault_whenVaultUrlUndefined_expectException(ServiceExtensionContext context, HashicorpVaultExtension extension) {
+        when(context.getSetting(VAULT_URL, null)).thenReturn(null);
+
+        assertThatThrownBy(() -> extension.hashicorpVault(context)).isInstanceOf(EdcException.class);
+    }
+
+    @Test
+    void hashicorpVault_whenVaultTokenUndefined_expectException(ServiceExtensionContext context, HashicorpVaultExtension extension) {
+        when(context.getSetting(VAULT_TOKEN, null)).thenReturn(null);
+        when(context.getSetting(VAULT_URL, null)).thenReturn("https://some.vault");
+
+        assertThrows(EdcException.class, () -> extension.hashicorpVault(context));
+    }
+
+    @Test
+    void hashicorpVault_ensureType(HashicorpVaultExtension extension, ServiceExtensionContext context) {
+        when(context.getSetting(VAULT_URL, null)).thenReturn("https://some.vault");
+        when(context.getSetting(VAULT_TOKEN, null)).thenReturn("some-token");
+
+        assertThat(extension.hashicorpVault(context)).isInstanceOf(HashicorpVault.class);
     }
 
     @Test
