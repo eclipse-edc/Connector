@@ -47,21 +47,17 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 @ExtendWith(EdcExtension.class)
 class HashicorpVaultClientIntegrationTest {
     private static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
-    private static final String VAULT_ENTRY_KEY = "testing";
-    private static final String VAULT_ENTRY_VALUE = UUID.randomUUID().toString();
-    private static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String ROOT_TOKEN = UUID.randomUUID().toString();
     private static final double RETRY_BACKOFF_BASE = 1.1;
     private static final long CREATION_TTL = 6L;
     private static final long TTL = 5L;
-    private static final long RENEW_BUFFER = 4;
+    private static final long RENEW_BUFFER = 4L;
     private static final String CLIENT_TOKEN_KEY = "client_token";
     private static final String AUTH_KEY = "auth";
 
     @Container
     static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
-            .withVaultToken(ROOT_TOKEN)
-            .withSecretInVault("secret/" + VAULT_ENTRY_KEY, format("%s=%s", VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
+            .withVaultToken(ROOT_TOKEN);
 
     @BeforeEach
     void beforeEach(EdcExtension extension) throws IOException, InterruptedException {
@@ -107,6 +103,7 @@ class HashicorpVaultClientIntegrationTest {
     void lookUpToken_whenTokenTtlExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
+                .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var tokenLookUpResult = hashicorpVaultClient.lookUpToken(CREATION_TTL);
                     assertThat(tokenLookUpResult.failed()).isTrue();
@@ -142,6 +139,7 @@ class HashicorpVaultClientIntegrationTest {
     void renew_whenTokenTtlExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
+                .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var tokenRenewResult = hashicorpVaultClient.renewToken(TTL);
                     assertThat(tokenRenewResult.failed()).isTrue();
@@ -157,6 +155,7 @@ class HashicorpVaultClientIntegrationTest {
         // ensure that the token is still valid after the initial creation_ttl expired
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
+                .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var tokenLookUpResult = hashicorpVaultClient.lookUpToken(CREATION_TTL);
                     assertThat(tokenLookUpResult.succeeded()).isTrue();
@@ -166,6 +165,7 @@ class HashicorpVaultClientIntegrationTest {
         // check that the token is still valid after the new ttl expired
         await()
                 .pollDelay(TTL, TimeUnit.SECONDS)
+                .atMost(TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var tokenLookUpResult = hashicorpVaultClient.lookUpToken(TTL);
                     assertThat(tokenLookUpResult.succeeded()).isTrue();

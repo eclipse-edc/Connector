@@ -195,8 +195,6 @@ public class HashicorpVaultClient {
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(TOKEN_RENEW_SELF_PATH))
                 .build();
-        // Vault will not honor the passed ttl (or increment) for periodic tokens
-        // therefore the ttl returned by the Vault should always be used for further calculations
         var requestPayload = TokenRenewRequest.Builder
                 .newInstance()
                 .increment(configValues.ttl())
