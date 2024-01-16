@@ -42,6 +42,7 @@ public class SqlQueryStatement {
     private final int limit;
     private final int offset;
     private CriterionToWhereClauseConverter criterionToWhereConditionConverter;
+    private SortFieldConverter sortFieldConverter;
     private String orderByClause = "";
 
     /**
@@ -82,7 +83,8 @@ public class SqlQueryStatement {
     public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, CriterionToWhereClauseConverter criterionToWhereClauseConverter) {
         this(selectStatement, query.getLimit(), query.getOffset());
         this.criterionToWhereConditionConverter = criterionToWhereClauseConverter;
-        initialize(query, rootModel);
+        this.sortFieldConverter = new SortFieldConverterImpl(rootModel);
+        initialize(query);
     }
 
     /**
@@ -161,7 +163,7 @@ public class SqlQueryStatement {
         parameters.add(parameter);
     }
 
-    private void initialize(QuerySpec query, TranslationMapping rootModel) {
+    private void initialize(QuerySpec query) {
         query.getFilterExpression().stream()
                 .map(criterion -> criterionToWhereConditionConverter.convert(criterion))
                 .forEach(whereClause -> {
@@ -169,15 +171,15 @@ public class SqlQueryStatement {
                     parameters.addAll(whereClause.parameters());
                 });
 
-        orderByClause = parseSortField(query, rootModel);
+        orderByClause = parseSortField(query);
     }
 
-    private String parseSortField(QuerySpec query, TranslationMapping rootModel) {
+    private String parseSortField(QuerySpec query) {
         if (query.getSortField() == null) {
             return orderByClause;
         } else {
             var order = query.getSortOrder() == SortOrder.ASC ? "ASC" : "DESC";
-            var sortField = rootModel.getStatement(query.getSortField(), String.class);
+            var sortField = sortFieldConverter.convert(query.getSortField());
             if (sortField == null) {
                 throw new IllegalArgumentException(format("Cannot sort by %s because the field does not exist", query.getSortField()));
             }

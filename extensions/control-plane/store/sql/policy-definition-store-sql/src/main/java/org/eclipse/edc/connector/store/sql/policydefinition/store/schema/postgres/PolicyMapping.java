@@ -15,15 +15,15 @@
 package org.eclipse.edc.connector.store.sql.policydefinition.store.schema.postgres;
 
 import org.eclipse.edc.connector.store.sql.policydefinition.store.schema.SqlPolicyStoreStatements;
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 public class PolicyMapping extends TranslationMapping {
     public PolicyMapping(SqlPolicyStoreStatements statements) {
-        add("permissions", new JsonFieldMapping(PostgresDialectStatements.PERMISSIONS_ALIAS));
-        add("prohibitions", new JsonFieldMapping(PostgresDialectStatements.PROHIBITIONS_ALIAS));
-        add("obligations", new JsonFieldMapping(PostgresDialectStatements.OBLIGATIONS_ALIAS));
-        add("extensibleProperties", new JsonFieldMapping(PostgresDialectStatements.EXT_PROPERTIES_ALIAS));
+        add("permissions", new JsonFieldTranslator(PostgresDialectStatements.PERMISSIONS_ALIAS));
+        add("prohibitions", new JsonFieldTranslator(PostgresDialectStatements.PROHIBITIONS_ALIAS));
+        add("obligations", new JsonFieldTranslator(PostgresDialectStatements.OBLIGATIONS_ALIAS));
+        add("extensibleProperties", new JsonFieldTranslator(PostgresDialectStatements.EXT_PROPERTIES_ALIAS));
         add("inheritsFrom", statements.getInheritsFromColumn());
         add("assigner", statements.getAssignerColumn());
         add("assignee", statements.getAssigneeColumn());

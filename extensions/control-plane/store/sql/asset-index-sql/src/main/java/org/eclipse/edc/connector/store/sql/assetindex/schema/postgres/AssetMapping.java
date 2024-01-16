@@ -15,9 +15,12 @@
 package org.eclipse.edc.connector.store.sql.assetindex.schema.postgres;
 
 import org.eclipse.edc.connector.store.sql.assetindex.schema.AssetStatements;
-import org.eclipse.edc.spi.types.PathItem;
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
+
+import java.util.function.Function;
+
+import static java.util.Objects.requireNonNullElse;
 
 /**
  * Maps fields of a {@link org.eclipse.edc.spi.types.domain.asset.Asset} onto the
@@ -28,23 +31,16 @@ public class AssetMapping extends TranslationMapping {
     public AssetMapping(AssetStatements statements) {
         add("id", statements.getAssetIdColumn());
         add("createdAt", statements.getCreatedAtColumn());
-        add("properties", new JsonFieldMapping(statements.getPropertiesColumn()));
-        add("privateProperties", new JsonFieldMapping(statements.getPrivatePropertiesColumn()));
-        add("dataAddress", new JsonFieldMapping(statements.getDataAddressColumn()));
+        add("properties", new JsonFieldTranslator(statements.getPropertiesColumn()));
+        add("privateProperties", new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
+        add("dataAddress", new JsonFieldTranslator(statements.getDataAddressColumn()));
     }
 
     @Override
-    public String getStatement(String canonicalPropertyName, Class<?> type) {
-        var standardPath = getStatement(PathItem.parse(canonicalPropertyName), type);
-
-        if (standardPath == null) {
-            var amendedCanonicalPropertyName = canonicalPropertyName.contains("'")
-                    ? "properties.%s".formatted(canonicalPropertyName)
-                    : "properties.'%s'".formatted(canonicalPropertyName);
-            return getStatement(amendedCanonicalPropertyName, type);
-        }
-
-        return standardPath;
+    public Function<Class<?>, String> getFieldTranslator(String fieldPath) {
+        return requireNonNullElse(super.getFieldTranslator(fieldPath), fieldPath.contains("'")
+                ? super.getFieldTranslator("properties.%s".formatted(fieldPath))
+                : super.getFieldTranslator("properties.'%s'".formatted(fieldPath)));
     }
 
 }

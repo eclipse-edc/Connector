@@ -32,7 +32,6 @@ class ContractNegotiationMapping extends StatefulEntityMapping {
     private static final String FIELD_TRACECONTEXT = "traceContext";
     private static final String FIELD_PENDING = "pending";
 
-
     ContractNegotiationMapping(ContractNegotiationStatements statements) {
         super(statements);
         add(FIELD_CORRELATION_ID, statements.getCorrelationIdColumn());
@@ -41,8 +40,7 @@ class ContractNegotiationMapping extends StatefulEntityMapping {
         add(FIELD_PROTOCOL, statements.getProtocolColumn());
         add(FIELD_TYPE, statements.getTypeColumn());
         add(FIELD_PENDING, statements.getPendingColumn());
-
-        fieldMap.put(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
+        add(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
         add(FIELD_TRACECONTEXT, statements.getTraceContextColumn());
     }
 

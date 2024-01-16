@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.pos
 
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
@@ -39,6 +39,6 @@ class ContractAgreementMapping extends TranslationMapping {
         add(FIELD_CONSUMER_AGENT_ID, statements.getConsumerAgentColumn());
         add(FIELD_CONTRACT_SIGNING_DATE, statements.getSigningDateColumn());
         add(FIELD_ASSET_ID, statements.getAssetIdColumn());
-        add(FIELD_POLICY, new JsonFieldMapping("policy"));
+        add(FIELD_POLICY, new JsonFieldTranslator("policy"));
     }
 }

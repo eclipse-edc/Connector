@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.sql.lease;
 
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
@@ -28,7 +28,7 @@ public class StatefulEntityMapping extends TranslationMapping {
         add("state", statements.getStateColumn());
         add("stateCount", statements.getStateCountColumn());
         add("createdAt", statements.getCreatedAtColumn());
-        add("traceContext", new JsonFieldMapping(statements.getTraceContextColumn()));
+        add("traceContext", new JsonFieldTranslator(statements.getTraceContextColumn()));
         add("errorDetail", statements.getErrorDetailColumn());
     }
 }

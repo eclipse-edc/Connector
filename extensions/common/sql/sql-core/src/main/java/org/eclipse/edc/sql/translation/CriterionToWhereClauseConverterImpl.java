@@ -48,7 +48,8 @@ public class CriterionToWhereClauseConverterImpl implements CriterionToWhereClau
         var rightOperandClass = Optional.ofNullable(criterion.getOperandRight()).map(Object::getClass).orElse(null);
         var newCriterion = Optional.ofNullable(criterion.getOperandLeft())
                 .map(Object::toString)
-                .map(it -> translationMapping.getStatement(it, rightOperandClass))
+                .flatMap(fieldPath -> Optional.ofNullable(translationMapping.getFieldTranslator(fieldPath))
+                        .map(translator -> translator.apply(rightOperandClass)))
                 .map(criterion::withLeftOperand)
                 .orElseGet(() -> Criterion.criterion("0", "=", 1));
 
