@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
@@ -23,10 +23,16 @@ import org.eclipse.edc.spi.system.health.StartupStatusProvider;
 
 import java.util.ArrayList;
 
+/**
+ * Implements the healthcheck of the Hashicorp Vault.
+ * The healthcheck is a combination of:
+ * <ol>
+ *   <li>The actual Vault healthcheck which is performed by calling the healthcheck api of the Vault</li>
+ *   <li>Token validation by calling the token lookup api of the Vault</li>
+ * </ol>
+ */
 public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessProvider, StartupStatusProvider {
 
-    private static final String HEALTH_CHECK_ERROR = "Failed to perform Healthcheck";
-    private static final String HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE = "Healthcheck unsuccessful: %s %s";
     private static final String DELIMITER = ", ";
     private final HashicorpVaultClient client;
     private final Monitor monitor;
@@ -39,52 +45,17 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
     @Override
     public HealthCheckResult get() {
 
-        var healthCheckResponseResult = client.doHealthCheck();
-        if (healthCheckResponseResult.failed()) {
-            monitor.severe(HEALTH_CHECK_ERROR);
-            return HealthCheckResult
-                    .failed(healthCheckResponseResult.getFailureMessages())
-                    .forComponent(HashicorpVaultHealthExtension.NAME);
-        }
-
         var errors = new ArrayList<String>();
-        var response = healthCheckResponseResult.getContent();
 
-        switch (response.getCodeAsEnum()) {
-            case INITIALIZED_UNSEALED_AND_ACTIVE -> {
-                // do nothing
-            }
-            case UNSEALED_AND_STANDBY -> {
-                var standbyMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is in standby", response.getPayload());
-                errors.add(standbyMsg);
-            }
-            case DISASTER_RECOVERY_MODE_REPLICATION_SECONDARY_AND_ACTIVE -> {
-                var recoveryModeMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is in recovery mode", response.getPayload());
-                errors.add(recoveryModeMsg);
-            }
-            case PERFORMANCE_STANDBY -> {
-                var performanceStandbyMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is in performance standby", response.getPayload());
-                errors.add(performanceStandbyMsg);
-            }
-            case NOT_INITIALIZED -> {
-                var notInitializedMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is not initialized", response.getPayload());
-                errors.add(notInitializedMsg);
-            }
-            case SEALED -> {
-                var sealedMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Vault is sealed", response.getPayload());
-                errors.add(sealedMsg);
-            }
-            default -> {
-                var unspecifiedMsg = HEALTH_CHECK_UNSUCCESSFUL_TEMPLATE.formatted("Unspecified response from vault. Code: " + response.getCode(), response.getPayload());
-                errors.add(unspecifiedMsg);
-            }
+        var healthCheckResult = client.doHealthCheck();
+        if (healthCheckResult.failed()) {
+            errors.add(healthCheckResult.getFailureDetail());
         }
 
-        var tokenLookUpResult = client.lookUpToken();
-
+        // not retrying token lookup since the healthcheck is performed in short intervals (default 10s)
+        var tokenLookUpResult = client.lookUpToken(0);
         if (tokenLookUpResult.failed()) {
-            var tokenNotValidMsg = "Token look up failed: %s".formatted(tokenLookUpResult.getFailureDetail());
-            errors.add(tokenNotValidMsg);
+            errors.add(tokenLookUpResult.getFailureDetail());
         }
 
         HealthCheckResult result;

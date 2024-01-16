@@ -83,6 +83,24 @@ public interface Config {
     Long getLong(String key, Long defaultValue);
 
     /**
+     * Returns the Double representation of the value
+     *
+     * @param key of the setting
+     * @return a Double representation of the setting
+     * @throws EdcException if no setting is found, or if it's not parsable
+     */
+    Double getDouble(String key);
+
+    /**
+     * Returns the Double representation of the value, or the default one if not found
+     *
+     * @param key of the setting
+     * @return a Double representation of the setting
+     * @throws EdcException if the value it's not parsable
+     */
+    Double getDouble(String key, Double defaultValue);
+
+    /**
      * Returns the Boolean representation of the value
      *
      * @param key of the setting

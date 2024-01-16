@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
@@ -25,9 +25,11 @@ interface HashicorpVaultConfig {
     boolean VAULT_HEALTH_CHECK_ENABLED_DEFAULT = true;
     boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
     String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
-    int VAULT_TIMEOUT_SECONDS_DEFAULT = 30;
-    int VAULT_TOKEN_TTL_SECONDS_DEFAULT = 300;
-    int VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 10;
+    double VAULT_RETRY_BACKOFF_BASE_DEFAULT = 1.5;
+    long VAULT_TIMEOUT_SECONDS_DEFAULT = 30;
+    boolean VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT = true;
+    long VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 30;
+    long VAULT_TOKEN_TTL_DEFAULT = 300;
     String VAULT_API_SECRET_PATH_DEFAULT = "/v1/secret";
 
     @Setting(value = "The URL of the Hashicorp Vault", required = true)
@@ -42,11 +44,17 @@ interface HashicorpVaultConfig {
     @Setting(value = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = "false", type = "boolean")
     String VAULT_HEALTH_CHECK_STANDBY_OK = "edc.vault.hashicorp.health.check.standby.ok";
 
-    @Setting(value = "Sets the timeout for HTTP requests to the vault, in seconds", defaultValue = "30", type = "integer")
+    @Setting(value = "Exponential base to calculate the retry backoff defined as (backoff = base^retries)", defaultValue = "1.5", type = "double")
+    String VAULT_RETRY_BACKOFF_BASE = "edc.vault.hashicorp.retry.backoff-base";
+
+    @Setting(value = "Sets the timeout for HTTP requests to the vault, in seconds", defaultValue = "30", type = "long")
     String VAULT_TIMEOUT_SECONDS = "edc.vault.hashicorp.timeout.seconds";
 
     @Setting(value = "The token used to access the Hashicorp Vault", required = true)
     String VAULT_TOKEN = "edc.vault.hashicorp.token";
+
+    @Setting(value = "Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes", defaultValue = "true")
+    String VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED = "edc.vault.hashicorp.token.scheduled-renew-enabled";
 
     @Setting(value = "The time-to-live (ttl) value of the Hashicorp Vault token in seconds", defaultValue = "300", type = "long")
     String VAULT_TOKEN_TTL = "edc.vault.hashicorp.token.ttl";

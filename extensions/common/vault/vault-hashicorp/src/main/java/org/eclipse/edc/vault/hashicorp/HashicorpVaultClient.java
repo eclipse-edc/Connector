@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
@@ -22,6 +22,7 @@ import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -29,25 +30,24 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryRequestPayload;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponse;
-import org.eclipse.edc.vault.hashicorp.model.HealthCheckResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponsePayloadToken;
-import org.eclipse.edc.vault.hashicorp.model.TokenRenewalRequestPayload;
-import org.eclipse.edc.vault.hashicorp.model.TokenRenewalResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.TokenRenewalResponsePayloadToken;
+import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponse;
+import org.eclipse.edc.vault.hashicorp.model.TokenRenewRequest;
+import org.eclipse.edc.vault.hashicorp.model.TokenRenewResponse;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class HashicorpVaultClient {
-    static final String VAULT_DATA_ENTRY_NAME = "content";
+public class HashicorpVaultClient {
+    private static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
     private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
@@ -57,6 +57,8 @@ class HashicorpVaultClient {
     private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
     private static final int HTTP_CODE_404 = 404;
     private static final String DELIMITER = ", ";
+    private static final long INITIAL_TIMEOUT_SECONDS = 30L;
+    private static final Set<Integer> NON_RETRYABLE_STATUS_CODES = Set.of(200, 204, 400, 403, 404, 405);
 
     private final Headers headers;
 
@@ -84,111 +86,162 @@ class HashicorpVaultClient {
         this.headers = getHeaders();
     }
 
-    Result<HealthCheckResponse> doHealthCheck() {
+    public Result<Void> doHealthCheck() {
         var requestUri = getHealthCheckUrl();
         var request = httpGet(requestUri);
 
-        int code;
-        String payload;
-
         try (var response = httpClient.execute(request)) {
-            code = response.code();
-            var responseBody = response.body();
-            if (responseBody == null) {
+            if (response.isSuccessful()) {
+                return Result.success();
+            }
+
+            var code = response.code();
+            var errMsg = switch (code) {
+                case 429 -> "Vault is in standby";
+                case 472 -> "Vault is in recovery mode";
+                case 473 -> "Vault is in performance standby";
+                case 501 -> "Vault is not initialized";
+                case 503 -> "Vault is sealed";
+                default -> "Vault returned unspecified code %d".formatted(code);
+            };
+            var body = response.body();
+            if (body == null) {
                 return Result.failure("Healthcheck returned empty response body");
             }
-            payload = responseBody.string();
+            return Result.failure("Vault is not available. Reason: %s, additional information: %s".formatted(errMsg, body.string()));
         } catch (IOException e) {
-            monitor.warning("Failed to perform healthcheck with reason: %s".formatted(e.getMessage()));
-            return Result.failure("Failed to perform healthcheck");
+            var errMsg = "Failed to perform healthcheck with reason: %s".formatted(e.getMessage());
+            monitor.warning(errMsg, e);
+            return Result.failure(errMsg);
         }
-
-        var healthCheckResponseBuilder = HealthCheckResponse.Builder.newInstance();
-
-        try {
-            var responsePayload = objectMapper.readValue(payload, HealthCheckResponsePayload.class);
-            healthCheckResponseBuilder
-                    .code(code)
-                    .payload(responsePayload);
-        } catch (IOException e) {
-            healthCheckResponseBuilder.code(code);
-        }
-
-        return Result.success(healthCheckResponseBuilder.build());
     }
 
-    Result<TokenLookUpResponsePayloadToken> lookUpToken() {
-        var uri = Objects.requireNonNull(HttpUrl.parse(configValues.url()))
+    /**
+     * Performs the initial token lookup and renewal. Schedules the next token renewal if both operations were successful.
+     * <p>
+     * The method is executed asynchronously since the lookup and renewal of tokens are retryable. Otherwise, the main
+     * program flow would be halted.
+     */
+    public void scheduleTokenRenewal() {
+        scheduledExecutorService.execute(() -> {
+            var tokenLookUpResult = lookUpToken(INITIAL_TIMEOUT_SECONDS);
+
+            if (tokenLookUpResult.failed()) {
+                monitor.warning("Initial token look up failed with reason: %s".formatted(tokenLookUpResult.getFailureDetail()));
+                return;
+            }
+
+            var tokenLookUpResponse = tokenLookUpResult.getContent();
+
+            if (tokenLookUpResponse.getData().isRenewable()) {
+                var tokenRenewResult = renewToken(tokenLookUpResponse.getData().getTtl());
+
+                if (tokenRenewResult.failed()) {
+                    monitor.warning("Initial token renewal failed with reason: %s".formatted(tokenRenewResult.getFailureDetail()));
+                    return;
+                }
+
+                var tokenRenewResponse = tokenRenewResult.getContent();
+                scheduleNextTokenRenewal(tokenRenewResponse.getAuth().getLeaseDuration());
+            }
+        });
+    }
+
+    /**
+     * Attempts to look up the Vault token defined in the configurations.
+     * <p>
+     * Will retry in some error cases.
+     *
+     * @param retryTimeout the retry timeout in seconds. Set this to 0 for no retries.
+     * @return the result of the token lookup operation
+     */
+    public Result<TokenLookUpResponse> lookUpToken(long retryTimeout) {
+        var uri = getVaultUrl()
                 .newBuilder()
                 .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
         var request = httpGet(uri);
 
-        try (var response = httpClient.execute(request)) {
+        try (var response = executeWithRetry(request, retryTimeout)) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
                     return Result.failure("Token look up returned empty body");
                 }
-                var payload = objectMapper.readValue(responseBody.string(), TokenLookUpResponsePayload.class);
-                return Result.success(payload.getToken());
+                var payload = objectMapper.readValue(responseBody.string(), TokenLookUpResponse.class);
+                return Result.success(payload);
             } else {
                 return Result.failure("Token look up failed with status %d".formatted(response.code()));
             }
-        } catch (IOException e) {
-            monitor.warning("Failed to look up token with reason: %s".formatted(e.getMessage()));
-            return Result.failure("Token look up failed");
+        } catch (ExecutionException | InterruptedException | IOException e) {
+            var errMsg = "Failed to look up token with reason: %s".formatted(e.getMessage());
+            monitor.warning(errMsg, e);
+            return Result.failure(errMsg);
         }
     }
 
-    Result<TokenRenewalResponsePayloadToken> renewToken() {
-        var uri = Objects.requireNonNull(HttpUrl.parse(configValues.url()))
+    /**
+     * Attempts to renew the Vault token with the configured ttl. Note that Vault will not honor the passed
+     * ttl (or increment) for periodic tokens. Therefore, the ttl returned by this operation should always be used
+     * for further calculations.
+     * <p>
+     * Will retry in some error cases.
+     *
+     * @param retryTimeout the retry timeout in seconds. Set this to 0 for no retries.
+     * @return the result of the token renewal operation
+     */
+    public Result<TokenRenewResponse> renewToken(long retryTimeout) {
+        var uri = getVaultUrl()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(TOKEN_RENEW_SELF_PATH))
                 .build();
-        var requestPayload = TokenRenewalRequestPayload.Builder
+        // Vault will not honor the passed ttl (or increment) for periodic tokens
+        // therefore the ttl returned by the Vault should always be used for further calculations
+        var requestPayload = TokenRenewRequest.Builder
                 .newInstance()
-                .increment(configValues.timeToLive())
+                .increment(configValues.ttl())
                 .build();
         var request = httpPost(uri, requestPayload);
 
-        try (var response = httpClient.execute(request)) {
+        try (var response = executeWithRetry(request, retryTimeout)) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
                     return Result.failure("Token renew returned empty body");
                 }
-                var payload = objectMapper.readValue(responseBody.string(), TokenRenewalResponsePayload.class);
+                var payload = objectMapper.readValue(responseBody.string(), TokenRenewResponse.class);
                 if (!payload.getWarnings().isEmpty()) {
                     var warnings = String.join(DELIMITER, payload.getWarnings());
                     monitor.warning("Token renew returned: " + warnings);
                 }
-                return Result.success(payload.getToken());
+                return Result.success(payload);
             } else {
-                return Result.failure("Token renew failed with status %d".formatted(response.code()));
+                return Result.failure("Token renew failed with status: %d".formatted(response.code()));
             }
-        } catch (IOException e) {
-            monitor.warning("Failed to renew token: %s".formatted(e.getMessage()));
-            return Result.failure("Failed to renew token");
+        } catch (ExecutionException | InterruptedException | IOException e) {
+            var errMsg = "Failed to renew token with reason: %s".formatted(e.getMessage());
+            monitor.warning(errMsg, e);
+            return Result.failure(errMsg);
         }
     }
 
-    void scheduleNextTokenRenewal(long timeToLive) {
-        var delay = timeToLive - configValues.renewBuffer();
+    private void scheduleNextTokenRenewal(long ttl) {
+        var renewBuffer = configValues.renewBuffer();
+        var delay = ttl - renewBuffer;
 
         scheduledExecutorService.schedule(() -> {
-            var tokenRenewResult = renewToken();
+            var tokenRenewResult = renewToken(renewBuffer);
 
             if (tokenRenewResult.succeeded()) {
-                var token = tokenRenewResult.getContent();
-                scheduleNextTokenRenewal(token.getTimeToLive());
+                var tokenRenewResponse = tokenRenewResult.getContent();
+                scheduleNextTokenRenewal(tokenRenewResponse.getAuth().getLeaseDuration());
             } else {
                 monitor.warning("Scheduled token renewal failed: %s".formatted(tokenRenewResult.getFailureDetail()));
             }
         }, delay, TimeUnit.SECONDS);
     }
 
-    Result<String> getSecretValue(@NotNull String key) {
+    public Result<String> getSecretValue(@NotNull String key) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var request = httpGet(requestUri);
 
@@ -212,12 +265,13 @@ class HashicorpVaultClient {
             }
 
         } catch (IOException e) {
-            monitor.warning("Failed to get secret %s with reason: %s".formatted(key, e.getMessage()));
-            return Result.failure("Failed to get secret");
+            var errMsg = "Failed to get secret %s with reason: %s".formatted(key, e.getMessage());
+            monitor.warning(errMsg, e);
+            return Result.failure(errMsg);
         }
     }
 
-    Result<CreateEntryResponsePayload> setSecret(@NotNull String key, @NotNull String value) {
+    public Result<CreateEntryResponsePayload> setSecret(@NotNull String key, @NotNull String value) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var requestPayload = CreateEntryRequestPayload.Builder.newInstance()
                 .data(Collections.singletonMap(VAULT_DATA_ENTRY_NAME, value))
@@ -230,7 +284,10 @@ class HashicorpVaultClient {
 
         try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
-                var responseBody = Objects.requireNonNull(response.body()).string();
+                if (response.body() == null) {
+                    return Result.failure("Setting secret %s returned empty body".formatted(key));
+                }
+                var responseBody = response.body().string();
                 var responsePayload =
                         objectMapper.readValue(responseBody, CreateEntryResponsePayload.class);
                 return Result.success(responsePayload);
@@ -238,12 +295,13 @@ class HashicorpVaultClient {
                 return Result.failure("Failed to set secret %s with status %d".formatted(key, response.code()));
             }
         } catch (IOException e) {
-            monitor.warning("Failed to set secret %s with reason: %s".formatted(key, e.getMessage()));
-            return Result.failure("Failed to set secret");
+            var errMsg = "Failed to set secret %s with reason: %s".formatted(key, e.getMessage());
+            monitor.warning(errMsg, e);
+            return Result.failure(errMsg);
         }
     }
 
-    Result<Void> destroySecret(@NotNull String key) {
+    public Result<Void> destroySecret(@NotNull String key) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
         var request = new Request.Builder().url(requestUri).headers(headers).delete().build();
 
@@ -252,20 +310,35 @@ class HashicorpVaultClient {
                     ? Result.success()
                     : Result.failure("Failed to destroy secret %s with status %d".formatted(key, response.code()));
         } catch (IOException e) {
-            monitor.warning("Failed to destroy secret %s with reason: %s".formatted(key, e.getMessage()));
-            return Result.failure("Failed to destroy secret");
+            var errMsg = "Failed to destroy secret %s with reason: %s".formatted(key, e.getMessage());
+            monitor.warning(errMsg, e);
+            return Result.failure(errMsg);
         }
     }
 
+    @NotNull
+    private HttpUrl getVaultUrl() {
+        var httpUrl = HttpUrl.parse(configValues.url());
+
+        if (httpUrl == null) {
+            var errMsg = "Vault url is null";
+            monitor.warning(errMsg);
+            throw new EdcException(errMsg);
+        }
+
+        return httpUrl;
+    }
+
+    @NotNull
     private HttpUrl getHealthCheckUrl() {
-        final var vaultHealthPath = configValues.healthCheckPath();
-        final var isVaultHealthStandbyOk = configValues.healthStandbyOk();
+        var vaultHealthPath = configValues.healthCheckPath();
+        var isVaultHealthStandbyOk = configValues.healthStandbyOk();
 
         // by setting 'standbyok' and/or 'perfstandbyok' the vault will return an active
         // status
         // code instead of the standby status codes
 
-        return Objects.requireNonNull(HttpUrl.parse(configValues.url()))
+        return getVaultUrl()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultHealthPath))
                 .addQueryParameter("standbyok", isVaultHealthStandbyOk ? "true" : "false")
@@ -281,7 +354,7 @@ class HashicorpVaultClient {
 
         var vaultApiPath = configValues.secretPath();
 
-        return Objects.requireNonNull(HttpUrl.parse(configValues.url()))
+        return getVaultUrl()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType)
@@ -312,6 +385,50 @@ class HashicorpVaultClient {
         var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
         headersBuilder.add(VAULT_TOKEN_HEADER, configValues.token());
         return headersBuilder.build();
+    }
+
+    /**
+     * Executes the specified request synchronously. Failed requests will be retried with an exponential backoff (delay)
+     * defined as {@code exponentialBackoff = base^retries}.
+     * Given an exponential base of 1.5s the backoff will be 1.5s, 2.25, 3.375s, 5.09s, 7.59s, 11.3s, ...
+     * <p>
+     * Requests will be retried if
+     * <ol>
+     *     <li>the response status code is retryable and</li>
+     *     <li>execution time (delay) is within the remaining time</li>
+     * </ol>
+     * <p>
+     * This method is not relying on httpClient.execute(request, fallbacks) method since the http client retry policy
+     * might not fit the recovery time of the Vault.
+     *
+     * @param request        the request to execute
+     * @param timeoutSeconds timeout which will break the loop ultimately
+     * @return result of the http request
+     * @throws IOException          httpclient was not able to execute the request
+     * @throws ExecutionException   result of a retried http request could not be retrieved
+     * @throws InterruptedException execution was interrupted while waiting for the result of a retried http request
+     */
+    @NotNull
+    private Response executeWithRetry(Request request, long timeoutSeconds) throws IOException, ExecutionException, InterruptedException {
+        var retryCounter = 0;
+        var expBackoffSeconds = 0d;
+        Response response;
+
+        do {
+            var start = Instant.now();
+            var delayMillis = Math.round(expBackoffSeconds * 1000L);
+            var future = scheduledExecutorService.schedule(
+                    () -> httpClient.execute(request),
+                    delayMillis,
+                    TimeUnit.MILLISECONDS);
+            response = future.get();
+            expBackoffSeconds = Math.pow(configValues.retryBackoffBase(), retryCounter++);
+            var stop = Instant.now();
+            var duration = Duration.between(start, stop);
+            timeoutSeconds -= duration.getSeconds();
+        } while (!NON_RETRYABLE_STATUS_CODES.contains(response.code()) &&  expBackoffSeconds < timeoutSeconds);
+
+        return response;
     }
 
     private RequestBody createRequestBody(Object requestPayload) {

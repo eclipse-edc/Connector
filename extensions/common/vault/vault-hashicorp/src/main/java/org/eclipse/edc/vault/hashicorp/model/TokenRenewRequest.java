@@ -8,45 +8,51 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
 package org.eclipse.edc.vault.hashicorp.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Represents a Vault token renewal request.
  */
-public class TokenRenewalRequestPayload {
+public class TokenRenewRequest {
     private static final String INCREMENT_SECONDS_FORMAT = "%ds";
 
-    @JsonProperty("increment")
     private String increment;
 
-    private TokenRenewalRequestPayload() {}
+    private TokenRenewRequest() {}
+
+    public String getIncrement() {
+        return increment;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private final TokenRenewalRequestPayload tokenRenewalRequestPayload;
+        private final TokenRenewRequest tokenRenewalRequest;
 
         private Builder() {
-            tokenRenewalRequestPayload = new TokenRenewalRequestPayload();
+            tokenRenewalRequest = new TokenRenewRequest();
         }
 
-        public static TokenRenewalRequestPayload.Builder newInstance() {
-            return new TokenRenewalRequestPayload.Builder();
+        @JsonCreator
+        public static TokenRenewRequest.Builder newInstance() {
+            return new TokenRenewRequest.Builder();
         }
 
-        public TokenRenewalRequestPayload.Builder increment(int increment) {
-            tokenRenewalRequestPayload.increment = INCREMENT_SECONDS_FORMAT.formatted(increment);
+        @JsonProperty("increment")
+        public TokenRenewRequest.Builder increment(long increment) {
+            tokenRenewalRequest.increment = INCREMENT_SECONDS_FORMAT.formatted(increment);
             return this;
         }
 
-        public TokenRenewalRequestPayload build() {
-            return tokenRenewalRequestPayload;
+        public TokenRenewRequest build() {
+            return tokenRenewalRequest;
         }
     }
 }

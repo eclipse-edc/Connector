@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial Test
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
@@ -18,30 +18,31 @@ package org.eclipse.edc.vault.hashicorp;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponsePayloadToken;
-import org.eclipse.edc.vault.hashicorp.model.TokenRenewalResponsePayloadToken;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedConstruction;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -51,8 +52,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class HashicorpVaultExtensionTest {
-
-    private static final String DEFAULT_POLICY = "default";
 
     private HashicorpVaultExtension extension;
     private final ExecutorInstrumentation executorInstrumentation = mock();
@@ -68,158 +67,85 @@ class HashicorpVaultExtensionTest {
         when(context.getSetting(VAULT_TOKEN, null)).thenReturn("foo");
     }
 
-    @Nested
-    class Initialize {
+    @Test
+    void hashicorpVaultClient_whenVaultUrlUndefined_shouldThrowEdcException(ServiceExtensionContext context) {
+        when(context.getSetting(VAULT_URL, null)).thenReturn(null);
 
-        @Test
-        void initialize_whenVaultUrlUndefined_shouldThrowEdcException(ServiceExtensionContext context) {
-            when(context.getSetting(VAULT_URL, null)).thenReturn(null);
+        var throwable = assertThrows(EdcException.class, () -> extension.hashicorpVaultClient(context));
+        assertThat(throwable.getMessage()).isEqualTo("[Hashicorp Vault Extension] Vault URL must not be null");
+    }
 
-            assertThrows(EdcException.class, () -> extension.initialize(context));
-        }
+    @Test
+    void hashicorpVaultClient_whenVaultTokenUndefined_shouldThrowEdcException(ServiceExtensionContext context) {
+        when(context.getSetting(VAULT_TOKEN, null)).thenReturn(null);
 
-        @Test
-        void initialize_whenVaulTokenUndefined_shouldThrowEdcException(ServiceExtensionContext context) {
-            when(context.getSetting(VAULT_TOKEN, null)).thenReturn(null);
+        var throwable = assertThrows(EdcException.class, () -> extension.hashicorpVaultClient(context));
+        assertThat(throwable.getMessage()).isEqualTo("[Hashicorp Vault Extension] Vault token must not be null");
+    }
 
-            assertThrows(EdcException.class, () -> extension.initialize(context));
-        }
+    @ParameterizedTest
+    @ValueSource(doubles = {1.0, 0.9})
+    void hashicorpVaultClient_whenVaultRetryBackoffBaseNotGreaterThan1_shouldThrowEdcException(double value, ServiceExtensionContext context) {
+        when(context.getSetting(VAULT_RETRY_BACKOFF_BASE, VAULT_RETRY_BACKOFF_BASE_DEFAULT)).thenReturn(value);
 
-        @Test
-        void initialize_whenTokenLookUpFailed_shouldThrowEdcException(ServiceExtensionContext context) {
-            mockClient(
-                    (client, mockContext) -> when(client.lookUpToken()).thenReturn(Result.failure("403"))
-            ).accept(
-                    clientConstruction -> {
-                        extension.initialize(context);
-                        var thrown = assertThrows(EdcException.class,
-                                () -> extension.start(),
-                                "Expected token look up to throw");
-                        assertThat(thrown.getMessage()).isEqualTo("[Hashicorp Vault Extension] Initial token look up failed: 403");
-                        var client = clientConstruction.constructed().get(0);
-                        verify(client, never()).scheduleNextTokenRenewal(anyLong());
-                    });
-        }
+        var throwable = assertThrows(EdcException.class, () -> extension.hashicorpVaultClient(context));
+        assertThat(throwable.getMessage()).isEqualTo("[Hashicorp Vault Extension] Vault retry exponential backoff base be greater than 1");
+    }
 
-        @Test
-        void initialize_whenTokenRenewalFailed_shouldThrowEdcException(ServiceExtensionContext context) {
-            var tokenLookUpResponse = getTokenLookUpResponse(true);
+    @Test
+    void hashicorpVaultClient_whenVaultTokenTtlLessThanZero_shouldThrowEdcException(ServiceExtensionContext context) {
+        when(context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT)).thenReturn(-1L);
 
-            mockClient(
-                    (client, mockContext) -> {
-                        when(client.lookUpToken()).thenReturn(Result.success(tokenLookUpResponse));
-                        when(client.renewToken()).thenReturn(Result.failure("403"));
-                    }
-            ).accept(
-                    clientConstruction -> {
-                        extension.initialize(context);
+        var throwable = assertThrows(EdcException.class, () -> extension.hashicorpVaultClient(context));
+        assertThat(throwable.getMessage()).isEqualTo("[Hashicorp Vault Extension] Vault token ttl must not be negative");
+    }
 
-                        var thrown = assertThrows(EdcException.class,
-                                () -> extension.start(),
-                                "Expected token renewal to throw");
-                        assertThat(thrown.getMessage()).isEqualTo("[Hashicorp Vault Extension] Initial token renewal failed: 403");
-                        var client = clientConstruction.constructed().get(0);
-                        verify(client, never()).scheduleNextTokenRenewal(anyLong());
-                    });
+    @Test
+    void hashicorpVaultClient_whenVaultTokenRenewBufferLessThanZero_shouldThrowEdcException(ServiceExtensionContext context) {
+        when(context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT)).thenReturn(-1L);
+
+        var throwable = assertThrows(EdcException.class, () -> extension.hashicorpVaultClient(context));
+        assertThat(throwable.getMessage()).isEqualTo("[Hashicorp Vault Extension] Vault token renew buffer must not be negative");
+    }
+
+    @Test
+    void hashicorpVaultClient_whenVaultTokenRenewBufferGreaterThanTtl_shouldThrowEdcException(ServiceExtensionContext context) {
+        when(context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT)).thenReturn(10L);
+        when(context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT)).thenReturn(30L);
+
+        var throwable = assertThrows(EdcException.class, () -> extension.hashicorpVaultClient(context));
+        assertThat(throwable.getMessage()).isEqualTo("[Hashicorp Vault Extension] Vault token ttl must be greater than renew buffer");
+    }
+
+    @Test
+    void start_withScheduledTokenRenewalEnabled_shouldScheduleTokenRenewal(ServiceExtensionContext context) {
+        try (var mockedConstruction = mockConstruction(HashicorpVaultClient.class, (client, mockContext) -> {})) {
+            extension.hashicorpVaultClient(context);
+            extension.initialize(context);
+            extension.start();
+            var hashicorpVaultClient = mockedConstruction.constructed().get(0);
+            verify(hashicorpVaultClient).scheduleTokenRenewal();
         }
     }
 
-    @Nested
-    class Start {
-        @Test
-        void start_whenTokenIsValidAndRenewable_shouldScheduleNextTokenRenewal(ServiceExtensionContext context) {
-            var tokenLookUpResponse = getTokenLookUpResponse(true);
-            var renewTokenResponse = getRenewTokenResponse();
-
-            mockClient(
-                    (client, mockContext) -> {
-                        when(client.lookUpToken()).thenReturn(Result.success(tokenLookUpResponse));
-                        when(client.renewToken()).thenReturn(Result.success(renewTokenResponse));
-                    }
-            ).accept(
-                    clientConstruction -> {
-                        extension.initialize(context);
-                        extension.start();
-                        var client = clientConstruction.constructed().get(0);
-                        verify(client).renewToken();
-                        verify(client).scheduleNextTokenRenewal(eq(renewTokenResponse.getTimeToLive()));
-                    }
-            );
-        }
-
-        @Test
-        void start_whenTokenIsValidAndNotRenewable_shouldNotScheduleNextTokenRenewal(ServiceExtensionContext context) {
-            var tokenLookUpResponse = getTokenLookUpResponse(false);
-
-            mockClient(
-                    (client, mockContext) -> {
-                        when(client.lookUpToken()).thenReturn(Result.success(tokenLookUpResponse));
-                    }
-            ).accept(
-                    clientConstruction -> {
-                        extension.initialize(context);
-                        extension.start();
-                        var client = clientConstruction.constructed().get(0);
-                        verify(client, never()).renewToken();
-                        verify(client, never()).scheduleNextTokenRenewal(anyLong());
-                    }
-            );
+    @Test
+    void start_withScheduledTokenRenewalDisabled_shouldNotScheduleTokenRenewal(ServiceExtensionContext context) {
+        try (var mockedConstruction = mockConstruction(HashicorpVaultClient.class, (client, mockContext) -> {})) {
+            when(context.getSetting(VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED, VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT)).thenReturn(false);
+            extension.hashicorpVaultClient(context);
+            extension.initialize(context);
+            extension.start();
+            var hashicorpVaultClient = mockedConstruction.constructed().get(0);
+            verify(hashicorpVaultClient, never()).scheduleTokenRenewal();
         }
     }
 
-    @Nested
-    class Shutdown {
-
-        @Test
-        void shutdown_shouldShutdownScheduledExecutorService(ServiceExtensionContext context) {
-            var scheduledExecutorService = mock(ScheduledExecutorService.class);
-            when(executorInstrumentation.instrument(any(ScheduledExecutorService.class), eq(extension.name()))).thenReturn(scheduledExecutorService);
-            var tokenLookUpResponse = getTokenLookUpResponse(false);
-            mockClient(
-                    (client, mockContext) -> {
-                        when(client.lookUpToken()).thenReturn(Result.success(tokenLookUpResponse));
-                    }
-            ).accept(
-                    clientConstruction -> {
-                        extension.initialize(context);
-                        extension.shutdown();
-                        verify(scheduledExecutorService).shutdownNow();
-                    }
-            );
-        }
+    @Test
+    void shutdown_shouldShutdownScheduledExecutorService(ServiceExtensionContext context) {
+        var scheduledExecutorService = mock(ScheduledExecutorService.class);
+        when(executorInstrumentation.instrument(any(ScheduledExecutorService.class), eq(extension.name()))).thenReturn(scheduledExecutorService);
+        extension.initialize(context);
+        extension.shutdown();
+        verify(scheduledExecutorService).shutdownNow();
     }
-
-    private static TokenLookUpResponsePayloadToken getTokenLookUpResponse(boolean isRenewable) {
-        return TokenLookUpResponsePayloadToken.Builder.newInstance()
-                .isRenewable(isRenewable)
-                .policies(List.of(DEFAULT_POLICY))
-                .build();
-    }
-
-    private static TokenRenewalResponsePayloadToken getRenewTokenResponse() {
-        return TokenRenewalResponsePayloadToken.Builder.newInstance()
-                .timeToLive(100L)
-                .build();
-    }
-
-    private static MockedClient mockClient(MockedConstruction.MockInitializer<HashicorpVaultClient> mockInitializer) {
-        return new MockedClient(mockInitializer);
-    }
-
-    /**
-     * Helper class which allows to capture the construction of {@link HashicorpVaultClient} inside private method
-     * {@link HashicorpVaultExtension#initHashicorpVaultClient(HashicorpVaultConfig, Monitor)}.
-     *
-     * @param mockInitializer defines how the mocked client should behave
-     */
-    private record MockedClient(MockedConstruction.MockInitializer<HashicorpVaultClient> mockInitializer) implements Consumer<Consumer<MockedConstruction<HashicorpVaultClient>>> {
-
-        @Override
-        public void accept(Consumer<MockedConstruction<HashicorpVaultClient>> consumer) {
-            try (var clientConstruction = mockConstruction(HashicorpVaultClient.class, mockInitializer)) {
-                consumer.accept(clientConstruction);
-            }
-        }
-    }
-
 }

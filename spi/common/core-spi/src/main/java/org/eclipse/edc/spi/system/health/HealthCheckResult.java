@@ -45,8 +45,7 @@ public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCh
     }
 
     public static HealthCheckResult failed(List<String> errors) {
-        var filteredErrors = errors.stream().filter(Objects::nonNull).toList();
-        return new HealthCheckResult(false, new Failure(filteredErrors));
+        return new HealthCheckResult(false, new Failure(errors));
     }
 
     @JsonProperty("isHealthy")

@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
@@ -16,16 +16,20 @@ package org.eclipse.edc.vault.hashicorp;
 
 import java.time.Duration;
 
+/**
+ * Value container for {@link HashicorpVaultConfig} configurations.
+ */
 public class HashicorpVaultConfigValues {
 
     private String url;
     private boolean healthCheckEnabled;
     private String healthCheckPath;
     private boolean healthStandbyOk;
+    private double retryBackoffBase;
     private Duration timeoutDuration;
     private String token;
-    private int timeToLive;
-    private int renewBuffer;
+    private long ttl;
+    private long renewBuffer;
     private String secretPath;
 
     private HashicorpVaultConfigValues() {}
@@ -46,6 +50,10 @@ public class HashicorpVaultConfigValues {
         return healthStandbyOk;
     }
 
+    public double retryBackoffBase() {
+        return retryBackoffBase;
+    }
+
     public Duration timeoutDuration() {
         return timeoutDuration;
     }
@@ -54,11 +62,11 @@ public class HashicorpVaultConfigValues {
         return token;
     }
 
-    public int timeToLive() {
-        return timeToLive;
+    public long ttl() {
+        return ttl;
     }
 
-    public int renewBuffer() {
+    public long renewBuffer() {
         return renewBuffer;
     }
 
@@ -97,6 +105,11 @@ public class HashicorpVaultConfigValues {
             return this;
         }
 
+        public Builder retryBackoffBase(double retryBackoffBase) {
+            values.retryBackoffBase = retryBackoffBase;
+            return this;
+        }
+
         public Builder timeoutDuration(Duration timeoutDuration) {
             values.timeoutDuration = timeoutDuration;
             return this;
@@ -107,12 +120,12 @@ public class HashicorpVaultConfigValues {
             return this;
         }
 
-        public Builder timeToLive(int timeToLive) {
-            values.timeToLive = timeToLive;
+        public Builder ttl(long ttl) {
+            values.ttl = ttl;
             return this;
         }
 
-        public Builder renewBuffer(int renewBuffer) {
+        public Builder renewBuffer(long renewBuffer) {
             values.renewBuffer = renewBuffer;
             return this;
         }

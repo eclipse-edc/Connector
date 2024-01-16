@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
@@ -22,9 +22,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.CertificateResolver;
-import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -42,18 +40,24 @@ import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_STANDBY_OK;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TIMEOUT_SECONDS;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TIMEOUT_SECONDS_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL_SECONDS_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
 
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault Extension";
+
+    private static final int CORE_POOL_SIZE = 2;
 
     @Inject
     private EdcHttpClient httpClient;
@@ -64,11 +68,10 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
-    private Vault vault;
-    private PrivateKeyResolver privateKeyResolver;
     private ScheduledExecutorService scheduledExecutorService;
     private HashicorpVaultClient hashicorpVaultClient;
     private Monitor monitor;
+    private boolean isScheduledTokenRenewalEnabled;
 
     @Override
     public String name() {
@@ -76,54 +79,26 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     @Provider
-    public Vault vault() {
-        return vault;
-    }
-
-    @Provider
-    public PrivateKeyResolver privateKeyResolver() {
-        return privateKeyResolver;
-    }
-
-    @Provider
-    public HashicorpVaultClient hashicorpVaultClient() {
+    public HashicorpVaultClient hashicorpVaultClient(ServiceExtensionContext context) {
+        hashicorpVaultClient = hashicorpVaultClient == null ? createHashicorpVaultClient(context, monitor) : hashicorpVaultClient;
         return hashicorpVaultClient;
+    }
+
+    @Provider
+    public Vault hashicorpVault(ServiceExtensionContext context) {
+        return new HashicorpVault(hashicorpVaultClient(context), monitor);
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), NAME);
         monitor = context.getMonitor().withPrefix(NAME);
-        hashicorpVaultClient = createHashicorpVaultClient(context, monitor);
-        vault = new HashicorpVault(hashicorpVaultClient, monitor);
-        privateKeyResolver = new VaultPrivateKeyResolver(vault);
-        context.registerService(CertificateResolver.class, new HashicorpCertificateResolver(vault, monitor));
+        scheduledExecutorService = executorInstrumentation.instrument(Executors.newScheduledThreadPool(CORE_POOL_SIZE), NAME);
+        isScheduledTokenRenewalEnabled = context.getSetting(VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED, VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT);
     }
 
     @Override
     public void start() {
-        var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
-
-        if (tokenLookUpResult.failed()) {
-            throw new EdcException("[%s] Initial token look up failed: %s".formatted(NAME, tokenLookUpResult.getFailureDetail()));
-        }
-
-        var tokenLookUp = tokenLookUpResult.getContent();
-
-        if (tokenLookUp.isRootToken()) {
-            monitor.warning("Root token detected. Do not use root tokens in production environment.");
-        }
-
-        if (tokenLookUp.isRenewable()) {
-            var tokenRenewResult = hashicorpVaultClient.renewToken();
-
-            if (tokenRenewResult.failed()) {
-                throw new EdcException("[%s] Initial token renewal failed: %s".formatted(NAME, tokenRenewResult.getFailureDetail()));
-            }
-
-            var tokenRenew = tokenRenewResult.getContent();
-            hashicorpVaultClient.scheduleNextTokenRenewal(tokenRenew.getTimeToLive());
-        }
+        if (isScheduledTokenRenewalEnabled) hashicorpVaultClient.scheduleTokenRenewal();
     }
 
     @Override
@@ -145,20 +120,32 @@ public class HashicorpVaultExtension implements ServiceExtension {
     private HashicorpVaultConfigValues getConfigValues(ServiceExtensionContext context) {
         var url = context.getSetting(VAULT_URL, null);
         if (url == null) {
-            throw new EdcException("[%s] Vault URL must not be null");
+            throw new EdcException("[%s] Vault URL must not be null".formatted(NAME));
         }
-
+        var token = context.getSetting(VAULT_TOKEN, null);
+        if (token == null) {
+            throw new EdcException("[%s] Vault token must not be null".formatted(NAME));
+        }
         var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
         var healthCheckPath = context.getSetting(VAULT_API_HEALTH_PATH, VAULT_API_HEALTH_PATH_DEFAULT);
         var healthStandbyOk = context.getSetting(VAULT_HEALTH_CHECK_STANDBY_OK, VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT);
         var timeoutSeconds = Math.max(0, context.getSetting(VAULT_TIMEOUT_SECONDS, VAULT_TIMEOUT_SECONDS_DEFAULT));
         var timeoutDuration = Duration.ofSeconds(timeoutSeconds);
-        var token = context.getSetting(VAULT_TOKEN, null);
-        if (null == token) {
-            throw new EdcException("[%s] Vault token must not be null");
+        var retryBackoffBase = context.getSetting(VAULT_RETRY_BACKOFF_BASE, VAULT_RETRY_BACKOFF_BASE_DEFAULT);
+        if (retryBackoffBase <= 1.0) {
+            throw new EdcException("[%s] Vault retry exponential backoff base be greater than 1".formatted(NAME));
         }
-        var timeToLive = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_SECONDS_DEFAULT);
+        var ttl = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT);
+        if (ttl < 0) {
+            throw new EdcException("[%s] Vault token ttl must not be negative".formatted(NAME));
+        }
         var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
+        if (renewBuffer < 0) {
+            throw new EdcException("[%s] Vault token renew buffer must not be negative".formatted(NAME));
+        }
+        if (ttl < renewBuffer) {
+            throw new EdcException("[%s] Vault token ttl must be greater than renew buffer".formatted(NAME));
+        }
         var secretPath = context.getSetting(VAULT_API_SECRET_PATH, VAULT_API_SECRET_PATH_DEFAULT);
 
         return HashicorpVaultConfigValues.Builder.newInstance()
@@ -167,8 +154,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
                 .healthCheckPath(healthCheckPath)
                 .healthStandbyOk(healthStandbyOk)
                 .timeoutDuration(timeoutDuration)
+                .retryBackoffBase(retryBackoffBase)
                 .token(token)
-                .timeToLive(timeToLive)
+                .ttl(ttl)
                 .renewBuffer(renewBuffer)
                 .secretPath(secretPath)
                 .build();

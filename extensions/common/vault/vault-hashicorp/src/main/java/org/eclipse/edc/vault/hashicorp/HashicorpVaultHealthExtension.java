@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
- *       Mercedes-Benz Tech Innovation GmbH - Add token rotation mechanism
+ *       Mercedes-Benz Tech Innovation GmbH - Implement automatic Hashicorp Vault token renewal
  *
  */
 
@@ -55,7 +55,7 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
         var monitor = context.getMonitor().withPrefix(NAME);
         var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
         if (healthCheckEnabled) {
-            var healthCheck = new HashicorpVaultHealthCheck(client, context.getMonitor());
+            var healthCheck = new HashicorpVaultHealthCheck(client, monitor);
             healthCheckService.addLivenessProvider(healthCheck);
             healthCheckService.addReadinessProvider(healthCheck);
             healthCheckService.addStartupStatusProvider(healthCheck);
