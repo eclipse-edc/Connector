@@ -193,7 +193,7 @@ public class HashicorpVaultClient {
     public Result<TokenRenewResponse> renewToken(long retryTimeout) {
         var uri = getVaultUrl()
                 .newBuilder()
-                .addPathSegments(PathUtil.trimLeadingOrEndingSlash(TOKEN_RENEW_SELF_PATH))
+                .addPathSegments(TOKEN_RENEW_SELF_PATH)
                 .build();
         var requestPayload = TokenRenewRequest.Builder
                 .newInstance()

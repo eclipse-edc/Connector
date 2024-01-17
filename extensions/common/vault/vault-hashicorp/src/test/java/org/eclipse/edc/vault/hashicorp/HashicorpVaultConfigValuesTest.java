@@ -75,7 +75,7 @@ public class HashicorpVaultConfigValuesTest {
 
     @ParameterizedTest
     @ValueSource(doubles = {1.0, 0.9})
-    void createConfigValues_whenVaultRetryBackoffBaseNotGreaterThan1_shouldThrowException(double value) {
+    void createConfigValues_withVaultRetryBackoffBaseNotGreaterThan1_shouldThrowException(double value) {
         var throwable = assertThrows(Exception.class, () -> createConfigValues(
                 URL,
                 value,
@@ -98,7 +98,7 @@ public class HashicorpVaultConfigValuesTest {
 
     @ParameterizedTest
     @ValueSource(longs = {VAULT_TOKEN_TTL_DEFAULT, VAULT_TOKEN_TTL_DEFAULT + 1})
-    void createConfigValues_whenVaultTokenRenewBufferLessThan5_shouldThrowException(long value) {
+    void createConfigValues_withVaultTokenRenewBufferEqualOrGreaterThanTtl_shouldThrowException(long value) {
         var throwable = assertThrows(Exception.class, () -> createConfigValues(
                 URL,
                 VAULT_RETRY_BACKOFF_BASE_DEFAULT,
