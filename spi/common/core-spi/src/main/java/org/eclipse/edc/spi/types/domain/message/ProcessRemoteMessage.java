@@ -103,7 +103,7 @@ public abstract class ProcessRemoteMessage implements RemoteMessage {
         }
     }
 
-    protected static class Builder<M extends ProcessRemoteMessage, B extends Builder<M, B>> {
+    public static class Builder<M extends ProcessRemoteMessage, B extends Builder<M, B>> {
         protected final M message;
 
         protected Builder(M message) {

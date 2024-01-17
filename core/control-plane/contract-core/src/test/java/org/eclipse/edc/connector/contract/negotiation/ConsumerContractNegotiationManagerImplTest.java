@@ -201,7 +201,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void accepting_shouldSendAgreementAndTransitionToApproved() {
+    void accepting_shouldSendAcceptedMessageAndTransitionToApproved() {
         var negotiation = contractNegotiationBuilder().state(ACCEPTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(ACCEPTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));

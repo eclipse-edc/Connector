@@ -74,6 +74,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .jsonColumn(getCallbackAddressesColumn())
                 .column(getPendingColumn())
                 .column(getTransferTypeColumn())
+                .jsonColumn(getProtocolMessagesColumn())
                 .insertInto(getTransferProcessTableName());
     }
 
@@ -98,6 +99,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .jsonColumn(getCallbackAddressesColumn())
                 .column(getPendingColumn())
                 .column(getTransferTypeColumn())
+                .jsonColumn(getProtocolMessagesColumn())
                 .update(getTransferProcessTableName(), getIdColumn());
     }
 

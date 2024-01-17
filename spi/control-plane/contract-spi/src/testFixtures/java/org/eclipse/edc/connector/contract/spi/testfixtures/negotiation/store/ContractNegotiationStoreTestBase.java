@@ -68,17 +68,16 @@ public abstract class ContractNegotiationStoreTestBase {
 
     @Nested
     class FindById {
+
         @Test
-        @DisplayName("Verify that an entity is found by ID")
         void shouldFindEntityById() {
             var id = "test-cn1";
             var negotiation = createNegotiation(id);
-
             getContractNegotiationStore().save(negotiation);
 
-            assertThat(getContractNegotiationStore().findById(id))
-                    .usingRecursiveComparison()
-                    .isEqualTo(negotiation);
+            var actual = getContractNegotiationStore().findById(id);
+
+            assertThat(actual).usingRecursiveComparison().isEqualTo(negotiation);
         }
 
         @Test
