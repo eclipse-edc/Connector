@@ -16,7 +16,6 @@
 package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -25,8 +24,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.concurrent.ScheduledExecutorService;
 
