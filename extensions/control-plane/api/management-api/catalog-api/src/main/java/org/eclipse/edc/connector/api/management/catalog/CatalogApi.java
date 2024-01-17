@@ -172,7 +172,7 @@ public interface CatalogApi {
                         "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
                         "dct": "https://purl.org/dc/terms/",
                         "edc": "https://w3id.org/edc/v0.0.1/ns/",
-                        "dcat": "https://www.w3.org/ns/dcat/",
+                        "dcat": "http://www.w3.org/ns/dcat#",
                         "odrl": "http://www.w3.org/ns/odrl/2/",
                         "dspace": "https://w3id.org/dspace/v0.8/"
                     }
@@ -233,7 +233,7 @@ public interface CatalogApi {
                         "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
                         "dct": "https://purl.org/dc/terms/",
                         "edc": "https://w3id.org/edc/v0.0.1/ns/",
-                        "dcat": "https://www.w3.org/ns/dcat/",
+                        "dcat": "http://www.w3.org/ns/dcat#",
                         "odrl": "http://www.w3.org/ns/odrl/2/",
                         "dspace": "https://w3id.org/dspace/v0.8/"
                     }
