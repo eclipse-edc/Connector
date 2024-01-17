@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -21,12 +21,13 @@ import java.util.List;
 /**
  * Component that can translate a canonical field path into a sql column name or path.
  */
+@FunctionalInterface
 public interface FieldTranslator {
 
     /**
      * Get left operand for a SQL query given the canonical path name and the type
      *
-     * @param pathName the path name.
+     * @param path the path.
      * @param type the type.
      * @return the left operand.
      */
