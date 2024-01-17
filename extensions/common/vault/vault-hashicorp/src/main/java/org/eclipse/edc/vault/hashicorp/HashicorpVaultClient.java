@@ -124,7 +124,7 @@ public class HashicorpVaultClient {
      */
     public void scheduleTokenRenewal() {
         scheduledExecutorService.execute(() -> {
-            var tokenLookUpResult = lookUpToken(INITIAL_TIMEOUT_SECONDS);
+            var tokenLookUpResult = lookUpToken(configValues.ttl());
 
             if (tokenLookUpResult.failed()) {
                 monitor.warning("Initial token look up failed with reason: %s".formatted(tokenLookUpResult.getFailureDetail()));

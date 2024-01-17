@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import java.time.Duration;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Value container for {@link HashicorpVaultConfig} configurations.
@@ -26,7 +26,6 @@ public class HashicorpVaultConfigValues {
     private String healthCheckPath;
     private boolean healthStandbyOk;
     private double retryBackoffBase;
-    private Duration timeoutDuration;
     private String token;
     private long ttl;
     private long renewBuffer;
@@ -52,10 +51,6 @@ public class HashicorpVaultConfigValues {
 
     public double retryBackoffBase() {
         return retryBackoffBase;
-    }
-
-    public Duration timeoutDuration() {
-        return timeoutDuration;
     }
 
     public String token() {
@@ -110,11 +105,6 @@ public class HashicorpVaultConfigValues {
             return this;
         }
 
-        public Builder timeoutDuration(Duration timeoutDuration) {
-            values.timeoutDuration = timeoutDuration;
-            return this;
-        }
-
         public Builder token(String token) {
             values.token = token;
             return this;
@@ -136,6 +126,21 @@ public class HashicorpVaultConfigValues {
         }
 
         public HashicorpVaultConfigValues build() {
+            requireNonNull(values.url, "Vault url must not be null");
+            requireNonNull(values.token, "Vault token must not be null");
+
+            if (values.retryBackoffBase <= 1.0) {
+                throw new IllegalArgumentException("Vault retry exponential backoff base be greater than 1");
+            }
+
+            if (values.ttl < 5) {
+                throw new IllegalArgumentException("Vault token ttl minimum value is 5");
+            }
+
+            if (values.renewBuffer >= values.ttl) {
+                throw new IllegalArgumentException("Vault token renew buffer value must be less than ttl value");
+            }
+
             return values;
         }
     }

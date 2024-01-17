@@ -18,7 +18,6 @@ package org.eclipse.edc.vault.hashicorp;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
@@ -106,7 +105,29 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     private HashicorpVaultClient createHashicorpVaultClient(ServiceExtensionContext context, Monitor monitor) {
-        var configValues = getConfigValues(context);
+        var url = context.getSetting(VAULT_URL, null);
+        var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
+        var healthCheckPath = context.getSetting(VAULT_API_HEALTH_PATH, VAULT_API_HEALTH_PATH_DEFAULT);
+        var healthStandbyOk = context.getSetting(VAULT_HEALTH_CHECK_STANDBY_OK, VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT);
+        var retryBackoffBase = context.getSetting(VAULT_RETRY_BACKOFF_BASE, VAULT_RETRY_BACKOFF_BASE_DEFAULT);
+        var timeoutSeconds = Math.max(0, context.getSetting(VAULT_TIMEOUT_SECONDS, VAULT_TIMEOUT_SECONDS_DEFAULT));
+        var timeoutDuration = Duration.ofSeconds(timeoutSeconds);
+        var token = context.getSetting(VAULT_TOKEN, null);
+        var ttl = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT);
+        var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
+        var secretPath = context.getSetting(VAULT_API_SECRET_PATH, VAULT_API_SECRET_PATH_DEFAULT);
+
+        var configValues = HashicorpVaultConfigValues.Builder.newInstance()
+                .url(url)
+                .healthCheckEnabled(healthCheckEnabled)
+                .healthCheckPath(healthCheckPath)
+                .healthStandbyOk(healthStandbyOk)
+                .retryBackoffBase(retryBackoffBase)
+                .token(token)
+                .ttl(ttl)
+                .renewBuffer(renewBuffer)
+                .secretPath(secretPath)
+                .build();
 
         return new HashicorpVaultClient(
                 httpClient,
@@ -114,50 +135,5 @@ public class HashicorpVaultExtension implements ServiceExtension {
                 scheduledExecutorService,
                 monitor,
                 configValues);
-    }
-
-    private HashicorpVaultConfigValues getConfigValues(ServiceExtensionContext context) {
-        var url = context.getSetting(VAULT_URL, null);
-        if (url == null) {
-            throw new EdcException("[%s] Vault URL must not be null".formatted(NAME));
-        }
-        var token = context.getSetting(VAULT_TOKEN, null);
-        if (token == null) {
-            throw new EdcException("[%s] Vault token must not be null".formatted(NAME));
-        }
-        var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
-        var healthCheckPath = context.getSetting(VAULT_API_HEALTH_PATH, VAULT_API_HEALTH_PATH_DEFAULT);
-        var healthStandbyOk = context.getSetting(VAULT_HEALTH_CHECK_STANDBY_OK, VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT);
-        var timeoutSeconds = Math.max(0, context.getSetting(VAULT_TIMEOUT_SECONDS, VAULT_TIMEOUT_SECONDS_DEFAULT));
-        var timeoutDuration = Duration.ofSeconds(timeoutSeconds);
-        var retryBackoffBase = context.getSetting(VAULT_RETRY_BACKOFF_BASE, VAULT_RETRY_BACKOFF_BASE_DEFAULT);
-        if (retryBackoffBase <= 1.0) {
-            throw new EdcException("[%s] Vault retry exponential backoff base be greater than 1".formatted(NAME));
-        }
-        var ttl = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT);
-        if (ttl < 0) {
-            throw new EdcException("[%s] Vault token ttl must not be negative".formatted(NAME));
-        }
-        var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
-        if (renewBuffer < 0) {
-            throw new EdcException("[%s] Vault token renew buffer must not be negative".formatted(NAME));
-        }
-        if (ttl < renewBuffer) {
-            throw new EdcException("[%s] Vault token ttl must be greater than renew buffer".formatted(NAME));
-        }
-        var secretPath = context.getSetting(VAULT_API_SECRET_PATH, VAULT_API_SECRET_PATH_DEFAULT);
-
-        return HashicorpVaultConfigValues.Builder.newInstance()
-                .url(url)
-                .healthCheckEnabled(healthCheckEnabled)
-                .healthCheckPath(healthCheckPath)
-                .healthStandbyOk(healthStandbyOk)
-                .timeoutDuration(timeoutDuration)
-                .retryBackoffBase(retryBackoffBase)
-                .token(token)
-                .ttl(ttl)
-                .renewBuffer(renewBuffer)
-                .secretPath(secretPath)
-                .build();
     }
 }

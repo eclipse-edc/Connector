@@ -43,7 +43,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -71,25 +70,24 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 class HashicorpVaultClientTest {
 
-    private static final String VAULT_TOKEN = UUID.randomUUID().toString();
-    private static final long VAULT_TOKEN_TTL = 1L;
-    private static final String KEY = "key";
-    private static final String CUSTOM_SECRET_PATH = "v1/test/secret";
-    private static final String HEALTH_PATH = "sys/health";
-    private static final Duration TIMEOUT_DURATION = Duration.ofSeconds(30);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String VAULT_URL = "https://mock.url";
-    private static final long INITIAL_TIMEOUT_SECONDS = 30L;
+    private static final String HEALTH_PATH = "sys/health";
+    private static final String VAULT_TOKEN = UUID.randomUUID().toString();
+    private static final double RETRY_BACKOFF_BASE = 1.1;
+    private static final long VAULT_TOKEN_TTL = 5L;
+    private static final long RENEW_BUFFER = 4L;
+    private static final String CUSTOM_SECRET_PATH = "v1/test/secret";
+    private static final String KEY = "key";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final HashicorpVaultConfigValues HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultConfigValues.Builder.newInstance()
             .url(VAULT_URL)
-            .secretPath(CUSTOM_SECRET_PATH)
             .healthCheckPath(HEALTH_PATH)
             .healthStandbyOk(false)
-            .timeoutDuration(TIMEOUT_DURATION)
-            .retryBackoffBase(1.1)
+            .retryBackoffBase(RETRY_BACKOFF_BASE)
             .token(VAULT_TOKEN)
             .ttl(VAULT_TOKEN_TTL)
-            .renewBuffer(1)
+            .renewBuffer(RENEW_BUFFER)
+            .secretPath(CUSTOM_SECRET_PATH)
             .build();
 
     private final EdcHttpClient httpClient = mock();
@@ -342,7 +340,7 @@ class HashicorpVaultClientTest {
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
                 assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status %s".formatted(code));
-                // given an exp base of 1.01s it should retry once making for 2 http requests in total
+                // given an exp base of 1.1s it should retry once making for 2 http requests in total
                 verify(httpClient, times(2)).execute(any(Request.class));
             }
 
@@ -412,7 +410,7 @@ class HashicorpVaultClientTest {
                 var buffer = new Buffer();
                 Objects.requireNonNull(copy.body()).writeTo(buffer);
                 var tokenRenewRequest = OBJECT_MAPPER.readValue(buffer.readUtf8(), TokenRenewRequest.class);
-                // given a configured ttl of 1 this should equal "1s"
+                // given a configured ttl of 5 this should equal "5s"
                 assertThat(tokenRenewRequest.getIncrement()).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
                 assertThat(tokenRenewResult.succeeded()).isTrue();
                 assertThat(tokenRenewResult.succeeded()).isTrue();
@@ -489,7 +487,7 @@ class HashicorpVaultClientTest {
 
                 assertThat(tokenRenewResult.failed()).isTrue();
                 assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: %s".formatted(code));
-                // given an exp base of 1.01s it should retry once making for 2 http requests in total
+                // given an exp base of 1.1s it should retry once making for 2 http requests in total
                 verify(httpClient, times(2)).execute(any(Request.class));
             }
 
@@ -518,7 +516,7 @@ class HashicorpVaultClientTest {
                                     .renewable(true)
                                     .build())
                             .build();
-                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(INITIAL_TIMEOUT_SECONDS);
+                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
                     var tokenRenewResponse = TokenRenewResponse.Builder.newInstance()
                             .auth(TokenRenewAuth.Builder.newInstance()
                                     .ttl(2L)
@@ -538,12 +536,12 @@ class HashicorpVaultClientTest {
                     vaultClientSpy.scheduleTokenRenewal();
 
                     await()
-                            .atMost(5L, TimeUnit.SECONDS)
+                            .atMost(VAULT_TOKEN_TTL, TimeUnit.SECONDS)
                             .untilAsserted(() -> {
                                 verify(monitor, never()).warning(matches("Initial token look up failed with reason: *"));
                                 verify(monitor, never()).warning(matches("Initial token renewal failed with reason: *"));
                                 // verify initial token lookup and renewal
-                                verify(vaultClientSpy).lookUpToken(INITIAL_TIMEOUT_SECONDS);
+                                verify(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
                                 verify(vaultClientSpy).renewToken(tokenLookUpResponse.getData().getTtl());
                                 // verify that the renewal was called twice by the scheduleNextTokenRenewal method
                                 verify(vaultClientSpy, times(2)).renewToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.renewBuffer());
@@ -554,7 +552,7 @@ class HashicorpVaultClientTest {
                 @Test
                 void scheduleTokenRenewal_whenTokenLookUpFailed_shouldNotScheduleNextTokenRenewal() {
                     var vaultClientSpy = spy(vaultClient);
-                    doReturn(Result.failure("Token look up failed with status 403")).when(vaultClientSpy).lookUpToken(INITIAL_TIMEOUT_SECONDS);
+                    doReturn(Result.failure("Token look up failed with status 403")).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
 
                     vaultClientSpy.scheduleTokenRenewal();
 
@@ -575,7 +573,7 @@ class HashicorpVaultClientTest {
                                     .renewable(false)
                                     .build())
                             .build();
-                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(INITIAL_TIMEOUT_SECONDS);
+                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
 
                     vaultClientSpy.scheduleTokenRenewal();
 
@@ -595,7 +593,7 @@ class HashicorpVaultClientTest {
                                     .renewable(true)
                                     .build())
                             .build();
-                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(INITIAL_TIMEOUT_SECONDS);
+                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
                     doReturn(Result.failure("Token renew failed with status: 403")).when(vaultClientSpy).renewToken(anyLong());
 
                     vaultClientSpy.scheduleTokenRenewal();
