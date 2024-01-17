@@ -26,7 +26,6 @@ interface HashicorpVaultConfig {
     boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
     String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
     double VAULT_RETRY_BACKOFF_BASE_DEFAULT = 1.5;
-    long VAULT_TIMEOUT_SECONDS_DEFAULT = 30;
     boolean VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT = true;
     long VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 30;
     long VAULT_TOKEN_TTL_DEFAULT = 300;
@@ -47,9 +46,6 @@ interface HashicorpVaultConfig {
     @Setting(value = "Exponential base to calculate the retry backoff defined as (backoff = base^retries)", defaultValue = "1.5", type = "double")
     String VAULT_RETRY_BACKOFF_BASE = "edc.vault.hashicorp.retry.backoff-base";
 
-    @Setting(value = "Sets the timeout for HTTP requests to the vault, in seconds", defaultValue = "30", type = "long")
-    String VAULT_TIMEOUT_SECONDS = "edc.vault.hashicorp.timeout.seconds";
-
     @Setting(value = "The token used to access the Hashicorp Vault", required = true)
     String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
@@ -59,7 +55,7 @@ interface HashicorpVaultConfig {
     @Setting(value = "The time-to-live (ttl) value of the Hashicorp Vault token in seconds", defaultValue = "300", type = "long")
     String VAULT_TOKEN_TTL = "edc.vault.hashicorp.token.ttl";
 
-    @Setting(value = "The renew buffer of the Hashicorp Vault token in seconds", defaultValue = "10", type = "long")
+    @Setting(value = "The renew buffer of the Hashicorp Vault token in seconds", defaultValue = "30", type = "long")
     String VAULT_TOKEN_RENEW_BUFFER = "edc.vault.hashicorp.token.renew-buffer";
 
     @Setting(value = "The URL path of the vault's /secret endpoint", defaultValue = VAULT_API_SECRET_PATH_DEFAULT)

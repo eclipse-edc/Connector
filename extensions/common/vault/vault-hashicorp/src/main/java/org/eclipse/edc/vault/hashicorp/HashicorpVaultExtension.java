@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -40,8 +39,6 @@ import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TIMEOUT_SECONDS;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TIMEOUT_SECONDS_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
@@ -110,8 +107,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
         var healthCheckPath = context.getSetting(VAULT_API_HEALTH_PATH, VAULT_API_HEALTH_PATH_DEFAULT);
         var healthStandbyOk = context.getSetting(VAULT_HEALTH_CHECK_STANDBY_OK, VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT);
         var retryBackoffBase = context.getSetting(VAULT_RETRY_BACKOFF_BASE, VAULT_RETRY_BACKOFF_BASE_DEFAULT);
-        var timeoutSeconds = Math.max(0, context.getSetting(VAULT_TIMEOUT_SECONDS, VAULT_TIMEOUT_SECONDS_DEFAULT));
-        var timeoutDuration = Duration.ofSeconds(timeoutSeconds);
         var token = context.getSetting(VAULT_TOKEN, null);
         var ttl = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT);
         var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
