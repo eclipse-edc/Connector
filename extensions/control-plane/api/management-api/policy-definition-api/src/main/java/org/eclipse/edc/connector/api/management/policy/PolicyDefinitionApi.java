@@ -71,11 +71,11 @@ public interface PolicyDefinitionApi {
     )
     JsonObject createPolicyDefinition(JsonObject policyDefinition);
 
-    @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is only possible if that policy definition is not yet referenced " +
-            "by a contract definition, in which case an error is returned. " +
+    @Operation(description = "Removes a policy definition with the given ID if possible. Deleting a policy definition is " +
+            "only possible if that policy definition is not yet referenced by a contract definition, in which case an error is returned. " +
             "DANGER ZONE: Note that deleting policy definitions can have unexpected results, do this at your own risk!",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Policy definition was deleted successfully"),
+                    @ApiResponse(responseCode = "204", description = "Policy definition was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "An policy definition with the given ID does not exist",

@@ -78,7 +78,7 @@ public interface ContractDefinitionApi {
     @Operation(description = "Removes a contract definition with the given ID if possible. " +
             "DANGER ZONE: Note that deleting contract definitions can have unexpected results, especially for contract offers that have been sent out or ongoing or contract negotiations.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Contract definition was deleted successfully"),
+                    @ApiResponse(responseCode = "204", description = "Contract definition was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "A contract definition with the given ID does not exist",
