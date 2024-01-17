@@ -18,7 +18,6 @@ import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegis
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.IatpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.sts.embedded.EmbeddedSecureTokenService;
-import org.eclipse.edc.identitytrust.AudienceResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
 import org.eclipse.edc.identitytrust.TrustedIssuerRegistry;
 import org.eclipse.edc.identitytrust.scope.ScopeExtractorRegistry;
@@ -28,9 +27,11 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.token.JwtGenerationService;
 
 import java.security.PrivateKey;
@@ -92,9 +93,10 @@ public class IatpDefaultServicesExtension implements ServiceExtension {
         return new IatpScopeExtractorRegistry();
     }
 
+    // Default audience for IATP is the counter-party id
     @Provider(isDefault = true)
-    public AudienceResolver identityResolver() {
-        return identity -> identity;
+    public AudienceResolver defaultAudienceResolver() {
+        return RemoteMessage::getCounterPartyId;
     }
 
 }

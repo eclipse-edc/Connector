@@ -29,4 +29,10 @@ public interface RemoteMessage {
      */
     String getCounterPartyAddress();
 
+
+    /**
+     * Returns the recipient's id.
+     */
+    String getCounterPartyId();
+
 }

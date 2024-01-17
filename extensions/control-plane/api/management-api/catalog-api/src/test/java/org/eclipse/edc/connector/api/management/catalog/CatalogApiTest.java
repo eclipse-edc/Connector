@@ -76,6 +76,7 @@ class CatalogApiTest {
                         .satisfies(transformed -> {
                             assertThat(transformed.getProtocol()).isNotBlank();
                             assertThat(transformed.getCounterPartyAddress()).isNotBlank();
+                            assertThat(transformed.getCounterPartyId()).isNotBlank();
                             assertThat(transformed.getQuerySpec()).isNotNull();
                         }));
     }
@@ -93,6 +94,7 @@ class CatalogApiTest {
                 .extracting(e -> transformer.transform(e, DatasetRequest.class))
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
+                            assertThat(transformed.getProtocol()).isNotBlank();
                             assertThat(transformed.getProtocol()).isNotBlank();
                             assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                         }));

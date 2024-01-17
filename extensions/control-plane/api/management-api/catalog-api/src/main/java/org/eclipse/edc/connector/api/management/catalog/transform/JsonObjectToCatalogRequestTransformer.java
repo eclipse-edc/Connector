@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROVIDER_URL;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
@@ -41,6 +42,12 @@ public class JsonObjectToCatalogRequestTransformer extends AbstractJsonLdTransfo
                 .map(it -> it.get(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS))
                 .orElseGet(() -> object.get(CATALOG_REQUEST_PROVIDER_URL));
 
+
+        // For backward compatibility if the ID is not sent, fallback to the counterPartyAddress
+        var counterPartyId = Optional.of(object)
+                .map(it -> it.get(CATALOG_REQUEST_COUNTER_PARTY_ID))
+                .orElseGet(() -> counterPartyAddress);
+
         var querySpec = Optional.of(object)
                 .map(it -> it.get(CATALOG_REQUEST_QUERY_SPEC))
                 .map(it -> transformObject(it, QuerySpec.class, context))
@@ -49,6 +56,7 @@ public class JsonObjectToCatalogRequestTransformer extends AbstractJsonLdTransfo
         return CatalogRequest.Builder.newInstance()
                 .protocol(transformString(object.get(CATALOG_REQUEST_PROTOCOL), context))
                 .counterPartyAddress(transformString(counterPartyAddress, context))
+                .counterPartyId(transformString(counterPartyId, context))
                 .querySpec(querySpec)
                 .build();
     }

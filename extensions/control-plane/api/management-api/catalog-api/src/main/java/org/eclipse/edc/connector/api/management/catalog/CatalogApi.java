@@ -26,6 +26,7 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -68,6 +69,9 @@ public interface CatalogApi {
             String providerUrl,
             @Schema(requiredMode = REQUIRED)
             String counterPartyAddress,
+            // Switch to required in the next API iteration
+            @Schema(requiredMode = NOT_REQUIRED)
+            String counterPartyId,
             @Schema(requiredMode = REQUIRED)
             String protocol,
             ApiCoreSchema.QuerySpecSchema querySpec) {
@@ -77,6 +81,7 @@ public interface CatalogApi {
                     "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "CatalogRequest",
                     "counterPartyAddress": "http://provider-address",
+                    "counterPartyId": "providerId",
                     "protocol": "dataspace-protocol-http",
                     "querySpec": {
                         "offset": 0,
@@ -94,6 +99,7 @@ public interface CatalogApi {
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
             String type,
             String counterPartyAddress,
+            String counterPartyId,
             String protocol,
             ApiCoreSchema.QuerySpecSchema querySpec) {
 
@@ -103,6 +109,7 @@ public interface CatalogApi {
                     "@type": "DatasetRequest",
                     "@id": "dataset-id",
                     "counterPartyAddress": "http://counter-party-address",
+                    "counterPartyId": "counter-party-id",
                     "protocol": "dataspace-protocol-http"
                 }
                 """;

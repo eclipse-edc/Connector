@@ -26,4 +26,9 @@ public record TestMessage(String protocol, String counterPartyAddress) implement
     public String getCounterPartyAddress() {
         return counterPartyAddress;
     }
+    
+    @Override
+    public String getCounterPartyId() {
+        return null;
+    }
 }
