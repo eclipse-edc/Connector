@@ -283,7 +283,6 @@ class HashicorpVaultClientTest {
                 assertThat(data.getPath()).isEqualTo("auth/token/create");
                 assertThat(data.getPeriod()).isEqualTo("1h");
                 assertThat(data.getPolicies()).isEqualTo(List.of("default", "root"));
-                assertThat(data.isRootToken()).isTrue();
                 assertThat(data.isRenewable()).isTrue();
                 assertThat(data.getTtl()).isEqualTo(2589147L);
                 assertThat(data.getType()).isEqualTo("service");

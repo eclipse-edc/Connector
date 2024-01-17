@@ -30,8 +30,6 @@ import java.util.Map;
 @JsonDeserialize(builder = TokenLookUpData.Builder.class)
 public class TokenLookUpData {
 
-    private static final String ROOT_POLICY = "root";
-
     private long creationTime;
 
     private long creationTtl;
@@ -141,10 +139,6 @@ public class TokenLookUpData {
 
     public String getIssueTime() {
         return issueTime;
-    }
-
-    public boolean isRootToken() {
-        return policies.contains(ROOT_POLICY);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
