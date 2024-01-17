@@ -21,15 +21,15 @@ import java.util.List;
 import static java.lang.String.format;
 import static java.util.stream.IntStream.range;
 
-public class JsonFieldMapping extends TranslationMapping {
+public class JsonFieldTranslator implements FieldTranslator {
     protected final String columnName;
 
-    public JsonFieldMapping(String columnName) {
+    public JsonFieldTranslator(String columnName) {
         this.columnName = columnName;
     }
 
     @Override
-    public String getStatement(List<PathItem> path, Class<?> type) {
+    public String getLeftOperand(List<PathItem> path, Class<?> type) {
         var statementBuilder = new StringBuilder(columnName);
 
         var length = path.size();
