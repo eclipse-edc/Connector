@@ -162,10 +162,10 @@ Similarly, a `ToCatalogTransformer` can convert from a JSON=LD structure to the 
 
 ```
 public class ToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
-    private static final String DCAT_CATALOG = "http://www.w3.org/ns/dcat/Catalog";
-    private static final String DCAT_DATASET = "http://www.w3.org/ns/dcat/dataset";
-    private static final String DCAT_DISTRIBUTION = "http://www.w3.org/ns/dcat/distribution";
-    private static final String DCAT_DATA_SERVICE = "http://www.w3.org/ns/dcat/DataService";
+    private static final String DCAT_CATALOG = "http://www.w3.org/ns/dcat#Catalog";
+    private static final String DCAT_DATASET = "http://www.w3.org/ns/dcat#dataset";
+    private static final String DCAT_DISTRIBUTION = "http://www.w3.org/ns/dcat#distribution";
+    private static final String DCAT_DATA_SERVICE = "http://www.w3.org/ns/dcat#DataService";
 
     public ToCatalogTransformer() {
         super(JsonObject.class, Catalog.class);
