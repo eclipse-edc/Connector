@@ -25,7 +25,6 @@ interface HashicorpVaultConfig {
     boolean VAULT_HEALTH_CHECK_ENABLED_DEFAULT = true;
     boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
     String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
-    double VAULT_RETRY_BACKOFF_BASE_DEFAULT = 1.5;
     boolean VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT = true;
     long VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 30;
     long VAULT_TOKEN_TTL_DEFAULT = 300;
@@ -42,9 +41,6 @@ interface HashicorpVaultConfig {
 
     @Setting(value = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = "false", type = "boolean")
     String VAULT_HEALTH_CHECK_STANDBY_OK = "edc.vault.hashicorp.health.check.standby.ok";
-
-    @Setting(value = "Exponential base to calculate the retry backoff defined as (backoff = base^retries)", defaultValue = "1.5", type = "double")
-    String VAULT_RETRY_BACKOFF_BASE = "edc.vault.hashicorp.retry.backoff-base";
 
     @Setting(value = "The token used to access the Hashicorp Vault", required = true)
     String VAULT_TOKEN = "edc.vault.hashicorp.token";

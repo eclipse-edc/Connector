@@ -25,7 +25,6 @@ public class HashicorpVaultConfigValues {
     private boolean healthCheckEnabled;
     private String healthCheckPath;
     private boolean healthStandbyOk;
-    private double retryBackoffBase;
     private String token;
     private long ttl;
     private long renewBuffer;
@@ -47,10 +46,6 @@ public class HashicorpVaultConfigValues {
 
     public boolean healthStandbyOk() {
         return healthStandbyOk;
-    }
-
-    public double retryBackoffBase() {
-        return retryBackoffBase;
     }
 
     public String token() {
@@ -100,11 +95,6 @@ public class HashicorpVaultConfigValues {
             return this;
         }
 
-        public Builder retryBackoffBase(double retryBackoffBase) {
-            values.retryBackoffBase = retryBackoffBase;
-            return this;
-        }
-
         public Builder token(String token) {
             values.token = token;
             return this;
@@ -128,10 +118,6 @@ public class HashicorpVaultConfigValues {
         public HashicorpVaultConfigValues build() {
             requireNonNull(values.url, "Vault url must not be null");
             requireNonNull(values.token, "Vault token must not be null");
-
-            if (values.retryBackoffBase <= 1.0) {
-                throw new IllegalArgumentException("Vault retry exponential backoff base be greater than 1");
-            }
 
             if (values.ttl < 5) {
                 throw new IllegalArgumentException("Vault token ttl minimum value is 5");

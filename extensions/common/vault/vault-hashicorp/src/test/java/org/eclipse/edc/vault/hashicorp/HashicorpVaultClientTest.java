@@ -75,7 +75,6 @@ class HashicorpVaultClientTest {
     private static final String VAULT_URL = "https://mock.url";
     private static final String HEALTH_PATH = "sys/health";
     private static final String VAULT_TOKEN = UUID.randomUUID().toString();
-    private static final double RETRY_BACKOFF_BASE = 1.1;
     private static final long VAULT_TOKEN_TTL = 5L;
     private static final long RENEW_BUFFER = 4L;
     private static final String CUSTOM_SECRET_PATH = "v1/test/secret";
@@ -85,7 +84,6 @@ class HashicorpVaultClientTest {
             .url(VAULT_URL)
             .healthCheckPath(HEALTH_PATH)
             .healthStandbyOk(false)
-            .retryBackoffBase(RETRY_BACKOFF_BASE)
             .token(VAULT_TOKEN)
             .ttl(VAULT_TOKEN_TTL)
             .renewBuffer(RENEW_BUFFER)

@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_RETRY_BACKOFF_BASE;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED;
@@ -48,7 +47,6 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 class HashicorpVaultClientIntegrationTest {
     private static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
     private static final String ROOT_TOKEN = UUID.randomUUID().toString();
-    private static final double RETRY_BACKOFF_BASE = 1.1;
     private static final long CREATION_TTL = 6L;
     private static final long TTL = 5L;
     private static final long RENEW_BUFFER = 4L;
@@ -194,7 +192,6 @@ class HashicorpVaultClientIntegrationTest {
                 put(VAULT_URL, format("http://%s:%s", VAULTCONTAINER.getHost(), VAULTCONTAINER.getFirstMappedPort()));
                 put(VAULT_TOKEN, clientToken);
                 put(VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED, Boolean.toString(false));
-                put(VAULT_RETRY_BACKOFF_BASE, Double.toString(RETRY_BACKOFF_BASE));
                 put(VAULT_TOKEN_TTL, Long.toString(TTL));
                 put(VAULT_TOKEN_RENEW_BUFFER, Long.toString(RENEW_BUFFER));
             }
