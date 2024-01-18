@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 @FunctionalInterface
 @ExtensionPoint
 public interface AudienceResolver {
+    
     String resolve(RemoteMessage remoteMessage);
 
 }
