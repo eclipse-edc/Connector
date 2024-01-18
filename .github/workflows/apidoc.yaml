@@ -31,7 +31,7 @@ jobs:
       VERSION: ${{ github.event.inputs.version || inputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-build
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - uses: actions/setup-node@v4
 
       # merge together all api groups
