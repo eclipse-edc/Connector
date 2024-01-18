@@ -24,7 +24,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import org.eclipse.edc.spi.http.EdcHttpClient;
-import org.eclipse.edc.spi.http.FallbackFactory;
+import org.eclipse.edc.spi.http.FallbackFactories;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
@@ -62,6 +62,7 @@ import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -216,84 +217,79 @@ class HashicorpVaultClientTest {
         class LookUp {
 
             @Test
-            void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException, IllegalAccessException {
-                var body = """
-                        {
-                          "request_id": "585caa70-402d-e5c4-0977-5463105ba9be",
-                          "lease_id": "2346aa70-402d-e114-0977-546fad339fbe",
-                          "lease_duration": 10000,
-                          "renewable": false,
-                          "data": {
-                            "accessor": "wbXdLDXxtwKZf7dLErtAq5vz",
-                            "creation_time": 1704989507,
-                            "creation_ttl": 2592000,
-                            "display_name": "token",
-                            "entity_id": "entityId",
-                            "expire_time": "2024-02-10T17:11:47.881108+01:00",
-                            "explicit_max_ttl": 2592000,
-                            "id": "hvs.CAESIDb3_aAS0fYUVzoLKzHDX3-GWOE6Gy5jMAvWRsfjJhVKGh4KHGh2cy5Oc0lNQWdjUVNjdnhNeWJhUk1zbDM2Wks",
-                            "issue_time": "2024-01-11T17:11:47.881135+01:00",
-                            "meta": null,
-                            "num_uses": 5,
-                            "orphan": false,
-                            "path": "auth/token/create",
-                            "period": "1h",
-                            "policies": [
-                              "default",
-                              "root"
-                            ],
-                            "renewable": true,
-                            "ttl": 2589147,
-                            "type": "service"
-                          },
-                          "warnings": null
-                        }
-                        """;
-                var response = new Response.Builder()
-                        .code(200)
-                        .message("any")
-                        .body(ResponseBody.create(body, MediaType.get("application/json")))
-                        .protocol(Protocol.HTTP_1_1)
-                        .request(new Request.Builder().url("http://any").build())
-                        .build();
-                var fallbackFactoriesClass = (Class<List<FallbackFactory>>) (Class) List.class;
-                var fallbackFactoriesCaptor = ArgumentCaptor.forClass(fallbackFactoriesClass);
-                when(httpClient.execute(any(Request.class), fallbackFactoriesCaptor.capture())).thenReturn(response);
+            void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException {
+                try (var mockedFallbackFactories = mockStatic(FallbackFactories.class)) {
+                    var body = """
+                            {
+                              "request_id": "585caa70-402d-e5c4-0977-5463105ba9be",
+                              "lease_id": "2346aa70-402d-e114-0977-546fad339fbe",
+                              "lease_duration": 10000,
+                              "renewable": false,
+                              "data": {
+                                "accessor": "wbXdLDXxtwKZf7dLErtAq5vz",
+                                "creation_time": 1704989507,
+                                "creation_ttl": 2592000,
+                                "display_name": "token",
+                                "entity_id": "entityId",
+                                "expire_time": "2024-02-10T17:11:47.881108+01:00",
+                                "explicit_max_ttl": 2592000,
+                                "id": "hvs.CAESIDb3_aAS0fYUVzoLKzHDX3-GWOE6Gy5jMAvWRsfjJhVKGh4KHGh2cy5Oc0lNQWdjUVNjdnhNeWJhUk1zbDM2Wks",
+                                "issue_time": "2024-01-11T17:11:47.881135+01:00",
+                                "meta": null,
+                                "num_uses": 5,
+                                "orphan": false,
+                                "path": "auth/token/create",
+                                "period": "1h",
+                                "policies": [
+                                  "default",
+                                  "root"
+                                ],
+                                "renewable": true,
+                                "ttl": 2589147,
+                                "type": "service"
+                              },
+                              "warnings": null
+                            }
+                            """;
+                    var response = new Response.Builder()
+                            .code(200)
+                            .message("any")
+                            .body(ResponseBody.create(body, MediaType.get("application/json")))
+                            .protocol(Protocol.HTTP_1_1)
+                            .request(new Request.Builder().url("http://any").build())
+                            .build();
+                    when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
+                    mockedFallbackFactories.when(() -> FallbackFactories.retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES)).thenCallRealMethod();
 
-                var tokenLookUpResult = vaultClient.lookUpToken();
+                    var tokenLookUpResult = vaultClient.lookUpToken();
 
-                var fallbackFactory = fallbackFactoriesCaptor.getValue();
-                var declaredFields = fallbackFactory.get(0).getClass().getDeclaredFields();
-                var field = declaredFields[0];
-                field.setAccessible(true);
-                var nonRetryableStatusCodes = (int[]) field.get(fallbackFactory.get(0));
-                assertThat(nonRetryableStatusCodes).isEqualTo(NON_RETRYABLE_STATUS_CODES);
-                assertThat(tokenLookUpResult.succeeded()).isTrue();
-                var tokenLookUpResponse = tokenLookUpResult.getContent();
-                assertThat(tokenLookUpResponse.getRequestId()).isEqualTo("585caa70-402d-e5c4-0977-5463105ba9be");
-                assertThat(tokenLookUpResponse.getLeaseId()).isEqualTo("2346aa70-402d-e114-0977-546fad339fbe");
-                assertThat(tokenLookUpResponse.getLeaseDuration()).isEqualTo(10000);
-                assertThat(tokenLookUpResponse.isRenewable()).isFalse();
-                assertThat(tokenLookUpResponse.getWarnings()).isEmpty();
-                var data = tokenLookUpResponse.getData();
-                assertThat(data.getAccessor()).isEqualTo("wbXdLDXxtwKZf7dLErtAq5vz");
-                assertThat(data.getCreationTime()).isEqualTo(1704989507L);
-                assertThat(data.getCreationTtl()).isEqualTo(2592000L);
-                assertThat(data.getDisplayName()).isEqualTo("token");
-                assertThat(data.getEntityId()).isEqualTo("entityId");
-                assertThat(data.getExpireTime()).isEqualTo("2024-02-10T17:11:47.881108+01:00");
-                assertThat(data.getId()).isEqualTo("hvs.CAESIDb3_aAS0fYUVzoLKzHDX3-GWOE6Gy5jMAvWRsfjJhVKGh4KHGh2cy5Oc0lNQWdjUVNjdnhNeWJhUk1zbDM2Wks");
-                assertThat(data.getIssueTime()).isEqualTo("2024-01-11T17:11:47.881135+01:00");
-                assertThat(data.getMeta()).isEmpty();
-                assertThat(data.getNumUses()).isEqualTo(5);
-                assertThat(data.isOrphan()).isFalse();
-                assertThat(data.getExplicitMaxTtl()).isEqualTo(2592000L);
-                assertThat(data.getPath()).isEqualTo("auth/token/create");
-                assertThat(data.getPeriod()).isEqualTo("1h");
-                assertThat(data.getPolicies()).isEqualTo(List.of("default", "root"));
-                assertThat(data.isRenewable()).isTrue();
-                assertThat(data.getTtl()).isEqualTo(2589147L);
-                assertThat(data.getType()).isEqualTo("service");
+                    mockedFallbackFactories.verify(() -> FallbackFactories.retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES));
+                    var tokenLookUpResponse = tokenLookUpResult.getContent();
+                    assertThat(tokenLookUpResponse.getRequestId()).isEqualTo("585caa70-402d-e5c4-0977-5463105ba9be");
+                    assertThat(tokenLookUpResponse.getLeaseId()).isEqualTo("2346aa70-402d-e114-0977-546fad339fbe");
+                    assertThat(tokenLookUpResponse.getLeaseDuration()).isEqualTo(10000);
+                    assertThat(tokenLookUpResponse.isRenewable()).isFalse();
+                    assertThat(tokenLookUpResponse.getWarnings()).isEmpty();
+                    var data = tokenLookUpResponse.getData();
+                    assertThat(data.getAccessor()).isEqualTo("wbXdLDXxtwKZf7dLErtAq5vz");
+                    assertThat(data.getCreationTime()).isEqualTo(1704989507L);
+                    assertThat(data.getCreationTtl()).isEqualTo(2592000L);
+                    assertThat(data.getDisplayName()).isEqualTo("token");
+                    assertThat(data.getEntityId()).isEqualTo("entityId");
+                    assertThat(data.getExpireTime()).isEqualTo("2024-02-10T17:11:47.881108+01:00");
+                    assertThat(data.getId()).isEqualTo("hvs.CAESIDb3_aAS0fYUVzoLKzHDX3-GWOE6Gy5jMAvWRsfjJhVKGh4KHGh2cy5Oc0lNQWdjUVNjdnhNeWJhUk1zbDM2Wks");
+                    assertThat(data.getIssueTime()).isEqualTo("2024-01-11T17:11:47.881135+01:00");
+                    assertThat(data.getMeta()).isEmpty();
+                    assertThat(data.getNumUses()).isEqualTo(5);
+                    assertThat(data.isOrphan()).isFalse();
+                    assertThat(data.getExplicitMaxTtl()).isEqualTo(2592000L);
+                    assertThat(data.getPath()).isEqualTo("auth/token/create");
+                    assertThat(data.getPeriod()).isEqualTo("1h");
+                    assertThat(data.getPolicies()).isEqualTo(List.of("default", "root"));
+                    assertThat(data.isRenewable()).isTrue();
+                    assertThat(data.getTtl()).isEqualTo(2589147L);
+                    assertThat(data.getType()).isEqualTo("service");
+                }
             }
 
             @ParameterizedTest
@@ -329,89 +325,85 @@ class HashicorpVaultClientTest {
         @Nested
         class Renew {
             @Test
-            void renewToken_whenApiReturns200_shouldSucceed() throws IOException, IllegalAccessException {
-                var body = """
-                        {
-                          "request_id": "08c877ef-bdcd-f4f9-0854-2471e55f064b",
-                          "lease_id": "2346aa70-402d-e114-0977-546fad339fbe",
-                          "lease_duration": 10000,
-                          "renewable": false,
-                          "data": null,
-                          "warnings": [
-                            "foo-bar",
-                            "hello-world"
-                          ],
-                          "auth": {
-                            "client_token": "hvs.CAESIFGppynzyYl-21YK6OjpbWhmnBgI5upF9Fnx5XhABeR_Gh4KHGh2cy5LUUxiRWlPSk5ZeEpuaDU1OHpjWEhqVWE",
-                            "accessor": "87eM6pGwBm4e6h0e16r0AtJo",
-                            "policies": [
-                              "default",
-                              "root"
-                            ],
-                            "token_policies": [
-                              "default",
-                              "root"
-                            ],
-                            "identity_policies": null,
-                            "metadata": null,
-                            "orphan": false,
-                            "entity_id": "entityId",
-                            "lease_duration": 1800,
-                            "renewable": true,
-                            "mfa_requirement": null
-                          }
-                        }
-                        """;
-                var response = new Response.Builder()
-                        .code(200)
-                        .message("any")
-                        .body(ResponseBody.create(body, MediaType.get("application/json")))
-                        .protocol(Protocol.HTTP_1_1)
-                        .request(new Request.Builder().url("http://any").build())
-                        .build();
-                var requestCaptor = ArgumentCaptor.forClass(Request.class);
-                var fallbackFactoriesClass = (Class<List<FallbackFactory>>) (Class) List.class;
-                var fallbackFactoriesCaptor = ArgumentCaptor.forClass(fallbackFactoriesClass);
-                when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
+            void renewToken_whenApiReturns200_shouldSucceed() throws IOException {
+                try (var mockedFallbackFactories = mockStatic(FallbackFactories.class)) {
+                    var body = """
+                            {
+                              "request_id": "08c877ef-bdcd-f4f9-0854-2471e55f064b",
+                              "lease_id": "2346aa70-402d-e114-0977-546fad339fbe",
+                              "lease_duration": 10000,
+                              "renewable": false,
+                              "data": null,
+                              "warnings": [
+                                "foo-bar",
+                                "hello-world"
+                              ],
+                              "auth": {
+                                "client_token": "hvs.CAESIFGppynzyYl-21YK6OjpbWhmnBgI5upF9Fnx5XhABeR_Gh4KHGh2cy5LUUxiRWlPSk5ZeEpuaDU1OHpjWEhqVWE",
+                                "accessor": "87eM6pGwBm4e6h0e16r0AtJo",
+                                "policies": [
+                                  "default",
+                                  "root"
+                                ],
+                                "token_policies": [
+                                  "default",
+                                  "root"
+                                ],
+                                "identity_policies": null,
+                                "metadata": null,
+                                "orphan": false,
+                                "entity_id": "entityId",
+                                "lease_duration": 1800,
+                                "renewable": true,
+                                "mfa_requirement": null
+                              }
+                            }
+                            """;
+                    var response = new Response.Builder()
+                            .code(200)
+                            .message("any")
+                            .body(ResponseBody.create(body, MediaType.get("application/json")))
+                            .protocol(Protocol.HTTP_1_1)
+                            .request(new Request.Builder().url("http://any").build())
+                            .build();
+                    var requestCaptor = ArgumentCaptor.forClass(Request.class);
+                    when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
+                    mockedFallbackFactories.when(() -> FallbackFactories.retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES)).thenCallRealMethod();
 
-                var tokenRenewResult = vaultClient.renewToken();
+                    var tokenRenewResult = vaultClient.renewToken();
 
-                verify(httpClient).execute(requestCaptor.capture(), fallbackFactoriesCaptor.capture());
-                var request = requestCaptor.getValue();
-                var copy = Objects.requireNonNull(request.newBuilder().build());
-                var buffer = new Buffer();
-                Objects.requireNonNull(copy.body()).writeTo(buffer);
-                var tokenRenewRequest = OBJECT_MAPPER.readValue(buffer.readUtf8(), TokenRenewRequest.class);
-                // given a configured ttl of 5 this should equal "5s"
-                assertThat(tokenRenewRequest.getIncrement()).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
-                assertThat(tokenRenewResult.succeeded()).isTrue();
-                assertThat(tokenRenewResult.succeeded()).isTrue();
-                var fallbackFactory = fallbackFactoriesCaptor.getValue();
-                var declaredFields = fallbackFactory.get(0).getClass().getDeclaredFields();
-                var field = declaredFields[0];
-                field.setAccessible(true);
-                var nonRetryableStatusCodes = (int[]) field.get(fallbackFactory.get(0));
-                assertThat(nonRetryableStatusCodes).isEqualTo(NON_RETRYABLE_STATUS_CODES);
-                var tokenRenewResponse = tokenRenewResult.getContent();
-                assertThat(tokenRenewResponse.getRequestId()).isEqualTo("08c877ef-bdcd-f4f9-0854-2471e55f064b");
-                assertThat(tokenRenewResponse.getLeaseId()).isEqualTo("2346aa70-402d-e114-0977-546fad339fbe");
-                assertThat(tokenRenewResponse.getLeaseDuration()).isEqualTo(10000);
-                assertThat(tokenRenewResponse.isRenewable()).isFalse();
-                assertThat(tokenRenewResponse.getData()).isNull();
-                assertThat(tokenRenewResponse.getWarnings()).isEqualTo(List.of("foo-bar", "hello-world"));
-                var auth = tokenRenewResponse.getAuth();
-                assertThat(auth.getClientToken()).isEqualTo("hvs.CAESIFGppynzyYl-21YK6OjpbWhmnBgI5upF9Fnx5XhABeR_Gh4KHGh2cy5LUUxiRWlPSk5ZeEpuaDU1OHpjWEhqVWE");
-                assertThat(auth.getAccessor()).isEqualTo("87eM6pGwBm4e6h0e16r0AtJo");
-                assertThat(auth.getPolicies()).isEqualTo(List.of("default", "root"));
-                assertThat(auth.getTokenPolicies()).isEqualTo(List.of("default", "root"));
-                assertThat(auth.getIdentityPolicies()).isEmpty();
-                assertThat(auth.getMetadata()).isEmpty();
-                assertThat(auth.isOrphan()).isFalse();
-                assertThat(auth.getEntityId()).isEqualTo("entityId");
-                assertThat(auth.getLeaseDuration()).isEqualTo(1800L);
-                assertThat(auth.isRenewable()).isTrue();
-                assertThat(auth.getMfaRequirement()).isNull();
-                verify(monitor).warning("Token renew returned: foo-bar, hello-world");
+                    mockedFallbackFactories.verify(() -> FallbackFactories.retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES));
+                    verify(httpClient).execute(requestCaptor.capture(), anyList());
+                    var request = requestCaptor.getValue();
+                    var copy = Objects.requireNonNull(request.newBuilder().build());
+                    var buffer = new Buffer();
+                    Objects.requireNonNull(copy.body()).writeTo(buffer);
+                    var tokenRenewRequest = OBJECT_MAPPER.readValue(buffer.readUtf8(), TokenRenewRequest.class);
+                    // given a configured ttl of 5 this should equal "5s"
+                    assertThat(tokenRenewRequest.getIncrement()).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
+                    assertThat(tokenRenewResult.succeeded()).isTrue();
+                    assertThat(tokenRenewResult.succeeded()).isTrue();
+                    var tokenRenewResponse = tokenRenewResult.getContent();
+                    assertThat(tokenRenewResponse.getRequestId()).isEqualTo("08c877ef-bdcd-f4f9-0854-2471e55f064b");
+                    assertThat(tokenRenewResponse.getLeaseId()).isEqualTo("2346aa70-402d-e114-0977-546fad339fbe");
+                    assertThat(tokenRenewResponse.getLeaseDuration()).isEqualTo(10000);
+                    assertThat(tokenRenewResponse.isRenewable()).isFalse();
+                    assertThat(tokenRenewResponse.getData()).isNull();
+                    assertThat(tokenRenewResponse.getWarnings()).isEqualTo(List.of("foo-bar", "hello-world"));
+                    var auth = tokenRenewResponse.getAuth();
+                    assertThat(auth.getClientToken()).isEqualTo("hvs.CAESIFGppynzyYl-21YK6OjpbWhmnBgI5upF9Fnx5XhABeR_Gh4KHGh2cy5LUUxiRWlPSk5ZeEpuaDU1OHpjWEhqVWE");
+                    assertThat(auth.getAccessor()).isEqualTo("87eM6pGwBm4e6h0e16r0AtJo");
+                    assertThat(auth.getPolicies()).isEqualTo(List.of("default", "root"));
+                    assertThat(auth.getTokenPolicies()).isEqualTo(List.of("default", "root"));
+                    assertThat(auth.getIdentityPolicies()).isEmpty();
+                    assertThat(auth.getMetadata()).isEmpty();
+                    assertThat(auth.isOrphan()).isFalse();
+                    assertThat(auth.getEntityId()).isEqualTo("entityId");
+                    assertThat(auth.getLeaseDuration()).isEqualTo(1800L);
+                    assertThat(auth.isRenewable()).isTrue();
+                    assertThat(auth.getMfaRequirement()).isNull();
+                    verify(monitor).warning("Token renew returned: foo-bar, hello-world");
+                }
             }
 
             @ParameterizedTest
