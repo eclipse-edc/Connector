@@ -22,7 +22,6 @@ import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -38,13 +37,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
 
 public class HashicorpVaultClient {
     private static final String VAULT_DATA_ENTRY_NAME = "content";
@@ -57,8 +55,7 @@ public class HashicorpVaultClient {
     private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
     private static final int HTTP_CODE_404 = 404;
     private static final String DELIMITER = ", ";
-    private static final long INITIAL_TIMEOUT_SECONDS = 30L;
-    private static final Set<Integer> NON_RETRYABLE_STATUS_CODES = Set.of(200, 204, 400, 403, 404, 405);
+    private static final int[] NON_RETRYABLE_STATUS_CODES = {200, 204, 400, 403, 404, 405};
 
     private final Headers headers;
 
@@ -124,7 +121,7 @@ public class HashicorpVaultClient {
      */
     public void scheduleTokenRenewal() {
         scheduledExecutorService.execute(() -> {
-            var tokenLookUpResult = lookUpToken(configValues.ttl());
+            var tokenLookUpResult = lookUpToken();
 
             if (tokenLookUpResult.failed()) {
                 monitor.warning("Initial token look up failed with reason: %s".formatted(tokenLookUpResult.getFailureDetail()));
@@ -134,7 +131,7 @@ public class HashicorpVaultClient {
             var tokenLookUpResponse = tokenLookUpResult.getContent();
 
             if (tokenLookUpResponse.getData().isRenewable()) {
-                var tokenRenewResult = renewToken(tokenLookUpResponse.getData().getTtl());
+                var tokenRenewResult = renewToken();
 
                 if (tokenRenewResult.failed()) {
                     monitor.warning("Initial token renewal failed with reason: %s".formatted(tokenRenewResult.getFailureDetail()));
@@ -152,17 +149,16 @@ public class HashicorpVaultClient {
      * <p>
      * Will retry in some error cases.
      *
-     * @param retryTimeout the retry timeout in seconds. Set this to 0 for no retries.
      * @return the result of the token lookup operation
      */
-    public Result<TokenLookUpResponse> lookUpToken(long retryTimeout) {
+    public Result<TokenLookUpResponse> lookUpToken() {
         var uri = getVaultUrl()
                 .newBuilder()
                 .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
         var request = httpGet(uri);
 
-        try (var response = executeWithRetry(request, retryTimeout)) {
+        try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES)))) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
@@ -173,7 +169,7 @@ public class HashicorpVaultClient {
             } else {
                 return Result.failure("Token look up failed with status %d".formatted(response.code()));
             }
-        } catch (ExecutionException | InterruptedException | IOException e) {
+        } catch (IOException e) {
             var errMsg = "Failed to look up token with reason: %s".formatted(e.getMessage());
             monitor.warning(errMsg, e);
             return Result.failure(errMsg);
@@ -187,10 +183,9 @@ public class HashicorpVaultClient {
      * <p>
      * Will retry in some error cases.
      *
-     * @param retryTimeout the retry timeout in seconds. Set this to 0 for no retries.
      * @return the result of the token renewal operation
      */
-    public Result<TokenRenewResponse> renewToken(long retryTimeout) {
+    public Result<TokenRenewResponse> renewToken() {
         var uri = getVaultUrl()
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
@@ -201,7 +196,7 @@ public class HashicorpVaultClient {
                 .build();
         var request = httpPost(uri, requestPayload);
 
-        try (var response = executeWithRetry(request, retryTimeout)) {
+        try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES)))) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
@@ -216,7 +211,7 @@ public class HashicorpVaultClient {
             } else {
                 return Result.failure("Token renew failed with status: %d".formatted(response.code()));
             }
-        } catch (ExecutionException | InterruptedException | IOException e) {
+        } catch (IOException e) {
             var errMsg = "Failed to renew token with reason: %s".formatted(e.getMessage());
             monitor.warning(errMsg, e);
             return Result.failure(errMsg);
@@ -228,7 +223,7 @@ public class HashicorpVaultClient {
         var delay = ttl - renewBuffer;
 
         scheduledExecutorService.schedule(() -> {
-            var tokenRenewResult = renewToken(renewBuffer);
+            var tokenRenewResult = renewToken();
 
             if (tokenRenewResult.succeeded()) {
                 var tokenRenewResponse = tokenRenewResult.getContent();
@@ -383,50 +378,6 @@ public class HashicorpVaultClient {
         var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
         headersBuilder.add(VAULT_TOKEN_HEADER, configValues.token());
         return headersBuilder.build();
-    }
-
-    /**
-     * Executes the specified request synchronously. Failed requests will be retried with an exponential backoff (delay)
-     * defined as {@code exponentialBackoff = base^retries}.
-     * Given an exponential base of 1.5s the backoff will be 1.5s, 2.25, 3.375s, 5.09s, 7.59s, 11.3s, ...
-     * <p>
-     * Requests will be retried if
-     * <ol>
-     *     <li>the response status code is retryable and</li>
-     *     <li>execution time (delay) is within the remaining time</li>
-     * </ol>
-     * <p>
-     * This method is not relying on httpClient.execute(request, fallbacks) method since the http client retry policy
-     * might not fit the recovery time of the Vault.
-     *
-     * @param request        the request to execute
-     * @param timeoutSeconds timeout which will break the loop ultimately
-     * @return result of the http request
-     * @throws IOException          httpclient was not able to execute the request
-     * @throws ExecutionException   result of a retried http request could not be retrieved
-     * @throws InterruptedException execution was interrupted while waiting for the result of a retried http request
-     */
-    @NotNull
-    private Response executeWithRetry(Request request, long timeoutSeconds) throws IOException, ExecutionException, InterruptedException {
-        var retryCounter = 0;
-        var expBackoffSeconds = 0d;
-        Response response;
-
-        do {
-            var start = Instant.now();
-            var delayMillis = Math.round(expBackoffSeconds * 1000L);
-            var future = scheduledExecutorService.schedule(
-                    () -> httpClient.execute(request),
-                    delayMillis,
-                    TimeUnit.MILLISECONDS);
-            response = future.get();
-            expBackoffSeconds = Math.pow(configValues.retryBackoffBase(), retryCounter++);
-            var stop = Instant.now();
-            var duration = Duration.between(start, stop);
-            timeoutSeconds -= duration.getSeconds();
-        } while (!NON_RETRYABLE_STATUS_CODES.contains(response.code()) &&  expBackoffSeconds < timeoutSeconds);
-
-        return response;
     }
 
     private RequestBody createRequestBody(Object requestPayload) {

@@ -61,13 +61,13 @@ class HashicorpVaultClientIntegrationTest {
 
     @BeforeEach
     void beforeEach(EdcExtension extension) throws IOException, InterruptedException {
-        assertThat(CREATION_TTL).isNotEqualTo(TTL);
+        assertThat(CREATION_TTL).isGreaterThan(TTL);
         extension.setConfiguration(getConfig());
     }
 
     @Test
-    void lookUpToken_whenTokenTtlNotExpired_shouldSucceed(HashicorpVaultClient hashicorpVaultClient) {
-        var tokenLookUpResult = hashicorpVaultClient.lookUpToken(CREATION_TTL);
+    void lookUpToken_whenTokenNotExpired_shouldSucceed(HashicorpVaultClient hashicorpVaultClient) {
+        var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
 
         assertThat(tokenLookUpResult.succeeded()).isTrue();
         var tokenLookUpResponse = tokenLookUpResult.getContent();
@@ -88,7 +88,6 @@ class HashicorpVaultClientIntegrationTest {
         assertThat(tokenLookUpData.getEntityId()).isNotNull();
         assertThat(tokenLookUpData.isOrphan()).isFalse();
         assertThat(tokenLookUpData.getType()).isEqualTo("service");
-        assertThat(tokenLookUpData.getTtl()).isLessThan(CREATION_TTL);
         assertThat(tokenLookUpData.getExplicitMaxTtl()).isEqualTo(0L);
         assertThat(tokenLookUpData.getPath()).isNotNull();
         assertThat(tokenLookUpData.getPeriod()).isNull();
@@ -100,20 +99,20 @@ class HashicorpVaultClientIntegrationTest {
     }
 
     @Test
-    void lookUpToken_whenTokenTtlExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
+    void lookUpToken_whenTokenExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken(CREATION_TTL);
+                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
                     assertThat(tokenLookUpResult.failed()).isTrue();
                     assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                 });
     }
 
     @Test
-    void renewToken_whenTokenTtlNotExpired_shouldSucceed(HashicorpVaultClient hashicorpVaultClient) {
-        var tokenRenewResult = hashicorpVaultClient.renewToken(TTL);
+    void renewToken_whenTokenNotExpired_shouldSucceed(HashicorpVaultClient hashicorpVaultClient) {
+        var tokenRenewResult = hashicorpVaultClient.renewToken();
 
         assertThat(tokenRenewResult.succeeded()).isTrue();
         var tokenRenewResponse = tokenRenewResult.getContent();
@@ -136,12 +135,12 @@ class HashicorpVaultClientIntegrationTest {
     }
 
     @Test
-    void renew_whenTokenTtlExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
+    void renew_whenTokenExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    var tokenRenewResult = hashicorpVaultClient.renewToken(TTL);
+                    var tokenRenewResult = hashicorpVaultClient.renewToken();
                     assertThat(tokenRenewResult.failed()).isTrue();
                     assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
                 });
@@ -152,22 +151,22 @@ class HashicorpVaultClientIntegrationTest {
         // trigger the automatic token renewal mechanism in the background
         hashicorpVaultClient.scheduleTokenRenewal();
 
-        // ensure that the token is still valid after the initial creation_ttl expired
+        // ensure that the token is still valid after the initial CREATION_TTL expired
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken(CREATION_TTL);
+                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
                     assertThat(tokenLookUpResult.succeeded()).isTrue();
                 });
 
-        // at this point the creation ttl should be overridden by the renewal operation
-        // check that the token is still valid after the new ttl expired
+        // at this point the creation  should be overridden by the renewal operation
+        // check that the token is still valid after the new  expired
         await()
                 .pollDelay(TTL, TimeUnit.SECONDS)
                 .atMost(TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken(TTL);
+                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
                     assertThat(tokenLookUpResult.succeeded()).isTrue();
                 });
     }

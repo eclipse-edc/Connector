@@ -93,7 +93,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        if (isScheduledTokenRenewalEnabled) hashicorpVaultClient.scheduleTokenRenewal();
+        if (isScheduledTokenRenewalEnabled) {
+            hashicorpVaultClient.scheduleTokenRenewal();
+        }
     }
 
     @Override

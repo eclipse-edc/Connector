@@ -53,7 +53,7 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
         }
 
         // not retrying token lookup since the healthcheck is performed in short intervals (default 10s)
-        var tokenLookUpResult = client.lookUpToken(0);
+        var tokenLookUpResult = client.lookUpToken();
         if (tokenLookUpResult.failed()) {
             errors.add(tokenLookUpResult.getFailureDetail());
         }

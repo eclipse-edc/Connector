@@ -18,11 +18,9 @@ package org.eclipse.edc.vault.hashicorp;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Requires;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
-import org.eclipse.edc.spi.types.TypeManager;
 
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_CHECK_ENABLED_DEFAULT;
@@ -35,12 +33,6 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
 
     @Inject
     private HealthCheckService healthCheckService;
-
-    @Inject
-    private TypeManager typeManager;
-
-    @Inject
-    private EdcHttpClient httpClient;
 
     @Inject
     private HashicorpVaultClient client;

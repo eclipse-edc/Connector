@@ -24,6 +24,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.http.FallbackFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
@@ -53,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.any;
@@ -70,6 +71,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 class HashicorpVaultClientTest {
 
+    private static final int[] NON_RETRYABLE_STATUS_CODES = {200, 204, 400, 403, 404, 405};
     private static final String VAULT_URL = "https://mock.url";
     private static final String HEALTH_PATH = "sys/health";
     private static final String VAULT_TOKEN = UUID.randomUUID().toString();
@@ -216,7 +218,7 @@ class HashicorpVaultClientTest {
         class LookUp {
 
             @Test
-            void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException {
+            void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException, IllegalAccessException {
                 var body = """
                         {
                           "request_id": "585caa70-402d-e5c4-0977-5463105ba9be",
@@ -256,10 +258,18 @@ class HashicorpVaultClientTest {
                         .protocol(Protocol.HTTP_1_1)
                         .request(new Request.Builder().url("http://any").build())
                         .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
+                var fallbackFactoriesClass = (Class<List<FallbackFactory>>) (Class) List.class;
+                var fallbackFactoriesCaptor = ArgumentCaptor.forClass(fallbackFactoriesClass);
+                when(httpClient.execute(any(Request.class), fallbackFactoriesCaptor.capture())).thenReturn(response);
 
-                var tokenLookUpResult = vaultClient.lookUpToken(0L);
+                var tokenLookUpResult = vaultClient.lookUpToken();
 
+                var fallbackFactory = fallbackFactoriesCaptor.getValue();
+                var declaredFields = fallbackFactory.get(0).getClass().getDeclaredFields();
+                var field = declaredFields[0];
+                field.setAccessible(true);
+                var nonRetryableStatusCodes = (int[]) field.get(fallbackFactory.get(0));
+                assertThat(nonRetryableStatusCodes).isEqualTo(NON_RETRYABLE_STATUS_CODES);
                 assertThat(tokenLookUpResult.succeeded()).isTrue();
                 var tokenLookUpResponse = tokenLookUpResult.getContent();
                 assertThat(tokenLookUpResponse.getRequestId()).isEqualTo("585caa70-402d-e5c4-0977-5463105ba9be");
@@ -298,67 +308,30 @@ class HashicorpVaultClientTest {
                         .protocol(Protocol.HTTP_1_1)
                         .request(new Request.Builder().url("http://any").build())
                         .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
+                when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
 
-                var tokenLookUpResult = vaultClient.lookUpToken(0L);
-
-                assertThat(tokenLookUpResult.failed()).isTrue();
-                assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status %s".formatted(code));
-            }
-
-            @ParameterizedTest
-            @ValueSource(ints = {200, 204, 400, 403, 404, 405})
-            void lookUpToken_whenApiReturnsNonRetryableStatusCode_shouldProceedWithoutRetry(int code) throws IOException {
-                var response = new Response.Builder()
-                        .code(code)
-                        .message("any")
-                        .body(ResponseBody.create("", MediaType.get("application/json")))
-                        .protocol(Protocol.HTTP_1_1)
-                        .request(new Request.Builder().url("http://any").build())
-                        .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
-
-                vaultClient.lookUpToken(10L);
-                // should be called only once
-                verify(httpClient).execute(any(Request.class));
-            }
-
-            @ParameterizedTest
-            @ValueSource(ints = {412, 429, 472, 473, 500, 501, 502, 503})
-            void lookUpToken_whenApiReturnsRetryableErrorCode_shouldFailWithRetries(int code) throws IOException {
-                var response = new Response.Builder()
-                        .code(code)
-                        .message("any")
-                        .body(ResponseBody.create("", MediaType.get("application/json")))
-                        .protocol(Protocol.HTTP_1_1)
-                        .request(new Request.Builder().url("http://any").build())
-                        .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
-
-                var tokenLookUpResult = vaultClient.lookUpToken(2L);
+                var tokenLookUpResult = vaultClient.lookUpToken();
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
                 assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status %s".formatted(code));
-                // given an exp base of 1.1s it should retry once making for 2 http requests in total
-                verify(httpClient, times(2)).execute(any(Request.class));
             }
 
             @Test
             void lookUpToken_whenHttpClientThrowsIoException_shouldFail() throws IOException {
-                when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
+                when(httpClient.execute(any(Request.class), anyList())).thenThrow(new IOException("foo-bar"));
 
-                var tokenLookUpResult = vaultClient.lookUpToken(0L);
+                var tokenLookUpResult = vaultClient.lookUpToken();
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
-                verify(monitor).warning(eq("Failed to look up token with reason: java.io.IOException: foo-bar"), any(Exception.class));
-                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Failed to look up token with reason: java.io.IOException: foo-bar"));
+                verify(monitor).warning(eq("Failed to look up token with reason: foo-bar"), any(Exception.class));
+                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Failed to look up token with reason: foo-bar"));
             }
         }
 
         @Nested
         class Renew {
             @Test
-            void renewToken_whenApiReturns200_shouldSucceed() throws IOException {
+            void renewToken_whenApiReturns200_shouldSucceed() throws IOException, IllegalAccessException {
                 var body = """
                         {
                           "request_id": "08c877ef-bdcd-f4f9-0854-2471e55f064b",
@@ -398,13 +371,15 @@ class HashicorpVaultClientTest {
                         .protocol(Protocol.HTTP_1_1)
                         .request(new Request.Builder().url("http://any").build())
                         .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
+                var requestCaptor = ArgumentCaptor.forClass(Request.class);
+                var fallbackFactoriesClass = (Class<List<FallbackFactory>>) (Class) List.class;
+                var fallbackFactoriesCaptor = ArgumentCaptor.forClass(fallbackFactoriesClass);
+                when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
 
-                var tokenRenewResult = vaultClient.renewToken(0L);
+                var tokenRenewResult = vaultClient.renewToken();
 
-                var captor = ArgumentCaptor.forClass(Request.class);
-                verify(httpClient).execute(captor.capture());
-                var request = captor.getValue();
+                verify(httpClient).execute(requestCaptor.capture(), fallbackFactoriesCaptor.capture());
+                var request = requestCaptor.getValue();
                 var copy = Objects.requireNonNull(request.newBuilder().build());
                 var buffer = new Buffer();
                 Objects.requireNonNull(copy.body()).writeTo(buffer);
@@ -413,6 +388,12 @@ class HashicorpVaultClientTest {
                 assertThat(tokenRenewRequest.getIncrement()).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
                 assertThat(tokenRenewResult.succeeded()).isTrue();
                 assertThat(tokenRenewResult.succeeded()).isTrue();
+                var fallbackFactory = fallbackFactoriesCaptor.getValue();
+                var declaredFields = fallbackFactory.get(0).getClass().getDeclaredFields();
+                var field = declaredFields[0];
+                field.setAccessible(true);
+                var nonRetryableStatusCodes = (int[]) field.get(fallbackFactory.get(0));
+                assertThat(nonRetryableStatusCodes).isEqualTo(NON_RETRYABLE_STATUS_CODES);
                 var tokenRenewResponse = tokenRenewResult.getContent();
                 assertThat(tokenRenewResponse.getRequestId()).isEqualTo("08c877ef-bdcd-f4f9-0854-2471e55f064b");
                 assertThat(tokenRenewResponse.getLeaseId()).isEqualTo("2346aa70-402d-e114-0977-546fad339fbe");
@@ -445,62 +426,25 @@ class HashicorpVaultClientTest {
                         .protocol(Protocol.HTTP_1_1)
                         .request(new Request.Builder().url("http://any").build())
                         .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
+                when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
 
-                var tokenRenewResult = vaultClient.renewToken(0L);
-
-                assertThat(tokenRenewResult.failed()).isTrue();
-                assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: %s".formatted(code));
-            }
-
-            @ParameterizedTest
-            @ValueSource(ints = {200, 204, 400, 403, 404, 405})
-            void renewToken_whenApiReturnsNonRetryableStatusCode_shouldProceedWithoutRetry(int code) throws IOException {
-                var response = new Response.Builder()
-                        .code(code)
-                        .message("any")
-                        .body(ResponseBody.create("", MediaType.get("application/json")))
-                        .protocol(Protocol.HTTP_1_1)
-                        .request(new Request.Builder().url("http://any").build())
-                        .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
-
-                vaultClient.renewToken(10L);
-                // should be called only once
-                verify(httpClient).execute(any(Request.class));
-            }
-
-            @ParameterizedTest
-            @ValueSource(ints = {412, 429, 472, 473, 500, 501, 502, 503})
-            void renewToken_whenApiReturnsRetryableErrorCode_shouldFailWithRetries(int code) throws IOException {
-                var response = new Response.Builder()
-                        .code(code)
-                        .message("any")
-                        .body(ResponseBody.create("", MediaType.get("application/json")))
-                        .protocol(Protocol.HTTP_1_1)
-                        .request(new Request.Builder().url("http://any").build())
-                        .build();
-                when(httpClient.execute(any(Request.class))).thenReturn(response);
-
-                var tokenRenewResult = vaultClient.renewToken(2L);
+                var tokenRenewResult = vaultClient.renewToken();
 
                 assertThat(tokenRenewResult.failed()).isTrue();
                 assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: %s".formatted(code));
-                // given an exp base of 1.1s it should retry once making for 2 http requests in total
-                verify(httpClient, times(2)).execute(any(Request.class));
             }
 
             @Test
             void renewToken_whenHttpClientThrowsIoException_shouldFail() throws IOException {
-                when(httpClient.execute(any(Request.class))).thenThrow(new IOException("foo-bar"));
+                when(httpClient.execute(any(Request.class), anyList())).thenThrow(new IOException("foo-bar"));
 
-                var tokenLookUpResult = vaultClient.renewToken(10L);
+                var tokenLookUpResult = vaultClient.renewToken();
 
                 assertThat(tokenLookUpResult.failed()).isTrue();
-                verify(monitor).warning(eq("Failed to renew token with reason: java.io.IOException: foo-bar"), any(Exception.class));
-                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Failed to renew token with reason: java.io.IOException: foo-bar"));
+                verify(monitor).warning(eq("Failed to renew token with reason: foo-bar"), any(Exception.class));
+                assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Failed to renew token with reason: foo-bar"));
                 // should be called only once
-                verify(httpClient).execute(any(Request.class));
+                verify(httpClient).execute(any(Request.class), anyList());
             }
 
             @Nested
@@ -515,7 +459,7 @@ class HashicorpVaultClientTest {
                                     .renewable(true)
                                     .build())
                             .build();
-                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
+                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken();
                     var tokenRenewResponse = TokenRenewResponse.Builder.newInstance()
                             .auth(TokenRenewAuth.Builder.newInstance()
                                     .ttl(2L)
@@ -530,7 +474,7 @@ class HashicorpVaultClientTest {
                             // break the renewal loop by returning a failed renewal result on the 3rd attempt
                             .doReturn(Result.failure("break the loop"))
                             .when(vaultClientSpy)
-                            .renewToken(anyLong());
+                            .renewToken();
 
                     vaultClientSpy.scheduleTokenRenewal();
 
@@ -539,11 +483,10 @@ class HashicorpVaultClientTest {
                             .untilAsserted(() -> {
                                 verify(monitor, never()).warning(matches("Initial token look up failed with reason: *"));
                                 verify(monitor, never()).warning(matches("Initial token renewal failed with reason: *"));
-                                // verify initial token lookup and renewal
-                                verify(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
-                                verify(vaultClientSpy).renewToken(tokenLookUpResponse.getData().getTtl());
-                                // verify that the renewal was called twice by the scheduleNextTokenRenewal method
-                                verify(vaultClientSpy, times(2)).renewToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.renewBuffer());
+                                // initial token look up
+                                verify(vaultClientSpy).lookUpToken();
+                                // initial renewal + first scheduled renewal + second scheduled renewal
+                                verify(vaultClientSpy, times(3)).renewToken();
                                 verify(monitor).warning("Scheduled token renewal failed: break the loop");
                             });
                 }
@@ -551,7 +494,7 @@ class HashicorpVaultClientTest {
                 @Test
                 void scheduleTokenRenewal_whenTokenLookUpFailed_shouldNotScheduleNextTokenRenewal() {
                     var vaultClientSpy = spy(vaultClient);
-                    doReturn(Result.failure("Token look up failed with status 403")).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
+                    doReturn(Result.failure("Token look up failed with status 403")).when(vaultClientSpy).lookUpToken();
 
                     vaultClientSpy.scheduleTokenRenewal();
 
@@ -559,7 +502,7 @@ class HashicorpVaultClientTest {
                             .atMost(1L, TimeUnit.SECONDS)
                             .untilAsserted(() -> {
                                 verify(monitor).warning("Initial token look up failed with reason: Token look up failed with status 403");
-                                verify(vaultClientSpy, never()).renewToken(anyLong());
+                                verify(vaultClientSpy, never()).renewToken();
                             });
                 }
 
@@ -572,14 +515,14 @@ class HashicorpVaultClientTest {
                                     .renewable(false)
                                     .build())
                             .build();
-                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
+                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken();
 
                     vaultClientSpy.scheduleTokenRenewal();
 
                     await()
                             .atMost(1L, TimeUnit.SECONDS)
                             .untilAsserted(() -> {
-                                verify(vaultClientSpy, never()).renewToken(anyLong());
+                                verify(vaultClientSpy, never()).renewToken();
                             });
                 }
 
@@ -592,8 +535,8 @@ class HashicorpVaultClientTest {
                                     .renewable(true)
                                     .build())
                             .build();
-                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl());
-                    doReturn(Result.failure("Token renew failed with status: 403")).when(vaultClientSpy).renewToken(anyLong());
+                    doReturn(Result.success(tokenLookUpResponse)).when(vaultClientSpy).lookUpToken();
+                    doReturn(Result.failure("Token renew failed with status: 403")).when(vaultClientSpy).renewToken();
 
                     vaultClientSpy.scheduleTokenRenewal();
 
@@ -601,7 +544,7 @@ class HashicorpVaultClientTest {
                             .atMost(1L, TimeUnit.SECONDS)
                             .untilAsserted(() -> {
                                 verify(monitor).warning("Initial token renewal failed with reason: Token renew failed with status: 403");
-                                verify(vaultClientSpy, atMostOnce()).renewToken(anyLong());
+                                verify(vaultClientSpy, atMostOnce()).renewToken();
                             });
                 }
             }

@@ -42,7 +42,7 @@ class HashicorpVaultHealthCheckTest {
 
         @BeforeEach
         void beforeEach() {
-            when(client.lookUpToken(0L)).thenReturn(TOKEN_LOOK_UP_RESULT_200);
+            when(client.lookUpToken()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
         }
 
         @Test
@@ -77,7 +77,7 @@ class HashicorpVaultHealthCheckTest {
 
         @Test
         void get_whenTokenValid_shouldSucceed() {
-            when(client.lookUpToken(0L)).thenReturn(TOKEN_LOOK_UP_RESULT_200);
+            when(client.lookUpToken()).thenReturn(TOKEN_LOOK_UP_RESULT_200);
 
             var result = healthCheck.get();
 
@@ -87,7 +87,7 @@ class HashicorpVaultHealthCheckTest {
         @Test
         void get_whenTokenNotValid_shouldFail() {
             var tokenLookUpErr = "Token look up failed with status 403";
-            when(client.lookUpToken(0L)).thenReturn(Result.failure(tokenLookUpErr));
+            when(client.lookUpToken()).thenReturn(Result.failure(tokenLookUpErr));
 
             var result = healthCheck.get();
 
@@ -103,7 +103,7 @@ class HashicorpVaultHealthCheckTest {
         var tokenLookUpErr = "Token look up failed with status 403";
 
         when(client.doHealthCheck()).thenReturn(Result.failure(healthCheckErr));
-        when(client.lookUpToken(0L)).thenReturn(Result.failure(tokenLookUpErr));
+        when(client.lookUpToken()).thenReturn(Result.failure(tokenLookUpErr));
 
         var result = healthCheck.get();
 
