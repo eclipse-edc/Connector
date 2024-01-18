@@ -89,16 +89,6 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public Double getDouble(String key) {
-        return getNotNullValue(key, this::getDouble);
-    }
-
-    @Override
-    public Double getDouble(String key, Double defaultValue) {
-        return getParsed(key, defaultValue, "double", Double::parseDouble);
-    }
-
-    @Override
     public Boolean getBoolean(String key) {
         return getNotNullValue(key, this::getBoolean);
     }

@@ -158,8 +158,8 @@ class HashicorpVaultClientIntegrationTest {
                     assertThat(tokenLookUpResult.succeeded()).isTrue();
                 });
 
-        // at this point the creation  should be overridden by the renewal operation
-        // check that the token is still valid after the new  expired
+        // at this point the creation ttl should be overridden by the renewal operation
+        // check that the token is still valid after the new ttl expired
         await()
                 .pollDelay(TTL, TimeUnit.SECONDS)
                 .atMost(TTL + 1, TimeUnit.SECONDS)

@@ -145,47 +145,6 @@ class ConfigImplTest {
     }
 
     @Test
-    void getDoubleConfig() {
-        var config = new ConfigImpl("", Map.of("key", "1.5"));
-
-        var value = config.getDouble("key");
-
-        assertThat(value).isEqualTo(1.5);
-    }
-
-    @Test
-    void getDoubleShouldThrowExceptionIfKeyNotFoundAndNoDefaultDefined() {
-        var config = new ConfigImpl("", emptyMap());
-
-        assertThatThrownBy(() -> config.getDouble("key")).isInstanceOf(EdcException.class);
-    }
-
-    @Test
-    void getDoubleShouldThrowExceptionIfValueIsNotValidDouble() {
-        var config = new ConfigImpl("", Map.of("key", "not_a_double"));
-
-        assertThatThrownBy(() -> config.getDouble("key")).isInstanceOf(EdcException.class);
-    }
-
-    @Test
-    void getDoubleShouldReturnDefaultIfKeyNotFound() {
-        var config = new ConfigImpl("", emptyMap());
-
-        var value = config.getDouble("key", 1.5);
-
-        assertThat(value).isEqualTo(1.5);
-    }
-
-    @Test
-    void getDoubleShouldReturnNullIfDefaultIsNull() {
-        var config = new ConfigImpl("", emptyMap());
-
-        var value = config.getDouble("key", null);
-
-        assertThat(value).isEqualTo(null);
-    }
-
-    @Test
     void getBooleanConfig() {
         var config = new ConfigImpl("", Map.of("key", "true"));
 
