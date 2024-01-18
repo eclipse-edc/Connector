@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/bump-version
+      - uses: eclipse-edc/.github/.github/actions/bump-version@main
         with:
           target_branch: "main"
           base_version: ${{ needs.Prepare-Release.outputs.edc-version }}
