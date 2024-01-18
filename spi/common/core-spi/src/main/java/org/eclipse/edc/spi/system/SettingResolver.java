@@ -68,17 +68,6 @@ public interface SettingResolver {
     }
 
     /**
-     * Returns the configuration value parsed as double or the default value if not found
-     *
-     * @param setting the setting key
-     * @param defaultValue value returned if no key found
-     * @return the config value as double
-     */
-    default double getSetting(String setting, double defaultValue) {
-        return getConfig().getDouble(setting, defaultValue);
-    }
-
-    /**
      * Returns the configuration value parsed as boolean or the default value if not found
      *
      * @param setting the setting key
