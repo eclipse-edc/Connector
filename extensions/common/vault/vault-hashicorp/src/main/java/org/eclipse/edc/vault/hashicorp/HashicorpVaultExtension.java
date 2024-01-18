@@ -52,8 +52,6 @@ import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
 public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault Extension";
 
-    private static final int CORE_POOL_SIZE = 2;
-
     @Inject
     private EdcHttpClient httpClient;
 
@@ -87,7 +85,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
-        scheduledExecutorService = executorInstrumentation.instrument(Executors.newScheduledThreadPool(CORE_POOL_SIZE), NAME);
+        scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), NAME);
         isScheduledTokenRenewalEnabled = context.getSetting(VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED, VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT);
     }
 
