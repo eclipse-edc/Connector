@@ -78,7 +78,8 @@ public abstract class AbstractEndToEndTransfer {
         var msg = UUID.randomUUID().toString();
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
 
-        assertThat(CONSUMER.getAllDataReferences(transferProcessId)).hasSize(1);
+        // We expect two EDR because in the test runtime we have two receiver extensions static and dynamic one
+        assertThat(CONSUMER.getAllDataReferences(transferProcessId)).hasSize(2);
     }
 
     @Test
@@ -104,7 +105,8 @@ public abstract class AbstractEndToEndTransfer {
         var msg = UUID.randomUUID().toString();
         await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
 
-        assertThat(CONSUMER.getAllDataReferences(transferProcessId)).hasSize(1);
+        // We expect two EDR because in the test runtime we have two receiver extensions static and dynamic one
+        assertThat(CONSUMER.getAllDataReferences(transferProcessId)).hasSize(2);
     }
 
     @Test

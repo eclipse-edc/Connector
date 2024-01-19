@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static dev.failsafe.Failsafe.with;
@@ -60,7 +61,8 @@ public class HttpDynamicEndpointDataReferenceReceiver implements EndpointDataRef
 
     @Override
     public CompletableFuture<Result<Void>> send(@NotNull EndpointDataReference edr) {
-        var transferProcess = transferProcessStore.findForCorrelationId(edr.getId());
+        var transferProcess = Optional.ofNullable(transferProcessStore.findById(edr.getId()))
+                .orElseGet(() -> transferProcessStore.findForCorrelationId(edr.getId()));
 
         if (transferProcess == null) {
             return completedFuture(Result.failure(format("Failed to found transfer process for correlation id %s", edr.getId())));
