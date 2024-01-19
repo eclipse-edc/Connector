@@ -384,8 +384,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @WithSpan
     private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse, Policy policy) {
         var messageBuilder = TransferStartMessage.Builder.newInstance()
-                .dataAddress(dataFlowResponse.getDataAddress())
-                .policy(policy);
+                .dataAddress(dataFlowResponse.getDataAddress());
 
         dispatch(messageBuilder, process, policy)
                 .onSuccess((t, content) -> transitionToStarted(t))

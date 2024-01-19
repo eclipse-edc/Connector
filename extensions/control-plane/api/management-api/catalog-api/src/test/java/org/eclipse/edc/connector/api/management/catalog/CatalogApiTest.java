@@ -95,7 +95,7 @@ class CatalogApiTest {
                 .satisfies(transformResult -> assertThat(transformResult).isSucceeded()
                         .satisfies(transformed -> {
                             assertThat(transformed.getProtocol()).isNotBlank();
-                            assertThat(transformed.getProtocol()).isNotBlank();
+                            assertThat(transformed.getCounterPartyId()).isNotBlank();
                             assertThat(transformed.getCounterPartyAddress()).isNotBlank();
                         }));
     }
