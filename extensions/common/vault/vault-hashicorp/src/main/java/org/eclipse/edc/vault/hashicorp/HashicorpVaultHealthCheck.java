@@ -21,8 +21,6 @@ import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.eclipse.edc.spi.system.health.StartupStatusProvider;
 
-import java.util.ArrayList;
-
 /**
  * Implements the healthcheck of the Hashicorp Vault.
  * The healthcheck is a combination of:
@@ -32,8 +30,6 @@ import java.util.ArrayList;
  * </ol>
  */
 public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessProvider, StartupStatusProvider {
-
-    private static final String DELIMITER = ", ";
     private final HashicorpVaultClient client;
     private final Monitor monitor;
 
@@ -44,28 +40,16 @@ public class HashicorpVaultHealthCheck implements ReadinessProvider, LivenessPro
 
     @Override
     public HealthCheckResult get() {
-
-        var errors = new ArrayList<String>();
-
-        var healthCheckResult = client.doHealthCheck();
-        if (healthCheckResult.failed()) {
-            errors.add(healthCheckResult.getFailureDetail());
-        }
-
-        var tokenLookUpResult = client.lookUpToken();
-        if (tokenLookUpResult.failed()) {
-            errors.add(tokenLookUpResult.getFailureDetail());
-        }
-
-        HealthCheckResult result;
-
-        if (errors.isEmpty()) {
-            result = HealthCheckResult.success();
-        } else {
-            monitor.warning("Healthcheck failed with reason(s): " + String.join(DELIMITER, errors));
-            result = HealthCheckResult.failed(errors);
-        }
-
-        return result.forComponent(HashicorpVaultHealthExtension.NAME);
+        return client
+                .doHealthCheck()
+                .merge(client.lookUpToken())
+                .flatMap(result -> {
+                    if (result.succeeded()) {
+                        return HealthCheckResult.success();
+                    } else {
+                        monitor.warning("Healthcheck failed with reason(s): " + result.getFailureDetail());
+                        return HealthCheckResult.failed(result.getFailureMessages());
+                    }
+                }).forComponent(HashicorpVaultHealthExtension.NAME);
     }
 }

@@ -14,167 +14,148 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.assertions.AbstractResultAssert;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.vault.VaultContainer;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @ComponentTest
 @Testcontainers
-@ExtendWith(EdcExtension.class)
 class HashicorpVaultClientIntegrationTest {
-    private static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
-    private static final String ROOT_TOKEN = UUID.randomUUID().toString();
+    @Container
+    static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("vault:1.9.6")
+            .withVaultToken(UUID.randomUUID().toString());
+
+    private static final String HTTP_URL_FORMAT = "http://%s:%s";
+    private static final String HEALTH_CHECK_PATH = "/health/path";
+    private static final String CLIENT_TOKEN_KEY = "client_token";
+    private static final String AUTH_KEY = "auth";
     private static final long CREATION_TTL = 6L;
     private static final long TTL = 5L;
     private static final long RENEW_BUFFER = 4L;
-    private static final String CLIENT_TOKEN_KEY = "client_token";
-    private static final String AUTH_KEY = "auth";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ConsoleMonitor MONITOR = new ConsoleMonitor();
 
-    @Container
-    static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
-            .withVaultToken(ROOT_TOKEN);
+    private static HashicorpVaultClient client;
 
     @BeforeEach
-    void beforeEach(EdcExtension extension) throws IOException, InterruptedException {
+    void beforeEach() throws IOException, InterruptedException {
         assertThat(CREATION_TTL).isGreaterThan(TTL);
-        extension.setConfiguration(getConfig());
+        client = new HashicorpVaultClient(
+                TestUtils.testHttpClient(),
+                OBJECT_MAPPER,
+                MONITOR,
+                getConfigValues()
+        );
     }
 
     @Test
-    void lookUpToken_whenTokenNotExpired_shouldSucceed(HashicorpVaultClient hashicorpVaultClient) {
-        var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
+    void lookUpToken_whenTokenNotExpired_shouldSucceed() {
+        var tokenLookUpResult = client.lookUpToken();
 
-        assertThat(tokenLookUpResult.succeeded()).isTrue();
-        var tokenLookUpResponse = tokenLookUpResult.getContent();
-        assertThat(tokenLookUpResponse).isNotNull();
-        assertThat(tokenLookUpResponse.isRenewable()).isFalse();
-        assertThat(tokenLookUpResponse.getWarnings()).isEmpty();
-        assertThat(tokenLookUpResponse.getLeaseDuration()).isEqualTo(0L);
-        assertThat(tokenLookUpResponse.getRequestId()).isNotNull();
-        assertThat(tokenLookUpResponse.getLeaseId()).isNotNull();
-        var tokenLookUpData = tokenLookUpResponse.getData();
-        assertThat(tokenLookUpData.getCreationTime()).isGreaterThan(0);
-        assertThat(tokenLookUpData.getCreationTtl()).isEqualTo(CREATION_TTL);
-        assertThat(tokenLookUpData.getAccessor()).isNotEmpty();
-        assertThat(tokenLookUpData.getPolicies()).isEqualTo(List.of("default"));
-        assertThat(tokenLookUpData.getExpireTime()).isNotEmpty();
-        assertThat(tokenLookUpData.getNumUses()).isEqualTo(0);
-        assertThat(tokenLookUpData.getDisplayName()).isEqualTo("token");
-        assertThat(tokenLookUpData.getEntityId()).isNotNull();
-        assertThat(tokenLookUpData.isOrphan()).isFalse();
-        assertThat(tokenLookUpData.getType()).isEqualTo("service");
-        assertThat(tokenLookUpData.getExplicitMaxTtl()).isEqualTo(0L);
-        assertThat(tokenLookUpData.getPath()).isNotNull();
-        assertThat(tokenLookUpData.getPeriod()).isNull();
-        assertThat(tokenLookUpData.getMeta()).isEmpty();
-        assertThat(tokenLookUpData.isRenewable()).isTrue();
-        assertThat(tokenLookUpData.getId()).isNotNull();
-        assertThat(tokenLookUpData.getIssueTime()).isNotNull();
-        assertThat(tokenLookUpData.getPeriod()).isNull();
+        AbstractResultAssert.assertThat(tokenLookUpResult).isSucceeded().satisfies(tokenLookUpResponse -> {
+            assertThat(tokenLookUpResponse).isNotNull();
+            assertThat(tokenLookUpResponse.isRenewable()).isFalse();
+            assertThat(tokenLookUpResponse.getWarnings()).isEmpty();
+            assertThat(tokenLookUpResponse.getLeaseDuration()).isEqualTo(0L);
+            assertThat(tokenLookUpResponse.getRequestId()).isNotNull();
+            assertThat(tokenLookUpResponse.getLeaseId()).isNotNull();
+            assertThat(tokenLookUpResponse.getData()).satisfies(tokenLookUpData -> {
+                assertThat(tokenLookUpData.getCreationTime()).isGreaterThan(0);
+                assertThat(tokenLookUpData.getCreationTtl()).isEqualTo(CREATION_TTL);
+                assertThat(tokenLookUpData.getAccessor()).isNotEmpty();
+                assertThat(tokenLookUpData.getPolicies()).isEqualTo(List.of("root"));
+                assertThat(tokenLookUpData.getExpireTime()).isNotEmpty();
+                assertThat(tokenLookUpData.getNumUses()).isEqualTo(0);
+                assertThat(tokenLookUpData.getDisplayName()).isEqualTo("token");
+                assertThat(tokenLookUpData.getEntityId()).isNotNull();
+                assertThat(tokenLookUpData.isOrphan()).isFalse();
+                assertThat(tokenLookUpData.getType()).isEqualTo("service");
+                assertThat(tokenLookUpData.getExplicitMaxTtl()).isEqualTo(0L);
+                assertThat(tokenLookUpData.getPath()).isNotNull();
+                assertThat(tokenLookUpData.getPeriod()).isNull();
+                assertThat(tokenLookUpData.getMeta()).isEmpty();
+                assertThat(tokenLookUpData.isRenewable()).isTrue();
+                assertThat(tokenLookUpData.getId()).isNotNull();
+                assertThat(tokenLookUpData.getIssueTime()).isNotNull();
+                assertThat(tokenLookUpData.getPeriod()).isNull();
+            });
+        });
     }
 
     @Test
-    void lookUpToken_whenTokenExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
+    void lookUpToken_whenTokenExpired_shouldFail() {
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
+                    var tokenLookUpResult = client.lookUpToken();
                     assertThat(tokenLookUpResult.failed()).isTrue();
                     assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
                 });
     }
 
     @Test
-    void renewToken_whenTokenNotExpired_shouldSucceed(HashicorpVaultClient hashicorpVaultClient) {
-        var tokenRenewResult = hashicorpVaultClient.renewToken();
+    void renewToken_whenTokenNotExpired_shouldSucceed() {
+        var tokenRenewResult = client.renewToken();
 
-        assertThat(tokenRenewResult.succeeded()).isTrue();
-        var tokenRenewResponse = tokenRenewResult.getContent();
-        assertThat(tokenRenewResponse).isNotNull();
-        assertThat(tokenRenewResponse.getRequestId()).isNotNull();
-        assertThat(tokenRenewResponse.isRenewable()).isEqualTo(false);
-        assertThat(tokenRenewResponse.getWarnings()).isEmpty();
-        assertThat(tokenRenewResponse.getLeaseDuration()).isEqualTo(0L);
-        assertThat(tokenRenewResponse.getLeaseId()).isNotNull();
-        var tokenRenewAuth = tokenRenewResponse.getAuth();
-        assertThat(tokenRenewAuth.getTokenPolicies()).isEqualTo(List.of("default"));
-        assertThat(tokenRenewAuth.getClientToken()).isNotEmpty();
-        assertThat(tokenRenewAuth.getMetadata()).isEmpty();
-        assertThat(tokenRenewAuth.isRenewable()).isTrue();
-        assertThat(tokenRenewAuth.getAccessor()).isNotEmpty();
-        assertThat(tokenRenewAuth.getPolicies()).isEqualTo(List.of("default"));
-        assertThat(tokenRenewAuth.getLeaseDuration()).isEqualTo(TTL);
-        assertThat(tokenRenewAuth.isOrphan()).isFalse();
-        assertThat(tokenRenewAuth.getEntityId()).isEmpty();
+        AbstractResultAssert.assertThat(tokenRenewResult).isSucceeded().satisfies(tokenRenewResponse -> {
+            assertThat(tokenRenewResponse).isNotNull();
+            assertThat(tokenRenewResponse.getRequestId()).isNotNull();
+            assertThat(tokenRenewResponse.isRenewable()).isEqualTo(false);
+            assertThat(tokenRenewResponse.getWarnings()).isEmpty();
+            assertThat(tokenRenewResponse.getLeaseDuration()).isEqualTo(0L);
+            assertThat(tokenRenewResponse.getLeaseId()).isNotNull();
+            assertThat(tokenRenewResponse.getAuth()).satisfies(tokenRenewAuth -> {
+                assertThat(tokenRenewAuth.getTokenPolicies()).isEqualTo(List.of("root"));
+                assertThat(tokenRenewAuth.getClientToken()).isNotEmpty();
+                assertThat(tokenRenewAuth.getMetadata()).isEmpty();
+                assertThat(tokenRenewAuth.isRenewable()).isTrue();
+                assertThat(tokenRenewAuth.getAccessor()).isNotEmpty();
+                assertThat(tokenRenewAuth.getPolicies()).isEqualTo(List.of("root"));
+                assertThat(tokenRenewAuth.getLeaseDuration()).isEqualTo(TTL);
+                assertThat(tokenRenewAuth.isOrphan()).isFalse();
+                assertThat(tokenRenewAuth.getEntityId()).isEmpty();
+            });
+        });
     }
 
     @Test
-    void renew_whenTokenExpired_shouldFail(HashicorpVaultClient hashicorpVaultClient) {
+    void renewToken_whenTokenExpired_shouldFail() {
         await()
                 .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
                 .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    var tokenRenewResult = hashicorpVaultClient.renewToken();
+                    var tokenRenewResult = client.renewToken();
                     assertThat(tokenRenewResult.failed()).isTrue();
                     assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
                 });
     }
 
-    @Test
-    void scheduleTokenRenewal_withValidToken_shouldSucceed(HashicorpVaultClient hashicorpVaultClient) {
-        // trigger the automatic token renewal mechanism in the background
-        hashicorpVaultClient.scheduleTokenRenewal();
-
-        // ensure that the token is still valid after the initial CREATION_TTL expired
-        await()
-                .pollDelay(CREATION_TTL, TimeUnit.SECONDS)
-                .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
-                    assertThat(tokenLookUpResult.succeeded()).isTrue();
-                });
-
-        // at this point the creation ttl should be overridden by the renewal operation
-        // check that the token is still valid after the new ttl expired
-        await()
-                .pollDelay(TTL, TimeUnit.SECONDS)
-                .atMost(TTL + 1, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    var tokenLookUpResult = hashicorpVaultClient.lookUpToken();
-                    assertThat(tokenLookUpResult.succeeded()).isTrue();
-                });
-    }
-
-    private Map<String, String> getConfig() throws IOException, InterruptedException {
-        var execResult = VAULTCONTAINER.execInContainer(
+    public static HashicorpVaultConfigValues getConfigValues() throws IOException, InterruptedException {
+        var execResult = VAULT_CONTAINER.execInContainer(
                 "vault",
                 "token",
                 "create",
-                "-policy=default",
+                "-policy=root",
                 "-ttl=%d".formatted(CREATION_TTL),
                 "-format=json");
 
@@ -187,14 +168,12 @@ class HashicorpVaultClientIntegrationTest {
                 .asJsonObject();
         var clientToken = auth.getString(CLIENT_TOKEN_KEY);
 
-        return new HashMap<>() {
-            {
-                put(VAULT_URL, format("http://%s:%s", VAULTCONTAINER.getHost(), VAULTCONTAINER.getFirstMappedPort()));
-                put(VAULT_TOKEN, clientToken);
-                put(VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED, Boolean.toString(false));
-                put(VAULT_TOKEN_TTL, Long.toString(TTL));
-                put(VAULT_TOKEN_RENEW_BUFFER, Long.toString(RENEW_BUFFER));
-            }
-        };
+        return HashicorpVaultConfigValues.Builder.newInstance()
+                .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
+                .healthCheckPath(HEALTH_CHECK_PATH)
+                .token(clientToken)
+                .ttl(TTL)
+                .renewBuffer(RENEW_BUFFER)
+                .build();
     }
 }

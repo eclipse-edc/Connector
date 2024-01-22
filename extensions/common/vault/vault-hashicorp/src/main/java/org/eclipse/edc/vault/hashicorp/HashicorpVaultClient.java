@@ -24,6 +24,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.http.FallbackFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryRequestPayload;
@@ -39,10 +40,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static org.eclipse.edc.spi.http.FallbackFactories.retryWhenStatusIsNotIn;
 
 public class HashicorpVaultClient {
     private static final String VAULT_DATA_ENTRY_NAME = "content";
@@ -53,39 +50,37 @@ public class HashicorpVaultClient {
     private static final String VAULT_SECRET_METADATA_PATH = "metadata";
     private static final String TOKEN_LOOK_UP_SELF_PATH = "v1/auth/token/lookup-self";
     private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
+    private static final List<FallbackFactory> FALLBACK_FACTORIES = List.of(new HashicorpVaultClientFallbackFactory());
     private static final int HTTP_CODE_404 = 404;
     private static final String DELIMITER = ", ";
-    private static final int[] NON_RETRYABLE_STATUS_CODES = {200, 204, 400, 403, 404, 405};
-
-    private final Headers headers;
 
     @NotNull
     private final EdcHttpClient httpClient;
     @NotNull
-    private final ScheduledExecutorService scheduledExecutorService;
+    private final Headers headers;
     @NotNull
     private final ObjectMapper objectMapper;
     @NotNull
     private final Monitor monitor;
     @NotNull
     private final HashicorpVaultConfigValues configValues;
+    @NotNull
+    private final HttpUrl healthCheckUrl;
 
     HashicorpVaultClient(@NotNull EdcHttpClient httpClient,
                          @NotNull ObjectMapper objectMapper,
-                         @NotNull ScheduledExecutorService scheduledExecutorService,
                          @NotNull Monitor monitor,
                          @NotNull HashicorpVaultConfigValues configValues) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.scheduledExecutorService = scheduledExecutorService;
         this.monitor = monitor;
         this.configValues = configValues;
         this.headers = getHeaders();
+        this.healthCheckUrl = getHealthCheckUrl();
     }
 
     public Result<Void> doHealthCheck() {
-        var requestUri = getHealthCheckUrl();
-        var request = httpGet(requestUri);
+        var request = httpGet(healthCheckUrl);
 
         try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
@@ -114,37 +109,6 @@ public class HashicorpVaultClient {
     }
 
     /**
-     * Performs the initial token lookup and renewal. Schedules the next token renewal if both operations were successful.
-     * <p>
-     * The method is executed asynchronously since the lookup and renewal of tokens are retryable. Otherwise, the main
-     * program flow would be halted.
-     */
-    public void scheduleTokenRenewal() {
-        scheduledExecutorService.execute(() -> {
-            var tokenLookUpResult = lookUpToken();
-
-            if (tokenLookUpResult.failed()) {
-                monitor.warning("Initial token look up failed with reason: %s".formatted(tokenLookUpResult.getFailureDetail()));
-                return;
-            }
-
-            var tokenLookUpResponse = tokenLookUpResult.getContent();
-
-            if (tokenLookUpResponse.getData().isRenewable()) {
-                var tokenRenewResult = renewToken();
-
-                if (tokenRenewResult.failed()) {
-                    monitor.warning("Initial token renewal failed with reason: %s".formatted(tokenRenewResult.getFailureDetail()));
-                    return;
-                }
-
-                var tokenRenewResponse = tokenRenewResult.getContent();
-                scheduleNextTokenRenewal(tokenRenewResponse.getAuth().getLeaseDuration());
-            }
-        });
-    }
-
-    /**
      * Attempts to look up the Vault token defined in the configurations.
      * <p>
      * Will retry in some error cases.
@@ -152,13 +116,13 @@ public class HashicorpVaultClient {
      * @return the result of the token lookup operation
      */
     public Result<TokenLookUpResponse> lookUpToken() {
-        var uri = getVaultUrl()
+        var uri = configValues.url()
                 .newBuilder()
                 .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
         var request = httpGet(uri);
 
-        try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES)))) {
+        try (var response = httpClient.execute(request, FALLBACK_FACTORIES)) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
@@ -186,7 +150,7 @@ public class HashicorpVaultClient {
      * @return the result of the token renewal operation
      */
     public Result<TokenRenewResponse> renewToken() {
-        var uri = getVaultUrl()
+        var uri = configValues.url()
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
                 .build();
@@ -196,7 +160,7 @@ public class HashicorpVaultClient {
                 .build();
         var request = httpPost(uri, requestPayload);
 
-        try (var response = httpClient.execute(request, List.of(retryWhenStatusIsNotIn(NON_RETRYABLE_STATUS_CODES)))) {
+        try (var response = httpClient.execute(request, FALLBACK_FACTORIES)) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
@@ -216,22 +180,6 @@ public class HashicorpVaultClient {
             monitor.warning(errMsg, e);
             return Result.failure(errMsg);
         }
-    }
-
-    private void scheduleNextTokenRenewal(long ttl) {
-        var renewBuffer = configValues.renewBuffer();
-        var delay = ttl - renewBuffer;
-
-        scheduledExecutorService.schedule(() -> {
-            var tokenRenewResult = renewToken();
-
-            if (tokenRenewResult.succeeded()) {
-                var tokenRenewResponse = tokenRenewResult.getContent();
-                scheduleNextTokenRenewal(tokenRenewResponse.getAuth().getLeaseDuration());
-            } else {
-                monitor.warning("Scheduled token renewal failed: %s".formatted(tokenRenewResult.getFailureDetail()));
-            }
-        }, delay, TimeUnit.SECONDS);
     }
 
     public Result<String> getSecretValue(@NotNull String key) {
@@ -310,19 +258,6 @@ public class HashicorpVaultClient {
     }
 
     @NotNull
-    private HttpUrl getVaultUrl() {
-        var httpUrl = HttpUrl.parse(configValues.url());
-
-        if (httpUrl == null) {
-            var errMsg = "Vault url is null";
-            monitor.warning(errMsg);
-            throw new EdcException(errMsg);
-        }
-
-        return httpUrl;
-    }
-
-    @NotNull
     private HttpUrl getHealthCheckUrl() {
         var vaultHealthPath = configValues.healthCheckPath();
         var isVaultHealthStandbyOk = configValues.healthStandbyOk();
@@ -331,7 +266,7 @@ public class HashicorpVaultClient {
         // status
         // code instead of the standby status codes
 
-        return getVaultUrl()
+        return configValues.url()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultHealthPath))
                 .addQueryParameter("standbyok", isVaultHealthStandbyOk ? "true" : "false")
@@ -347,7 +282,7 @@ public class HashicorpVaultClient {
 
         var vaultApiPath = configValues.secretPath();
 
-        return getVaultUrl()
+        return configValues.url()
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType)

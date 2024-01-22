@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
+import okhttp3.HttpUrl;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -21,18 +23,19 @@ import static java.util.Objects.requireNonNull;
  */
 public class HashicorpVaultConfigValues {
 
-    private String url;
+    private HttpUrl url;
     private boolean healthCheckEnabled;
     private String healthCheckPath;
     private boolean healthStandbyOk;
     private String token;
+    private boolean scheduledTokenRenewEnabled;
     private long ttl;
     private long renewBuffer;
     private String secretPath;
 
     private HashicorpVaultConfigValues() {}
 
-    public String url() {
+    public HttpUrl url() {
         return url;
     }
 
@@ -50,6 +53,10 @@ public class HashicorpVaultConfigValues {
 
     public String token() {
         return token;
+    }
+
+    public boolean scheduledTokenRenewEnabled() {
+        return scheduledTokenRenewEnabled;
     }
 
     public long ttl() {
@@ -76,7 +83,8 @@ public class HashicorpVaultConfigValues {
         }
 
         public Builder url(String url) {
-            values.url = url;
+            requireNonNull(url, "Vault url must not be null");
+            values.url = HttpUrl.parse(url);
             return this;
         }
 
@@ -100,6 +108,11 @@ public class HashicorpVaultConfigValues {
             return this;
         }
 
+        public Builder scheduledTokenRenewEnabled(boolean scheduledTokenRenewEnabled) {
+            values.scheduledTokenRenewEnabled = scheduledTokenRenewEnabled;
+            return this;
+        }
+
         public Builder ttl(long ttl) {
             values.ttl = ttl;
             return this;
@@ -116,7 +129,8 @@ public class HashicorpVaultConfigValues {
         }
 
         public HashicorpVaultConfigValues build() {
-            requireNonNull(values.url, "Vault url must not be null");
+            requireNonNull(values.url, "Vault url must be valid");
+            requireNonNull(values.healthCheckPath, "Vault health check path must not be null");
             requireNonNull(values.token, "Vault token must not be null");
 
             if (values.ttl < 5) {

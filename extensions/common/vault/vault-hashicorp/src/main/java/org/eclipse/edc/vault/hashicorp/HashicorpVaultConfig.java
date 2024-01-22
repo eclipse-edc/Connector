@@ -20,12 +20,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 /**
  * Configuration for Hashicorp Vault.
  */
-interface HashicorpVaultConfig {
+public interface HashicorpVaultConfig {
 
     boolean VAULT_HEALTH_CHECK_ENABLED_DEFAULT = true;
     boolean VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT = false;
     String VAULT_API_HEALTH_PATH_DEFAULT = "/v1/sys/health";
-    boolean VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT = true;
+    boolean VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT = true;
     long VAULT_TOKEN_RENEW_BUFFER_DEFAULT = 30;
     long VAULT_TOKEN_TTL_DEFAULT = 300;
     String VAULT_API_SECRET_PATH_DEFAULT = "/v1/secret";
@@ -46,7 +46,7 @@ interface HashicorpVaultConfig {
     String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
     @Setting(value = "Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes", defaultValue = "true")
-    String VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED = "edc.vault.hashicorp.token.scheduled-renew-enabled";
+    String VAULT_TOKEN_SCHEDULED_RENEW_ENABLED = "edc.vault.hashicorp.token.scheduled-renew-enabled";
 
     @Setting(value = "The time-to-live (ttl) value of the Hashicorp Vault token in seconds", defaultValue = "300", type = "long")
     String VAULT_TOKEN_TTL = "edc.vault.hashicorp.token.ttl";

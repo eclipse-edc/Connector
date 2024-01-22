@@ -26,9 +26,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_API_HEALTH_PATH;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_API_HEALTH_PATH_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_API_SECRET_PATH;
@@ -40,8 +37,8 @@ import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_TTL_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
@@ -59,10 +56,10 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
-    private ScheduledExecutorService scheduledExecutorService;
-    private HashicorpVaultClient hashicorpVaultClient;
+    private HashicorpVaultClient client;
+    private HashicorpVaultTokenRenewTask tokenRenewalTask;
     private Monitor monitor;
-    private boolean isScheduledTokenRenewalEnabled;
+    private HashicorpVaultConfigValues configValues;
 
     @Override
     public String name() {
@@ -70,61 +67,66 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     @Provider
-    public HashicorpVaultClient hashicorpVaultClient(ServiceExtensionContext context) {
-        hashicorpVaultClient = hashicorpVaultClient == null ? createHashicorpVaultClient(context, monitor) : hashicorpVaultClient;
-        return hashicorpVaultClient;
+    public HashicorpVaultClient hashicorpVaultClient() {
+        if (client == null) {
+            client = new HashicorpVaultClient(
+                    httpClient,
+                    typeManager.getMapper(),
+                    monitor,
+                    configValues);
+        }
+        return client;
     }
 
     @Provider
-    public Vault hashicorpVault(ServiceExtensionContext context) {
-        return new HashicorpVault(hashicorpVaultClient(context), monitor);
+    public Vault hashicorpVault() {
+        return new HashicorpVault(hashicorpVaultClient(), monitor);
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
-        scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), NAME);
-        isScheduledTokenRenewalEnabled = context.getSetting(VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED, VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT);
+        configValues = getConfigValues(context);
+        tokenRenewalTask = new HashicorpVaultTokenRenewTask(
+                executorInstrumentation,
+                hashicorpVaultClient(),
+                configValues.renewBuffer(),
+                monitor);
     }
 
     @Override
     public void start() {
-        if (isScheduledTokenRenewalEnabled) {
-            hashicorpVaultClient.scheduleTokenRenewal();
+        if (configValues.scheduledTokenRenewEnabled()) {
+            tokenRenewalTask.start();
         }
     }
 
     @Override
     public void shutdown() {
-        scheduledExecutorService.shutdownNow();
+        tokenRenewalTask.stop();
     }
 
-    private HashicorpVaultClient createHashicorpVaultClient(ServiceExtensionContext context, Monitor monitor) {
+    private HashicorpVaultConfigValues getConfigValues(ServiceExtensionContext context) {
         var url = context.getSetting(VAULT_URL, null);
         var healthCheckEnabled = context.getSetting(VAULT_HEALTH_CHECK_ENABLED, VAULT_HEALTH_CHECK_ENABLED_DEFAULT);
         var healthCheckPath = context.getSetting(VAULT_API_HEALTH_PATH, VAULT_API_HEALTH_PATH_DEFAULT);
         var healthStandbyOk = context.getSetting(VAULT_HEALTH_CHECK_STANDBY_OK, VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT);
         var token = context.getSetting(VAULT_TOKEN, null);
+        var isScheduledTokenRenewEnabled = context.getSetting(VAULT_TOKEN_SCHEDULED_RENEW_ENABLED, VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT);
         var ttl = context.getSetting(VAULT_TOKEN_TTL, VAULT_TOKEN_TTL_DEFAULT);
         var renewBuffer = context.getSetting(VAULT_TOKEN_RENEW_BUFFER, VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
         var secretPath = context.getSetting(VAULT_API_SECRET_PATH, VAULT_API_SECRET_PATH_DEFAULT);
 
-        var configValues = HashicorpVaultConfigValues.Builder.newInstance()
+        return HashicorpVaultConfigValues.Builder.newInstance()
                 .url(url)
                 .healthCheckEnabled(healthCheckEnabled)
                 .healthCheckPath(healthCheckPath)
                 .healthStandbyOk(healthStandbyOk)
                 .token(token)
+                .scheduledTokenRenewEnabled(isScheduledTokenRenewEnabled)
                 .ttl(ttl)
                 .renewBuffer(renewBuffer)
                 .secretPath(secretPath)
                 .build();
-
-        return new HashicorpVaultClient(
-                httpClient,
-                typeManager.getMapper(),
-                scheduledExecutorService,
-                monitor,
-                configValues);
     }
 }

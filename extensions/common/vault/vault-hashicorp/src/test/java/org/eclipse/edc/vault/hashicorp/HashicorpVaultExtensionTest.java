@@ -25,15 +25,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED;
-import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.never;
@@ -42,6 +38,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class HashicorpVaultExtensionTest {
+
+    private static final String URL = "https://test.com/vault";
+    private static final String TOKEN = "some-token";
 
     private HashicorpVaultExtension extension;
     private final ExecutorInstrumentation executorInstrumentation = mock();
@@ -52,48 +51,45 @@ class HashicorpVaultExtensionTest {
         context.registerService(EdcHttpClient.class, httpClient);
         context.registerService(TypeManager.class, mock(TypeManager.class));
         context.registerService(ExecutorInstrumentation.class, executorInstrumentation);
+        when(context.getSetting(VAULT_URL, null)).thenReturn(URL);
+        when(context.getSetting(VAULT_TOKEN, null)).thenReturn(TOKEN);
         extension = factory.constructInstance(HashicorpVaultExtension.class);
-        when(context.getSetting(VAULT_URL, null)).thenReturn("foo");
-        when(context.getSetting(VAULT_TOKEN, null)).thenReturn("foo");
     }
 
     @Test
-    void hashicorpVault_ensureType(HashicorpVaultExtension extension, ServiceExtensionContext context) {
-        when(context.getSetting(VAULT_URL, null)).thenReturn("https://some.vault");
-        when(context.getSetting(VAULT_TOKEN, null)).thenReturn("some-token");
-
-        assertThat(extension.hashicorpVault(context)).isInstanceOf(HashicorpVault.class);
-    }
-
-    @Test
-    void start_withScheduledTokenRenewalEnabled_shouldScheduleTokenRenewal(ServiceExtensionContext context) {
-        try (var mockedConstruction = mockConstruction(HashicorpVaultClient.class, (client, mockContext) -> {})) {
-            extension.hashicorpVaultClient(context);
-            extension.initialize(context);
-            extension.start();
-            var hashicorpVaultClient = mockedConstruction.constructed().get(0);
-            verify(hashicorpVaultClient).scheduleTokenRenewal();
-        }
-    }
-
-    @Test
-    void start_withScheduledTokenRenewalDisabled_shouldNotScheduleTokenRenewal(ServiceExtensionContext context) {
-        try (var mockedConstruction = mockConstruction(HashicorpVaultClient.class, (client, mockContext) -> {})) {
-            when(context.getSetting(VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED, VAULT_TOKEN_SCHEDULED_RENEWAL_ENABLED_DEFAULT)).thenReturn(false);
-            extension.hashicorpVaultClient(context);
-            extension.initialize(context);
-            extension.start();
-            var hashicorpVaultClient = mockedConstruction.constructed().get(0);
-            verify(hashicorpVaultClient, never()).scheduleTokenRenewal();
-        }
-    }
-
-    @Test
-    void shutdown_shouldShutdownScheduledExecutorService(ServiceExtensionContext context) {
-        var scheduledExecutorService = mock(ScheduledExecutorService.class);
-        when(executorInstrumentation.instrument(any(ScheduledExecutorService.class), eq(extension.name()))).thenReturn(scheduledExecutorService);
+    void hashicorpVault_ensureType(ServiceExtensionContext context) {
         extension.initialize(context);
-        extension.shutdown();
-        verify(scheduledExecutorService).shutdownNow();
+        assertThat(extension.hashicorpVault()).isInstanceOf(HashicorpVault.class);
+    }
+
+    @Test
+    void start_withTokenRenewEnabled_shouldStartTokenRenewTask(ServiceExtensionContext context) {
+        try (var mockedConstruction = mockConstruction(HashicorpVaultTokenRenewTask.class, (client, mockContext) -> {})) {
+            extension.initialize(context);
+            extension.start();
+            var renewTask = mockedConstruction.constructed().get(0);
+            verify(renewTask).start();
+        }
+    }
+
+    @Test
+    void start_withTokenRenewDisabled_shouldNotStartTokenRenewTask(ServiceExtensionContext context) {
+        try (var mockedConstruction = mockConstruction(HashicorpVaultTokenRenewTask.class, (client, mockContext) -> {})) {
+            when(context.getSetting(VAULT_TOKEN_SCHEDULED_RENEW_ENABLED, VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT)).thenReturn(false);
+            extension.initialize(context);
+            extension.start();
+            var renewTask = mockedConstruction.constructed().get(0);
+            verify(renewTask, never()).start();
+        }
+    }
+
+    @Test
+    void shutdown_shouldStopTokenRenewTask(ServiceExtensionContext context) {
+        try (var mockedConstruction = mockConstruction(HashicorpVaultTokenRenewTask.class, (client, mockContext) -> {})) {
+            extension.initialize(context);
+            extension.shutdown();
+            var renewTask = mockedConstruction.constructed().get(0);
+            verify(renewTask).stop();
+        }
     }
 }

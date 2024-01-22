@@ -34,6 +34,7 @@ public class TokenLookUpResponse {
     private boolean renewable;
 
     private List<String> warnings;
+    private Object wrapInfo;
 
     private int leaseDuration;
     private String requestId;
@@ -52,6 +53,9 @@ public class TokenLookUpResponse {
 
     public List<String> getWarnings() {
         return warnings;
+    }
+    public Object getWrapInfo() {
+        return wrapInfo;
     }
 
     public int getLeaseDuration() {
@@ -94,6 +98,12 @@ public class TokenLookUpResponse {
         @JsonSetter(value = "warnings", nulls = Nulls.AS_EMPTY)
         public TokenLookUpResponse.Builder warnings(List<String> warnings) {
             tokenLookUpResponse.warnings = warnings;
+            return this;
+        }
+
+        @JsonProperty("wrap_info")
+        public Object wrapInfo(Object wrapInfo) {
+            tokenLookUpResponse.wrapInfo = wrapInfo;
             return this;
         }
 
