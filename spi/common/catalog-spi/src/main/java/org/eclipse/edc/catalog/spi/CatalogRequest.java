@@ -25,12 +25,14 @@ public class CatalogRequest {
     public static final String CATALOG_REQUEST_TYPE = EDC_NAMESPACE + "CatalogRequest";
     public static final String CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String CATALOG_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
+    public static final String CATALOG_REQUEST_COUNTER_PARTY_ID = EDC_NAMESPACE + "counterPartyId";
     @Deprecated(since = "0.2.0")
     public static final String CATALOG_REQUEST_PROVIDER_URL = EDC_NAMESPACE + "providerUrl";
     public static final String CATALOG_REQUEST_QUERY_SPEC = EDC_NAMESPACE + "querySpec";
 
     private QuerySpec querySpec;
     private String counterPartyAddress;
+    private String counterPartyId;
     private String protocol;
 
     private CatalogRequest() {
@@ -38,6 +40,10 @@ public class CatalogRequest {
 
     public String getCounterPartyAddress() {
         return counterPartyAddress;
+    }
+
+    public String getCounterPartyId() {
+        return counterPartyId;
     }
 
     public QuerySpec getQuerySpec() {
@@ -68,6 +74,11 @@ public class CatalogRequest {
 
         public Builder counterPartyAddress(String counterPartyAddress) {
             instance.counterPartyAddress = counterPartyAddress;
+            return this;
+        }
+
+        public Builder counterPartyId(String counterPartyId) {
+            instance.counterPartyId = counterPartyId;
             return this;
         }
 

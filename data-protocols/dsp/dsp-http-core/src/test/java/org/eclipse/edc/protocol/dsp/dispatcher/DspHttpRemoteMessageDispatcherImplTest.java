@@ -26,6 +26,7 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.DspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -64,15 +65,17 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     private static final String SCOPE_CLAIM = "scope";
     private static final String AUDIENCE_CLAIM = "aud";
+    private static final String AUDIENCE_VALUE = "audValue";
     private final EdcHttpClient httpClient = mock();
     private final IdentityService identityService = mock();
     private final PolicyEngine policyEngine = mock();
     private final TokenDecorator tokenDecorator = mock();
     private final DspHttpRequestFactory<TestMessage> requestFactory = mock();
+    private final AudienceResolver audienceResolver = mock();
     private final Duration timeout = Duration.of(5, SECONDS);
 
     private final DspHttpRemoteMessageDispatcher dispatcher =
-            new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine);
+            new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, audienceResolver);
 
     private static okhttp3.Response dummyResponse(int code) {
         return dummyResponseBuilder(code)
@@ -91,6 +94,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     @BeforeEach
     void setUp() {
+        when(audienceResolver.resolve(any())).thenReturn(AUDIENCE_VALUE);
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0));
     }
 
@@ -122,7 +126,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(requestFactory).createRequest(message);
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("test-scope");
-            assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(message.getCounterPartyAddress());
+            assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(AUDIENCE_VALUE);
             assertThat(tr.getClaims()).containsAllEntriesOf(additional);
         });
 
@@ -187,6 +191,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         @Override
         public String getCounterPartyAddress() {
             return "http://connector";
+        }
+
+        @Override
+        public String getCounterPartyId() {
+            return null;
         }
     }
 

@@ -62,7 +62,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
         var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.requestCatalog(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
+        when(service.requestCatalog(any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -113,7 +113,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
         var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.requestCatalog(any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
+        when(service.requestCatalog(any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
 
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
@@ -131,7 +131,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
         var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.requestCatalog(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(service.requestCatalog(any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -149,10 +149,11 @@ class CatalogApiControllerTest extends RestControllerTestBase {
                 .id("dataset-id")
                 .protocol("protocol")
                 .counterPartyAddress("http://provider-url")
+                .counterPartyId("providerId")
                 .build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(request));
-        when(service.requestDataset(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(service.requestDataset(any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
         var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -165,7 +166,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
 
         verify(validatorRegistry).validate(eq(DATASET_REQUEST_TYPE), any());
         verify(transformerRegistry).transform(any(), eq(DatasetRequest.class));
-        verify(service).requestDataset("dataset-id", "http://provider-url", "protocol");
+        verify(service).requestDataset("dataset-id", "providerId", "http://provider-url", "protocol");
     }
 
     @Test
@@ -205,7 +206,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
         var request = DatasetRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
-        when(service.requestDataset(any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
+        when(service.requestDataset(any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
 
         var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
 
@@ -223,7 +224,7 @@ class CatalogApiControllerTest extends RestControllerTestBase {
         var request = DatasetRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
-        when(service.requestDataset(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(service.requestDataset(any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()

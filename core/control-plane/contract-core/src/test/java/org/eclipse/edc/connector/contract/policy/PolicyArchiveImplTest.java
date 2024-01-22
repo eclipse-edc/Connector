@@ -30,14 +30,32 @@ class PolicyArchiveImplTest {
 
     @Test
     void shouldGetPolicyFromAgreement() {
+        var policy = Policy.Builder.newInstance().assigner("assigner").assignee("assignee").build();
+        var contractAgreement = createContractAgreement(policy);
+        when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(contractAgreement);
+
+        var result = policyArchive.findPolicyForContract("contractId");
+
+        assertThat(result).usingRecursiveComparison().ignoringFields().isEqualTo(policy);
+
+        assertThat(result.getAssigner()).isNotEqualTo(contractAgreement.getProviderId());
+        assertThat(result.getAssignee()).isNotEqualTo(contractAgreement.getConsumerId());
+    }
+
+    @Test
+    void shouldGetPolicyFromAgreement_WithAssigneeAndAssignedInferred() {
         var policy = Policy.Builder.newInstance().build();
         var contractAgreement = createContractAgreement(policy);
         when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(contractAgreement);
 
         var result = policyArchive.findPolicyForContract("contractId");
 
-        assertThat(result).usingRecursiveComparison().isEqualTo(policy);
+        assertThat(result).usingRecursiveComparison().ignoringFields("assignee", "assigner").isEqualTo(policy);
+
+        assertThat(result.getAssigner()).isEqualTo(contractAgreement.getProviderId());
+        assertThat(result.getAssignee()).isEqualTo(contractAgreement.getConsumerId());
     }
+
 
     @Test
     void shouldReturnNullIfContractDoesNotExist() {

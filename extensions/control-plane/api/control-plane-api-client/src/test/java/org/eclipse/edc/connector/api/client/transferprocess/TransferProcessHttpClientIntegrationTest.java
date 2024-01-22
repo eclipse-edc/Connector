@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
+import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
@@ -27,6 +28,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
@@ -65,6 +67,8 @@ public class TransferProcessHttpClientIntegrationTest {
     private final int port = getFreePort();
     private final TransferService service = mock();
 
+    private final PolicyArchive policyArchive = mock();
+
     @BeforeEach
     void setUp(EdcExtension extension) {
         when(service.canHandle(any())).thenReturn(true);
@@ -81,9 +85,12 @@ public class TransferProcessHttpClientIntegrationTest {
         extension.registerSystemExtension(ServiceExtension.class, new TransferServiceMockExtension(service));
         extension.registerServiceMock(ProtocolWebhook.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());
+        extension.registerServiceMock(PolicyArchive.class, policyArchive);
         var registry = mock(RemoteMessageDispatcherRegistry.class);
         when(registry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         extension.registerServiceMock(RemoteMessageDispatcherRegistry.class, registry);
+
+        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
     }
 
     @Test

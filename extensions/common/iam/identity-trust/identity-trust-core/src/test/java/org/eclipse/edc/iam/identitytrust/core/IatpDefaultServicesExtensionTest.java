@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
+import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -103,5 +104,13 @@ class IatpDefaultServicesExtensionTest {
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
         assertThat(ext.scopeExtractorRegistry()).isInstanceOf(IatpScopeExtractorRegistry.class);
+    }
+
+    @Test
+    void verify_defaultAudienceResolver(IatpDefaultServicesExtension ext) {
+        var id = "counterPartyId";
+        var remoteMessage = mock(RemoteMessage.class);
+        when(remoteMessage.getCounterPartyId()).thenReturn(id);
+        assertThat(ext.defaultAudienceResolver().resolve(remoteMessage)).isEqualTo(id);
     }
 }

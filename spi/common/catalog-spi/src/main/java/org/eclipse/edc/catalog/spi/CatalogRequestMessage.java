@@ -32,7 +32,9 @@ public class CatalogRequestMessage implements RemoteMessage {
     private final Policy policy;
     private String protocol = "unknown";
     private String counterPartyAddress;
+    private String counterPartyId;
     private QuerySpec querySpec;
+
 
     private CatalogRequestMessage() {
         // at this time, this is just a placeholder.
@@ -54,6 +56,13 @@ public class CatalogRequestMessage implements RemoteMessage {
     public String getCounterPartyAddress() {
         return counterPartyAddress;
     }
+
+    @NotNull
+    @Override
+    public String getCounterPartyId() {
+        return counterPartyId;
+    }
+
 
     public QuerySpec getQuerySpec() {
         return querySpec;
@@ -87,6 +96,11 @@ public class CatalogRequestMessage implements RemoteMessage {
 
         public CatalogRequestMessage.Builder counterPartyAddress(String callbackAddress) {
             this.message.counterPartyAddress = callbackAddress;
+            return this;
+        }
+
+        public CatalogRequestMessage.Builder counterPartyId(String counterPartyId) {
+            this.message.counterPartyId = counterPartyId;
             return this;
         }
 

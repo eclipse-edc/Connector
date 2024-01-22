@@ -90,6 +90,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
     protected AsyncStatusResultRetryProcess<ContractNegotiation, Object, ?> dispatch(ProcessRemoteMessage.Builder<?, ?> messageBuilder,
                                                                                      ContractNegotiation negotiation) {
         messageBuilder.counterPartyAddress(negotiation.getCounterPartyAddress())
+                .counterPartyId(negotiation.getCounterPartyId())
                 .protocol(negotiation.getProtocol())
                 .processId(Optional.ofNullable(negotiation.getCorrelationId()).orElse(negotiation.getId()));
 

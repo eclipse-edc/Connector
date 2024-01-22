@@ -32,7 +32,7 @@ class GetDspHttpRequestFactoryTest {
     void shouldCreateProperHttpRequest() {
         when(pathProvider.providePath(any())).thenReturn("/message/request/path");
 
-        var message = new TestMessage("protocol", "http://counter-party");
+        var message = new TestMessage("protocol", "http://counter-party", "counterPartyId");
         var request = factory.createRequest(message);
 
         assertThat(request.url().url().toString()).isEqualTo("http://counter-party/message/request/path");

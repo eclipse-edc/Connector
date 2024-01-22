@@ -286,10 +286,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .callbackAddress(protocolWebhook.url())
                 .dataDestination(dataDestination)
                 .transferType(process.getTransferType())
-                .contractId(process.getContractId())
-                .policy(policyArchive.findPolicyForContract(process.getContractId()));
+                .contractId(process.getContractId());
 
-        return dispatch(messageBuilder, process)
+        return dispatch(messageBuilder, process, policyArchive.findPolicyForContract(process.getContractId()))
                 .onSuccess((t, content) -> transitionToRequested(t))
                 .onRetryExhausted(this::transitionToTerminated)
                 .onFailure((t, throwable) -> transitionToRequesting(t))
@@ -323,9 +322,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processCompleting(TransferProcess process) {
-        var builder = TransferCompletionMessage.Builder.newInstance().policy(policyArchive.findPolicyForContract(process.getContractId()));
+        var builder = TransferCompletionMessage.Builder.newInstance();
 
-        return dispatch(builder, process)
+        return dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()))
                 .onSuccess((t, content) -> {
                     transitionToCompleted(t);
                     if (t.getType() == PROVIDER) {
@@ -385,10 +384,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @WithSpan
     private void sendTransferStartMessage(TransferProcess process, DataFlowResponse dataFlowResponse, Policy policy) {
         var messageBuilder = TransferStartMessage.Builder.newInstance()
-                .dataAddress(dataFlowResponse.getDataAddress())
-                .policy(policy);
+                .dataAddress(dataFlowResponse.getDataAddress());
 
-        dispatch(messageBuilder, process)
+        dispatch(messageBuilder, process, policy)
                 .onSuccess((t, content) -> transitionToStarted(t))
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
@@ -407,10 +405,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private boolean sendTransferTerminationMessage(TransferProcess process) {
         var builder = TransferTerminationMessage.Builder.newInstance()
-                .policy(policyArchive.findPolicyForContract(process.getContractId()))
                 .reason(process.getErrorDetail());
 
-        return dispatch(builder, process)
+        return dispatch(builder, process, policyArchive.findPolicyForContract(process.getContractId()))
                 .onSuccess((t, content) -> {
                     transitionToTerminated(t);
                     if (t.getType() == PROVIDER) {
@@ -423,19 +420,25 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .execute("send transfer termination to " + process.getConnectorAddress());
     }
 
-    private <M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, Object, ?> dispatch(B messageBuilder, TransferProcess process) {
+    private <M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> AsyncStatusResultRetryProcess<TransferProcess, Object, ?> dispatch(B messageBuilder, TransferProcess process, Policy policy) {
+
         messageBuilder.protocol(process.getProtocol())
                 .counterPartyAddress(process.getConnectorAddress())
-                .processId(process.getCorrelationId());
+                .processId(process.getCorrelationId())
+                .policy(policy);
 
         if (process.lastSentProtocolMessage() != null) {
             messageBuilder.id(process.lastSentProtocolMessage());
         }
 
         if (process.getType() == PROVIDER) {
-            messageBuilder.consumerPid(process.getCorrelationId()).providerPid(process.getId());
+            messageBuilder.consumerPid(process.getCorrelationId())
+                    .providerPid(process.getId())
+                    .counterPartyId(policy.getAssignee());
         } else {
-            messageBuilder.consumerPid(process.getId()).providerPid(process.getCorrelationId());
+            messageBuilder.consumerPid(process.getId())
+                    .providerPid(process.getCorrelationId())
+                    .counterPartyId(policy.getAssigner());
         }
 
         var message = messageBuilder.build();

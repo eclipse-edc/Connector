@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 import static org.eclipse.edc.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -60,6 +61,29 @@ class JsonObjectToDatasetRequestTransformerTest {
         assertThat(result.getId()).isEqualTo("id");
         assertThat(result.getProtocol()).isEqualTo("protocol");
         assertThat(result.getCounterPartyAddress()).isEqualTo("http://provider/url");
+        assertThat(result.getCounterPartyId()).isEqualTo("http://provider/url");
+    }
+
+    @Test
+    void transform_shouldUseCounterPartyId_whenProvided() {
+        var querySpec = QuerySpec.Builder.newInstance().build();
+        when(context.transform(any(), eq(QuerySpec.class))).thenReturn(querySpec);
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DATASET_REQUEST_TYPE)
+                .add(ID, "id")
+                .add(DATASET_REQUEST_PROTOCOL, "protocol")
+                .add(DATASET_REQUEST_COUNTER_PARTY_ADDRESS, "http://provider/url")
+                .add(DATASET_REQUEST_COUNTER_PARTY_ID, "providerId")
+                .build();
+
+        var result = transformer.transform(json, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo("id");
+        assertThat(result.getProtocol()).isEqualTo("protocol");
+        assertThat(result.getCounterPartyAddress()).isEqualTo("http://provider/url");
+        assertThat(result.getCounterPartyId()).isEqualTo("providerId");
+
     }
 
 }

@@ -19,7 +19,6 @@ import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidIssuer;
 import org.eclipse.edc.iam.identitytrust.validation.rules.HasValidSubjectIds;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsNotExpired;
 import org.eclipse.edc.iam.identitytrust.validation.rules.IsRevoked;
-import org.eclipse.edc.identitytrust.AudienceResolver;
 import org.eclipse.edc.identitytrust.CredentialServiceClient;
 import org.eclipse.edc.identitytrust.CredentialServiceUrlResolver;
 import org.eclipse.edc.identitytrust.SecureTokenService;
@@ -83,7 +82,6 @@ public class IdentityAndTrustService implements IdentityService {
     private final TrustedIssuerRegistry trustedIssuerRegistry;
     private final Clock clock;
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
-    private final AudienceResolver audienceMapper;
 
     /**
      * Constructs a new instance of the {@link IdentityAndTrustService}.
@@ -94,7 +92,7 @@ public class IdentityAndTrustService implements IdentityService {
     public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid, String participantId,
                                    PresentationVerifier presentationVerifier, CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
-                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver, AudienceResolver audienceMapper) {
+                                   TrustedIssuerRegistry trustedIssuerRegistry, Clock clock, CredentialServiceUrlResolver csUrlResolver) {
         this.secureTokenService = secureTokenService;
         this.myOwnDid = myOwnDid;
         this.participantId = participantId;
@@ -104,15 +102,14 @@ public class IdentityAndTrustService implements IdentityService {
         this.trustedIssuerRegistry = trustedIssuerRegistry;
         this.clock = clock;
         this.credentialServiceUrlResolver = csUrlResolver;
-        this.audienceMapper = audienceMapper;
     }
 
     @Override
     public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
-        var newAud = audienceMapper.resolve(parameters.getStringClaim(AUDIENCE));
+        var aud = parameters.getStringClaim(AUDIENCE);
         var scope = parameters.getStringClaim(SCOPE);
         parameters = TokenParameters.Builder.newInstance()
-                .claims(AUDIENCE, newAud)
+                .claims(AUDIENCE, aud)
                 .claims(SCOPE, scope)
                 .claims(parameters.getClaims())
                 .build();
