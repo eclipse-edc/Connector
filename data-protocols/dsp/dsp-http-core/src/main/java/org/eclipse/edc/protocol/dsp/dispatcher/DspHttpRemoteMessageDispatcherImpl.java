@@ -61,6 +61,8 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
     private final AudienceResolver audienceResolver;
 
+    private static final String AUDIENCE_CLAIM = "aud";
+
     public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient,
                                               IdentityService identityService,
                                               TokenDecorator decorator,
@@ -99,7 +101,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
         }
 
         var tokenParameters = tokenParametersBuilder
-                .claims("aud", audienceResolver.resolve(message)) // enforce the audience, ignore anything a decorator might have set
+                .claims(AUDIENCE_CLAIM, audienceResolver.resolve(message)) // enforce the audience, ignore anything a decorator might have set
                 .build();
 
         return identityService.obtainClientCredentials(tokenParameters)
