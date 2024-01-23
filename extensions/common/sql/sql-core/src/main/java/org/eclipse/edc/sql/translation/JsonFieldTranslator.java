@@ -14,12 +14,16 @@
 
 package org.eclipse.edc.sql.translation;
 
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.PathItem;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.stream.IntStream.range;
+import static org.eclipse.edc.sql.translation.FieldTranslator.toParameters;
+import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder;
 
 public class JsonFieldTranslator implements FieldTranslator {
     protected final String columnName;
@@ -47,5 +51,20 @@ public class JsonFieldTranslator implements FieldTranslator {
         return statement;
     }
 
+    @Override
+    public WhereClause toWhereClause(List<PathItem> path, Criterion criterion, SqlOperator operator) {
+        var leftOperand = getLeftOperand(path, criterion.getOperandRight().getClass());
+
+        var amendedLeftOperand = Optional.of(leftOperand)
+                .filter(it -> operator.representation().equals("??"))
+                .map(it -> it.replace("->>", "->"))
+                .map("(%s)::jsonb"::formatted)
+                .orElse(leftOperand);
+
+        return new WhereClause(
+                "%s %s %s".formatted(amendedLeftOperand, operator.representation(), toValuePlaceholder(criterion)),
+                toParameters(criterion)
+        );
+    }
 
 }

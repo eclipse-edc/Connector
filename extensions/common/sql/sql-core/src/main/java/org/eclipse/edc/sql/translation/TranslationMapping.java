@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.sql.translation;
 
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.PathItem;
 
 import java.util.HashMap;
@@ -41,6 +42,18 @@ public abstract class TranslationMapping {
      */
     public Function<Class<?>, String> getFieldTranslator(String fieldPath) {
         return getFieldTranslator(PathItem.parse(fieldPath));
+    }
+
+    /**
+     * Returns the {@link WhereClause} for the specified criterion and operator.
+     *
+     * @param criterion the criterion.
+     * @param operator the operator.
+     * @return the {@link WhereClause}.
+     */
+    public WhereClause getWhereClause(Criterion criterion, SqlOperator operator) {
+        var path = PathItem.parse(criterion.getOperandLeft().toString());
+        return getWhereClause(path, criterion, operator);
     }
 
     /**
@@ -74,8 +87,7 @@ public abstract class TranslationMapping {
     }
 
     private Function<Class<?>, String> getFieldTranslator(List<PathItem> path) {
-        var key = path.get(0);
-        var entry = fieldMap.get(key.toString());
+        var entry = fieldMap.get(path.get(0).toString());
         if (entry == null) {
             return null;
         }
@@ -89,4 +101,21 @@ public abstract class TranslationMapping {
             throw new IllegalArgumentException("unexpected mapping");
         }
     }
+
+    private WhereClause getWhereClause(List<PathItem> path, Criterion criterion, SqlOperator operator) {
+        var entry = fieldMap.get(path.get(0).toString());
+        if (entry == null) {
+            return null;
+        }
+
+        var nestedPath = path.stream().skip(1).toList();
+        if (entry instanceof FieldTranslator fieldTranslator) {
+            return fieldTranslator.toWhereClause(nestedPath, criterion, operator);
+        } else if (entry instanceof TranslationMapping mappingEntry) {
+            return mappingEntry.getWhereClause(nestedPath, criterion, operator);
+        } else {
+            throw new IllegalArgumentException("unexpected mapping");
+        }
+    }
+
 }

@@ -460,6 +460,24 @@ public abstract class ContractDefinitionStoreTestBase {
         }
 
         @Test
+        void shouldFilterUsingContainsOperator() {
+            var definitionsExpected = createContractDefinitions(10);
+            definitionsExpected.get(3).getPrivateProperties().put("test", List.of("id1", "id3"));
+            definitionsExpected.get(5).getPrivateProperties().put("test", List.of("id1", "id2"));
+            saveContractDefinitions(definitionsExpected);
+
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(criterion("privateProperties.test", "contains", "id2"))
+                    .build();
+
+            var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+
+            assertThat(definitionsRetrieved).hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsOnly(definitionsExpected.get(5));
+        }
+
+        @Test
         void queryMultiple() {
             var definitionsExpected = createContractDefinitions(20);
             definitionsExpected.forEach(d -> d.getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));

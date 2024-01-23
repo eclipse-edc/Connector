@@ -16,9 +16,16 @@ package org.eclipse.edc.connector.store.sql.policydefinition.store.schema;
 
 import org.eclipse.edc.connector.store.sql.policydefinition.store.schema.postgres.PolicyDefinitionMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
 
     @Override
     public String getSelectTemplate() {
@@ -68,6 +75,6 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        return new SqlQueryStatement(getSelectTemplate(), querySpec, new PolicyDefinitionMapping(this));
+        return new SqlQueryStatement(getSelectTemplate(), querySpec, new PolicyDefinitionMapping(this), operatorTranslator);
     }
 }

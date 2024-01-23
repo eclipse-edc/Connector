@@ -16,11 +16,18 @@ package org.eclipse.edc.connector.store.sql.contractdefinition.schema;
 
 import org.eclipse.edc.connector.store.sql.contractdefinition.schema.postgres.ContractDefinitionMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
 
 public class BaseSqlDialectStatements implements ContractDefinitionStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
 
     @Override
     public String getDeleteByIdTemplate() {
@@ -68,7 +75,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         var select = format("SELECT * FROM %s", getContractDefinitionTable());
-        return new SqlQueryStatement(select, querySpec, new ContractDefinitionMapping(this));
+        return new SqlQueryStatement(select, querySpec, new ContractDefinitionMapping(this), operatorTranslator);
     }
 
     protected String getSelectStatement() {

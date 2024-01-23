@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgre
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
@@ -31,6 +32,10 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     private static final String RESOURCES_ALIAS = "resources";
     private static final String DEFINITIONS_ALIAS = "definitions";
 
+    public PostgresDialectStatements() {
+        super(new PostgresqlOperatorTranslator());
+    }
+
     @Override
     public String getFormatAsJsonOperator() {
         return PostgresDialect.getJsonCastOperator();
@@ -41,13 +46,13 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
         // if any criterion targets a JSON array field, we need to slightly adapt the FROM clause
         if (querySpec.containsAnyLeftOperand("resourceManifest.definitions")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s -> '%s'", getResourceManifestColumn(), "definitions"), DEFINITIONS_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this));
+            return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this), operatorTranslator);
         } else if (querySpec.containsAnyLeftOperand("provisionedResourceSet.resources")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s -> '%s'", getProvisionedResourceSetColumn(), "resources"), RESOURCES_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this));
+            return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this), operatorTranslator);
         } else if (querySpec.containsAnyLeftOperand("deprovisionedResources")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), format("%s", getDeprovisionedResourcesColumn()), DEPROVISIONED_RESOURCES_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this));
+            return new SqlQueryStatement(select, querySpec, new TransferProcessMapping(this), operatorTranslator);
         }
         return super.createQuery(querySpec);
     }

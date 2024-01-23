@@ -46,29 +46,16 @@ public class SqlQueryStatement {
     private String orderByClause = "";
 
     /**
-     * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
+     * Initializes this SQL Query Statement.
      *
-     * @param selectStatement The SELECT clause, e.g. {@code SELECT * FROM your_table}
-     * @param query           a {@link QuerySpec} that contains a query in the canonical format
-     * @param rootModel       A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
-     *                        model/format
+     * @param selectStatement    The SELECT clause, e.g. {@code SELECT * FROM your_table}
+     * @param query              a {@link QuerySpec} that contains a query in the canonical format
+     * @param rootModel          A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
+     *                           model/format
+     * @param operatorTranslator the {@link SqlOperatorTranslator} instance.
      */
-    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel) {
-        this(selectStatement, query, rootModel, true);
-    }
-
-    /**
-     * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec} and a translation mapping.
-     *
-     * @param selectStatement  The SELECT clause, e.g. {@code SELECT * FROM your_table}
-     * @param query            a {@link QuerySpec} that contains a query in the canonical format
-     * @param rootModel        A {@link TranslationMapping} that enables mapping from canonical to the SQL-specific
-     *                         model/format
-     * @param validateOperator Determines whether the operator should be validated, and an {@link IllegalArgumentException}
-     *                         raised when an unknown/unsupported operator is found.
-     */
-    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, boolean validateOperator) {
-        this(selectStatement, query, rootModel, new CriterionToWhereClauseConverterImpl(rootModel, validateOperator));
+    public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, SqlOperatorTranslator operatorTranslator) {
+        this(selectStatement, query, rootModel, new CriterionToWhereClauseConverterImpl(rootModel, operatorTranslator));
     }
 
     /**

@@ -16,8 +16,14 @@ package org.eclipse.edc.connector.store.sql.assetindex.schema.postgres;
 
 import org.eclipse.edc.connector.store.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 
 public class PostgresDialectStatements extends BaseSqlDialectStatements {
+
+    public PostgresDialectStatements() {
+        super(new PostgresqlOperatorTranslator());
+    }
+
     @Override
     public String getFormatAsJsonOperator() {
         return PostgresDialect.getJsonCastOperator();
