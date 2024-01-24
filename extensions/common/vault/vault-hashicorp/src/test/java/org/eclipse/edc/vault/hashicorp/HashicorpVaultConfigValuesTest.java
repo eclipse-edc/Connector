@@ -25,7 +25,7 @@ import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_TOKEN_T
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class HashicorpVaultConfigValuesTest {
+class HashicorpVaultConfigValuesTest {
 
     private static final String TOKEN = "token";
     private static final String URL = "https://test.com/vault";

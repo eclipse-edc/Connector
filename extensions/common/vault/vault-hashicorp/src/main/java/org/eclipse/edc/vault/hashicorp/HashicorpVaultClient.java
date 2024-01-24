@@ -52,7 +52,7 @@ public class HashicorpVaultClient {
     private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
     private static final List<FallbackFactory> FALLBACK_FACTORIES = List.of(new HashicorpVaultClientFallbackFactory());
     private static final int HTTP_CODE_404 = 404;
-    public static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
+    private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
     };
 
     @NotNull

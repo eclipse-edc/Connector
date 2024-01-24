@@ -36,7 +36,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-public class HashicorpVaultTokenRenewTaskTest {
+class HashicorpVaultTokenRenewTaskTest {
     private static final long VAULT_TOKEN_TTL = 5L;
     private static final long RENEW_BUFFER = 5L;
     private static final String DATA_KEY = "data";
