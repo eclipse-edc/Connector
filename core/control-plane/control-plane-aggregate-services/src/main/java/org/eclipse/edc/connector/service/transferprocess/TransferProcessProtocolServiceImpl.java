@@ -35,7 +35,6 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -137,8 +136,8 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
 
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, String assetId) {
-        var destination = message.getDataDestination() != null ? message.getDataDestination() :
-                DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
+        var destination = message.getDataDestination() != null
+                ? message.getDataDestination() : DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(message.getConsumerPid())
                 .protocol(message.getProtocol())
@@ -162,6 +161,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));
+        process.protocolMessageReceived(message.getId());
         update(process);
         observable.invokeForEach(l -> l.initiated(process));
 
@@ -172,6 +172,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
     private ServiceResult<TransferProcess> startedAction(TransferStartMessage message, TransferProcess transferProcess) {
         if (transferProcess.getType() == CONSUMER && transferProcess.canBeStartedConsumer()) {
             observable.invokeForEach(l -> l.preStarted(transferProcess));
+            transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionStarted();
             transferProcess.setCorrelationId(message.getProviderPid());
             update(transferProcess);
@@ -189,6 +190,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
     private ServiceResult<TransferProcess> completedAction(TransferCompletionMessage message, TransferProcess transferProcess) {
         if (transferProcess.canBeCompleted()) {
             observable.invokeForEach(l -> l.preCompleted(transferProcess));
+            transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionCompleted();
             update(transferProcess);
             observable.invokeForEach(l -> l.completed(transferProcess));
@@ -203,6 +205,7 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
         if (transferProcess.canBeTerminated()) {
             observable.invokeForEach(l -> l.preTerminated(transferProcess));
             transferProcess.transitionTerminated();
+            transferProcess.protocolMessageReceived(message.getId());
             update(transferProcess);
             observable.invokeForEach(l -> l.terminated(transferProcess));
             return ServiceResult.success(transferProcess);
@@ -218,17 +221,28 @@ public class TransferProcessProtocolServiceImpl extends BaseProtocolService impl
                 .recover(it -> transferProcessStore.findByCorrelationIdAndLease(message.getProcessId()))
                 .flatMap(ServiceResult::from)
                 .compose(transferProcess -> validateCounterParty(claimToken, transferProcess)
-                        .compose(action)
+                        .compose(p -> {
+                            if (p.shouldIgnoreIncomingMessage(message.getId())) {
+                                return ServiceResult.success(p);
+                            } else {
+                                return action.apply(p);
+                            }
+                        })
                         .onFailure(f -> breakLease(transferProcess))));
     }
 
     private ServiceResult<TransferProcess> validateCounterParty(ClaimToken claimToken, TransferProcess transferProcess) {
-        return Optional.ofNullable(negotiationStore.findContractAgreement(transferProcess.getContractId()))
-                .map(agreement -> contractValidationService.validateRequest(claimToken, agreement))
-                .filter(Result::succeeded)
-                .map(e -> ServiceResult.success(transferProcess))
-                .orElse(notFound(transferProcess.getId()));
+        var agreement = negotiationStore.findContractAgreement(transferProcess.getContractId());
+        if (agreement == null) {
+            return notFound(transferProcess.getId());
+        }
 
+        var validation = contractValidationService.validateRequest(claimToken, agreement);
+        if (validation.failed()) {
+            return ServiceResult.badRequest(validation.getFailureMessages());
+        }
+
+        return ServiceResult.success(transferProcess);
     }
 
     private ServiceResult<TransferProcess> notFound(String transferProcessId) {

@@ -61,7 +61,7 @@ public class CatalogApiController implements CatalogApi {
         var request = transformerRegistry.transform(requestBody, CatalogRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.requestCatalog(request.getCounterPartyAddress(), request.getProtocol(), request.getQuerySpec())
+        service.requestCatalog(request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol(), request.getQuerySpec())
                 .whenComplete((result, throwable) -> {
                     try {
                         response.resume(toResponse(result, throwable));
@@ -80,7 +80,7 @@ public class CatalogApiController implements CatalogApi {
         var request = transformerRegistry.transform(requestBody, DatasetRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.requestDataset(request.getId(), request.getCounterPartyAddress(), request.getProtocol())
+        service.requestDataset(request.getId(), request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol())
                 .whenComplete((result, throwable) -> {
                     try {
                         response.resume(toResponse(result, throwable));

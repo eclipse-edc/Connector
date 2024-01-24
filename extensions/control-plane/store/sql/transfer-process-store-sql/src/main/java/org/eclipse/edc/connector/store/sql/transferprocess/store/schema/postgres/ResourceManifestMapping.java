@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres;
 
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
@@ -27,6 +27,6 @@ class ResourceManifestMapping extends TranslationMapping {
     private static final String FIELD_DEFINITIONS = "definitions";
 
     ResourceManifestMapping() {
-        add(FIELD_DEFINITIONS, new JsonFieldMapping("definitions"));
+        add(FIELD_DEFINITIONS, new JsonFieldTranslator("definitions"));
     }
 }

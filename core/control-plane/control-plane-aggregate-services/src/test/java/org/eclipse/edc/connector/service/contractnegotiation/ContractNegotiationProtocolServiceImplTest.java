@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementM
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
@@ -38,11 +39,13 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -56,10 +59,12 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.OFFERED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
@@ -96,8 +101,8 @@ class ContractNegotiationProtocolServiceImplTest {
     void setUp() {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
-        service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService, identityService, observable,
-                mock(), mock());
+        service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService, identityService,
+                observable, mock(), mock());
     }
 
     @Test
@@ -462,6 +467,75 @@ class ContractNegotiationProtocolServiceImplTest {
         verifyNoInteractions(listener);
     }
 
+    @Nested
+    class IdempotencyProcessStateReplication {
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldStoreReceivedMessageId(MethodCall<M> methodCall, M message,
+                                                                                  ContractNegotiation.Type type,
+                                                                                  ContractNegotiationStates currentState) {
+            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).build();
+            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
+                    .thenReturn(Result.success(claimToken()));
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
+            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(captor.capture());
+            var storedNegotiation = captor.getValue();
+            assertThat(storedNegotiation.getProtocolMessages().isAlreadyReceived(message.getId())).isTrue();
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenAlreadyReceived(MethodCall<M> methodCall, M message,
+                                                                                             ContractNegotiation.Type type,
+                                                                                             ContractNegotiationStates currentState) {
+            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).build();
+            negotiation.protocolMessageReceived(message.getId());
+            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
+                    .thenReturn(Result.success(claimToken()));
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
+            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenFinalState(MethodCall<M> methodCall, M message,
+                                                                                        ContractNegotiation.Type type) {
+            var negotiation = contractNegotiationBuilder().state(FINALIZED.code()).type(type).build();
+            when(identityService.verifyJwtToken(any(), isA(VerificationContext.class)))
+                    .thenReturn(Result.success(claimToken()));
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(), any(ContractOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", i.getArgument(1))));
+            when(validationService.validateConfirmed(any(), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isSucceeded();
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+    }
+
     private ClaimToken claimToken() {
         return ClaimToken.Builder.newInstance()
                 .claim("key", "value")
@@ -526,48 +600,48 @@ class ContractNegotiationProtocolServiceImplTest {
                             .contractOffer(contractOffer())
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
-                            .build()),
+                            .build(), PROVIDER, INITIAL),
                     Arguments.of(offered, ContractOfferMessage.Builder.newInstance()
                             .callbackAddress("callbackAddress")
                             .protocol("protocol")
                             .contractOffer(contractOffer())
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
-                            .build()),
+                            .build(), CONSUMER, REQUESTED),
                     Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
                             .contractAgreement(mock(ContractAgreement.class))
-                            .build()),
+                            .build(), CONSUMER, ACCEPTED),
                     Arguments.of(accepted, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.ACCEPTED)
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
-                            .build()),
+                            .build(), PROVIDER, OFFERED),
                     Arguments.of(verified, ContractAgreementVerificationMessage.Builder.newInstance()
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
-                            .build()),
+                            .build(), PROVIDER, AGREED),
                     Arguments.of(finalized, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.FINALIZED)
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
-                            .build()),
+                            .build(), CONSUMER, VERIFIED),
                     Arguments.of(terminated, ContractNegotiationTerminationMessage.Builder.newInstance()
                             .protocol("protocol")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
                             .counterPartyAddress("http://any")
                             .rejectionReason("any")
-                            .build())
+                            .build(), PROVIDER, INITIAL)
             );
         }
 

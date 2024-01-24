@@ -40,6 +40,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -99,6 +100,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private PolicyEngine policyEngine;
 
     @Inject
+    private AudienceResolver audienceResolver;
+    @Inject
     private Monitor monitor;
 
     @Inject
@@ -119,7 +122,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
             td = bldr -> bldr;
         }
 
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td, policyEngine);
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td, policyEngine, audienceResolver);
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);

@@ -35,6 +35,7 @@ public abstract class ProcessRemoteMessage implements RemoteMessage {
     protected String providerPid;
     protected String protocol = "unknown";
     protected String counterPartyAddress;
+    protected String counterPartyId;
 
     /**
      * Returns the {@link Policy} associated with the process.
@@ -89,6 +90,11 @@ public abstract class ProcessRemoteMessage implements RemoteMessage {
         return counterPartyAddress;
     }
 
+    @Override
+    public String getCounterPartyId() {
+        return counterPartyId;
+    }
+
     /**
      * Verifies if the passed processId can be considered a valid one.
      *
@@ -103,7 +109,7 @@ public abstract class ProcessRemoteMessage implements RemoteMessage {
         }
     }
 
-    protected static class Builder<M extends ProcessRemoteMessage, B extends Builder<M, B>> {
+    public static class Builder<M extends ProcessRemoteMessage, B extends Builder<M, B>> {
         protected final M message;
 
         protected Builder(M message) {
@@ -143,6 +149,11 @@ public abstract class ProcessRemoteMessage implements RemoteMessage {
 
         public B counterPartyAddress(String counterPartyAddress) {
             this.message.counterPartyAddress = counterPartyAddress;
+            return (B) this;
+        }
+
+        public B counterPartyId(String counterPartyId) {
+            this.message.counterPartyId = counterPartyId;
             return (B) this;
         }
 

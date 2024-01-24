@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
+import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -270,6 +271,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 updatedValues.getUpdatedAt(),
                 updatedValues.isPending(),
                 updatedValues.getCorrelationId(),
+                toJson(updatedValues.getProtocolMessages()),
                 negotiationId);
     }
 
@@ -299,7 +301,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 toJson(negotiation.getTraceContext()),
                 negotiation.getCreatedAt(),
                 negotiation.getUpdatedAt(),
-                negotiation.isPending());
+                negotiation.isPending(),
+                toJson(negotiation.getProtocolMessages()));
     }
 
     private void upsertAgreement(ContractAgreement contractAgreement) {
@@ -398,6 +401,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))
                 .pending(resultSet.getBoolean(statements.getPendingColumn()))
+                .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
                 .build();
     }
 

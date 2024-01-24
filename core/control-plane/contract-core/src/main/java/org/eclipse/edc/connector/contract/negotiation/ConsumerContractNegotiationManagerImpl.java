@@ -20,19 +20,18 @@ package org.eclipse.edc.connector.contract.negotiation;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreementVerificationMessage;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
@@ -112,25 +111,17 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
-        var offer = negotiation.getLastContractOffer();
-        var request = ContractRequestMessage.Builder.newInstance()
-                .contractOffer(offer)
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
+        var messageBuilder = ContractRequestMessage.Builder.newInstance()
+                .contractOffer(negotiation.getLastContractOffer())
                 .callbackAddress(protocolWebhook.url())
-                .protocol(negotiation.getProtocol())
-                .consumerPid(negotiation.getId())
-                .providerPid(negotiation.getCorrelationId())
-                .processId(Optional.ofNullable(negotiation.getCorrelationId()).orElse(negotiation.getId()))
-                .type(ContractRequestMessage.Type.INITIAL)
-                .build();
+                .type(ContractRequestMessage.Type.INITIAL);
 
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
-                .entityRetrieve(store::findById)
+        return dispatch(messageBuilder, negotiation)
                 .onSuccess((n, result) -> transitionToRequested(n))
                 .onFailure((n, throwable) -> transitionToRequesting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to provider: %s", request.getClass().getSimpleName(), throwable.getMessage())))
-                .execute("[Consumer] Send ContractRequestMessage message");
+                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))
+                .execute("[Consumer] send request");
     }
 
     /**
@@ -143,33 +134,14 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processAccepting(ContractNegotiation negotiation) {
-        var lastOffer = negotiation.getLastContractOffer();
+        var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance().type(ACCEPTED);
 
-        var policy = lastOffer.getPolicy();
-        var agreement = ContractAgreement.Builder.newInstance()
-                .contractSigningDate(clock.instant().getEpochSecond())
-                .providerId(negotiation.getCounterPartyId())
-                .consumerId(participantId)
-                .policy(policy)
-                .assetId(lastOffer.getAssetId())
-                .build();
-
-        var request = ContractAgreementMessage.Builder.newInstance()
-                .protocol(negotiation.getProtocol())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .contractAgreement(agreement)
-                .consumerPid(negotiation.getId())
-                .providerPid(negotiation.getCorrelationId())
-                .processId(negotiation.getCorrelationId())
-                .build();
-
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, request))
-                .entityRetrieve(store::findById)
+        return dispatch(messageBuilder, negotiation)
                 .onSuccess((n, result) -> transitionToAccepted(n))
                 .onFailure((n, throwable) -> transitionToAccepting(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to provider: %s", request.getClass().getSimpleName(), throwable.getMessage())))
-                .execute("[consumer] send agreement");
+                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send acceptance to provider: %s", throwable.getMessage())))
+                .execute("[consumer] send acceptance");
     }
 
     /**
@@ -192,22 +164,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processVerifying(ContractNegotiation negotiation) {
-        var message = ContractAgreementVerificationMessage.Builder.newInstance()
-                .protocol(negotiation.getProtocol())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .consumerPid(negotiation.getId())
-                .providerPid(negotiation.getCorrelationId())
-                .policy(negotiation.getContractAgreement().getPolicy())
-                .processId(negotiation.getCorrelationId())
-                .build();
+        var messageBuilder = ContractAgreementVerificationMessage.Builder.newInstance()
+                .policy(negotiation.getContractAgreement().getPolicy());
 
-        return entityRetryProcessFactory.doAsyncStatusResultProcess(negotiation, () -> dispatcherRegistry.dispatch(Object.class, message))
-                .entityRetrieve(store::findById)
+        return dispatch(messageBuilder, negotiation)
                 .onSuccess((n, result) -> transitionToVerified(n))
                 .onFailure((n, throwable) -> transitionToVerifying(n))
                 .onFatalError((n, failure) -> transitionToTerminated(n, failure.getFailureDetail()))
-                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send %s to provider: %s", message.getClass().getSimpleName(), throwable.getMessage())))
-                .execute(format("[consumer] send %s", message.getClass().getSimpleName()));
+                .onRetryExhausted((n, throwable) -> transitionToTerminating(n, format("Failed to send verification to provider: %s", throwable.getMessage())))
+                .execute("[consumer] send verification");
     }
 
     /**

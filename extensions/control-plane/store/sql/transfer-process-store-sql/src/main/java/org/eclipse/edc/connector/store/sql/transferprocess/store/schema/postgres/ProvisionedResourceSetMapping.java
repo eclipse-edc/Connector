@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgres;
 
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
@@ -25,6 +25,6 @@ class ProvisionedResourceSetMapping extends TranslationMapping {
     private static final String FIELD_RESOURCES = "resources";
 
     ProvisionedResourceSetMapping() {
-        add(FIELD_RESOURCES, new JsonFieldMapping("resources"));
+        add(FIELD_RESOURCES, new JsonFieldTranslator("resources"));
     }
 }

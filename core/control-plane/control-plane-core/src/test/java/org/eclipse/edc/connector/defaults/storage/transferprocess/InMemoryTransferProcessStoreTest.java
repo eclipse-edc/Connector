@@ -17,12 +17,11 @@ package org.eclipse.edc.connector.defaults.storage.transferprocess;
 import org.eclipse.edc.connector.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.transfer.spi.testfixtures.store.TransferProcessStoreTestBase;
 
-import java.time.Clock;
 import java.time.Duration;
 
 class InMemoryTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
-    private final InMemoryTransferProcessStore store = new InMemoryTransferProcessStore(CONNECTOR_NAME, Clock.systemUTC());
+    private final InMemoryTransferProcessStore store = new InMemoryTransferProcessStore(CONNECTOR_NAME, clock);
 
     @Override
     protected TransferProcessStore getTransferProcessStore() {

@@ -119,5 +119,9 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "pending";
     }
 
+    default String getProtocolMessagesColumn() {
+        return "protocol_messages";
+    }
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 }

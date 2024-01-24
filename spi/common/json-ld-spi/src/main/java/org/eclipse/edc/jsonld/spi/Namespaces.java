@@ -19,8 +19,9 @@ package org.eclipse.edc.jsonld.spi;
  */
 public interface Namespaces {
 
+    // ref. https://www.w3.org/TR/vocab-dcat-3/#normative-namespaces
     String DCAT_PREFIX = "dcat";
-    String DCAT_SCHEMA = "https://www.w3.org/ns/dcat/";
+    String DCAT_SCHEMA = "http://www.w3.org/ns/dcat#";
 
     String DCT_PREFIX = "dct";
     String DCT_SCHEMA = "https://purl.org/dc/terms/";

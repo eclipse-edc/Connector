@@ -128,6 +128,22 @@ public class Policy {
                 .build();
     }
 
+    /**
+     * A {@link Builder} initialized with the current policy.
+     */
+    public Builder toBuilder() {
+        return Builder.newInstance()
+                .prohibitions(prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .permissions(permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .duties(obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
+                .assigner(assigner)
+                .assignee(assignee)
+                .inheritsFrom(inheritsFrom)
+                .type(type)
+                .extensibleProperties(extensibleProperties)
+                .target(target);
+    }
+
     public interface Visitor<R> {
         R visitPolicy(Policy policy);
     }

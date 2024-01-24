@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -255,6 +256,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getCallbackAddresses()),
                 process.isPending(),
                 process.getTransferType(),
+                toJson(process.getProtocolMessages()),
                 process.getId());
 
         var newDr = process.getDataRequest();
@@ -310,7 +312,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 toJson(process.getPrivateProperties()),
                 toJson(process.getCallbackAddresses()),
                 process.isPending(),
-                process.getTransferType());
+                process.getTransferType(),
+                toJson(process.getProtocolMessages()));
 
         //insert DataRequest
         var dr = process.getDataRequest();
@@ -354,6 +357,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), getTypeRef()))
                 .pending(resultSet.getBoolean(statements.getPendingColumn()))
                 .transferType(resultSet.getString(statements.getTransferTypeColumn()))
+                .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
                 .build();
     }
 

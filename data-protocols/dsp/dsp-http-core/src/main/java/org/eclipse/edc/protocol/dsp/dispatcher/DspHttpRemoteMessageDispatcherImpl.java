@@ -25,6 +25,7 @@ import org.eclipse.edc.protocol.dsp.spi.dispatcher.response.DspHttpResponseBodyE
 import org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -58,14 +59,20 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     private final PolicyEngine policyEngine;
     private final TokenDecorator tokenDecorator;
 
+    private final AudienceResolver audienceResolver;
+
+    private static final String AUDIENCE_CLAIM = "aud";
+
     public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient,
                                               IdentityService identityService,
                                               TokenDecorator decorator,
-                                              PolicyEngine policyEngine) {
+                                              PolicyEngine policyEngine,
+                                              AudienceResolver audienceResolver) {
         this.httpClient = httpClient;
         this.identityService = identityService;
         this.policyEngine = policyEngine;
         this.tokenDecorator = decorator;
+        this.audienceResolver = audienceResolver;
     }
 
     @Override
@@ -94,7 +101,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
         }
 
         var tokenParameters = tokenParametersBuilder
-                .claims("aud", message.getCounterPartyAddress()) // enforce the audience, ignore anything a decorator might have set
+                .claims(AUDIENCE_CLAIM, audienceResolver.resolve(message)) // enforce the audience, ignore anything a decorator might have set
                 .build();
 
         return identityService.obtainClientCredentials(tokenParameters)
@@ -150,11 +157,13 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     private record MessageHandler<M extends RemoteMessage, R>(
             DspHttpRequestFactory<M> requestFactory,
             DspHttpResponseBodyExtractor<R> bodyExtractor
-    ) { }
+    ) {
+    }
 
     private record PolicyScope<M extends RemoteMessage>(
             Class<M> messageClass, String scope,
             Function<M, Policy> policyProvider
-    ) { }
+    ) {
+    }
 
 }

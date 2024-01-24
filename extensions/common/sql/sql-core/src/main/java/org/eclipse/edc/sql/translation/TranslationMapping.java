@@ -19,50 +19,74 @@ import org.eclipse.edc.spi.types.PathItem;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.lang.String.format;
+import java.util.function.Function;
 
 /**
- * A {@linkplain TranslationMapping} maps canonical information about business objects to SQL, i.e. it contains field
- * names of an object and maps them to their SQL schema column name.
+ * A {@linkplain TranslationMapping} keeps a tree of {@link FieldTranslator}s that can be obtained using canonical
+ * information about business objects to SQL, i.e. it contains field names of an object and maps them to their SQL schema
+ * column name.
  * <p>
  * Essentially, it contains a map that links field name to column name. In case the field is a complex object, it in
- * turn must be represented by another {@link TranslationMapping} in order to recursively resolve field name.
+ * turn must be represented by another {@link TranslationMapping} in order to recursively resolve the field translator.
  */
 public abstract class TranslationMapping {
-    protected final Map<String, Object> fieldMap = new HashMap<>();
+
+    private final Map<String, Object> fieldMap = new HashMap<>();
 
     /**
-     * Converts a field/property from the canonical model into its SQL column equivalent. If the canonical property name
-     * is nested, e.g. {@code something.other.thing} then the mapper attempts to descend recursively into the tree until
-     * the correct mapping is found, or throws an exception if not found.
+     * Returns the {@link FieldTranslator} for the specified path.
      *
-     * @throws IllegalArgumentException if the canonical property name was not found.
+     * @param fieldPath the path name.
+     * @return the {@link FieldTranslator}, or null if it does not exist.
      */
-    public String getStatement(String canonicalPropertyName, Class<?> type) {
-        if (canonicalPropertyName == null) {
-            throw new IllegalArgumentException(format("Translation failed for Model '%s' input path is null", getClass().getName()));
-        }
-
-        return getStatement(PathItem.parse(canonicalPropertyName), type);
+    public Function<Class<?>, String> getFieldTranslator(String fieldPath) {
+        return getFieldTranslator(PathItem.parse(fieldPath));
     }
 
-    public String getStatement(List<PathItem> path, Class<?> type) {
+    /**
+     * Add a simple column field translator.
+     *
+     * @param fieldPath the field path.
+     * @param columnName the column name.
+     */
+    protected void add(String fieldPath, String columnName) {
+        fieldMap.put(fieldPath, new PlainColumnFieldTranslator(columnName));
+    }
+
+    /**
+     * Add a {@link FieldTranslator}.
+     *
+     * @param fieldPath the field path.
+     * @param fieldTranslator the field translator.
+     */
+    protected void add(String fieldPath, FieldTranslator fieldTranslator) {
+        fieldMap.put(fieldPath, fieldTranslator);
+    }
+
+    /**
+     * Add a nested {@link TranslationMapping}.
+     *
+     * @param fieldPath the field path.
+     * @param translationMapping the {@link TranslationMapping}.
+     */
+    protected void add(String fieldPath, TranslationMapping translationMapping) {
+        fieldMap.put(fieldPath, translationMapping);
+    }
+
+    private Function<Class<?>, String> getFieldTranslator(List<PathItem> path) {
         var key = path.get(0);
         var entry = fieldMap.get(key.toString());
         if (entry == null) {
             return null;
         }
 
-        if (entry instanceof TranslationMapping mappingEntry) {
-            var remainingPath = path.stream().skip(1).toList();
-            return mappingEntry.getStatement(remainingPath, type);
+        var nestedPath = path.stream().skip(1).toList();
+        if (entry instanceof FieldTranslator fieldTranslator) {
+            return clazz -> fieldTranslator.getLeftOperand(nestedPath, clazz);
+        } else if (entry instanceof TranslationMapping mappingEntry) {
+            return mappingEntry.getFieldTranslator(nestedPath);
+        } else {
+            throw new IllegalArgumentException("unexpected mapping");
         }
-
-        return entry.toString();
-    }
-
-    protected void add(String fieldId, Object value) {
-        fieldMap.put(fieldId, value);
     }
 }

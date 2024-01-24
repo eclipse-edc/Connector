@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgre
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 
 /**
  * Maps fields of a {@link TransferProcess} onto the
@@ -45,13 +45,13 @@ public class TransferProcessMapping extends StatefulEntityMapping {
         add(FIELD_TYPE, statements.getTypeColumn());
         add(FIELD_CREATED_TIMESTAMP, statements.getCreatedAtColumn());
         add(FIELD_DATAREQUEST, new DataRequestMapping(statements));
-        add(FIELD_DATAADDRESS, new JsonFieldMapping(statements.getContentDataAddressColumn()));
-        add(FIELD_CONTENTDATAADDRESS, new JsonFieldMapping(statements.getContentDataAddressColumn()));
+        add(FIELD_DATAADDRESS, new JsonFieldTranslator(statements.getContentDataAddressColumn()));
+        add(FIELD_CONTENTDATAADDRESS, new JsonFieldTranslator(statements.getContentDataAddressColumn()));
         add(FIELD_RESOURCE_MANIFEST, new ResourceManifestMapping());
-        add(FIELD_PRIVATE_PROPERTIES, new JsonFieldMapping(statements.getPrivatePropertiesColumn()));
+        add(FIELD_PRIVATE_PROPERTIES, new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
         add(FIELD_PROVISIONED_RESOURCE_SET, new ProvisionedResourceSetMapping());
         // using the alias instead of the actual column name to avoid name clashes.
-        add(FIELD_DEPROVISIONED_RESOURCES, new JsonFieldMapping(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));
+        add(FIELD_DEPROVISIONED_RESOURCES, new JsonFieldTranslator(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));
         add(FIELD_PENDING, statements.getPendingColumn());
         add(FIELD_TRANSFER_TYPE, statements.getTransferTypeColumn());
     }

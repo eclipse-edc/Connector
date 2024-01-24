@@ -29,7 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Clock;
 import java.time.Duration;
 
 /**
@@ -45,7 +44,6 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-        var clock = Clock.systemUTC();
         var statements = new PostgresDialectStatements();
         var manager = new TypeManager();
 

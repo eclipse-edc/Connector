@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     callback_addresses   JSON,
     trace_context        JSON,
     pending              BOOLEAN DEFAULT FALSE,
+    protocol_messages    JSON,
     lease_id             VARCHAR
         CONSTRAINT contract_negotiation_lease_lease_id_fk
             REFERENCES edc_lease

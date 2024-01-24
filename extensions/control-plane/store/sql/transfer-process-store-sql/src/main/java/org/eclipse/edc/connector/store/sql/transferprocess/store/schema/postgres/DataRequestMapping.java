@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.store.sql.transferprocess.store.schema.postgre
 
 import org.eclipse.edc.connector.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.sql.translation.JsonFieldMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 /**
@@ -42,7 +42,7 @@ class DataRequestMapping extends TranslationMapping {
         add(FIELD_PROTOCOL, statements.getProtocolColumn());
         add(FIELD_ASSET_ID, statements.getAssetIdColumn());
         add(FIELD_CONTRACT_ID, statements.getContractIdColumn());
-        add(FIELD_DATA_DESTINATION, new JsonFieldMapping(statements.getDataDestinationColumn()));
+        add(FIELD_DATA_DESTINATION, new JsonFieldTranslator(statements.getDataDestinationColumn()));
         add(FIELD_TRANSFER_PROCESS_ID, statements.getTransferProcessIdFkColumn());
     }
 }
