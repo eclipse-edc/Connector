@@ -15,9 +15,7 @@
 package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.spi.iam.PublicKeyResolver;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.security.PublicKey;
 
@@ -27,13 +25,9 @@ import java.security.PublicKey;
  */
 public abstract class AbstractPublicKeyResolver implements PublicKeyResolver {
     private final KeyParserRegistry registry;
-    private final Config config;
-    private final Monitor monitor;
 
-    public AbstractPublicKeyResolver(KeyParserRegistry registry, Config config, Monitor monitor) {
+    public AbstractPublicKeyResolver(KeyParserRegistry registry) {
         this.registry = registry;
-        this.config = config;
-        this.monitor = monitor;
     }
 
     @Override
@@ -52,7 +46,4 @@ public abstract class AbstractPublicKeyResolver implements PublicKeyResolver {
 
     protected abstract Result<String> resolveInternal(String id);
 
-    private String resolveFromConfig(String keyId) {
-        return config.getString(keyId, null);
-    }
 }

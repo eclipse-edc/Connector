@@ -17,12 +17,11 @@ package org.eclipse.edc.iam.did.resolution;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKParameterNames;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.AbstractPublicKeyResolver;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
@@ -32,7 +31,7 @@ import java.util.regex.Pattern;
 
 import static org.eclipse.edc.iam.did.spi.document.DidConstants.ALLOWED_VERIFICATION_TYPES;
 
-public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver {
+public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver implements DidPublicKeyResolver {
     /**
      * this regex pattern matches both DIDs and DIDs with a fragment (e.g. key-ID).
      * Group 1 ("did")      = the did:method:identifier portion
@@ -43,8 +42,8 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver {
     private static final String GROUP_FRAGMENT = "fragment";
     private final DidResolverRegistry resolverRegistry;
 
-    public DidPublicKeyResolverImpl(KeyParserRegistry registry, DidResolverRegistry resolverRegistry, Config config, Monitor monitor) {
-        super(registry, config, monitor);
+    public DidPublicKeyResolverImpl(KeyParserRegistry registry, DidResolverRegistry resolverRegistry) {
+        super(registry);
         this.resolverRegistry = resolverRegistry;
     }
 

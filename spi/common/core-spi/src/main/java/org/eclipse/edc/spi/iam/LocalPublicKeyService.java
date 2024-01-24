@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Amadeus
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,22 +8,24 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - Initial implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
 package org.eclipse.edc.spi.iam;
 
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 
 import java.security.PublicKey;
 
 /**
- * Resolves a public key given an ID. This resolver it's not intended to be used as injectable
- * since multiple {@link PublicKeyResolver} could be needed in the runtime at the same time.
+ * Resolve a public key from an id. This is generic injectable component for resolving public
+ * keys configured in the runtime (vault, config, etc.)
  */
+@ExtensionPoint
 @FunctionalInterface
-public interface PublicKeyResolver {
+public interface LocalPublicKeyService {
 
     /**
      * Resolves the key or return null if not found.

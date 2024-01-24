@@ -16,17 +16,17 @@ package org.eclipse.edc.iam.did;
 
 import org.eclipse.edc.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.edc.iam.did.resolution.DidResolverRegistryImpl;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
 import org.eclipse.edc.spi.security.KeyParserRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 
-@Provides({ DidResolverRegistry.class, PublicKeyResolver.class })
+@Provides({ DidResolverRegistry.class, DidPublicKeyResolver.class })
 @Extension(value = IdentityDidCoreExtension.NAME)
 public class IdentityDidCoreExtension implements ServiceExtension {
 
@@ -44,8 +44,8 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var didResolverRegistry = new DidResolverRegistryImpl();
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
-        var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry, context.getConfig(), context.getMonitor().withPrefix("PublicKeyResolution"));
-        context.registerService(PublicKeyResolver.class, publicKeyResolver);
+        var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry);
+        context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
     }
 
 }
