@@ -29,7 +29,7 @@ import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_HEALTH_
 @Extension(value = HashicorpVaultHealthExtension.NAME)
 public class HashicorpVaultHealthExtension implements ServiceExtension {
 
-    public static final String NAME = "Hashicorp Vault Health Extension";
+    public static final String NAME = "Hashicorp Vault Health";
 
     @Inject
     private HealthCheckService healthCheckService;

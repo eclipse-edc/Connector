@@ -16,6 +16,7 @@
 package org.eclipse.edc.vault.hashicorp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -30,9 +31,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryRequestPayload;
 import org.eclipse.edc.vault.hashicorp.model.CreateEntryResponsePayload;
 import org.eclipse.edc.vault.hashicorp.model.GetEntryResponsePayload;
-import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponse;
 import org.eclipse.edc.vault.hashicorp.model.TokenRenewRequest;
-import org.eclipse.edc.vault.hashicorp.model.TokenRenewResponse;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -40,6 +39,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class HashicorpVaultClient {
     private static final String VAULT_DATA_ENTRY_NAME = "content";
@@ -52,7 +52,8 @@ public class HashicorpVaultClient {
     private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
     private static final List<FallbackFactory> FALLBACK_FACTORIES = List.of(new HashicorpVaultClientFallbackFactory());
     private static final int HTTP_CODE_404 = 404;
-    private static final String DELIMITER = ", ";
+    public static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     @NotNull
     private final EdcHttpClient httpClient;
@@ -115,7 +116,7 @@ public class HashicorpVaultClient {
      *
      * @return the result of the token lookup operation
      */
-    public Result<TokenLookUpResponse> lookUpToken() {
+    public Result<Map<String, Object>> lookUpToken() {
         var uri = configValues.url()
                 .newBuilder()
                 .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
@@ -128,7 +129,7 @@ public class HashicorpVaultClient {
                 if (responseBody == null) {
                     return Result.failure("Token look up returned empty body");
                 }
-                var payload = objectMapper.readValue(responseBody.string(), TokenLookUpResponse.class);
+                var payload = objectMapper.readValue(responseBody.string(), new TypeReference<Map<String, Object>>() {});
                 return Result.success(payload);
             } else {
                 return Result.failure("Token look up failed with status %d".formatted(response.code()));
@@ -149,7 +150,7 @@ public class HashicorpVaultClient {
      *
      * @return the result of the token renewal operation
      */
-    public Result<TokenRenewResponse> renewToken() {
+    public Result<Map<String, Object>> renewToken() {
         var uri = configValues.url()
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
@@ -166,11 +167,7 @@ public class HashicorpVaultClient {
                 if (responseBody == null) {
                     return Result.failure("Token renew returned empty body");
                 }
-                var payload = objectMapper.readValue(responseBody.string(), TokenRenewResponse.class);
-                if (!payload.getWarnings().isEmpty()) {
-                    var warnings = String.join(DELIMITER, payload.getWarnings());
-                    monitor.warning("Token renew returned: " + warnings);
-                }
+                var payload = objectMapper.readValue(responseBody.string(), MAP_TYPE_REFERENCE);
                 return Result.success(payload);
             } else {
                 return Result.failure("Token renew failed with status: %d".formatted(response.code()));

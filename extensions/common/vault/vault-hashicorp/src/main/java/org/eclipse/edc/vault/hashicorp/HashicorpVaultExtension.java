@@ -45,7 +45,7 @@ import static org.eclipse.edc.vault.hashicorp.HashicorpVaultConfig.VAULT_URL;
 
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
-    public static final String NAME = "Hashicorp Vault Extension";
+    public static final String NAME = "Hashicorp Vault";
 
     @Inject
     private EdcHttpClient httpClient;
@@ -90,6 +90,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 executorInstrumentation,
                 hashicorpVaultClient(),
+                typeManager.getMapper(),
                 configValues.renewBuffer(),
                 monitor);
     }

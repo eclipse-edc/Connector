@@ -19,10 +19,11 @@ import org.eclipse.edc.junit.assertions.FailureAssert;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
-import org.eclipse.edc.vault.hashicorp.model.TokenLookUpResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.when;
 
 class HashicorpVaultHealthCheckTest {
 
-    private static final Result<TokenLookUpResponse> TOKEN_LOOK_UP_RESULT_200 = Result.success(TokenLookUpResponse.Builder.newInstance().build());
+    private static final Result<Map<String, Object>> TOKEN_LOOK_UP_RESULT_200 = Result.success(Map.of());
 
     private final HashicorpVaultClient client = mock();
     private final Monitor monitor = mock();

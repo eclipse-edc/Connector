@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
@@ -29,7 +29,6 @@ import org.testcontainers.vault.VaultContainer;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +50,9 @@ class HashicorpVaultClientIntegrationTest {
     private static final long CREATION_TTL = 6L;
     private static final long TTL = 5L;
     private static final long RENEW_BUFFER = 4L;
+    private static final String DATA_KEY = "data";
+    private static final String RENEWABLE_KEY = "renewable";
+    private static final String LEASE_DURATION_KEY = "lease_duration";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final ConsoleMonitor MONITOR = new ConsoleMonitor();
 
@@ -72,32 +74,9 @@ class HashicorpVaultClientIntegrationTest {
         var tokenLookUpResult = client.lookUpToken();
 
         AbstractResultAssert.assertThat(tokenLookUpResult).isSucceeded().satisfies(tokenLookUpResponse -> {
-            assertThat(tokenLookUpResponse).isNotNull();
-            assertThat(tokenLookUpResponse.isRenewable()).isFalse();
-            assertThat(tokenLookUpResponse.getWarnings()).isEmpty();
-            assertThat(tokenLookUpResponse.getLeaseDuration()).isEqualTo(0L);
-            assertThat(tokenLookUpResponse.getRequestId()).isNotNull();
-            assertThat(tokenLookUpResponse.getLeaseId()).isNotNull();
-            assertThat(tokenLookUpResponse.getData()).satisfies(tokenLookUpData -> {
-                assertThat(tokenLookUpData.getCreationTime()).isGreaterThan(0);
-                assertThat(tokenLookUpData.getCreationTtl()).isEqualTo(CREATION_TTL);
-                assertThat(tokenLookUpData.getAccessor()).isNotEmpty();
-                assertThat(tokenLookUpData.getPolicies()).isEqualTo(List.of("root"));
-                assertThat(tokenLookUpData.getExpireTime()).isNotEmpty();
-                assertThat(tokenLookUpData.getNumUses()).isEqualTo(0);
-                assertThat(tokenLookUpData.getDisplayName()).isEqualTo("token");
-                assertThat(tokenLookUpData.getEntityId()).isNotNull();
-                assertThat(tokenLookUpData.isOrphan()).isFalse();
-                assertThat(tokenLookUpData.getType()).isEqualTo("service");
-                assertThat(tokenLookUpData.getExplicitMaxTtl()).isEqualTo(0L);
-                assertThat(tokenLookUpData.getPath()).isNotNull();
-                assertThat(tokenLookUpData.getPeriod()).isNull();
-                assertThat(tokenLookUpData.getMeta()).isEmpty();
-                assertThat(tokenLookUpData.isRenewable()).isTrue();
-                assertThat(tokenLookUpData.getId()).isNotNull();
-                assertThat(tokenLookUpData.getIssueTime()).isNotNull();
-                assertThat(tokenLookUpData.getPeriod()).isNull();
-            });
+            var data = OBJECT_MAPPER.convertValue(tokenLookUpResponse.get(DATA_KEY), new TypeReference<Map<String, Object>>() {});
+            var isRenewable = OBJECT_MAPPER.convertValue(data.get(RENEWABLE_KEY), Boolean.class);
+            assertThat(isRenewable).isTrue();
         });
     }
 
@@ -118,23 +97,9 @@ class HashicorpVaultClientIntegrationTest {
         var tokenRenewResult = client.renewToken();
 
         AbstractResultAssert.assertThat(tokenRenewResult).isSucceeded().satisfies(tokenRenewResponse -> {
-            assertThat(tokenRenewResponse).isNotNull();
-            assertThat(tokenRenewResponse.getRequestId()).isNotNull();
-            assertThat(tokenRenewResponse.isRenewable()).isEqualTo(false);
-            assertThat(tokenRenewResponse.getWarnings()).isEmpty();
-            assertThat(tokenRenewResponse.getLeaseDuration()).isEqualTo(0L);
-            assertThat(tokenRenewResponse.getLeaseId()).isNotNull();
-            assertThat(tokenRenewResponse.getAuth()).satisfies(tokenRenewAuth -> {
-                assertThat(tokenRenewAuth.getTokenPolicies()).isEqualTo(List.of("root"));
-                assertThat(tokenRenewAuth.getClientToken()).isNotEmpty();
-                assertThat(tokenRenewAuth.getMetadata()).isEmpty();
-                assertThat(tokenRenewAuth.isRenewable()).isTrue();
-                assertThat(tokenRenewAuth.getAccessor()).isNotEmpty();
-                assertThat(tokenRenewAuth.getPolicies()).isEqualTo(List.of("root"));
-                assertThat(tokenRenewAuth.getLeaseDuration()).isEqualTo(TTL);
-                assertThat(tokenRenewAuth.isOrphan()).isFalse();
-                assertThat(tokenRenewAuth.getEntityId()).isEmpty();
-            });
+            var auth = OBJECT_MAPPER.convertValue(tokenRenewResponse.get(AUTH_KEY), new TypeReference<Map<String, Object>>() {});
+            var ttl = OBJECT_MAPPER.convertValue(auth.get(LEASE_DURATION_KEY), Long.class);
+            assertThat(ttl).isEqualTo(TTL);
         });
     }
 

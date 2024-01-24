@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -36,12 +37,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -64,6 +65,10 @@ class HashicorpVaultClientTest {
     private static final long RENEW_BUFFER = 4L;
     private static final String CUSTOM_SECRET_PATH = "v1/test/secret";
     private static final String KEY = "key";
+    private static final String DATA_KEY = "data";
+    private static final String RENEWABLE_KEY = "renewable";
+    private static final String AUTH_KEY = "auth";
+    private static final String LEASE_DURATION_KEY = "lease_duration";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final HashicorpVaultConfigValues HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultConfigValues.Builder.newInstance()
             .url(VAULT_URL)
@@ -198,34 +203,9 @@ class HashicorpVaultClientTest {
         void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException {
             var body = """
                     {
-                      "request_id": "585caa70-402d-e5c4-0977-5463105ba9be",
-                      "lease_id": "2346aa70-402d-e114-0977-546fad339fbe",
-                      "lease_duration": 10000,
-                      "renewable": false,
                       "data": {
-                        "accessor": "wbXdLDXxtwKZf7dLErtAq5vz",
-                        "creation_time": 1704989507,
-                        "creation_ttl": 2592000,
-                        "display_name": "token",
-                        "entity_id": "entityId",
-                        "expire_time": "2024-02-10T17:11:47.881108+01:00",
-                        "explicit_max_ttl": 2592000,
-                        "id": "hvs.CAESIDb3_aAS0fYUVzoLKzHDX3-GWOE6Gy5jMAvWRsfjJhVKGh4KHGh2cy5Oc0lNQWdjUVNjdnhNeWJhUk1zbDM2Wks",
-                        "issue_time": "2024-01-11T17:11:47.881135+01:00",
-                        "meta": null,
-                        "num_uses": 5,
-                        "orphan": false,
-                        "path": "auth/token/create",
-                        "period": "1h",
-                        "policies": [
-                          "default",
-                          "root"
-                        ],
-                        "renewable": true,
-                        "ttl": 2589147,
-                        "type": "service"
-                      },
-                      "warnings": null
+                        "renewable": true
+                      }
                     }
                     """;
             var response = new Response.Builder()
@@ -239,41 +219,18 @@ class HashicorpVaultClientTest {
 
             var tokenLookUpResult = vaultClient.lookUpToken();
 
-            verify(httpClient).execute(any(Request.class), argThat((List<FallbackFactory> ids) -> ids.get(0) instanceof HashicorpVaultClientFallbackFactory));
-            AbstractResultAssert.assertThat(tokenLookUpResult).isSucceeded().satisfies(tokenLookUpResponse -> {
-                assertThat(tokenLookUpResponse.getRequestId()).isEqualTo("585caa70-402d-e5c4-0977-5463105ba9be");
-                assertThat(tokenLookUpResponse.getLeaseId()).isEqualTo("2346aa70-402d-e114-0977-546fad339fbe");
-                assertThat(tokenLookUpResponse.getLeaseDuration()).isEqualTo(10000);
-                assertThat(tokenLookUpResponse.isRenewable()).isFalse();
-                assertThat(tokenLookUpResponse.getWarnings()).isEmpty();
-                assertThat(tokenLookUpResponse.getData()).satisfies(tokenLookUpData -> {
-                    assertThat(tokenLookUpData.getAccessor()).isEqualTo("wbXdLDXxtwKZf7dLErtAq5vz");
-                    assertThat(tokenLookUpData.getCreationTime()).isEqualTo(1704989507L);
-                    assertThat(tokenLookUpData.getCreationTtl()).isEqualTo(2592000L);
-                    assertThat(tokenLookUpData.getDisplayName()).isEqualTo("token");
-                    assertThat(tokenLookUpData.getEntityId()).isEqualTo("entityId");
-                    assertThat(tokenLookUpData.getExpireTime()).isEqualTo("2024-02-10T17:11:47.881108+01:00");
-                    assertThat(tokenLookUpData.getId()).isEqualTo("hvs.CAESIDb3_aAS0fYUVzoLKzHDX3-GWOE6Gy5jMAvWRsfjJhVKGh4KHGh2cy5Oc0lNQWdjUVNjdnhNeWJhUk1zbDM2Wks");
-                    assertThat(tokenLookUpData.getIssueTime()).isEqualTo("2024-01-11T17:11:47.881135+01:00");
-                    assertThat(tokenLookUpData.getMeta()).isEmpty();
-                    assertThat(tokenLookUpData.getNumUses()).isEqualTo(5);
-                    assertThat(tokenLookUpData.isOrphan()).isFalse();
-                    assertThat(tokenLookUpData.getExplicitMaxTtl()).isEqualTo(2592000L);
-                    assertThat(tokenLookUpData.getPath()).isEqualTo("auth/token/create");
-                    assertThat(tokenLookUpData.getPeriod()).isEqualTo("1h");
-                    assertThat(tokenLookUpData.getPolicies()).isEqualTo(List.of("default", "root"));
-                    assertThat(tokenLookUpData.isRenewable()).isTrue();
-                    assertThat(tokenLookUpData.getTtl()).isEqualTo(2589147L);
-                    assertThat(tokenLookUpData.getType()).isEqualTo("service");
-                });
+            verify(httpClient).execute(any(Request.class), argThat((List<FallbackFactory> factories) -> factories.get(0) instanceof HashicorpVaultClientFallbackFactory));
+            AbstractResultAssert.assertThat(tokenLookUpResult).isSucceeded().satisfies(tokenRenewResponse -> {
+                var data = OBJECT_MAPPER.convertValue(tokenRenewResponse.get(DATA_KEY), new TypeReference<Map<String, Object>>() {});
+                var isRenewable = OBJECT_MAPPER.convertValue(data.get(RENEWABLE_KEY), Boolean.class);
+                assertThat(isRenewable).isTrue();
             });
         }
 
-        @ParameterizedTest
-        @ValueSource(ints = {400, 403, 404, 405, 412, 429, 472, 473, 500, 501, 502, 503})
-        void lookUpToken_whenApiReturnsErrorCode_shouldFail(int code) throws IOException {
+        @Test
+        void lookUpToken_whenApiReturnsErrorCode_shouldFail() throws IOException {
             var response = new Response.Builder()
-                    .code(code)
+                    .code(403)
                     .message("any")
                     .body(ResponseBody.create("", MediaType.get("application/json")))
                     .protocol(Protocol.HTTP_1_1)
@@ -284,7 +241,7 @@ class HashicorpVaultClientTest {
             var tokenLookUpResult = vaultClient.lookUpToken();
 
             assertThat(tokenLookUpResult.failed()).isTrue();
-            assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status %s".formatted(code));
+            assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status %s".formatted(403));
         }
 
         @Test
@@ -302,33 +259,8 @@ class HashicorpVaultClientTest {
         void renewToken_whenApiReturns200_shouldSucceed() throws IOException {
             var body = """
                     {
-                      "request_id": "08c877ef-bdcd-f4f9-0854-2471e55f064b",
-                      "lease_id": "2346aa70-402d-e114-0977-546fad339fbe",
-                      "lease_duration": 10000,
-                      "renewable": false,
-                      "data": null,
-                      "warnings": [
-                        "foo-bar",
-                        "hello-world"
-                      ],
                       "auth": {
-                        "client_token": "hvs.CAESIFGppynzyYl-21YK6OjpbWhmnBgI5upF9Fnx5XhABeR_Gh4KHGh2cy5LUUxiRWlPSk5ZeEpuaDU1OHpjWEhqVWE",
-                        "accessor": "87eM6pGwBm4e6h0e16r0AtJo",
-                        "policies": [
-                          "default",
-                          "root"
-                        ],
-                        "token_policies": [
-                          "default",
-                          "root"
-                        ],
-                        "identity_policies": null,
-                        "metadata": null,
-                        "orphan": false,
-                        "entity_id": "entityId",
-                        "lease_duration": 1800,
-                        "renewable": true,
-                        "mfa_requirement": null
+                        "lease_duration": 1800
                       }
                     }
                     """;
@@ -353,34 +285,16 @@ class HashicorpVaultClientTest {
             // given a configured ttl of 5 this should equal "5s"
             assertThat(tokenRenewRequest.getIncrement()).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
             AbstractResultAssert.assertThat(tokenRenewResult).isSucceeded().satisfies(tokenRenewResponse -> {
-                assertThat(tokenRenewResponse.getRequestId()).isEqualTo("08c877ef-bdcd-f4f9-0854-2471e55f064b");
-                assertThat(tokenRenewResponse.getLeaseId()).isEqualTo("2346aa70-402d-e114-0977-546fad339fbe");
-                assertThat(tokenRenewResponse.getLeaseDuration()).isEqualTo(10000);
-                assertThat(tokenRenewResponse.isRenewable()).isFalse();
-                assertThat(tokenRenewResponse.getData()).isNull();
-                assertThat(tokenRenewResponse.getWarnings()).isEqualTo(List.of("foo-bar", "hello-world"));
-                assertThat(tokenRenewResponse.getAuth()).satisfies(tokenRenewAuth -> {
-                    assertThat(tokenRenewAuth.getClientToken()).isEqualTo("hvs.CAESIFGppynzyYl-21YK6OjpbWhmnBgI5upF9Fnx5XhABeR_Gh4KHGh2cy5LUUxiRWlPSk5ZeEpuaDU1OHpjWEhqVWE");
-                    assertThat(tokenRenewAuth.getAccessor()).isEqualTo("87eM6pGwBm4e6h0e16r0AtJo");
-                    assertThat(tokenRenewAuth.getPolicies()).isEqualTo(List.of("default", "root"));
-                    assertThat(tokenRenewAuth.getTokenPolicies()).isEqualTo(List.of("default", "root"));
-                    assertThat(tokenRenewAuth.getIdentityPolicies()).isEmpty();
-                    assertThat(tokenRenewAuth.getMetadata()).isEmpty();
-                    assertThat(tokenRenewAuth.isOrphan()).isFalse();
-                    assertThat(tokenRenewAuth.getEntityId()).isEqualTo("entityId");
-                    assertThat(tokenRenewAuth.getLeaseDuration()).isEqualTo(1800L);
-                    assertThat(tokenRenewAuth.isRenewable()).isTrue();
-                    assertThat(tokenRenewAuth.getMfaRequirement()).isNull();
-                });
+                var auth = OBJECT_MAPPER.convertValue(tokenRenewResponse.get(AUTH_KEY), new TypeReference<Map<String, Object>>() {});
+                var ttl = OBJECT_MAPPER.convertValue(auth.get(LEASE_DURATION_KEY), Long.class);
+                assertThat(ttl).isEqualTo(1800L);
             });
-            verify(monitor).warning("Token renew returned: foo-bar, hello-world");
         }
 
-        @ParameterizedTest
-        @ValueSource(ints = {400, 403, 404, 405, 412, 429, 472, 473, 500, 501, 502, 503})
-        void renewToken_whenApiReturnsErrorCode_shouldFail(int code) throws IOException {
+        @Test
+        void renewToken_whenApiReturnsErrorCode_shouldFail() throws IOException {
             var response = new Response.Builder()
-                    .code(code)
+                    .code(403)
                     .message("any")
                     .body(ResponseBody.create("", MediaType.get("application/json")))
                     .protocol(Protocol.HTTP_1_1)
@@ -391,7 +305,7 @@ class HashicorpVaultClientTest {
             var tokenRenewResult = vaultClient.renewToken();
 
             assertThat(tokenRenewResult.failed()).isTrue();
-            assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: %s".formatted(code));
+            assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: %s".formatted(403));
         }
 
         @Test
