@@ -25,6 +25,7 @@ import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
@@ -101,7 +102,7 @@ public class CryptoConverter {
     public static JWSSigner createSignerFor(PrivateKey key) {
         try {
             return switch (key.getAlgorithm()) {
-                case ALGORITHM_EC -> new ECDSASigner((ECPrivateKey) key);
+                case ALGORITHM_EC -> getEcdsaSigner((ECPrivateKey) key);
                 case ALGORITHM_RSA -> new RSASSASigner(key);
                 case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(key);
                 default -> throw new IllegalArgumentException(notSupportedError(key.getAlgorithm()));
@@ -109,6 +110,13 @@ public class CryptoConverter {
         } catch (JOSEException ex) {
             throw new EdcException(notSupportedError(key.getAlgorithm()), ex);
         }
+    }
+
+    @NotNull
+    private static ECDSASigner getEcdsaSigner(ECPrivateKey key) throws JOSEException {
+        var signer = new ECDSASigner(key);
+        signer.getJCAContext().setProvider(BouncyCastleProviderSingleton.getInstance());
+        return signer;
     }
 
     /**
@@ -129,7 +137,7 @@ public class CryptoConverter {
     public static JWSVerifier createVerifierFor(PublicKey publicKey) {
         try {
             return switch (publicKey.getAlgorithm()) {
-                case ALGORITHM_EC -> new ECDSAVerifier((ECPublicKey) publicKey);
+                case ALGORITHM_EC -> getEcdsaVerifier((ECPublicKey) publicKey);
                 case ALGORITHM_RSA -> new RSASSAVerifier((RSAPublicKey) publicKey);
                 case ALGORITHM_ECDSA, ALGORITHM_ED25519 -> createEdDsaVerifier(publicKey);
                 default -> throw new IllegalArgumentException(notSupportedError(publicKey.getAlgorithm()));
@@ -137,6 +145,13 @@ public class CryptoConverter {
         } catch (JOSEException e) {
             throw new EdcException(notSupportedError(publicKey.getAlgorithm()), e);
         }
+    }
+
+    @NotNull
+    private static ECDSAVerifier getEcdsaVerifier(ECPublicKey publicKey) throws JOSEException {
+        var verifier = new ECDSAVerifier(publicKey);
+        verifier.getJCAContext().setProvider(BouncyCastleProviderSingleton.getInstance());
+        return verifier;
     }
 
     /**
