@@ -23,6 +23,7 @@ import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
@@ -95,7 +96,9 @@ class CryptoConverterTest {
     void createSignerFor_ecKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var pk = createEc();
 
-        assertThat(CryptoConverter.createSignerFor(pk.getPrivate())).isInstanceOf(ECDSASigner.class);
+        var signer = CryptoConverter.createSignerFor(pk.getPrivate());
+        assertThat(signer).isInstanceOf(ECDSASigner.class);
+        assertThat(signer.getJCAContext().getProvider()).isEqualTo(BouncyCastleProviderSingleton.getInstance());
     }
 
     @Test
@@ -119,7 +122,9 @@ class CryptoConverterTest {
     @Test
     void createVerifierFor_ecKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         var pk = createEc().getPublic();
-        assertThat(CryptoConverter.createVerifierFor(pk)).isInstanceOf(ECDSAVerifier.class);
+        var verifier = CryptoConverter.createVerifierFor(pk);
+        assertThat(verifier).isInstanceOf(ECDSAVerifier.class);
+        assertThat(verifier.getJCAContext().getProvider()).isEqualTo(BouncyCastleProviderSingleton.getInstance());
     }
 
     @Test
