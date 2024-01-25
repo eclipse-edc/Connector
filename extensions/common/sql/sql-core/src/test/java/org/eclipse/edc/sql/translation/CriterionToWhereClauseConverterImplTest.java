@@ -16,25 +16,36 @@ package org.eclipse.edc.sql.translation;
 
 import org.eclipse.edc.spi.query.Criterion;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CriterionToWhereClauseConverterImplTest {
 
-    private final CriterionToWhereClauseConverter converter = new CriterionToWhereClauseConverterImpl(new TestMapping(), true);
+    private final SqlOperatorTranslator operatorTranslator = mock();
+    private final CriterionToWhereClauseConverter converter = new CriterionToWhereClauseConverterImpl(new TestMapping(), operatorTranslator);
+
+    @Test
+    void shouldConvertCriterionToWhereClause() {
+        when(operatorTranslator.translate("model-operator")).thenReturn(new SqlOperator("sql-operator", Object.class));
+        var criterion = new Criterion("field1", "model-operator", "testid1");
+
+        var condition = converter.convert(criterion);
+
+        assertThat(condition.sql()).isEqualToIgnoringCase("edc_field_1 sql-operator ?");
+        assertThat(condition.parameters()).containsExactly("testid1");
+    }
 
     @Test
     void singleExpression_equalsOperator() {
+        when(operatorTranslator.translate("=")).thenReturn(new SqlOperator("=", Object.class));
         var criterion = new Criterion("field1", "=", "testid1");
 
         var condition = converter.convert(criterion);
@@ -44,7 +55,19 @@ class CriterionToWhereClauseConverterImplTest {
     }
 
     @Test
+    void singleExpression_equalsOperator_integer() {
+        when(operatorTranslator.translate("=")).thenReturn(new SqlOperator("=", Object.class));
+        var criterion = new Criterion("field1", "=", 3);
+
+        var condition = converter.convert(criterion);
+
+        assertThat(condition.sql()).isEqualToIgnoringCase("edc_field_1 = ?");
+        assertThat(condition.parameters()).containsExactly(3);
+    }
+
+    @Test
     void singleExpression_notExistentColumn() {
+        when(operatorTranslator.translate("=")).thenReturn(new SqlOperator("=", Object.class));
         var criterion = new Criterion("not-existent", "=", "testid1");
 
         var condition = converter.convert(criterion);
@@ -55,6 +78,7 @@ class CriterionToWhereClauseConverterImplTest {
 
     @Test
     void singleExpression_inOperator() {
+        when(operatorTranslator.translate("in")).thenReturn(new SqlOperator("IN", Collection.class));
         var criterion = new Criterion("field1", "in", List.of("id1", "id2", "id3"));
 
         var condition = converter.convert(criterion);
@@ -63,61 +87,40 @@ class CriterionToWhereClauseConverterImplTest {
         assertThat(condition.parameters()).containsExactly("id1", "id2", "id3");
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(ValidArgs.class)
-    void isValidExpression_whenValid(String left, String op, Object right) {
-        var criterion = new Criterion(left, op, right);
+    @Test
+    void shouldReturnAlwaysFalseClause_whenMappingNotFound() {
+        when(operatorTranslator.translate("=")).thenReturn(new SqlOperator("=", Object.class));
+        var criterion = new Criterion("not-existing-field", "=", "testid1");
 
-        assertThatNoException().isThrownBy(() -> converter.convert(criterion));
+        var condition = converter.convert(criterion);
+
+        assertThat(condition.sql()).isEqualToIgnoringCase("0 = ?");
+        assertThat(condition.parameters()).containsExactly(1);
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(InvalidArgs.class)
-    void isValidExpression_whenInvalid(String left, String op, Object right) {
-        var criterion = new Criterion(left, op, right);
+    @Test
+    void shouldLowerCaseInputOperator() {
+        when(operatorTranslator.translate(any())).thenReturn(new SqlOperator("in", Collection.class));
+        var criterion = new Criterion("field1", "IN", List.of("id1", "id2", "id3"));
+
+        converter.convert(criterion);
+
+        verify(operatorTranslator).translate("in");
+    }
+
+    @Test
+    void shouldThrowException_whenOperatorIsNotKnown() {
+        when(operatorTranslator.translate(any())).thenReturn(null);
+        var criterion = Criterion.criterion("description", "unknown", "something");
 
         assertThatThrownBy(() -> converter.convert(criterion)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void toStatementParameter_keepsValueType() {
-        var criterion = new Criterion("field1", "=", 3);
+    void shouldThrowException_whenRightOperandTypeNotSupportedByOperator() {
+        when(operatorTranslator.translate("like")).thenReturn(new SqlOperator("like", String.class));
+        var criterion = Criterion.criterion("description", "like", 3);
 
-        var condition = converter.convert(criterion);
-
-        assertThat(condition.parameters()).containsExactly(3);
-    }
-
-    private static class ValidArgs implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    Arguments.of("description", "=", List.of("foo")),
-                    Arguments.of("description", "=", 123),
-                    Arguments.of("description", "=", "other"),
-                    Arguments.of("description", "like", "other"),
-                    Arguments.of("description", "like", "%other"),
-                    Arguments.of("description", "like", List.of()),
-                    Arguments.of("description", "like", ""),
-                    Arguments.of("description", "like", null),
-                    Arguments.of("description", "in", List.of("first", "second")),
-                    Arguments.of("description", "in", List.of("first")),
-                    Arguments.of("description", "in", List.of())
-            );
-        }
-    }
-
-    private static class InvalidArgs implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
-            return Stream.of(
-                    Arguments.of("field1", "contains", "value"),
-                    Arguments.of("field1", "in", "(item1, item2)"),
-                    Arguments.of("field1", "in", "list"),
-                    Arguments.of("field1", "in", null)
-            );
-        }
+        assertThatThrownBy(() -> converter.convert(criterion)).isInstanceOf(IllegalArgumentException.class);
     }
 }

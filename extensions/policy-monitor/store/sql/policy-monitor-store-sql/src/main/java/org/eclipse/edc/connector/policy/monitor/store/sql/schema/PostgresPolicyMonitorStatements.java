@@ -15,8 +15,13 @@
 package org.eclipse.edc.connector.policy.monitor.store.sql.schema;
 
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 
 public class PostgresPolicyMonitorStatements extends BaseSqlPolicyMonitorStatements {
+
+    public PostgresPolicyMonitorStatements() {
+        super(new PostgresqlOperatorTranslator());
+    }
 
     @Override
     public String getFormatAsJsonOperator() {

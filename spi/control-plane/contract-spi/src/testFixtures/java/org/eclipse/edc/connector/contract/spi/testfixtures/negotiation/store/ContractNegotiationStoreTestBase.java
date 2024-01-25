@@ -416,6 +416,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
     @Nested
     class QueryNegotiations {
+
         @Test
         void shouldPaginateResults() {
             var querySpec = QuerySpec.Builder.newInstance()

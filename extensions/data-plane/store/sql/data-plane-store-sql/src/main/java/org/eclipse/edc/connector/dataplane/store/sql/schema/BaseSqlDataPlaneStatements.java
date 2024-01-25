@@ -16,11 +16,18 @@ package org.eclipse.edc.connector.dataplane.store.sql.schema;
 
 import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.DataPlaneMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
 
 public class BaseSqlDataPlaneStatements implements DataPlaneStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    public BaseSqlDataPlaneStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
 
     @Override
     public String getInsertTemplate() {
@@ -65,7 +72,7 @@ public class BaseSqlDataPlaneStatements implements DataPlaneStatements {
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        return new SqlQueryStatement(getSelectTemplate(), querySpec, new DataPlaneMapping(this));
+        return new SqlQueryStatement(getSelectTemplate(), querySpec, new DataPlaneMapping(this), operatorTranslator);
     }
 
     @Override

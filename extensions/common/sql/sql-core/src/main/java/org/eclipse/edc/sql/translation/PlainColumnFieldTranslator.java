@@ -14,9 +14,13 @@
 
 package org.eclipse.edc.sql.translation;
 
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.PathItem;
 
 import java.util.List;
+
+import static org.eclipse.edc.sql.translation.FieldTranslator.toParameters;
+import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder;
 
 public class PlainColumnFieldTranslator implements FieldTranslator {
 
@@ -29,5 +33,13 @@ public class PlainColumnFieldTranslator implements FieldTranslator {
     @Override
     public String getLeftOperand(List<PathItem> path, Class<?> type) {
         return columnName;
+    }
+
+    @Override
+    public WhereClause toWhereClause(List<PathItem> path, Criterion criterion, SqlOperator operator) {
+        return new WhereClause(
+                "%s %s %s".formatted(columnName, operator.representation(), toValuePlaceholder(criterion)),
+                toParameters(criterion)
+        );
     }
 }

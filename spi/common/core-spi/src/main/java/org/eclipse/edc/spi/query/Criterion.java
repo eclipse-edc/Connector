@@ -74,6 +74,7 @@ public class Criterion {
         return new Criterion(operandLeft, operator, getOperandRight());
     }
 
+    @Deprecated(since = "0.5.0")
     public Criterion withLeftOperand(Function<Object, Object> function) {
         return new Criterion(function.apply(operandLeft), operator, getOperandRight());
     }

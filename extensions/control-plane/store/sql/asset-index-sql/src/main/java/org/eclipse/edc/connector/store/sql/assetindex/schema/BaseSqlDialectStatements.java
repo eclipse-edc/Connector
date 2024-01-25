@@ -19,6 +19,7 @@ package org.eclipse.edc.connector.store.sql.assetindex.schema;
 import org.eclipse.edc.connector.store.sql.assetindex.schema.postgres.AssetMapping;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import java.util.List;
@@ -26,6 +27,12 @@ import java.util.List;
 import static java.lang.String.format;
 
 public class BaseSqlDialectStatements implements AssetStatements {
+
+    protected final SqlOperatorTranslator operatorTranslator;
+
+    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+        this.operatorTranslator = operatorTranslator;
+    }
 
     @Override
     public String getInsertAssetTemplate() {
@@ -73,7 +80,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        return new SqlQueryStatement(getSelectAssetTemplate(), querySpec, new AssetMapping(this));
+        return new SqlQueryStatement(getSelectAssetTemplate(), querySpec, new AssetMapping(this), operatorTranslator);
     }
 
     @Override
