@@ -53,7 +53,7 @@ public class BaseSourceHttpParamsDecorator implements HttpParamsDecorator {
     }
 
     private @NotNull String extractMethod(HttpDataAddress address, DataFlowRequest request) {
-        if (Boolean.parseBoolean(address.getProxyMethod())) {
+        if (Boolean.parseBoolean(address.getProxyMethod()) && "HttpProxy".equals(request.getDestinationDataAddress().getType())) {
             return Optional.ofNullable(request.getProperties().get(METHOD))
                     .orElseThrow(() -> new EdcException(format("DataFlowRequest %s: 'method' property is missing", request.getId())));
         }
