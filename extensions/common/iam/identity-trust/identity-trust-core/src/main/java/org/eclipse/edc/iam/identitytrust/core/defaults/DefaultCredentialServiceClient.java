@@ -26,8 +26,8 @@ import org.eclipse.edc.identitytrust.VcConstants;
 import org.eclipse.edc.identitytrust.model.CredentialFormat;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentationContainer;
-import org.eclipse.edc.identitytrust.model.credentialservice.PresentationQuery;
-import org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponse;
+import org.eclipse.edc.identitytrust.model.credentialservice.PresentationQueryMessage;
+import org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -85,7 +85,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
             }
 
             if (response.isSuccessful() && response.body() != null) {
-                var presentationResponse = objectMapper.readValue(body, PresentationResponse.class);
+                var presentationResponse = objectMapper.readValue(body, JsonObject.class);
                 return parseResponse(presentationResponse);
             }
             return failure("Presentation Query failed: HTTP %s, message: %s".formatted(response.code(), body));
@@ -97,8 +97,16 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
 
     }
 
-    private Result<List<VerifiablePresentationContainer>> parseResponse(PresentationResponse presentationResponse) throws IOException {
-        var vpResults = Stream.of(presentationResponse.vpToken())
+    private Result<List<VerifiablePresentationContainer>> parseResponse(JsonObject presentationResponseMessage) throws IOException {
+
+        var presentationResponse = jsonLd.expand(presentationResponseMessage)
+                .compose((expanded) -> transformerRegistry.transform(expanded, PresentationResponseMessage.class));
+
+        if (presentationResponse.failed()) {
+            return failure("Failed to deserialize presentation response. Details: %s".formatted(presentationResponse.getFailureDetail()));
+        }
+
+        var vpResults = Stream.of(presentationResponse.getContent().getPresentation())
                 .map(this::parseVpToken)
                 .toList();
 
@@ -141,7 +149,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
                 .add(JsonLdKeywords.CONTEXT, jsonFactory.createArrayBuilder()
                         .add(VcConstants.PRESENTATION_EXCHANGE_URL)
                         .add(VcConstants.IATP_CONTEXT_URL))
-                .add(JsonLdKeywords.TYPE, PresentationQuery.PRESENTATION_QUERY_TYPE_PROPERTY)
+                .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY)
                 .add("scope", scopeArray.build())
                 .build();
     }

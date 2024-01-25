@@ -28,14 +28,14 @@ import static org.eclipse.edc.identitytrust.VcConstants.IATP_PREFIX;
  *
  * @see <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#411-query-for-presentations">IATP Specification</a>
  */
-public class PresentationQuery {
-    public static final String PRESENTATION_QUERY_SCOPE_PROPERTY = IATP_PREFIX + "scope";
-    public static final String PRESENTATION_QUERY_DEFINITION_PROPERTY = IATP_PREFIX + "presentationDefinition";
-    public static final String PRESENTATION_QUERY_TYPE_PROPERTY = IATP_PREFIX + "Query";
+public class PresentationQueryMessage {
+    public static final String PRESENTATION_QUERY_MESSAGE_SCOPE_PROPERTY = IATP_PREFIX + "scope";
+    public static final String PRESENTATION_QUERY_MESSAGE_DEFINITION_PROPERTY = IATP_PREFIX + "presentationDefinition";
+    public static final String PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY = IATP_PREFIX + "PresentationQueryMessage";
     private final List<String> scopes = new ArrayList<>();
     private PresentationDefinition presentationDefinition;
 
-    private PresentationQuery() {
+    private PresentationQueryMessage() {
     }
 
     public List<String> getScopes() {
@@ -47,10 +47,10 @@ public class PresentationQuery {
     }
 
     public static final class Builder {
-        private final PresentationQuery query;
+        private final PresentationQueryMessage query;
 
         private Builder() {
-            query = new PresentationQuery();
+            query = new PresentationQueryMessage();
         }
 
         public static Builder newinstance() {
@@ -72,7 +72,7 @@ public class PresentationQuery {
             return this;
         }
 
-        public PresentationQuery build() {
+        public PresentationQueryMessage build() {
             return query;
         }
     }
