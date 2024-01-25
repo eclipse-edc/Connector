@@ -29,8 +29,14 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
+import static java.util.function.Function.identity;
 import static org.eclipse.edc.connector.core.SecurityDefaultServicesExtension.NAME;
 
 @Extension(value = NAME)
@@ -46,8 +52,11 @@ public class LocalPublicKeyDefaultExtension implements ServiceExtension {
     @Setting(context = CONFIG_ALIAS, value = "ID of the public key.", required = true)
     public static final String ID_SUFFIX = "id";
 
-    @Setting(context = CONFIG_ALIAS, value = "Value of the public key. Multiple formats are supported, depending on the KeyParsers registered in the runtime", required = true)
+    @Setting(context = CONFIG_ALIAS, value = "Value of the public key. Multiple formats are supported, depending on the KeyParsers registered in the runtime")
     public static final String VALUE_SUFFIX = "value";
+
+    @Setting(context = CONFIG_ALIAS, value = "Path to a file that holds the public key, e.g. a PEM file. Multiple formats are supported, depending on the KeyParsers registered in the runtime")
+    public static final String PATH_SUFFIX = "path";
 
     @Inject
     public KeyParserRegistry keyParserRegistry;
@@ -88,8 +97,22 @@ public class LocalPublicKeyDefaultExtension implements ServiceExtension {
 
     private Map.Entry<String, String> readPublicKey(Config config) {
         var id = config.getString(ID_SUFFIX);
-        var value = config.getString(VALUE_SUFFIX);
-        return Map.entry(id, value);
+        return readFrom(config, VALUE_SUFFIX, identity())
+                .or(() -> readFrom(config, PATH_SUFFIX, this::readFromPath))
+                .map(key -> Map.entry(id, key))
+                .orElseThrow(() -> new EdcException(""));
     }
 
+    private String readFromPath(String path) {
+        try {
+            return Files.readString(Path.of(path));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Optional<String> readFrom(Config config, String setting, Function<String, String> mapper) {
+        return Optional.ofNullable(config.getString(setting, null))
+                .map(mapper);
+    }
 }
