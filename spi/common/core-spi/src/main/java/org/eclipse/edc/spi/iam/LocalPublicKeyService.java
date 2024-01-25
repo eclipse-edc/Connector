@@ -15,20 +15,13 @@
 package org.eclipse.edc.spi.iam;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.result.Result;
-
-import java.security.PublicKey;
 
 /**
- * Resolve a public key from an id. This is generic injectable component for resolving public
- * keys configured in the runtime (vault, config, etc.)
+ * Specialized interface of {@link PublicKeyResolver} which can be injected as component and available globally in the runtime.
+ * for resolving public keys configured in the runtime (vault, config, etc.)
  */
 @ExtensionPoint
 @FunctionalInterface
-public interface LocalPublicKeyService {
-
-    /**
-     * Resolves the key or return null if not found.
-     */
-    Result<PublicKey> resolveKey(String id);
+public interface LocalPublicKeyService extends PublicKeyResolver {
+    
 }

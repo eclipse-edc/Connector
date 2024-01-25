@@ -36,7 +36,7 @@ import static org.eclipse.edc.connector.core.SecurityDefaultServicesExtension.NA
 @Extension(value = NAME)
 @Provides(LocalPublicKeyService.class)
 public class LocalPublicKeyDefaultExtension implements ServiceExtension {
-    
+
     public static final String NAME = "Local Public Key Default Extension";
 
     public static final String EDC_PUBLIC_KEYS_PREFIX = "edc.iam.publickeys";
@@ -60,7 +60,13 @@ public class LocalPublicKeyDefaultExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public LocalPublicKeyService localPublicKeyService() {
-        localPublicKeyService = new LocalPublicKeyServiceImpl(vault, keyParserRegistry);
+        return localPublicKeyServiceImpl();
+    }
+
+    private LocalPublicKeyServiceImpl localPublicKeyServiceImpl() {
+        if (localPublicKeyService == null) {
+            localPublicKeyService = new LocalPublicKeyServiceImpl(vault, keyParserRegistry);
+        }
         return localPublicKeyService;
     }
 
@@ -73,7 +79,7 @@ public class LocalPublicKeyDefaultExtension implements ServiceExtension {
     public void prepare() {
         if (keysConfiguration != null) {
             var result = keysConfiguration.partition().map(this::readPublicKey)
-                    .map(entry -> localPublicKeyService.addRawKey(entry.getKey(), entry.getValue()))
+                    .map(entry -> localPublicKeyServiceImpl().addRawKey(entry.getKey(), entry.getValue()))
                     .reduce(Result.success(), Result::merge);
 
             result.orElseThrow((failure) -> new EdcException(failure.getFailureDetail()));
