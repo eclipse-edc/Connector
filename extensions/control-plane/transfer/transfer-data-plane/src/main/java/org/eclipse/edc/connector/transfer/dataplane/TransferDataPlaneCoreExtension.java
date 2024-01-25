@@ -29,7 +29,7 @@ import org.eclipse.edc.connector.transfer.spi.callback.ControlApiUrl;
 import org.eclipse.edc.connector.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.iam.PublicKeyResolver;
+import org.eclipse.edc.spi.iam.LocalPublicKeyService;
 import org.eclipse.edc.spi.security.PrivateKeyResolver;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -90,7 +90,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     @Inject
-    private PublicKeyResolver publicKeyResolver;
+    private LocalPublicKeyService publicKeyService;
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
@@ -117,7 +117,7 @@ public class TransferDataPlaneCoreExtension implements ServiceExtension {
 
         tokenValidationRulesRegistry.addRule(TRANSFER_DATAPLANE_TOKEN_CONTEXT, new ExpirationDateValidationRule(clock));
 
-        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager, publicKeyResolver);
+        var controller = new ConsumerPullTransferTokenValidationApiController(tokenValidationService, dataEncrypter, typeManager, (i) -> publicKeyService.resolveKey(pubKeyAlias));
         webService.registerResource(controlApiConfiguration.getContextAlias(), controller);
 
         var resolver = new ConsumerPullDataPlaneProxyResolver(dataEncrypter, typeManager, new JwtGenerationService(), getPrivateKeySupplier(context, privKeyAlias), () -> pubKeyAlias, tokenExpirationDateFunction);

@@ -47,7 +47,7 @@ class DidPublicKeyResolverImplTest {
     private static final String DID_URL = "did:web:example.com";
     private final DidResolverRegistry resolverRegistry = mock();
     private final KeyParserRegistry keyParserRegistry = mock();
-    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry, mock(), mock());
+    private final DidPublicKeyResolverImpl resolver = new DidPublicKeyResolverImpl(keyParserRegistry, resolverRegistry);
 
     public static String readFile(String filename) throws IOException {
         try (var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)) {
