@@ -37,7 +37,7 @@ public class JsonObjectFromPresentationResponseMessageTransformerTest {
     @Test
     void transform() {
 
-        var response = PresentationResponseMessage.Builder.newinstance().presentation(new Object[]{ "jwt" }).build();
+        var response = PresentationResponseMessage.Builder.newinstance().presentation(List.of("jwt")).build();
 
         var json = transformer.transform(response, context);
 
@@ -53,7 +53,7 @@ public class JsonObjectFromPresentationResponseMessageTransformerTest {
     @Test
     void transform_withJson() {
         var response = PresentationResponseMessage.Builder.newinstance()
-                .presentation(new Object[]{ Map.of("@context", List.of()) })
+                .presentation(List.of(Map.of("@context", List.of())))
                 .build();
 
         var json = transformer.transform(response, context);
@@ -75,7 +75,7 @@ public class JsonObjectFromPresentationResponseMessageTransformerTest {
     @Test
     void transform_withStringAndJson() {
         var response = PresentationResponseMessage.Builder.newinstance()
-                .presentation(new Object[]{ "jwt", Map.of("@context", List.of()) })
+                .presentation(List.of("jwt", Map.of("@context", List.of())))
                 .build();
         var json = transformer.transform(response, context);
 

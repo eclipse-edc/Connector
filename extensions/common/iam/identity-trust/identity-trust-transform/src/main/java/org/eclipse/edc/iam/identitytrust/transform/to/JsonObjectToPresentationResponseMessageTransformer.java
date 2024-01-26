@@ -29,6 +29,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Transforms a {@link JsonObject} into a {@link PresentationResponseMessage} object.
  */
@@ -68,7 +70,7 @@ public class JsonObjectToPresentationResponseMessageTransformer extends Abstract
     }
 
 
-    private Object[] readPresentation(JsonValue v, TransformerContext context) {
+    private List<Object> readPresentation(JsonValue v, TransformerContext context) {
         var rawJson = getRawJsonValue(v);
         try {
             return mapper.readValue(rawJson.toString(), new TypeReference<>() {

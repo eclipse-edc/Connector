@@ -22,8 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-
 import static org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -42,7 +40,7 @@ public class JsonObjectFromPresentationResponseMessageTransformer extends Abstra
         // Presentation Submission not supported yet
         return Json.createObjectBuilder()
                 .add(TYPE, PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY)
-                .add(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY, Json.createArrayBuilder(Arrays.asList(presentationQueryMessage.getPresentation())).build())
+                .add(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY, Json.createArrayBuilder(presentationQueryMessage.getPresentation()).build())
                 .build();
     }
 

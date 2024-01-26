@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -106,7 +105,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
             return failure("Failed to deserialize presentation response. Details: %s".formatted(presentationResponse.getFailureDetail()));
         }
 
-        var vpResults = Stream.of(presentationResponse.getContent().getPresentation())
+        var vpResults = presentationResponse.getContent().getPresentation().stream()
                 .map(this::parseVpToken)
                 .toList();
 

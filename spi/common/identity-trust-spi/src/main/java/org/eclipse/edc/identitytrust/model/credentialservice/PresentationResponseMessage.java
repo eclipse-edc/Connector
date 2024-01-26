@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.identitytrust.model.credentialservice;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.eclipse.edc.identitytrust.VcConstants.IATP_PREFIX;
 
 /**
@@ -30,7 +33,7 @@ public class PresentationResponseMessage {
     public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_PROPERTY = IATP_PREFIX + "presentationSubmission";
     public static final String PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY = IATP_PREFIX + "PresentationResponseMessage";
 
-    private Object[] presentation = new Object[0];
+    private List<Object> presentation = new ArrayList<>();
 
     private PresentationSubmission presentationSubmission;
 
@@ -38,7 +41,7 @@ public class PresentationResponseMessage {
         return presentationSubmission;
     }
 
-    public Object[] getPresentation() {
+    public List<Object> getPresentation() {
         return presentation;
     }
 
@@ -53,7 +56,7 @@ public class PresentationResponseMessage {
             return new PresentationResponseMessage.Builder();
         }
 
-        public PresentationResponseMessage.Builder presentation(Object[] presentations) {
+        public PresentationResponseMessage.Builder presentation(List<Object> presentations) {
             this.responseMessage.presentation = presentations;
             return this;
         }
