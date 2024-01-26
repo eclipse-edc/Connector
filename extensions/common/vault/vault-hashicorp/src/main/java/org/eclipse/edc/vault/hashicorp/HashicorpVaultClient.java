@@ -52,6 +52,10 @@ public class HashicorpVaultClient {
     private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
     private static final List<FallbackFactory> FALLBACK_FACTORIES = List.of(new HashicorpVaultClientFallbackFactory());
     private static final int HTTP_CODE_404 = 404;
+    private static final String DATA_KEY = "data";
+    private static final String RENEWABLE_KEY = "renewable";
+    private static final String AUTH_KEY = "auth";
+    private static final String LEASE_DURATION_KEY = "lease_duration";
     private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
     };
 
@@ -114,9 +118,9 @@ public class HashicorpVaultClient {
      * <p>
      * Will retry in some error cases.
      *
-     * @return the result of the token lookup operation
+     * @return boolean indicating if the token is renewable
      */
-    public Result<Map<String, Object>> lookUpToken() {
+    public Result<Boolean> lookUpToken() {
         var uri = configValues.url()
                 .newBuilder()
                 .addPathSegment(TOKEN_LOOK_UP_SELF_PATH)
@@ -130,7 +134,12 @@ public class HashicorpVaultClient {
                     return Result.failure("Token look up returned empty body");
                 }
                 var payload = objectMapper.readValue(responseBody.string(), new TypeReference<Map<String, Object>>() {});
-                return Result.success(payload);
+                var parseRenewableResult = parseRenewable(payload);
+                if (parseRenewableResult.failed()) {
+                    return Result.failure("Token look up response could not be parsed: %s".formatted(parseRenewableResult.getFailureDetail()));
+                }
+                var isRenewable = parseRenewableResult.getContent();
+                return Result.success(isRenewable);
             } else {
                 return Result.failure("Token look up failed with status %d".formatted(response.code()));
             }
@@ -148,9 +157,9 @@ public class HashicorpVaultClient {
      * <p>
      * Will retry in some error cases.
      *
-     * @return the result of the token renewal operation
+     * @return long representing the remaining ttl of the token in seconds
      */
-    public Result<Map<String, Object>> renewToken() {
+    public Result<Long> renewToken() {
         var uri = configValues.url()
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
@@ -168,7 +177,12 @@ public class HashicorpVaultClient {
                     return Result.failure("Token renew returned empty body");
                 }
                 var payload = objectMapper.readValue(responseBody.string(), MAP_TYPE_REFERENCE);
-                return Result.success(payload);
+                var parseTtlResult = parseTtl(payload);
+                if (parseTtlResult.failed()) {
+                    return Result.failure("Token renew response could not be parsed: %s".formatted(parseTtlResult.getFailureDetail()));
+                }
+                var ttl = parseTtlResult.getContent();
+                return Result.success(ttl);
             } else {
                 return Result.failure("Token renew failed with status: %d".formatted(response.code()));
             }
@@ -320,5 +334,39 @@ public class HashicorpVaultClient {
             throw new EdcException(e);
         }
         return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
+    }
+
+    private Result<Boolean> parseRenewable(Map<String, Object> map) {
+        try {
+            var data = objectMapper.convertValue(getValueFromMap(map, DATA_KEY), new TypeReference<Map<String, Object>>() {
+            });
+            var isRenewable = objectMapper.convertValue(getValueFromMap(data, RENEWABLE_KEY), Boolean.class);
+            return Result.success(isRenewable);
+        } catch (IllegalArgumentException e) {
+            var errMsg = "Failed to parse renewable flag from %s with reason: %s".formatted(map, e.getMessage());
+            monitor.warning(errMsg);
+            return Result.failure(errMsg);
+        }
+    }
+
+    private Result<Long> parseTtl(Map<String, Object> map) {
+        try {
+            var auth = objectMapper.convertValue(getValueFromMap(map, AUTH_KEY), new TypeReference<Map<String, Object>>() {
+            });
+            var ttl = objectMapper.convertValue(getValueFromMap(auth, LEASE_DURATION_KEY), Long.class);
+            return Result.success(ttl);
+        } catch (IllegalArgumentException e) {
+            var errMsg = "Failed to parse ttl from %s with reason: %s".formatted(map, e.getMessage());
+            monitor.warning(errMsg);
+            return Result.failure(errMsg);
+        }
+    }
+
+    private Object getValueFromMap(Map<String, Object> map, String key) {
+        var value = map.get(key);
+        if (value == null) {
+            throw new IllegalArgumentException("Key '%s' does not exist".formatted(key));
+        }
+        return value;
     }
 }

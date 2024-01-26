@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import org.eclipse.edc.junit.assertions.FailureAssert;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
@@ -23,16 +22,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.junit.assertions.FailureAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HashicorpVaultHealthCheckTest {
 
-    private static final Result<Map<String, Object>> TOKEN_LOOK_UP_RESULT_200 = Result.success(Map.of());
+    private static final Result<Boolean> TOKEN_LOOK_UP_RESULT_200 = Result.success(Boolean.TRUE);
 
     private final HashicorpVaultClient client = mock();
     private final Monitor monitor = mock();
@@ -114,6 +112,6 @@ class HashicorpVaultHealthCheckTest {
     }
 
     private void assertFailureMessagesSize(HealthCheckResult result, int i) {
-        FailureAssert.assertThat(result.getFailure()).messages().hasSize(i);
+        assertThat(result.getFailure()).messages().hasSize(i);
     }
 }

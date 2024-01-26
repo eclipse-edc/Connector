@@ -14,11 +14,9 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @ComponentTest
@@ -50,9 +49,6 @@ class HashicorpVaultClientIntegrationTest {
     private static final long CREATION_TTL = 6L;
     private static final long TTL = 5L;
     private static final long RENEW_BUFFER = 4L;
-    private static final String DATA_KEY = "data";
-    private static final String RENEWABLE_KEY = "renewable";
-    private static final String LEASE_DURATION_KEY = "lease_duration";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final ConsoleMonitor MONITOR = new ConsoleMonitor();
 
@@ -73,11 +69,7 @@ class HashicorpVaultClientIntegrationTest {
     void lookUpToken_whenTokenNotExpired_shouldSucceed() {
         var tokenLookUpResult = client.lookUpToken();
 
-        AbstractResultAssert.assertThat(tokenLookUpResult).isSucceeded().satisfies(tokenLookUpResponse -> {
-            var data = OBJECT_MAPPER.convertValue(tokenLookUpResponse.get(DATA_KEY), new TypeReference<Map<String, Object>>() {});
-            var isRenewable = OBJECT_MAPPER.convertValue(data.get(RENEWABLE_KEY), Boolean.class);
-            assertThat(isRenewable).isTrue();
-        });
+        assertThat(tokenLookUpResult).isSucceeded().satisfies(isRenewable -> assertThat(isRenewable).isTrue());
     }
 
     @Test
@@ -96,11 +88,7 @@ class HashicorpVaultClientIntegrationTest {
     void renewToken_whenTokenNotExpired_shouldSucceed() {
         var tokenRenewResult = client.renewToken();
 
-        AbstractResultAssert.assertThat(tokenRenewResult).isSucceeded().satisfies(tokenRenewResponse -> {
-            var auth = OBJECT_MAPPER.convertValue(tokenRenewResponse.get(AUTH_KEY), new TypeReference<Map<String, Object>>() {});
-            var ttl = OBJECT_MAPPER.convertValue(auth.get(LEASE_DURATION_KEY), Long.class);
-            assertThat(ttl).isEqualTo(TTL);
-        });
+        assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> assertThat(ttl).isEqualTo(TTL));
     }
 
     @Test

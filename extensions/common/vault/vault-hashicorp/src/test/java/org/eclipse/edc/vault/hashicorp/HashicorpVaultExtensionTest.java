@@ -84,12 +84,24 @@ class HashicorpVaultExtensionTest {
     }
 
     @Test
-    void shutdown_shouldStopTokenRenewTask(ServiceExtensionContext context) {
+    void shutdown_withTokenRenewTaskRunning_shouldStopTokenRenewTask(ServiceExtensionContext context) {
         try (var mockedConstruction = mockConstruction(HashicorpVaultTokenRenewTask.class, (client, mockContext) -> {})) {
             extension.initialize(context);
-            extension.shutdown();
             var renewTask = mockedConstruction.constructed().get(0);
+            when(renewTask.isRunning()).thenReturn(true);
+            extension.shutdown();
             verify(renewTask).stop();
+        }
+    }
+
+    @Test
+    void shutdown_withTokenRenewTaskNotRunning_shouldNotStopTokenRenewTask(ServiceExtensionContext context) {
+        try (var mockedConstruction = mockConstruction(HashicorpVaultTokenRenewTask.class, (client, mockContext) -> {})) {
+            extension.initialize(context);
+            var renewTask = mockedConstruction.constructed().get(0);
+            when(renewTask.isRunning()).thenReturn(false);
+            extension.shutdown();
+            verify(renewTask, never()).stop();
         }
     }
 }

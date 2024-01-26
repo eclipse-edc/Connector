@@ -90,7 +90,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 executorInstrumentation,
                 hashicorpVaultClient(),
-                typeManager.getMapper(),
                 configValues.renewBuffer(),
                 monitor);
     }
@@ -104,7 +103,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
-        tokenRenewalTask.stop();
+        if (tokenRenewalTask.isRunning()) {
+            tokenRenewalTask.stop();
+        }
     }
 
     private HashicorpVaultConfigValues getConfigValues(ServiceExtensionContext context) {

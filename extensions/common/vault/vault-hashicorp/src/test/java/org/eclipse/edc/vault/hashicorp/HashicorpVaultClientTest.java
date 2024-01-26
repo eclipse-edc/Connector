@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -24,7 +23,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
-import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.http.FallbackFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -47,9 +45,11 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
@@ -179,7 +179,7 @@ class HashicorpVaultClientTest {
             // verify
             assertThat(healthCheckResult.failed()).isTrue();
             verify(monitor).warning(eq("Failed to perform healthcheck with reason: foo-bar"), any(IOException.class));
-            assertThat(healthCheckResult.getFailureMessages()).isEqualTo(List.of("Failed to perform healthcheck with reason: foo-bar"));
+            assertThat(healthCheckResult.getFailureDetail()).isEqualTo("Failed to perform healthcheck with reason: foo-bar");
         }
 
         private static List<HealthCheckTestParameter> healthCheckErrorResponseProvider() {
@@ -220,11 +220,7 @@ class HashicorpVaultClientTest {
             var tokenLookUpResult = vaultClient.lookUpToken();
 
             verify(httpClient).execute(any(Request.class), argThat((List<FallbackFactory> factories) -> factories.get(0) instanceof HashicorpVaultClientFallbackFactory));
-            AbstractResultAssert.assertThat(tokenLookUpResult).isSucceeded().satisfies(tokenRenewResponse -> {
-                var data = OBJECT_MAPPER.convertValue(tokenRenewResponse.get(DATA_KEY), new TypeReference<Map<String, Object>>() {});
-                var isRenewable = OBJECT_MAPPER.convertValue(data.get(RENEWABLE_KEY), Boolean.class);
-                assertThat(isRenewable).isTrue();
-            });
+            assertThat(tokenLookUpResult).isSucceeded().satisfies(isRenewable -> assertThat(isRenewable).isTrue());
         }
 
         @Test
@@ -252,8 +248,28 @@ class HashicorpVaultClientTest {
 
             assertThat(tokenLookUpResult.failed()).isTrue();
             verify(monitor).warning(eq("Failed to look up token with reason: foo-bar"), any(Exception.class));
-            assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Failed to look up token with reason: foo-bar"));
+            assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Failed to look up token with reason: foo-bar");
         }
+
+        @ParameterizedTest
+        @MethodSource("invalidTokenLookUpResponseProvider")
+        void lookUpToken_withInvalidTokenLookUpResponse_shouldFail(Map<String, Object> tokenLookUpResponse) throws IOException {
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create(OBJECT_MAPPER.writeValueAsString(tokenLookUpResponse), MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
+            when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
+
+            var tokenLookUpResult = vaultClient.lookUpToken();
+
+            assertThat(tokenLookUpResult.failed()).isTrue();
+            verify(monitor).warning(matches("Failed to parse renewable flag *"));
+            assertThat(tokenLookUpResult.getFailureDetail()).startsWith("Token look up response could not be parsed: Failed to parse renewable flag");
+        }
+
 
         @Test
         void renewToken_whenApiReturns200_shouldSucceed() throws IOException {
@@ -284,11 +300,7 @@ class HashicorpVaultClientTest {
             var tokenRenewRequest = OBJECT_MAPPER.readValue(buffer.readUtf8(), TokenRenewRequest.class);
             // given a configured ttl of 5 this should equal "5s"
             assertThat(tokenRenewRequest.getIncrement()).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
-            AbstractResultAssert.assertThat(tokenRenewResult).isSucceeded().satisfies(tokenRenewResponse -> {
-                var auth = OBJECT_MAPPER.convertValue(tokenRenewResponse.get(AUTH_KEY), new TypeReference<Map<String, Object>>() {});
-                var ttl = OBJECT_MAPPER.convertValue(auth.get(LEASE_DURATION_KEY), Long.class);
-                assertThat(ttl).isEqualTo(1800L);
-            });
+            assertThat(tokenRenewResult).isSucceeded().satisfies(ttl -> assertThat(ttl).isEqualTo(1800L));
         }
 
         @Test
@@ -312,13 +324,48 @@ class HashicorpVaultClientTest {
         void renewToken_whenHttpClientThrowsIoException_shouldFail() throws IOException {
             when(httpClient.execute(any(Request.class), anyList())).thenThrow(new IOException("foo-bar"));
 
-            var tokenLookUpResult = vaultClient.renewToken();
+            var tokenRenewResult = vaultClient.renewToken();
 
-            assertThat(tokenLookUpResult.failed()).isTrue();
+            assertThat(tokenRenewResult.failed()).isTrue();
             verify(monitor).warning(eq("Failed to renew token with reason: foo-bar"), any(Exception.class));
-            assertThat(tokenLookUpResult.getFailureMessages()).isEqualTo(List.of("Failed to renew token with reason: foo-bar"));
+            assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Failed to renew token with reason: foo-bar");
             // should be called only once
             verify(httpClient).execute(any(Request.class), anyList());
+        }
+
+        @ParameterizedTest
+        @MethodSource("invalidTokenRenewResponseProvider")
+        void renewToken_withInvalidTokenRenewResponse_shouldFail(Map<String, Object> tokenRenewResponse) throws IOException {
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create(OBJECT_MAPPER.writeValueAsString(tokenRenewResponse), MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
+            when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
+
+            var tokenRenewResult = vaultClient.renewToken();
+
+            assertThat(tokenRenewResult.failed()).isTrue();
+            verify(monitor).warning(matches("Failed to parse ttl *"));
+            assertThat(tokenRenewResult.getFailureDetail()).startsWith("Token renew response could not be parsed: Failed to parse ttl");
+        }
+
+        private static List<Map<String, Object>> invalidTokenLookUpResponseProvider() {
+            return List.of(
+                    Map.of(),
+                    Map.of(DATA_KEY, Map.of()),
+                    Map.of(DATA_KEY, Map.of(RENEWABLE_KEY, "not a boolean"))
+            );
+        }
+
+        private static List<Map<String, Object>> invalidTokenRenewResponseProvider() {
+            return List.of(
+                    Map.of(),
+                    Map.of(AUTH_KEY, Map.of()),
+                    Map.of(AUTH_KEY, Map.of(LEASE_DURATION_KEY, "not a long"))
+            );
         }
     }
 
