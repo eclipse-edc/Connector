@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.identitytrust.model.credentialservice.PresentationQuery;
+import org.eclipse.edc.identitytrust.model.credentialservice.PresentationQueryMessage;
 import org.eclipse.edc.identitytrust.model.presentationdefinition.PresentationDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -32,23 +32,23 @@ import java.util.List;
 /**
  * Transforms a JsonObject into a PresentationQuery object.
  */
-public class JsonObjectToPresentationQueryTransformer extends AbstractJsonLdTransformer<JsonObject, PresentationQuery> {
+public class JsonObjectToPresentationQueryTransformer extends AbstractJsonLdTransformer<JsonObject, PresentationQueryMessage> {
 
     private final ObjectMapper mapper;
 
     public JsonObjectToPresentationQueryTransformer(ObjectMapper mapper) {
-        super(JsonObject.class, PresentationQuery.class);
+        super(JsonObject.class, PresentationQueryMessage.class);
         this.mapper = mapper;
     }
 
     @Override
-    public @Nullable PresentationQuery transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
-        var bldr = PresentationQuery.Builder.newinstance();
+    public @Nullable PresentationQueryMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
+        var bldr = PresentationQueryMessage.Builder.newinstance();
         visitProperties(jsonObject, (k, v) -> {
             switch (k) {
-                case PresentationQuery.PRESENTATION_QUERY_DEFINITION_PROPERTY ->
+                case PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_DEFINITION_PROPERTY ->
                         bldr.presentationDefinition(readPresentationDefinition(v, context));
-                case PresentationQuery.PRESENTATION_QUERY_SCOPE_PROPERTY ->
+                case PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_SCOPE_PROPERTY ->
                         transformArrayOrObject(v, Object.class, o -> bldr.scopes(List.of(o.toString().split(" "))), context);
                 default -> context.reportProblem("Unknown property '%s'".formatted(k));
             }

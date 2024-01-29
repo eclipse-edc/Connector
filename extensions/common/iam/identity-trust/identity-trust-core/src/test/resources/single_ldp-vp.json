@@ -1,5 +1,5 @@
 {
-  "vp_token": {
+  "presentation": {
     "@context": [
       "https://www.w3.org/2018/credentials/v1"
     ],
@@ -47,7 +47,7 @@
       "verificationMethod": "did:example:holder#key-1"
     }
   },
-  "presentation_submission": {
+  "presentationSubmission": {
     "id": "Presentation example 1",
     "definition_id": "Example with selective disclosure",
     "descriptor_map": [

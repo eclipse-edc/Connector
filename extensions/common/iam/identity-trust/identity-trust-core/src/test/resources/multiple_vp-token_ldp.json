@@ -1,5 +1,5 @@
 {
-  "vp_token": [
+  "presentation": [
     {
       "@context": [
         "https://www.w3.org/2018/credentials/v1"
@@ -97,7 +97,7 @@
       }
     }
   ],
-  "presentation_submission": {
+  "presentationSubmission": {
     "id": "Presentation example 2",
     "definition_id": "Example with multiple VPs",
     "descriptor_map": [

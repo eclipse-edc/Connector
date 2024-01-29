@@ -30,9 +30,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.identitytrust.VcConstants.IATP_CONTEXT_URL;
 import static org.mockito.Mockito.mock;
 
-class JsonObjectToPresentationQueryTransformerTest {
+class JsonObjectToPresentationQueryMessageTransformerTest {
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
     private final JsonObjectToPresentationQueryTransformer transformer = new JsonObjectToPresentationQueryTransformer(mapper);
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
@@ -43,7 +44,7 @@ class JsonObjectToPresentationQueryTransformerTest {
     @BeforeEach
     void setUp() {
         jsonLd.registerCachedDocument("https://identity.foundation/presentation-exchange/submission/v1", TestUtils.getFileFromResourceName("presentation_ex.json").toURI());
-        jsonLd.registerCachedDocument("https://w3id.org/tractusx-trust/v0.8", TestUtils.getFileFromResourceName("presentation_query.json").toURI());
+        jsonLd.registerCachedDocument(IATP_CONTEXT_URL, TestUtils.getFileFromResourceName("document/iatp.v08.jsonld").toURI());
         // delegate to the generic transformer
 
         trr.register(new JsonValueToGenericTypeTransformer(mapper));
@@ -57,7 +58,7 @@ class JsonObjectToPresentationQueryTransformerTest {
                     "https://identity.foundation/presentation-exchange/submission/v1",
                     "https://w3id.org/tractusx-trust/v0.8"
                   ],
-                  "@type": "Query",
+                  "@type": "PresentationQueryMessage",
                   "scope": [
                     "org.eclipse.edc.vc.type:TestCredential:read",
                     "org.eclipse.edc.vc.type:AnotherCredential:all"
@@ -85,7 +86,7 @@ class JsonObjectToPresentationQueryTransformerTest {
                     "https://identity.foundation/presentation-exchange/submission/v1",
                     "https://w3id.org/tractusx-trust/v0.8"
                   ],
-                  "@type": "Query",
+                  "@type": "PresentationQueryMessage",
                   "scope": [
                     "org.eclipse.edc.vc.type:TestCredential:read org.eclipse.edc.vc.type:AnotherCredential:all"
                   ]
@@ -112,7 +113,7 @@ class JsonObjectToPresentationQueryTransformerTest {
                     "https://identity.foundation/presentation-exchange/submission/v1",
                     "https://w3id.org/tractusx-trust/v0.8"
                   ],
-                  "@type": "Query",
+                  "@type": "PresentationQueryMessage",
                    "presentationDefinition": {
                        "id": "first simple example",
                        "input_descriptors": [
@@ -160,7 +161,7 @@ class JsonObjectToPresentationQueryTransformerTest {
                     "https://identity.foundation/presentation-exchange/submission/v1",
                     "https://w3id.org/tractusx-trust/v0.8"
                   ],
-                  "@type": "Query",
+                  "@type": "PresentationQueryMessage",
                   "scope": ["test-scope1"],
                    "presentationDefinition": {
                        "id": "first simple example",

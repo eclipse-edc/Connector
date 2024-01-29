@@ -15,20 +15,20 @@
 package org.eclipse.edc.iam.identitytrust.transform.from;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.identitytrust.model.credentialservice.PresentationQuery;
+import org.eclipse.edc.identitytrust.model.credentialservice.PresentationQueryMessage;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class JsonObjectFromPresentationQueryTransformer extends AbstractJsonLdTransformer<PresentationQuery, JsonObject> {
+public class JsonObjectFromPresentationQueryTransformer extends AbstractJsonLdTransformer<PresentationQueryMessage, JsonObject> {
 
     public JsonObjectFromPresentationQueryTransformer() {
-        super(PresentationQuery.class, JsonObject.class);
+        super(PresentationQueryMessage.class, JsonObject.class);
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull PresentationQuery presentationQuery, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull PresentationQueryMessage presentationQueryMessage, @NotNull TransformerContext context) {
         return null;
     }
 }

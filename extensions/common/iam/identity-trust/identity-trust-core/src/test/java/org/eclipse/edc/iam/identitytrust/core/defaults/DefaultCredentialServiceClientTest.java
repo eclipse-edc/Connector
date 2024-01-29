@@ -14,7 +14,11 @@
 
 package org.eclipse.edc.iam.identitytrust.core.defaults;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Response;
@@ -24,14 +28,18 @@ import org.eclipse.edc.identitytrust.model.CredentialSubject;
 import org.eclipse.edc.identitytrust.model.Issuer;
 import org.eclipse.edc.identitytrust.model.VerifiableCredential;
 import org.eclipse.edc.identitytrust.model.VerifiablePresentation;
+import org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.invocation.InvocationOnMock;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -45,6 +53,7 @@ import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,20 +64,27 @@ class DefaultCredentialServiceClientTest {
     private final EdcHttpClient httpClientMock = mock();
     private DefaultCredentialServiceClient client;
 
+    private TypeTransformerRegistry transformerRegistry;
+
+    private ObjectMapper mapper = JacksonJsonLd.createObjectMapper().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+
     @BeforeEach
     void setup() {
-        var registry = mock(TypeTransformerRegistry.class);
-        when(registry.transform(any(), eq(VerifiablePresentation.class)))
+        transformerRegistry = mock(TypeTransformerRegistry.class);
+        when(transformerRegistry.transform(any(), eq(VerifiablePresentation.class)))
                 .thenReturn(success(createPresentation()));
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(PresentationResponseMessage.class))).thenAnswer(this::presentationResponse);
+
         var jsonLdMock = mock(JsonLd.class);
         when(jsonLdMock.expand(any())).thenAnswer(a -> success(a.getArgument(0)));
         client = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
-                createObjectMapper(), registry, jsonLdMock, mock());
+                createObjectMapper(), transformerRegistry, jsonLdMock, mock());
     }
 
     @Test
     @DisplayName("CS returns a single LDP-VP")
     void requestPresentation_singleLdpVp() throws IOException {
+
         when(httpClientMock.execute(any()))
                 .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
 
@@ -146,7 +162,7 @@ class DefaultCredentialServiceClientTest {
     @Test
     void requestPresentation_emptyArray() throws IOException {
         when(httpClientMock.execute(any()))
-                .thenReturn(response(200, "{\"vp_token\":[],\"presentation_submission\":null}"));
+                .thenReturn(response(200, "{\"presentation\":[],\"presentationSubmission\":null}"));
 
         var res = client.requestPresentation(CS_URL, "foo", List.of());
         assertThat(res.succeeded()).isTrue();
@@ -167,6 +183,25 @@ class DefaultCredentialServiceClientTest {
                                 .build())
                         .build())
                 .build();
+    }
+
+    private Result<PresentationResponseMessage> presentationResponseResult(String path) {
+        var content = getResourceFileContentAsString(path);
+        try {
+            var response = mapper.readValue(content, PresentationResponseMessage.class);
+            return Result.success(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Result<PresentationResponseMessage> presentationResponse(InvocationOnMock args) {
+        try {
+            var response = mapper.readValue(args.getArgument(0, JsonObject.class).toString(), PresentationResponseMessage.class);
+            return Result.success(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Response response(int code, String body) {
