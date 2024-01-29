@@ -24,6 +24,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class CriterionOperatorRegistryImplTest {
@@ -73,7 +74,7 @@ class CriterionOperatorRegistryImplTest {
     class Convert {
         @Test
         void shouldThrowException_whenOperatorIsNotRegistered() {
-            assertThatThrownBy(() -> registry.convert(criterion("any", "operator", "any")))
+            assertThatThrownBy(() -> registry.toPredicate(criterion("any", "operator", "any")))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -85,7 +86,7 @@ class CriterionOperatorRegistryImplTest {
             registry.registerPropertyLookup((key, object) -> "propertyValue");
             var criterion = criterion("any", "operator", "operandRight");
 
-            var result = registry.convert(criterion).test("any");
+            var result = registry.toPredicate(criterion).test("any");
 
             assertThat(result).isTrue();
             verify(predicate).test("propertyValue", "operandRight");
@@ -99,10 +100,24 @@ class CriterionOperatorRegistryImplTest {
             registry.registerPropertyLookup((key, object) -> "propertyValue");
             var criterion = criterion("any", "OPERATOR", "any");
 
-            var result = registry.convert(criterion);
+            var result = registry.toPredicate(criterion);
 
             assertThat(result.test("any")).isTrue();
             verify(predicate).test(any(), any());
+        }
+
+        @Test
+        void shouldReturnAlwaysFalsePredicate_whenPropertyCannotBeFound() {
+            OperatorPredicate predicate = mock();
+            when(predicate.test(any(), any())).thenReturn(true);
+            registry.registerOperatorPredicate("operator", predicate);
+            registry.registerPropertyLookup((key, object) -> null);
+            var criterion = criterion("any", "operator", "operandRight");
+
+            var result = registry.toPredicate(criterion).test("any");
+
+            assertThat(result).isFalse();
+            verifyNoInteractions(predicate);
         }
     }
 
@@ -116,7 +131,7 @@ class CriterionOperatorRegistryImplTest {
             OperatorPredicate operatorPredicate = mock();
             registry.registerOperatorPredicate("=", operatorPredicate);
 
-            registry.convert(criterion("any", "=", "value")).test("any");
+            registry.toPredicate(criterion("any", "=", "value")).test("any");
 
             verify(operatorPredicate).test("secondOne", "value");
         }
@@ -128,7 +143,7 @@ class CriterionOperatorRegistryImplTest {
             OperatorPredicate operatorPredicate = mock();
             registry.registerOperatorPredicate("=", operatorPredicate);
 
-            registry.convert(criterion("any", "=", "value")).test("any");
+            registry.toPredicate(criterion("any", "=", "value")).test("any");
 
             verify(operatorPredicate).test("firstOne", "value");
         }

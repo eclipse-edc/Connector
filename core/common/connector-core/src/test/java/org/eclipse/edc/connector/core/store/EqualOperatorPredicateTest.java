@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.core.store.TestObject.TestEnum.ENTRY1;
-import static org.eclipse.edc.connector.core.store.TestObject.TestEnum.ENTRY2;
+import static org.eclipse.edc.connector.core.store.EqualOperatorPredicateTest.TestEnum.ENTRY1;
+import static org.eclipse.edc.connector.core.store.EqualOperatorPredicateTest.TestEnum.ENTRY2;
 
 class EqualOperatorPredicateTest {
 
@@ -54,4 +54,7 @@ class EqualOperatorPredicateTest {
         assertThat(predicate.test(List.of("one", "two"), "three")).isFalse();
     }
 
+    public enum TestEnum {
+        ENTRY1, ENTRY2
+    }
 }

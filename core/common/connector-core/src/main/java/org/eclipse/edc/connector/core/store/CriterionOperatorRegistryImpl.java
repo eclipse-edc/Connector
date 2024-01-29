@@ -68,14 +68,16 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
     }
 
     @Override
-    public <T> Predicate<T> convert(Criterion criterion) {
-        var converter = operatorPredicates.get(criterion.getOperator().toLowerCase());
-        if (converter == null) {
+    public <T> Predicate<T> toPredicate(Criterion criterion) {
+        var predicate = operatorPredicates.get(criterion.getOperator().toLowerCase());
+        if (predicate == null) {
             throw new IllegalArgumentException(format("Operator [%s] is not supported.", criterion.getOperator()));
         }
 
         return t -> {
+
             var operandLeft = (String) criterion.getOperandLeft();
+
             var property = propertyLookups.stream()
                     .map(it -> it.getProperty(operandLeft, t))
                     .filter(Objects::nonNull)
@@ -86,7 +88,7 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
                 return false;
             }
 
-            return converter.test(property, criterion.getOperandRight());
+            return predicate.test(property, criterion.getOperandRight());
         };
 
     }

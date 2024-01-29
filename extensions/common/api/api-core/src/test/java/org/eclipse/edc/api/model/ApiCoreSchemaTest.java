@@ -26,6 +26,7 @@ import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.jsonobject.validators.model.CriterionValidator;
@@ -46,6 +47,7 @@ class ApiCoreSchemaTest {
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
 
     @BeforeEach
     void setUp() {
@@ -56,7 +58,7 @@ class ApiCoreSchemaTest {
 
     @Test
     void criterionExample() throws JsonProcessingException {
-        var validator = CriterionValidator.instance(CriterionOperatorRegistryImpl.ofDefaults());
+        var validator = CriterionValidator.instance(criterionOperatorRegistry);
 
         var jsonObject = objectMapper.readValue(CRITERION_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
@@ -75,7 +77,7 @@ class ApiCoreSchemaTest {
 
     @Test
     void querySpecExample() throws JsonProcessingException {
-        var validator = QuerySpecValidator.instance();
+        var validator = QuerySpecValidator.instance(criterionOperatorRegistry);
 
         var jsonObject = objectMapper.readValue(QUERY_SPEC_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

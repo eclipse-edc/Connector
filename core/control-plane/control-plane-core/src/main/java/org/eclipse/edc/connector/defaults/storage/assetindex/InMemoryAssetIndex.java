@@ -143,7 +143,7 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     private Stream<Asset> filterBy(List<Criterion> criteria) {
         var predicate = criteria.stream()
-                .map(criterionOperatorRegistry::convert)
+                .map(criterionOperatorRegistry::toPredicate)
                 .reduce(x -> true, Predicate::and);
 
         return cache.values().stream()

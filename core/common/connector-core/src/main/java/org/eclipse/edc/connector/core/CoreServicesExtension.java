@@ -189,7 +189,7 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public CriterionOperatorRegistry criterionOperatorRegistry(ServiceExtensionContext context) {
+    public CriterionOperatorRegistry criterionOperatorRegistry() {
         return CriterionOperatorRegistryImpl.ofDefaults();
     }
 

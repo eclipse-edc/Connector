@@ -84,7 +84,7 @@ public class DatasetResolverImpl implements DatasetResolver {
 
         contractDefinitions.stream()
                 .filter(definition -> definition.getAssetsSelector().stream()
-                        .map(criterionOperatorRegistry::convert)
+                        .map(criterionOperatorRegistry::toPredicate)
                         .reduce(x -> true, Predicate::and)
                         .test(asset)
                 )

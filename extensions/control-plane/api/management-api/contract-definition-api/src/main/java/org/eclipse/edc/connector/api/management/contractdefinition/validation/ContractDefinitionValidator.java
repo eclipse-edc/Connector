@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.contractdefinition.validation;
 
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
@@ -26,12 +27,12 @@ import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinit
 
 public class ContractDefinitionValidator {
 
-    public static JsonObjectValidator instance() {
+    public static JsonObjectValidator instance(CriterionOperatorRegistry criterionOperatorRegistry) {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)
                 .verify(CONTRACT_DEFINITION_ACCESSPOLICY_ID, MandatoryValue::new)
                 .verify(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, MandatoryValue::new)
-                .verifyArrayItem(CONTRACT_DEFINITION_ASSETS_SELECTOR, CriterionValidator::instance)
+                .verifyArrayItem(CONTRACT_DEFINITION_ASSETS_SELECTOR, path -> CriterionValidator.instance(path, criterionOperatorRegistry))
                 .build();
     }
 

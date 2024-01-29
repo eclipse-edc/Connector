@@ -74,7 +74,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     @Override
     public @NotNull List<T> nextNotLeased(int max, Criterion... criteria) {
         return lockManager.writeLock(() -> {
-            var filterPredicate = Arrays.stream(criteria).map(criterionOperatorRegistry::convert).reduce(x -> true, Predicate::and);
+            var filterPredicate = Arrays.stream(criteria).map(criterionOperatorRegistry::toPredicate).reduce(x -> true, Predicate::and);
             var entities = entitiesById.values().stream()
                     .filter(filterPredicate)
                     .filter(e -> !isLeased(e.getId()))

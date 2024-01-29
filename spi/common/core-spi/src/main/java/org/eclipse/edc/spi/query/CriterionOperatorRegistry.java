@@ -27,10 +27,10 @@ public interface CriterionOperatorRegistry {
     String CONTAINS = "contains";
 
     /**
-     * Register an operator with the related converter.
+     * Register an operator with the related operator predicate.
      *
      * @param operator the operator, case-insensitive.
-     * @param converter the converter.
+     * @param predicate the operator predicate.
      */
     void registerOperatorPredicate(String operator, OperatorPredicate predicate);
 
@@ -43,17 +43,18 @@ public interface CriterionOperatorRegistry {
 
     /**
      * Unregister an operator.
+     *
      * @param operator the operator, case-insensitive.
      */
     void unregister(String operator);
 
     /**
-     * converts a {@link Criterion} into a {@link Predicate}
+     * Convert a {@link Criterion} into a {@link Predicate}
      *
      * @param <T> The type of object which the store requires to perform its query.
      * @throws IllegalArgumentException if the criterion cannot be converted.
      */
-    <T> Predicate<T> convert(Criterion criterion);
+    <T> Predicate<T> toPredicate(Criterion criterion);
 
     /**
      * Tell if the operator is supported.
