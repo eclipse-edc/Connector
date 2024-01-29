@@ -208,12 +208,23 @@ public class TransferProcessEventDispatchTest {
     }
 
     @Test
-    void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service, EventRouter eventRouter, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    void shouldDispatchEventOnTransferProcessTerminated(TransferProcessService service,
+                                                        EventRouter eventRouter,
+                                                        RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                        PolicyArchive policyArchive) {
+
+        when(policyArchive.findPolicyForContract(matches("contractId"))).thenReturn(mock(Policy.class));
         dispatcherRegistry.register(getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var transferRequest = createTransferRequest();
 
         var initiateResult = service.initiateTransfer(transferRequest);
+
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessProvisioned.class)));
+            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
+        });
 
         service.terminate(new TerminateTransferCommand(initiateResult.getContent().getId(), "any reason"));
 
