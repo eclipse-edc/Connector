@@ -26,6 +26,7 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.identitytrust.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.identitytrust.verification.VerifierContext;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.security.signature.jws2020.JwkMethod;
@@ -62,6 +63,8 @@ class LdpVerifierTest {
     private final ObjectMapper mapper = createObjectMapper();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
     private final MethodResolver mockDidResolver = mock();
+
+    private final SignatureSuiteRegistry suiteRegistry = mock();
     private VerifierContext context = null;
     private LdpVerifier ldpVerifier;
     private TitaniumJsonLd jsonLd;
@@ -80,13 +83,15 @@ class LdpVerifierTest {
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/v1", Thread.currentThread().getContextClassLoader().getResource("credentials.v1.json").toURI());
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/examples/v1", Thread.currentThread().getContextClassLoader().getResource("examples.v1.json").toURI());
             ldpVerifier = LdpVerifier.Builder.newInstance()
-                    .signatureSuite(jwsSignatureSuite)
+                    .signatureSuites(suiteRegistry)
                     .jsonLd(jsonLd)
                     .objectMapper(mapper)
                     .methodResolvers(List.of(mockDidResolver))
                     .loader(testDocLoader)
                     .build();
             context = VerifierContext.Builder.newInstance().verifier(ldpVerifier).build();
+
+            when(suiteRegistry.getForId(any())).thenReturn(jwsSignatureSuite);
         }
 
         private DataIntegrityProofOptions generateEmbeddedProofOptions(ECKey vcKey, String id) {

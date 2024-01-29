@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY;
 import static org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.mockito.Mockito.mock;
 
 public class JsonObjectFromPresentationResponseMessageTransformerTest {
@@ -43,10 +44,14 @@ public class JsonObjectFromPresentationResponseMessageTransformerTest {
 
         assertThat(json).isNotNull();
         assertThat(json.getJsonString(TYPE).getString()).isEqualTo(PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY);
-        assertThat(json.getJsonArray(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY))
-                .hasSize(1)
-                .first()
-                .isEqualTo(Json.createValue("jwt"));
+
+        assertThat(json.getJsonObject(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY))
+                .extracting(object -> object.get(VALUE).asJsonArray())
+                .satisfies(arr -> {
+                    assertThat(arr).hasSize(1)
+                            .first()
+                            .isEqualTo(Json.createValue("jwt"));
+                });
 
     }
 
@@ -65,10 +70,14 @@ public class JsonObjectFromPresentationResponseMessageTransformerTest {
                 .add("@context", Json.createArrayBuilder().build())
                 .build();
 
-        assertThat(json.getJsonArray(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY))
-                .hasSize(1)
-                .first()
-                .isEqualTo(expected);
+
+        assertThat(json.getJsonObject(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY))
+                .extracting(object -> object.get(VALUE).asJsonArray())
+                .satisfies(arr -> {
+                    assertThat(arr).hasSize(1)
+                            .first()
+                            .isEqualTo(expected);
+                });
 
     }
 
@@ -86,9 +95,11 @@ public class JsonObjectFromPresentationResponseMessageTransformerTest {
                 .add("@context", Json.createArrayBuilder().build())
                 .build();
 
-        assertThat(json.getJsonArray(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY))
-                .hasSize(2)
-                .containsExactly(Json.createValue("jwt"), complex);
+        assertThat(json.getJsonObject(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY))
+                .extracting(object -> object.get(VALUE).asJsonArray())
+                .satisfies(arr -> {
+                    assertThat(arr).hasSize(2).containsExactly(Json.createValue("jwt"), complex);
+                });
 
     }
 }

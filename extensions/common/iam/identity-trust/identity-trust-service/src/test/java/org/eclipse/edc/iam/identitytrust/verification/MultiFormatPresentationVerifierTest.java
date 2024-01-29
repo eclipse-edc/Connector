@@ -47,7 +47,6 @@ import org.mockito.Mockito;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -87,7 +86,7 @@ class MultiFormatPresentationVerifierTest {
 
     @BeforeAll
     static void prepare() throws URISyntaxException, JOSEException {
-        when(SIGNATURE_SUITE_REGISTRY.getAllSuites()).thenReturn(Collections.singleton(JWS_SIGNATURE_SUITE));
+        when(SIGNATURE_SUITE_REGISTRY.getForId(any())).thenReturn(JWS_SIGNATURE_SUITE);
         jsonLd = new TitaniumJsonLd(mock());
         jsonLd.registerCachedDocument("https://www.w3.org/ns/odrl.jsonld", Thread.currentThread().getContextClassLoader().getResource("odrl.jsonld").toURI());
         jsonLd.registerCachedDocument("https://www.w3.org/ns/did/v1", Thread.currentThread().getContextClassLoader().getResource("jws2020.json").toURI());

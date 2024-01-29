@@ -27,6 +27,7 @@ public class InMemorySignatureSuiteRegistry implements SignatureSuiteRegistry {
     @Override
     public void register(String w3cIdentifier, SignatureSuite suite) {
         registry.put(w3cIdentifier, suite);
+        registry.put(suite.getId().uri(), suite);
     }
 
     @Override
