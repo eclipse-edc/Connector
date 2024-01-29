@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.core.event.EventExecutorServiceContainer;
 import org.eclipse.edc.connector.core.event.EventRouterImpl;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.edc.connector.core.health.HealthCheckServiceImpl;
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.connector.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
@@ -39,6 +40,7 @@ import org.eclipse.edc.spi.agent.ParticipantAgentService;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.Hostname;
@@ -186,6 +188,10 @@ public class CoreServicesExtension implements ServiceExtension {
         return new DataAddressValidatorRegistryImpl(context.getMonitor());
     }
 
+    @Provider
+    public CriterionOperatorRegistry criterionOperatorRegistry(ServiceExtensionContext context) {
+        return CriterionOperatorRegistryImpl.ofDefaults();
+    }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
         return HealthCheckServiceConfiguration.Builder.newInstance()

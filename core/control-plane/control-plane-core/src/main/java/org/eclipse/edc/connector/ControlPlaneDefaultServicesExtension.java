@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector;
 
-import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.defaults.callback.CallbackRegistryImpl;
@@ -31,7 +30,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.asset.DataAddressResolver;
-import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.util.concurrency.LockManager;
 
@@ -56,6 +55,9 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+
     @Provider(isDefault = true)
     public AssetIndex defaultAssetIndex() {
         return getAssetIndex();
@@ -73,17 +75,17 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public ContractNegotiationStore defaultContractNegotiationStore() {
-        return new InMemoryContractNegotiationStore(clock);
+        return new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)
     public TransferProcessStore defaultTransferProcessStore() {
-        return new InMemoryTransferProcessStore(clock);
+        return new InMemoryTransferProcessStore(clock, criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)
     public PolicyDefinitionStore defaultPolicyStore() {
-        return new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)));
+        return new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)), criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)
@@ -91,21 +93,16 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
         return new CallbackRegistryImpl();
     }
 
-    @Provider
-    public CriterionToAssetPredicateConverter criterionToAssetPredicateConverter() {
-        return new CriterionToAssetPredicateConverterImpl();
-    }
-
     private ContractDefinitionStore getContractDefinitionStore() {
         if (contractDefinitionStore == null) {
-            contractDefinitionStore = new InMemoryContractDefinitionStore();
+            contractDefinitionStore = new InMemoryContractDefinitionStore(criterionOperatorRegistry);
         }
         return contractDefinitionStore;
     }
 
     private InMemoryAssetIndex getAssetIndex() {
         if (assetIndex == null) {
-            assetIndex = new InMemoryAssetIndex();
+            assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
         }
         return assetIndex;
     }

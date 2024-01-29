@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestM
 import org.eclipse.edc.connector.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.contract.spi.validation.ValidatedConsumerOffer;
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.service.contractnegotiation.ContractNegotiationProtocolServiceImpl;
@@ -45,6 +46,7 @@ import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -106,8 +108,9 @@ class ContractNegotiationIntegrationTest {
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
     private final Clock clock = Clock.systemUTC();
-    private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore(clock);
-    private final InMemoryContractNegotiationStore consumerStore = new InMemoryContractNegotiationStore(clock);
+    private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
+    private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
+    private final InMemoryContractNegotiationStore consumerStore = new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry providerDispatcherRegistry = mock();
     private final RemoteMessageDispatcherRegistry consumerDispatcherRegistry = mock();

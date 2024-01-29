@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.policy.monitor.store.sql;
 
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.spi.testfixtures.store.PolicyMonitorStoreTestBase;
 
@@ -22,7 +23,7 @@ import java.time.Duration;
 
 class InMemoryPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
 
-    private final InMemoryPolicyMonitorStore store = new InMemoryPolicyMonitorStore(CONNECTOR_NAME, Clock.systemUTC());
+    private final InMemoryPolicyMonitorStore store = new InMemoryPolicyMonitorStore(CONNECTOR_NAME, Clock.systemUTC(), CriterionOperatorRegistryImpl.ofDefaults());
 
     @Override
     protected PolicyMonitorStore getStore() {

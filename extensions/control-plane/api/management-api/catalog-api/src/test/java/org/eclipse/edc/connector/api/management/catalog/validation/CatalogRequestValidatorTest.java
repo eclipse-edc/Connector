@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 class CatalogRequestValidatorTest {
 
     private final Monitor monitor = mock();
-    private final Validator<JsonObject> validator = CatalogRequestValidator.instance(monitor);
+    private final Validator<JsonObject> validator = CatalogRequestValidator.instance(monitor, mock());
 
     @Test
     void shouldSucceed_whenInputIsValid() {

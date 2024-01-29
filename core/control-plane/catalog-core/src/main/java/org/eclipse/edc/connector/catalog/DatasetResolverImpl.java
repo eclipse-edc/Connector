@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.query.CriterionToAssetPredicateConverter;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -41,16 +41,16 @@ public class DatasetResolverImpl implements DatasetResolver {
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final DistributionResolver distributionResolver;
-    private final CriterionToAssetPredicateConverter criterionToPredicateConverter;
+    private final CriterionOperatorRegistry criterionOperatorRegistry;
 
     public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex,
                                PolicyDefinitionStore policyDefinitionStore, DistributionResolver distributionResolver,
-                               CriterionToAssetPredicateConverter criterionToPredicateConverter) {
+                               CriterionOperatorRegistry criterionOperatorRegistry) {
         this.contractDefinitionResolver = contractDefinitionResolver;
         this.assetIndex = assetIndex;
         this.policyDefinitionStore = policyDefinitionStore;
         this.distributionResolver = distributionResolver;
-        this.criterionToPredicateConverter = criterionToPredicateConverter;
+        this.criterionOperatorRegistry = criterionOperatorRegistry;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class DatasetResolverImpl implements DatasetResolver {
 
         contractDefinitions.stream()
                 .filter(definition -> definition.getAssetsSelector().stream()
-                        .map(criterionToPredicateConverter::convert)
+                        .map(criterionOperatorRegistry::convert)
                         .reduce(x -> true, Predicate::and)
                         .test(asset)
                 )

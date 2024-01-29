@@ -17,6 +17,7 @@ package org.eclipse.edc.api.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
@@ -55,7 +56,7 @@ class ApiCoreSchemaTest {
 
     @Test
     void criterionExample() throws JsonProcessingException {
-        var validator = CriterionValidator.instance();
+        var validator = CriterionValidator.instance(CriterionOperatorRegistryImpl.ofDefaults());
 
         var jsonObject = objectMapper.readValue(CRITERION_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

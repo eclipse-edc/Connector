@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.policy.monitor.store.sql;
 import org.eclipse.edc.connector.core.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 
 import java.time.Clock;
 import java.util.UUID;
@@ -26,11 +27,11 @@ import java.util.UUID;
  */
 public class InMemoryPolicyMonitorStore extends InMemoryStatefulEntityStore<PolicyMonitorEntry> implements PolicyMonitorStore {
 
-    public InMemoryPolicyMonitorStore(Clock clock) {
-        this(UUID.randomUUID().toString(), clock);
+    public InMemoryPolicyMonitorStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry);
     }
 
-    public InMemoryPolicyMonitorStore(String owner, Clock clock) {
-        super(PolicyMonitorEntry.class, owner, clock);
+    public InMemoryPolicyMonitorStore(String owner, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
+        super(PolicyMonitorEntry.class, owner, clock, criterionOperatorRegistry);
     }
 }

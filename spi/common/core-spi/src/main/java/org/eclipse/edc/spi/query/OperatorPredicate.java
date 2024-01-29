@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.spi.query;
 
+import java.util.function.BiPredicate;
+
 /**
- * Marker interface for the criterion to asset predicate converter
+ * Represent a predicate for an operator. The result is true when the two objects match with the operator.
  */
-public interface CriterionToAssetPredicateConverter extends CriterionToPredicateConverter {
+public interface OperatorPredicate extends BiPredicate<Object, Object> {
 }

@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.defaults.storage.contractdefinition;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.core.store.ReflectionBasedQueryResolver;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -36,7 +37,11 @@ import static java.lang.String.format;
  */
 public class InMemoryContractDefinitionStore implements ContractDefinitionStore {
     private final Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
-    private final QueryResolver<ContractDefinition> queryResolver = new ReflectionBasedQueryResolver<>(ContractDefinition.class);
+    private final QueryResolver<ContractDefinition> queryResolver;
+
+    public InMemoryContractDefinitionStore(CriterionOperatorRegistry criterionOperatorRegistry) {
+        queryResolver = new ReflectionBasedQueryResolver<>(ContractDefinition.class, criterionOperatorRegistry);
+    }
 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {

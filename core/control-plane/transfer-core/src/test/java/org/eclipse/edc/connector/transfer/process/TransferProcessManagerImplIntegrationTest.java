@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.transfer.process;
 
+import org.eclipse.edc.connector.core.store.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.connector.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.transfer.TestProvisionedDataDestinationResource;
@@ -93,7 +94,7 @@ class TransferProcessManagerImplIntegrationTest {
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private final Clock clock = Clock.systemUTC();
-    private final TransferProcessStore store = new InMemoryTransferProcessStore(clock);
+    private final TransferProcessStore store = new InMemoryTransferProcessStore(clock, CriterionOperatorRegistryImpl.ofDefaults());
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final DataFlowManager dataFlowManager = mock();
     private TransferProcessManagerImpl manager;

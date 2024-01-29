@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.defaults.storage.assetindex;
 
-import org.eclipse.edc.connector.asset.CriterionToAssetPredicateConverterImpl;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -42,12 +42,13 @@ import static java.lang.String.format;
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
-    private final CriterionToAssetPredicateConverterImpl predicateConverter = new CriterionToAssetPredicateConverterImpl();
+    private final CriterionOperatorRegistry criterionOperatorRegistry;
     private final ReentrantReadWriteLock lock;
 
-    public InMemoryAssetIndex() {
+    public InMemoryAssetIndex(CriterionOperatorRegistry criterionOperatorRegistry) {
         // fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
+        this.criterionOperatorRegistry = criterionOperatorRegistry;
     }
 
     @Override
@@ -142,7 +143,7 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     private Stream<Asset> filterBy(List<Criterion> criteria) {
         var predicate = criteria.stream()
-                .map(predicateConverter::convert)
+                .map(criterionOperatorRegistry::convert)
                 .reduce(x -> true, Predicate::and);
 
         return cache.values().stream()

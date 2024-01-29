@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.api.management.configuration.transform.Manageme
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -51,6 +52,9 @@ public class CatalogApiExtension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
 
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -63,7 +67,7 @@ public class CatalogApiExtension implements ServiceExtension {
 
         webService.registerResource(config.getContextAlias(), new CatalogApiController(service, transformerRegistry, validatorRegistry));
 
-        validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(context.getMonitor()));
+        validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(context.getMonitor(), criterionOperatorRegistry));
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
     }
 }
