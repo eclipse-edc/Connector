@@ -115,7 +115,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // add all rules for self-issued ID tokens
         rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
         rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
-        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(context.getParticipantId()));
+        rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(getOwnDid(context)));
         rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule(context.getMonitor()));
         rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5));
         rulesRegistry.addRule(IATP_SELF_ISSUED_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 5));

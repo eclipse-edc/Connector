@@ -125,9 +125,9 @@ public class IdentityAndTrustService implements IdentityService {
         parameters.getClaims().forEach((k, v) -> claims.replace(k, v.toString()));
 
         claims.putAll(Map.of(
-                "iss", myOwnDid,
-                "sub", myOwnDid,
-                "aud", parameters.getStringClaim(AUDIENCE)));
+                ISSUER, myOwnDid,
+                SUBJECT, myOwnDid,
+                AUDIENCE, parameters.getStringClaim(AUDIENCE)));
 
         return secureTokenService.createToken(claims, scope);
     }
