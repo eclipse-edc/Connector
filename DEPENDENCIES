@@ -123,7 +123,7 @@ maven/mavencentral/io.netty/netty-tcnative-classes/2.0.56.Final, Apache-2.0, app
 maven/mavencentral/io.netty/netty-transport-native-unix-common/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
 maven/mavencentral/io.netty/netty-transport/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/1.32.0, Apache-2.0, approved, #11684
-maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.0.0-alpha, Apache-2.0, approved, #10044
+maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.1.0-alpha, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-api/1.32.0, Apache-2.0, approved, #11682
 maven/mavencentral/io.opentelemetry/opentelemetry-context/1.32.0, Apache-2.0, approved, #11683
 maven/mavencentral/io.prometheus/simpleclient/0.16.0, Apache-2.0, approved, clearlydefined
@@ -190,7 +190,7 @@ maven/mavencentral/net.minidev/json-smart/2.4.7, Apache-2.0, approved, #3288
 maven/mavencentral/net.sf.jopt-simple/jopt-simple/5.0.4, MIT, approved, CQ13174
 maven/mavencentral/net.sf.saxon/Saxon-HE/10.6, MPL-2.0 AND W3C, approved, #7945
 maven/mavencentral/org.antlr/antlr4-runtime/4.9.3, BSD-3-Clause, approved, #322
-maven/mavencentral/org.apache.commons/commons-compress/1.24.0, Apache-2.0 AND BSD-3-Clause AND bzip2-1.0.6 AND LicenseRef-Public-Domain, approved, #10368
+maven/mavencentral/org.apache.commons/commons-compress/1.25.0, Apache-2.0, approved, #11600
 maven/mavencentral/org.apache.commons/commons-digester3/3.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.commons/commons-lang3/3.10, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.commons/commons-lang3/3.11, Apache-2.0, approved, CQ22642
@@ -210,6 +210,7 @@ maven/mavencentral/org.apache.velocity/velocity-engine-core/2.3, Apache-2.0, app
 maven/mavencentral/org.apache.velocity/velocity-engine-scripting/2.3, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.assertj/assertj-core/3.25.1, Apache-2.0, approved, #12585
+maven/mavencentral/org.assertj/assertj-core/3.25.2, Apache-2.0, approved, #12585
 maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.72, MIT, approved, #3789
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.77, MIT, approved, #11593
@@ -318,12 +319,12 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.35, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/2.0.5, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.6, MIT, approved, #5915
-maven/mavencentral/org.testcontainers/database-commons/1.19.3, Apache-2.0, approved, #10345
-maven/mavencentral/org.testcontainers/jdbc/1.19.3, Apache-2.0, approved, #10348
-maven/mavencentral/org.testcontainers/junit-jupiter/1.19.3, MIT, approved, #10344
-maven/mavencentral/org.testcontainers/postgresql/1.19.3, MIT, approved, #10350
-maven/mavencentral/org.testcontainers/testcontainers/1.19.3, Apache-2.0 AND MIT, approved, #10347
-maven/mavencentral/org.testcontainers/vault/1.19.3, MIT, approved, #10852
+maven/mavencentral/org.testcontainers/database-commons/1.19.4, Apache-2.0, approved, #10345
+maven/mavencentral/org.testcontainers/jdbc/1.19.4, Apache-2.0, approved, #10348
+maven/mavencentral/org.testcontainers/junit-jupiter/1.19.4, MIT, approved, #10344
+maven/mavencentral/org.testcontainers/postgresql/1.19.4, MIT, approved, #10350
+maven/mavencentral/org.testcontainers/testcontainers/1.19.4, Apache-2.0 AND MIT, approved, #10347
+maven/mavencentral/org.testcontainers/vault/1.19.4, MIT, approved, #10852
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.5, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
 maven/mavencentral/org.xmlunit/xmlunit-core/2.9.1, Apache-2.0, approved, #6272
 maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.9.1, Apache-2.0, approved, clearlydefined
