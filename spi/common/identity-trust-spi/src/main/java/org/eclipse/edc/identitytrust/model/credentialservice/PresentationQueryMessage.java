@@ -31,7 +31,9 @@ import static org.eclipse.edc.identitytrust.VcConstants.IATP_PREFIX;
 public class PresentationQueryMessage {
     public static final String PRESENTATION_QUERY_MESSAGE_SCOPE_PROPERTY = IATP_PREFIX + "scope";
     public static final String PRESENTATION_QUERY_MESSAGE_DEFINITION_PROPERTY = IATP_PREFIX + "presentationDefinition";
-    public static final String PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY = IATP_PREFIX + "PresentationQueryMessage";
+    public static final String PRESENTATION_QUERY_MESSAGE_TYPE = "PresentationQueryMessage";
+    public static final String PRESENTATION_QUERY_MESSAGE_TYPE_PROPERTY = IATP_PREFIX + PRESENTATION_QUERY_MESSAGE_TYPE;
+
     private final List<String> scopes = new ArrayList<>();
     private PresentationDefinition presentationDefinition;
 

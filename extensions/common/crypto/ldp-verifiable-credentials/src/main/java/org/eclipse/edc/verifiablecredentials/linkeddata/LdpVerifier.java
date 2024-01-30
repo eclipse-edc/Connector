@@ -25,8 +25,6 @@ import com.apicatalog.ld.schema.LdProperty;
 import com.apicatalog.ld.schema.LdTerm;
 import com.apicatalog.ld.signature.LinkedDataSignature;
 import com.apicatalog.ld.signature.SignatureSuite;
-import com.apicatalog.ld.signature.SignatureSuiteMapper;
-import com.apicatalog.ld.signature.SignatureSuiteProvider;
 import com.apicatalog.ld.signature.VerificationError;
 import com.apicatalog.ld.signature.VerificationError.Code;
 import com.apicatalog.ld.signature.key.VerificationKey;
@@ -65,7 +63,7 @@ public class LdpVerifier implements CredentialVerifier {
 
     private JsonLd jsonLd;
     private ObjectMapper jsonLdMapper;
-    private SignatureSuiteProvider suiteProvider;
+    private SignatureSuiteRegistry suiteRegistry;
     private Map<String, Object> params;
     private Collection<MethodResolver> methodResolvers = new ArrayList<>(List.of(new HttpMethodResolver()));
     private DocumentLoader loader;
@@ -217,9 +215,9 @@ public class LdpVerifier implements CredentialVerifier {
             }
 
             var signatureSuite = proofType.stream()
-                    .filter(suiteProvider::isSupported)
+                    .map(suiteRegistry::getForId)
+                    .filter(Objects::nonNull)
                     .findFirst()
-                    .map(suiteProvider::find)
                     .orElseThrow(() -> new VerificationError(Code.UnsupportedCryptoSuite));
 
             if (signatureSuite.getSchema() == null) {
@@ -364,20 +362,8 @@ public class LdpVerifier implements CredentialVerifier {
             return new Builder();
         }
 
-        public Builder signatureSuite(SignatureSuite signatureSuiteProvider) {
-            this.verifier.suiteProvider = new SignatureSuiteMapper().add(signatureSuiteProvider);
-            return this;
-        }
-
-        public Builder signatureSuites(SignatureSuiteProvider provider) {
-            this.verifier.suiteProvider = provider;
-            return this;
-        }
-
         public Builder signatureSuites(SignatureSuiteRegistry registry) {
-            var provider = new SignatureSuiteMapper();
-            registry.getAllSuites().forEach(provider::add);
-            this.verifier.suiteProvider = provider;
+            this.verifier.suiteRegistry = registry;
             return this;
         }
 
@@ -429,7 +415,7 @@ public class LdpVerifier implements CredentialVerifier {
         public LdpVerifier build() {
             Objects.requireNonNull(this.verifier.jsonLd, "Must have a JsonLD service!");
             Objects.requireNonNull(this.verifier.jsonLdMapper, "Must have an ObjectMapper!");
-            Objects.requireNonNull(this.verifier.suiteProvider, "Must have a SignatureSuite!");
+            Objects.requireNonNull(this.verifier.suiteRegistry, "Must have a Signature registry!");
             return this.verifier;
         }
     }

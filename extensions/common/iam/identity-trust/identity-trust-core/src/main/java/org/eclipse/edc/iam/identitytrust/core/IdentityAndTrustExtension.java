@@ -33,6 +33,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
@@ -66,6 +67,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Setting(value = "DID of this connector", required = true)
     public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
     public static final String IATP_SELF_ISSUED_TOKEN_CONTEXT = "iatp-si";
+
+    public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
 
 
     @Inject
@@ -125,6 +128,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule("iatp-vp", (toVerify, additional) -> Optional.ofNullable(toVerify.getStringClaim(JWTClaimNames.SUBJECT)).map(s ->
                 Result.success()).orElseGet(() -> Result.failure("Token could not be verified: Claim verification failed. JWT missing required claims: [sub]")).mapTo());
 
+
+        // TODO move in a separated extension?
+        signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new JwsSignature2020Suite(typeManager.getMapper(JSON_LD)));
     }
 
     @Provider

@@ -25,6 +25,7 @@ import java.util.UUID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.NOT_BEFORE;
 
 /**
  * Decorator for Self-Issued ID token and Access Token. It appends input claims and
@@ -45,6 +46,7 @@ class SelfIssuedTokenDecorator implements TokenDecorator {
     public TokenParameters.Builder decorate(TokenParameters.Builder tokenParameters) {
         this.claims.forEach(tokenParameters::claims);
         return tokenParameters.claims(ISSUED_AT, Date.from(clock.instant()))
+                .claims(NOT_BEFORE, Date.from(clock.instant()))
                 .claims(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)))
                 .claims(JWT_ID, UUID.randomUUID().toString());
     }

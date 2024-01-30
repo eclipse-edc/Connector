@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.identitytrust.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.identitytrust.model.credentialservice.PresentationResponseMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -36,12 +37,19 @@ public class JsonObjectFromPresentationResponseMessageTransformer extends Abstra
     }
 
     @Override
-    public @Nullable JsonObject transform(@NotNull PresentationResponseMessage presentationQueryMessage, @NotNull TransformerContext context) {
+    public @Nullable JsonObject transform(@NotNull PresentationResponseMessage responseMessage, @NotNull TransformerContext context) {
         // Presentation Submission not supported yet
         return Json.createObjectBuilder()
                 .add(TYPE, PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY)
-                .add(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY, Json.createArrayBuilder(presentationQueryMessage.getPresentation()).build())
+                .add(PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY, createJson(responseMessage))
                 .build();
+    }
+    
+    private JsonObject createJson(PresentationResponseMessage responseMessage) {
+        var jo = Json.createObjectBuilder();
+        jo.add(JsonLdKeywords.VALUE, Json.createArrayBuilder(responseMessage.getPresentation()).build());
+        jo.add(JsonLdKeywords.TYPE, JsonLdKeywords.JSON);
+        return jo.build();
     }
 
 }
