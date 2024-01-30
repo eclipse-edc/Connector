@@ -46,7 +46,6 @@ import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
@@ -116,38 +115,7 @@ public class EmbeddedSecureTokenServiceIntegrationTest {
                             });
                 });
     }
-
-    @Test
-    void createToken_withBearerAccessAlias() {
-        var scopes = "email:read";
-        var issuer = "testIssuer";
-        var audience = "audience";
-        var bearerAccessAlias = "alias";
-        var claims = Map.of(ISSUER, issuer, AUDIENCE, audience, BEARER_ACCESS_ALIAS, bearerAccessAlias);
-        var tokenResult = secureTokenService.createToken(claims, scopes);
-
-        assertThat(tokenResult).isSucceeded()
-                .satisfies(tokenRepresentation -> {
-                    var jwt = SignedJWT.parse(tokenRepresentation.getToken());
-                    assertThat(jwt.verify(createVerifier(jwt.getHeader(), keyPair.getPublic()))).isTrue();
-
-                    assertThat(jwt.getJWTClaimsSet().getClaims())
-                            .containsEntry(ISSUER, issuer)
-                            .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
-                            .extractingByKey(PRESENTATION_ACCESS_TOKEN_CLAIM, as(STRING))
-                            .satisfies(accessToken -> {
-                                var accessTokenJwt = SignedJWT.parse(accessToken);
-                                assertThat(accessTokenJwt.verify(createVerifier(accessTokenJwt.getHeader(), keyPair.getPublic()))).isTrue();
-                                assertThat(accessTokenJwt.getJWTClaimsSet().getClaims())
-                                        .containsEntry(ISSUER, issuer)
-                                        .containsEntry(SUBJECT, bearerAccessAlias)
-                                        .containsEntry(AUDIENCE, List.of(issuer))
-                                        .containsEntry(SCOPE, scopes)
-                                        .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
-                            });
-                });
-    }
-
+    
     @ParameterizedTest
     @ArgumentsSource(ClaimsArguments.class)
     void createToken_shouldFail_withMissingClaims(Map<String, String> claims) {

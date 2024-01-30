@@ -91,7 +91,6 @@ class IdentityAndTrustServiceTest {
 
         when(actionMock.apply(any())).thenReturn(success(ClaimToken.Builder.newInstance()
                 .claim("iss", CONSUMER_DID)
-                .claim("client_id", "sender-id")
                 .claim(PRESENTATION_ACCESS_TOKEN_CLAIM, jwt.getToken()).build()));
 
         when(mockedSts.createToken(any(), any())).thenReturn(success(TokenRepresentation.Builder.newInstance().build()));
@@ -148,8 +147,7 @@ class IdentityAndTrustServiceTest {
             assertThat(service.obtainClientCredentials(tp)).isSucceeded();
             verify(mockedSts).createToken(argThat(m -> m.get("iss").equals(EXPECTED_OWN_DID) &&
                     m.get("sub").equals(EXPECTED_OWN_DID) &&
-                    m.get("aud").equals(tp.getStringClaim(AUDIENCE)) &&
-                    m.get("client_id").equals(EXPECTED_PARTICIPANT_ID)), eq(scope));
+                    m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
         }
     }
 

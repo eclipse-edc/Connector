@@ -86,10 +86,10 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
                 .jsonPath().getString("access_token");
 
         assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getId())
-                .containsEntry(SUBJECT, client.getId())
+                .containsEntry(ISSUER, client.getDid())
+                .containsEntry(SUBJECT, client.getDid())
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, client.getClientId())
+                .doesNotContainKey(CLIENT_ID)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
     }
 
@@ -121,16 +121,16 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
 
 
         assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getId())
-                .containsEntry(SUBJECT, client.getId())
+                .containsEntry(ISSUER, client.getDid())
+                .containsEntry(SUBJECT, client.getDid())
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, client.getClientId())
+                .doesNotContainKey(CLIENT_ID)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
                 .hasEntrySatisfying(PRESENTATION_ACCESS_TOKEN_CLAIM, (accessToken) -> {
                     assertThat(parseClaims((String) accessToken))
-                            .containsEntry(ISSUER, client.getId())
+                            .containsEntry(ISSUER, client.getDid())
                             .containsEntry(SUBJECT, audience)
-                            .containsEntry(AUDIENCE, List.of(client.getClientId()))
+                            .containsEntry(AUDIENCE, List.of(client.getDid()))
                             .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
                 });
     }
@@ -161,10 +161,10 @@ public class StsApiEndToEndTest extends StsEndToEndTestBase {
 
 
         assertThat(parseClaims(token))
-                .containsEntry(ISSUER, client.getId())
-                .containsEntry(SUBJECT, client.getId())
+                .containsEntry(ISSUER, client.getDid())
+                .containsEntry(SUBJECT, client.getDid())
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, client.getClientId())
+                .doesNotContainKey(CLIENT_ID)
                 .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
                 .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
     }

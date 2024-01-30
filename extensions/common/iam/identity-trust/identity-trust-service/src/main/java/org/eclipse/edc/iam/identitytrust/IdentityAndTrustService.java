@@ -127,8 +127,7 @@ public class IdentityAndTrustService implements IdentityService {
         claims.putAll(Map.of(
                 "iss", myOwnDid,
                 "sub", myOwnDid,
-                "aud", parameters.getStringClaim(AUDIENCE),
-                "client_id", participantId));
+                "aud", parameters.getStringClaim(AUDIENCE)));
 
         return secureTokenService.createToken(claims, scope);
     }
@@ -146,7 +145,6 @@ public class IdentityAndTrustService implements IdentityService {
         var claimToken = claimTokenResult.getContent();
         var accessToken = claimToken.getStringClaim(PRESENTATION_ACCESS_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
-        var intendedAudience = claimToken.getStringClaim("client_id");
 
         /* TODO: DEMO the scopes should be extracted elsewhere. replace this section!!############################*/
         var scopes = new ArrayList<String>();
@@ -160,7 +158,7 @@ public class IdentityAndTrustService implements IdentityService {
 
         var siTokenClaims = Map.of(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken,
                 ISSUED_AT, Instant.now().toString(),
-                AUDIENCE, intendedAudience,
+                AUDIENCE, issuer,
                 ISSUER, myOwnDid,
                 SUBJECT, myOwnDid,
                 EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).toString());
@@ -189,7 +187,7 @@ public class IdentityAndTrustService implements IdentityService {
         // so we need to make sure that `iss == sub == DID`
         return result.compose(u -> extractClaimToken(presentations.stream().map(p -> p.presentation().getCredentials().stream())
                 .reduce(Stream.empty(), Stream::concat)
-                .toList(), intendedAudience));
+                .toList()));
     }
 
     @NotNull
@@ -208,7 +206,7 @@ public class IdentityAndTrustService implements IdentityService {
 
 
     @NotNull
-    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials, String issuer) {
+    private Result<ClaimToken> extractClaimToken(List<VerifiableCredential> credentials) {
         if (credentials.isEmpty()) {
             return failure("No VerifiableCredentials were found on VP");
         }
@@ -217,7 +215,6 @@ public class IdentityAndTrustService implements IdentityService {
                 .map(CredentialSubject::getClaims)
                 .forEach(claimSet -> claimSet.forEach(b::claim));
 
-        b.claim("client_id", issuer);
         return success(b.build());
     }
 

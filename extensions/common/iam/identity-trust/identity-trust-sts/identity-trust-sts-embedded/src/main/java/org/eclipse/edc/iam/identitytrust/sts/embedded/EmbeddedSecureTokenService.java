@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
@@ -88,7 +87,6 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         accessTokenClaims.put(SCOPE, bearerAccessScope);
         return addClaim(claims, ISSUER, withClaim(AUDIENCE, accessTokenClaims::put))
                 .compose(v -> addClaim(claims, AUDIENCE, withClaim(SUBJECT, accessTokenClaims::put)))
-                .compose(v -> addOptionalClaim(claims, BEARER_ACCESS_ALIAS, withClaim(SUBJECT, accessTokenClaims::put)))
                 .compose(v -> {
                     var keyIdDecorator = new KeyIdDecorator(publicKeyId.get());
                     return tokenGenerationService.generate(privateKeySupplier, keyIdDecorator, new SelfIssuedTokenDecorator(accessTokenClaims, clock, validity));
@@ -104,11 +102,6 @@ public class EmbeddedSecureTokenService implements SecureTokenService {
         } else {
             return failure(format("Missing %s in the input claims", claim));
         }
-    }
-
-    private Result<Void> addOptionalClaim(Map<String, String> claims, String claim, Consumer<String> consumer) {
-        addClaim(claims, claim, consumer);
-        return Result.success();
     }
 
     private Consumer<String> withClaim(String key, BiConsumer<String, String> consumer) {

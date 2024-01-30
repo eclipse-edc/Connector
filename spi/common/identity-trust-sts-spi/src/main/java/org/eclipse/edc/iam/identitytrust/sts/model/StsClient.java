@@ -24,6 +24,7 @@ import java.util.Objects;
 public class StsClient {
     private String id;
     private String clientId;
+    private String did;
     private String name;
     private String secretAlias;
     private String privateKeyAlias;
@@ -79,6 +80,15 @@ public class StsClient {
     }
 
     /**
+     * The client DID
+     *
+     * @return The DID
+     */
+    public String getDid() {
+        return did;
+    }
+
+    /**
      * A reference, e.g. a URL, where the public key that corresponds to the {@link StsClient#getPrivateKeyAlias()} can be obtained.
      * In most situations this will be a DID with a key identifier, e.g. "did:web:foo:bar#key-1".
      * <p>
@@ -119,6 +129,11 @@ public class StsClient {
             return this;
         }
 
+        public Builder did(String did) {
+            client.did = did;
+            return this;
+        }
+
         public Builder secretAlias(String secretAlias) {
             client.secretAlias = secretAlias;
             return this;
@@ -138,6 +153,7 @@ public class StsClient {
             Objects.requireNonNull(client.id, "Client id");
             Objects.requireNonNull(client.clientId, "Client client_id");
             Objects.requireNonNull(client.name, "Client name");
+            Objects.requireNonNull(client.did, "Client DID");
             Objects.requireNonNull(client.secretAlias, "Client secret alias");
             Objects.requireNonNull(client.privateKeyAlias, "Client private key alias");
             return client;

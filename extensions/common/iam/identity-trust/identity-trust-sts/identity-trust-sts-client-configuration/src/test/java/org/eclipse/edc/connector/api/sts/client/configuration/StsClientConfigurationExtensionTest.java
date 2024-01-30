@@ -28,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.api.sts.client.configuration.StsClientConfigurationExtension.CLIENT_DID;
 import static org.eclipse.edc.connector.api.sts.client.configuration.StsClientConfigurationExtension.CLIENT_ID;
 import static org.eclipse.edc.connector.api.sts.client.configuration.StsClientConfigurationExtension.CLIENT_NAME;
 import static org.eclipse.edc.connector.api.sts.client.configuration.StsClientConfigurationExtension.CLIENT_PRIVATE_KEY_ALIAS;
@@ -63,6 +64,7 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
                 .clientId("client_id")
                 .privateKeyAlias("pAlias")
                 .secretAlias("sAlias")
+                .did("did:example:subject")
                 .build();
         var clientAlias = "client";
         var config = ConfigFactory.fromMap(clientConfig(client, clientAlias));
@@ -81,6 +83,7 @@ public class StsClientConfigurationExtensionTest implements ServiceExtension {
                 clientAlias + "." + CLIENT_NAME, client.getName(),
                 clientAlias + "." + CLIENT_ID, client.getClientId(),
                 clientAlias + "." + CLIENT_SECRET_ALIAS, client.getSecretAlias(),
+                clientAlias + "." + CLIENT_DID, client.getDid(),
                 clientAlias + "." + CLIENT_PRIVATE_KEY_ALIAS, client.getPrivateKeyAlias()
         );
     }
