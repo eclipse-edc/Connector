@@ -22,15 +22,16 @@ import java.util.UUID;
 public class TestFunctions {
 
     public static StsClient createClient(String id, String secretAlias) {
-        return createClient(id, secretAlias, id, secretAlias);
+        return createClient(id, secretAlias, id, secretAlias, "did:example:subject");
     }
 
-    public static StsClient createClient(String id, String secretAlias, String clientId, String publicKeyReference) {
+    public static StsClient createClient(String id, String secretAlias, String clientId, String publicKeyReference, String did) {
         return createClientBuilder(id)
                 .clientId(clientId)
                 .name(UUID.randomUUID().toString())
                 .secretAlias(secretAlias)
                 .publicKeyReference(publicKeyReference)
+                .did(did)
                 .privateKeyAlias(UUID.randomUUID().toString()).build();
     }
 

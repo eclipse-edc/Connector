@@ -46,7 +46,7 @@ public abstract class StsClientStoreTestBase {
             var client = createClient(getRandomId());
             assertThat(getStsClientStore().create(client)).isSucceeded();
 
-            var clientFromDb = getStsClientStore().findById(client.getId()).getContent();
+            var clientFromDb = getStsClientStore().findByClientId(client.getId()).getContent();
             assertThat(client).usingRecursiveComparison().isEqualTo(clientFromDb);
         }
     }
@@ -59,7 +59,7 @@ public abstract class StsClientStoreTestBase {
             var client = createClient(getRandomId());
             getStsClientStore().create(client);
 
-            var policyFromDb = getStsClientStore().findById(client.getId()).getContent();
+            var policyFromDb = getStsClientStore().findByClientId(client.getId()).getContent();
 
             assertThat(client).usingRecursiveComparison().isEqualTo(policyFromDb);
         }
@@ -67,7 +67,7 @@ public abstract class StsClientStoreTestBase {
         @Test
         @DisplayName("Find client by ID when not exists")
         void whenNonexistent() {
-            assertThat(getStsClientStore().findById("nonexistent"))
+            assertThat(getStsClientStore().findByClientId("nonexistent"))
                     .isFailed()
                     .extracting(StoreFailure::getReason)
                     .isEqualTo(StoreFailure.Reason.NOT_FOUND);

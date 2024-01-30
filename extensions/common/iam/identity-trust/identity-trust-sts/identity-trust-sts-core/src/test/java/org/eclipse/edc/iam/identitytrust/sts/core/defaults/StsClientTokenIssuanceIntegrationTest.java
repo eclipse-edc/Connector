@@ -83,11 +83,13 @@ public class StsClientTokenIssuanceIntegrationTest {
         var secretAlias = "client_id";
         var privateKeyAlis = "client_id";
         var audience = "aud";
+        var did = "did:example:subject";
         var client = createClientBuilder(id)
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
                 .publicKeyReference("public-key")
+                .did(did)
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).build();
@@ -101,11 +103,11 @@ public class StsClientTokenIssuanceIntegrationTest {
         var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
 
         assertThat(jwt.getJWTClaimsSet().getClaims())
-                .containsEntry(ISSUER, id)
-                .containsEntry(SUBJECT, id)
+                .containsEntry(ISSUER, did)
+                .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, clientId)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
+                .doesNotContainKey(CLIENT_ID);
 
     }
 
@@ -115,12 +117,14 @@ public class StsClientTokenIssuanceIntegrationTest {
         var clientId = "client_id";
         var secretAlias = "client_id";
         var privateKeyAlis = "client_id";
+        var did = "did:example:subject";
         var audience = "aud";
         var scope = "scope:test";
         var client = createClientBuilder(id)
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
+                .did(did)
                 .publicKeyReference("public-key")
                 .build();
 
@@ -135,11 +139,11 @@ public class StsClientTokenIssuanceIntegrationTest {
         var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
 
         assertThat(jwt.getJWTClaimsSet().getClaims())
-                .containsEntry(ISSUER, id)
-                .containsEntry(SUBJECT, id)
+                .containsEntry(ISSUER, did)
+                .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, clientId)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, "access_token");
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT, "access_token")
+                .doesNotContainKey(CLIENT_ID);
 
     }
 
@@ -151,11 +155,14 @@ public class StsClientTokenIssuanceIntegrationTest {
         var privateKeyAlis = "client_id";
         var audience = "aud";
         var accessToken = "tokenTest";
+        var did = "did:example:subject";
+
         var client = createClientBuilder(id)
                 .clientId(clientId)
                 .privateKeyAlias(privateKeyAlis)
                 .secretAlias(secretAlias)
                 .publicKeyReference("public-key")
+                .did(did)
                 .build();
 
         var additional = StsClientTokenAdditionalParams.Builder.newInstance().audience(audience).accessToken(accessToken).build();
@@ -169,12 +176,12 @@ public class StsClientTokenIssuanceIntegrationTest {
         var jwt = SignedJWT.parse(tokenResult.getContent().getToken());
 
         assertThat(jwt.getJWTClaimsSet().getClaims())
-                .containsEntry(ISSUER, id)
-                .containsEntry(SUBJECT, id)
+                .containsEntry(ISSUER, did)
+                .containsEntry(SUBJECT, did)
                 .containsEntry(AUDIENCE, List.of(audience))
-                .containsEntry(CLIENT_ID, clientId)
                 .containsEntry(PRESENTATION_ACCESS_TOKEN_CLAIM, accessToken)
-                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT);
+                .containsKeys(JWT_ID, EXPIRATION_TIME, ISSUED_AT)
+                .doesNotContainKey(CLIENT_ID);
 
     }
 

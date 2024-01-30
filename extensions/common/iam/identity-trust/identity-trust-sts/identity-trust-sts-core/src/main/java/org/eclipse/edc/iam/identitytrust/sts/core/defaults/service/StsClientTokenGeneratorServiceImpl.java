@@ -30,18 +30,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.BEARER_ACCESS_ALIAS;
 import static org.eclipse.edc.identitytrust.SelfIssuedTokenConstants.PRESENTATION_ACCESS_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGeneratorService {
 
     private static final Map<String, Function<StsClientTokenAdditionalParams, String>> CLAIM_MAPPERS = Map.of(
-            PRESENTATION_ACCESS_TOKEN_CLAIM, StsClientTokenAdditionalParams::getAccessToken,
-            BEARER_ACCESS_ALIAS, StsClientTokenAdditionalParams::getBearerAccessAlias);
+            PRESENTATION_ACCESS_TOKEN_CLAIM, StsClientTokenAdditionalParams::getAccessToken);
 
     private final long tokenExpiration;
     private final StsTokenGenerationProvider tokenGenerationProvider;
@@ -62,10 +59,9 @@ public class StsClientTokenGeneratorServiceImpl implements StsClientTokenGenerat
                 clock, tokenExpiration);
 
         var initialClaims = Map.of(
-                ISSUER, client.getId(),
-                SUBJECT, client.getId(),
-                AUDIENCE, additionalParams.getAudience(),
-                CLIENT_ID, client.getClientId());
+                ISSUER, client.getDid(),
+                SUBJECT, client.getDid(),
+                AUDIENCE, additionalParams.getAudience());
 
         var claims = CLAIM_MAPPERS.entrySet().stream()
                 .filter(entry -> entry.getValue().apply(additionalParams) != null)

@@ -27,7 +27,6 @@ import jakarta.ws.rs.FormParam;
  *  <li>clientSecret:       Authorization secret for the client/</li>
  *  <li>audience:           Audience according to the <a href="https://datatracker.ietf.org/doc/html/draft-tschofenig-oauth-audience-00#section-3">spec</a>.</li>
  *  <li>bearerAccessScope:  Space-delimited scopes to be included in the access_token claim.</li>
- *  <li>bearerAccessAlias:  Alias to be used in the sub of the VP access token (default is audience).</li>
  *  <li>accessToken:        VP/VC Access Token to be included as access_token claim.</li>
  *  <li>grantType:          Type of grant. Must be client_credentials.</li>
  * </ul>
@@ -52,10 +51,6 @@ public final class StsTokenRequest {
     @FormParam("bearer_access_scope")
     private String bearerAccessScope;
 
-
-    @Parameter(name = "bearer_access_alias", description = "Alias to be use in the sub of the VP access token (default is audience)", style = ParameterStyle.FORM)
-    @FormParam("bearer_access_alias")
-    private String bearerAccessAlias;
 
     @Parameter(name = "access_token", description = "VP access token to be added as a claim in the SI token", style = ParameterStyle.FORM)
     @FormParam("access_token")
@@ -89,9 +84,6 @@ public final class StsTokenRequest {
         return bearerAccessScope;
     }
 
-    public String getBearerAccessAlias() {
-        return bearerAccessAlias;
-    }
 
     public String getAccessToken() {
         return accessToken;
@@ -126,11 +118,6 @@ public final class StsTokenRequest {
 
         public Builder bearerAccessScope(String bearerAccessScope) {
             this.request.bearerAccessScope = bearerAccessScope;
-            return this;
-        }
-
-        public Builder bearerAccessAlias(String bearerAccessAlias) {
-            this.request.bearerAccessAlias = bearerAccessAlias;
             return this;
         }
 

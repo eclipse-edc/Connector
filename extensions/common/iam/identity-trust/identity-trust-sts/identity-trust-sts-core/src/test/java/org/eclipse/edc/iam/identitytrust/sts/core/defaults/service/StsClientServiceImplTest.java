@@ -58,12 +58,12 @@ public class StsClientServiceImplTest {
         var clientId = "clientId";
         var client = createClient(clientId);
 
-        when(store.findById(clientId)).thenReturn(StoreResult.success(client));
+        when(store.findByClientId(clientId)).thenReturn(StoreResult.success(client));
 
-        var inserted = clientService.findById(clientId);
+        var inserted = clientService.findByClientId(clientId);
 
         assertThat(inserted).isSucceeded().isEqualTo(client);
-        verify(store).findById(clientId);
+        verify(store).findByClientId(clientId);
         verifyNoMoreInteractions(store);
     }
 

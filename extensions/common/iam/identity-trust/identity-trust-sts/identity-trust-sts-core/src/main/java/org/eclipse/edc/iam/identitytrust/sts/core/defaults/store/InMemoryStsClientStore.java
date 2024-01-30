@@ -33,13 +33,13 @@ public class InMemoryStsClientStore implements StsClientStore {
 
     @Override
     public StoreResult<StsClient> create(StsClient client) {
-        return Optional.ofNullable(clients.putIfAbsent(client.getId(), client))
-                .map(old -> StoreResult.<StsClient>alreadyExists(format("Client with id %s already exists", client.getId())))
+        return Optional.ofNullable(clients.putIfAbsent(client.getClientId(), client))
+                .map(old -> StoreResult.<StsClient>alreadyExists(format("Client with id %s already exists", client.getClientId())))
                 .orElseGet(() -> StoreResult.success(client));
     }
 
     @Override
-    public StoreResult<StsClient> findById(String id) {
+    public StoreResult<StsClient> findByClientId(String id) {
         return Optional.ofNullable(clients.get(id))
                 .map(StoreResult::success)
                 .orElseGet(() -> StoreResult.notFound(format("Client with id %s not found.", id)));
